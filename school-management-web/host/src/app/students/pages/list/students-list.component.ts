@@ -4,7 +4,9 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { StudentsService } from '../../services/students.service';
@@ -18,6 +20,8 @@ import { StudentsService } from '../../services/students.service';
     MatIconModule,
     MatSnackBarModule,
     MatPaginatorModule,
+    MatFormFieldModule,
+    MatInputModule,
     RouterLink,
     AsyncPipe,
     NgIf,
@@ -40,11 +44,23 @@ export class StudentsListComponent {
   protected readonly pageSizeOptions = [5, 10, 20];
   protected readonly pageSize = signal(this.pageSizeOptions[0]);
   protected readonly pageIndex = signal(0);
+  protected readonly searchTerm = signal('');
 
-  protected readonly totalStudents = computed(() => this.studentsSignal().length);
+  protected readonly filteredStudents = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    const students = this.studentsSignal();
+
+    if (!term) {
+      return students;
+    }
+
+    return students.filter(student => student.nomeCompleto.toLowerCase().includes(term));
+  });
+
+  protected readonly totalStudents = computed(() => this.filteredStudents().length);
 
   protected readonly pagedStudents = computed(() => {
-    const students = this.studentsSignal();
+    const students = this.filteredStudents();
     const start = this.pageIndex() * this.pageSize();
     const end = start + this.pageSize();
     return students.slice(start, end);
@@ -52,6 +68,16 @@ export class StudentsListComponent {
 
   protected goToNewStudent(): void {
     this.router.navigate(['/students/new']);
+  }
+
+  protected onSearchTermChange(value: string): void {
+    this.searchTerm.set(value);
+    this.pageIndex.set(0);
+  }
+
+  protected clearSearch(): void {
+    this.searchTerm.set('');
+    this.pageIndex.set(0);
   }
 
   protected remover(id: string): void {
