@@ -55,7 +55,7 @@
       </div>
 
       <mat-paginator
-        *ngIf="totalStudents() > 0"
+        *ngIf="totalStudents() > pageSize()"
         [length]="totalStudents()"
         [pageIndex]="pageIndex()"
         [pageSize]="pageSize()"
