@@ -49,12 +49,13 @@ export class StudentsListComponent implements OnInit {
   protected readonly filteredStudents = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     const students = this.studentsSignal();
+    const filtered = !term
+      ? students
+      : students.filter(student => student.nomeCompleto.toLowerCase().includes(term));
 
-    if (!term) {
-      return students;
-    }
-
-    return students.filter(student => student.nomeCompleto.toLowerCase().includes(term));
+    return [...filtered].sort((a, b) =>
+      a.nomeCompleto.localeCompare(b.nomeCompleto, 'pt-BR', { sensitivity: 'base' }),
+    );
   });
 
   protected readonly totalStudents = computed(() => this.filteredStudents().length);
