@@ -18,6 +18,9 @@ public record AlunoRequest(
         @Email(message = "email inválido")
         String email,
 
+        @Pattern(regexp = "(^$|^\\(\\d{2}\\)\\s\\d{4,5}-\\d{4}$|^\\d{10,11}$)", message = "telefone deve estar no formato (99) 99999-9999, (99) 9999-9999 ou somente dígitos")
+        String telefone,
+
         @NotNull(message = "dataNascimento é obrigatória")
         @Past(message = "dataNascimento deve estar no passado")
         LocalDate dataNascimento
