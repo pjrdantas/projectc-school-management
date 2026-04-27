@@ -74,6 +74,7 @@ export class StudentsNewComponent implements OnInit {
       email: student.email,
       telefone: student.telefone ?? '',
     });
+    this.applyCpfDuplicadoValidation();
   }
 
   protected onSubmit(): void {
@@ -92,6 +93,16 @@ export class StudentsNewComponent implements OnInit {
     };
 
     const id = this.studentId();
+    if (this.studentsService.isCpfInUse(payload.cpf, id ?? undefined)) {
+      this.alunoForm.controls.cpf.setErrors({
+        ...this.alunoForm.controls.cpf.errors,
+        cpfDuplicado: true,
+      });
+      this.alunoForm.controls.cpf.markAsTouched();
+      this.snackBar.open('Já existe um aluno com este CPF.', 'Fechar', { duration: 3000 });
+      return;
+    }
+
     if (id) {
       this.studentsService.update(id, payload);
       this.snackBar.open('Aluno atualizado com sucesso.', 'Fechar', { duration: 3000 });
@@ -110,6 +121,7 @@ export class StudentsNewComponent implements OnInit {
   protected onCpfInput(): void {
     const cpf = this.alunoForm.controls.cpf.value;
     this.alunoForm.controls.cpf.setValue(this.formatCpf(cpf), { emitEvent: false });
+    this.applyCpfDuplicadoValidation();
   }
 
   protected onDateInput(): void {
@@ -122,6 +134,30 @@ export class StudentsNewComponent implements OnInit {
   protected onTelefoneInput(): void {
     const telefone = this.alunoForm.controls.telefone.value;
     this.alunoForm.controls.telefone.setValue(this.formatTelefone(telefone), { emitEvent: false });
+  }
+
+  private applyCpfDuplicadoValidation(): void {
+    const cpfControl = this.alunoForm.controls.cpf;
+    const cpf = this.onlyDigits(cpfControl.value);
+
+    if (cpf.length < 11) {
+      if (cpfControl.hasError('cpfDuplicado')) {
+        const { cpfDuplicado, ...rest } = cpfControl.errors ?? {};
+        cpfControl.setErrors(Object.keys(rest).length ? rest : null);
+      }
+      return;
+    }
+
+    const duplicado = this.studentsService.isCpfInUse(cpf, this.studentId() ?? undefined);
+    if (duplicado) {
+      cpfControl.setErrors({ ...cpfControl.errors, cpfDuplicado: true });
+      return;
+    }
+
+    if (cpfControl.hasError('cpfDuplicado')) {
+      const { cpfDuplicado, ...rest } = cpfControl.errors ?? {};
+      cpfControl.setErrors(Object.keys(rest).length ? rest : null);
+    }
   }
 
   private cpfValidator(): ValidatorFn {
