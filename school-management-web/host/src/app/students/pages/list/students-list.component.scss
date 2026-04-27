@@ -15,6 +15,12 @@
   gap: 12px;
 }
 
+
+.search-field {
+  width: 100%;
+  margin-top: 8px;
+}
+
 .empty-state {
   margin-top: 12px;
   padding: 10px;
@@ -25,29 +31,48 @@
 .list {
   margin-top: 12px;
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .list-item {
   border: 1px solid #d7def8;
   border-radius: 10px;
-  padding: 12px;
+  padding: 8px 10px;
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
+  align-items: center;
 }
 
 .student-info h3 {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  line-height: 1.15;
 }
 
 .student-info p {
-  margin: 0 0 4px;
+  margin: 0 0 2px;
+  font-size: 0.82rem;
+  line-height: 1.15;
 }
 
 .actions-row {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
   min-width: 110px;
+}
+
+.actions-row button {
+  min-height: 30px;
+  padding-inline: 10px;
+  font-size: 0.78rem;
+  line-height: 1.1;
+}
+
+mat-paginator {
+  margin-top: 8px;
+  border-top: 1px solid #eef1ff;
 }

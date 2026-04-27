@@ -59,20 +59,22 @@ export class StudentsNewComponent implements OnInit {
       return;
     }
 
-    const student = this.studentsService.getById(id);
-    if (!student) {
-      this.snackBar.open('Aluno não encontrado.', 'Fechar', { duration: 3000 });
-      this.router.navigate(['/students']);
-      return;
-    }
-
-    this.studentId.set(id);
-    this.alunoForm.patchValue({
-      nomeCompleto: student.nomeCompleto,
-      cpf: this.formatCpf(student.cpf),
-      dataNascimento: this.isoToBr(student.dataNascimento),
-      email: student.email,
-      telefone: student.telefone ?? '',
+    this.studentsService.fetchByIdFromApi(id).subscribe({
+      next: student => {
+        this.studentId.set(id);
+        this.alunoForm.patchValue({
+          nomeCompleto: student.nomeCompleto,
+          cpf: this.formatCpf(student.cpf),
+          dataNascimento: this.isoToBr(student.dataNascimento),
+          email: student.email,
+          telefone: student.telefone ?? '',
+        });
+        this.applyCpfDuplicadoValidation();
+      },
+      error: () => {
+        this.snackBar.open('Aluno não encontrado.', 'Fechar', { duration: 3000 });
+        this.router.navigate(['/students']);
+      },
     });
   }
 
@@ -92,15 +94,40 @@ export class StudentsNewComponent implements OnInit {
     };
 
     const id = this.studentId();
-    if (id) {
-      this.studentsService.update(id, payload);
-      this.snackBar.open('Aluno atualizado com sucesso.', 'Fechar', { duration: 3000 });
-    } else {
-      this.studentsService.create(payload);
-      this.snackBar.open('Aluno cadastrado com sucesso.', 'Fechar', { duration: 3000 });
+    if (this.studentsService.isCpfInUse(payload.cpf, id ?? undefined)) {
+      this.alunoForm.controls.cpf.setErrors({
+        ...this.alunoForm.controls.cpf.errors,
+        cpfDuplicado: true,
+      });
+      this.alunoForm.controls.cpf.markAsTouched();
+      this.snackBar.open('Já existe um aluno com este CPF.', 'Fechar', { duration: 3000 });
+      return;
     }
 
-    this.router.navigate(['/students']);
+    if (id) {
+      this.studentsService.updateOnApi(id, payload).subscribe({
+        next: () => {
+          this.snackBar.open('Aluno atualizado com sucesso.', 'Fechar', { duration: 3000 });
+          this.router.navigate(['/students']);
+        },
+        error: (error: { status?: number }) => {
+          const message = this.mapApiErrorMessage(error?.status);
+          this.snackBar.open(message, 'Fechar', { duration: 4000 });
+        },
+      });
+      return;
+    }
+
+    this.studentsService.createOnApi(payload).subscribe({
+      next: () => {
+        this.snackBar.open('Aluno cadastrado com sucesso.', 'Fechar', { duration: 3000 });
+        this.router.navigate(['/students']);
+      },
+      error: (error: { status?: number }) => {
+        const message = this.mapApiErrorMessage(error?.status);
+        this.snackBar.open(message, 'Fechar', { duration: 4000 });
+      },
+    });
   }
 
   protected onCancel(): void {
@@ -110,6 +137,7 @@ export class StudentsNewComponent implements OnInit {
   protected onCpfInput(): void {
     const cpf = this.alunoForm.controls.cpf.value;
     this.alunoForm.controls.cpf.setValue(this.formatCpf(cpf), { emitEvent: false });
+    this.applyCpfDuplicadoValidation();
   }
 
   protected onDateInput(): void {
@@ -122,6 +150,30 @@ export class StudentsNewComponent implements OnInit {
   protected onTelefoneInput(): void {
     const telefone = this.alunoForm.controls.telefone.value;
     this.alunoForm.controls.telefone.setValue(this.formatTelefone(telefone), { emitEvent: false });
+  }
+
+  private applyCpfDuplicadoValidation(): void {
+    const cpfControl = this.alunoForm.controls.cpf;
+    const cpf = this.onlyDigits(cpfControl.value);
+
+    if (cpf.length < 11) {
+      if (cpfControl.hasError('cpfDuplicado')) {
+        const { cpfDuplicado, ...rest } = cpfControl.errors ?? {};
+        cpfControl.setErrors(Object.keys(rest).length ? rest : null);
+      }
+      return;
+    }
+
+    const duplicado = this.studentsService.isCpfInUse(cpf, this.studentId() ?? undefined);
+    if (duplicado) {
+      cpfControl.setErrors({ ...cpfControl.errors, cpfDuplicado: true });
+      return;
+    }
+
+    if (cpfControl.hasError('cpfDuplicado')) {
+      const { cpfDuplicado, ...rest } = cpfControl.errors ?? {};
+      cpfControl.setErrors(Object.keys(rest).length ? rest : null);
+    }
   }
 
   private cpfValidator(): ValidatorFn {
@@ -172,6 +224,22 @@ export class StudentsNewComponent implements OnInit {
 
       return validDate ? null : { dataInvalida: true };
     };
+  }
+
+  private mapApiErrorMessage(status?: number): string {
+    if (status === 401) {
+      return 'Sessão inválida. Faça login novamente.';
+    }
+
+    if (status === 409) {
+      return 'Já existe aluno cadastrado com este CPF.';
+    }
+
+    if (status === 400) {
+      return 'Dados inválidos. Revise os campos obrigatórios.';
+    }
+
+    return 'Erro ao cadastrar aluno no backend.';
   }
 
   private onlyDigits(value: string): string {
