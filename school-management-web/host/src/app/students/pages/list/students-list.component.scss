@@ -26,6 +26,9 @@
   margin-top: 12px;
   display: grid;
   gap: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .list-item {
@@ -50,4 +53,9 @@
   flex-direction: column;
   gap: 8px;
   min-width: 110px;
+}
+
+mat-paginator {
+  margin-top: 10px;
+  border-top: 1px solid #eef1ff;
 }

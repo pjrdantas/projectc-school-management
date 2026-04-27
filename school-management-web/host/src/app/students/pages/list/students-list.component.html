@@ -15,8 +15,8 @@
         Nenhum aluno cadastrado ainda.
       </div>
 
-      <div class="list" *ngIf="students$ | async as students">
-        <div class="list-item" *ngFor="let student of students">
+      <div class="list" *ngIf="(students$ | async)?.length">
+        <div class="list-item" *ngFor="let student of pagedStudents()">
           <div class="student-info">
             <h3>{{ student.nomeCompleto }}</h3>
             <p>CPF: {{ formatCpf(student.cpf) }}</p>
@@ -31,6 +31,17 @@
           </div>
         </div>
       </div>
+
+      <mat-paginator
+        *ngIf="(students$ | async)?.length"
+        [length]="totalStudents()"
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="pageSizeOptions"
+        showFirstLastButtons
+        aria-label="Select page of periodic elements"
+        (page)="onPageChange($event)">
+      </mat-paginator>
     </mat-card-content>
   </mat-card>
 </div>
