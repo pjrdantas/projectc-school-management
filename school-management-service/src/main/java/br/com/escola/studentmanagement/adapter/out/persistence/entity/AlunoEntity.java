@@ -28,6 +28,9 @@ public class AlunoEntity {
     @Column(name = "email", length = 150)
     private String email;
 
+    @Column(name = "telefone", length = 20)
+    private String telefone;
+
     @Column(name = "data_nascimento", nullable = false)
     private LocalDate dataNascimento;
 
@@ -61,6 +64,14 @@ public class AlunoEntity {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
     }
 
     public LocalDate getDataNascimento() {
