@@ -29,14 +29,13 @@ export class StudentsDetailComponent implements OnInit {
       return;
     }
 
-    const found = this.studentsService.getById(id);
-    if (!found) {
-      this.snackBar.open('Aluno não encontrado.', 'Fechar', { duration: 3000 });
-      this.router.navigate(['/students']);
-      return;
-    }
-
-    this.student.set(found);
+    this.studentsService.fetchByIdFromApi(id).subscribe({
+      next: student => this.student.set(student),
+      error: () => {
+        this.snackBar.open('Aluno não encontrado.', 'Fechar', { duration: 3000 });
+        this.router.navigate(['/students']);
+      },
+    });
   }
 
   protected formatCpf(cpf: string): string {
