@@ -2,7 +2,7 @@
   <mat-card class="student-card">
     <mat-card-header>
       <mat-card-title>{{ isEditing() ? 'Edição de Aluno' : 'Cadastro de Aluno' }}</mat-card-title>
-      <mat-card-subtitle>CRUD completo de alunos (MVP inicial)</mat-card-subtitle>
+      <mat-card-subtitle>Cadastro de aluno integrado ao backend (KAN-15)</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
@@ -20,6 +20,9 @@
           <input matInput formControlName="cpf" (input)="onCpfInput()" placeholder="000.000.000-00" />
           <mat-error *ngIf="alunoForm.controls.cpf.hasError('cpfInvalido')">
             Informe um CPF válido.
+          </mat-error>
+          <mat-error *ngIf="alunoForm.controls.cpf.hasError('cpfDuplicado')">
+            Já existe um aluno com este CPF.
           </mat-error>
         </mat-form-field>
 
