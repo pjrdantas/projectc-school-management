@@ -76,6 +76,7 @@ export class StudentsNewComponent implements OnInit {
         this.router.navigate(['/students']);
       },
     });
+    this.applyCpfDuplicadoValidation();
   }
 
   protected onSubmit(): void {
