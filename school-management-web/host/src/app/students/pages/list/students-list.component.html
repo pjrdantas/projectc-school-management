@@ -1,0 +1,36 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <h1>Alunos</h1>
+        <button mat-raised-button color="primary" (click)="goToNewStudent()">
+          <mat-icon fontIcon="add"></mat-icon>
+          Novo aluno
+        </button>
+      </div>
+
+      <p>Lista geral de alunos cadastrados (CRUD local até integração de backend).</p>
+
+      <div class="empty-state" *ngIf="(students$ | async)?.length === 0">
+        Nenhum aluno cadastrado ainda.
+      </div>
+
+      <div class="list" *ngIf="students$ | async as students">
+        <div class="list-item" *ngFor="let student of students">
+          <div class="student-info">
+            <h3>{{ student.nomeCompleto }}</h3>
+            <p>CPF: {{ formatCpf(student.cpf) }}</p>
+            <p>E-mail: {{ student.email }}</p>
+            <p>Data de nascimento: {{ formatData(student.dataNascimento) }}</p>
+            <p *ngIf="student.telefone">Telefone: {{ student.telefone }}</p>
+          </div>
+          <div class="actions-row">
+            <button mat-stroked-button [routerLink]="['/students', student.id]">Consultar</button>
+            <button mat-stroked-button [routerLink]="['/students', student.id, 'edit']">Editar</button>
+            <button mat-stroked-button color="warn" (click)="remover(student.id)">Excluir</button>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

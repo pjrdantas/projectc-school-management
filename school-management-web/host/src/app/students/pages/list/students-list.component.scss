@@ -1,0 +1,53 @@
+:host {
+  display: block;
+}
+
+.federated-card {
+  width: 100%;
+  border: 2px solid #667eea;
+  border-radius: 16px;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.empty-state {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f7f8ff;
+}
+
+.list {
+  margin-top: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.list-item {
+  border: 1px solid #d7def8;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.student-info h3 {
+  margin: 0 0 6px;
+}
+
+.student-info p {
+  margin: 0 0 4px;
+}
+
+.actions-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 110px;
+}
