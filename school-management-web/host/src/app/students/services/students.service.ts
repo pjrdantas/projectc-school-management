@@ -17,6 +17,12 @@ export class StudentsService {
     return this.studentsSubject.value.find(student => student.id === id);
   }
 
+  isCpfInUse(cpf: string, exceptStudentId?: string): boolean {
+    return this.studentsSubject.value.some(
+      student => student.cpf === cpf && student.id !== exceptStudentId,
+    );
+  }
+
   create(input: StudentInput): Student {
     const student: Student = {
       id: crypto.randomUUID(),

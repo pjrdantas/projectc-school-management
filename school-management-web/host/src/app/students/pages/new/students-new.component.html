@@ -21,6 +21,9 @@
           <mat-error *ngIf="alunoForm.controls.cpf.hasError('cpfInvalido')">
             Informe um CPF válido.
           </mat-error>
+          <mat-error *ngIf="alunoForm.controls.cpf.hasError('cpfDuplicado')">
+            Já existe um aluno com este CPF.
+          </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
