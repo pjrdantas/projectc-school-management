@@ -106,12 +106,20 @@ export class StudentsNewComponent implements OnInit {
     if (id) {
       this.studentsService.update(id, payload);
       this.snackBar.open('Aluno atualizado com sucesso.', 'Fechar', { duration: 3000 });
-    } else {
-      this.studentsService.create(payload);
-      this.snackBar.open('Aluno cadastrado com sucesso.', 'Fechar', { duration: 3000 });
+      this.router.navigate(['/students']);
+      return;
     }
 
-    this.router.navigate(['/students']);
+    this.studentsService.createOnApi(payload).subscribe({
+      next: () => {
+        this.snackBar.open('Aluno cadastrado com sucesso.', 'Fechar', { duration: 3000 });
+        this.router.navigate(['/students']);
+      },
+      error: (error: { status?: number }) => {
+        const message = this.mapApiErrorMessage(error?.status);
+        this.snackBar.open(message, 'Fechar', { duration: 4000 });
+      },
+    });
   }
 
   protected onCancel(): void {
@@ -208,6 +216,22 @@ export class StudentsNewComponent implements OnInit {
 
       return validDate ? null : { dataInvalida: true };
     };
+  }
+
+  private mapApiErrorMessage(status?: number): string {
+    if (status === 401) {
+      return 'Sessão inválida. Faça login novamente.';
+    }
+
+    if (status === 409) {
+      return 'Já existe aluno cadastrado com este CPF.';
+    }
+
+    if (status === 400) {
+      return 'Dados inválidos. Revise os campos obrigatórios.';
+    }
+
+    return 'Erro ao cadastrar aluno no backend.';
   }
 
   private onlyDigits(value: string): string {

@@ -9,7 +9,25 @@
         </button>
       </div>
 
-      <p>Lista geral de alunos cadastrados (CRUD local até integração de backend).</p>
+      <p>Lista geral de alunos cadastrados (cadastro integrado com backend).</p>
+
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar aluno por nome</mat-label>
+        <input
+          matInput
+          [value]="searchTerm()"
+          (input)="onSearchTermChange($any($event.target).value)"
+          placeholder="Digite parte do nome (ex.: Paulo)" />
+        <button
+          *ngIf="searchTerm()"
+          mat-icon-button
+          matSuffix
+          type="button"
+          aria-label="Limpar busca"
+          (click)="clearSearch()">
+          <mat-icon fontIcon="close"></mat-icon>
+        </button>
+      </mat-form-field>
 
       <mat-form-field appearance="outline" class="search-field">
         <mat-label>Buscar aluno por nome</mat-label>
