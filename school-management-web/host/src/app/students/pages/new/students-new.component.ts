@@ -59,20 +59,22 @@ export class StudentsNewComponent implements OnInit {
       return;
     }
 
-    const student = this.studentsService.getById(id);
-    if (!student) {
-      this.snackBar.open('Aluno não encontrado.', 'Fechar', { duration: 3000 });
-      this.router.navigate(['/students']);
-      return;
-    }
-
-    this.studentId.set(id);
-    this.alunoForm.patchValue({
-      nomeCompleto: student.nomeCompleto,
-      cpf: this.formatCpf(student.cpf),
-      dataNascimento: this.isoToBr(student.dataNascimento),
-      email: student.email,
-      telefone: student.telefone ?? '',
+    this.studentsService.fetchByIdFromApi(id).subscribe({
+      next: student => {
+        this.studentId.set(id);
+        this.alunoForm.patchValue({
+          nomeCompleto: student.nomeCompleto,
+          cpf: this.formatCpf(student.cpf),
+          dataNascimento: this.isoToBr(student.dataNascimento),
+          email: student.email,
+          telefone: student.telefone ?? '',
+        });
+        this.applyCpfDuplicadoValidation();
+      },
+      error: () => {
+        this.snackBar.open('Aluno não encontrado.', 'Fechar', { duration: 3000 });
+        this.router.navigate(['/students']);
+      },
     });
     this.applyCpfDuplicadoValidation();
   }
@@ -104,9 +106,16 @@ export class StudentsNewComponent implements OnInit {
     }
 
     if (id) {
-      this.studentsService.update(id, payload);
-      this.snackBar.open('Aluno atualizado com sucesso.', 'Fechar', { duration: 3000 });
-      this.router.navigate(['/students']);
+      this.studentsService.updateOnApi(id, payload).subscribe({
+        next: () => {
+          this.snackBar.open('Aluno atualizado com sucesso.', 'Fechar', { duration: 3000 });
+          this.router.navigate(['/students']);
+        },
+        error: (error: { status?: number }) => {
+          const message = this.mapApiErrorMessage(error?.status);
+          this.snackBar.open(message, 'Fechar', { duration: 4000 });
+        },
+      });
       return;
     }
 
