@@ -40,6 +40,7 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
         alunoEntity.setNomeCompleto(input.nomeCompleto());
         alunoEntity.setCpf(input.cpf());
         alunoEntity.setEmail(input.email());
+        alunoEntity.setTelefone(input.telefone());
         alunoEntity.setDataNascimento(input.dataNascimento());
         alunoEntity.setCreatedAt(LocalDateTime.now());
         return toOutput(alunoJpaRepository.save(alunoEntity));
@@ -53,6 +54,7 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
         alunoEntity.setNomeCompleto(input.nomeCompleto());
         alunoEntity.setCpf(input.cpf());
         alunoEntity.setEmail(input.email());
+        alunoEntity.setTelefone(input.telefone());
         alunoEntity.setDataNascimento(input.dataNascimento());
         return toOutput(alunoJpaRepository.save(alunoEntity));
     }
@@ -83,6 +85,7 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
                 entity.getNomeCompleto(),
                 entity.getCpf(),
                 entity.getEmail(),
+                entity.getTelefone(),
                 entity.getDataNascimento(),
                 entity.getCreatedAt());
     }

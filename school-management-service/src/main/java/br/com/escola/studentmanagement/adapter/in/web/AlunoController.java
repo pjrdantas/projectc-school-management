@@ -51,7 +51,7 @@ public class AlunoController {
     @ResponseStatus(HttpStatus.CREATED)
     public AlunoResponse criar(@Valid @RequestBody AlunoRequest request) {
         AlunoOutput output = criarAlunoUseCase.executar(
-                new AlunoInput(request.nomeCompleto(), request.cpf(), request.email(), request.dataNascimento()));
+                new AlunoInput(request.nomeCompleto(), request.cpf(), request.email(), request.telefone(), request.dataNascimento()));
         return toResponse(output);
     }
 
@@ -78,7 +78,7 @@ public class AlunoController {
     public AlunoResponse atualizar(@PathVariable @NonNull Long id, @Valid @RequestBody AlunoRequest request) {
         AlunoOutput output = atualizarAlunoUseCase.executar(
                 id,
-                new AlunoInput(request.nomeCompleto(), request.cpf(), request.email(), request.dataNascimento()));
+                new AlunoInput(request.nomeCompleto(), request.cpf(), request.email(), request.telefone(), request.dataNascimento()));
         return toResponse(output);
     }
 
@@ -94,6 +94,7 @@ public class AlunoController {
                 output.nomeCompleto(),
                 output.cpf(),
                 output.email(),
+                output.telefone(),
                 output.dataNascimento(),
                 output.createdAt());
     }

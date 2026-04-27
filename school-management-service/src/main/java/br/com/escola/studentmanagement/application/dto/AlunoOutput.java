@@ -8,6 +8,7 @@ public record AlunoOutput(
         String nomeCompleto,
         String cpf,
         String email,
+        String telefone,
         LocalDate dataNascimento,
         LocalDateTime createdAt) {
 }

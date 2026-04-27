@@ -6,5 +6,6 @@ public record AlunoInput(
         String nomeCompleto,
         String cpf,
         String email,
+        String telefone,
         LocalDate dataNascimento) {
 }
