@@ -2,6 +2,10 @@
   display: block;
 }
 
+.page-container {
+  height: 100%;
+}
+
 .federated-card {
   width: 100%;
   border: 2px solid #667eea;
@@ -13,6 +17,17 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+}
+
+.header-row h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.15;
+}
+
+.header-row button {
+  min-height: 32px;
+  font-size: 0.82rem;
 }
 
 
