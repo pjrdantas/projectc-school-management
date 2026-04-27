@@ -81,13 +81,29 @@ export class StudentsListComponent implements OnInit {
   }
 
   protected onSearchTermChange(value: string): void {
+    const term = value.trim();
     this.searchTerm.set(value);
     this.pageIndex.set(0);
+
+    this.studentsService.syncFromApi(term || undefined).subscribe({
+      error: () => {
+        this.snackBar.open('Não foi possível buscar alunos no backend.', 'Fechar', {
+          duration: 4000,
+        });
+      },
+    });
   }
 
   protected clearSearch(): void {
     this.searchTerm.set('');
     this.pageIndex.set(0);
+    this.studentsService.syncFromApi().subscribe({
+      error: () => {
+        this.snackBar.open('Não foi possível recarregar alunos no backend.', 'Fechar', {
+          duration: 4000,
+        });
+      },
+    });
   }
 
   protected remover(id: string): void {
