@@ -41,8 +41,8 @@ export class StudentsListComponent implements OnInit {
     initialValue: this.studentsService.list(),
   });
 
-  protected readonly pageSizeOptions = [5, 10, 20];
-  protected readonly pageSize = signal(this.pageSizeOptions[0]);
+  protected readonly pageSizeOptions = [5];
+  protected readonly pageSize = signal(5);
   protected readonly pageIndex = signal(0);
   protected readonly searchTerm = signal('');
 
