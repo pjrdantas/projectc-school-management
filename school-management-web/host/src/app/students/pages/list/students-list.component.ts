@@ -112,6 +112,11 @@ export class StudentsListComponent implements OnInit {
     this.pageIndex.set(event.pageIndex);
   }
 
+  protected onPageChange(event: PageEvent): void {
+    this.pageSize.set(event.pageSize);
+    this.pageIndex.set(event.pageIndex);
+  }
+
   protected formatCpf(cpf: string): string {
     return cpf
       .replace(/(\d{3})(\d)/, '$1.$2')

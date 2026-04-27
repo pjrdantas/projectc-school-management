@@ -154,6 +154,34 @@ export class StudentsService {
     return value.replace(/\D/g, '');
   }
 
+  private buildHeaders(): HttpHeaders {
+    const token = this.authState.getToken();
+    if (!token) {
+      return new HttpHeaders({ 'Content-Type': 'application/json' });
+    }
+
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    });
+  }
+
+  private mapToStudent(response: AlunoApiResponse, telefone?: string): Student {
+    return {
+      id: String(response.id),
+      nomeCompleto: response.nomeCompleto,
+      cpf: this.onlyDigits(response.cpf),
+      email: response.email,
+      dataNascimento: response.dataNascimento,
+      telefone,
+      createdAt: response.createdAt,
+    };
+  }
+
+  private onlyDigits(value: string): string {
+    return value.replace(/\D/g, '');
+  }
+
   private commit(students: Student[]): void {
     this.studentsSubject.next(students);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
