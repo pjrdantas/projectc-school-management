@@ -1,15 +1,17 @@
 package br.com.escola.enrollment.adapter.in.web;
 
+import java.util.UUID;
+
 import jakarta.validation.constraints.NotNull;
 
 public record MatriculaRequest(
         @NotNull(message = "alunoId é obrigatório")
-        Long alunoId,
+        UUID alunoId,
 
         @NotNull(message = "turmaId é obrigatório")
-        Long turmaId,
+        UUID turmaId,
 
         @NotNull(message = "periodoLetivoId é obrigatório")
-        Long periodoLetivoId
+        UUID periodoLetivoId
 ) {
 }
