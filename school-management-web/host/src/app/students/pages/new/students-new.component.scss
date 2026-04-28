@@ -44,3 +44,44 @@
 .responsaveis-field {
   grid-column: 1 / -1;
 }
+
+.responsaveis-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.responsavel-search-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  mat-form-field {
+    flex: 1;
+  }
+}
+
+.responsaveis-lista {
+  display: grid;
+  gap: 10px;
+}
+
+.responsavel-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border: 1px solid #d9deff;
+  border-radius: 8px;
+  background: #f7f8ff;
+  padding: 10px 12px;
+
+  p {
+    margin: 4px 0 0;
+  }
+}
+
+.responsaveis-vazio {
+  margin: 0;
+  color: #666;
+}

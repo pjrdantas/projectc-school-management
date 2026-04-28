@@ -35,7 +35,9 @@ export class StudentsDetailComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
 
   protected readonly student = signal<Student | null>(null);
+  protected readonly responsibles = signal<Responsible[]>([]);
   protected readonly vinculos = signal<Responsible[]>([]);
+  protected selectedResponsibleId = '';
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

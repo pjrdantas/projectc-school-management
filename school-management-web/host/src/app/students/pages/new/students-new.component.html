@@ -60,20 +60,45 @@
           </mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="responsaveis-field">
-          <mat-label>Responsáveis vinculados</mat-label>
-          <mat-select
-            multiple
-            [value]="selectedResponsibleIds()"
-            (selectionChange)="selectedResponsibleIds.set($event.value)">
-            <mat-option *ngFor="let responsible of responsibles()" [value]="responsible.id">
-              {{ responsible.nomeCompleto }} - {{ formatCpf(responsible.cpf) }}
-            </mat-option>
-          </mat-select>
-          <mat-hint>
-            Evitamos vínculo duplicado automaticamente. O aluno pode também ser responsável.
-          </mat-hint>
-        </mat-form-field>
+        <div class="responsaveis-field">
+          <label class="responsaveis-label">Buscar responsável</label>
+          <div class="responsavel-search-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Nome ou CPF</mat-label>
+              <input
+                matInput
+                [value]="responsibleSearchTerm()"
+                (input)="onResponsibleSearchInput(($any($event.target).value || '').toString())"
+                placeholder="Digite nome ou CPF do responsável"
+              />
+              <mat-hint *ngIf="searchedResponsible() as encontrado">
+                Encontrado: {{ encontrado.nomeCompleto }} - {{ formatCpf(encontrado.cpf) }}
+              </mat-hint>
+            </mat-form-field>
+
+            <button mat-stroked-button type="button" (click)="addResponsibleFromSearch()">
+              Selecionar
+            </button>
+          </div>
+
+          <div class="responsaveis-lista" *ngIf="selectedResponsibles().length; else noResponsibles">
+            <div class="responsavel-item" *ngFor="let responsible of selectedResponsibles()">
+              <div>
+                <strong>{{ responsible.nomeCompleto }}</strong>
+                <p>CPF: {{ formatCpf(responsible.cpf) }}</p>
+                <p>E-mail: {{ responsible.email || 'Não informado' }}</p>
+                <p>Telefone: {{ responsible.telefone || 'Não informado' }}</p>
+              </div>
+              <button mat-button color="warn" type="button" (click)="removeResponsible(responsible.id)">
+                Excluir
+              </button>
+            </div>
+          </div>
+
+          <ng-template #noResponsibles>
+            <p class="responsaveis-vazio">Nenhum responsável selecionado.</p>
+          </ng-template>
+        </div>
 
         <div class="actions">
           <button mat-raised-button color="primary" type="submit">
