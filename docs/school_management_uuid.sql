@@ -12,6 +12,8 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE SCHEMA IF NOT EXISTS public;
 
 -- Rebuild limpo para evitar conflito com schema antigo (BIGINT)
+DROP TABLE IF EXISTS public.aluno_responsavel CASCADE;
+DROP TABLE IF EXISTS public.responsavel CASCADE;
 DROP TABLE IF EXISTS public.matricula CASCADE;
 DROP TABLE IF EXISTS public.turma CASCADE;
 DROP TABLE IF EXISTS public.periodo_letivo CASCADE;
@@ -49,6 +51,28 @@ CREATE TABLE public.turma (
     CONSTRAINT uk_turma_codigo_periodo UNIQUE (codigo, id_periodo_letivo)
 );
 
+
+CREATE TABLE public.responsavel (
+    id_responsavel UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nome_completo VARCHAR(150) NOT NULL,
+    cpf VARCHAR(14) NOT NULL UNIQUE,
+    email VARCHAR(150),
+    telefone VARCHAR(20),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE public.aluno_responsavel (
+    id_aluno_responsavel UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_aluno UUID NOT NULL,
+    id_responsavel UUID NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_aluno_responsavel_aluno
+        FOREIGN KEY (id_aluno) REFERENCES public.aluno(id_aluno),
+    CONSTRAINT fk_aluno_responsavel_responsavel
+        FOREIGN KEY (id_responsavel) REFERENCES public.responsavel(id_responsavel),
+    CONSTRAINT uk_aluno_responsavel UNIQUE (id_aluno, id_responsavel)
+);
+
 CREATE TABLE public.matricula (
     id_matricula UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     id_aluno UUID NOT NULL,
@@ -68,3 +92,6 @@ CREATE TABLE public.matricula (
 CREATE INDEX idx_matricula_aluno ON public.matricula (id_aluno);
 CREATE INDEX idx_matricula_turma ON public.matricula (id_turma);
 CREATE INDEX idx_turma_periodo ON public.turma (id_periodo_letivo);
+CREATE INDEX idx_responsavel_nome ON public.responsavel (nome_completo);
+CREATE INDEX idx_aluno_responsavel_aluno ON public.aluno_responsavel (id_aluno);
+CREATE INDEX idx_aluno_responsavel_responsavel ON public.aluno_responsavel (id_responsavel);
