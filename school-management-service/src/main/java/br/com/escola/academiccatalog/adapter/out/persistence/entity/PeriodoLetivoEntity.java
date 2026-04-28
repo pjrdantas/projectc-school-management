@@ -1,5 +1,7 @@
 package br.com.escola.academiccatalog.adapter.out.persistence.entity;
 
+import java.util.UUID;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -16,8 +18,8 @@ import jakarta.persistence.PrePersist;
 public class PeriodoLetivoEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "nome", nullable = false, length = 80)
     private String nome;
@@ -31,7 +33,7 @@ public class PeriodoLetivoEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
