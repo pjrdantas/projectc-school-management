@@ -1,15 +1,23 @@
 -- ==========================================================
--- Script de bootstrap do banco (PostgreSQL) com IDs UUID
+-- Script de bootstrap/rebuild do banco (PostgreSQL) com IDs UUID
 -- Projeto: school-management-service
 -- Uso sugerido:
 --   psql -U postgres -d school_management -f docs/school_management_uuid.sql
+--
+-- Observação:
+--   Este script é destrutivo para as tabelas do domínio escolar.
 -- ==========================================================
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 CREATE SCHEMA IF NOT EXISTS public;
 
-CREATE TABLE IF NOT EXISTS public.aluno (
+-- Rebuild limpo para evitar conflito com schema antigo (BIGINT)
+DROP TABLE IF EXISTS public.matricula CASCADE;
+DROP TABLE IF EXISTS public.turma CASCADE;
+DROP TABLE IF EXISTS public.periodo_letivo CASCADE;
+DROP TABLE IF EXISTS public.aluno CASCADE;
+
+CREATE TABLE public.aluno (
     id_aluno UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome_completo VARCHAR(150) NOT NULL,
     cpf VARCHAR(14) NOT NULL UNIQUE,
@@ -19,7 +27,7 @@ CREATE TABLE IF NOT EXISTS public.aluno (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS public.periodo_letivo (
+CREATE TABLE public.periodo_letivo (
     id_periodo_letivo UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome VARCHAR(80) NOT NULL,
     data_inicio DATE NOT NULL,
@@ -28,7 +36,7 @@ CREATE TABLE IF NOT EXISTS public.periodo_letivo (
     CONSTRAINT ck_periodo_letivo_datas CHECK (data_fim >= data_inicio)
 );
 
-CREATE TABLE IF NOT EXISTS public.turma (
+CREATE TABLE public.turma (
     id_turma UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     codigo VARCHAR(20) NOT NULL,
     nome VARCHAR(120) NOT NULL,
@@ -41,7 +49,7 @@ CREATE TABLE IF NOT EXISTS public.turma (
     CONSTRAINT uk_turma_codigo_periodo UNIQUE (codigo, id_periodo_letivo)
 );
 
-CREATE TABLE IF NOT EXISTS public.matricula (
+CREATE TABLE public.matricula (
     id_matricula UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     id_aluno UUID NOT NULL,
     id_turma UUID NOT NULL,
@@ -57,6 +65,6 @@ CREATE TABLE IF NOT EXISTS public.matricula (
     CONSTRAINT ck_matricula_status CHECK (status IN ('ATIVA'))
 );
 
-CREATE INDEX IF NOT EXISTS idx_matricula_aluno ON public.matricula (id_aluno);
-CREATE INDEX IF NOT EXISTS idx_matricula_turma ON public.matricula (id_turma);
-CREATE INDEX IF NOT EXISTS idx_turma_periodo ON public.turma (id_periodo_letivo);
+CREATE INDEX idx_matricula_aluno ON public.matricula (id_aluno);
+CREATE INDEX idx_matricula_turma ON public.matricula (id_turma);
+CREATE INDEX idx_turma_periodo ON public.turma (id_periodo_letivo);
