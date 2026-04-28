@@ -1,5 +1,7 @@
 package br.com.escola.academiccatalog.adapter.out.persistence.entity;
 
+import java.util.UUID;
+
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -18,8 +20,9 @@ import jakarta.persistence.PrePersist;
 public class TurmaEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id_turma")
+    private UUID id;
 
     @Column(name = "codigo", nullable = false, length = 20)
     private String codigo;
@@ -31,13 +34,13 @@ public class TurmaEntity {
     private Integer capacidade;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "periodo_letivo_id", nullable = false)
+    @JoinColumn(name = "id_periodo_letivo", nullable = false)
     private PeriodoLetivoEntity periodoLetivo;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 

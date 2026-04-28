@@ -41,20 +41,21 @@ export class StudentsListComponent implements OnInit {
     initialValue: this.studentsService.list(),
   });
 
-  protected readonly pageSizeOptions = [5, 10, 20];
-  protected readonly pageSize = signal(this.pageSizeOptions[0]);
+  protected readonly pageSizeOptions = [5];
+  protected readonly pageSize = signal(5);
   protected readonly pageIndex = signal(0);
   protected readonly searchTerm = signal('');
 
   protected readonly filteredStudents = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     const students = this.studentsSignal();
+    const filtered = !term
+      ? students
+      : students.filter(student => student.nomeCompleto.toLowerCase().includes(term));
 
-    if (!term) {
-      return students;
-    }
-
-    return students.filter(student => student.nomeCompleto.toLowerCase().includes(term));
+    return [...filtered].sort((a, b) =>
+      a.nomeCompleto.localeCompare(b.nomeCompleto, 'pt-BR', { sensitivity: 'base' }),
+    );
   });
 
   protected readonly totalStudents = computed(() => this.filteredStudents().length);
@@ -81,13 +82,29 @@ export class StudentsListComponent implements OnInit {
   }
 
   protected onSearchTermChange(value: string): void {
-    this.searchTerm.set(value);
+    const term = value.trim();
+    this.searchTerm.set(term);
     this.pageIndex.set(0);
+
+    this.studentsService.syncFromApi(term || undefined).subscribe({
+      error: () => {
+        this.snackBar.open('Não foi possível buscar alunos no backend.', 'Fechar', {
+          duration: 4000,
+        });
+      },
+    });
   }
 
   protected clearSearch(): void {
     this.searchTerm.set('');
     this.pageIndex.set(0);
+    this.studentsService.syncFromApi().subscribe({
+      error: () => {
+        this.snackBar.open('Não foi possível recarregar alunos no backend.', 'Fechar', {
+          duration: 4000,
+        });
+      },
+    });
   }
 
   protected remover(id: string): void {

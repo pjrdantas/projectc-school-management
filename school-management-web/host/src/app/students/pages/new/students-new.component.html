@@ -41,7 +41,7 @@
 
         <mat-form-field appearance="outline">
           <mat-label>E-mail *</mat-label>
-          <input matInput type="email" formControlName="email" placeholder="pjr_dantas@hotmail ou fulano.silva@email.com" />
+          <input matInput type="email" formControlName="email" placeholder="fulano.silva@email.com" />
           <mat-error *ngIf="alunoForm.controls.email.hasError('emailInvalido')">
             Informe um e-mail válido no formato usuario@dominio.
           </mat-error>
@@ -58,6 +58,21 @@
           <mat-error *ngIf="alunoForm.controls.telefone.hasError('telefoneInvalido')">
             Use (99) 99999-9999 ou (99) 9999-9999.
           </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="responsaveis-field">
+          <mat-label>Responsáveis vinculados</mat-label>
+          <mat-select
+            multiple
+            [value]="selectedResponsibleIds()"
+            (selectionChange)="selectedResponsibleIds.set($event.value)">
+            <mat-option *ngFor="let responsible of responsibles()" [value]="responsible.id">
+              {{ responsible.nomeCompleto }} - {{ formatCpf(responsible.cpf) }}
+            </mat-option>
+          </mat-select>
+          <mat-hint>
+            Evitamos vínculo duplicado automaticamente. O aluno pode também ser responsável.
+          </mat-hint>
         </mat-form-field>
 
         <div class="actions">

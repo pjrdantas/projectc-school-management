@@ -60,8 +60,9 @@
         [pageIndex]="pageIndex()"
         [pageSize]="pageSize()"
         [pageSizeOptions]="pageSizeOptions"
+        [hidePageSize]="true"
         showFirstLastButtons
-        aria-label="Select page of periodic elements"
+        aria-label="Paginação da lista de alunos"
         (page)="onPageChange($event)">
       </mat-paginator>
     </mat-card-content>
