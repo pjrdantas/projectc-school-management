@@ -36,7 +36,8 @@ class ResponsavelControllerIntegrationTest {
                 }
                 """;
 
-        String responseBody = mockMvc.perform(post("/api/responsaveis")
+        @SuppressWarnings("null")
+		String responseBody = mockMvc.perform(post("/api/responsaveis")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isCreated())
@@ -55,7 +56,8 @@ class ResponsavelControllerIntegrationTest {
                 .andExpect(jsonPath("$.nomeCompleto").value("Maria Souza"));
     }
 
-    @Test
+    @SuppressWarnings("null")
+	@Test
     @WithMockUser
     void deveRetornarConflitoQuandoCpfDuplicado() throws Exception {
         String requestBody = """

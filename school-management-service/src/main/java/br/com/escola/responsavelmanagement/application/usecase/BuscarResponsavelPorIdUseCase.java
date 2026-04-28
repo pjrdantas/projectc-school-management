@@ -2,6 +2,7 @@ package br.com.escola.responsavelmanagement.application.usecase;
 
 import java.util.UUID;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import br.com.escola.responsavelmanagement.application.dto.ResponsavelOutput;
@@ -17,7 +18,7 @@ public class BuscarResponsavelPorIdUseCase {
         this.responsavelQueryGateway = responsavelQueryGateway;
     }
 
-    public ResponsavelOutput executar(UUID id) {
+    public ResponsavelOutput executar(@NonNull UUID id) {
         return responsavelQueryGateway.findById(id)
                 .orElseThrow(() -> new ResponsavelNaoEncontradoException(id));
     }

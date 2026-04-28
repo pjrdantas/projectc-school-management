@@ -4,13 +4,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.lang.NonNull;
+
 import br.com.escola.responsavelmanagement.application.dto.ResponsavelOutput;
 
 public interface ResponsavelQueryGateway {
 
-    Optional<ResponsavelOutput> findById(UUID id);
+    Optional<ResponsavelOutput> findById(@NonNull UUID id);
 
     List<ResponsavelOutput> findAll();
 
-    boolean existsById(UUID id);
+    boolean existsById(@NonNull UUID id);
 }

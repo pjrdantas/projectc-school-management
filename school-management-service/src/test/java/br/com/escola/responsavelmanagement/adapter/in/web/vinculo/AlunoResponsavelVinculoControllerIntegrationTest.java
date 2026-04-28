@@ -25,7 +25,8 @@ class AlunoResponsavelVinculoControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Test
+    @SuppressWarnings("null")
+	@Test
     @WithMockUser
     void deveVincularListarEDesvincularResponsavelDoAluno() throws Exception {
         String alunoId = criarAluno("Pedro Alves", "12121212121");
@@ -56,7 +57,8 @@ class AlunoResponsavelVinculoControllerIntegrationTest {
                 .andExpect(jsonPath("$").isEmpty());
     }
 
-    @Test
+    @SuppressWarnings("null")
+	@Test
     @WithMockUser
     void deveRetornarConflitoQuandoVinculoDuplicado() throws Exception {
         String alunoId = criarAluno("Paulo Maia", "34343434343");
@@ -90,7 +92,8 @@ class AlunoResponsavelVinculoControllerIntegrationTest {
                 }
                 """.formatted(nome, cpf);
 
-        String response = mockMvc.perform(post("/api/alunos")
+        @SuppressWarnings("null")
+		String response = mockMvc.perform(post("/api/alunos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
@@ -111,7 +114,8 @@ class AlunoResponsavelVinculoControllerIntegrationTest {
                 }
                 """.formatted(nome, cpf);
 
-        String response = mockMvc.perform(post("/api/responsaveis")
+        @SuppressWarnings("null")
+		String response = mockMvc.perform(post("/api/responsaveis")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())

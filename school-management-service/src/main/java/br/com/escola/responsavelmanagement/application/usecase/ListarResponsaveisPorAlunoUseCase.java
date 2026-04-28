@@ -3,6 +3,7 @@ package br.com.escola.responsavelmanagement.application.usecase;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import br.com.escola.responsavelmanagement.application.dto.ResponsavelOutput;
@@ -27,7 +28,8 @@ public class ListarResponsaveisPorAlunoUseCase {
         this.alunoQueryGateway = alunoQueryGateway;
     }
 
-    public List<ResponsavelOutput> executar(UUID idAluno) {
+    @SuppressWarnings("null")
+	public List<ResponsavelOutput> executar(@NonNull UUID idAluno) {
         if (!alunoQueryGateway.existsById(idAluno)) {
             throw new AlunoNaoEncontradoException(idAluno);
         }

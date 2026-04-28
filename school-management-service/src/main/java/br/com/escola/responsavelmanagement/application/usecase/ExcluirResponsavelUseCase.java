@@ -2,6 +2,7 @@ package br.com.escola.responsavelmanagement.application.usecase;
 
 import java.util.UUID;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import br.com.escola.responsavelmanagement.application.port.out.ResponsavelCommandGateway;
@@ -21,7 +22,7 @@ public class ExcluirResponsavelUseCase {
         this.responsavelQueryGateway = responsavelQueryGateway;
     }
 
-    public void executar(UUID id) {
+    public void executar(@NonNull UUID id) {
         if (!responsavelQueryGateway.existsById(id)) {
             throw new ResponsavelNaoEncontradoException(id);
         }

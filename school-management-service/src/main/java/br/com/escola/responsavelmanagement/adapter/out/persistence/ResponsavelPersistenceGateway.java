@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import br.com.escola.responsavelmanagement.adapter.out.persistence.entity.ResponsavelEntity;
@@ -44,7 +45,7 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
     }
 
     @Override
-    public ResponsavelOutput update(UUID id, ResponsavelInput input) {
+    public ResponsavelOutput update(@NonNull UUID id, ResponsavelInput input) {
         ResponsavelEntity entity = responsavelJpaRepository.findById(id)
                 .orElseThrow(() -> new ResponsavelNaoEncontradoException(id));
 
@@ -56,12 +57,12 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
     }
 
     @Override
-    public void deleteById(UUID id) {
+    public void deleteById(@NonNull UUID id) {
         responsavelJpaRepository.deleteById(id);
     }
 
     @Override
-    public Optional<ResponsavelOutput> findById(UUID id) {
+    public Optional<ResponsavelOutput> findById(@NonNull UUID id) {
         return responsavelJpaRepository.findById(id).map(this::toOutput);
     }
 
@@ -71,7 +72,7 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
     }
 
     @Override
-    public boolean existsById(UUID id) {
+    public boolean existsById(@NonNull UUID id) {
         return responsavelJpaRepository.existsById(id);
     }
 
