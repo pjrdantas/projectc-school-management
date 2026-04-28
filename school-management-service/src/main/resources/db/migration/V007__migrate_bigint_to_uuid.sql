@@ -44,11 +44,6 @@ ALTER TABLE matricula DROP CONSTRAINT fk_matricula_periodo_letivo;
 ALTER TABLE turma DROP CONSTRAINT fk_turma_periodo_letivo;
 ALTER TABLE turma DROP CONSTRAINT uk_turma_codigo_periodo;
 
-ALTER TABLE aluno DROP PRIMARY KEY;
-ALTER TABLE periodo_letivo DROP PRIMARY KEY;
-ALTER TABLE turma DROP PRIMARY KEY;
-ALTER TABLE matricula DROP PRIMARY KEY;
-
 ALTER TABLE aluno RENAME COLUMN id TO id_legacy;
 ALTER TABLE aluno RENAME COLUMN id_uuid TO id;
 ALTER TABLE periodo_letivo RENAME COLUMN id TO id_legacy;
@@ -73,10 +68,10 @@ ALTER TABLE turma ALTER COLUMN periodo_letivo_id_legacy DROP NOT NULL;
 ALTER TABLE matricula ALTER COLUMN aluno_id_legacy DROP NOT NULL;
 ALTER TABLE matricula ALTER COLUMN turma_id_legacy DROP NOT NULL;
 ALTER TABLE matricula ALTER COLUMN periodo_letivo_id_legacy DROP NOT NULL;
-ALTER TABLE aluno ADD CONSTRAINT aluno_pkey PRIMARY KEY (id);
-ALTER TABLE periodo_letivo ADD CONSTRAINT periodo_letivo_pkey PRIMARY KEY (id);
-ALTER TABLE turma ADD CONSTRAINT turma_pkey PRIMARY KEY (id);
-ALTER TABLE matricula ADD CONSTRAINT matricula_pkey PRIMARY KEY (id);
+ALTER TABLE aluno ADD CONSTRAINT uk_aluno_id_uuid UNIQUE (id);
+ALTER TABLE periodo_letivo ADD CONSTRAINT uk_periodo_letivo_id_uuid UNIQUE (id);
+ALTER TABLE turma ADD CONSTRAINT uk_turma_id_uuid UNIQUE (id);
+ALTER TABLE matricula ADD CONSTRAINT uk_matricula_id_uuid UNIQUE (id);
 
 ALTER TABLE turma ADD CONSTRAINT fk_turma_periodo_letivo FOREIGN KEY (periodo_letivo_id) REFERENCES periodo_letivo (id);
 ALTER TABLE turma ADD CONSTRAINT uk_turma_codigo_periodo UNIQUE (codigo, periodo_letivo_id);
