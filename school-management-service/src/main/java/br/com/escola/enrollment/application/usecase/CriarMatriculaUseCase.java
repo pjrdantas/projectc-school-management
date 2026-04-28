@@ -1,5 +1,7 @@
 package br.com.escola.enrollment.application.usecase;
 
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 
 import br.com.escola.enrollment.application.dto.MatriculaInput;
@@ -47,7 +49,7 @@ public class CriarMatriculaUseCase {
             throw new MatriculaPeriodoNaoEncontradoException(input.periodoLetivoId());
         }
 
-        Long periodoDaTurma = turmaConsultaGateway.findPeriodoLetivoIdByTurmaId(input.turmaId())
+        UUID periodoDaTurma = turmaConsultaGateway.findPeriodoLetivoIdByTurmaId(input.turmaId())
                 .orElseThrow(() -> new MatriculaTurmaNaoEncontradaException(input.turmaId()));
         if (!periodoDaTurma.equals(input.periodoLetivoId())) {
             throw new TurmaPeriodoInconsistenteException(input.turmaId(), input.periodoLetivoId());

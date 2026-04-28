@@ -1,5 +1,7 @@
 package br.com.escola.academiccatalog.adapter.out.persistence;
 
+import java.util.UUID;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -22,12 +24,12 @@ public class PeriodoLetivoPersistenceGateway implements PeriodoLetivoGateway {
     }
 
     @Override
-    public Optional<PeriodoLetivoOutput> findById(@NonNull Long id) {
+    public Optional<PeriodoLetivoOutput> findById(@NonNull UUID id) {
         return periodoLetivoJpaRepository.findById(id).map(this::toOutput);
     }
 
     @Override
-    public boolean existsById(@NonNull Long id) {
+    public boolean existsById(@NonNull UUID id) {
         return periodoLetivoJpaRepository.existsById(id);
     }
 

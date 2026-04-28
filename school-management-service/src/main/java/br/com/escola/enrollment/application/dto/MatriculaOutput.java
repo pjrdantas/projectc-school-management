@@ -1,12 +1,14 @@
 package br.com.escola.enrollment.application.dto;
 
+import java.util.UUID;
+
 import java.time.LocalDateTime;
 
 public record MatriculaOutput(
-        Long id,
-        Long alunoId,
-        Long turmaId,
-        Long periodoLetivoId,
+        UUID id,
+        UUID alunoId,
+        UUID turmaId,
+        UUID periodoLetivoId,
         String status,
         LocalDateTime createdAt) {
 }

@@ -1,5 +1,7 @@
 package br.com.escola.studentmanagement.adapter.in.web;
 
+import java.util.UUID;
+
 import java.util.List;
 
 import jakarta.validation.Valid;
@@ -70,12 +72,12 @@ public class AlunoController {
     }
 
     @GetMapping("/{id}")
-    public AlunoResponse buscarPorId(@PathVariable @NonNull Long id) {
+    public AlunoResponse buscarPorId(@PathVariable @NonNull UUID id) {
         return toResponse(buscarAlunoPorIdUseCase.executar(id));
     }
 
     @PutMapping("/{id}")
-    public AlunoResponse atualizar(@PathVariable @NonNull Long id, @Valid @RequestBody AlunoRequest request) {
+    public AlunoResponse atualizar(@PathVariable @NonNull UUID id, @Valid @RequestBody AlunoRequest request) {
         AlunoOutput output = atualizarAlunoUseCase.executar(
                 id,
                 new AlunoInput(request.nomeCompleto(), request.cpf(), request.email(), request.telefone(), request.dataNascimento()));
@@ -84,7 +86,7 @@ public class AlunoController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void excluir(@PathVariable @NonNull Long id) {
+    public void excluir(@PathVariable @NonNull UUID id) {
         excluirAlunoUseCase.executar(id);
     }
 

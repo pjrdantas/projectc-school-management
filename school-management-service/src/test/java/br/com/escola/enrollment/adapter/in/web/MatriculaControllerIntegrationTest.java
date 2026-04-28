@@ -1,5 +1,7 @@
 package br.com.escola.enrollment.adapter.in.web;
 
+import java.util.UUID;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -38,15 +40,15 @@ class MatriculaControllerIntegrationTest {
 	@Test
     @WithMockUser
     void deveCriarMatriculaComStatusInicialAtiva() throws Exception {
-        Long alunoId = criarAluno();
-        Long periodoId = criarPeriodo("2026.3", "2026-02-01", "2026-06-30");
-        Long turmaId = criarTurma("TURMA-MAT-A", periodoId);
+        UUID alunoId = criarAluno();
+        UUID periodoId = criarPeriodo("2026.3", "2026-02-01", "2026-06-30");
+        UUID turmaId = criarTurma("TURMA-MAT-A", periodoId);
 
         String requestBody = """
                 {
-                  "alunoId": %d,
-                  "turmaId": %d,
-                  "periodoLetivoId": %d
+                  "alunoId": "%s",
+                  "turmaId": "%s",
+                  "periodoLetivoId": "%s"
                 }
                 """.formatted(alunoId, turmaId, periodoId);
 
@@ -54,9 +56,9 @@ class MatriculaControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.alunoId").value(alunoId))
-                .andExpect(jsonPath("$.turmaId").value(turmaId))
-                .andExpect(jsonPath("$.periodoLetivoId").value(periodoId))
+                .andExpect(jsonPath("$.alunoId").value(alunoId.toString()))
+                .andExpect(jsonPath("$.turmaId").value(turmaId.toString()))
+                .andExpect(jsonPath("$.periodoLetivoId").value(periodoId.toString()))
                 .andExpect(jsonPath("$.status").value("ATIVA"));
     }
 
@@ -64,14 +66,14 @@ class MatriculaControllerIntegrationTest {
 	@Test
     @WithMockUser
     void deveRetornarNotFoundQuandoAlunoNaoExistir() throws Exception {
-        Long periodoId = criarPeriodo("2026.4", "2026-08-01", "2026-12-20");
-        Long turmaId = criarTurma("TURMA-MAT-B", periodoId);
+        UUID periodoId = criarPeriodo("2026.4", "2026-08-01", "2026-12-20");
+        UUID turmaId = criarTurma("TURMA-MAT-B", periodoId);
 
         String requestBody = """
                 {
-                  "alunoId": 99999,
-                  "turmaId": %d,
-                  "periodoLetivoId": %d
+                  "alunoId": "00000000-0000-0000-0000-000000000001",
+                  "turmaId": "%s",
+                  "periodoLetivoId": "%s"
                 }
                 """.formatted(turmaId, periodoId);
 
@@ -79,23 +81,23 @@ class MatriculaControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Aluno não encontrado para o id 99999"));
+                .andExpect(jsonPath("$.message").value("Aluno não encontrado para o id 00000000-0000-0000-0000-000000000001"));
     }
 
     @SuppressWarnings("null")
 	@Test
     @WithMockUser
     void deveRetornarBadRequestQuandoTurmaNaoPertencerAoPeriodoInformado() throws Exception {
-        Long alunoId = criarAluno();
-        Long periodoTurma = criarPeriodo("2027.1", "2027-02-01", "2027-06-30");
-        Long periodoInvalido = criarPeriodo("2027.2", "2027-08-01", "2027-12-20");
-        Long turmaId = criarTurma("TURMA-MAT-C", periodoTurma);
+        UUID alunoId = criarAluno();
+        UUID periodoTurma = criarPeriodo("2027.1", "2027-02-01", "2027-06-30");
+        UUID periodoInvalido = criarPeriodo("2027.2", "2027-08-01", "2027-12-20");
+        UUID turmaId = criarTurma("TURMA-MAT-C", periodoTurma);
 
         String requestBody = """
                 {
-                  "alunoId": %d,
-                  "turmaId": %d,
-                  "periodoLetivoId": %d
+                  "alunoId": "%s",
+                  "turmaId": "%s",
+                  "periodoLetivoId": "%s"
                 }
                 """.formatted(alunoId, turmaId, periodoInvalido);
 
@@ -103,18 +105,18 @@ class MatriculaControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("A turma %d não pertence ao período letivo %d"
+                .andExpect(jsonPath("$.message").value("A turma %s não pertence ao período letivo %s"
                         .formatted(turmaId, periodoInvalido)));
     }
 
     @Test
     @WithMockUser
     void deveFiltrarMatriculasPorAluno() throws Exception {
-        Long alunoAlvo = criarAluno();
-        Long outroAluno = criarAluno();
-        Long periodoId = criarPeriodo("2028.1", "2028-02-01", "2028-06-30");
-        Long turmaA = criarTurma("TURMA-FIL-ALUNO-A", periodoId);
-        Long turmaB = criarTurma("TURMA-FIL-ALUNO-B", periodoId);
+        UUID alunoAlvo = criarAluno();
+        UUID outroAluno = criarAluno();
+        UUID periodoId = criarPeriodo("2028.1", "2028-02-01", "2028-06-30");
+        UUID turmaA = criarTurma("TURMA-FIL-ALUNO-A", periodoId);
+        UUID turmaB = criarTurma("TURMA-FIL-ALUNO-B", periodoId);
 
         criarMatricula(alunoAlvo, turmaA, periodoId);
         criarMatricula(outroAluno, turmaB, periodoId);
@@ -122,17 +124,17 @@ class MatriculaControllerIntegrationTest {
         mockMvc.perform(get("/api/matriculas").param("alunoId", alunoAlvo.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].alunoId").value(alunoAlvo));
+                .andExpect(jsonPath("$[0].alunoId").value(alunoAlvo.toString()));
     }
 
     @Test
     @WithMockUser
     void deveFiltrarMatriculasPorTurma() throws Exception {
-        Long alunoA = criarAluno();
-        Long alunoB = criarAluno();
-        Long periodoId = criarPeriodo("2028.2", "2028-08-01", "2028-12-20");
-        Long turmaAlvo = criarTurma("TURMA-FIL-TURMA-A", periodoId);
-        Long outraTurma = criarTurma("TURMA-FIL-TURMA-B", periodoId);
+        UUID alunoA = criarAluno();
+        UUID alunoB = criarAluno();
+        UUID periodoId = criarPeriodo("2028.2", "2028-08-01", "2028-12-20");
+        UUID turmaAlvo = criarTurma("TURMA-FIL-TURMA-A", periodoId);
+        UUID outraTurma = criarTurma("TURMA-FIL-TURMA-B", periodoId);
 
         criarMatricula(alunoA, turmaAlvo, periodoId);
         criarMatricula(alunoB, outraTurma, periodoId);
@@ -140,18 +142,18 @@ class MatriculaControllerIntegrationTest {
         mockMvc.perform(get("/api/matriculas").param("turmaId", turmaAlvo.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].turmaId").value(turmaAlvo));
+                .andExpect(jsonPath("$[0].turmaId").value(turmaAlvo.toString()));
     }
 
     @Test
     @WithMockUser
     void deveFiltrarMatriculasPorPeriodoLetivo() throws Exception {
-        Long alunoA = criarAluno();
-        Long alunoB = criarAluno();
-        Long periodoAlvo = criarPeriodo("2029.1", "2029-02-01", "2029-06-30");
-        Long outroPeriodo = criarPeriodo("2029.2", "2029-08-01", "2029-12-20");
-        Long turmaAlvo = criarTurma("TURMA-FIL-PER-A", periodoAlvo);
-        Long turmaOutro = criarTurma("TURMA-FIL-PER-B", outroPeriodo);
+        UUID alunoA = criarAluno();
+        UUID alunoB = criarAluno();
+        UUID periodoAlvo = criarPeriodo("2029.1", "2029-02-01", "2029-06-30");
+        UUID outroPeriodo = criarPeriodo("2029.2", "2029-08-01", "2029-12-20");
+        UUID turmaAlvo = criarTurma("TURMA-FIL-PER-A", periodoAlvo);
+        UUID turmaOutro = criarTurma("TURMA-FIL-PER-B", outroPeriodo);
 
         criarMatricula(alunoA, turmaAlvo, periodoAlvo);
         criarMatricula(alunoB, turmaOutro, outroPeriodo);
@@ -159,15 +161,15 @@ class MatriculaControllerIntegrationTest {
         mockMvc.perform(get("/api/matriculas").param("periodoLetivoId", periodoAlvo.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].periodoLetivoId").value(periodoAlvo));
+                .andExpect(jsonPath("$[0].periodoLetivoId").value(periodoAlvo.toString()));
     }
 
     @Test
     @WithMockUser
     void deveFiltrarMatriculasPorStatus() throws Exception {
-        Long alunoId = criarAluno();
-        Long periodoId = criarPeriodo("2030.1", "2030-02-01", "2030-06-30");
-        Long turmaId = criarTurma("TURMA-FIL-STATUS", periodoId);
+        UUID alunoId = criarAluno();
+        UUID periodoId = criarPeriodo("2030.1", "2030-02-01", "2030-06-30");
+        UUID turmaId = criarTurma("TURMA-FIL-STATUS", periodoId);
 
         criarMatricula(alunoId, turmaId, periodoId);
 
@@ -185,7 +187,7 @@ class MatriculaControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Status de matrícula inválido: XPT"));
     }
 
-    private Long criarAluno() throws Exception {
+    private UUID criarAluno() throws Exception {
         String requestBody = """
                 {
                   "nomeCompleto": "Aluno Matricula",
@@ -204,10 +206,10 @@ class MatriculaControllerIntegrationTest {
                 .getResponse()
                 .getContentAsString();
 
-        return objectMapper.readTree(responseBody).get("id").asLong();
+        return UUID.fromString(objectMapper.readTree(responseBody).get("id").asText());
     }
 
-    private Long criarPeriodo(String nome, String dataInicio, String dataFim) throws Exception {
+    private UUID criarPeriodo(String nome, String dataInicio, String dataFim) throws Exception {
         String requestBody = """
                 {
                   "nome": "%s",
@@ -225,16 +227,16 @@ class MatriculaControllerIntegrationTest {
                 .getResponse()
                 .getContentAsString();
 
-        return objectMapper.readTree(responseBody).get("id").asLong();
+        return UUID.fromString(objectMapper.readTree(responseBody).get("id").asText());
     }
 
-    private Long criarTurma(String codigo, Long periodoId) throws Exception {
+    private UUID criarTurma(String codigo, UUID periodoId) throws Exception {
         String requestBody = """
                 {
                   "codigo": "%s",
                   "nome": "Turma de Matricula",
                   "capacidade": 40,
-                  "periodoLetivoId": %d
+                  "periodoLetivoId": "%s"
                 }
                 """.formatted(codigo, periodoId);
 
@@ -247,16 +249,16 @@ class MatriculaControllerIntegrationTest {
                 .getResponse()
                 .getContentAsString();
 
-        return objectMapper.readTree(responseBody).get("id").asLong();
+        return UUID.fromString(objectMapper.readTree(responseBody).get("id").asText());
     }
 
     @SuppressWarnings("null")
-	private void criarMatricula(Long alunoId, Long turmaId, Long periodoId) throws Exception {
+	private void criarMatricula(UUID alunoId, UUID turmaId, UUID periodoId) throws Exception {
         String requestBody = """
                 {
-                  "alunoId": %d,
-                  "turmaId": %d,
-                  "periodoLetivoId": %d
+                  "alunoId": "%s",
+                  "turmaId": "%s",
+                  "periodoLetivoId": "%s"
                 }
                 """.formatted(alunoId, turmaId, periodoId);
 

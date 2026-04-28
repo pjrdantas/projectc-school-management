@@ -1,5 +1,7 @@
 package br.com.escola.academiccatalog.adapter.in.web;
 
+import java.util.UUID;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -47,18 +49,18 @@ class AcademicCatalogControllerIntegrationTest {
                 .getContentAsString();
 
         JsonNode json = objectMapper.readTree(responseBody);
-        Long id = json.get("id").asLong();
+        UUID id = UUID.fromString(json.get("id").asText());
 
         mockMvc.perform(get("/api/periodos-letivos/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.id").value(id.toString()))
                 .andExpect(jsonPath("$.nome").value("2026.1"));
     }
 
     @Test
     @WithMockUser
     void deveRetornarNotFoundQuandoPeriodoLetivoNaoExistir() throws Exception {
-        mockMvc.perform(get("/api/periodos-letivos/{id}", 99999L))
+        mockMvc.perform(get("/api/periodos-letivos/{id}", "00000000-0000-0000-0000-000000000001"))
                 .andExpect(status().isNotFound());
     }
 
@@ -82,14 +84,14 @@ class AcademicCatalogControllerIntegrationTest {
                 .getResponse()
                 .getContentAsString();
 
-        Long periodoId = objectMapper.readTree(periodoResponse).get("id").asLong();
+        UUID periodoId = UUID.fromString(objectMapper.readTree(periodoResponse).get("id").asText());
 
         String turmaRequest = """
                 {
                   "codigo": "TURMA-A",
                   "nome": "Turma A",
                   "capacidade": 30,
-                  "periodoLetivoId": %d
+                  "periodoLetivoId": "%s"
                 }
                 """.formatted(periodoId);
 
@@ -98,16 +100,16 @@ class AcademicCatalogControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(turmaRequest))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.periodoLetivoId").value(periodoId))
+                .andExpect(jsonPath("$.periodoLetivoId").value(periodoId.toString()))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
-        Long turmaId = objectMapper.readTree(turmaResponse).get("id").asLong();
+        UUID turmaId = UUID.fromString(objectMapper.readTree(turmaResponse).get("id").asText());
 
         mockMvc.perform(get("/api/turmas/{id}", turmaId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(turmaId))
+                .andExpect(jsonPath("$.id").value(turmaId.toString()))
                 .andExpect(jsonPath("$.codigo").value("TURMA-A"));
     }
 
@@ -131,14 +133,14 @@ class AcademicCatalogControllerIntegrationTest {
                 .getResponse()
                 .getContentAsString();
 
-        Long periodoId = objectMapper.readTree(periodoResponse).get("id").asLong();
+        UUID periodoId = UUID.fromString(objectMapper.readTree(periodoResponse).get("id").asText());
 
         String turmaRequest = """
                 {
                   "codigo": "TURMA-B",
                   "nome": "Turma B",
                   "capacidade": 35,
-                  "periodoLetivoId": %d
+                  "periodoLetivoId": "%s"
                 }
                 """.formatted(periodoId);
 

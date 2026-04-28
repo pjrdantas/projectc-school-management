@@ -6,11 +6,19 @@ import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Student } from '../../models/student.model';
 import { StudentsService } from '../../services/students.service';
+import { Responsible } from '../../../responsibles/models/responsible.model';
+import { ResponsiblesService } from '../../../responsibles/services/responsibles.service';
 
 @Component({
   selector: 'app-students-detail',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, RouterLink, MatSnackBarModule],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    RouterLink,
+    MatSnackBarModule,
+  ],
   templateUrl: './students-detail.component.html',
   styleUrls: ['./students-detail.component.scss'],
 })
@@ -18,9 +26,11 @@ export class StudentsDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly studentsService = inject(StudentsService);
+  private readonly responsiblesService = inject(ResponsiblesService);
   private readonly snackBar = inject(MatSnackBar);
 
   protected readonly student = signal<Student | null>(null);
+  protected readonly vinculos = signal<Responsible[]>([]);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -30,7 +40,10 @@ export class StudentsDetailComponent implements OnInit {
     }
 
     this.studentsService.fetchByIdFromApi(id).subscribe({
-      next: student => this.student.set(student),
+      next: student => {
+        this.student.set(student);
+        this.carregarResponsaveis(student.id);
+      },
       error: () => {
         this.snackBar.open('Aluno não encontrado.', 'Fechar', { duration: 3000 });
         this.router.navigate(['/students']);
@@ -48,5 +61,14 @@ export class StudentsDetailComponent implements OnInit {
   protected formatData(value: string): string {
     const [yyyy, mm, dd] = value.split('-');
     return `${dd}/${mm}/${yyyy}`;
+  }
+
+  private carregarResponsaveis(idAluno: string): void {
+    this.responsiblesService.listarResponsaveisPorAluno(idAluno).subscribe({
+      next: responsaveis => this.vinculos.set(responsaveis),
+      error: () => {
+        this.snackBar.open('Não foi possível carregar vínculos do aluno.', 'Fechar', { duration: 3000 });
+      },
+    });
   }
 }

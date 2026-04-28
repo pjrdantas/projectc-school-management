@@ -12,6 +12,21 @@
       <p><strong>Telefone:</strong> {{ aluno.telefone || 'Não informado' }}</p>
       <p><strong>Cadastrado em:</strong> {{ aluno.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
 
+      <hr />
+      <h3>Responsáveis vinculados</h3>
+      <p class="helper-text">Os vínculos são definidos na tela de cadastro/edição do aluno.</p>
+
+      <div *ngIf="vinculos().length === 0" class="empty-state">Nenhum responsável vinculado.</div>
+
+      <div *ngFor="let vinculo of vinculos()" class="vinculo-item">
+        <div>
+          <strong>{{ vinculo.nomeCompleto }}</strong>
+          <p>CPF: {{ formatCpf(vinculo.cpf) }}</p>
+          <p>E-mail: {{ vinculo.email || 'Não informado' }}</p>
+          <p>Telefone: {{ vinculo.telefone || 'Não informado' }}</p>
+        </div>
+      </div>
+
       <div class="actions">
         <button mat-stroked-button [routerLink]="['/students', aluno.id, 'edit']">Editar</button>
         <button mat-raised-button color="primary" routerLink="/students">Voltar</button>
