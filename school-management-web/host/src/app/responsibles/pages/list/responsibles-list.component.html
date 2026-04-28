@@ -9,16 +9,37 @@
         </button>
       </div>
 
+      <p>Lista geral de responsáveis cadastrados (cadastro integrado com backend).</p>
+
       <mat-form-field appearance="outline" class="search-field">
         <mat-label>Buscar responsáveis por nome</mat-label>
-        <input matInput [value]="searchTerm()" (input)="onSearchTermChange($any($event.target).value)" />
+        <input
+          matInput
+          [value]="searchTerm()"
+          (input)="onSearchTermChange($any($event.target).value)"
+          autocomplete="off" />
+        <button
+          *ngIf="searchTerm()"
+          mat-icon-button
+          matSuffix
+          type="button"
+          aria-label="Limpar busca"
+          (click)="clearSearch()">
+          <mat-icon fontIcon="close"></mat-icon>
+        </button>
       </mat-form-field>
 
-      <div class="empty-state" *ngIf="(responsibles$ | async)?.length === 0">Nenhum responsável cadastrado.</div>
+      <div class="empty-state" *ngIf="(responsibles$ | async)?.length === 0">
+        Nenhum responsável cadastrado ainda.
+      </div>
+
+      <div class="empty-state" *ngIf="(responsibles$ | async)?.length && totalResponsibles() === 0">
+        Nenhum responsável encontrado para "{{ searchTerm() }}".
+      </div>
 
       <div class="list" *ngIf="totalResponsibles() > 0">
         <div class="list-item" *ngFor="let responsible of pagedResponsibles()">
-          <div class="student-info">
+          <div class="responsible-info">
             <h3>{{ responsible.nomeCompleto }}</h3>
             <p>CPF: {{ formatCpf(responsible.cpf) }}</p>
             <p>E-mail: {{ responsible.email || 'Não informado' }}</p>
@@ -39,6 +60,8 @@
         [pageSize]="pageSize()"
         [pageSizeOptions]="pageSizeOptions"
         [hidePageSize]="true"
+        showFirstLastButtons
+        aria-label="Paginação da lista de responsáveis"
         (page)="onPageChange($event)">
       </mat-paginator>
     </mat-card-content>

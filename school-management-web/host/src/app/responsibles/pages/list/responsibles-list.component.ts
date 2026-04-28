@@ -48,9 +48,13 @@ export class ResponsiblesListComponent implements OnInit {
   protected readonly filteredResponsibles = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     const items = this.responsiblesSignal();
-    return !term
+    const filtered = !term
       ? items
       : items.filter(item => item.nomeCompleto.toLowerCase().includes(term));
+
+    return [...filtered].sort((a, b) =>
+      a.nomeCompleto.localeCompare(b.nomeCompleto, 'pt-BR', { sensitivity: 'base' }),
+    );
   });
 
   protected readonly totalResponsibles = computed(() => this.filteredResponsibles().length);
@@ -72,16 +76,33 @@ export class ResponsiblesListComponent implements OnInit {
   }
 
   protected onSearchTermChange(value: string): void {
-    this.searchTerm.set(value);
+    const term = value.trim();
+    this.searchTerm.set(term);
     this.pageIndex.set(0);
-    this.responsiblesService.syncFromApi(value || undefined).subscribe({
+    this.responsiblesService.syncFromApi(term || undefined).subscribe({
       error: () => this.snackBar.open('Não foi possível buscar responsáveis.', 'Fechar', { duration: 4000 }),
+    });
+  }
+
+  protected clearSearch(): void {
+    this.searchTerm.set('');
+    this.pageIndex.set(0);
+    this.responsiblesService.syncFromApi().subscribe({
+      error: () => this.snackBar.open('Não foi possível recarregar responsáveis.', 'Fechar', { duration: 4000 }),
     });
   }
 
   protected remover(id: string): void {
     this.responsiblesService.removeOnApi(id).subscribe({
-      next: () => this.snackBar.open('Responsável removido com sucesso.', 'Fechar', { duration: 3000 }),
+      next: () => {
+        this.snackBar.open('Responsável removido com sucesso.', 'Fechar', { duration: 3000 });
+
+        const currentPageStart = this.pageIndex() * this.pageSize();
+        const total = this.totalResponsibles();
+        if (total > 0 && currentPageStart >= total) {
+          this.pageIndex.set(Math.max(Math.ceil(total / this.pageSize()) - 1, 0));
+        }
+      },
       error: () => this.snackBar.open('Erro ao excluir responsável.', 'Fechar', { duration: 4000 }),
     });
   }
