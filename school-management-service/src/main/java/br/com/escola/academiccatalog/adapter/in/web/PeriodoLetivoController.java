@@ -1,5 +1,7 @@
 package br.com.escola.academiccatalog.adapter.in.web;
 
+import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,7 +41,7 @@ public class PeriodoLetivoController {
     }
 
     @GetMapping("/{id}")
-    public PeriodoLetivoResponse buscarPorId(@PathVariable @NonNull Long id) {
+    public PeriodoLetivoResponse buscarPorId(@PathVariable @NonNull UUID id) {
         return toResponse(buscarPeriodoLetivoPorIdUseCase.executar(id));
     }
 
