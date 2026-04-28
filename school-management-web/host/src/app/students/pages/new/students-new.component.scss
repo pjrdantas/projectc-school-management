@@ -68,6 +68,9 @@
 }
 
 .responsavel-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   border: 1px solid #d9deff;
   border-radius: 8px;
   background: #f7f8ff;

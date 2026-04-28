@@ -218,6 +218,11 @@ export class StudentsNewComponent implements OnInit {
     this.responsibleSearchTerm.set('');
   }
 
+  protected removeResponsible(idResponsible: string): void {
+    const updatedIds = this.selectedResponsibleIds().filter(id => id !== idResponsible);
+    this.selectedResponsibleIds.set(updatedIds);
+  }
+
   private carregarResponsaveisVinculados(idAluno: string): void {
     this.responsiblesService.listarResponsaveisPorAluno(idAluno).subscribe({
       next: responsaveis => {
