@@ -1,7 +1,5 @@
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 CREATE TABLE usuario (
-    id_usuario UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_usuario UUID PRIMARY KEY,
     username VARCHAR(80) NOT NULL UNIQUE,
     nome VARCHAR(150) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
@@ -12,7 +10,7 @@ CREATE TABLE usuario (
 );
 
 CREATE TABLE perfil (
-    id_perfil UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_perfil UUID PRIMARY KEY,
     codigo VARCHAR(50) NOT NULL UNIQUE,
     nome VARCHAR(120) NOT NULL,
     descricao VARCHAR(255),
@@ -20,14 +18,14 @@ CREATE TABLE perfil (
 );
 
 CREATE TABLE permissao (
-    id_permissao UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_permissao UUID PRIMARY KEY,
     codigo VARCHAR(80) NOT NULL UNIQUE,
     descricao VARCHAR(255),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE usuario_perfil (
-    id_usuario_perfil UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_usuario_perfil UUID PRIMARY KEY,
     id_usuario UUID NOT NULL,
     id_perfil UUID NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -37,7 +35,7 @@ CREATE TABLE usuario_perfil (
 );
 
 CREATE TABLE perfil_permissao (
-    id_perfil_permissao UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_perfil_permissao UUID PRIMARY KEY,
     id_perfil UUID NOT NULL,
     id_permissao UUID NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -47,7 +45,7 @@ CREATE TABLE perfil_permissao (
 );
 
 CREATE TABLE sessao_autenticacao (
-    id_sessao_autenticacao UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_sessao_autenticacao UUID PRIMARY KEY,
     id_usuario UUID NOT NULL,
     refresh_token_hash VARCHAR(255) NOT NULL,
     expira_em TIMESTAMP NOT NULL,
