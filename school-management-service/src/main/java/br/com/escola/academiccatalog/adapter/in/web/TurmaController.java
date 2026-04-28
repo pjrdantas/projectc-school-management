@@ -1,5 +1,7 @@
 package br.com.escola.academiccatalog.adapter.in.web;
 
+import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,7 +39,7 @@ public class TurmaController {
     }
 
     @GetMapping("/{id}")
-    public TurmaResponse buscarPorId(@PathVariable @NonNull Long id) {
+    public TurmaResponse buscarPorId(@PathVariable @NonNull UUID id) {
         return toResponse(buscarTurmaPorIdUseCase.executar(id));
     }
 

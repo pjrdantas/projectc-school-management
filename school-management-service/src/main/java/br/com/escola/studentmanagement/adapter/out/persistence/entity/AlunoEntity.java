@@ -1,5 +1,7 @@
 package br.com.escola.studentmanagement.adapter.out.persistence.entity;
 
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -16,8 +18,9 @@ import org.hibernate.annotations.CreationTimestamp;
 public class AlunoEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id_aluno")
+    private UUID id;
 
     @Column(name = "nome_completo", nullable = false, length = 150)
     private String nomeCompleto;
@@ -38,7 +41,7 @@ public class AlunoEntity {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 

@@ -1,5 +1,7 @@
 package br.com.escola.academiccatalog.adapter.out.persistence;
 
+import java.util.UUID;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -28,12 +30,12 @@ public class TurmaPersistenceGateway implements TurmaGateway {
     }
 
     @Override
-    public Optional<TurmaOutput> findById(@NonNull Long id) {
+    public Optional<TurmaOutput> findById(@NonNull UUID id) {
         return turmaJpaRepository.findById(id).map(this::toOutput);
     }
 
     @Override
-    public Optional<TurmaOutput> findByCodigoAndPeriodoLetivoId(String codigo, Long periodoLetivoId) {
+    public Optional<TurmaOutput> findByCodigoAndPeriodoLetivoId(String codigo, UUID periodoLetivoId) {
         return turmaJpaRepository.findByCodigoAndPeriodoLetivoId(codigo, periodoLetivoId).map(this::toOutput);
     }
 

@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -20,6 +21,9 @@ class AlunoControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Test
     @WithMockUser
     void deveBuscarAlunoPorIdQuandoExistir() throws Exception {
@@ -33,7 +37,7 @@ class AlunoControllerIntegrationTest {
                 """;
 
         @SuppressWarnings("null")
-		String responseBody = mockMvc.perform(post("/api/alunos")
+        String responseBody = mockMvc.perform(post("/api/alunos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isCreated())
@@ -41,11 +45,11 @@ class AlunoControllerIntegrationTest {
                 .getResponse()
                 .getContentAsString();
 
-        String id = responseBody.replaceAll(".*\\\"id\\\":(\\d+).*", "$1");
+        String id = objectMapper.readTree(responseBody).get("id").asText();
 
         mockMvc.perform(get("/api/alunos/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(Long.parseLong(id)))
+                .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.nomeCompleto").value("João da Silva"))
                 .andExpect(jsonPath("$.cpf").value("12345678901"));
     }
@@ -53,8 +57,8 @@ class AlunoControllerIntegrationTest {
     @Test
     @WithMockUser
     void deveRetornarNotFoundQuandoAlunoNaoExistir() throws Exception {
-        mockMvc.perform(get("/api/alunos/{id}", 99999L))
+        mockMvc.perform(get("/api/alunos/{id}", "00000000-0000-0000-0000-000000000001"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Aluno não encontrado para o id 99999"));
+                .andExpect(jsonPath("$.message").value("Aluno não encontrado para o id 00000000-0000-0000-0000-000000000001"));
     }
 }
