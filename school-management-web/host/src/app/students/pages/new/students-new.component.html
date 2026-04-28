@@ -69,12 +69,21 @@
                 matInput
                 [value]="responsibleSearchTerm()"
                 (input)="onResponsibleSearchInput(($any($event.target).value || '').toString())"
+                [matAutocomplete]="autoResponsible"
                 placeholder="Digite nome ou CPF do responsável"
               />
               <mat-hint *ngIf="searchedResponsible() as encontrado">
                 Encontrado: {{ encontrado.nomeCompleto }} - {{ formatCpf(encontrado.cpf) }}
               </mat-hint>
             </mat-form-field>
+            <mat-autocomplete
+              #autoResponsible="matAutocomplete"
+              [displayWith]="displayResponsible"
+              (optionSelected)="onResponsibleOptionSelected($event.option.value)">
+              <mat-option *ngFor="let responsible of filteredResponsibles()" [value]="responsible.id">
+                {{ responsible.nomeCompleto }} - {{ formatCpf(responsible.cpf) }}
+              </mat-option>
+            </mat-autocomplete>
 
             <button mat-stroked-button type="button" (click)="addResponsibleFromSearch()">
               Selecionar
