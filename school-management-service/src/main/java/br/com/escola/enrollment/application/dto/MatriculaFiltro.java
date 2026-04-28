@@ -1,8 +1,10 @@
 package br.com.escola.enrollment.application.dto;
 
+import java.util.UUID;
+
 public record MatriculaFiltro(
-        Long alunoId,
-        Long turmaId,
-        Long periodoLetivoId,
+        UUID alunoId,
+        UUID turmaId,
+        UUID periodoLetivoId,
         String status) {
 }

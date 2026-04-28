@@ -74,6 +74,15 @@ Ou configurando variável:
 SPRING_PROFILES_ACTIVE=local ./mvnw spring-boot:run
 ```
 
+
+### Script SQL de apoio (UUID)
+
+Para preparar o banco local já no padrão UUID (compatível com a API atual), use:
+
+```bash
+psql -U postgres -d school_management -f ../docs/school_management_uuid.sql
+```
+
 ## Credenciais de autenticação local (HTTP Basic)
 
 No profile local:
