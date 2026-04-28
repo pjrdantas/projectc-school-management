@@ -83,7 +83,7 @@ export class StudentsListComponent implements OnInit {
 
   protected onSearchTermChange(value: string): void {
     const term = value.trim();
-    this.searchTerm.set(value);
+    this.searchTerm.set(term);
     this.pageIndex.set(0);
 
     this.studentsService.syncFromApi(term || undefined).subscribe({
