@@ -52,6 +52,35 @@ export const routes: Routes = [
             m => m.StudentsNewComponent,
           ),
       },
+
+      {
+        path: 'responsibles',
+        loadComponent: () =>
+          import('./responsibles/pages/list/responsibles-list.component').then(
+            m => m.ResponsiblesListComponent,
+          ),
+      },
+      {
+        path: 'responsibles/new',
+        loadComponent: () =>
+          import('./responsibles/pages/new/responsibles-new.component').then(
+            m => m.ResponsiblesNewComponent,
+          ),
+      },
+      {
+        path: 'responsibles/:id',
+        loadComponent: () =>
+          import('./responsibles/pages/detail/responsibles-detail.component').then(
+            m => m.ResponsiblesDetailComponent,
+          ),
+      },
+      {
+        path: 'responsibles/:id/edit',
+        loadComponent: () =>
+          import('./responsibles/pages/new/responsibles-new.component').then(
+            m => m.ResponsiblesNewComponent,
+          ),
+      },
       {
         path: 'academic/periods',
         loadComponent: () =>
