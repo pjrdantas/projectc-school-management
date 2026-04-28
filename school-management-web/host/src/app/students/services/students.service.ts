@@ -8,7 +8,7 @@ const STORAGE_KEY = 'students-crud-v1';
 const API_BASE_URL = 'http://localhost:8080';
 
 interface AlunoApiResponse {
-  id: number;
+  id: string;
   nomeCompleto: string;
   cpf: string;
   email: string;
@@ -129,7 +129,7 @@ export class StudentsService {
 
   private mapToStudent(response: AlunoApiResponse, telefone?: string): Student {
     return {
-      id: String(response.id),
+      id: response.id,
       nomeCompleto: response.nomeCompleto,
       cpf: this.onlyDigits(response.cpf),
       email: response.email,

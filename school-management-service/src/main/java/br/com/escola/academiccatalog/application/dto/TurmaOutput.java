@@ -1,12 +1,14 @@
 package br.com.escola.academiccatalog.application.dto;
 
+import java.util.UUID;
+
 import java.time.LocalDateTime;
 
 public record TurmaOutput(
-        Long id,
+        UUID id,
         String codigo,
         String nome,
         Integer capacidade,
-        Long periodoLetivoId,
+        UUID periodoLetivoId,
         LocalDateTime createdAt) {
 }
