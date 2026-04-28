@@ -64,13 +64,13 @@
           <label class="responsaveis-label">Buscar responsável</label>
           <div class="responsavel-search-row">
             <mat-form-field appearance="outline">
-              <mat-label>Nome ou CPF</mat-label>
+              <mat-label>Nome do responsável</mat-label>
               <input
                 matInput
                 [value]="responsibleSearchTerm()"
                 (input)="onResponsibleSearchInput(($any($event.target).value || '').toString())"
                 [matAutocomplete]="autoResponsible"
-                placeholder="Digite nome ou CPF do responsável"
+                placeholder="Digite o nome do responsável"
               />
               <mat-hint *ngIf="searchedResponsible() as encontrado">
                 Encontrado: {{ encontrado.nomeCompleto }} - {{ formatCpf(encontrado.cpf) }}

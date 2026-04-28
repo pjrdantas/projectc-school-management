@@ -56,7 +56,6 @@ export class StudentsNewComponent implements OnInit {
   protected readonly pendingResponsibleId = signal<string | null>(null);
   protected readonly filteredResponsibles = computed(() => {
     const termRaw = this.responsibleSearchTerm().trim().toLowerCase();
-    const termDigits = this.onlyDigits(this.responsibleSearchTerm());
     const selectedIds = new Set(this.selectedResponsibleIds());
 
     return this.responsibles().filter(responsible => {
@@ -64,13 +63,12 @@ export class StudentsNewComponent implements OnInit {
         return false;
       }
 
-      if (!termRaw && !termDigits) {
-        return true;
+      if (!termRaw) {
+        return false;
       }
 
       const nome = responsible.nomeCompleto.toLowerCase();
-      const cpf = this.onlyDigits(responsible.cpf);
-      return nome.includes(termRaw) || cpf.includes(termDigits);
+      return nome.includes(termRaw);
     });
   });
   protected readonly searchedResponsible = computed(() => this.filteredResponsibles()[0] ?? null);
@@ -209,12 +207,11 @@ export class StudentsNewComponent implements OnInit {
   }
 
   protected addResponsibleFromSearch(): void {
-    const selectedFromAutocomplete = this.pendingResponsibleId()
+    const found = this.pendingResponsibleId()
       ? this.responsibles().find(item => item.id === this.pendingResponsibleId())
       : null;
-    const found = selectedFromAutocomplete ?? this.searchedResponsible();
     if (!found) {
-      this.snackBar.open('Nenhum responsável encontrado para o termo informado.', 'Fechar', {
+      this.snackBar.open('Selecione um responsável pelo nome antes de clicar em selecionar.', 'Fechar', {
         duration: 3000,
       });
       return;
