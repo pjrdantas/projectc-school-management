@@ -68,6 +68,11 @@ ALTER TABLE matricula RENAME COLUMN turma_id_uuid TO turma_id;
 ALTER TABLE matricula RENAME COLUMN periodo_letivo_id TO periodo_letivo_id_legacy;
 ALTER TABLE matricula RENAME COLUMN periodo_letivo_id_uuid TO periodo_letivo_id;
 
+
+ALTER TABLE turma ALTER COLUMN periodo_letivo_id_legacy DROP NOT NULL;
+ALTER TABLE matricula ALTER COLUMN aluno_id_legacy DROP NOT NULL;
+ALTER TABLE matricula ALTER COLUMN turma_id_legacy DROP NOT NULL;
+ALTER TABLE matricula ALTER COLUMN periodo_letivo_id_legacy DROP NOT NULL;
 ALTER TABLE aluno ADD CONSTRAINT aluno_pkey PRIMARY KEY (id);
 ALTER TABLE periodo_letivo ADD CONSTRAINT periodo_letivo_pkey PRIMARY KEY (id);
 ALTER TABLE turma ADD CONSTRAINT turma_pkey PRIMARY KEY (id);
