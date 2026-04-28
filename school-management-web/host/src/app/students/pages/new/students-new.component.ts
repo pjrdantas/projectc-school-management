@@ -14,8 +14,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatOptionModule } from '@angular/material/core';
-import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Observable, forkJoin, map, of, switchMap } from 'rxjs';
 import { StudentInput } from '../../models/student.model';
@@ -33,11 +32,10 @@ import { ResponsiblesService } from '../../../responsibles/services/responsibles
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
+    MatAutocompleteModule,
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
-    MatSelectModule,
-    MatOptionModule,
   ],
   templateUrl: './students-new.component.html',
   styleUrls: ['./students-new.component.scss'],
@@ -54,6 +52,32 @@ export class StudentsNewComponent implements OnInit {
   protected readonly isEditing = computed(() => !!this.studentId());
   protected readonly responsibles = signal<Responsible[]>([]);
   protected readonly selectedResponsibleIds = signal<string[]>([]);
+  protected readonly responsibleSearchTerm = signal('');
+  protected readonly pendingResponsibleId = signal<string | null>(null);
+  protected readonly filteredResponsibles = computed(() => {
+    const termRaw = this.responsibleSearchTerm().trim().toLowerCase();
+    const termDigits = this.onlyDigits(this.responsibleSearchTerm());
+    const selectedIds = new Set(this.selectedResponsibleIds());
+
+    return this.responsibles().filter(responsible => {
+      if (selectedIds.has(responsible.id)) {
+        return false;
+      }
+
+      if (!termRaw && !termDigits) {
+        return true;
+      }
+
+      const nome = responsible.nomeCompleto.toLowerCase();
+      const cpf = this.onlyDigits(responsible.cpf);
+      return nome.includes(termRaw) || cpf.includes(termDigits);
+    });
+  });
+  protected readonly searchedResponsible = computed(() => this.filteredResponsibles()[0] ?? null);
+  protected readonly selectedResponsibles = computed(() => {
+    const selectedIds = new Set(this.selectedResponsibleIds());
+    return this.responsibles().filter(item => selectedIds.has(item.id));
+  });
 
   protected readonly alunoForm = this.fb.nonNullable.group({
     nomeCompleto: ['', [Validators.required, Validators.maxLength(150)]],
@@ -174,6 +198,54 @@ export class StudentsNewComponent implements OnInit {
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
   }
+
+  protected onResponsibleSearchInput(value: string): void {
+    this.responsibleSearchTerm.set(value);
+    this.pendingResponsibleId.set(null);
+  }
+
+  protected onResponsibleOptionSelected(idResponsible: string): void {
+    this.pendingResponsibleId.set(idResponsible);
+  }
+
+  protected addResponsibleFromSearch(): void {
+    const selectedFromAutocomplete = this.pendingResponsibleId()
+      ? this.responsibles().find(item => item.id === this.pendingResponsibleId())
+      : null;
+    const found = selectedFromAutocomplete ?? this.searchedResponsible();
+    if (!found) {
+      this.snackBar.open('Nenhum responsável encontrado para o termo informado.', 'Fechar', {
+        duration: 3000,
+      });
+      return;
+    }
+
+    const selectedIds = this.selectedResponsibleIds();
+    if (selectedIds.includes(found.id)) {
+      this.snackBar.open('Este responsável já foi selecionado.', 'Fechar', {
+        duration: 2500,
+      });
+      return;
+    }
+
+    this.selectedResponsibleIds.set([...selectedIds, found.id]);
+    this.responsibleSearchTerm.set('');
+    this.pendingResponsibleId.set(null);
+  }
+
+  protected removeResponsible(idResponsible: string): void {
+    const updatedIds = this.selectedResponsibleIds().filter(id => id !== idResponsible);
+    this.selectedResponsibleIds.set(updatedIds);
+  }
+
+  protected displayResponsible = (idResponsible: string | null): string => {
+    if (!idResponsible) {
+      return '';
+    }
+
+    const responsible = this.responsibles().find(item => item.id === idResponsible);
+    return responsible ? `${responsible.nomeCompleto} - ${this.formatCpf(responsible.cpf)}` : '';
+  };
 
   private carregarResponsaveisVinculados(idAluno: string): void {
     this.responsiblesService.listarResponsaveisPorAluno(idAluno).subscribe({
