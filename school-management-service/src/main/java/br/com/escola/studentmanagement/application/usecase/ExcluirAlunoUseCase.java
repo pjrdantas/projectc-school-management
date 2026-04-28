@@ -1,5 +1,7 @@
 package br.com.escola.studentmanagement.application.usecase;
 
+import java.util.UUID;
+
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +20,7 @@ public class ExcluirAlunoUseCase {
         this.alunoCommandGateway = alunoCommandGateway;
     }
 
-    public void executar(@NonNull Long id) {
+    public void executar(@NonNull UUID id) {
         if (!alunoQueryGateway.existsById(id)) {
             throw new AlunoNaoEncontradoException(id);
         }

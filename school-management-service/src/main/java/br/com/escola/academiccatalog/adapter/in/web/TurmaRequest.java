@@ -1,5 +1,7 @@
 package br.com.escola.academiccatalog.adapter.in.web;
 
+import java.util.UUID;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -16,6 +18,6 @@ public record TurmaRequest(
         Integer capacidade,
 
         @NotNull(message = "periodoLetivoId é obrigatório")
-        Long periodoLetivoId
+        UUID periodoLetivoId
 ) {
 }
