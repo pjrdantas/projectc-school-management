@@ -2,7 +2,6 @@ package br.com.escola.responsavelmanagement.application.usecase;
 
 import java.util.UUID;
 
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import br.com.escola.responsavelmanagement.application.dto.ResponsavelInput;
@@ -19,7 +18,7 @@ public class AtualizarResponsavelUseCase {
         this.responsavelCommandGateway = responsavelCommandGateway;
     }
 
-    public ResponsavelOutput executar(@NonNull UUID id, ResponsavelInput input) {
+    public ResponsavelOutput executar(UUID id, ResponsavelInput input) {
         if (responsavelCommandGateway.existsByCpfAndIdNot(input.cpf(), id)) {
             throw new ResponsavelJaCadastradoException();
         }

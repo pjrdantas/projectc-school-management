@@ -1,0 +1,46 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <h1>Responsáveis</h1>
+        <button mat-raised-button color="primary" (click)="goToNew()">
+          <mat-icon fontIcon="add"></mat-icon>
+          Novo responsável
+        </button>
+      </div>
+
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar responsáveis por nome</mat-label>
+        <input matInput [value]="searchTerm()" (input)="onSearchTermChange($any($event.target).value)" />
+      </mat-form-field>
+
+      <div class="empty-state" *ngIf="(responsibles$ | async)?.length === 0">Nenhum responsável cadastrado.</div>
+
+      <div class="list" *ngIf="totalResponsibles() > 0">
+        <div class="list-item" *ngFor="let responsible of pagedResponsibles()">
+          <div class="student-info">
+            <h3>{{ responsible.nomeCompleto }}</h3>
+            <p>CPF: {{ formatCpf(responsible.cpf) }}</p>
+            <p>E-mail: {{ responsible.email || 'Não informado' }}</p>
+            <p>Telefone: {{ responsible.telefone || 'Não informado' }}</p>
+          </div>
+          <div class="actions-row">
+            <button mat-stroked-button [routerLink]="['/responsibles', responsible.id]">Consultar</button>
+            <button mat-stroked-button [routerLink]="['/responsibles', responsible.id, 'edit']">Editar</button>
+            <button mat-stroked-button color="warn" (click)="remover(responsible.id)">Excluir</button>
+          </div>
+        </div>
+      </div>
+
+      <mat-paginator
+        *ngIf="totalResponsibles() > 5"
+        [length]="totalResponsibles()"
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="pageSizeOptions"
+        [hidePageSize]="true"
+        (page)="onPageChange($event)">
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

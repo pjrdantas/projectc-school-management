@@ -2,7 +2,6 @@ package br.com.escola.responsavelmanagement.application.usecase;
 
 import java.util.UUID;
 
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import br.com.escola.responsavelmanagement.application.dto.VinculoAlunoResponsavelInput;
@@ -30,7 +29,7 @@ public class VincularResponsavelAoAlunoUseCase {
         this.responsavelQueryGateway = responsavelQueryGateway;
     }
 
-    public VinculoAlunoResponsavelOutput executar(@NonNull UUID idAluno, @NonNull UUID idResponsavel) {
+    public VinculoAlunoResponsavelOutput executar(UUID idAluno, UUID idResponsavel) {
         if (!alunoQueryGateway.existsById(idAluno)) {
             throw new AlunoNaoEncontradoException(idAluno);
         }

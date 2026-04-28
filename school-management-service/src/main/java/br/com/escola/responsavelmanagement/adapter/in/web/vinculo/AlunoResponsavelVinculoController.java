@@ -37,8 +37,7 @@ public class AlunoResponsavelVinculoController {
         this.listarResponsaveisPorAlunoUseCase = listarResponsaveisPorAlunoUseCase;
     }
 
-    @SuppressWarnings("null")
-	@PostMapping
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void vincular(
             @PathVariable @NonNull UUID idAluno,

@@ -1,11 +1,5 @@
-.detail-card {
-  width: 100%;
-  border: 2px solid #667eea;
-  border-radius: 16px;
-}
-
-.actions {
-  margin-top: 16px;
-  display: flex;
-  gap: 10px;
-}
+.page-container { padding: 16px; }
+.vinculo-select { width: 100%; max-width: 520px; }
+.vinculo-item { display: flex; justify-content: space-between; gap: 12px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; margin-top: 10px; }
+.empty-state { margin: 12px 0; opacity: .8; }
+.actions { display: flex; gap: 8px; margin-top: 16px; }
