@@ -2,7 +2,7 @@
   <mat-card class="detail-card">
     <mat-card-header>
       <mat-card-title>Consulta de Responsável</mat-card-title>
-      <mat-card-subtitle>{{ item.nomeCompleto }}</mat-card-subtitle>
+      <mat-card-subtitle><strong>{{ item.nomeCompleto }}</strong></mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
@@ -12,7 +12,6 @@
       <p><strong>Cadastrado em:</strong> {{ item.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
 
       <div class="actions">
-        <button mat-stroked-button [routerLink]="['/responsibles', item.id, 'edit']">Editar</button>
         <button mat-raised-button color="primary" routerLink="/responsibles">Voltar</button>
       </div>
     </mat-card-content>
