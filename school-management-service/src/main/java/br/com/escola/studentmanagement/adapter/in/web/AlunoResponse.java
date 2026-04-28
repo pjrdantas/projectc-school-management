@@ -1,10 +1,12 @@
 package br.com.escola.studentmanagement.adapter.in.web;
 
+import java.util.UUID;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record AlunoResponse(
-        Long id,
+        UUID id,
         String nomeCompleto,
         String cpf,
         String email,

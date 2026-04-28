@@ -15,6 +15,10 @@ import br.com.escola.enrollment.domain.exception.MatriculaPeriodoNaoEncontradoEx
 import br.com.escola.enrollment.domain.exception.MatriculaStatusInvalidoException;
 import br.com.escola.enrollment.domain.exception.MatriculaTurmaNaoEncontradaException;
 import br.com.escola.enrollment.domain.exception.TurmaPeriodoInconsistenteException;
+import br.com.escola.responsavelmanagement.domain.exception.ResponsavelJaCadastradoException;
+import br.com.escola.responsavelmanagement.domain.exception.ResponsavelNaoEncontradoException;
+import br.com.escola.responsavelmanagement.domain.exception.AlunoResponsavelVinculoDuplicadoException;
+import br.com.escola.responsavelmanagement.domain.exception.AlunoResponsavelVinculoNaoEncontradoException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
@@ -87,6 +91,36 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
             TurmaPeriodoInconsistenteException ex,
             HttpServletRequest request) {
         return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
+
+    @ExceptionHandler(ResponsavelJaCadastradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleResponsavelDuplicado(
+            ResponsavelJaCadastradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ResponsavelNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleResponsavelNotFound(
+            ResponsavelNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+
+    @ExceptionHandler(AlunoResponsavelVinculoDuplicadoException.class)
+    public ResponseEntity<ApiErrorResponse> handleVinculoDuplicado(
+            AlunoResponsavelVinculoDuplicadoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AlunoResponsavelVinculoNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleVinculoNotFound(
+            AlunoResponsavelVinculoNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)
