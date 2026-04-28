@@ -14,10 +14,15 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { Observable, forkJoin, map, of, switchMap } from 'rxjs';
 import { StudentInput } from '../../models/student.model';
 import { StudentsService } from '../../services/students.service';
 import { validarCPF } from '../../utils/cpf-validator';
+import { Responsible } from '../../../responsibles/models/responsible.model';
+import { ResponsiblesService } from '../../../responsibles/services/responsibles.service';
 
 @Component({
   selector: 'app-students-new',
@@ -31,6 +36,8 @@ import { validarCPF } from '../../utils/cpf-validator';
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
+    MatSelectModule,
+    MatOptionModule,
   ],
   templateUrl: './students-new.component.html',
   styleUrls: ['./students-new.component.scss'],
@@ -41,9 +48,12 @@ export class StudentsNewComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly snackBar = inject(MatSnackBar);
   private readonly studentsService = inject(StudentsService);
+  private readonly responsiblesService = inject(ResponsiblesService);
 
   protected readonly studentId = signal<string | null>(null);
   protected readonly isEditing = computed(() => !!this.studentId());
+  protected readonly responsibles = signal<Responsible[]>([]);
+  protected readonly selectedResponsibleIds = signal<string[]>([]);
 
   protected readonly alunoForm = this.fb.nonNullable.group({
     nomeCompleto: ['', [Validators.required, Validators.maxLength(150)]],
@@ -54,6 +64,15 @@ export class StudentsNewComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.responsiblesService.syncFromApi().subscribe({
+      next: responsaveis => this.responsibles.set(responsaveis),
+      error: () => {
+        this.snackBar.open('Não foi possível carregar responsáveis para vínculo.', 'Fechar', {
+          duration: 3000,
+        });
+      },
+    });
+
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
       return;
@@ -69,6 +88,7 @@ export class StudentsNewComponent implements OnInit {
           email: student.email,
           telefone: student.telefone ?? '',
         });
+        this.carregarResponsaveisVinculados(id);
         this.applyCpfDuplicadoValidation();
       },
       error: () => {
@@ -105,10 +125,18 @@ export class StudentsNewComponent implements OnInit {
       return;
     }
 
-    if (id) {
-      this.studentsService.updateOnApi(id, payload).subscribe({
+    const request$ = id
+      ? this.studentsService.updateOnApi(id, payload)
+      : this.studentsService.createOnApi(payload);
+
+    request$
+      .pipe(switchMap(student => this.sincronizarResponsaveis(student.id)))
+      .subscribe({
         next: () => {
-          this.snackBar.open('Aluno atualizado com sucesso.', 'Fechar', { duration: 3000 });
+          const mensagem = id
+            ? 'Aluno atualizado com sucesso.'
+            : 'Aluno cadastrado com sucesso.';
+          this.snackBar.open(mensagem, 'Fechar', { duration: 3000 });
           this.router.navigate(['/students']);
         },
         error: (error: { status?: number }) => {
@@ -116,19 +144,6 @@ export class StudentsNewComponent implements OnInit {
           this.snackBar.open(message, 'Fechar', { duration: 4000 });
         },
       });
-      return;
-    }
-
-    this.studentsService.createOnApi(payload).subscribe({
-      next: () => {
-        this.snackBar.open('Aluno cadastrado com sucesso.', 'Fechar', { duration: 3000 });
-        this.router.navigate(['/students']);
-      },
-      error: (error: { status?: number }) => {
-        const message = this.mapApiErrorMessage(error?.status);
-        this.snackBar.open(message, 'Fechar', { duration: 4000 });
-      },
-    });
   }
 
   protected onCancel(): void {
@@ -151,6 +166,54 @@ export class StudentsNewComponent implements OnInit {
   protected onTelefoneInput(): void {
     const telefone = this.alunoForm.controls.telefone.value;
     this.alunoForm.controls.telefone.setValue(this.formatTelefone(telefone), { emitEvent: false });
+  }
+
+  protected formatCpf(cpf: string): string {
+    return cpf
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  }
+
+  private carregarResponsaveisVinculados(idAluno: string): void {
+    this.responsiblesService.listarResponsaveisPorAluno(idAluno).subscribe({
+      next: responsaveis => {
+        const ids = responsaveis.map(item => item.id);
+        this.selectedResponsibleIds.set(ids);
+      },
+      error: () => {
+        this.snackBar.open('Não foi possível carregar responsáveis já vinculados.', 'Fechar', {
+          duration: 3000,
+        });
+      },
+    });
+  }
+
+  private sincronizarResponsaveis(idAluno: string): Observable<void> {
+    const selectedIds = [...new Set(this.selectedResponsibleIds())];
+
+    return this.responsiblesService.listarResponsaveisPorAluno(idAluno).pipe(
+      switchMap(vinculosAtuais => {
+        const atuaisIds = vinculosAtuais.map(item => item.id);
+        const toAdd = selectedIds.filter(id => !atuaisIds.includes(id));
+        const toRemove = atuaisIds.filter(id => !selectedIds.includes(id));
+
+        const requests: Observable<unknown>[] = [
+          ...toAdd.map(idResponsavel =>
+            this.responsiblesService.vincularAlunoResponsavel(idAluno, idResponsavel),
+          ),
+          ...toRemove.map(idResponsavel =>
+            this.responsiblesService.desvincularAlunoResponsavel(idAluno, idResponsavel),
+          ),
+        ];
+
+        if (requests.length === 0) {
+          return of(void 0);
+        }
+
+        return forkJoin(requests).pipe(map(() => void 0));
+      }),
+    );
   }
 
   private applyCpfDuplicadoValidation(): void {
@@ -197,7 +260,7 @@ export class StudentsNewComponent implements OnInit {
   }
 
   private telefoneValidator(): ValidatorFn {
-    const phoneRegex = /^\(\d{2}\)\s\d{4,5}-\d{4}$/;
+    const phoneRegex = /^$|^\(\d{2}\)\s\d{4,5}-\d{4}$/;
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value) {
         return null;
@@ -245,14 +308,6 @@ export class StudentsNewComponent implements OnInit {
 
   private onlyDigits(value: string): string {
     return value.replace(/\D/g, '');
-  }
-
-  private formatCpf(value: string): string {
-    const digits = this.onlyDigits(value).slice(0, 11);
-    return digits
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
   }
 
   private formatDateBr(value: string): string {

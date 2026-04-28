@@ -10,6 +10,9 @@
         <mat-form-field appearance="outline">
           <mat-label>Nome completo *</mat-label>
           <input matInput formControlName="nomeCompleto" />
+          <mat-error *ngIf="form.controls.nomeCompleto.hasError('required')">
+            Nome completo é obrigatório.
+          </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
@@ -20,18 +23,29 @@
 
         <mat-form-field appearance="outline">
           <mat-label>E-mail</mat-label>
-          <input matInput type="email" formControlName="email" />
+          <input matInput type="email" formControlName="email" placeholder="fulano.silva@email.com" />
+          <mat-error *ngIf="form.controls.email.hasError('email')">Informe um e-mail válido.</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Telefone</mat-label>
-          <input matInput formControlName="telefone" (input)="onTelefoneInput()" placeholder="(99) 99999-9999" />
+          <input
+            matInput
+            formControlName="telefone"
+            (input)="onTelefoneInput()"
+            placeholder="(99) 99999-9999 ou (99) 9999-9999" />
           <mat-error *ngIf="form.controls.telefone.hasError('telefoneInvalido')">Use (99) 99999-9999.</mat-error>
         </mat-form-field>
 
         <div class="actions">
-          <button mat-raised-button color="primary" type="submit">Salvar</button>
-          <button mat-stroked-button type="button" (click)="onCancel()">Cancelar</button>
+          <button mat-raised-button color="primary" type="submit">
+            <mat-icon fontIcon="save"></mat-icon>
+            Salvar
+          </button>
+          <button mat-stroked-button type="button" (click)="onCancel()">
+            <mat-icon fontIcon="close"></mat-icon>
+            Cancelar
+          </button>
         </div>
       </form>
     </mat-card-content>
