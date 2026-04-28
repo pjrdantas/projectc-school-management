@@ -45,6 +45,15 @@ public class AlunoResponsavelVinculoController {
         vincularResponsavelAoAlunoUseCase.executar(idAluno, request.idResponsavel());
     }
 
+
+    @PostMapping("/{idResponsavel}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void vincularPorPath(
+            @PathVariable @NonNull UUID idAluno,
+            @PathVariable @NonNull UUID idResponsavel) {
+        vincularResponsavelAoAlunoUseCase.executar(idAluno, idResponsavel);
+    }
+
     @GetMapping
     public List<ResponsavelVinculadoResponse> listar(@PathVariable @NonNull UUID idAluno) {
         return listarResponsaveisPorAlunoUseCase.executar(idAluno).stream()
