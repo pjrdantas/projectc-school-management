@@ -1,5 +1,7 @@
 package br.com.escola.academiccatalog.application.usecase;
 
+import java.util.UUID;
+
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +18,7 @@ public class BuscarTurmaPorIdUseCase {
         this.turmaGateway = turmaGateway;
     }
 
-    public TurmaOutput executar(@NonNull Long id) {
+    public TurmaOutput executar(@NonNull UUID id) {
         return turmaGateway.findById(id).orElseThrow(() -> new TurmaNaoEncontradaException(id));
     }
 }

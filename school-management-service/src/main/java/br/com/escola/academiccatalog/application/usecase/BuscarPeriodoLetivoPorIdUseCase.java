@@ -1,5 +1,7 @@
 package br.com.escola.academiccatalog.application.usecase;
 
+import java.util.UUID;
+
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +18,7 @@ public class BuscarPeriodoLetivoPorIdUseCase {
         this.periodoLetivoGateway = periodoLetivoGateway;
     }
 
-    public PeriodoLetivoOutput executar(@NonNull Long id) {
+    public PeriodoLetivoOutput executar(@NonNull UUID id) {
         return periodoLetivoGateway.findById(id).orElseThrow(() -> new PeriodoLetivoNaoEncontradoException(id));
     }
 }
