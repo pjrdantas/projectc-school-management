@@ -1,8 +1,65 @@
 <div class="page-container">
   <mat-card class="federated-card">
     <mat-card-content>
-      <h1>Períodos Letivos</h1>
-  <p>Área da feature <strong>academic</strong> para gestão de períodos.</p>
+      <div class="header-row">
+        <h1>Períodos letivos</h1>
+      </div>
+
+      <p>Cadastro e consulta por ID de períodos letivos (MVP).</p>
+
+      <form class="form-grid" [formGroup]="form" (ngSubmit)="onCreate()">
+        <mat-form-field appearance="outline">
+          <mat-label>Nome *</mat-label>
+          <input matInput formControlName="nome" placeholder="2026.1" />
+          <mat-error *ngIf="form.controls.nome.hasError('required')">Nome é obrigatório.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Data início *</mat-label>
+          <input matInput type="date" formControlName="dataInicio" />
+          <mat-error *ngIf="form.controls.dataInicio.hasError('required')">
+            Data de início é obrigatória.
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Data fim *</mat-label>
+          <input matInput type="date" formControlName="dataFim" />
+          <mat-error *ngIf="form.controls.dataFim.hasError('required')">Data final é obrigatória.</mat-error>
+        </mat-form-field>
+
+        <div class="actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">
+            <mat-icon fontIcon="save"></mat-icon>
+            Salvar período
+          </button>
+        </div>
+      </form>
+
+      <form class="search-row" [formGroup]="searchForm" (ngSubmit)="onSearchById()">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Consultar por ID *</mat-label>
+          <input matInput formControlName="id" placeholder="UUID do período" />
+          <mat-error *ngIf="searchForm.controls.id.hasError('required')">Informe um ID.</mat-error>
+        </mat-form-field>
+
+        <button mat-stroked-button type="submit" [disabled]="isLoading()">
+          <mat-icon fontIcon="search"></mat-icon>
+          Buscar
+        </button>
+      </form>
+
+      <div class="empty-state" *ngIf="total() === 0">Nenhum período carregado ainda.</div>
+
+      <div class="list" *ngIf="total() > 0">
+        <div class="list-item" *ngFor="let period of periods$ | async">
+          <div>
+            <h3>{{ period.nome }}</h3>
+            <p><strong>ID:</strong> {{ period.id }}</p>
+            <p><strong>Início:</strong> {{ period.dataInicio }} | <strong>Fim:</strong> {{ period.dataFim }}</p>
+          </div>
+        </div>
+      </div>
     </mat-card-content>
   </mat-card>
 </div>
