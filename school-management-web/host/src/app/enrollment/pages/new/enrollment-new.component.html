@@ -1,11 +1,41 @@
 <div class="page-container">
   <mat-card class="federated-card">
     <mat-card-content>
-      <h1>Nova Matrícula</h1>
-  <p>Área da feature <strong>enrollment</strong> para criar matrículas.</p>
+      <h1>Nova matrícula</h1>
+      <p>Cadastro de matrícula com status inicial retornado pelo backend.</p>
+
+      <form class="form-grid" [formGroup]="form" (ngSubmit)="onCreate()">
+        <mat-form-field appearance="outline">
+          <mat-label>ID do aluno *</mat-label>
+          <input matInput formControlName="alunoId" placeholder="UUID do aluno" />
+          <mat-error *ngIf="form.controls.alunoId.hasError('required')">Aluno é obrigatório.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>ID da turma *</mat-label>
+          <input matInput formControlName="turmaId" placeholder="UUID da turma" />
+          <mat-error *ngIf="form.controls.turmaId.hasError('required')">Turma é obrigatória.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>ID do período letivo *</mat-label>
+          <input matInput formControlName="periodoLetivoId" placeholder="UUID do período" />
+          <mat-error *ngIf="form.controls.periodoLetivoId.hasError('required')">
+            Período letivo é obrigatório.
+          </mat-error>
+        </mat-form-field>
+
+        <div class="actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">
+            <mat-icon fontIcon="save"></mat-icon>
+            Criar matrícula
+          </button>
+        </div>
+      </form>
+
+      <div class="status-chip" *ngIf="createdStatus() as status">
+        Status inicial: <strong>{{ status }}</strong>
+      </div>
     </mat-card-content>
   </mat-card>
 </div>
-
-
-
