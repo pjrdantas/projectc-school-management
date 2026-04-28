@@ -1,5 +1,5 @@
 export interface AplicativosResponse {
-  id: number;
+  id: string;
   nome: string;
   descricao: string;
   routePath: string;

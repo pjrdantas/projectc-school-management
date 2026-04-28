@@ -1,5 +1,7 @@
 package br.com.escola.studentmanagement.adapter.out.persistence;
 
+import java.util.UUID;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +32,7 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     }
 
     @Override
-    public boolean existsByCpfAndIdNot(String cpf, @NonNull Long id) {
+    public boolean existsByCpfAndIdNot(String cpf, @NonNull UUID id) {
         return alunoJpaRepository.existsByCpfAndIdNot(cpf, id);
     }
 
@@ -47,7 +49,7 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     }
 
     @Override
-    public AlunoOutput update(@NonNull Long id, AlunoInput input) {
+    public AlunoOutput update(@NonNull UUID id, AlunoInput input) {
         AlunoEntity alunoEntity = alunoJpaRepository.findById(id)
                 .orElseThrow(() -> new AlunoNaoEncontradoException(id));
 
@@ -60,12 +62,12 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     }
 
     @Override
-    public void deleteById(@NonNull Long id) {
+    public void deleteById(@NonNull UUID id) {
         alunoJpaRepository.deleteById(id);
     }
 
     @Override
-    public Optional<AlunoOutput> findById(@NonNull Long id) {
+    public Optional<AlunoOutput> findById(@NonNull UUID id) {
         return alunoJpaRepository.findById(id).map(this::toOutput);
     }
 
@@ -75,7 +77,7 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     }
 
     @Override
-    public boolean existsById(@NonNull Long id) {
+    public boolean existsById(@NonNull UUID id) {
         return alunoJpaRepository.existsById(id);
     }
 
