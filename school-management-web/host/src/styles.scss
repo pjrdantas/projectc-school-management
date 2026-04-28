@@ -6,7 +6,9 @@ html, body {
   width: 100%;
   height: 100%;
   margin: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: linear-gradient(135deg, #cbd5eb 0%, #e5eaec 100%);
 }
 
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
