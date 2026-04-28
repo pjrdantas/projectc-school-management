@@ -1,8 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Student } from '../../models/student.model';
 import { StudentsService } from '../../services/students.service';
@@ -47,6 +52,44 @@ export class StudentsDetailComponent implements OnInit {
       error: () => {
         this.snackBar.open('Aluno não encontrado.', 'Fechar', { duration: 3000 });
         this.router.navigate(['/students']);
+      },
+    });
+
+    this.responsiblesService.syncFromApi().subscribe({
+      next: responsibles => this.responsibles.set(responsibles),
+      error: () => {
+        this.snackBar.open('Não foi possível carregar responsáveis.', 'Fechar', { duration: 3000 });
+      },
+    });
+  }
+
+  protected vincularResponsavel(): void {
+    const aluno = this.student();
+    if (!aluno || !this.selectedResponsibleId) return;
+
+    this.responsiblesService.vincularAlunoResponsavel(aluno.id, this.selectedResponsibleId).subscribe({
+      next: () => {
+        this.snackBar.open('Responsável vinculado com sucesso.', 'Fechar', { duration: 3000 });
+        this.selectedResponsibleId = '';
+        this.carregarResponsaveis(aluno.id);
+      },
+      error: () => {
+        this.snackBar.open('Erro ao vincular responsável.', 'Fechar', { duration: 4000 });
+      },
+    });
+  }
+
+  protected desvincularResponsavel(idResponsavel: string): void {
+    const aluno = this.student();
+    if (!aluno) return;
+
+    this.responsiblesService.desvincularAlunoResponsavel(aluno.id, idResponsavel).subscribe({
+      next: () => {
+        this.snackBar.open('Vínculo removido com sucesso.', 'Fechar', { duration: 3000 });
+        this.carregarResponsaveis(aluno.id);
+      },
+      error: () => {
+        this.snackBar.open('Erro ao remover vínculo.', 'Fechar', { duration: 4000 });
       },
     });
   }
