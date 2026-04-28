@@ -1,5 +1,7 @@
 package br.com.escola.enrollment.adapter.out.persistence;
 
+import java.util.UUID;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,7 +31,7 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
     }
 
     @Override
-    public MatriculaOutput save(Long alunoId, Long turmaId, Long periodoLetivoId, MatriculaStatus status) {
+    public MatriculaOutput save(UUID alunoId, UUID turmaId, UUID periodoLetivoId, MatriculaStatus status) {
         AlunoEntity aluno = entityManager.getReference(AlunoEntity.class, alunoId);
         TurmaEntity turma = entityManager.getReference(TurmaEntity.class, turmaId);
         PeriodoLetivoEntity periodoLetivo = entityManager.getReference(PeriodoLetivoEntity.class, periodoLetivoId);

@@ -1,0 +1,39 @@
+<div class="page-container">
+  <mat-card class="student-card">
+    <mat-card-header>
+      <mat-card-title>{{ isEditing() ? 'Edição de Responsável' : 'Cadastro de Responsável' }}</mat-card-title>
+      <mat-card-subtitle>Cadastro de responsável integrado ao backend</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form class="student-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline">
+          <mat-label>Nome completo *</mat-label>
+          <input matInput formControlName="nomeCompleto" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>CPF *</mat-label>
+          <input matInput formControlName="cpf" (input)="onCpfInput()" placeholder="000.000.000-00" />
+          <mat-error *ngIf="form.controls.cpf.hasError('cpfInvalido')">Informe um CPF válido.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>E-mail</mat-label>
+          <input matInput type="email" formControlName="email" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Telefone</mat-label>
+          <input matInput formControlName="telefone" (input)="onTelefoneInput()" placeholder="(99) 99999-9999" />
+          <mat-error *ngIf="form.controls.telefone.hasError('telefoneInvalido')">Use (99) 99999-9999.</mat-error>
+        </mat-form-field>
+
+        <div class="actions">
+          <button mat-raised-button color="primary" type="submit">Salvar</button>
+          <button mat-stroked-button type="button" (click)="onCancel()">Cancelar</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

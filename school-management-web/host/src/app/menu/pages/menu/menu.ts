@@ -198,6 +198,9 @@ export class Menu implements OnInit, OnDestroy {
   irStudents() {
     this.router.navigate(['/students']);
   }
+  irResponsibles() {
+    this.router.navigate(['/responsibles']);
+  }
   irAcademicPeriods() {
     this.router.navigate(['/academic/periods']);
   }

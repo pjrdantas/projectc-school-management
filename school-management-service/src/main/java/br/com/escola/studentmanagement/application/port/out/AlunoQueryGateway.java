@@ -1,5 +1,7 @@
 package br.com.escola.studentmanagement.application.port.out;
 
+import java.util.UUID;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -9,9 +11,9 @@ import br.com.escola.studentmanagement.application.dto.AlunoOutput;
 
 public interface AlunoQueryGateway {
 
-    Optional<AlunoOutput> findById(@NonNull Long id);
+    Optional<AlunoOutput> findById(@NonNull UUID id);
 
     List<AlunoOutput> findAll();
 
-    boolean existsById(@NonNull Long id);
+    boolean existsById(@NonNull UUID id);
 }
