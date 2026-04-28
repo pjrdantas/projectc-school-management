@@ -1,5 +1,7 @@
 package br.com.escola.enrollment.adapter.out.persistence;
 
+import java.util.UUID;
+
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +18,7 @@ public class PeriodoLetivoConsultaPersistenceGateway implements PeriodoLetivoCon
     }
 
     @Override
-    public boolean existsById(@NonNull Long id) {
+    public boolean existsById(@NonNull UUID id) {
         return periodoLetivoJpaRepository.existsById(id);
     }
 }

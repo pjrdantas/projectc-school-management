@@ -1,5 +1,7 @@
 package br.com.escola.enrollment.adapter.in.web;
 
+import java.util.UUID;
+
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -42,9 +44,9 @@ public class MatriculaController {
 
     @GetMapping
     public List<MatriculaResponse> consultar(
-            @RequestParam(required = false) Long alunoId,
-            @RequestParam(required = false) Long turmaId,
-            @RequestParam(required = false) Long periodoLetivoId,
+            @RequestParam(required = false) UUID alunoId,
+            @RequestParam(required = false) UUID turmaId,
+            @RequestParam(required = false) UUID periodoLetivoId,
             @RequestParam(required = false) String status) {
         MatriculaFiltro filtro = new MatriculaFiltro(alunoId, turmaId, periodoLetivoId, status);
         return consultarMatriculasUseCase.executar(filtro).stream().map(this::toResponse).toList();

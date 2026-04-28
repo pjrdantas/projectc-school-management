@@ -1,13 +1,15 @@
 package br.com.escola.academiccatalog.adapter.in.web;
 
+import java.util.UUID;
+
 import java.time.LocalDateTime;
 
 public record TurmaResponse(
-        Long id,
+        UUID id,
         String codigo,
         String nome,
         Integer capacidade,
-        Long periodoLetivoId,
+        UUID periodoLetivoId,
         LocalDateTime createdAt
 ) {
 }
