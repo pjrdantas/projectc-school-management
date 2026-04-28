@@ -1,5 +1,7 @@
 package br.com.escola.enrollment.adapter.out.persistence;
 
+import java.util.UUID;
+
 import java.util.Optional;
 
 import org.springframework.lang.NonNull;
@@ -18,12 +20,12 @@ public class TurmaConsultaPersistenceGateway implements TurmaConsultaGateway {
     }
 
     @Override
-    public boolean existsById(@NonNull Long id) {
+    public boolean existsById(@NonNull UUID id) {
         return turmaJpaRepository.existsById(id);
     }
 
     @Override
-    public Optional<Long> findPeriodoLetivoIdByTurmaId(@NonNull Long turmaId) {
+    public Optional<UUID> findPeriodoLetivoIdByTurmaId(@NonNull UUID turmaId) {
         return turmaJpaRepository.findById(turmaId).map(turma -> turma.getPeriodoLetivo().getId());
     }
 }

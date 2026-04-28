@@ -1,5 +1,7 @@
 package br.com.escola.studentmanagement.application.usecase;
 
+import java.util.UUID;
+
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +23,7 @@ public class AtualizarAlunoUseCase {
         this.alunoQueryGateway = alunoQueryGateway;
     }
 
-    public AlunoOutput executar(@NonNull Long id, AlunoInput input) {
+    public AlunoOutput executar(@NonNull UUID id, AlunoInput input) {
         if (!alunoQueryGateway.existsById(id)) {
             throw new AlunoNaoEncontradoException(id);
         }

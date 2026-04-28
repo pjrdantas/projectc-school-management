@@ -1,10 +1,12 @@
 package br.com.escola.academiccatalog.adapter.in.web;
 
+import java.util.UUID;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record PeriodoLetivoResponse(
-        Long id,
+        UUID id,
         String nome,
         LocalDate dataInicio,
         LocalDate dataFim,
