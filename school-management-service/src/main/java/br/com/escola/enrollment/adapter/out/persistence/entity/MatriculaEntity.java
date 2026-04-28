@@ -27,18 +27,19 @@ public class MatriculaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id_matricula")
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "aluno_id", nullable = false)
+    @JoinColumn(name = "id_aluno", nullable = false)
     private AlunoEntity aluno;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "turma_id", nullable = false)
+    @JoinColumn(name = "id_turma", nullable = false)
     private TurmaEntity turma;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "periodo_letivo_id", nullable = false)
+    @JoinColumn(name = "id_periodo_letivo", nullable = false)
     private PeriodoLetivoEntity periodoLetivo;
 
     @Enumerated(EnumType.STRING)

@@ -19,6 +19,7 @@ public class PeriodoLetivoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id_periodo_letivo")
     private UUID id;
 
     @Column(name = "nome", nullable = false, length = 80)

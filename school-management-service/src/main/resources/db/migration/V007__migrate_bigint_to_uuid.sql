@@ -1,81 +1,55 @@
-ALTER TABLE aluno ADD COLUMN id_uuid UUID;
-UPDATE aluno
-SET id_uuid = CAST('00000000-0000-0000-0000-' || RIGHT('000000000000' || CAST(id AS VARCHAR), 12) AS UUID)
-WHERE id_uuid IS NULL;
-ALTER TABLE aluno ALTER COLUMN id_uuid SET NOT NULL;
+-- Observação: por decisão do time, os dados atuais são de teste e podem ser descartados.
+-- Portanto, esta migration recria as tabelas com UUID sem manter colunas legadas.
 
-ALTER TABLE periodo_letivo ADD COLUMN id_uuid UUID;
-UPDATE periodo_letivo
-SET id_uuid = CAST('00000000-0000-0000-0000-' || RIGHT('000000000000' || CAST(id AS VARCHAR), 12) AS UUID)
-WHERE id_uuid IS NULL;
-ALTER TABLE periodo_letivo ALTER COLUMN id_uuid SET NOT NULL;
+DROP TABLE IF EXISTS matricula;
+DROP TABLE IF EXISTS turma;
+DROP TABLE IF EXISTS periodo_letivo;
+DROP TABLE IF EXISTS aluno;
 
-ALTER TABLE turma ADD COLUMN id_uuid UUID;
-ALTER TABLE turma ADD COLUMN periodo_letivo_id_uuid UUID;
-UPDATE turma
-SET id_uuid = CAST('00000000-0000-0000-0000-' || RIGHT('000000000000' || CAST(id AS VARCHAR), 12) AS UUID)
-WHERE id_uuid IS NULL;
-UPDATE turma t
-SET periodo_letivo_id_uuid = p.id_uuid
-FROM periodo_letivo p
-WHERE t.periodo_letivo_id = p.id;
-ALTER TABLE turma ALTER COLUMN id_uuid SET NOT NULL;
-ALTER TABLE turma ALTER COLUMN periodo_letivo_id_uuid SET NOT NULL;
+CREATE TABLE aluno (
+    id_aluno UUID PRIMARY KEY,
+    nome_completo VARCHAR(150) NOT NULL,
+    cpf VARCHAR(14) NOT NULL UNIQUE,
+    email VARCHAR(150),
+    telefone VARCHAR(20),
+    data_nascimento DATE NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
-ALTER TABLE matricula ADD COLUMN id_uuid UUID;
-ALTER TABLE matricula ADD COLUMN aluno_id_uuid UUID;
-ALTER TABLE matricula ADD COLUMN turma_id_uuid UUID;
-ALTER TABLE matricula ADD COLUMN periodo_letivo_id_uuid UUID;
-UPDATE matricula
-SET id_uuid = CAST('00000000-0000-0000-0000-' || RIGHT('000000000000' || CAST(id AS VARCHAR), 12) AS UUID)
-WHERE id_uuid IS NULL;
-UPDATE matricula m
-SET aluno_id_uuid = (SELECT a.id_uuid FROM aluno a WHERE a.id = m.aluno_id),
-    turma_id_uuid = (SELECT t.id_uuid FROM turma t WHERE t.id = m.turma_id),
-    periodo_letivo_id_uuid = (SELECT p.id_uuid FROM periodo_letivo p WHERE p.id = m.periodo_letivo_id);
-ALTER TABLE matricula ALTER COLUMN id_uuid SET NOT NULL;
-ALTER TABLE matricula ALTER COLUMN aluno_id_uuid SET NOT NULL;
-ALTER TABLE matricula ALTER COLUMN turma_id_uuid SET NOT NULL;
-ALTER TABLE matricula ALTER COLUMN periodo_letivo_id_uuid SET NOT NULL;
+CREATE TABLE periodo_letivo (
+    id_periodo_letivo UUID PRIMARY KEY,
+    nome VARCHAR(80) NOT NULL,
+    data_inicio DATE NOT NULL,
+    data_fim DATE NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT ck_periodo_letivo_datas CHECK (data_fim >= data_inicio)
+);
 
-ALTER TABLE matricula DROP CONSTRAINT fk_matricula_aluno;
-ALTER TABLE matricula DROP CONSTRAINT fk_matricula_turma;
-ALTER TABLE matricula DROP CONSTRAINT fk_matricula_periodo_letivo;
-ALTER TABLE turma DROP CONSTRAINT fk_turma_periodo_letivo;
-ALTER TABLE turma DROP CONSTRAINT uk_turma_codigo_periodo;
+CREATE TABLE turma (
+    id_turma UUID PRIMARY KEY,
+    codigo VARCHAR(20) NOT NULL,
+    nome VARCHAR(120) NOT NULL,
+    capacidade INTEGER NOT NULL,
+    id_periodo_letivo UUID NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_turma_periodo_letivo FOREIGN KEY (id_periodo_letivo) REFERENCES periodo_letivo (id_periodo_letivo),
+    CONSTRAINT ck_turma_capacidade CHECK (capacidade > 0),
+    CONSTRAINT uk_turma_codigo_periodo UNIQUE (codigo, id_periodo_letivo)
+);
 
-ALTER TABLE aluno RENAME COLUMN id TO id_legacy;
-ALTER TABLE aluno RENAME COLUMN id_uuid TO id;
-ALTER TABLE periodo_letivo RENAME COLUMN id TO id_legacy;
-ALTER TABLE periodo_letivo RENAME COLUMN id_uuid TO id;
+CREATE TABLE matricula (
+    id_matricula UUID PRIMARY KEY,
+    id_aluno UUID NOT NULL,
+    id_turma UUID NOT NULL,
+    id_periodo_letivo UUID NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_matricula_aluno FOREIGN KEY (id_aluno) REFERENCES aluno (id_aluno),
+    CONSTRAINT fk_matricula_turma FOREIGN KEY (id_turma) REFERENCES turma (id_turma),
+    CONSTRAINT fk_matricula_periodo_letivo FOREIGN KEY (id_periodo_letivo) REFERENCES periodo_letivo (id_periodo_letivo),
+    CONSTRAINT ck_matricula_status CHECK (status IN ('ATIVA'))
+);
 
-ALTER TABLE turma RENAME COLUMN id TO id_legacy;
-ALTER TABLE turma RENAME COLUMN id_uuid TO id;
-ALTER TABLE turma RENAME COLUMN periodo_letivo_id TO periodo_letivo_id_legacy;
-ALTER TABLE turma RENAME COLUMN periodo_letivo_id_uuid TO periodo_letivo_id;
-
-ALTER TABLE matricula RENAME COLUMN id TO id_legacy;
-ALTER TABLE matricula RENAME COLUMN id_uuid TO id;
-ALTER TABLE matricula RENAME COLUMN aluno_id TO aluno_id_legacy;
-ALTER TABLE matricula RENAME COLUMN aluno_id_uuid TO aluno_id;
-ALTER TABLE matricula RENAME COLUMN turma_id TO turma_id_legacy;
-ALTER TABLE matricula RENAME COLUMN turma_id_uuid TO turma_id;
-ALTER TABLE matricula RENAME COLUMN periodo_letivo_id TO periodo_letivo_id_legacy;
-ALTER TABLE matricula RENAME COLUMN periodo_letivo_id_uuid TO periodo_letivo_id;
-
-
-ALTER TABLE turma ALTER COLUMN periodo_letivo_id_legacy DROP NOT NULL;
-ALTER TABLE matricula ALTER COLUMN aluno_id_legacy DROP NOT NULL;
-ALTER TABLE matricula ALTER COLUMN turma_id_legacy DROP NOT NULL;
-ALTER TABLE matricula ALTER COLUMN periodo_letivo_id_legacy DROP NOT NULL;
-ALTER TABLE aluno ADD CONSTRAINT uk_aluno_id_uuid UNIQUE (id);
-ALTER TABLE periodo_letivo ADD CONSTRAINT uk_periodo_letivo_id_uuid UNIQUE (id);
-ALTER TABLE turma ADD CONSTRAINT uk_turma_id_uuid UNIQUE (id);
-ALTER TABLE matricula ADD CONSTRAINT uk_matricula_id_uuid UNIQUE (id);
-
-ALTER TABLE turma ADD CONSTRAINT fk_turma_periodo_letivo FOREIGN KEY (periodo_letivo_id) REFERENCES periodo_letivo (id);
-ALTER TABLE turma ADD CONSTRAINT uk_turma_codigo_periodo UNIQUE (codigo, periodo_letivo_id);
-
-ALTER TABLE matricula ADD CONSTRAINT fk_matricula_aluno FOREIGN KEY (aluno_id) REFERENCES aluno (id);
-ALTER TABLE matricula ADD CONSTRAINT fk_matricula_turma FOREIGN KEY (turma_id) REFERENCES turma (id);
-ALTER TABLE matricula ADD CONSTRAINT fk_matricula_periodo_letivo FOREIGN KEY (periodo_letivo_id) REFERENCES periodo_letivo (id);
+CREATE INDEX idx_matricula_aluno ON matricula (id_aluno);
+CREATE INDEX idx_matricula_turma ON matricula (id_turma);
+CREATE INDEX idx_turma_periodo ON turma (id_periodo_letivo);

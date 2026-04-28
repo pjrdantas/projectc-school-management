@@ -21,6 +21,7 @@ public class TurmaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id_turma")
     private UUID id;
 
     @Column(name = "codigo", nullable = false, length = 20)
@@ -33,7 +34,7 @@ public class TurmaEntity {
     private Integer capacidade;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "periodo_letivo_id", nullable = false)
+    @JoinColumn(name = "id_periodo_letivo", nullable = false)
     private PeriodoLetivoEntity periodoLetivo;
 
     @Column(name = "created_at", nullable = false, updatable = false)

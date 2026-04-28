@@ -19,6 +19,7 @@ public class AlunoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id_aluno")
     private UUID id;
 
     @Column(name = "nome_completo", nullable = false, length = 150)
