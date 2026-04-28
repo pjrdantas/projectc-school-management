@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS public.aluno (
     cpf VARCHAR(14) NOT NULL UNIQUE,
     email VARCHAR(150),
     data_nascimento DATE NOT NULL,
+	telefone VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
