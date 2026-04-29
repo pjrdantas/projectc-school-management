@@ -20,6 +20,7 @@ import br.com.escola.accesscontrol.adapter.out.persistence.repository.UsuarioJpa
 public class AuthService {
 
     private static final int REFRESH_DIAS = 7;
+    private static final int ACCESS_MINUTOS = 30;
 
     private final UsuarioJpaRepository usuarioRepository;
     private final SessaoAutenticacaoJpaRepository sessaoRepository;
@@ -49,7 +50,9 @@ public class AuthService {
         sessaoRepository.save(new SessaoAutenticacaoEntity(
                 usuario,
                 hashToken(refreshToken),
-                LocalDateTime.now().plusDays(REFRESH_DIAS)));
+                hashToken(accessToken),
+                LocalDateTime.now().plusDays(REFRESH_DIAS),
+                LocalDateTime.now().plusMinutes(ACCESS_MINUTOS)));
 
         return new AuthResponse(accessToken, refreshToken, "Bearer", usuario.getUsername(), usuario.getNome());
     }
@@ -62,7 +65,11 @@ public class AuthService {
         String newAccessToken = gerarToken();
         String newRefreshToken = gerarToken();
 
-        sessao.renovar(hashToken(newRefreshToken), LocalDateTime.now().plusDays(REFRESH_DIAS));
+        sessao.renovar(
+                hashToken(newRefreshToken),
+                hashToken(newAccessToken),
+                LocalDateTime.now().plusDays(REFRESH_DIAS),
+                LocalDateTime.now().plusMinutes(ACCESS_MINUTOS));
         sessaoRepository.save(sessao);
 
         UsuarioEntity usuario = sessao.getUsuario();
@@ -76,6 +83,14 @@ public class AuthService {
 
         sessao.revogar();
         sessaoRepository.save(sessao);
+    }
+
+    public UsuarioEntity validarAccessToken(String accessToken) {
+        SessaoAutenticacaoEntity sessao = sessaoRepository
+                .findByAccessTokenHashAndRevogadoFalseAndAccessExpiraEmAfter(hashToken(accessToken), LocalDateTime.now())
+                .orElseThrow(() -> new IllegalArgumentException("Access token inválido ou expirado"));
+
+        return sessao.getUsuario();
     }
 
     private String gerarToken() {

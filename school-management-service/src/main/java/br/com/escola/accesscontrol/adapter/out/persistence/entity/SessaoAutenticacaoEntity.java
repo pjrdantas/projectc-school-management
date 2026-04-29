@@ -27,8 +27,14 @@ public class SessaoAutenticacaoEntity {
     @Column(name = "refresh_token_hash", nullable = false, length = 255)
     private String refreshTokenHash;
 
+    @Column(name = "access_token_hash", length = 255)
+    private String accessTokenHash;
+
     @Column(name = "expira_em", nullable = false)
     private LocalDateTime expiraEm;
+
+    @Column(name = "access_expira_em")
+    private LocalDateTime accessExpiraEm;
 
     @Column(name = "revogado", nullable = false)
     private boolean revogado;
@@ -38,10 +44,17 @@ public class SessaoAutenticacaoEntity {
 
     protected SessaoAutenticacaoEntity() {}
 
-    public SessaoAutenticacaoEntity(UsuarioEntity usuario, String refreshTokenHash, LocalDateTime expiraEm) {
+    public SessaoAutenticacaoEntity(
+            UsuarioEntity usuario,
+            String refreshTokenHash,
+            String accessTokenHash,
+            LocalDateTime expiraEm,
+            LocalDateTime accessExpiraEm) {
         this.usuario = usuario;
         this.refreshTokenHash = refreshTokenHash;
+        this.accessTokenHash = accessTokenHash;
         this.expiraEm = expiraEm;
+        this.accessExpiraEm = accessExpiraEm;
         this.revogado = false;
     }
 
@@ -54,12 +67,16 @@ public class SessaoAutenticacaoEntity {
     public UUID getId() { return id; }
     public UsuarioEntity getUsuario() { return usuario; }
     public String getRefreshTokenHash() { return refreshTokenHash; }
+    public String getAccessTokenHash() { return accessTokenHash; }
     public LocalDateTime getExpiraEm() { return expiraEm; }
+    public LocalDateTime getAccessExpiraEm() { return accessExpiraEm; }
     public boolean isRevogado() { return revogado; }
 
-    public void renovar(String novoHash, LocalDateTime novaExpiracao) {
-        this.refreshTokenHash = novoHash;
-        this.expiraEm = novaExpiracao;
+    public void renovar(String novoRefreshHash, String novoAccessHash, LocalDateTime novaExpiracaoRefresh, LocalDateTime novaExpiracaoAccess) {
+        this.refreshTokenHash = novoRefreshHash;
+        this.accessTokenHash = novoAccessHash;
+        this.expiraEm = novaExpiracaoRefresh;
+        this.accessExpiraEm = novaExpiracaoAccess;
         this.revogado = false;
     }
 

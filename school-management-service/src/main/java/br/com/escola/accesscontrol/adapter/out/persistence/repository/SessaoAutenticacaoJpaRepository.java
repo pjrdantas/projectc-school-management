@@ -13,4 +13,9 @@ public interface SessaoAutenticacaoJpaRepository extends JpaRepository<SessaoAut
             String refreshTokenHash,
             LocalDateTime instante
     );
+
+    Optional<SessaoAutenticacaoEntity> findByAccessTokenHashAndRevogadoFalseAndAccessExpiraEmAfter(
+            String accessTokenHash,
+            LocalDateTime instante
+    );
 }
