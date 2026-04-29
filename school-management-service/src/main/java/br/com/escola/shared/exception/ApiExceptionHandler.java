@@ -19,6 +19,8 @@ import br.com.escola.responsavelmanagement.domain.exception.ResponsavelJaCadastr
 import br.com.escola.responsavelmanagement.domain.exception.ResponsavelNaoEncontradoException;
 import br.com.escola.responsavelmanagement.domain.exception.AlunoResponsavelVinculoDuplicadoException;
 import br.com.escola.responsavelmanagement.domain.exception.AlunoResponsavelVinculoNaoEncontradoException;
+import br.com.escola.accesscontrol.domain.exception.CredenciaisInvalidasException;
+import br.com.escola.accesscontrol.domain.exception.TokenInvalidoOuExpiradoException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
@@ -121,6 +123,21 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
             AlunoResponsavelVinculoNaoEncontradoException ex,
             HttpServletRequest request) {
         return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+
+    @ExceptionHandler(CredenciaisInvalidasException.class)
+    public ResponseEntity<ApiErrorResponse> handleCredenciaisInvalidas(
+            CredenciaisInvalidasException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(TokenInvalidoOuExpiradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleTokenInvalido(
+            TokenInvalidoOuExpiradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", ex.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)
