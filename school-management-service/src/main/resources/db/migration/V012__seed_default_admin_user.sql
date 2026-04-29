@@ -30,7 +30,7 @@ SELECT
     'admin',
     'Administrador',
     'admin@local.test',
-    '$2a$10$7bWVHpUojDItmgyTg5GY3ufBgdqzqmArli650DhxJLCRML2tjbxtG',
+    '$2a$10$8WAxDjIVLhL2.XAhJP0uyuC9O64.iGkLpcD1TQFxJUutLD8dnGxxO',
     TRUE
 WHERE NOT EXISTS (
     SELECT 1 FROM usuario WHERE username = 'admin' OR id_usuario = '44444444-4444-4444-4444-444444444444'
