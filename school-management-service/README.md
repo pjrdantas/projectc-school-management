@@ -126,9 +126,12 @@ Para preparar o banco local já no padrão UUID (compatível com a API atual), u
 psql -U postgres -d school_management -f ../docs/school_management_uuid.sql
 ```
 
-## Credenciais de autenticação local (HTTP Basic)
+## Credenciais de autenticação local (login JWT)
 
 No profile local:
 
 - usuário: `admin`
 - senha: `admin123`
+
+
+Use as credenciais abaixo no endpoint `POST /api/auth/login` com senha em texto puro.

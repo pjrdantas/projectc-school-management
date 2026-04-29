@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Sql(
         statements = {
                 "DELETE FROM matricula",
+                "DELETE FROM aluno_responsavel",
                 "DELETE FROM turma",
                 "DELETE FROM periodo_letivo",
                 "DELETE FROM aluno"
