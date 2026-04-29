@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -91,6 +92,10 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("Access token inválido ou expirado"));
 
         return sessao.getUsuario();
+    }
+
+    public List<String> buscarPermissoes(UUID idUsuario) {
+        return usuarioRepository.findPermissoesByIdUsuario(idUsuario);
     }
 
     private String gerarToken() {

@@ -1,9 +1,11 @@
 package br.com.escola.accesscontrol.infrastructure.security;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -34,9 +36,12 @@ public class AccessTokenAuthenticationFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
             try {
                 UsuarioEntity usuario = authService.validarAccessToken(token);
+                List<SimpleGrantedAuthority> authorities = authService.buscarPermissoes(usuario.getId()).stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .toList();
 
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(usuario.getUsername(), null, java.util.List.of());
+                        new UsernamePasswordAuthenticationToken(usuario.getUsername(), null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (IllegalArgumentException ignored) {
