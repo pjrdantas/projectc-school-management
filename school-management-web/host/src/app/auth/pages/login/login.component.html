@@ -2,8 +2,33 @@
   <div class="login-card">
     <h1>School Management</h1>
     <p>Faça login para liberar o menu e acessar as funcionalidades.</p>
-    <button mat-raised-button color="primary" (click)="signIn()">
-      Sign in
-    </button>
+
+    <form [formGroup]="form" (ngSubmit)="signIn()" class="login-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Usuário ou e-mail</mat-label>
+        <input matInput formControlName="login" />
+        <mat-error *ngIf="form.controls.login.touched && form.controls.login.hasError('required')">
+          Informe o usuário.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Senha</mat-label>
+        <input matInput type="password" formControlName="senha" />
+        <mat-error *ngIf="form.controls.senha.touched && form.controls.senha.hasError('required')">
+          Informe a senha.
+        </mat-error>
+        <mat-error *ngIf="form.controls.senha.touched && form.controls.senha.hasError('minlength')">
+          A senha deve ter no mínimo 4 caracteres.
+        </mat-error>
+      </mat-form-field>
+
+      <p class="error" *ngIf="authError()">{{ authError() }}</p>
+
+      <button mat-raised-button color="primary" type="submit" [disabled]="loading()">
+        <span *ngIf="!loading()">Entrar</span>
+        <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
+      </button>
+    </form>
   </div>
 </section>
