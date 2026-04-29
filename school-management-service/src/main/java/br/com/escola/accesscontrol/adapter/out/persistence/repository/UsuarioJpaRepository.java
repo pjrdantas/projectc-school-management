@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import br.com.escola.accesscontrol.adapter.out.persistence.entity.UsuarioEntity;
 
@@ -22,5 +23,5 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, UUID>
             JOIN usuario_perfil up ON up.id_perfil = pp.id_perfil
             WHERE up.id_usuario = :idUsuario
             """, nativeQuery = true)
-    List<String> findPermissoesByIdUsuario(UUID idUsuario);
+    List<String> findPermissoesByIdUsuario(@Param("idUsuario") UUID idUsuario);
 }
