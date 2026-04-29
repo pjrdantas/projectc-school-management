@@ -44,7 +44,7 @@ public class AccessTokenAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(usuario.getUsername(), null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (IllegalArgumentException ignored) {
+            } catch (RuntimeException ignored) {
                 SecurityContextHolder.clearContext();
             }
         }

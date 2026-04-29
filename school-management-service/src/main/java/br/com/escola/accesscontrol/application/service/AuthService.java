@@ -16,6 +16,8 @@ import br.com.escola.accesscontrol.adapter.out.persistence.entity.SessaoAutentic
 import br.com.escola.accesscontrol.adapter.out.persistence.entity.UsuarioEntity;
 import br.com.escola.accesscontrol.adapter.out.persistence.repository.SessaoAutenticacaoJpaRepository;
 import br.com.escola.accesscontrol.adapter.out.persistence.repository.UsuarioJpaRepository;
+import br.com.escola.accesscontrol.domain.exception.CredenciaisInvalidasException;
+import br.com.escola.accesscontrol.domain.exception.TokenInvalidoOuExpiradoException;
 
 @Service
 public class AuthService {
@@ -39,10 +41,10 @@ public class AuthService {
     public AuthResponse login(String login, String senha) {
         UsuarioEntity usuario = usuarioRepository.findByUsernameIgnoreCaseAndAtivoTrue(login)
                 .or(() -> usuarioRepository.findByEmailIgnoreCaseAndAtivoTrue(login))
-                .orElseThrow(() -> new IllegalArgumentException("Usuário ou senha inválidos"));
+                .orElseThrow(() -> new CredenciaisInvalidasException("Usuário ou senha inválidos"));
 
         if (!passwordEncoder.matches(senha, usuario.getSenhaHash())) {
-            throw new IllegalArgumentException("Usuário ou senha inválidos");
+            throw new CredenciaisInvalidasException("Usuário ou senha inválidos");
         }
 
         String accessToken = gerarToken();
@@ -61,7 +63,7 @@ public class AuthService {
     public AuthResponse refresh(String refreshToken) {
         SessaoAutenticacaoEntity sessao = sessaoRepository
                 .findByRefreshTokenHashAndRevogadoFalseAndExpiraEmAfter(hashToken(refreshToken), LocalDateTime.now())
-                .orElseThrow(() -> new IllegalArgumentException("Refresh token inválido ou expirado"));
+                .orElseThrow(() -> new TokenInvalidoOuExpiradoException("Refresh token inválido ou expirado"));
 
         String newAccessToken = gerarToken();
         String newRefreshToken = gerarToken();
@@ -80,7 +82,7 @@ public class AuthService {
     public void logout(String refreshToken) {
         SessaoAutenticacaoEntity sessao = sessaoRepository
                 .findByRefreshTokenHashAndRevogadoFalseAndExpiraEmAfter(hashToken(refreshToken), LocalDateTime.now())
-                .orElseThrow(() -> new IllegalArgumentException("Sessão não encontrada para logout"));
+                .orElseThrow(() -> new TokenInvalidoOuExpiradoException("Sessão não encontrada para logout"));
 
         sessao.revogar();
         sessaoRepository.save(sessao);
@@ -89,7 +91,7 @@ public class AuthService {
     public UsuarioEntity validarAccessToken(String accessToken) {
         SessaoAutenticacaoEntity sessao = sessaoRepository
                 .findByAccessTokenHashAndRevogadoFalseAndAccessExpiraEmAfter(hashToken(accessToken), LocalDateTime.now())
-                .orElseThrow(() -> new IllegalArgumentException("Access token inválido ou expirado"));
+                .orElseThrow(() -> new TokenInvalidoOuExpiradoException("Access token inválido ou expirado"));
 
         return sessao.getUsuario();
     }
