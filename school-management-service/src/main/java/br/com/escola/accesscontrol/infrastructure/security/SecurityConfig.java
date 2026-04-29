@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/actuator/health", "/actuator/info", "/api/auth/login", "/api/auth/refresh").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/info", "/api/auth/login", "/api/auth/refresh", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/usuarios/**").hasAuthority("USUARIO")
                         .anyRequest().authenticated())
                 .addFilterBefore(accessTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
