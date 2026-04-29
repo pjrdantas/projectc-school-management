@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class AuthSessionService {
-  private readonly authenticated = signal<boolean>(false);
+  private readonly authenticated = signal<boolean>(!!localStorage.getItem('token'));
 
   readonly isAuthenticated = this.authenticated.asReadonly();
 
