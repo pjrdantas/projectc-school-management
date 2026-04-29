@@ -19,12 +19,13 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, finalize, takeUntil } from 'rxjs';
 import { AuthSessionService } from '../../../auth/services/auth-session.service';
 import { AuthStateService, UsuarioAuth } from '../../../core/auth/auth-state.service';
 import { AplicativosResponse } from '../../../models/aplicativos-response.model';
 import { AplicativosService } from '../../../services/aplicativos.service';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
+import { AuthApiService } from '../../../auth/services/auth-api.service';
 
 @Component({
   selector: 'app-menu',
@@ -54,6 +55,7 @@ export class Menu implements OnInit, OnDestroy {
   private zone = inject(NgZone);
   private aplicativosService = inject(AplicativosService);
   private snackBar = inject(MatSnackBar);
+  private authApi = inject(AuthApiService);
 
   usuario: UsuarioAuth | null = null;
   dataHoraFormatada = '';
@@ -218,6 +220,20 @@ export class Menu implements OnInit, OnDestroy {
   }
 
   sair(): void {
+    const refreshToken = this.authState.getRefreshToken();
+
+    if (!refreshToken) {
+      this.finalizarLogoutLocal();
+      return;
+    }
+
+    this.authApi
+      .logout(refreshToken)
+      .pipe(finalize(() => this.finalizarLogoutLocal()))
+      .subscribe();
+  }
+
+  private finalizarLogoutLocal(): void {
     this.authState.clear();
     this.authSession.signOut();
     this.router.navigate(['/auth/login']);
