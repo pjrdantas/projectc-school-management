@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, Renderer2, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -26,13 +26,14 @@ import { AuthApiService } from '../../services/auth-api.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly authSession = inject(AuthSessionService);
   private readonly authState = inject(AuthStateService);
   private readonly authApi = inject(AuthApiService);
   private readonly fb = inject(FormBuilder);
+  private readonly renderer = inject(Renderer2);
 
   loading = false;
   authError: string | null = null;
@@ -42,6 +43,14 @@ export class LoginComponent {
     senha: ['', [Validators.required, Validators.minLength(4)]],
   });
 
+
+  ngOnInit(): void {
+    this.renderer.addClass(document.body, 'login-page-active');
+  }
+
+  ngOnDestroy(): void {
+    this.renderer.removeClass(document.body, 'login-page-active');
+  }
   signIn() {
     this.authError = null;
     if (this.form.invalid) {

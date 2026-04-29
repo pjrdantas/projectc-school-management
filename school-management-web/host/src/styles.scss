@@ -23,3 +23,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   color: white;
   font-weight: 500;
 }
+
+body.login-page-active {
+  overflow: hidden;
+}
