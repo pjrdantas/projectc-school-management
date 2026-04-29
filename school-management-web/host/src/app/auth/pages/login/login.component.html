@@ -23,11 +23,11 @@
         </mat-error>
       </mat-form-field>
 
-      <p class="error" *ngIf="authError">{{ authError }}</p>
+      <p class="error" *ngIf="authError()">{{ authError() }}</p>
 
-      <button mat-raised-button color="primary" type="submit" [disabled]="loading">
-        <span *ngIf="!loading">Entrar</span>
-        <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+      <button mat-raised-button color="primary" type="submit" [disabled]="loading()">
+        <span *ngIf="!loading()">Entrar</span>
+        <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
       </button>
     </form>
   </div>

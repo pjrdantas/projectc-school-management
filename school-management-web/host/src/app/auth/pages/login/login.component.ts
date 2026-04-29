@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, Renderer2, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, Renderer2, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -36,8 +36,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly renderer = inject(Renderer2);
 
-  loading = false;
-  authError: string | null = null;
+  readonly loading = signal(false);
+  readonly authError = signal<string | null>(null);
 
   readonly form = this.fb.nonNullable.group({
     login: ['', [Validators.required]],
@@ -53,17 +53,17 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   async signIn(): Promise<void> {
-    if (this.loading) {
+    if (this.loading()) {
       return;
     }
 
-    this.authError = null;
+    this.authError.set(null);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    this.loading = true;
+    this.loading.set(true);
 
     try {
       const response = await firstValueFrom(this.authApi.login(this.form.getRawValue()));
@@ -80,12 +80,13 @@ export class LoginComponent implements OnInit, OnDestroy {
       await this.router.navigateByUrl(returnUrl);
     } catch (error) {
       const httpError = error as HttpErrorResponse;
-      this.authError =
+      this.authError.set(
         httpError.status === 401
           ? 'Usuário ou senha inválidos.'
-          : 'Não foi possível autenticar agora. Tente novamente.';
+          : 'Não foi possível autenticar agora. Tente novamente.',
+      );
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 }
