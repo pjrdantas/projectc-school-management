@@ -11,6 +11,7 @@ import { firstValueFrom } from 'rxjs';
 import { AuthStateService } from '../../../core/auth/auth-state.service';
 import { AuthApiService } from '../../services/auth-api.service';
 import { AuthSessionService } from '../../services/auth-session.service';
+import { AuthApiService } from '../../services/auth-api.service';
 
 @Component({
   selector: 'app-login',
