@@ -9,7 +9,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthStateService } from '../../../core/auth/auth-state.service';
-import { AuthApiService } from '../../services/auth-api.service';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { AuthApiService } from '../../services/auth-api.service';
 
