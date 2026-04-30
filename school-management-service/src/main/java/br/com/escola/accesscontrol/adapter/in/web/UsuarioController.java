@@ -3,7 +3,10 @@ package br.com.escola.accesscontrol.adapter.in.web;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,6 +51,25 @@ public class UsuarioController {
     @GetMapping
     public List<UsuarioResponse> listar() {
         return repository.findAll().stream().map(this::toResponse).toList();
+    }
+
+    @PutMapping("/{id}")
+    public UsuarioResponse atualizar(@PathVariable java.util.UUID id, @Valid @RequestBody UsuarioRequest request) {
+        UsuarioEntity entity = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+        UsuarioEntity atualizado = repository.save(new UsuarioEntity(
+                entity.getId(),
+                request.username().trim(),
+                request.nome().trim(),
+                request.email().trim().toLowerCase(),
+                request.senhaHash().trim(),
+                request.ativo() == null || request.ativo()));
+        return toResponse(atualizado);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void excluir(@PathVariable java.util.UUID id) {
+        repository.deleteById(id);
     }
 
     private UsuarioResponse toResponse(UsuarioEntity entity) {
