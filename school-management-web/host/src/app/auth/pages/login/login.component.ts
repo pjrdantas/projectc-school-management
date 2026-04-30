@@ -70,8 +70,8 @@ export class LoginComponent implements OnInit, OnDestroy {
       this.authState.setAuth(response.accessToken, response.refreshToken, {
         usuario: response.username,
         nome: response.nome,
-        perfis: [],
-        permissoes: [],
+        perfis: response.perfis ?? [],
+        permissoes: response.permissoes ?? [],
       });
       this.authSession.signIn();
 
