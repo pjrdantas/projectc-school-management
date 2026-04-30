@@ -1,0 +1,62 @@
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+mat-form-field {
+  width: 100%;
+
+  /* evita sobreposição de label em alguns layouts */
+  margin-top: 4px;
+}
+
+mat-slide-toggle {
+  /* Reduz a margem superior para aproximá-lo do campo acima */
+  margin-top: -8px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content:right;
+  align-items: center;
+  margin-right: 16px;
+  gap: 8px; /* Espaçamento entre os botões */
+  /* Reduz o preenchimento superior para aproximar dos campos do formulário */
+  margin-top: -8px;
+  margin-bottom: 16px;
+}
+
+/* só cor no botão principal — não mexe no tamanho */
+.botao-ok {
+  width: 160px !important;
+  background-color: #667eea !important;
+  color: white !important;
+}
+
+.botao-cancel {
+ width: 160px !important;
+}
+
+/*
+  Use :host para garantir que os estilos se apliquem apenas a este componente.
+  O ::ng-deep é necessário para "perfurar" o encapsulamento de estilo do Angular Material.
+*/
+:host {
+  /* Altera a altura do campo do formulário */
+  ::ng-deep .mat-mdc-form-field-flex {
+    height: 44px !important;
+  }
+
+  /* Ajusta a posição do texto do input e do label flutuante */
+  ::ng-deep .mat-mdc-form-field-infix {
+    padding-top: 12px !important;
+  }
+
+  /* Altera a cor e o tamanho da fonte do texto digitado no input */
+  ::ng-deep .mat-mdc-input-element {
+    font-size: 14px !important;
+    color: #667eea !important;
+    background-color: transparent !important;
+  }
+}

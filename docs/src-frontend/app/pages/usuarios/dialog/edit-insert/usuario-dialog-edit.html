@@ -1,0 +1,81 @@
+<h2 mat-dialog-title>
+  {{ data ? 'Editar Usuário' : 'Novo Usuário' }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="form-grid">
+
+    <!-- Nome Completo -->
+    <mat-form-field appearance="outline" floatLabel="always" class="form-field-full">
+      <mat-label>Nome Completo</mat-label>
+      <input matInput formControlName="nome" placeholder="Digite o nome completo" />
+      @if (form.get('nome')?.hasError('required')) {
+        <mat-error>Nome é obrigatório</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Login e Email em linha -->
+    <div class="form-row">
+      <mat-form-field appearance="outline" floatLabel="always" class="form-field">
+        <mat-label>Login</mat-label>
+        <input matInput formControlName="login" placeholder="Ex: joao.silva" />
+        @if (form.get('login')?.hasError('required')) {
+          <mat-error>Login é obrigatório</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" floatLabel="always" class="form-field">
+        <mat-label>E-mail</mat-label>
+        <input matInput formControlName="email" placeholder="email@exemplo.com" />
+        @if (form.get('email')?.hasError('required')) {
+          <mat-error>E-mail válido é obrigatório</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <!-- Senha (exibida apenas se for novo ou se desejar alterar) -->
+    <mat-form-field appearance="outline" floatLabel="always" class="form-field-full">
+      <mat-label>Senha</mat-label>
+      <input matInput type="password" formControlName="senha" placeholder="Mínimo 6 caracteres" />
+      @if (form.get('senha')?.hasError('required')) {
+        <mat-error>Senha é obrigatória para novos usuários</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Seleção Múltipla de Perfis -->
+    <mat-form-field appearance="outline" class="form-field-full">
+      <mat-label>Perfis do Usuário</mat-label>
+      <mat-select formControlName="perfisIds" multiple>
+        <mat-select-trigger>
+          {{ form.get('perfisIds')?.value?.length ? (form.get('perfisIds')?.value?.length + ' perfil(is) selecionado(s)') : '' }}
+        </mat-select-trigger>
+        <mat-option *ngFor="let perfil of perfisDisponiveis" [value]="perfil.id">
+          {{ perfil.nmPerfil }}
+        </mat-option>
+      </mat-select>
+      @if (form.get('perfisIds')?.hasError('required')) {
+        <mat-error>Selecione pelo menos um perfil</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Status Ativo/Inativo -->
+    <div class="status-container">
+      <mat-slide-toggle formControlName="ativo" color="primary">
+        Usuário Ativo
+      </mat-slide-toggle>
+    </div>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions">
+  <button mat-button type="button" (click)="cancel()" class="botao-cancel">
+    <mat-icon>cancel</mat-icon>
+    Cancelar
+  </button>
+
+  <button mat-raised-button (click)="save()" [disabled]="form.invalid" class="botao-ok">
+    <mat-icon>check_circle</mat-icon>
+    Salvar
+  </button>
+</mat-dialog-actions>

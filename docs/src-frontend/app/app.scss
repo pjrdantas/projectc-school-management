@@ -1,0 +1,36 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #cbd5eb 0%, #e5eaec 100%);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+mat-card-actions {
+  padding: 16px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.botao-ok {
+ // background-color: #667eea !important;
+  color: white !important;
+  text-align: center !important;
+  font-size: 12px !important;
+  width: 160px !important;
+  height: 36px !important;
+}
+
+

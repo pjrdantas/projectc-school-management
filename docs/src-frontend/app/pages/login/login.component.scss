@@ -1,0 +1,92 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #cbd5eb 0%, #e5eaec 100%);
+}
+
+.login-card {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+  border: 3px
+  solid #667eea !important;
+}
+
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+mat-card-title {
+  font-size: 24px !important;
+  color: #667eea !important;
+  text-align: center !important;
+  margin-bottom: 20px !important;
+  }
+
+ :host {
+  /* Altera a altura do campo do formulário */
+  ::ng-deep .mat-mdc-form-field-flex {
+    height: 44px !important;
+
+  }
+
+  /* Ajusta a posição do texto do input e do label flutuante */
+  ::ng-deep .mat-mdc-form-field-infix {
+    padding-top: 16px !important;
+  }
+
+  /* Altera a cor e o tamanho da fonte do texto digitado no input */
+  ::ng-deep .mat-mdc-input-element {
+    font-size: 14px !important;
+    color: #667eea !important;
+
+  }
+}
+
+
+mat-card-actions {
+  font-size: 12px !important;
+  padding: 16px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+button {
+  font-size: 14px !important;
+  text-transform: none !important;
+  color: #667eea !important;
+}
+.botao-ok {
+  background-color: #667eea !important;
+  color: white !important;
+  text-align: center !important;
+  font-size: 12px !important;
+  width: 160px !important;
+  height: 36px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.erro-login {
+  color: #f44336;
+  margin-top: 8px;
+  font-size: 14px;
+  text-align: center;
+}
