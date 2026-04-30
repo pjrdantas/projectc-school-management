@@ -1,40 +1,62 @@
 <div class="page-container">
   <mat-card class="federated-card">
     <mat-card-content>
-      <h1>Nova matrícula</h1>
-      <p>Cadastro de matrícula com status inicial retornado pelo backend.</p>
+      <h1>Matrícula</h1>
 
-      <form class="form-grid" [formGroup]="form" (ngSubmit)="onCreate()">
+      <form class="form-grid" [formGroup]="form" (ngSubmit)="onCreateOrUpdate()">
         <mat-form-field appearance="outline">
-          <mat-label>ID do aluno *</mat-label>
-          <input matInput formControlName="alunoId" placeholder="UUID do aluno" />
-          <mat-error *ngIf="form.controls.alunoId.hasError('required')">Aluno é obrigatório.</mat-error>
+          <mat-label>Aluno *</mat-label>
+          <input matInput formControlName="alunoNome" [matAutocomplete]="autoAluno" (input)="onAlunoInput()" />
+          <mat-autocomplete #autoAluno="matAutocomplete">
+            <mat-option
+              *ngFor="let aluno of filteredStudents()"
+              [value]="aluno.nomeCompleto"
+              (onSelectionChange)="selectAluno(aluno.id, aluno.nomeCompleto)">
+              {{ aluno.nomeCompleto }}
+            </mat-option>
+          </mat-autocomplete>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>ID da turma *</mat-label>
-          <input matInput formControlName="turmaId" placeholder="UUID da turma" />
-          <mat-error *ngIf="form.controls.turmaId.hasError('required')">Turma é obrigatória.</mat-error>
+          <mat-label>Turma *</mat-label>
+          <mat-select formControlName="turmaId">
+            <mat-option *ngFor="let turma of turmas" [value]="turma.id">{{ turma.nome }}</mat-option>
+          </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>ID do período letivo *</mat-label>
-          <input matInput formControlName="periodoLetivoId" placeholder="UUID do período" />
-          <mat-error *ngIf="form.controls.periodoLetivoId.hasError('required')">
-            Período letivo é obrigatório.
-          </mat-error>
+          <mat-label>Período letivo *</mat-label>
+          <mat-select formControlName="periodoLetivoId">
+            <mat-option *ngFor="let periodo of periodos" [value]="periodo.id">{{ periodo.nome }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Status *</mat-label>
+          <mat-select formControlName="status">
+            <mat-option *ngFor="let status of statuses" [value]="status">{{ status }}</mat-option>
+          </mat-select>
         </mat-form-field>
 
         <div class="actions">
           <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">
-            <mat-icon fontIcon="save"></mat-icon>
-            Criar matrícula
+            {{ editingId() ? 'Atualizar' : 'Criar matrícula' }}
           </button>
+          <button mat-stroked-button type="button" *ngIf="editingId()" (click)="clear()">Cancelar</button>
         </div>
       </form>
 
-      <div class="status-chip" *ngIf="createdStatus() as status">
-        Status inicial: <strong>{{ status }}</strong>
+      <div class="list" *ngIf="enrollments().length">
+        <div class="list-item" *ngFor="let enrollment of enrollments()">
+          <p><strong>Aluno:</strong> {{ nomeAluno(enrollment.alunoId) }}</p>
+          <p><strong>Turma:</strong> {{ nomeTurma(enrollment.turmaId) }}</p>
+          <p><strong>Período letivo:</strong> {{ nomePeriodo(enrollment.periodoLetivoId) }}</p>
+          <p><strong>Status:</strong> {{ enrollment.status }}</p>
+          <div class="actions">
+            <button mat-button type="button" (click)="onEdit(enrollment)">Editar</button>
+            <button mat-button color="warn" type="button" (click)="onDelete(enrollment.id)">Excluir</button>
+          </div>
+        </div>
       </div>
     </mat-card-content>
   </mat-card>

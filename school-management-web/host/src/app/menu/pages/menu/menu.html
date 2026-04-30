@@ -15,7 +15,7 @@
   </div>
 
   <div class="toolbar-center">
-    <span class="titulo-toolbar">Projeto Piloto</span>
+    <span class="titulo-toolbar">Sistema de Gestão Escolar</span>
   </div>
 
   <div class="toolbar-right" *ngIf="authState.usuario$ | async as usuario">
@@ -55,14 +55,9 @@
     <span class="item-menu">Turmas</span>
   </button>
 
-  <button mat-menu-item (click)="irEnrollmentNew()">
+  <button mat-menu-item (click)="irEnrollment()">
     <mat-icon fontIcon="assignment"></mat-icon>
-    <span class="item-menu">Nova matrícula</span>
-  </button>
-
-  <button mat-menu-item (click)="irEnrollmentSearch()">
-    <mat-icon fontIcon="search"></mat-icon>
-    <span class="item-menu">Consulta de matrículas</span>
+    <span class="item-menu">Matrícula</span>
   </button>
 
    <button mat-menu-item *appHasPermission="'USUARIO'" (click)="irUsuarios()">
