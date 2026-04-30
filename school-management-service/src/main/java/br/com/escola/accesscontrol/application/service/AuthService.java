@@ -65,6 +65,11 @@ public class AuthService {
             }
         }
 
+
+        if ("admin".equalsIgnoreCase(usuario.getUsername())) {
+            garantirVinculoAdmin(usuario.getId());
+        }
+
         String accessToken = gerarToken();
         String refreshToken = gerarToken();
 
@@ -78,6 +83,29 @@ public class AuthService {
         return new AuthResponse(accessToken, refreshToken, "Bearer", usuario.getUsername(), usuario.getNome(),
                 usuarioRepository.findPerfisByIdUsuario(usuario.getId()),
                 usuarioRepository.findPermissoesByIdUsuario(usuario.getId()));
+    }
+
+
+    private void garantirVinculoAdmin(UUID idUsuario) {
+        Integer total = jdbcTemplate.queryForObject("""
+                SELECT COUNT(1)
+                FROM usuario_perfil up
+                JOIN perfil p ON p.id_perfil = up.id_perfil
+                WHERE up.id_usuario = ?
+                  AND p.codigo = 'ADMIN'
+                """, Integer.class, idUsuario);
+
+        if (total != null && total > 0) {
+            return;
+        }
+
+        UUID idUsuarioPerfil = UUID.randomUUID();
+        jdbcTemplate.update("""
+                INSERT INTO usuario_perfil (id_usuario_perfil, id_usuario, id_perfil)
+                SELECT ?, ?, p.id_perfil
+                FROM perfil p
+                WHERE p.codigo = 'ADMIN'
+                """, idUsuarioPerfil, idUsuario);
     }
 
     public AuthResponse refresh(String refreshToken) {
