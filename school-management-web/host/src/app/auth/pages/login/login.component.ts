@@ -4,6 +4,7 @@ import { Component, OnDestroy, OnInit, Renderer2, inject, signal } from '@angula
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -20,6 +21,7 @@ import { AuthApiService } from '../../services/auth-api.service';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatIconModule,
     MatProgressSpinnerModule,
     ReactiveFormsModule,
   ],
@@ -37,6 +39,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   readonly loading = signal(false);
   readonly authError = signal<string | null>(null);
+  readonly mostrarSenha = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     login: ['', [Validators.required]],
