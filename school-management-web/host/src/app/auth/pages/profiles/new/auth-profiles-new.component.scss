@@ -1,0 +1,5 @@
+:host { display:block; }
+.page-container { width:100%; }
+.student-card { width:100%; background:#fff; border:2px solid #667eea; border-radius:16px; box-sizing:border-box; }
+.student-form { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-top:8px; }
+.actions { grid-column:1/-1; display:flex; gap:12px; }

@@ -1,0 +1,21 @@
+<div class="page-container">
+  <mat-card class="student-card">
+    <mat-card-header>
+      <mat-card-title>{{userId() ? 'Edição de Usuário' : 'Cadastro de Usuário'}}</mat-card-title>
+      <mat-card-subtitle>Cadastro de usuário integrado ao backend</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form class="student-form" [formGroup]="form" (ngSubmit)="salvar()">
+        <mat-form-field appearance="outline"><mat-label>Username *</mat-label><input matInput formControlName="username"/></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Nome *</mat-label><input matInput formControlName="nome"/></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>E-mail *</mat-label><input matInput type="email" formControlName="email"/></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Senha *</mat-label><input matInput formControlName="senhaHash"/></mat-form-field>
+        <mat-slide-toggle formControlName="ativo">Status ativo</mat-slide-toggle>
+        <div class="actions">
+          <button mat-raised-button color="primary" type="submit"><mat-icon fontIcon="save"></mat-icon>Salvar</button>
+          <button mat-stroked-button type="button" (click)="onCancel()"><mat-icon fontIcon="close"></mat-icon>Cancelar</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
