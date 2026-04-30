@@ -96,17 +96,10 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'enrollment/new',
+        path: 'enrollment',
         loadComponent: () =>
           import('./enrollment/pages/new/enrollment-new.component').then(
             m => m.EnrollmentNewComponent,
-          ),
-      },
-      {
-        path: 'enrollment/search',
-        loadComponent: () =>
-          import('./enrollment/pages/search/enrollment-search.component').then(
-            m => m.EnrollmentSearchComponent,
           ),
       },
       {

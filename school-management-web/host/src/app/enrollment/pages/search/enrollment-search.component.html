@@ -2,9 +2,7 @@
   <mat-card class="federated-card">
     <mat-card-content>
       <h1>Consulta de matrículas</h1>
-      <p>Filtros operacionais por aluno/turma/período/status.</p>
-
-      <form class="form-grid" [formGroup]="form" (ngSubmit)="onSearch()">
+            <form class="form-grid" [formGroup]="form" (ngSubmit)="onSearch()">
         <mat-form-field appearance="outline">
           <mat-label>ID do aluno</mat-label>
           <input matInput formControlName="alunoId" />
