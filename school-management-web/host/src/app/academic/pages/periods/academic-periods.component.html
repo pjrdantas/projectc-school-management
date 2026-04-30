@@ -5,9 +5,7 @@
         <h1>Períodos letivos</h1>
       </div>
 
-      <p>Cadastro e consulta por ID de períodos letivos (MVP).</p>
-
-      <form class="form-grid" [formGroup]="form" (ngSubmit)="onCreate()">
+      <form class="form-grid" [formGroup]="form" (ngSubmit)="onCreateOrUpdate()">
         <mat-form-field appearance="outline">
           <mat-label>Nome *</mat-label>
           <input matInput formControlName="nome" placeholder="2026.1" />
@@ -31,17 +29,36 @@
         <div class="actions">
           <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">
             <mat-icon fontIcon="save"></mat-icon>
-            Salvar período
+            {{ editingPeriodId() ? 'Atualizar período' : 'Salvar período' }}
+          </button>
+
+          <button mat-stroked-button type="button" *ngIf="editingPeriodId()" (click)="clearForm()">
+            Cancelar edição
           </button>
         </div>
       </form>
 
-      <form class="search-row" [formGroup]="searchForm" (ngSubmit)="onSearchById()">
+      <form class="search-row" [formGroup]="searchForm" (ngSubmit)="onSearchByName()">
         <mat-form-field appearance="outline" class="search-field">
-          <mat-label>Consultar por ID *</mat-label>
-          <input matInput formControlName="id" placeholder="UUID do período" />
-          <mat-error *ngIf="searchForm.controls.id.hasError('required')">Informe um ID.</mat-error>
+          <mat-label>Consultar por nome do período letivo *</mat-label>
+          <input
+            matInput
+            formControlName="nome"
+            [matAutocomplete]="periodAuto"
+            (input)="onPeriodSearchInput(($any($event.target).value || '').toString())"
+            placeholder="Digite o nome do período"
+          />
+          <mat-error *ngIf="searchForm.controls.nome.hasError('required')">Informe um nome.</mat-error>
         </mat-form-field>
+
+        <mat-autocomplete
+          #periodAuto="matAutocomplete"
+          [displayWith]="displayPeriod"
+          (optionSelected)="onPeriodOptionSelected($event.option.value)">
+          <mat-option *ngFor="let period of filteredPeriods()" [value]="period.id">
+            {{ period.nome }}
+          </mat-option>
+        </mat-autocomplete>
 
         <button mat-stroked-button type="submit" [disabled]="isLoading()">
           <mat-icon fontIcon="search"></mat-icon>
@@ -52,13 +69,22 @@
       <div class="empty-state" *ngIf="total() === 0">Nenhum período carregado ainda.</div>
 
       <div class="list" *ngIf="total() > 0">
-        <div class="list-item" *ngFor="let period of periods$ | async">
+        <div class="list-item" *ngFor="let period of pagedPeriods()">
           <div>
             <h3>{{ period.nome }}</h3>
-            <p><strong>ID:</strong> {{ period.id }}</p>
-            <p><strong>Início:</strong> {{ period.dataInicio }} | <strong>Fim:</strong> {{ period.dataFim }}</p>
+                        <div class="period-dates">
+              <p><strong>Início:</strong> {{ period.dataInicio }}</p>
+              <p><strong>Fim:</strong> {{ period.dataFim }}</p>
+            </div>
+          </div>
+
+          <div class="actions-row">
+            <button mat-stroked-button type="button" (click)="onEdit(period.id)">Editar</button>
+            <button mat-stroked-button color="warn" type="button" (click)="onDelete(period.id)">Excluir</button>
           </div>
         </div>
+
+      <mat-paginator *ngIf="total() > 5" [length]="total()" [pageIndex]="pageIndex()" [pageSize]="pageSize()" [pageSizeOptions]="pageSizeOptions" [hidePageSize]="true" showFirstLastButtons (page)="onPageChange($event)"></mat-paginator>
       </div>
     </mat-card-content>
   </mat-card>
