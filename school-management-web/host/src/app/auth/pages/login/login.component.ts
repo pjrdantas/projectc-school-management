@@ -10,7 +10,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthStateService } from '../../../core/auth/auth-state.service';
-import { AuthSessionService } from '../../services/auth-session.service';
 import { AuthApiService } from '../../services/auth-api.service';
 
 @Component({
@@ -31,7 +30,6 @@ import { AuthApiService } from '../../services/auth-api.service';
 export class LoginComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly authSession = inject(AuthSessionService);
   private readonly authState = inject(AuthStateService);
   private readonly authApi = inject(AuthApiService);
   private readonly fb = inject(FormBuilder);
@@ -76,7 +74,6 @@ export class LoginComponent implements OnInit, OnDestroy {
         perfis: response.perfis ?? [],
         permissoes: response.permissoes ?? [],
       });
-      this.authSession.signIn();
 
       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/home';
       await this.router.navigateByUrl(returnUrl);

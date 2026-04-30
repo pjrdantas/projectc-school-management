@@ -1,12 +1,12 @@
 import { inject } from '@angular/core';
 import { CanMatchFn, Router, UrlSegment } from '@angular/router';
-import { AuthSessionService } from '../services/auth-session.service';
+import { AuthStateService } from '../../core/auth/auth-state.service';
 
 export const authGuard: CanMatchFn = (_route, segments: UrlSegment[]) => {
-  const authSession = inject(AuthSessionService);
+  const authState = inject(AuthStateService);
   const router = inject(Router);
 
-  if (authSession.isAuthenticated()) {
+  if (authState.getToken()) {
     return true;
   }
 
@@ -17,10 +17,10 @@ export const authGuard: CanMatchFn = (_route, segments: UrlSegment[]) => {
 };
 
 export const guestGuard: CanMatchFn = () => {
-  const authSession = inject(AuthSessionService);
+  const authState = inject(AuthStateService);
   const router = inject(Router);
 
-  if (!authSession.isAuthenticated()) {
+  if (!authState.getToken()) {
     return true;
   }
 
