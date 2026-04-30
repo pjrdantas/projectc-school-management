@@ -33,6 +33,12 @@ public class PerfilController {
         return toResponse(repository.save(new PerfilEntity(null, request.codigo().trim(), request.nome().trim(), request.descricao())));
     }
 
+    @GetMapping("/{id}")
+    public PerfilResponse buscarPorId(@PathVariable java.util.UUID id) {
+        var entity = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Perfil não encontrado"));
+        return toResponse(entity);
+    }
+
     @GetMapping
     public List<PerfilResponse> listar() { return repository.findAll().stream().map(this::toResponse).toList(); }
 

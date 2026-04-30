@@ -21,6 +21,11 @@ public class PermissaoController {
         if (repository.existsByCodigo(r.codigo())) throw new IllegalArgumentException("Código já cadastrado");
         return toResponse(repository.save(new PermissaoEntity(null, r.codigo().trim(), r.descricao())));
     }
+    @GetMapping("/{id}")
+    public PermissaoResponse buscarPorId(@PathVariable UUID id) {
+        var entity = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Permissão não encontrada"));
+        return toResponse(entity);
+    }
     @GetMapping public List<PermissaoResponse> listar() { return repository.findAll().stream().map(this::toResponse).toList(); }
     @PutMapping("/{id}")
     public PermissaoResponse atualizar(@PathVariable UUID id, @Valid @RequestBody PermissaoRequest r) {

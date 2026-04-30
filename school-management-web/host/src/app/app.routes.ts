@@ -135,30 +135,58 @@ export const routes: Routes = [
       {
         path: 'auth/profiles',
         loadComponent: () =>
-          import('./auth/pages/profiles/auth-profiles.component').then(
-            m => m.AuthProfilesComponent,
+          import('./auth/pages/profiles/list/auth-profiles-list.component').then(
+            m => m.AuthProfilesListComponent,
           ),
       },
       {
         path: 'auth/permissions',
         loadComponent: () =>
-          import('./auth/pages/permissions/auth-permissions.component').then(
-            m => m.AuthPermissionsComponent,
+          import('./auth/pages/permissions/list/auth-permissions-list.component').then(
+            m => m.AuthPermissionsListComponent,
           ),
       },
 
       {
-        path: 'auth/profiles',
+        path: 'auth/profiles/new',
         loadComponent: () =>
-          import('./auth/pages/profiles/auth-profiles.component').then(
-            m => m.AuthProfilesComponent,
+          import('./auth/pages/profiles/new/auth-profiles-new.component').then(
+            m => m.AuthProfilesNewComponent,
           ),
       },
       {
-        path: 'auth/permissions',
+        path: 'auth/profiles/:id',
         loadComponent: () =>
-          import('./auth/pages/permissions/auth-permissions.component').then(
-            m => m.AuthPermissionsComponent,
+          import('./auth/pages/profiles/detail/auth-profiles-detail.component').then(
+            m => m.AuthProfilesDetailComponent,
+          ),
+      },
+      {
+        path: 'auth/profiles/:id/edit',
+        loadComponent: () =>
+          import('./auth/pages/profiles/new/auth-profiles-new.component').then(
+            m => m.AuthProfilesNewComponent,
+          ),
+      },
+      {
+        path: 'auth/permissions/new',
+        loadComponent: () =>
+          import('./auth/pages/permissions/new/auth-permissions-new.component').then(
+            m => m.AuthPermissionsNewComponent,
+          ),
+      },
+      {
+        path: 'auth/permissions/:id',
+        loadComponent: () =>
+          import('./auth/pages/permissions/detail/auth-permissions-detail.component').then(
+            m => m.AuthPermissionsDetailComponent,
+          ),
+      },
+      {
+        path: 'auth/permissions/:id/edit',
+        loadComponent: () =>
+          import('./auth/pages/permissions/new/auth-permissions-new.component').then(
+            m => m.AuthPermissionsNewComponent,
           ),
       },
       {
