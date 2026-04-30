@@ -194,6 +194,12 @@ export class Menu implements OnInit, OnDestroy {
   irUsuarios() {
     this.router.navigate(['/auth/users']);
   }
+  irPerfis() {
+    this.router.navigate(['/auth/profiles']);
+  }
+  irPermissoes() {
+    this.router.navigate(['/auth/permissions']);
+  }
   irHome() {
     this.router.navigate(['/home']);
   }
