@@ -20,7 +20,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { Subject, finalize, takeUntil } from 'rxjs';
-import { AuthSessionService } from '../../../auth/services/auth-session.service';
 import { AuthStateService, UsuarioAuth } from '../../../core/auth/auth-state.service';
 import { AplicativosResponse } from '../../../models/aplicativos-response.model';
 import { AplicativosService } from '../../../services/aplicativos.service';
@@ -48,7 +47,6 @@ import { AuthApiService } from '../../../auth/services/auth-api.service';
 export class Menu implements OnInit, OnDestroy {
   private router = inject(Router);
   public authState = inject(AuthStateService);
-  private authSession = inject(AuthSessionService);
   private cdr = inject(ChangeDetectorRef);
   private zone = inject(NgZone);
   private aplicativosService = inject(AplicativosService);
@@ -236,7 +234,6 @@ export class Menu implements OnInit, OnDestroy {
 
   private finalizarLogoutLocal(): void {
     this.authState.clear();
-    this.authSession.signOut();
     this.router.navigate(['/auth/login']);
   }
 
