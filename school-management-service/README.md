@@ -131,7 +131,7 @@ psql -U postgres -d school_management -f ../docs/school_management_uuid.sql
 No profile local:
 
 - usuário: `admin`
-- senha: `admin123`
+- senha: `admin123` (compatibilidade: `Administrador`)
 
 
 Use as credenciais abaixo no endpoint `POST /api/auth/login` com senha em texto puro.
