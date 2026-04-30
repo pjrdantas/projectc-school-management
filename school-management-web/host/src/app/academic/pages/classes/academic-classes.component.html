@@ -5,13 +5,13 @@
 
       <form class="form-grid" [formGroup]="form" (ngSubmit)="onCreateOrUpdate()">
         <mat-form-field appearance="outline">
-          <mat-label>Código *</mat-label>
-          <input matInput formControlName="codigo" placeholder="TURMA-A" />
+          <mat-label>Turma *</mat-label>
+          <input matInput formControlName="turmaNome" placeholder="5 série A" />
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Nome *</mat-label>
-          <input matInput formControlName="nome" placeholder="Turma A" />
+          <mat-label>Período *</mat-label>
+          <input matInput formControlName="periodo" placeholder="Período da manhã" />
         </mat-form-field>
 
         <mat-form-field appearance="outline">
@@ -21,10 +21,15 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Período letivo *</mat-label>
-          <input matInput formControlName="periodoNome" [matAutocomplete]="autoPeriodo" (input)="onPeriodInput(($any($event.target).value || '').toString())" placeholder="Digite o nome do período" />
+          <input matInput formControlName="periodoLetivoNome" [matAutocomplete]="autoPeriodo" (input)="onPeriodInput(($any($event.target).value || '').toString())" placeholder="Primeiro semestre" />
           <mat-autocomplete #autoPeriodo="matAutocomplete" (optionSelected)="onPeriodOptionSelected($event.option.value)">
             <mat-option *ngFor="let period of filteredPeriods()" [value]="period.id">{{ period.nome }}</mat-option>
           </mat-autocomplete>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Ano *</mat-label>
+          <input matInput type="number" formControlName="ano" placeholder="2026" />
         </mat-form-field>
 
         <div class="actions">
@@ -48,10 +53,15 @@
       <div class="list" *ngIf="total() > 0">
         <div class="list-item" *ngFor="let turma of classes$ | async">
           <div>
-            <h3>{{ turma.codigo }} - {{ turma.nome }}</h3>
-            <p><strong>ID:</strong> {{ turma.id }}</p>
-            <p><strong>Período:</strong> {{ getPeriodName(turma.periodoLetivoId) }}</p>
+            <h3>Turma: {{ turma.nome }}</h3>
+            <p><strong>Período:</strong> {{ getShiftFromCode(turma.codigo) }}</p>
             <p><strong>Capacidade:</strong> {{ turma.capacidade }}</p>
+            <p><strong>Período letivo:</strong> {{ getPeriodName(turma.periodoLetivoId) }}</p>
+            <p><strong>Ano:</strong> {{ getYearFromCode(turma.codigo) }}</p>
+          </div>
+          <div class="actions">
+            <button mat-button type="button" (click)="onEdit(turma.id)">Editar</button>
+            <button mat-button color="warn" type="button" (click)="onDelete(turma.id)">Excluir</button>
           </div>
           <div class="actions">
             <button mat-button type="button" (click)="onEdit(turma.id)">Editar</button>
