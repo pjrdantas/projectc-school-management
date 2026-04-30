@@ -1,6 +1,7 @@
 package br.com.escola.accesscontrol.adapter.in.web;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.accesscontrol.adapter.out.persistence.entity.UsuarioEntity;
 import br.com.escola.accesscontrol.adapter.out.persistence.repository.UsuarioJpaRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
 import jakarta.validation.Valid;
 
 @RestController
@@ -22,9 +24,11 @@ import jakarta.validation.Valid;
 public class UsuarioController {
 
     private final UsuarioJpaRepository repository;
+    private final JdbcTemplate jdbcTemplate;
 
-    public UsuarioController(UsuarioJpaRepository repository) {
+    public UsuarioController(UsuarioJpaRepository repository, JdbcTemplate jdbcTemplate) {
         this.repository = repository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @PostMapping
@@ -45,6 +49,7 @@ public class UsuarioController {
                 request.senhaHash().trim(),
                 request.ativo() == null || request.ativo()));
 
+        vincularPerfis(created.getId(), request.perfilIds());
         return toResponse(created);
     }
 
@@ -69,6 +74,7 @@ public class UsuarioController {
                 request.email().trim().toLowerCase(),
                 request.senhaHash().trim(),
                 request.ativo() == null || request.ativo()));
+        vincularPerfis(atualizado.getId(), request.perfilIds());
         return toResponse(atualizado);
     }
 
@@ -76,6 +82,14 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void excluir(@PathVariable java.util.UUID id) {
         repository.deleteById(id);
+    }
+
+    private void vincularPerfis(UUID idUsuario, List<UUID> perfilIds){
+        jdbcTemplate.update("DELETE FROM usuario_perfil WHERE id_usuario = ?", idUsuario);
+        if (perfilIds == null) return;
+        for (UUID idPerfil : perfilIds){
+            jdbcTemplate.update("INSERT INTO usuario_perfil (id_usuario_perfil,id_usuario,id_perfil) VALUES (?,?,?)", UUID.randomUUID(), idUsuario, idPerfil);
+        }
     }
 
     private UsuarioResponse toResponse(UsuarioEntity entity) {
