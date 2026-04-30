@@ -105,8 +105,45 @@ export const routes: Routes = [
       {
         path: 'auth/users',
         loadComponent: () =>
-          import('./auth/pages/users/auth-users.component').then(
-            m => m.AuthUsersComponent,
+          import('./auth/pages/users/list/auth-users-list.component').then(
+            m => m.AuthUsersListComponent,
+          ),
+      },
+
+
+      {
+        path: 'auth/users/new',
+        loadComponent: () =>
+          import('./auth/pages/users/new/auth-users-new.component').then(
+            m => m.AuthUsersNewComponent,
+          ),
+      },
+      {
+        path: 'auth/users/:id',
+        loadComponent: () =>
+          import('./auth/pages/users/detail/auth-users-detail.component').then(
+            m => m.AuthUsersDetailComponent,
+          ),
+      },
+      {
+        path: 'auth/users/:id/edit',
+        loadComponent: () =>
+          import('./auth/pages/users/new/auth-users-new.component').then(
+            m => m.AuthUsersNewComponent,
+          ),
+      },
+      {
+        path: 'auth/profiles',
+        loadComponent: () =>
+          import('./auth/pages/profiles/auth-profiles.component').then(
+            m => m.AuthProfilesComponent,
+          ),
+      },
+      {
+        path: 'auth/permissions',
+        loadComponent: () =>
+          import('./auth/pages/permissions/auth-permissions.component').then(
+            m => m.AuthPermissionsComponent,
           ),
       },
       {
