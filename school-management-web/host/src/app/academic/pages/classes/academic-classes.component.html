@@ -51,7 +51,7 @@
 
       <div class="empty-state" *ngIf="total() === 0">Nenhuma turma carregada ainda.</div>
       <div class="list" *ngIf="total() > 0">
-        <div class="list-item" *ngFor="let turma of classes$ | async">
+        <div class="list-item" *ngFor="let turma of pagedClasses()">
           <div>
             <h3>Turma: {{ turma.nome }}</h3>
             <p><strong>Período:</strong> {{ getShiftFromCode(turma.codigo) }}</p>
@@ -64,6 +64,8 @@
             <button mat-button color="warn" type="button" (click)="onDelete(turma.id)">Excluir</button>
           </div>
         </div>
+
+      <mat-paginator *ngIf="total() > 5" [length]="total()" [pageIndex]="pageIndex()" [pageSize]="pageSize()" [pageSizeOptions]="pageSizeOptions" [hidePageSize]="true" showFirstLastButtons (page)="onPageChange($event)"></mat-paginator>
       </div>
     </mat-card-content>
   </mat-card>

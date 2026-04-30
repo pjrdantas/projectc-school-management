@@ -69,11 +69,15 @@
       <div class="empty-state" *ngIf="total() === 0">Nenhum período carregado ainda.</div>
 
       <div class="list" *ngIf="total() > 0">
-        <div class="list-item" *ngFor="let period of periods$ | async">
+        <div class="list-item" *ngFor="let period of pagedPeriods()">
           <div>
             <h3>{{ period.nome }}</h3>
-            <p><strong>ID:</strong> {{ period.id }}</p>
-            <p><strong>Início:</strong> {{ period.dataInicio }} | <strong>Fim:</strong> {{ period.dataFim }}</p>
+                        <p><strong>Início:</strong> {{ period.dataInicio }} | <strong>Fim:</strong> {{ period.dataFim }}</p>
+          </div>
+
+          <div class="actions">
+            <button mat-button type="button" (click)="onEdit(period.id)">Editar</button>
+            <button mat-button color="warn" type="button" (click)="onDelete(period.id)">Excluir</button>
           </div>
 
           <div class="actions">
@@ -81,6 +85,8 @@
             <button mat-button color="warn" type="button" (click)="onDelete(period.id)">Excluir</button>
           </div>
         </div>
+
+      <mat-paginator *ngIf="total() > 5" [length]="total()" [pageIndex]="pageIndex()" [pageSize]="pageSize()" [pageSizeOptions]="pageSizeOptions" [hidePageSize]="true" showFirstLastButtons (page)="onPageChange($event)"></mat-paginator>
       </div>
     </mat-card-content>
   </mat-card>

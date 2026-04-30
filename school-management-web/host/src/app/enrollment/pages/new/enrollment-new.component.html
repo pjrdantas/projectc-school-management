@@ -46,8 +46,17 @@
         </div>
       </form>
 
-      <div class="list" *ngIf="enrollments().length">
-        <div class="list-item" *ngFor="let enrollment of enrollments()">
+
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar matrículas por aluno/turma/período/status</mat-label>
+        <input matInput [value]="searchTerm()" (input)="onSearchTermChange($any($event.target).value)" autocomplete="off" />
+        <button *ngIf="searchTerm()" mat-icon-button matSuffix type="button" aria-label="Limpar busca" (click)="clearSearch()">
+          <mat-icon fontIcon="close"></mat-icon>
+        </button>
+      </mat-form-field>
+
+      <div class="list" *ngIf="totalEnrollments() > 0">
+        <div class="list-item" *ngFor="let enrollment of pagedEnrollments()">
           <p><strong>Aluno:</strong> {{ nomeAluno(enrollment.alunoId) }}</p>
           <p><strong>Turma:</strong> {{ nomeTurma(enrollment.turmaId) }}</p>
           <p><strong>Período letivo:</strong> {{ nomePeriodo(enrollment.periodoLetivoId) }}</p>
@@ -58,6 +67,8 @@
           </div>
         </div>
       </div>
+
+      <mat-paginator *ngIf="totalEnrollments() > 5" [length]="totalEnrollments()" [pageIndex]="pageIndex()" [pageSize]="pageSize()" [pageSizeOptions]="pageSizeOptions" [hidePageSize]="true" showFirstLastButtons (page)="onPageChange($event)"></mat-paginator>
     </mat-card-content>
   </mat-card>
 </div>

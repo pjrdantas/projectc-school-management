@@ -8,6 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AcademicService } from '../../../academic/services/academic.service';
 import { Student } from '../../../students/models/student.model';
@@ -30,6 +31,7 @@ import { EnrollmentService } from '../../services/enrollment.service';
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
+    MatPaginatorModule,
   ],
   templateUrl: './enrollment-new.component.html',
   styleUrls: ['./enrollment-new.component.scss'],
@@ -45,6 +47,10 @@ export class EnrollmentNewComponent implements OnInit {
   protected readonly enrollments = signal<Enrollment[]>([]);
   protected readonly students = signal<Student[]>(this.studentsService.list());
   protected readonly statuses = ['ATIVA', 'TRANCADA', 'CANCELADA', 'CONCLUIDA'];
+  protected readonly pageSizeOptions = [5];
+  protected readonly pageSize = signal(5);
+  protected readonly pageIndex = signal(0);
+  protected readonly searchTerm = signal('');
 
   protected readonly form = this.fb.nonNullable.group({
     alunoNome: ['', [Validators.required]],
@@ -65,6 +71,25 @@ export class EnrollmentNewComponent implements OnInit {
       )
       .slice(0, 10),
   );
+
+
+  protected readonly filteredEnrollments = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    const list = this.enrollments();
+    if (!term) return list;
+    return list.filter(item => {
+      const aluno = this.nomeAluno(item.alunoId).toLowerCase();
+      const turma = this.nomeTurma(item.turmaId).toLowerCase();
+      const periodo = this.nomePeriodo(item.periodoLetivoId).toLowerCase();
+      return aluno.includes(term) || turma.includes(term) || periodo.includes(term) || item.status.toLowerCase().includes(term);
+    });
+  });
+
+  protected readonly totalEnrollments = computed(() => this.filteredEnrollments().length);
+  protected readonly pagedEnrollments = computed(() => {
+    const start = this.pageIndex() * this.pageSize();
+    return this.filteredEnrollments().slice(start, start + this.pageSize());
+  });
 
   constructor() {
     this.studentsService.syncFromApi().subscribe({ next: list => this.students.set(list) });
@@ -172,4 +197,8 @@ export class EnrollmentNewComponent implements OnInit {
   protected get periodos() {
     return this.academicService.listPeriods();
   }
+
+  protected onSearchTermChange(value: string): void { this.searchTerm.set(value); this.pageIndex.set(0); }
+  protected clearSearch(): void { this.searchTerm.set(''); this.pageIndex.set(0); }
+  protected onPageChange(event: PageEvent): void { this.pageSize.set(event.pageSize); this.pageIndex.set(event.pageIndex); }
 }

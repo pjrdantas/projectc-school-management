@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiErrorResponse } from '../../models/academic.model';
 import { AcademicService } from '../../services/academic.service';
@@ -15,7 +16,7 @@ import { AcademicService } from '../../services/academic.service';
 @Component({
   selector: 'app-academic-classes',
   standalone: true,
-  imports: [NgIf, NgFor, AsyncPipe, ReactiveFormsModule, MatAutocompleteModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatSnackBarModule],
+  imports: [NgIf, NgFor, AsyncPipe, ReactiveFormsModule, MatAutocompleteModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatSnackBarModule, MatPaginatorModule],
   templateUrl: './academic-classes.component.html',
   styleUrls: ['./academic-classes.component.scss'],
 })
@@ -29,6 +30,10 @@ export class AcademicClassesComponent implements OnInit {
   protected readonly periods$ = this.academicService.periods$;
   protected readonly periods = toSignal(this.periods$, { initialValue: this.academicService.listPeriods() });
 
+  protected readonly pageSizeOptions = [5];
+  protected readonly pageSize = signal(5);
+  protected readonly pageIndex = signal(0);
+
   protected readonly form = this.fb.nonNullable.group({
     turmaNome: ['', [Validators.required, Validators.maxLength(80)]],
     periodo: ['', [Validators.required, Validators.maxLength(40)]],
@@ -39,7 +44,9 @@ export class AcademicClassesComponent implements OnInit {
   protected readonly searchForm = this.fb.nonNullable.group({ nome: ['', [Validators.required]] });
 
   protected readonly isLoading = signal(false);
-  protected readonly total = computed(() => this.classes().length);
+  protected readonly sortedClasses = computed(() => [...this.classes()].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')));
+  protected readonly total = computed(() => this.sortedClasses().length);
+  protected readonly pagedClasses = computed(() => { const start = this.pageIndex() * this.pageSize(); return this.sortedClasses().slice(start, start + this.pageSize()); });
   protected readonly editingClassId = signal<string | null>(null);
   protected readonly selectedPeriodId = signal<string | null>(null);
   protected readonly periodSearchTerm = signal('');
@@ -110,6 +117,8 @@ export class AcademicClassesComponent implements OnInit {
     return `${ano}-${turno}-${turma}`;
   }
 
+  protected onPageChange(event: PageEvent): void { this.pageSize.set(event.pageSize); this.pageIndex.set(event.pageIndex); }
+
   private parseCode(code: string): { ano: number; periodo: string } {
     const parts = code.split('-');
     const ano = Number(parts[0]);
@@ -119,3 +128,4 @@ export class AcademicClassesComponent implements OnInit {
     return { ano: new Date().getFullYear(), periodo: '' };
   }
 }
+
