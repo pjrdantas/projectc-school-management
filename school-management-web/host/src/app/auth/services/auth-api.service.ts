@@ -15,6 +15,8 @@ export interface AuthApiResponse {
   tokenType: string;
   username: string;
   nome: string;
+  perfis: string[];
+  permissoes: string[];
 }
 
 @Injectable({ providedIn: 'root' })
