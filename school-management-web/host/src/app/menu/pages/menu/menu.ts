@@ -209,11 +209,8 @@ export class Menu implements OnInit, OnDestroy {
   irAcademicClasses() {
     this.router.navigate(['/academic/classes']);
   }
-  irEnrollmentNew() {
-    this.router.navigate(['/enrollment/new']);
-  }
-  irEnrollmentSearch() {
-    this.router.navigate(['/enrollment/search']);
+  irEnrollment() {
+    this.router.navigate(['/enrollment']);
   }
   irMicrofrontend() {
     this.router.navigate(['/microfrontend']);

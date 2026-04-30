@@ -1,7 +1,8 @@
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -19,6 +20,7 @@ import { AcademicService } from '../../services/academic.service';
     NgFor,
     AsyncPipe,
     ReactiveFormsModule,
+    MatAutocompleteModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -29,7 +31,7 @@ import { AcademicService } from '../../services/academic.service';
   templateUrl: './academic-periods.component.html',
   styleUrls: ['./academic-periods.component.scss'],
 })
-export class AcademicPeriodsComponent {
+export class AcademicPeriodsComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
   private readonly academicService = inject(AcademicService);
@@ -46,21 +48,45 @@ export class AcademicPeriodsComponent {
   });
 
   protected readonly searchForm = this.fb.nonNullable.group({
-    id: ['', [Validators.required]],
+    nome: ['', [Validators.required]],
   });
 
   protected readonly isLoading = signal(false);
   protected readonly total = computed(() => this.periods().length);
+  protected readonly editingPeriodId = signal<string | null>(null);
+  protected readonly periodSearchTerm = signal('');
+  protected readonly pendingPeriodId = signal<string | null>(null);
+  protected readonly filteredPeriods = computed(() => {
+    const term = this.periodSearchTerm().trim().toLowerCase();
+    if (!term) {
+      return [];
+    }
 
-  protected onCreate(): void {
+    return this.periods().filter(period => period.nome.toLowerCase().includes(term));
+  });
+
+
+  ngOnInit(): void {
+    this.academicService.hydrateSeedData().subscribe();
+  }
+
+  protected onCreateOrUpdate(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
     const payload = this.form.getRawValue();
-    this.isLoading.set(true);
+    const editingId = this.editingPeriodId();
 
+    if (editingId) {
+      this.academicService.updatePeriodLocally(editingId, payload);
+      this.clearForm();
+      this.snackBar.open('Período letivo atualizado na lista.', 'Fechar', { duration: 3000 });
+      return;
+    }
+
+    this.isLoading.set(true);
     this.academicService.createPeriod(payload).subscribe({
       next: () => {
         this.isLoading.set(false);
@@ -78,26 +104,79 @@ export class AcademicPeriodsComponent {
     });
   }
 
-  protected onSearchById(): void {
+  protected onSearchByName(): void {
     if (this.searchForm.invalid) {
       this.searchForm.markAllAsTouched();
       return;
     }
 
-    this.isLoading.set(true);
-    this.academicService.fetchPeriodById(this.searchForm.controls.id.value.trim()).subscribe({
-      next: () => {
-        this.isLoading.set(false);
-        this.snackBar.open('Período letivo localizado e atualizado na lista.', 'Fechar', {
-          duration: 2500,
-        });
-      },
-      error: (error: { error?: ApiErrorResponse }) => {
-        this.isLoading.set(false);
-        this.snackBar.open(error.error?.message ?? 'Período letivo não encontrado.', 'Fechar', {
-          duration: 4000,
-        });
-      },
+    const found = this.pendingPeriodId()
+      ? this.periods().find(item => item.id === this.pendingPeriodId())
+      : null;
+
+    if (!found) {
+      this.snackBar.open('Selecione um período letivo pelo nome para consultar.', 'Fechar', {
+        duration: 3000,
+      });
+      return;
+    }
+
+    this.form.patchValue({
+      nome: found.nome,
+      dataInicio: found.dataInicio,
+      dataFim: found.dataFim,
     });
+    this.editingPeriodId.set(found.id);
+
+    this.snackBar.open('Período letivo carregado para edição.', 'Fechar', { duration: 2500 });
+  }
+
+  protected onPeriodSearchInput(value: string): void {
+    this.periodSearchTerm.set(value);
+    this.pendingPeriodId.set(null);
+    this.searchForm.controls.nome.setValue(value, { emitEvent: false });
+  }
+
+  protected onPeriodOptionSelected(id: string): void {
+    this.pendingPeriodId.set(id);
+  }
+
+  protected displayPeriod = (id: string | null): string => {
+    if (!id) {
+      return '';
+    }
+
+    const period = this.periods().find(item => item.id === id);
+    return period?.nome ?? '';
+  };
+
+  protected onDelete(id: string): void {
+    this.academicService.deletePeriodLocally(id);
+    if (this.editingPeriodId() === id) {
+      this.clearForm();
+    }
+    this.snackBar.open('Período letivo removido da lista.', 'Fechar', { duration: 2500 });
+  }
+
+  protected onEdit(id: string): void {
+    const period = this.periods().find(item => item.id === id);
+    if (!period) {
+      return;
+    }
+
+    this.form.patchValue({
+      nome: period.nome,
+      dataInicio: period.dataInicio,
+      dataFim: period.dataFim,
+    });
+    this.editingPeriodId.set(period.id);
+  }
+
+  protected clearForm(): void {
+    this.form.reset();
+    this.searchForm.reset();
+    this.periodSearchTerm.set('');
+    this.pendingPeriodId.set(null);
+    this.editingPeriodId.set(null);
   }
 }
