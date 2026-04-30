@@ -57,7 +57,9 @@ public class AuthService {
                 LocalDateTime.now().plusDays(REFRESH_DIAS),
                 LocalDateTime.now().plusMinutes(ACCESS_MINUTOS)));
 
-        return new AuthResponse(accessToken, refreshToken, "Bearer", usuario.getUsername(), usuario.getNome());
+        return new AuthResponse(accessToken, refreshToken, "Bearer", usuario.getUsername(), usuario.getNome(),
+                usuarioRepository.findPerfisByIdUsuario(usuario.getId()),
+                usuarioRepository.findPermissoesByIdUsuario(usuario.getId()));
     }
 
     public AuthResponse refresh(String refreshToken) {
@@ -76,7 +78,9 @@ public class AuthService {
         sessaoRepository.save(sessao);
 
         UsuarioEntity usuario = sessao.getUsuario();
-        return new AuthResponse(newAccessToken, newRefreshToken, "Bearer", usuario.getUsername(), usuario.getNome());
+        return new AuthResponse(newAccessToken, newRefreshToken, "Bearer", usuario.getUsername(), usuario.getNome(),
+                usuarioRepository.findPerfisByIdUsuario(usuario.getId()),
+                usuarioRepository.findPermissoesByIdUsuario(usuario.getId()));
     }
 
     public void logout(String refreshToken) {
