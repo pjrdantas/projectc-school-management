@@ -8,28 +8,40 @@
           <mat-label>Aluno *</mat-label>
           <input matInput formControlName="alunoNome" [matAutocomplete]="autoAluno" (input)="onAlunoInput()" />
           <mat-autocomplete #autoAluno="matAutocomplete">
-            <mat-option *ngFor="let aluno of filteredStudents()" [value]="aluno.nomeCompleto" (onSelectionChange)="selectAluno(aluno.id, aluno.nomeCompleto)">{{ aluno.nomeCompleto }}</mat-option>
+            <mat-option
+              *ngFor="let aluno of filteredStudents()"
+              [value]="aluno.nomeCompleto"
+              (onSelectionChange)="selectAluno(aluno.id, aluno.nomeCompleto)">
+              {{ aluno.nomeCompleto }}
+            </mat-option>
           </mat-autocomplete>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Turma *</mat-label>
-          <input matInput formControlName="turmaNome" [matAutocomplete]="autoTurma" (input)="onTurmaInput()" />
-          <mat-autocomplete #autoTurma="matAutocomplete">
-            <mat-option *ngFor="let turma of filteredClasses()" [value]="turma.nome" (onSelectionChange)="selectTurma(turma.id, turma.nome)">{{ turma.nome }}</mat-option>
-          </mat-autocomplete>
+          <mat-select formControlName="turmaId">
+            <mat-option *ngFor="let turma of turmas" [value]="turma.id">{{ turma.nome }}</mat-option>
+          </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Período letivo *</mat-label>
-          <input matInput formControlName="periodoNome" [matAutocomplete]="autoPeriodo" (input)="onPeriodoInput()" />
-          <mat-autocomplete #autoPeriodo="matAutocomplete">
-            <mat-option *ngFor="let periodo of filteredPeriods()" [value]="periodo.nome" (onSelectionChange)="selectPeriodo(periodo.id, periodo.nome)">{{ periodo.nome }}</mat-option>
-          </mat-autocomplete>
+          <mat-select formControlName="periodoLetivoId">
+            <mat-option *ngFor="let periodo of periodos" [value]="periodo.id">{{ periodo.nome }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Status *</mat-label>
+          <mat-select formControlName="status">
+            <mat-option *ngFor="let status of statuses" [value]="status">{{ status }}</mat-option>
+          </mat-select>
         </mat-form-field>
 
         <div class="actions">
-          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">{{ editingId() ? 'Atualizar' : 'Criar matrícula' }}</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">
+            {{ editingId() ? 'Atualizar' : 'Criar matrícula' }}
+          </button>
           <button mat-stroked-button type="button" *ngIf="editingId()" (click)="clear()">Cancelar</button>
         </div>
       </form>
@@ -38,7 +50,7 @@
         <div class="list-item" *ngFor="let enrollment of enrollments()">
           <p><strong>Aluno:</strong> {{ nomeAluno(enrollment.alunoId) }}</p>
           <p><strong>Turma:</strong> {{ nomeTurma(enrollment.turmaId) }}</p>
-          <p><strong>Período:</strong> {{ nomePeriodo(enrollment.periodoLetivoId) }}</p>
+          <p><strong>Período letivo:</strong> {{ nomePeriodo(enrollment.periodoLetivoId) }}</p>
           <p><strong>Status:</strong> {{ enrollment.status }}</p>
           <div class="actions">
             <button mat-button type="button" (click)="onEdit(enrollment)">Editar</button>
