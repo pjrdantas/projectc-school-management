@@ -22,7 +22,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody AuthRequest request) {
-        return authService.login(request.login().trim(), request.senha());
+        return authService.login(request.login().trim(), request.senha().trim());
     }
 
     @PostMapping("/refresh")
