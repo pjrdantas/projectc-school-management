@@ -53,6 +53,12 @@ public class UsuarioController {
         return repository.findAll().stream().map(this::toResponse).toList();
     }
 
+    @GetMapping("/{id}")
+    public UsuarioResponse buscarPorId(@PathVariable java.util.UUID id) {
+        UsuarioEntity entity = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+        return toResponse(entity);
+    }
+
     @PutMapping("/{id}")
     public UsuarioResponse atualizar(@PathVariable java.util.UUID id, @Valid @RequestBody UsuarioRequest request) {
         UsuarioEntity entity = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
