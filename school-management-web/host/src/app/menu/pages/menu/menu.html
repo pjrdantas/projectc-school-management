@@ -60,10 +60,25 @@
     <span class="item-menu">Matrícula</span>
   </button>
 
-   <button mat-menu-item *appHasPermission="'USUARIO'" (click)="irUsuarios()">
-    <mat-icon fontIcon="group"></mat-icon>
-    <span class="item-menu">Usuários</span>
+  <button mat-menu-item [matMenuTriggerFor]="accessMenu">
+    <mat-icon fontIcon="admin_panel_settings"></mat-icon>
+    <span class="item-menu">Acesso</span>
   </button>
+
+  <mat-menu #accessMenu="matMenu">
+    <button mat-menu-item (click)="irUsuarios()">
+      <mat-icon fontIcon="group"></mat-icon>
+      <span class="item-menu">Usuários</span>
+    </button>
+    <button mat-menu-item (click)="irPerfis()">
+      <mat-icon fontIcon="badge"></mat-icon>
+      <span class="item-menu">Perfis</span>
+    </button>
+    <button mat-menu-item (click)="irPermissoes()">
+      <mat-icon fontIcon="verified_user"></mat-icon>
+      <span class="item-menu">Permissões</span>
+    </button>
+  </mat-menu>
 
   <button mat-menu-item (click)="irMicrofrontend()">
     <mat-icon fontIcon="widgets"></mat-icon>
