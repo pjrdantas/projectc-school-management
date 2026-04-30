@@ -24,7 +24,6 @@ import { AuthSessionService } from '../../../auth/services/auth-session.service'
 import { AuthStateService, UsuarioAuth } from '../../../core/auth/auth-state.service';
 import { AplicativosResponse } from '../../../models/aplicativos-response.model';
 import { AplicativosService } from '../../../services/aplicativos.service';
-import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { AuthApiService } from '../../../auth/services/auth-api.service';
 
 @Component({
@@ -42,7 +41,6 @@ import { AuthApiService } from '../../../auth/services/auth-api.service';
     MatMenuModule,
     MatButtonModule,
     MatSnackBarModule,
-    HasPermissionDirective,
   ],
   templateUrl: './menu.html',
   styleUrls: ['./menu.scss'],
@@ -193,6 +191,12 @@ export class Menu implements OnInit, OnDestroy {
 
   irUsuarios() {
     this.router.navigate(['/auth/users']);
+  }
+  irPerfis() {
+    this.router.navigate(['/auth/profiles']);
+  }
+  irPermissoes() {
+    this.router.navigate(['/auth/permissions']);
   }
   irHome() {
     this.router.navigate(['/home']);

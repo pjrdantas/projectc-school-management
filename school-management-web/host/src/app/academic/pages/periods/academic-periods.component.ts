@@ -1,4 +1,4 @@
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -16,7 +16,7 @@ import { AcademicService } from '../../services/academic.service';
 @Component({
   selector: 'app-academic-periods',
   standalone: true,
-  imports: [NgIf, NgFor, AsyncPipe, ReactiveFormsModule, MatAutocompleteModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatSnackBarModule, MatPaginatorModule],
+  imports: [NgIf, NgFor, ReactiveFormsModule, MatAutocompleteModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatSnackBarModule, MatPaginatorModule],
   templateUrl: './academic-periods.component.html',
   styleUrls: ['./academic-periods.component.scss'],
 })
