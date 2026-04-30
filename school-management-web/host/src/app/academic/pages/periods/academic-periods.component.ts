@@ -1,5 +1,5 @@
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -31,7 +31,7 @@ import { AcademicService } from '../../services/academic.service';
   templateUrl: './academic-periods.component.html',
   styleUrls: ['./academic-periods.component.scss'],
 })
-export class AcademicPeriodsComponent {
+export class AcademicPeriodsComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
   private readonly academicService = inject(AcademicService);
@@ -64,6 +64,11 @@ export class AcademicPeriodsComponent {
 
     return this.periods().filter(period => period.nome.toLowerCase().includes(term));
   });
+
+
+  ngOnInit(): void {
+    this.academicService.hydrateSeedData().subscribe();
+  }
 
   protected onCreateOrUpdate(): void {
     if (this.form.invalid) {

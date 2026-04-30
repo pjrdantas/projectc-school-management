@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, forkJoin, map, of, tap } from 'rxjs';
 import { AuthStateService } from '../../core/auth/auth-state.service';
 import {
   AcademicClass,
@@ -30,6 +30,41 @@ export class AcademicService {
     return this.classesSubject.value;
   }
 
+
+  hydrateSeedData(): Observable<void> {
+    const periodIds = Array.from({ length: 20 }, (_, i) =>
+      `10000000-0000-0000-0000-${String(i + 1).padStart(12, '0')}`,
+    );
+    const classIds = Array.from({ length: 10 }, (_, i) =>
+      `20000000-0000-0000-0000-${String(i + 1).padStart(12, '0')}`,
+    );
+
+    const periodRequests = periodIds.map(id =>
+      this.http
+        .get<AcademicPeriod>(`${API_BASE_URL}/api/periodos-letivos/${id}`, { headers: this.buildHeaders() })
+        .pipe(catchError(() => of(null))),
+    );
+
+    const classRequests = classIds.map(id =>
+      this.http
+        .get<AcademicClass>(`${API_BASE_URL}/api/turmas/${id}`, { headers: this.buildHeaders() })
+        .pipe(catchError(() => of(null))),
+    );
+
+    return forkJoin([...periodRequests, ...classRequests]).pipe(
+      tap(results => {
+        const periods = results.slice(0, periodIds.length).filter(Boolean) as AcademicPeriod[];
+        const classes = results.slice(periodIds.length).filter(Boolean) as AcademicClass[];
+        if (periods.length) {
+          this.periodsSubject.next(periods);
+        }
+        if (classes.length) {
+          this.classesSubject.next(classes);
+        }
+      }),
+      map(() => void 0),
+    );
+  }
   createPeriod(input: AcademicPeriodInput): Observable<AcademicPeriod> {
     return this.http
       .post<AcademicPeriod>(`${API_BASE_URL}/api/periodos-letivos`, input, {

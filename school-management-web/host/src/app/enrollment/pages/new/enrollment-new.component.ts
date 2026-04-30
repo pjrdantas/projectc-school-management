@@ -1,5 +1,5 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -34,7 +34,7 @@ import { EnrollmentService } from '../../services/enrollment.service';
   templateUrl: './enrollment-new.component.html',
   styleUrls: ['./enrollment-new.component.scss'],
 })
-export class EnrollmentNewComponent {
+export class EnrollmentNewComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
   private readonly enrollmentService = inject(EnrollmentService);
@@ -69,6 +69,11 @@ export class EnrollmentNewComponent {
   constructor() {
     this.studentsService.syncFromApi().subscribe({ next: list => this.students.set(list) });
     this.enrollmentService.search({}).subscribe({ next: list => this.enrollments.set(list) });
+  }
+
+
+  ngOnInit(): void {
+    this.academicService.hydrateSeedData().subscribe();
   }
 
   protected onCreateOrUpdate(): void {

@@ -1,5 +1,5 @@
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -19,7 +19,7 @@ import { AcademicService } from '../../services/academic.service';
   templateUrl: './academic-classes.component.html',
   styleUrls: ['./academic-classes.component.scss'],
 })
-export class AcademicClassesComponent {
+export class AcademicClassesComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
   private readonly academicService = inject(AcademicService);
@@ -47,6 +47,11 @@ export class AcademicClassesComponent {
   protected readonly pendingClassId = signal<string | null>(null);
   protected readonly filteredPeriods = computed(() => this.periods().filter(p => p.nome.toLowerCase().includes(this.periodSearchTerm().toLowerCase().trim())).slice(0, 10));
   protected readonly filteredClasses = computed(() => this.classes().filter(c => c.nome.toLowerCase().includes(this.classSearchTerm().toLowerCase().trim())).slice(0, 10));
+
+
+  ngOnInit(): void {
+    this.academicService.hydrateSeedData().subscribe();
+  }
 
   protected onCreateOrUpdate(): void {
     if (this.form.invalid || !this.selectedPeriodId()) {
