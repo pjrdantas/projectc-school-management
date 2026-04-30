@@ -109,6 +109,21 @@ export const routes: Routes = [
             m => m.AuthUsersComponent,
           ),
       },
+
+      {
+        path: 'auth/profiles',
+        loadComponent: () =>
+          import('./auth/pages/profiles/auth-profiles.component').then(
+            m => m.AuthProfilesComponent,
+          ),
+      },
+      {
+        path: 'auth/permissions',
+        loadComponent: () =>
+          import('./auth/pages/permissions/auth-permissions.component').then(
+            m => m.AuthPermissionsComponent,
+          ),
+      },
       {
         path: 'microfrontend',
         loadComponent: () =>
