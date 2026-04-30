@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/permissoes")
 public class PermissaoController {
+    private static final String PERMISSAO_ADMIN = "ADMIN";
     private final PermissaoJpaRepository repository;
     public PermissaoController(PermissaoJpaRepository repository) { this.repository = repository; }
 
@@ -29,10 +30,19 @@ public class PermissaoController {
     @GetMapping public List<PermissaoResponse> listar() { return repository.findAll().stream().map(this::toResponse).toList(); }
     @PutMapping("/{id}")
     public PermissaoResponse atualizar(@PathVariable UUID id, @Valid @RequestBody PermissaoRequest r) {
-        repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Permissão não encontrada"));
+        PermissaoEntity existente = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Permissão não encontrada"));
+        if (PERMISSAO_ADMIN.equalsIgnoreCase(existente.getCodigo()) && !PERMISSAO_ADMIN.equalsIgnoreCase(r.codigo().trim())) {
+            throw new IllegalArgumentException("A permissão ADMIN é protegida e não pode ter o código alterado.");
+        }
         return toResponse(repository.save(new PermissaoEntity(id, r.codigo().trim(), r.descricao())));
     }
     @DeleteMapping("/{id}") @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void excluir(@PathVariable UUID id) { repository.deleteById(id); }
+    public void excluir(@PathVariable UUID id) {
+        PermissaoEntity existente = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Permissão não encontrada"));
+        if (PERMISSAO_ADMIN.equalsIgnoreCase(existente.getCodigo())) {
+            throw new IllegalArgumentException("A permissão ADMIN é protegida e não pode ser removida.");
+        }
+        repository.deleteById(id);
+    }
     private PermissaoResponse toResponse(PermissaoEntity e){ return new PermissaoResponse(e.getId(), e.getCodigo(), e.getDescricao(), e.getCreatedAt()); }
 }

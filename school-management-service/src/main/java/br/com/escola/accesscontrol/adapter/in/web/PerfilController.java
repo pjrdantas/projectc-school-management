@@ -22,6 +22,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/perfis")
 public class PerfilController {
+    private static final String PERFIL_ADMIN = "ADMIN";
     private final PerfilJpaRepository repository;
     private final JdbcTemplate jdbcTemplate;
 
@@ -51,6 +52,9 @@ public class PerfilController {
     @PutMapping("/{id}")
     public PerfilResponse atualizar(@PathVariable java.util.UUID id, @Valid @RequestBody PerfilRequest request) {
         PerfilEntity entity = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Perfil não encontrado"));
+        if (PERFIL_ADMIN.equalsIgnoreCase(entity.getCodigo()) && !PERFIL_ADMIN.equalsIgnoreCase(request.codigo().trim())) {
+            throw new IllegalArgumentException("O perfil ADMIN é protegido e não pode ter o código alterado.");
+        }
         entity.setCodigo(request.codigo().trim());
         entity.setNome(request.nome().trim());
         entity.setDescricao(request.descricao());
@@ -61,7 +65,13 @@ public class PerfilController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void excluir(@PathVariable java.util.UUID id) { repository.deleteById(id); }
+    public void excluir(@PathVariable java.util.UUID id) {
+        PerfilEntity entity = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Perfil não encontrado"));
+        if (PERFIL_ADMIN.equalsIgnoreCase(entity.getCodigo())) {
+            throw new IllegalArgumentException("O perfil ADMIN é protegido e não pode ser removido.");
+        }
+        repository.deleteById(id);
+    }
 
     private void vincularPermissoes(UUID idPerfil, List<UUID> permissaoIds){
         jdbcTemplate.update("DELETE FROM perfil_permissao WHERE id_perfil = ?", idPerfil);
