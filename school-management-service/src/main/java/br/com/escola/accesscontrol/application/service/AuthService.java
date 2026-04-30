@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import br.com.escola.accesscontrol.adapter.in.web.auth.AuthResponse;
@@ -28,14 +29,17 @@ public class AuthService {
     private final UsuarioJpaRepository usuarioRepository;
     private final SessaoAutenticacaoJpaRepository sessaoRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
     public AuthService(
             UsuarioJpaRepository usuarioRepository,
             SessaoAutenticacaoJpaRepository sessaoRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            JdbcTemplate jdbcTemplate) {
         this.usuarioRepository = usuarioRepository;
         this.sessaoRepository = sessaoRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     public AuthResponse login(String login, String senha) {
@@ -43,7 +47,7 @@ public class AuthService {
                 .or(() -> usuarioRepository.findByEmailIgnoreCaseAndAtivoTrue(login))
                 .orElseThrow(() -> new CredenciaisInvalidasException("Usuário ou senha inválidos"));
 
-        if (!passwordEncoder.matches(senha, usuario.getSenhaHash())) {
+        if (!isValidPassword(senha, usuario.getSenhaHash(), usuario.getId())) {
             throw new CredenciaisInvalidasException("Usuário ou senha inválidos");
         }
 
@@ -102,6 +106,26 @@ public class AuthService {
 
     public List<String> buscarPermissoes(UUID idUsuario) {
         return usuarioRepository.findPermissoesByIdUsuario(idUsuario);
+    }
+
+
+    private boolean isValidPassword(String senhaInformada, String senhaHashOuLegada, UUID idUsuario) {
+        if (senhaHashOuLegada == null || senhaHashOuLegada.isBlank()) {
+            return false;
+        }
+
+        boolean pareceBcrypt = senhaHashOuLegada.startsWith("$2a$") || senhaHashOuLegada.startsWith("$2b$") || senhaHashOuLegada.startsWith("$2y$");
+        if (pareceBcrypt) {
+            return passwordEncoder.matches(senhaInformada, senhaHashOuLegada);
+        }
+
+        if (!senhaInformada.equals(senhaHashOuLegada)) {
+            return false;
+        }
+
+        String novoHash = passwordEncoder.encode(senhaInformada);
+        jdbcTemplate.update("UPDATE usuario SET senha_hash = ? WHERE id_usuario = ?", novoHash, idUsuario);
+        return true;
     }
 
     private String gerarToken() {
