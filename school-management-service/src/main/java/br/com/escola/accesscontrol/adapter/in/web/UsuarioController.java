@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.escola.accesscontrol.adapter.out.persistence.entity.UsuarioEntity;
 import br.com.escola.accesscontrol.adapter.out.persistence.repository.UsuarioJpaRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import jakarta.validation.Valid;
 
 @RestController
@@ -25,10 +26,12 @@ public class UsuarioController {
 
     private final UsuarioJpaRepository repository;
     private final JdbcTemplate jdbcTemplate;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioController(UsuarioJpaRepository repository, JdbcTemplate jdbcTemplate) {
+    public UsuarioController(UsuarioJpaRepository repository, JdbcTemplate jdbcTemplate, PasswordEncoder passwordEncoder) {
         this.repository = repository;
         this.jdbcTemplate = jdbcTemplate;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping
@@ -46,7 +49,7 @@ public class UsuarioController {
                 request.username().trim(),
                 request.nome().trim(),
                 request.email().trim().toLowerCase(),
-                request.senhaHash().trim(),
+                normalizePasswordHash(request.senhaHash().trim(), null),
                 request.ativo() == null || request.ativo()));
 
         vincularPerfis(created.getId(), request.perfilIds());
@@ -72,7 +75,7 @@ public class UsuarioController {
                 request.username().trim(),
                 request.nome().trim(),
                 request.email().trim().toLowerCase(),
-                request.senhaHash().trim(),
+                normalizePasswordHash(request.senhaHash().trim(), entity.getSenhaHash()),
                 request.ativo() == null || request.ativo()));
         vincularPerfis(atualizado.getId(), request.perfilIds());
         return toResponse(atualizado);
@@ -82,6 +85,12 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void excluir(@PathVariable java.util.UUID id) {
         repository.deleteById(id);
+    }
+
+    private String normalizePasswordHash(String raw, String existingHash){
+        if ("********".equals(raw) && existingHash != null) return existingHash;
+        if (raw.startsWith("$2a$") || raw.startsWith("$2b$") || raw.startsWith("$2y$")) return raw;
+        return passwordEncoder.encode(raw);
     }
 
     private void vincularPerfis(UUID idUsuario, List<UUID> perfilIds){
