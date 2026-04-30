@@ -51,10 +51,12 @@ public class PerfilController {
     @PutMapping("/{id}")
     public PerfilResponse atualizar(@PathVariable java.util.UUID id, @Valid @RequestBody PerfilRequest request) {
         PerfilEntity entity = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Perfil não encontrado"));
-        repository.delete(entity);
-        PerfilEntity novo = repository.save(new PerfilEntity(id, request.codigo().trim(), request.nome().trim(), request.descricao()));
-        vincularPermissoes(novo.getId(), request.permissaoIds());
-        return toResponse(novo);
+        entity.setCodigo(request.codigo().trim());
+        entity.setNome(request.nome().trim());
+        entity.setDescricao(request.descricao());
+        PerfilEntity atualizado = repository.save(entity);
+        vincularPermissoes(atualizado.getId(), request.permissaoIds());
+        return toResponse(atualizado);
     }
 
     @DeleteMapping("/{id}")

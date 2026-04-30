@@ -49,4 +49,7 @@ public class PerfilEntity {
     public String getNome() { return nome; }
     public String getDescricao() { return descricao; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCodigo(String codigo) { this.codigo = codigo; }
+    public void setNome(String nome) { this.nome = nome; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
 }
