@@ -11,3 +11,5 @@ h1 { margin:0; font-size:1.35rem; }
 .actions-row { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; min-width:110px; }
 .actions-row button { min-height:30px; padding-inline:10px; font-size:.78rem; line-height:1.1; }
 mat-paginator { margin-top:8px; border-top:1px solid #eef1ff; }
+
+.enrollment-info p { margin:0 0 4px; font-size:.82rem; line-height:1.15; }

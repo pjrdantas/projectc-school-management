@@ -57,10 +57,12 @@
 
       <div class="list" *ngIf="totalEnrollments() > 0">
         <div class="list-item" *ngFor="let enrollment of pagedEnrollments()">
-          <p><strong>Aluno:</strong> {{ nomeAluno(enrollment.alunoId) }}</p>
-          <p><strong>Turma:</strong> {{ nomeTurma(enrollment.turmaId) }}</p>
-          <p><strong>Período letivo:</strong> {{ nomePeriodo(enrollment.periodoLetivoId) }}</p>
-          <p><strong>Status:</strong> {{ enrollment.status }}</p>
+          <div class="enrollment-info">
+            <p><strong>Aluno:</strong> {{ nomeAluno(enrollment.alunoId) }}</p>
+            <p><strong>Turma:</strong> {{ nomeTurma(enrollment.turmaId) }}</p>
+            <p><strong>Período letivo:</strong> {{ nomePeriodo(enrollment.periodoLetivoId) }}</p>
+            <p><strong>Status:</strong> {{ enrollment.status }}</p>
+          </div>
           <div class="actions-row">
             <button mat-stroked-button type="button" (click)="onEdit(enrollment)">Editar</button>
             <button mat-stroked-button color="warn" type="button" (click)="onDelete(enrollment.id)">Excluir</button>

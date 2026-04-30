@@ -72,7 +72,10 @@
         <div class="list-item" *ngFor="let period of pagedPeriods()">
           <div>
             <h3>{{ period.nome }}</h3>
-                        <p><strong>Início:</strong> {{ period.dataInicio }} | <strong>Fim:</strong> {{ period.dataFim }}</p>
+                        <div class="period-dates">
+              <p><strong>Início:</strong> {{ period.dataInicio }}</p>
+              <p><strong>Fim:</strong> {{ period.dataFim }}</p>
+            </div>
           </div>
 
           <div class="actions-row">
