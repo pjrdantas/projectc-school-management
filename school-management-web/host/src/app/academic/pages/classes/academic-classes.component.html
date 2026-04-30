@@ -1,70 +1,61 @@
 <div class="page-container">
   <mat-card class="federated-card">
     <mat-card-content>
-      <div class="header-row">
-        <h1>Turmas</h1>
-      </div>
+      <div class="header-row"><h1>Turmas</h1></div>
 
-      <p>Cadastro e consulta por ID de turmas (MVP).</p>
-
-      <form class="form-grid" [formGroup]="form" (ngSubmit)="onCreate()">
+      <form class="form-grid" [formGroup]="form" (ngSubmit)="onCreateOrUpdate()">
         <mat-form-field appearance="outline">
           <mat-label>Código *</mat-label>
           <input matInput formControlName="codigo" placeholder="TURMA-A" />
-          <mat-error *ngIf="form.controls.codigo.hasError('required')">Código é obrigatório.</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Nome *</mat-label>
           <input matInput formControlName="nome" placeholder="Turma A" />
-          <mat-error *ngIf="form.controls.nome.hasError('required')">Nome é obrigatório.</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Capacidade *</mat-label>
           <input matInput type="number" formControlName="capacidade" />
-          <mat-error *ngIf="form.controls.capacidade.hasError('required')">Capacidade é obrigatória.</mat-error>
-          <mat-error *ngIf="form.controls.capacidade.hasError('min')">Capacidade deve ser maior que zero.</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>ID do período letivo *</mat-label>
-          <input matInput formControlName="periodoLetivoId" placeholder="UUID do período" />
-          <mat-error *ngIf="form.controls.periodoLetivoId.hasError('required')">
-            Período letivo é obrigatório.
-          </mat-error>
+          <mat-label>Período letivo *</mat-label>
+          <input matInput formControlName="periodoNome" [matAutocomplete]="autoPeriodo" (input)="onPeriodInput(($any($event.target).value || '').toString())" placeholder="Digite o nome do período" />
+          <mat-autocomplete #autoPeriodo="matAutocomplete" (optionSelected)="onPeriodOptionSelected($event.option.value)">
+            <mat-option *ngFor="let period of filteredPeriods()" [value]="period.id">{{ period.nome }}</mat-option>
+          </mat-autocomplete>
         </mat-form-field>
 
         <div class="actions">
-          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">
-            <mat-icon fontIcon="save"></mat-icon>
-            Salvar turma
-          </button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">{{ editingClassId() ? 'Atualizar turma' : 'Salvar turma' }}</button>
+          <button mat-stroked-button type="button" *ngIf="editingClassId()" (click)="clearForm()">Cancelar edição</button>
         </div>
       </form>
 
-      <form class="search-row" [formGroup]="searchForm" (ngSubmit)="onSearchById()">
+      <form class="search-row" [formGroup]="searchForm" (ngSubmit)="onSearchByName()">
         <mat-form-field appearance="outline" class="search-field">
-          <mat-label>Consultar por ID *</mat-label>
-          <input matInput formControlName="id" placeholder="UUID da turma" />
-          <mat-error *ngIf="searchForm.controls.id.hasError('required')">Informe um ID.</mat-error>
+          <mat-label>Consultar por nome da turma *</mat-label>
+          <input matInput formControlName="nome" [matAutocomplete]="autoClass" (input)="onClassSearchInput(($any($event.target).value || '').toString())" placeholder="Digite o nome da turma" />
         </mat-form-field>
-
-        <button mat-stroked-button type="submit" [disabled]="isLoading()">
-          <mat-icon fontIcon="search"></mat-icon>
-          Buscar
-        </button>
+        <mat-autocomplete #autoClass="matAutocomplete" (optionSelected)="onClassOptionSelected($event.option.value)">
+          <mat-option *ngFor="let turma of filteredClasses()" [value]="turma.id">{{ turma.nome }}</mat-option>
+        </mat-autocomplete>
+        <button mat-stroked-button type="submit" [disabled]="isLoading()"><mat-icon fontIcon="search"></mat-icon>Buscar</button>
       </form>
 
       <div class="empty-state" *ngIf="total() === 0">Nenhuma turma carregada ainda.</div>
-
       <div class="list" *ngIf="total() > 0">
         <div class="list-item" *ngFor="let turma of classes$ | async">
           <div>
             <h3>{{ turma.codigo }} - {{ turma.nome }}</h3>
             <p><strong>ID:</strong> {{ turma.id }}</p>
-            <p><strong>Período:</strong> {{ turma.periodoLetivoId }}</p>
+            <p><strong>Período:</strong> {{ getPeriodName(turma.periodoLetivoId) }}</p>
             <p><strong>Capacidade:</strong> {{ turma.capacidade }}</p>
+          </div>
+          <div class="actions">
+            <button mat-button type="button" (click)="onEdit(turma.id)">Editar</button>
+            <button mat-button color="warn" type="button" (click)="onDelete(turma.id)">Excluir</button>
           </div>
         </div>
       </div>

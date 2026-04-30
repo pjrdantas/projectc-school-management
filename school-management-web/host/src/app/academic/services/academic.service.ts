@@ -70,6 +70,31 @@ export class AcademicService {
       .pipe(tap(turma => this.upsertClass(turma)));
   }
 
+  updateClassLocally(id: string, input: AcademicClassInput): void {
+    const current = this.classesSubject.value;
+    const index = current.findIndex(item => item.id === id);
+
+    if (index === -1) {
+      return;
+    }
+
+    const target = current[index];
+    const next = [...current];
+    next[index] = {
+      ...target,
+      codigo: input.codigo,
+      nome: input.nome,
+      capacidade: input.capacidade,
+      periodoLetivoId: input.periodoLetivoId,
+    };
+    this.classesSubject.next(next);
+  }
+
+  deleteClassLocally(id: string): void {
+    const current = this.classesSubject.value;
+    this.classesSubject.next(current.filter(item => item.id !== id));
+  }
+
   fetchClassById(id: string): Observable<AcademicClass> {
     return this.http
       .get<AcademicClass>(`${API_BASE_URL}/api/turmas/${id}`, {
