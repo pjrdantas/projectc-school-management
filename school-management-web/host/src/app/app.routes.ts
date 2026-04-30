@@ -11,6 +11,11 @@ export const routes: Routes = [
   },
   {
     path: '',
+    pathMatch: 'full',
+    redirectTo: 'auth/login',
+  },
+  {
+    path: '',
     canMatch: [authGuard],
     loadComponent: () => import('./menu/pages/menu/menu').then(m => m.Menu),
     children: [
@@ -119,14 +124,14 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'auth/users/:id',
+        path: 'auth/users/detail',
         loadComponent: () =>
           import('./auth/pages/users/detail/auth-users-detail.component').then(
             m => m.AuthUsersDetailComponent,
           ),
       },
       {
-        path: 'auth/users/:id/edit',
+        path: 'auth/users/edit',
         loadComponent: () =>
           import('./auth/pages/users/new/auth-users-new.component').then(
             m => m.AuthUsersNewComponent,
@@ -155,14 +160,14 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'auth/profiles/:id',
+        path: 'auth/profiles/detail',
         loadComponent: () =>
           import('./auth/pages/profiles/detail/auth-profiles-detail.component').then(
             m => m.AuthProfilesDetailComponent,
           ),
       },
       {
-        path: 'auth/profiles/:id/edit',
+        path: 'auth/profiles/edit',
         loadComponent: () =>
           import('./auth/pages/profiles/new/auth-profiles-new.component').then(
             m => m.AuthProfilesNewComponent,
@@ -176,14 +181,14 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'auth/permissions/:id',
+        path: 'auth/permissions/detail',
         loadComponent: () =>
           import('./auth/pages/permissions/detail/auth-permissions-detail.component').then(
             m => m.AuthPermissionsDetailComponent,
           ),
       },
       {
-        path: 'auth/permissions/:id/edit',
+        path: 'auth/permissions/edit',
         loadComponent: () =>
           import('./auth/pages/permissions/new/auth-permissions-new.component').then(
             m => m.AuthPermissionsNewComponent,

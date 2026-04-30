@@ -8,6 +8,17 @@ const API_BASE_URL = 'http://localhost:8080';
 @Injectable({ providedIn: 'root' })
 export class AccessAdminService {
   private readonly http = inject(HttpClient);
+
+  private selectedUserId: string | null = null;
+  private selectedProfileId: string | null = null;
+  private selectedPermissionId: string | null = null;
+  selectUser(id: string | null){ this.selectedUserId = id; }
+  currentUserId(){ return this.selectedUserId; }
+  selectProfile(id: string | null){ this.selectedProfileId = id; }
+  currentProfileId(){ return this.selectedProfileId; }
+  selectPermission(id: string | null){ this.selectedPermissionId = id; }
+  currentPermissionId(){ return this.selectedPermissionId; }
+
   listarUsuarios(): Observable<User[]> { return this.http.get<User[]>(`${API_BASE_URL}/api/usuarios`); }
   buscarUsuario(id: string): Observable<User> { return this.http.get<User>(`${API_BASE_URL}/api/usuarios/${id}`); }
   criarUsuario(payload: UserInput): Observable<User> { return this.http.post<User>(`${API_BASE_URL}/api/usuarios`, payload); }
