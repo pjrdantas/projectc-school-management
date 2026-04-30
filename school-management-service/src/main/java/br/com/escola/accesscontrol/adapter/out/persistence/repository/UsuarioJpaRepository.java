@@ -14,6 +14,7 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, UUID>
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
     Optional<UsuarioEntity> findByUsernameIgnoreCaseAndAtivoTrue(String username);
+    Optional<UsuarioEntity> findByUsernameIgnoreCase(String username);
     Optional<UsuarioEntity> findByEmailIgnoreCaseAndAtivoTrue(String email);
 
     @Query(value = """
@@ -24,4 +25,12 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, UUID>
             WHERE up.id_usuario = :idUsuario
             """, nativeQuery = true)
     List<String> findPermissoesByIdUsuario(@Param("idUsuario") UUID idUsuario);
+
+    @Query(value = """
+            SELECT DISTINCT pf.codigo
+            FROM perfil pf
+            JOIN usuario_perfil up ON up.id_perfil = pf.id_perfil
+            WHERE up.id_usuario = :idUsuario
+            """, nativeQuery = true)
+    List<String> findPerfisByIdUsuario(@Param("idUsuario") UUID idUsuario);
 }
