@@ -38,12 +38,28 @@ export class AcademicService {
       .pipe(tap(period => this.upsertPeriod(period)));
   }
 
-  fetchPeriodById(id: string): Observable<AcademicPeriod> {
-    return this.http
-      .get<AcademicPeriod>(`${API_BASE_URL}/api/periodos-letivos/${id}`, {
-        headers: this.buildHeaders(),
-      })
-      .pipe(tap(period => this.upsertPeriod(period)));
+  updatePeriodLocally(id: string, input: AcademicPeriodInput): void {
+    const current = this.periodsSubject.value;
+    const index = current.findIndex(item => item.id === id);
+
+    if (index === -1) {
+      return;
+    }
+
+    const target = current[index];
+    const next = [...current];
+    next[index] = {
+      ...target,
+      nome: input.nome,
+      dataInicio: input.dataInicio,
+      dataFim: input.dataFim,
+    };
+    this.periodsSubject.next(next);
+  }
+
+  deletePeriodLocally(id: string): void {
+    const current = this.periodsSubject.value;
+    this.periodsSubject.next(current.filter(item => item.id !== id));
   }
 
   createClass(input: AcademicClassInput): Observable<AcademicClass> {
