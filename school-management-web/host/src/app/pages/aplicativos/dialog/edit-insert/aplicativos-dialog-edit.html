@@ -1,0 +1,76 @@
+<h2 mat-dialog-title>
+  {{ isEdit ? 'Editar Aplicativo' : 'Novo Aplicativo' }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="form-grid">
+
+    <mat-form-field appearance="outline" floatLabel="always">
+      <mat-label>Nome</mat-label>
+      <input matInput formControlName="nome" placeholder="Nome do aplicativo">
+      @if (form.get('nome')?.hasError('required')) {
+        <mat-error>Nome é obrigatório</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" floatLabel="always">
+      <mat-label>Descrição</mat-label>
+      <input matInput formControlName="descricao" placeholder="Descrição do aplicativo">
+      @if (form.get('descricao')?.hasError('required')) {
+        <mat-error>Descrição é obrigatória</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" floatLabel="always">
+      <mat-label>URL</mat-label>
+      <input matInput formControlName="url" placeholder="Ex: http://localhost:4200/remoteEntry.js">
+      @if (form.get('url')?.hasError('required')) {
+        <mat-error>URL é obrigatória</mat-error>
+      }
+      @if (form.get('url')?.hasError('invalidUrl')) {
+        <mat-error>URL inválida</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" floatLabel="always">
+      <mat-label>Module Name</mat-label>
+      <input matInput formControlName="moduleName" placeholder="Nome do módulo">
+      @if (form.get('moduleName')?.hasError('required')) {
+        <mat-error>Module Name é obrigatório</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" floatLabel="always">
+      <mat-label>Exposed Module</mat-label>
+      <input matInput formControlName="exposedModule" placeholder="Módulo exposto">
+      @if (form.get('exposedModule')?.hasError('required')) {
+        <mat-error>Exposed Module é obrigatório</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" floatLabel="always">
+      <mat-label>Route Path</mat-label>
+      <input matInput formControlName="routePath" placeholder="Caminho da rota">
+      @if (form.get('routePath')?.hasError('required')) {
+        <mat-error>Route Path é obrigatório</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-slide-toggle formControlName="ativo" color="primary">
+      Ativo
+    </mat-slide-toggle>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions">
+  <button mat-raised-button type="button" (click)="close()" class="botao-cancel">
+    <mat-icon>cancel</mat-icon>
+    Cancelar
+  </button>
+
+  <button mat-raised-button (click)="save()" [disabled]="form.invalid" class="botao-ok">
+    <mat-icon>check_circle</mat-icon>
+    Salvar
+  </button>
+</mat-dialog-actions>

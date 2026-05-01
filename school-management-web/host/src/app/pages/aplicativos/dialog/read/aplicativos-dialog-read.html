@@ -1,0 +1,63 @@
+<h2 mat-dialog-title class="dialog-title">
+  <mat-icon>settings_input_component</mat-icon>
+  Detalhes do Aplicativo
+</h2>
+
+<mat-dialog-content class="content">
+  <div class="info-grid">
+    <div class="info-item item-full">
+      <label>Nome do Aplicativo</label>
+      <p>{{ data.nome }}</p>
+    </div>
+
+    <div class="info-item item-full">
+      <label>Descrição</label>
+      <p>{{ data.descricao || 'Sem descrição cadastrada' }}</p>
+    </div>
+
+    <div class="info-item item-full">
+      <label>URL / Host</label>
+      <p class="url-text">{{ data.url }}</p>
+    </div>
+
+    <div class="info-item">
+      <label>Module Name</label>
+      <p>{{ data.moduleName }}</p>
+    </div>
+
+    <div class="info-item">
+      <label>Exposed Module</label>
+      <p>{{ data.exposedModule }}</p>
+    </div>
+
+    <div class="info-item">
+      <label>Route Path</label>
+      <p>{{ data.routePath }}</p>
+    </div>
+
+    <div class="info-item">
+      <label>Status</label>
+      <p>
+        <span [class]="data.ativo === 'S' ? 'status-active' : 'status-inactive'">
+          <mat-icon>{{ data.ativo === 'S' ? 'check_circle' : 'cancel' }}</mat-icon>
+          {{ data.ativo === 'S' ? 'Ativo' : 'Inativo' }}
+        </span>
+      </p>
+    </div>
+  </div>
+
+  <mat-divider class="divider"></mat-divider>
+
+  <div class="audit-section">
+    <small>Criado em: {{ data.criadoEm | date: 'dd/MM/yyyy HH:mm' }}</small>
+    @if (data.atualizadoEm) {
+      <br /><small>Última atualização: {{ data.atualizadoEm | date: 'dd/MM/yyyy HH:mm' }}</small>
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="primary" class="botao-ok" (click)="close()">
+    <mat-icon>close</mat-icon> Fechar
+  </button>
+</mat-dialog-actions>

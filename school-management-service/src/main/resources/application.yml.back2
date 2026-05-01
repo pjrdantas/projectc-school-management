@@ -1,0 +1,32 @@
+# 1. CONFIGURAÇÕES GLOBAIS E BANCO DA AWS (Agora padrão)
+auth:
+  jwt:
+    secret: "GvB8kL9pQ3wR7uT2yX5zA8nF6mH4tK1b"
+    expirationMs: 3600000
+    refreshExpirationMs: 604800000
+
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: dev
+  
+  # Aqui entra o seu Postgres da AWS como principal
+  datasource:
+    url: jdbc:postgresql://db-projeto-piloto.cg90g0iomqah.us-east-1.rds.amazonaws.com:5432/postgres
+    username: postgres
+    password: c6vOzOH-Z_8*f3Y>f1i7be2w]P9n
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true # Deixei true para você ver as queries no log
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
+    locations: classpath:db/migration

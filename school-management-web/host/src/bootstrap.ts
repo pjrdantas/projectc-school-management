@@ -1,7 +1,21 @@
+import { enableProdMode, isDevMode } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app';
 
-bootstrapApplication(AppComponent, appConfig)
-  .catch(err => console.error('Erro crítico no bootstrap', err));
+if (!isDevMode()) {
+  enableProdMode();
+}
 
+if (!isDevMode()) {
+  console.log = () => {};
+  console.debug = () => {};
+  console.warn = () => {};
+  console.info = () => {};
+  console.error = () => {};
+}
+
+bootstrapApplication(AppComponent, appConfig)
+  .catch(err => {
+     if (isDevMode()) console.error('Erro no bootstrap:', err);
+  });

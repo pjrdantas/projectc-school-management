@@ -1,0 +1,74 @@
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #667eea;
+}
+
+.content {
+  min-width: 500px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.item-full {
+  grid-column: span 2;
+}
+
+.info-item {
+  label {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 2px;
+  }
+  p {
+    font-weight: 500;
+    margin: 0;
+    color: #444;
+    word-break: break-all;
+  }
+  .url-text {
+    color: #667eea;
+    font-family: monospace;
+  }
+}
+
+.status-active {
+  color: #4caf50;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.status-inactive {
+  color: #f44336;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.divider {
+  margin: 16px 0;
+}
+
+.audit-section {
+  color: #aaa;
+  font-style: italic;
+  font-size: 11px;
+}
+
+.botao-ok {
+  background-color: #667eea !important;
+  color: white !important;
+  width: 120px;
+}

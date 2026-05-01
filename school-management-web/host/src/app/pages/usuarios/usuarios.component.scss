@@ -1,0 +1,162 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  padding: 16px;
+  background: linear-gradient(135deg, #cbd5eb 0%, #e5eaec 100%);
+}
+
+.page-card {
+  padding: 16px;
+}
+
+.header-bar {
+  display: flex;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 16px;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+}
+
+.btn-novo {
+  width: 160px !important;
+  background-color: #667eea !important;
+  color: white !important;
+}
+
+table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.loading-shade {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+
+.btn-visibility {
+  color: #757575 !important;
+  &:hover {
+    color: #424242 !important;
+  }
+}
+
+/* --- Estilização Global da Tabela --- */
+::ng-deep .mat-mdc-row:nth-child(even) { background-color: #f0f2f5; }
+::ng-deep .mat-mdc-row:nth-child(odd) { background-color: #ffffff; }
+::ng-deep .mat-mdc-row:hover { background-color: #e0e0e0; }
+
+::ng-deep .mat-mdc-header-cell {
+  background-color: #667eea !important;
+  color: white;
+}
+
+::ng-deep .mat-mdc-row, ::ng-deep .mat-mdc-header-row {
+  height: 36px !important;
+}
+
+::ng-deep .mat-mdc-cell, ::ng-deep .mat-mdc-header-cell {
+  padding: 0 8px !important;
+}
+
+/* --- Ajustes de Colunas --- */
+::ng-deep .mat-column-id { width: 60px !important; }
+::ng-deep .mat-column-ativo { width: 80px !important; text-align: center; }
+
+::ng-deep .mat-column-login { width: 120px !important; }
+::ng-deep .mat-column-email { width: 200px !important; }
+
+::ng-deep .mat-column-actions {
+  width: 130px !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+
+  .mat-mdc-button-touch-target { display: none !important; }
+
+  button {
+    width: 32px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    padding: 0 !important;
+    .mat-icon { font-size: 18px !important; width: 18px !important; height: 18px !important; }
+  }
+}
+
+/* Coluna mestre que expande */
+::ng-deep .mat-column-nome {
+  width: auto !important;
+}
+
+
+/* Novas classes para Auditoria/Segurança */
+:host {
+  display: block;
+  min-height: 100vh;
+  padding: 16px;
+  background: linear-gradient(135deg, #cbd5eb 0%, #e5eaec 100%);
+}
+
+.page-card {
+  padding: 16px;
+}
+
+.header-bar {
+  display: flex;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 16px;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+}
+
+.btn-novo {
+  width: 160px !important;
+  background-color: #667eea !important;
+  color: white !important;
+}
+
+table {
+  width: 100%;
+}
+
+/* Novas classes para Auditoria/Segurança */
+.no-permission-container {
+  text-align: center;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .no-permission-text {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #f44336;
+    margin-top: 10px;
+  }
+
+  small {
+    color: #666;
+  }
+}
+
+.loading-shade {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
