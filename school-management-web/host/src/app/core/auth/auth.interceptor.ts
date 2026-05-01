@@ -10,10 +10,11 @@ const AUTH_PUBLIC_ENDPOINTS = ['/api/auth/login', '/api/auth/refresh', '/api/aut
 let isRefreshing = false;
 const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
+let isRefreshing = false;
+const refreshTokenSubject = new BehaviorSubject<string | null>(null);
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authState = inject(AuthStateService);
-  const authApi = inject(AuthApiService);
-  const router = inject(Router);
 
   const isPublicEndpoint = AUTH_PUBLIC_ENDPOINTS.some(endpoint => req.url.includes(endpoint));
   const token = authState.getToken();
