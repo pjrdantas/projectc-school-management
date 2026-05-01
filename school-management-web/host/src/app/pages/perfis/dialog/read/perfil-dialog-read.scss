@@ -1,0 +1,77 @@
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #667eea;
+}
+
+.content {
+  min-width: 450px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.info-item {
+  label {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 2px;
+  }
+  p {
+    font-weight: 500;
+    margin: 0;
+    color: #444;
+  }
+  .perfil-name {
+    font-size: 16px;
+    color: #667eea;
+  }
+}
+
+.divider {
+  margin: 16px 0;
+}
+
+.perfis-section {
+  label {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 10px;
+  }
+}
+
+.custom-chip {
+  background-color: #eef2ff !important;
+  color: #667eea !important;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.audit-section {
+  margin-top: 20px;
+  color: #aaa;
+  font-style: italic;
+  font-size: 11px;
+}
+
+.no-data {
+  font-size: 13px;
+  color: #999;
+  font-style: italic;
+}
+
+.botao-ok {
+  background-color: #667eea !important;
+  color: white !important;
+  width: 120px;
+}

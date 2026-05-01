@@ -1,0 +1,87 @@
+<mat-card class="page-card">
+  <div class="header-bar">
+    <h2>Gestão de Usuários</h2>
+    <button
+      *appHasPermission="'CREATE'"
+      mat-flat-button
+      color="primary"
+      class="btn-novo"
+      (click)="openDialogCreate()">
+      <mat-icon>person_add</mat-icon> Novo Usuário
+    </button>
+  </div>
+
+  @if (!hasAnyReadPermission) {
+    <div class="no-permission-container">
+      <mat-icon color="warn">lock</mat-icon>
+      <p class="no-permission-text">
+        Você não tem autorização para visualizar esta lista.
+      </p>
+      <small>Entre em contato com o administrador para solicitar acesso.</small>
+    </div>
+  } @else {
+  @if (usuarios$ | async) {
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
+          <td mat-cell *matCellDef="let u">{{ u.id }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="nome">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Nome </th>
+          <td mat-cell *matCellDef="let u"><strong>{{ u.nome }}</strong></td>
+        </ng-container>
+
+        <ng-container matColumnDef="login">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Login </th>
+          <td mat-cell *matCellDef="let u">{{ u.login }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> E-mail </th>
+          <td mat-cell *matCellDef="let u">{{ u.email }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="ativo">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Ativo </th>
+          <td mat-cell *matCellDef="let u">
+            <mat-icon [color]="u.ativo === 'S' ? 'primary' : 'warn'">
+              {{ u.ativo === 'S' ? 'check_circle' : 'cancel' }}
+            </mat-icon>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="text-center"> Ações </th>
+          <td mat-cell *matCellDef="let u" class="text-center">
+            <button mat-icon-button class="btn-visibility" (click)="openDialogDetails(u)" matTooltip="Ver Detalhes">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button *appHasPermission="'UPDATE'" mat-icon-button color="primary" (click)="openDialogEdit(u)" matTooltip="Editar">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button *appHasPermission="'DELETE'" mat-icon-button color="warn" (click)="delete(u.id)" matTooltip="Excluir">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+       <br />
+<mat-divider></mat-divider>
+    <mat-paginator [pageSizeOptions]="[5, 10, 20]"
+                     showFirstLastButtons
+                     aria-label="Selecione a página de usuarios">
+      </mat-paginator>
+    </div>
+  } @else {
+    <div class="loading-shade">
+      <span>Carregando usuários...</span>
+    </div>
+  }
+}
+</mat-card>

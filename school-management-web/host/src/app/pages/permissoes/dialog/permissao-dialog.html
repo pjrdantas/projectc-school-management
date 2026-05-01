@@ -1,0 +1,34 @@
+<h2 mat-dialog-title>
+  {{ isEdit ? 'Editar Permissão' : 'Nova Permissão' }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="form-grid">
+
+    <!-- Nome da Permissão -->
+    <mat-form-field appearance="outline" floatLabel="always">
+      <mat-label>Nome da Permissão</mat-label>
+      <input matInput
+             formControlName="nmPermissao"
+             placeholder="Ex: READ_ALL"
+             class="uppercase-input"> <!-- ✅ Substituído style por class -->
+
+      @if (form.get('nmPermissao')?.hasError('required')) {
+        <mat-error>O nome da permissão é obrigatório</mat-error>
+      }
+    </mat-form-field>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions">
+  <button mat-raised-button type="button" (click)="close()" class="botao-cancel">
+    <mat-icon>cancel</mat-icon>
+    Cancelar
+  </button>
+
+  <button mat-raised-button (click)="save()" [disabled]="form.invalid" class="botao-ok">
+    <mat-icon>check_circle</mat-icon>
+    Salvar
+  </button>
+</mat-dialog-actions>

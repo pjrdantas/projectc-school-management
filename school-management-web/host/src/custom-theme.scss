@@ -1,5 +1,8 @@
-
 @use '@angular/material' as mat;
+
+/* ================================
+   TEMA MATERIAL 3
+================================ */
 
 html {
   @include mat.theme((
@@ -12,10 +15,13 @@ html {
   ));
 }
 
+/* ================================
+   ESTILOS GLOBAIS
+================================ */
+
 html, body {
   height: 100%;
 }
-
 
 body {
   color-scheme: light;
