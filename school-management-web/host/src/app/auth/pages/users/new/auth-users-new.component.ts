@@ -23,5 +23,4 @@ ngOnInit(){
   this.service.buscarUsuario(id).subscribe(u=>this.form.patchValue({...u, senhaHash:'********'}));
 }
  salvar(){if(this.form.invalid)return; const id=this.userId(); const payload=this.form.getRawValue() as any; const obs=id?this.service.atualizarUsuario(id,payload):this.service.criarUsuario(payload); obs.subscribe(()=>this.router.navigate(['/auth/users']));}
- isAdminProfile(codigo?:string){return (codigo||'').toUpperCase()==='ADMIN';}
  onCancel(){this.router.navigate(['/auth/users']);}}
