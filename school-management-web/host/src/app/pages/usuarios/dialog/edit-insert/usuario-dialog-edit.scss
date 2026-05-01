@@ -1,0 +1,74 @@
+.form-grid {
+  display: grid;
+  // Mantemos o padrão de 3 colunas, mas usaremos span para campos longos
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  align-items: center !important;
+  margin-top: 10px;
+}
+
+// Nome e Perfis ocupam as 3 colunas para melhor leitura
+.form-field-full {
+  grid-column: span 3;
+  width: 100%;
+}
+
+// Campos menores (Login, E-mail, Senha) ocupam 1 ou 2 colunas dependendo do seu gosto
+.form-field {
+  grid-column: span 1;
+  width: 100%;
+}
+
+mat-form-field {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.status-container {
+  grid-column: span 3;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  margin-right: 16px;
+  gap: 8px;
+  margin-top: 16px; // Espaço maior já que não há tabela abaixo
+  margin-bottom: 16px;
+}
+
+.botao-ok {
+  width: 160px !important;
+  background-color: #667eea !important;
+  color: white !important;
+}
+
+.botao-cancel {
+  width: 160px !important;
+}
+
+/* Mantendo o seu padrão de estilização do Material Design */
+:host {
+  ::ng-deep .mat-mdc-form-field-flex {
+    height: 44px !important;
+  }
+
+  ::ng-deep .mat-mdc-form-field-infix {
+    padding-top: 12px !important;
+  }
+
+  ::ng-deep .mat-mdc-input-element {
+    font-size: 14px !important;
+    color: #667eea !important;
+    background-color: transparent !important;
+  }
+
+  // Ajuste específico para o Select múltiplo não quebrar a altura fixa
+  ::ng-deep .mat-mdc-select-value {
+    font-size: 14px !important;
+    color: #667eea !important;
+  }
+}

@@ -1,21 +1,14 @@
-import {
-  Directive,
-  Input,
-  OnDestroy,
-  TemplateRef,
-  ViewContainerRef,
-  inject,
-} from '@angular/core';
+import { Directive, Input, TemplateRef, ViewContainerRef, inject, OnDestroy } from '@angular/core';
 import { AuthStateService } from '../../core/auth/auth-state.service';
 import { Subscription } from 'rxjs';
 
 @Directive({
   selector: '[appHasPermission]',
-  standalone: true,
+  standalone: true
 })
 export class HasPermissionDirective implements OnDestroy {
   private authState = inject(AuthStateService);
-  private templateRef = inject(TemplateRef<unknown>);
+  private templateRef = inject(TemplateRef<any>);
   private vcr = inject(ViewContainerRef);
   private sub?: Subscription;
 
@@ -28,6 +21,7 @@ export class HasPermissionDirective implements OnDestroy {
 
   private trackPermissionChanges() {
     this.sub?.unsubscribe();
+    // Escuta o usuário. Se ele logar ou mudar, o menu atualiza sozinho.
     this.sub = this.authState.usuario$.subscribe(() => {
       this.updateView();
     });

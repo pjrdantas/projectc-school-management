@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:piloto;DB_CLOSE_DELAY=-1;MODE=Oracle
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: sa
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  application:
+    security:
+      jwt:
+        secret: "GvB8kL9pQ3wR7uT2yX5zA8nF6mH4tK1b"
+        expiration-ms: 3600000

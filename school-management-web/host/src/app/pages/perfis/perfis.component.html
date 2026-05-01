@@ -1,0 +1,84 @@
+<mat-card class="page-card">
+  <div class="header-bar">
+    <h2>Gestão de Perfis</h2>
+    <button
+      *appHasPermission="'CREATE'"
+      mat-flat-button
+      color="primary"
+      class="btn-novo"
+      (click)="openDialogCreate()"
+    >
+      <mat-icon>add</mat-icon> Novo Perfil
+    </button>
+  </div>
+
+    @if (!hasAnyReadPermission) {
+    <div class="no-permission-container">
+      <mat-icon color="warn">lock</mat-icon>
+      <p class="no-permission-text">
+        Você não tem autorização para visualizar esta lista.
+      </p>
+      <small>Entre em contato com o administrador para solicitar acesso.</small>
+    </div>
+  } @else {
+  @if (perfis$ | async) {
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+          <td mat-cell *matCellDef="let p">{{ p.id }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="nmPerfil">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Perfil</th>
+          <td mat-cell *matCellDef="let p">
+            <strong>{{ p.nmPerfil }}</strong>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="text-center">Ações</th>
+          <td mat-cell *matCellDef="let p" class="text-center">
+            <button
+              mat-icon-button
+              class="btn-visibility"
+              (click)="openDialogDetails(p)"
+              matTooltip="Ver Permissões"
+            >
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button
+              *appHasPermission="'UPDATE'"
+              mat-icon-button
+              color="primary"
+              (click)="openDialogEdit(p)"
+              matTooltip="Editar"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              *appHasPermission="'DELETE'"
+              mat-icon-button
+              color="warn"
+              (click)="delete(p.id)"
+              matTooltip="Excluir"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+      <br />
+      <mat-divider></mat-divider>
+      <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+    </div>
+  } @else {
+    <div class="loading-shade">
+      <span>Carregando perfis...</span>
+    </div>
+  }
+}
+</mat-card>
