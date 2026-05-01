@@ -1,208 +1,70 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './guards/auth.guard';
 import { loadRemoteModule } from '@angular-architects/native-federation';
-import { authGuard, guestGuard } from './auth/guards/auth.guard';
+
+import { PublicLayoutComponent } from './layouts/public-layout.component';
+import { PrivateLayoutComponent } from './layouts/private-layout.component';
+import { HomeComponent } from './pages/home/home.component';
 
 export const routes: Routes = [
-  {
-    path: 'auth/login',
-    canMatch: [guestGuard],
-    loadComponent: () =>
-      import('./auth/pages/login/login.component').then(m => m.LoginComponent),
-  },
+
+  // ================= PUBLICO =================
   {
     path: '',
-    pathMatch: 'full',
-    redirectTo: 'auth/login',
-  },
-  {
-    path: '',
-    canMatch: [authGuard],
-    loadComponent: () => import('./menu/pages/menu/menu').then(m => m.Menu),
+    component: PublicLayoutComponent,
     children: [
+      { path: '', redirectTo: 'login', pathMatch: 'full' },
       {
-        path: '',
-        pathMatch: 'full',
-        redirectTo: 'home',
-      },
-      {
-        path: 'home',
+        path: 'login',
         loadComponent: () =>
-          import('./home/pages/home/home.component').then(m => m.HomeComponent),
+          import('./pages/login/login.component')
+            .then(m => m.LoginComponent),
       },
-      {
-        path: 'students',
-        loadComponent: () =>
-          import('./students/pages/list/students-list.component').then(
-            m => m.StudentsListComponent,
-          ),
-      },
-      {
-        path: 'students/new',
-        loadComponent: () =>
-          import('./students/pages/new/students-new.component').then(
-            m => m.StudentsNewComponent,
-          ),
-      },
-      {
-        path: 'students/:id',
-        loadComponent: () =>
-          import('./students/pages/detail/students-detail.component').then(
-            m => m.StudentsDetailComponent,
-          ),
-      },
-      {
-        path: 'students/:id/edit',
-        loadComponent: () =>
-          import('./students/pages/new/students-new.component').then(
-            m => m.StudentsNewComponent,
-          ),
-      },
+    ],
+  },
 
-      {
-        path: 'responsibles',
-        loadComponent: () =>
-          import('./responsibles/pages/list/responsibles-list.component').then(
-            m => m.ResponsiblesListComponent,
-          ),
-      },
-      {
-        path: 'responsibles/new',
-        loadComponent: () =>
-          import('./responsibles/pages/new/responsibles-new.component').then(
-            m => m.ResponsiblesNewComponent,
-          ),
-      },
-      {
-        path: 'responsibles/:id',
-        loadComponent: () =>
-          import('./responsibles/pages/detail/responsibles-detail.component').then(
-            m => m.ResponsiblesDetailComponent,
-          ),
-      },
-      {
-        path: 'responsibles/:id/edit',
-        loadComponent: () =>
-          import('./responsibles/pages/new/responsibles-new.component').then(
-            m => m.ResponsiblesNewComponent,
-          ),
-      },
-      {
-        path: 'academic/periods',
-        loadComponent: () =>
-          import('./academic/pages/periods/academic-periods.component').then(
-            m => m.AcademicPeriodsComponent,
-          ),
-      },
-      {
-        path: 'academic/classes',
-        loadComponent: () =>
-          import('./academic/pages/classes/academic-classes.component').then(
-            m => m.AcademicClassesComponent,
-          ),
-      },
-      {
-        path: 'enrollment',
-        loadComponent: () =>
-          import('./enrollment/pages/new/enrollment-new.component').then(
-            m => m.EnrollmentNewComponent,
-          ),
-      },
-      {
-        path: 'auth/users',
-        loadComponent: () =>
-          import('./auth/pages/users/list/auth-users-list.component').then(
-            m => m.AuthUsersListComponent,
-          ),
-      },
+  // ================= PRIVADO =================
+  {
+    path: 'app',
+    component: PrivateLayoutComponent,
+    canActivate: [authGuard],
+    children: [
+      { path: '', redirectTo: 'home', pathMatch: 'full' }, // redireciona para /app/home
+      { path: 'home', component: HomeComponent },         // página inicial limpa
 
-
-      {
-        path: 'auth/users/new',
+       {
+        path: 'perfis',
         loadComponent: () =>
-          import('./auth/pages/users/new/auth-users-new.component').then(
-            m => m.AuthUsersNewComponent,
-          ),
+          import('./pages/perfis/perfis.componet')
+            .then(m => m.PerfisComponent),
+      },
+       {
+        path: 'permissoes',
+        loadComponent: () =>
+          import('./pages/permissoes/permissoes.component')
+            .then(m => m.PermissoesComponent),
+      },
+       {
+        path: 'usuarios',
+        loadComponent: () =>
+          import('./pages/usuarios/usuarios.component')
+            .then(m => m.UsuariosComponent),
       },
       {
-        path: 'auth/users/detail',
+        path: 'aplicativos',
         loadComponent: () =>
-          import('./auth/pages/users/detail/auth-users-detail.component').then(
-            m => m.AuthUsersDetailComponent,
-          ),
-      },
-      {
-        path: 'auth/users/edit',
-        loadComponent: () =>
-          import('./auth/pages/users/new/auth-users-new.component').then(
-            m => m.AuthUsersNewComponent,
-          ),
-      },
-      {
-        path: 'auth/profiles',
-        loadComponent: () =>
-          import('./auth/pages/profiles/list/auth-profiles-list.component').then(
-            m => m.AuthProfilesListComponent,
-          ),
-      },
-      {
-        path: 'auth/permissions',
-        loadComponent: () =>
-          import('./auth/pages/permissions/list/auth-permissions-list.component').then(
-            m => m.AuthPermissionsListComponent,
-          ),
-      },
-
-      {
-        path: 'auth/profiles/new',
-        loadComponent: () =>
-          import('./auth/pages/profiles/new/auth-profiles-new.component').then(
-            m => m.AuthProfilesNewComponent,
-          ),
-      },
-      {
-        path: 'auth/profiles/detail',
-        loadComponent: () =>
-          import('./auth/pages/profiles/detail/auth-profiles-detail.component').then(
-            m => m.AuthProfilesDetailComponent,
-          ),
-      },
-      {
-        path: 'auth/profiles/edit',
-        loadComponent: () =>
-          import('./auth/pages/profiles/new/auth-profiles-new.component').then(
-            m => m.AuthProfilesNewComponent,
-          ),
-      },
-      {
-        path: 'auth/permissions/new',
-        loadComponent: () =>
-          import('./auth/pages/permissions/new/auth-permissions-new.component').then(
-            m => m.AuthPermissionsNewComponent,
-          ),
-      },
-      {
-        path: 'auth/permissions/detail',
-        loadComponent: () =>
-          import('./auth/pages/permissions/detail/auth-permissions-detail.component').then(
-            m => m.AuthPermissionsDetailComponent,
-          ),
-      },
-      {
-        path: 'auth/permissions/edit',
-        loadComponent: () =>
-          import('./auth/pages/permissions/new/auth-permissions-new.component').then(
-            m => m.AuthPermissionsNewComponent,
-          ),
+          import('./pages/aplicativos/aplicativos.component')
+            .then(m => m.AplicativosComponent),
       },
       {
         path: 'microfrontend',
         loadComponent: () =>
-          loadRemoteModule('mfe1', './Component').then(m => m.HomeComponent),
+          loadRemoteModule('mfe1', './Component')
+            .then((m) => m.HomeComponent)
       },
     ],
-  },
-  {
-    path: '**',
-    redirectTo: 'auth/login',
-  },
+  }
+  ,
+
+  { path: '**', redirectTo: 'login' },
 ];

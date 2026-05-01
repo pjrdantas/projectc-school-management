@@ -1,26 +1,31 @@
-package br.com.escola.shared.config;
+package br.com.projeto.piloto.infrastructure.config;
 
-import io.swagger.v3.oas.models.Components;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
-import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+
 @Configuration
-public class OpenApiConfig {
+public class SwaggerConfig {
 
     @Bean
-    OpenAPI schoolManagementOpenApi() {
-        String securitySchemeName = "bearerAuth";
+    OpenAPI customOpenAPI() {
+
+        final String securitySchemeName = "bearerAuth";
 
         return new OpenAPI()
+
                 .info(new Info()
-                        .title("School Management Service API")
-                        .description("API para gerenciamento escolar")
-                        .version("v1"))
+                        .title("Projeto Piloto API")
+                        .description("API de login com Spring Boot, JWT e Oracle")
+                        .version("1.0.0"))
+
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName,
                                 new SecurityScheme()
