@@ -11,7 +11,7 @@
         <mat-form-field appearance="outline"><mat-label>E-mail *</mat-label><input matInput type="email" formControlName="email"/></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Senha *</mat-label><input matInput formControlName="senhaHash"/></mat-form-field>
         <mat-slide-toggle formControlName="ativo">Status ativo</mat-slide-toggle>
-        <mat-form-field appearance="outline"><mat-label>Perfis</mat-label><mat-select formControlName="perfilIds" multiple><mat-option *ngFor="let p of profiles" [value]="p.id" [disabled]="isAdminProfile(p.codigo)">{{p.nome}} {{isAdminProfile(p.codigo)?"(Inibido)":""}}</mat-option></mat-select></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Perfis</mat-label><mat-select formControlName="perfilIds" multiple><mat-option *ngFor="let p of profiles" [value]="p.id">{{p.nome}}</mat-option></mat-select></mat-form-field>
         <div class="actions">
           <button mat-raised-button color="primary" type="submit"><mat-icon fontIcon="save"></mat-icon>Salvar</button>
           <button mat-stroked-button type="button" (click)="onCancel()"><mat-icon fontIcon="close"></mat-icon>Cancelar</button>
