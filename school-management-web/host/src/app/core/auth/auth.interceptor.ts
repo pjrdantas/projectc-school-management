@@ -5,7 +5,10 @@ import { BehaviorSubject, Observable, catchError, filter, switchMap, take, throw
 import { AuthApiService } from '../../auth/services/auth-api.service';
 import { AuthStateService } from './auth-state.service';
 
-const AUTH_PUBLIC_ENDPOINTS = ['/api/auth/login', '/api/auth/refresh'];
+const AUTH_PUBLIC_ENDPOINTS = ['/api/auth/login', '/api/auth/refresh', '/api/auth/logout'];
+
+let isRefreshing = false;
+const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
 let isRefreshing = false;
 const refreshTokenSubject = new BehaviorSubject<string | null>(null);
@@ -29,7 +32,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => error);
       }
 
-      return handle401Error(authReq, next, authState, inject(AuthApiService), inject(Router));
+      return handle401Error(authReq, next, authState, authApi, router);
     }),
   );
 };
