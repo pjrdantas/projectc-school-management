@@ -26,10 +26,10 @@ public class ConsultaCadastralPersistenceGateway implements ConsultaCadastralGat
             FROM aluno a
               LEFT JOIN aluno_responsavel ar ON ar.id_aluno = a.id_aluno
               LEFT JOIN responsavel r ON r.id_responsavel = ar.id_responsavel
-            WHERE (:nomeAluno IS NULL OR LOWER(a.nome_completo) LIKE LOWER(:nomeAlunoLike))
-              AND (:cpfAluno IS NULL OR a.cpf = :cpfAluno)
-              AND (:nomeResponsavel IS NULL OR LOWER(r.nome_completo) LIKE LOWER(:nomeResponsavelLike))
-              AND (:cpfResponsavel IS NULL OR r.cpf = :cpfResponsavel)
+            WHERE (CAST(:nomeAluno AS VARCHAR) IS NULL OR LOWER(a.nome_completo) LIKE LOWER(CAST(:nomeAlunoLike AS VARCHAR)))
+              AND (CAST(:cpfAluno AS VARCHAR) IS NULL OR a.cpf = CAST(:cpfAluno AS VARCHAR))
+              AND (CAST(:nomeResponsavel AS VARCHAR) IS NULL OR LOWER(r.nome_completo) LIKE LOWER(CAST(:nomeResponsavelLike AS VARCHAR)))
+              AND (CAST(:cpfResponsavel AS VARCHAR) IS NULL OR r.cpf = CAST(:cpfResponsavel AS VARCHAR))
             """;
 
     private final NamedParameterJdbcTemplate jdbcTemplate;

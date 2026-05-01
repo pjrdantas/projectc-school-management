@@ -1,0 +1,65 @@
+<h2 mat-dialog-title class="dialog-title">
+  <mat-icon>person</mat-icon>
+  Detalhes do Usuário
+</h2>
+
+<mat-dialog-content class="content">
+  <div class="info-grid">
+    <div class="info-item">
+      <label>Nome Completo</label>
+      <p>{{ data.nome }}</p>
+    </div>
+
+    <div class="info-item">
+      <label>Login</label>
+      <p>{{ data.login }}</p>
+    </div>
+
+    <div class="info-item">
+      <label>E-mail</label>
+      <p>{{ data.email }}</p>
+    </div>
+
+    <div class="info-item">
+      <label>Status</label>
+      <p>
+        <span [class]="data.ativo === 'S' ? 'status-active' : 'status-inactive'">
+          <mat-icon>{{ data.ativo === 'S' ? 'check_circle' : 'cancel' }}</mat-icon>
+          {{ data.ativo === 'S' ? 'Ativo' : 'Inativo' }}
+        </span>
+      </p>
+    </div>
+  </div>
+
+  <mat-divider class="divider"></mat-divider>
+
+<div class="perfis-section">
+  <label>Perfis Associados</label>
+  <mat-chip-set>
+    <!-- Alterado de 'perfis' para 'perfisIds' para bater com o JSON do Java -->
+    @for (perfil of data.perfisIds; track perfil.id) {
+      <mat-chip class="custom-chip">
+        {{ perfil.nmPerfil }}
+      </mat-chip>
+    } @empty {
+      <p>Nenhum perfil vinculado.</p>
+    }
+  </mat-chip-set>
+</div>
+
+
+
+
+  <div class="audit-section">
+    <small>Criado em: {{ data.criadoEm | date: 'dd/MM/yyyy HH:mm' }}</small>
+    @if (data.atualizadoEm) {
+      <br><small>Última atualização: {{ data.atualizadoEm | date: 'dd/MM/yyyy HH:mm' }}</small>
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="primary" (click)="close()">
+    <mat-icon>close</mat-icon> Fechar
+  </button>
+</mat-dialog-actions>
