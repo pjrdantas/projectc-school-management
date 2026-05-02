@@ -97,7 +97,10 @@ export class AccessAdminService {
 
   private mapProfileToApi(payload: ProfileInput): any {
     return {
+      codigo: payload.codigo,
+      nome: payload.nome,
       nmPerfil: payload.nome || payload.codigo,
+      permissaoIds: payload.permissaoIds ?? [],
       permissoesIds: payload.permissaoIds ?? [],
     };
   }
