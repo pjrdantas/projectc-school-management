@@ -20,6 +20,17 @@ export class AuthProfilesDetailComponent implements OnInit {
   permissionNames: string[] = [];
 
   ngOnInit() {
+    const cached = this.s.currentProfile();
+    if (cached) {
+      this.perfil = cached;
+      if ((cached.permissoes ?? []).length) {
+        this.permissionNames = cached.permissoes ?? [];
+      } else {
+        this.loadPermissionNames(cached.permissaoIds ?? []);
+      }
+      return;
+    }
+
     const id = this.s.currentProfileId();
     if (!id) return;
 

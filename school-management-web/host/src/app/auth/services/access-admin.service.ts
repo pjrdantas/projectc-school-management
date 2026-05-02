@@ -13,10 +13,16 @@ export class AccessAdminService {
   private selectedUserId: string | null = null;
   private selectedProfileId: string | null = null;
   private selectedPermissionId: string | null = null;
+  private selectedUser: User | null = null;
+  private selectedProfile: Profile | null = null;
   selectUser(id: string | null) { this.selectedUserId = id; }
+  selectUserEntity(user: User | null) { this.selectedUser = user; this.selectedUserId = user?.id ?? null; }
   currentUserId() { return this.selectedUserId; }
+  currentUser() { return this.selectedUser; }
   selectProfile(id: string | null) { this.selectedProfileId = id; }
+  selectProfileEntity(profile: Profile | null) { this.selectedProfile = profile; this.selectedProfileId = profile?.id ?? null; }
   currentProfileId() { return this.selectedProfileId; }
+  currentProfile() { return this.selectedProfile; }
   selectPermission(id: string | null) { this.selectedPermissionId = id; }
   currentPermissionId() { return this.selectedPermissionId; }
 

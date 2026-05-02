@@ -21,6 +21,17 @@ export class AuthUsersDetailComponent implements OnInit {
   profileNames: string[] = [];
 
   ngOnInit() {
+    const cached = this.service.currentUser();
+    if (cached) {
+      this.usuario = cached;
+      if ((cached.perfis ?? []).length) {
+        this.profileNames = cached.perfis ?? [];
+      } else {
+        this.loadProfileNames(cached.perfilIds ?? []);
+      }
+      return;
+    }
+
     const id = this.service.currentUserId();
     if (!id) return;
 
