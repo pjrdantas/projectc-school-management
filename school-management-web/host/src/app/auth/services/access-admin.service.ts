@@ -64,7 +64,7 @@ export class AccessAdminService {
 
   private mapUserFromApi = (u: any): User => ({
     id: String(u.id),
-    username: u.login ?? u.username ?? '',
+    username: u.username ?? u.login ?? '',
     nome: u.nome ?? '',
     email: u.email ?? '',
     ativo: (u.ativo === 'S' || u.ativo === true),
@@ -75,10 +75,13 @@ export class AccessAdminService {
   private mapUserToApi(payload: UserInput): any {
     return {
       nome: payload.nome,
+      username: payload.username,
       login: payload.username,
       email: payload.email,
+      senhaHash: payload.senhaHash,
       senha: payload.senhaHash,
       ativo: payload.ativo,
+      perfilIds: payload.perfilIds ?? [],
       perfisIds: payload.perfilIds ?? [],
     };
   }
