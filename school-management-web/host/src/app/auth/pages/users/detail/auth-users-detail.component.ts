@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { AccessAdminService } from '../../../services/access-admin.service';
@@ -16,6 +16,7 @@ import { Profile } from '../../../models/profile.model';
 export class AuthUsersDetailComponent implements OnInit {
   private service = inject(AccessAdminService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   usuario?: User;
   profileNames: string[] = [];
@@ -32,7 +33,7 @@ export class AuthUsersDetailComponent implements OnInit {
       return;
     }
 
-    const id = this.service.currentUserId();
+    const id = this.route.snapshot.queryParamMap.get('id') ?? this.service.currentUserId();
     if (!id) return;
 
     this.service.buscarUsuario(id).subscribe(u => {

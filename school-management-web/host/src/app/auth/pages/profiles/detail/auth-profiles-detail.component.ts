@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { AccessAdminService } from '../../../services/access-admin.service';
@@ -15,6 +15,7 @@ import { Permission } from '../../../models/permission.model';
 export class AuthProfilesDetailComponent implements OnInit {
   private s = inject(AccessAdminService);
   private r = inject(Router);
+  private route = inject(ActivatedRoute);
 
   perfil?: Profile;
   permissionNames: string[] = [];
@@ -31,7 +32,7 @@ export class AuthProfilesDetailComponent implements OnInit {
       return;
     }
 
-    const id = this.s.currentProfileId();
+    const id = this.route.snapshot.queryParamMap.get('id') ?? this.s.currentProfileId();
     if (!id) return;
 
     this.s.buscarPerfil(id).subscribe(v => {
