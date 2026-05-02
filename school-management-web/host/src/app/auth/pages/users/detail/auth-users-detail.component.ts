@@ -3,6 +3,9 @@ import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatDividerModule } from '@angular/material/divider';
 import { AccessAdminService } from '../../../services/access-admin.service';
 import { User } from '../../../models/user.model';
 import { Profile } from '../../../models/profile.model';
@@ -10,7 +13,7 @@ import { Profile } from '../../../models/profile.model';
 @Component({
   standalone: true,
   selector: 'app-auth-users-detail',
-  imports: [CommonModule, MatButtonModule, MatCardModule],
+  imports: [CommonModule, MatButtonModule, MatCardModule, MatIconModule, MatChipsModule, MatDividerModule],
   templateUrl: './auth-users-detail.component.html',
 })
 export class AuthUsersDetailComponent implements OnInit {

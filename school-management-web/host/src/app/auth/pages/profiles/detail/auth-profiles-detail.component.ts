@@ -3,13 +3,16 @@ import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatDividerModule } from '@angular/material/divider';
 import { AccessAdminService } from '../../../services/access-admin.service';
 import { Profile } from '../../../models/profile.model';
 import { Permission } from '../../../models/permission.model';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatCardModule],
+  imports: [CommonModule, MatButtonModule, MatCardModule, MatIconModule, MatChipsModule, MatDividerModule],
   templateUrl: './auth-profiles-detail.component.html',
 })
 export class AuthProfilesDetailComponent implements OnInit {

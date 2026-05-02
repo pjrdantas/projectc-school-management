@@ -1,17 +1,22 @@
+<h2 class="dialog-title"><mat-icon>verified_user</mat-icon> Detalhes do Perfil</h2>
 <mat-card *ngIf="perfil">
-  <mat-card-content>
-    <h1>{{ perfil.nome }}</h1>
-    <p><b>Código:</b> {{ perfil.codigo }}</p>
-    <p><b>Descrição:</b> {{ perfil.descricao }}</p>
-
-    <div>
-      <b>Permissões:</b>
-      <ul *ngIf="permissionNames.length; else semPermissoes">
-        <li *ngFor="let permission of permissionNames">{{ permission }}</li>
-      </ul>
-      <ng-template #semPermissoes>Nenhuma permissão vinculada.</ng-template>
+  <mat-card-content class="content">
+    <div class="info-grid">
+      <div class="info-item item-full">
+        <label>Nome do Perfil</label>
+        <p class="perfil-name">{{ perfil.nome }}</p>
+      </div>
     </div>
-
-    <button mat-button (click)="voltar()">Voltar</button>
+    <mat-divider class="divider"></mat-divider>
+    <div class="perfis-section">
+      <label>Permissões Vinculadas</label>
+      <mat-chip-set class="chip-list">
+        <ng-container *ngIf="permissionNames.length; else semPermissoes">
+          <mat-chip class="custom-chip" *ngFor="let permission of permissionNames">{{ permission }}</mat-chip>
+        </ng-container>
+      </mat-chip-set>
+      <ng-template #semPermissoes><p class="no-data">Nenhuma permissão vinculada.</p></ng-template>
+    </div>
+    <button mat-raised-button color="primary" (click)="voltar()"><mat-icon>close</mat-icon> Fechar</button>
   </mat-card-content>
 </mat-card>

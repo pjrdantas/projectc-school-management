@@ -1,18 +1,22 @@
+<h2 class="dialog-title"><mat-icon>person</mat-icon> Detalhes do Usuário</h2>
 <mat-card *ngIf="usuario">
-  <mat-card-content>
-    <h1>{{ usuario.nome }}</h1>
-    <p><b>Username:</b> {{ usuario.username }}</p>
-    <p><b>Email:</b> {{ usuario.email }}</p>
-    <p><b>Ativo:</b> {{ usuario.ativo ? 'Sim' : 'Não' }}</p>
-
-    <div>
-      <b>Perfis:</b>
-      <ul *ngIf="profileNames.length; else semPerfis">
-        <li *ngFor="let profile of profileNames">{{ profile }}</li>
-      </ul>
-      <ng-template #semPerfis>Nenhum perfil vinculado.</ng-template>
+  <mat-card-content class="content">
+    <div class="info-grid">
+      <div class="info-item"><label>Nome Completo</label><p>{{ usuario.nome }}</p></div>
+      <div class="info-item"><label>Login</label><p>{{ usuario.username }}</p></div>
+      <div class="info-item"><label>E-mail</label><p>{{ usuario.email }}</p></div>
+      <div class="info-item"><label>Status</label><p>{{ usuario.ativo ? 'Ativo' : 'Inativo' }}</p></div>
     </div>
-
-    <button mat-button (click)="voltar()">Voltar</button>
+    <mat-divider class="divider"></mat-divider>
+    <div class="perfis-section">
+      <label>Perfis Associados</label>
+      <mat-chip-set>
+        <ng-container *ngIf="profileNames.length; else semPerfis">
+          <mat-chip class="custom-chip" *ngFor="let profile of profileNames">{{ profile }}</mat-chip>
+        </ng-container>
+      </mat-chip-set>
+      <ng-template #semPerfis><p>Nenhum perfil vinculado.</p></ng-template>
+    </div>
+    <button mat-raised-button color="primary" (click)="voltar()"><mat-icon>close</mat-icon> Fechar</button>
   </mat-card-content>
 </mat-card>
