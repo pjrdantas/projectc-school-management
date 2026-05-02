@@ -234,7 +234,7 @@ export class Menu implements OnInit, OnDestroy {
 
   private finalizarLogoutLocal(): void {
     this.authState.clear();
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/login']);
   }
 
   private atualizarDataHora(): void {
