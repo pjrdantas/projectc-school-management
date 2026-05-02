@@ -1,11 +1,14 @@
 package br.com.escola.accesscontrol.adapter.out.persistence.entity;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -25,6 +28,9 @@ public class PermissaoEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @ManyToMany(mappedBy = "permissoes")
+    private Set<PerfilEntity> perfis = new HashSet<>();
+
     protected PermissaoEntity() {}
 
     public PermissaoEntity(UUID id, String codigo, String descricao) {
@@ -43,4 +49,5 @@ public class PermissaoEntity {
     public String getCodigo() { return codigo; }
     public String getDescricao() { return descricao; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public Set<PerfilEntity> getPerfis() { return perfis; }
 }

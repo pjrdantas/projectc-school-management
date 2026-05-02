@@ -1,11 +1,16 @@
 package br.com.escola.accesscontrol.adapter.out.persistence.entity;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -34,6 +39,12 @@ public class UsuarioEntity {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @ManyToMany
+    @JoinTable(name = "usuario_perfil",
+            joinColumns = @JoinColumn(name = "id_usuario"),
+            inverseJoinColumns = @JoinColumn(name = "id_perfil"))
+    private Set<PerfilEntity> perfis = new HashSet<>();
 
     protected UsuarioEntity() {
     }
@@ -64,4 +75,5 @@ public class UsuarioEntity {
     public String getSenhaHash() { return senhaHash; }
     public boolean isAtivo() { return ativo; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public Set<PerfilEntity> getPerfis() { return perfis; }
 }
