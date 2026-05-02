@@ -1,7 +1,12 @@
 package br.com.escola.accesscontrol.domain.exception;
 
 public class TokenInvalidoOuExpiradoException extends RuntimeException {
-    public TokenInvalidoOuExpiradoException(String message) {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public TokenInvalidoOuExpiradoException(String message) {
         super(message);
     }
 }
