@@ -13,7 +13,8 @@ export interface AuthApiResponse {
   accessToken: string;
   refreshToken: string;
   tokenType: string;
-  username: string;
+  username?: string;
+  login?: string;
   nome: string;
   perfis: string[];
   permissoes: string[];

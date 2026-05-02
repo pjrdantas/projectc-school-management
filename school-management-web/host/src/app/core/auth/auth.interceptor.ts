@@ -35,7 +35,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       return authApi.refresh(refreshToken).pipe(
         switchMap(response => {
           authState.setAuth(response.accessToken, response.refreshToken, {
-            usuario: response.username,
+            usuario: (response.username ?? response.login ?? ""),
             nome: response.nome,
             perfis: response.perfis ?? [],
             permissoes: response.permissoes ?? [],
