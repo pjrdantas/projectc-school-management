@@ -78,7 +78,7 @@ export class AccessAdminService {
       login: payload.username,
       email: payload.email,
       senha: payload.senhaHash,
-      ativo: payload.ativo ? 'S' : 'N',
+      ativo: payload.ativo,
       perfisIds: payload.perfilIds ?? [],
     };
   }
