@@ -5,7 +5,7 @@ import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthApiService } from '../../auth/services/auth-api.service';
 import { AuthStateService } from './auth-state.service';
 
-const AUTH_PUBLIC_ENDPOINTS = ['/api/auth/login', '/api/auth/refresh'];
+const AUTH_PUBLIC_ENDPOINTS = ['/api/login', '/api/auth/refresh'];
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authState = inject(AuthStateService);
@@ -27,7 +27,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (!shouldTryRefresh || !refreshToken) {
         if (shouldTryRefresh) {
           authState.clear();
-          router.navigate(['/auth/login']);
+          router.navigate(['/login']);
         }
         return throwError(() => error);
       }
@@ -35,7 +35,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       return authApi.refresh(refreshToken).pipe(
         switchMap(response => {
           authState.setAuth(response.accessToken, response.refreshToken, {
-            usuario: response.username,
+            usuario: (response.username ?? response.login ?? ""),
             nome: response.nome,
             perfis: response.perfis ?? [],
             permissoes: response.permissoes ?? [],
@@ -49,7 +49,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         }),
         catchError(refreshError => {
           authState.clear();
-          router.navigate(['/auth/login']);
+          router.navigate(['/login']);
           return throwError(() => refreshError);
         }),
       );

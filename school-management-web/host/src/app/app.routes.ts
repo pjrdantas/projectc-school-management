@@ -4,6 +4,12 @@ import { authGuard, guestGuard } from './auth/guards/auth.guard';
 
 export const routes: Routes = [
   {
+    path: 'login',
+    canMatch: [guestGuard],
+    loadComponent: () =>
+      import('./auth/pages/login/login.component').then(m => m.LoginComponent),
+  },
+  {
     path: 'auth/login',
     canMatch: [guestGuard],
     loadComponent: () =>
@@ -12,7 +18,7 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'auth/login',
+    redirectTo: 'login',
   },
   {
     path: '',
@@ -203,6 +209,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'auth/login',
+    redirectTo: 'login',
   },
 ];

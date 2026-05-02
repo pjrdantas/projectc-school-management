@@ -11,7 +11,7 @@ export const authGuard: CanMatchFn = (_route, segments: UrlSegment[]) => {
   }
 
   const returnUrl = segments.map(segment => segment.path).join('/');
-  return router.createUrlTree(['/auth/login'], {
+  return router.createUrlTree(['/login'], {
     queryParams: returnUrl ? { returnUrl: `/${returnUrl}` } : undefined,
   });
 };
