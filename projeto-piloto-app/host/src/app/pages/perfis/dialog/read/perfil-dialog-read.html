@@ -1,0 +1,41 @@
+<h2 mat-dialog-title class="dialog-title">
+  <mat-icon>verified_user</mat-icon>
+  Detalhes do Perfil
+</h2>
+
+<mat-dialog-content class="content">
+  <div class="info-grid">
+    <div class="info-item item-full">
+      <label>Nome do Perfil</label>
+      <p class="perfil-name">{{ data.nmPerfil }}</p>
+    </div>
+  </div>
+
+  <mat-divider class="divider"></mat-divider>
+
+  <div class="perfis-section">
+    <label>Permissões Vinculadas</label>
+    <mat-chip-set class="chip-list">
+      @for (p of data.permissoes; track p.id) {
+        <mat-chip class="custom-chip">
+          {{ p.nmPermissao }}
+        </mat-chip>
+      } @empty {
+        <p class="no-data">Nenhuma permissão vinculada.</p>
+      }
+    </mat-chip-set>
+  </div>
+
+  <div class="audit-section">
+    <small>Criado em: {{ data.criadoEm | date: 'dd/MM/yyyy HH:mm' }}</small>
+    @if (data.atualizadoEm) {
+      <br><small>Última atualização: {{ data.atualizadoEm | date: 'dd/MM/yyyy HH:mm' }}</small>
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="primary" class="botao-ok" (click)="dialogRef.close()">
+    <mat-icon>close</mat-icon> Fechar
+  </button>
+</mat-dialog-actions>

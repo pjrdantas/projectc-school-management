@@ -1,0 +1,15 @@
+:host {
+  display: block !important;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden !important;
+}
+
+.back-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #cbd5eb 0%, #e5eaec 100%);
+}

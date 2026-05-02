@@ -1,0 +1,12 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* ocupa toda a tela */
+}
+
+.content-container {
+  flex: 1; /* ocupa espaço restante abaixo da toolbar/menu */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
