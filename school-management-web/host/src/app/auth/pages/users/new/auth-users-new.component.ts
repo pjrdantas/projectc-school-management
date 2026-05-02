@@ -17,7 +17,7 @@ export class AuthUsersNewComponent implements OnInit{ private fb=inject(FormBuil
 form=this.fb.group({username:['',Validators.required],nome:['',Validators.required],email:['',[Validators.required,Validators.email]],senhaHash:['',Validators.required],ativo:[true],perfilIds:[[] as string[]]});
 ngOnInit(){
   this.service.listarPerfis().subscribe(p => this.profiles = p);
-  const id=this.service.currentUserId();
+  const id=this.route.snapshot.queryParamMap.get('id') ?? this.service.currentUserId();
   if(!id) return;
   this.userId.set(id);
   this.service.buscarUsuario(id).subscribe(u=>this.form.patchValue({...u, senhaHash:'********'}));
