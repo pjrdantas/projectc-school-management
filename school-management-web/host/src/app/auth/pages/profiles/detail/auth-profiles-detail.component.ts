@@ -25,7 +25,11 @@ export class AuthProfilesDetailComponent implements OnInit {
 
     this.s.buscarPerfil(id).subscribe(v => {
       this.perfil = v;
-      this.loadPermissionNames(v.permissaoIds ?? []);
+      if ((v.permissoes ?? []).length) {
+        this.permissionNames = v.permissoes ?? [];
+      } else {
+        this.loadPermissionNames(v.permissaoIds ?? []);
+      }
     });
   }
 

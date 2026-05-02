@@ -26,7 +26,11 @@ export class AuthUsersDetailComponent implements OnInit {
 
     this.service.buscarUsuario(id).subscribe(u => {
       this.usuario = u;
-      this.loadProfileNames(u.perfilIds ?? []);
+      if ((u.perfis ?? []).length) {
+        this.profileNames = u.perfis ?? [];
+      } else {
+        this.loadProfileNames(u.perfilIds ?? []);
+      }
     });
   }
 

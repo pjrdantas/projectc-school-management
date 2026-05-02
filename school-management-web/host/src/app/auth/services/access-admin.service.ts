@@ -62,6 +62,23 @@ export class AccessAdminService {
   }
   excluirPermissao(id: string): Observable<void> { return this.http.delete<void>(`${API_BASE_URL}/api/permissoes/${id}`); }
 
+  private extractLabelList(value: any, keys: string[]): string[] {
+    if (!Array.isArray(value)) return [];
+    return value
+      .map(item => {
+        if (item == null) return null;
+        if (typeof item === "string") return item;
+        if (typeof item === "object") {
+          for (const key of keys) {
+            const v = (item as any)[key];
+            if (typeof v === "string" && v.trim()) return v;
+          }
+        }
+        return null;
+      })
+      .filter((v): v is string => !!v);
+  }
+
   private normalizeIdList(value: any): string[] {
     if (!Array.isArray(value)) return [];
     return value
@@ -82,6 +99,7 @@ export class AccessAdminService {
     ativo: (u.ativo === 'S' || u.ativo === true),
     createdAt: u.createdAt ?? '',
     perfilIds: this.normalizeIdList(u.perfisIds ?? u.perfilIds ?? u.perfis),
+    perfis: this.extractLabelList(u.perfis, ['nome', 'nmPerfil', 'codigo']),
   });
 
   private mapUserToApi(payload: UserInput): any {
@@ -105,6 +123,7 @@ export class AccessAdminService {
     descricao: p.descricao,
     createdAt: p.createdAt ?? '',
     permissaoIds: this.normalizeIdList(p.permissoesIds ?? p.permissaoIds ?? p.permissoes),
+    permissoes: this.extractLabelList(p.permissoes, ['codigo', 'nmPermissao', 'nome']),
   });
 
   private mapProfileToApi(payload: ProfileInput): any {
