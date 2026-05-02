@@ -62,6 +62,18 @@ export class AccessAdminService {
   }
   excluirPermissao(id: string): Observable<void> { return this.http.delete<void>(`${API_BASE_URL}/api/permissoes/${id}`); }
 
+  private normalizeIdList(value: any): string[] {
+    if (!Array.isArray(value)) return [];
+    return value
+      .map(item => {
+        if (item == null) return null;
+        if (typeof item === 'string' || typeof item === 'number') return String(item);
+        if (typeof item === 'object' && 'id' in item && item.id != null) return String(item.id);
+        return null;
+      })
+      .filter((id): id is string => !!id);
+  }
+
   private mapUserFromApi = (u: any): User => ({
     id: String(u.id),
     username: u.username ?? u.login ?? '',
@@ -69,7 +81,7 @@ export class AccessAdminService {
     email: u.email ?? '',
     ativo: (u.ativo === 'S' || u.ativo === true),
     createdAt: u.createdAt ?? '',
-    perfilIds: (u.perfisIds ?? u.perfilIds ?? []).map((x: any) => String(x)),
+    perfilIds: this.normalizeIdList(u.perfisIds ?? u.perfilIds ?? u.perfis),
   });
 
   private mapUserToApi(payload: UserInput): any {
@@ -92,7 +104,7 @@ export class AccessAdminService {
     nome: p.nmPerfil ?? p.nome ?? '',
     descricao: p.descricao,
     createdAt: p.createdAt ?? '',
-    permissaoIds: (p.permissoesIds ?? p.permissaoIds ?? []).map((x: any) => String(x)),
+    permissaoIds: this.normalizeIdList(p.permissoesIds ?? p.permissaoIds ?? p.permissoes),
   });
 
   private mapProfileToApi(payload: ProfileInput): any {
