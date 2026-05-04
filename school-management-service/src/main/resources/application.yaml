@@ -28,5 +28,8 @@ management:
       exposure:
         include: health,info
 
-jwt:
-  secret: bWluaGEtY2hhdmUtc3VwZXItc2VjcmV0YQ==
+auth:
+  jwt:
+    secret: ${AUTH_JWT_SECRET:bWluaGEtY2hhdmUtc3VwZXItc2VjcmV0YQ==}
+    expiration-ms: ${AUTH_JWT_EXPIRATION_MS:1800000}
+    refresh-expiration-ms: ${AUTH_JWT_REFRESH_EXPIRATION_MS:604800000}
