@@ -1,4 +1,4 @@
-package br.com.escola.accesscontrol.adapter.in.web;
+package br.com.escola.accesscontrol.adapter.in.web.controller;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.escola.accesscontrol.adapter.in.web.dto.PerfilRequest;
+import br.com.escola.accesscontrol.adapter.in.web.dto.PerfilResponse;
 import br.com.escola.accesscontrol.adapter.out.persistence.entity.PerfilEntity;
 import br.com.escola.accesscontrol.adapter.out.persistence.repository.PerfilJpaRepository;
 import org.springframework.jdbc.core.JdbcTemplate;

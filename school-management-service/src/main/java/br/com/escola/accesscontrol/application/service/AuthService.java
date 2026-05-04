@@ -12,7 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import br.com.escola.accesscontrol.adapter.in.web.auth.AuthResponse;
+import br.com.escola.accesscontrol.adapter.in.web.dto.AuthResponse;
 import br.com.escola.accesscontrol.adapter.out.persistence.entity.SessaoAutenticacaoEntity;
 import br.com.escola.accesscontrol.adapter.out.persistence.entity.UsuarioEntity;
 import br.com.escola.accesscontrol.adapter.out.persistence.repository.SessaoAutenticacaoJpaRepository;

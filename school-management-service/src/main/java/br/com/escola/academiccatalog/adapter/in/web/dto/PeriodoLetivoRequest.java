@@ -1,4 +1,4 @@
-package br.com.escola.academiccatalog.adapter.in.web;
+package br.com.escola.academiccatalog.adapter.in.web.dto;
 
 import java.time.LocalDate;
 

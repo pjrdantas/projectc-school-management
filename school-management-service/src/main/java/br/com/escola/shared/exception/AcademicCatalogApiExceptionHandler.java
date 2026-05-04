@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import br.com.escola.academiccatalog.adapter.in.web.PeriodoLetivoController;
+import br.com.escola.academiccatalog.adapter.in.web.controller.PeriodoLetivoController;
 import br.com.escola.academiccatalog.domain.exception.PeriodoLetivoInvalidoException;
 import br.com.escola.academiccatalog.domain.exception.PeriodoLetivoNaoEncontradoException;
 import br.com.escola.academiccatalog.domain.exception.TurmaJaCadastradaException;

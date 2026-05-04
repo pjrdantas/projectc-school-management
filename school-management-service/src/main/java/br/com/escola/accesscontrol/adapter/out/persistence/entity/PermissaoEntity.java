@@ -11,10 +11,21 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "permissao")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class PermissaoEntity {
+	
     @Id
     @Column(name = "id_permissao", nullable = false, updatable = false)
     private UUID id;
@@ -29,25 +40,15 @@ public class PermissaoEntity {
     private LocalDateTime createdAt;
 
     @ManyToMany(mappedBy = "permissoes")
+    @Builder.Default
     private Set<PerfilEntity> perfis = new HashSet<>();
 
-    protected PermissaoEntity() {}
-
-    public PermissaoEntity(UUID id, String codigo, String descricao) {
-        this.id = id;
-        this.codigo = codigo;
-        this.descricao = descricao;
-    }
-
+ 
     @PrePersist
     void prePersist() {
         if (id == null) id = UUID.randomUUID();
         if (createdAt == null) createdAt = LocalDateTime.now();
     }
 
-    public UUID getId() { return id; }
-    public String getCodigo() { return codigo; }
-    public String getDescricao() { return descricao; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public Set<PerfilEntity> getPerfis() { return perfis; }
+ 
 }

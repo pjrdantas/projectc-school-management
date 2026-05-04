@@ -1,4 +1,4 @@
-package br.com.escola.accesscontrol.adapter.in.web;
+package br.com.escola.accesscontrol.adapter.in.web.dto;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

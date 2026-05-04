@@ -1,4 +1,4 @@
-package br.com.escola.accesscontrol.adapter.in.web.auth;
+package br.com.escola.accesscontrol.adapter.in.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
 

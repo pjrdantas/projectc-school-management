@@ -1,4 +1,4 @@
-package br.com.escola.accesscontrol.adapter.in.web;
+package br.com.escola.accesscontrol.adapter.in.web.dto;
 
 import java.util.List;
 import java.util.UUID;

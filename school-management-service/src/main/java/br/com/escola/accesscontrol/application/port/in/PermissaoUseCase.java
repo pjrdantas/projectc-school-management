@@ -1,0 +1,22 @@
+package br.com.escola.accesscontrol.application.port.in;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import br.com.escola.accesscontrol.domain.model.PermissaoModel;
+
+public interface PermissaoUseCase {
+
+    List<PermissaoModel> listAll();
+
+    Optional<PermissaoModel> findById(UUID id);
+
+    PermissaoModel create(PermissaoModel domain);
+
+    PermissaoModel update(UUID id, PermissaoModel domain);
+
+    void delete(UUID id);
+
+    boolean existsByCodigo(String codigo);
+}

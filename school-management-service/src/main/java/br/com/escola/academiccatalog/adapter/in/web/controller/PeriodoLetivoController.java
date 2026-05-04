@@ -1,4 +1,4 @@
-package br.com.escola.academiccatalog.adapter.in.web;
+package br.com.escola.academiccatalog.adapter.in.web.controller;
 
 import java.util.UUID;
 
@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.escola.academiccatalog.adapter.in.web.dto.PeriodoLetivoRequest;
+import br.com.escola.academiccatalog.adapter.in.web.dto.PeriodoLetivoResponse;
 import br.com.escola.academiccatalog.application.dto.PeriodoLetivoInput;
 import br.com.escola.academiccatalog.application.dto.PeriodoLetivoOutput;
 import br.com.escola.academiccatalog.application.usecase.BuscarPeriodoLetivoPorIdUseCase;
