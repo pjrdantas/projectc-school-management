@@ -62,7 +62,7 @@ public class UsuarioController {
 
     // ========================= CREATE =========================
     @PostMapping
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("hasAnyAuthority('CREATE','ADMIN')")
     @Operation(summary = "Cria usuário")
     public ResponseEntity<UsuarioResponse> create(@Validated @RequestBody UsuarioRequest dto) {
 
@@ -87,7 +87,7 @@ public class UsuarioController {
 
     // ========================= UPDATE =========================
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("hasAnyAuthority('UPDATE','ADMIN')")
     @Operation(summary = "Atualiza usuário")
     public ResponseEntity<UsuarioResponse> update(@PathVariable UUID id,
                                                   @Validated @RequestBody UsuarioRequest dto) {
@@ -114,7 +114,7 @@ public class UsuarioController {
 
     // ========================= DELETE =========================
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('DELETE')")
+    @PreAuthorize("hasAnyAuthority('DELETE','ADMIN')")
     @Operation(summary = "Remove usuário")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         usuarioUseCasePort.delete(id);
@@ -123,7 +123,7 @@ public class UsuarioController {
 
     // ========================= FIND BY ID =========================
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('READ')")
+    @PreAuthorize("hasAnyAuthority('READ','ADMIN')")
     @Operation(summary = "Busca usuário por ID")
     public ResponseEntity<UsuarioResponse> findById(@PathVariable UUID id) {
         UsuarioModel usuario = usuarioUseCasePort.findById(id);
@@ -132,7 +132,7 @@ public class UsuarioController {
 
     // ========================= LIST =========================
     @GetMapping
-    @PreAuthorize("hasAuthority('READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('READ_ALL','ADMIN')")
     @Operation(summary = "Lista usuários")
     public ResponseEntity<List<UsuarioResponse>> listAll() {
         List<UsuarioResponse> list = usuarioUseCasePort.listAll().stream()
