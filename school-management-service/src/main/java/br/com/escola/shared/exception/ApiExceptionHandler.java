@@ -5,10 +5,13 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.server.ResponseStatusException;
 
 import br.com.escola.enrollment.domain.exception.MatriculaAlunoNaoEncontradoException;
 import br.com.escola.enrollment.domain.exception.MatriculaPeriodoNaoEncontradoException;
@@ -57,7 +60,21 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiErrorResponse> handleBusiness(IllegalArgumentException ex, HttpServletRequest request) {
-        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+        String message = ex.getMessage() == null ? "Requisição inválida" : ex.getMessage();
+        String normalized = message.toLowerCase();
+
+        if (normalized.contains("não encontrado") || normalized.contains("nao encontrado") || normalized.contains("inexistente")) {
+            return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", message, request);
+        }
+
+        if (normalized.contains("obrigatório") || normalized.contains("obrigatorio")
+                || normalized.contains("não pode ser nulo") || normalized.contains("nao pode ser nulo")
+                || normalized.contains("não pode ser vazio") || normalized.contains("nao pode ser vazio")
+                || normalized.contains("inválido") || normalized.contains("invalido")) {
+            return buildError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", message, request);
+        }
+
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", message, request);
     }
 
     @ExceptionHandler(MatriculaAlunoNaoEncontradoException.class)
@@ -138,6 +155,30 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
             TokenInvalidoOuExpiradoException ex,
             HttpServletRequest request) {
         return buildError(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", ex.getMessage(), request);
+    }
+
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiErrorResponse> handleAuthentication(
+            AuthenticationException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Não autenticado", request);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiErrorResponse> handleAccessDenied(
+            AccessDeniedException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.FORBIDDEN, "FORBIDDEN", "Acesso negado", request);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ApiErrorResponse> handleResponseStatus(
+            ResponseStatusException ex,
+            HttpServletRequest request) {
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        String message = ex.getReason() != null ? ex.getReason() : status.getReasonPhrase();
+        return buildError(status, status.name(), message, request);
     }
 
     @ExceptionHandler(Exception.class)
