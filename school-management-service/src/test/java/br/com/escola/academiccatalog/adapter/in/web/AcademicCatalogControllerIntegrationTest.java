@@ -39,8 +39,7 @@ class AcademicCatalogControllerIntegrationTest {
                 }
                 """;
 
-        @SuppressWarnings("null")
-		String responseBody = mockMvc.perform(post("/api/periodos-letivos")
+        String responseBody = mockMvc.perform(post("/api/periodos-letivos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isCreated())
@@ -75,8 +74,7 @@ class AcademicCatalogControllerIntegrationTest {
                 }
                 """;
 
-        @SuppressWarnings("null")
-		String periodoResponse = mockMvc.perform(post("/api/periodos-letivos")
+        String periodoResponse = mockMvc.perform(post("/api/periodos-letivos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(periodoRequest))
                 .andExpect(status().isCreated())
@@ -95,8 +93,7 @@ class AcademicCatalogControllerIntegrationTest {
                 }
                 """.formatted(periodoId);
 
-        @SuppressWarnings("null")
-		String turmaResponse = mockMvc.perform(post("/api/turmas")
+        String turmaResponse = mockMvc.perform(post("/api/turmas")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(turmaRequest))
                 .andExpect(status().isCreated())
@@ -113,8 +110,7 @@ class AcademicCatalogControllerIntegrationTest {
                 .andExpect(jsonPath("$.codigo").value("TURMA-A"));
     }
 
-    @SuppressWarnings("null")
-	@Test
+    @Test
     @WithMockUser
     void deveRetornarConflictQuandoTurmaDuplicadaNoMesmoPeriodo() throws Exception {
         String periodoRequest = """

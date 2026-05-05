@@ -36,7 +36,6 @@ class AlunoControllerIntegrationTest {
                 }
                 """;
 
-        @SuppressWarnings("null")
         String responseBody = mockMvc.perform(post("/api/alunos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))

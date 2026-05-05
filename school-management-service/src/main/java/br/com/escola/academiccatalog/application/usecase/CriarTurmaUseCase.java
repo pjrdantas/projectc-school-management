@@ -20,8 +20,7 @@ public class CriarTurmaUseCase {
         this.periodoLetivoGateway = periodoLetivoGateway;
     }
 
-    @SuppressWarnings("null")
-	public TurmaOutput executar(TurmaInput input) {
+    public TurmaOutput executar(TurmaInput input) {
         if (!periodoLetivoGateway.existsById(input.periodoLetivoId())) {
             throw new PeriodoLetivoNaoEncontradoException(input.periodoLetivoId());
         }

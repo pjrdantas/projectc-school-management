@@ -40,8 +40,7 @@ public class TurmaPersistenceGateway implements TurmaGateway {
         return turmaJpaRepository.findByCodigoAndPeriodoLetivoId(codigo, periodoLetivoId).map(this::toOutput);
     }
 
-    @SuppressWarnings("null")
-	@Override
+    @Override
     public TurmaOutput save(TurmaInput input) {
         PeriodoLetivoEntity periodo = periodoLetivoJpaRepository.getReferenceById(input.periodoLetivoId());
         TurmaEntity entity = new TurmaEntity();

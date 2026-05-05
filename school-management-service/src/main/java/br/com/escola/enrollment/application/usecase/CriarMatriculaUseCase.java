@@ -35,8 +35,7 @@ public class CriarMatriculaUseCase {
         this.periodoLetivoConsultaGateway = periodoLetivoConsultaGateway;
     }
 
-    @SuppressWarnings("null")
-	public MatriculaOutput executar(MatriculaInput input) {
+    public MatriculaOutput executar(MatriculaInput input) {
         if (!alunoConsultaGateway.existsById(input.alunoId())) {
             throw new MatriculaAlunoNaoEncontradoException(input.alunoId());
         }

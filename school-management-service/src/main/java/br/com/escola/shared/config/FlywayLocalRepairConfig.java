@@ -15,7 +15,7 @@ public class FlywayLocalRepairConfig {
     private static final Logger LOG = LoggerFactory.getLogger(FlywayLocalRepairConfig.class);
 
     @Bean
-    public FlywayMigrationStrategy flywayMigrationStrategy() {
+    FlywayMigrationStrategy flywayMigrationStrategy() {
         return flyway -> {
             try {
                 flyway.validate();
