@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -25,7 +26,7 @@ public class SecurityBeansConfig {
 
     private final AuthService authService;
 
-    public SecurityBeansConfig(AuthService authService) {
+    public SecurityBeansConfig(@Lazy AuthService authService) {
         this.authService = authService;
     }
 
