@@ -1,5 +1,6 @@
 package br.com.escola.accesscontrol.domain.exception;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Base64;
@@ -39,6 +40,10 @@ public class JwtUtil {
      * Resolve a chave garantindo tamanho mínimo e suporte a Base64
      */
     private byte[] resolveKey(String secret) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalArgumentException("JWT secret não configurado. Defina auth.jwt.secret.");
+        }
+
         byte[] keyBytes;
 
         try {
@@ -46,7 +51,7 @@ public class JwtUtil {
             keyBytes = Base64.getDecoder().decode(secret);
         } catch (IllegalArgumentException e) {
             // fallback: usa string pura
-            keyBytes = secret.getBytes();
+            keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         }
 
         // 🔥 valida tamanho mínimo (32 bytes = 256 bits)

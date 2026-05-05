@@ -13,8 +13,8 @@ public class AuthProperties {
 
     @Data
     public static class Jwt {
-        private String secret;
-        private Long expirationMs;
-        private Long refreshExpirationMs;
+        private String secret = "bWluaGEtY2hhdmUtc3VwZXItc2VjcmV0YQ==";
+        private Long expirationMs = 1_800_000L;
+        private Long refreshExpirationMs = 604_800_000L;
     }
 }
