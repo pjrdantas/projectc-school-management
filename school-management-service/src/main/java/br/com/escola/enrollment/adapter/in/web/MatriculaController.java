@@ -5,6 +5,7 @@ import java.util.UUID;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,7 +50,11 @@ public class MatriculaController {
             @RequestParam(required = false) UUID periodoLetivoId,
             @RequestParam(required = false) String status) {
         MatriculaFiltro filtro = new MatriculaFiltro(alunoId, turmaId, periodoLetivoId, status);
-        return consultarMatriculasUseCase.executar(filtro).stream().map(this::toResponse).toList();
+        List<MatriculaResponse> response = consultarMatriculasUseCase.executar(filtro).stream().map(this::toResponse).toList();
+        if (response.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nenhuma matrícula encontrada");
+        }
+        return response;
     }
 
     private MatriculaResponse toResponse(MatriculaOutput output) {

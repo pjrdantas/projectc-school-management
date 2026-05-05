@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,7 +50,11 @@ public class PeriodoLetivoController {
 
     @GetMapping
     public List<PeriodoLetivoResponse> listar() {
-        return listarPeriodosLetivosUseCase.executar().stream().map(this::toResponse).toList();
+        List<PeriodoLetivoResponse> response = listarPeriodosLetivosUseCase.executar().stream().map(this::toResponse).toList();
+        if (response.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nenhum período letivo encontrado");
+        }
+        return response;
     }
 
     @GetMapping("/{id}")

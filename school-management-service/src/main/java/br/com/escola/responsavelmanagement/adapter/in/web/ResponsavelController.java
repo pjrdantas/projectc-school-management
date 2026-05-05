@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -75,7 +76,11 @@ public class ResponsavelController {
                     .toList();
         }
 
-        return responsaveis.stream().map(this::toResponse).toList();
+        List<ResponsavelResponse> response = responsaveis.stream().map(this::toResponse).toList();
+        if (response.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nenhum responsável encontrado");
+        }
+        return response;
     }
 
     @GetMapping("/{id}")
