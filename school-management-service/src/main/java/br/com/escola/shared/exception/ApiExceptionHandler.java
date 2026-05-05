@@ -60,7 +60,21 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiErrorResponse> handleBusiness(IllegalArgumentException ex, HttpServletRequest request) {
-        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+        String message = ex.getMessage() == null ? "Requisição inválida" : ex.getMessage();
+        String normalized = message.toLowerCase();
+
+        if (normalized.contains("não encontrado") || normalized.contains("nao encontrado") || normalized.contains("inexistente")) {
+            return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", message, request);
+        }
+
+        if (normalized.contains("obrigatório") || normalized.contains("obrigatorio")
+                || normalized.contains("não pode ser nulo") || normalized.contains("nao pode ser nulo")
+                || normalized.contains("não pode ser vazio") || normalized.contains("nao pode ser vazio")
+                || normalized.contains("inválido") || normalized.contains("invalido")) {
+            return buildError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", message, request);
+        }
+
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", message, request);
     }
 
     @ExceptionHandler(MatriculaAlunoNaoEncontradoException.class)
