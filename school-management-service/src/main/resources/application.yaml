@@ -30,6 +30,6 @@ management:
 
 auth:
   jwt:
-    secret: ${AUTH_JWT_SECRET:bWluaGEtY2hhdmUtc3VwZXItc2VjcmV0YQ==}
+    secret: ${AUTH_JWT_SECRET:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
     expiration-ms: ${AUTH_JWT_EXPIRATION_MS:1800000}
     refresh-expiration-ms: ${AUTH_JWT_REFRESH_EXPIRATION_MS:604800000}
