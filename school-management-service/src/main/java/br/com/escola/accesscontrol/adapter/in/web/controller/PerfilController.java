@@ -57,7 +57,7 @@ public class PerfilController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("hasAnyAuthority('CREATE','ADMIN')")
     @Operation(summary = "Cria um novo perfil")
     public ResponseEntity<?> create(@Validated @RequestBody PerfilRequest dto, HttpServletRequest request) {
 
@@ -80,7 +80,7 @@ public class PerfilController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("hasAnyAuthority('UPDATE','ADMIN')")
     public ResponseEntity<?> update(@PathVariable UUID id,
                                     @Validated @RequestBody PerfilRequest dto,
                                     HttpServletRequest request) {
@@ -102,7 +102,7 @@ public class PerfilController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('DELETE')")
+    @PreAuthorize("hasAnyAuthority('DELETE','ADMIN')")
     public ResponseEntity<?> delete(@PathVariable UUID id, HttpServletRequest request) {
 
         Optional<PerfilModel> existing = perfilUseCasePort.findById(id);
@@ -115,7 +115,7 @@ public class PerfilController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('READ')")
+    @PreAuthorize("hasAnyAuthority('READ','ADMIN')")
     public ResponseEntity<?> findById(@PathVariable UUID id, HttpServletRequest request) {
 
         Optional<PerfilModel> existing = perfilUseCasePort.findById(id);
@@ -127,7 +127,7 @@ public class PerfilController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('READ_ALL','ADMIN')")
     public ResponseEntity<?> listAll(HttpServletRequest request) {
 
         List<PerfilModel> domains = perfilUseCasePort.listAll();
