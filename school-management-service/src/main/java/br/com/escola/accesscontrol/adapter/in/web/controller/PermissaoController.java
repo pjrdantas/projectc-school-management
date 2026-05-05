@@ -62,7 +62,7 @@ public class PermissaoController {
 
     // ===== CREATE =====
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') and hasAuthority('CREATE')")
+    @PreAuthorize("hasAnyAuthority('CREATE','ADMIN')")
     @Operation(summary = "Cria uma nova permissão")
     public ResponseEntity<?> create(@Valid @RequestBody PermissaoRequest dto,
                                     HttpServletRequest request) {
@@ -81,7 +81,7 @@ public class PermissaoController {
 
     // ===== UPDATE =====
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('UPDATE')")
+    @PreAuthorize("hasAnyAuthority('UPDATE','ADMIN')")
     @Operation(summary = "Atualiza uma permissão")
     public ResponseEntity<?> update(@PathVariable UUID id,
                                     @Valid @RequestBody PermissaoRequest dto,
@@ -110,7 +110,7 @@ public class PermissaoController {
 
     // ===== DELETE =====
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('DELETE')")
+    @PreAuthorize("hasAnyAuthority('DELETE','ADMIN')")
     public ResponseEntity<?> delete(@PathVariable UUID id,
                                     HttpServletRequest request) {
 
@@ -133,7 +133,7 @@ public class PermissaoController {
 
     // ===== FIND BY ID =====
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('READ')")
+    @PreAuthorize("hasAnyAuthority('READ','ADMIN')")
     public ResponseEntity<?> findById(@PathVariable UUID id,
                                      HttpServletRequest request) {
 
@@ -151,7 +151,7 @@ public class PermissaoController {
 
     // ===== LIST =====
     @GetMapping
-    @PreAuthorize("hasAuthority('READ_ALL')")
+    @PreAuthorize("hasAnyAuthority('READ_ALL','ADMIN')")
     public ResponseEntity<?> listAll(HttpServletRequest request) {
 
         List<PermissaoModel> list = useCase.listAll();

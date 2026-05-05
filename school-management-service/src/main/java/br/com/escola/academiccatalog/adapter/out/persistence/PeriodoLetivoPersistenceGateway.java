@@ -3,6 +3,7 @@ package br.com.escola.academiccatalog.adapter.out.persistence;
 import java.util.UUID;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.lang.NonNull;
@@ -41,6 +42,11 @@ public class PeriodoLetivoPersistenceGateway implements PeriodoLetivoGateway {
         entity.setDataFim(input.dataFim());
         entity.setCreatedAt(LocalDateTime.now());
         return toOutput(periodoLetivoJpaRepository.save(entity));
+    }
+
+    @Override
+    public List<PeriodoLetivoOutput> findAll() {
+        return periodoLetivoJpaRepository.findAll().stream().map(this::toOutput).toList();
     }
 
     private PeriodoLetivoOutput toOutput(PeriodoLetivoEntity entity) {
