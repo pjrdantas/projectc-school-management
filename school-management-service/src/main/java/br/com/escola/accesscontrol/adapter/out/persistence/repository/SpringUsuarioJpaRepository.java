@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import br.com.escola.accesscontrol.adapter.out.persistence.entity.UsuarioEntity;
 
-public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, UUID> {
+public interface SpringUsuarioJpaRepository extends JpaRepository<UsuarioEntity, UUID> {
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
     Optional<UsuarioEntity> findByUsernameIgnoreCaseAndAtivoTrue(String username);
@@ -33,4 +33,6 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, UUID>
             WHERE up.id_usuario = :idUsuario
             """, nativeQuery = true)
     List<String> findPerfisByIdUsuario(@Param("idUsuario") UUID idUsuario);
+    
+    boolean existsByUsernameAndIdNot(String username, UUID id);
 }

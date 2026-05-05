@@ -1,115 +1,143 @@
 package br.com.escola.accesscontrol.adapter.in.web.controller;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import br.com.escola.accesscontrol.adapter.in.web.dto.UsuarioRequest;
 import br.com.escola.accesscontrol.adapter.in.web.dto.UsuarioResponse;
-import br.com.escola.accesscontrol.adapter.out.persistence.entity.UsuarioEntity;
-import br.com.escola.accesscontrol.adapter.out.persistence.repository.UsuarioJpaRepository;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import jakarta.validation.Valid;
+import br.com.escola.accesscontrol.application.port.in.UsuarioUseCasePort;
+import br.com.escola.accesscontrol.domain.model.PerfilModel;
+import br.com.escola.accesscontrol.domain.model.UsuarioModel;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/usuarios")
+@RequiredArgsConstructor
+@Tag(name = "Usuários", description = "Gerenciamento de usuários")
+@Validated
+@CrossOrigin(origins = "http://localhost:4200")
 public class UsuarioController {
 
-    private final UsuarioJpaRepository repository;
-    private final JdbcTemplate jdbcTemplate;
-    private final PasswordEncoder passwordEncoder;
+    private final UsuarioUseCasePort usuarioUseCasePort;
 
-    public UsuarioController(UsuarioJpaRepository repository, JdbcTemplate jdbcTemplate, PasswordEncoder passwordEncoder) {
-        this.repository = repository;
-        this.jdbcTemplate = jdbcTemplate;
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public UsuarioResponse criar(@Valid @RequestBody UsuarioRequest request) {
-        if (repository.existsByUsername(request.username())) {
-            throw new IllegalArgumentException("Já existe usuário com este username");
-        }
-        if (repository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("Já existe usuário com este email");
-        }
-
-        UsuarioEntity created = repository.save(new UsuarioEntity(
-                null,
-                request.username().trim(),
-                request.nome().trim(),
-                request.email().trim().toLowerCase(),
-                normalizePasswordHash(request.senhaHash().trim(), null),
-                request.ativo() == null || request.ativo()));
-
-        vincularPerfis(created.getId(), request.perfilIds());
-        return toResponse(created);
-    }
-
-    @GetMapping
-    public List<UsuarioResponse> listar() {
-        return repository.findAll().stream().map(this::toResponse).toList();
-    }
-
-    @GetMapping("/{id}")
-    public UsuarioResponse buscarPorId(@PathVariable java.util.UUID id) {
-        UsuarioEntity entity = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
-        return toResponse(entity);
-    }
-
-    @PutMapping("/{id}")
-    public UsuarioResponse atualizar(@PathVariable java.util.UUID id, @Valid @RequestBody UsuarioRequest request) {
-        UsuarioEntity entity = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
-        UsuarioEntity atualizado = repository.save(new UsuarioEntity(
-                entity.getId(),
-                request.username().trim(),
-                request.nome().trim(),
-                request.email().trim().toLowerCase(),
-                normalizePasswordHash(request.senhaHash().trim(), entity.getSenhaHash()),
-                request.ativo() == null || request.ativo()));
-        vincularPerfis(atualizado.getId(), request.perfilIds());
-        return toResponse(atualizado);
-    }
-
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void excluir(@PathVariable java.util.UUID id) {
-        repository.deleteById(id);
-    }
-
-    private String normalizePasswordHash(String raw, String existingHash){
-        if ("********".equals(raw) && existingHash != null) return existingHash;
-        if (raw.startsWith("$2a$") || raw.startsWith("$2b$") || raw.startsWith("$2y$")) return raw;
-        return passwordEncoder.encode(raw);
-    }
-
-    private void vincularPerfis(UUID idUsuario, List<UUID> perfilIds){
-        jdbcTemplate.update("DELETE FROM usuario_perfil WHERE id_usuario = ?", idUsuario);
-        if (perfilIds == null) return;
-        for (UUID idPerfil : perfilIds){
-            jdbcTemplate.update("INSERT INTO usuario_perfil (id_usuario_perfil,id_usuario,id_perfil) VALUES (?,?,?)", UUID.randomUUID(), idUsuario, idPerfil);
-        }
-    }
-
-    private UsuarioResponse toResponse(UsuarioEntity entity) {
+    // ========================= DTO =========================
+    private UsuarioResponse toDto(UsuarioModel m) {
         return new UsuarioResponse(
-                entity.getId(),
-                entity.getUsername(),
-                entity.getNome(),
-                entity.getEmail(),
-                entity.isAtivo(),
-                entity.getCreatedAt());
+                m.getId(),
+                m.getUsername(),
+                m.getNome(),
+                m.getEmail(),
+                m.isAtivo(),
+                m.getCreatedAt()
+        );
+    }
+
+    // ========================= PERFIS =========================
+    private Set<PerfilModel> validarEConverterPerfis(List<UUID> perfisIds) {
+        if (perfisIds == null || perfisIds.isEmpty()) {
+            throw new IllegalArgumentException("Não é possível criar/atualizar usuário sem perfis.");
+        }
+
+        return perfisIds.stream().map(pid -> {
+            if (pid == null) {
+                throw new IllegalArgumentException("perfilId não pode ser nulo");
+            }
+            PerfilModel perfil = new PerfilModel();
+            perfil.setId(pid);
+            return perfil;
+        }).collect(Collectors.toSet());
+    }
+
+    // ========================= CREATE =========================
+    @PostMapping
+    @PreAuthorize("hasAuthority('CREATE')")
+    @Operation(summary = "Cria usuário")
+    public ResponseEntity<UsuarioResponse> create(@Validated @RequestBody UsuarioRequest dto) {
+
+        Set<PerfilModel> perfis = validarEConverterPerfis(dto.perfilIds());
+
+        UsuarioModel domain = UsuarioModel.builder()
+                .username(dto.username())
+                .nome(dto.nome())
+                .email(dto.email())
+                .senhaHash(dto.senhaHash())
+                .ativo(dto.ativo() == null || dto.ativo())
+                .perfis(perfis)
+                .build();
+
+        try {
+            UsuarioModel created = usuarioUseCasePort.create(domain);
+            return ResponseEntity.status(HttpStatus.CREATED).body(toDto(created));
+        } catch (DataIntegrityViolationException ex) {
+            throw new DataIntegrityViolationException("Já existe usuário com username/email.", ex);
+        }
+    }
+
+    // ========================= UPDATE =========================
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('UPDATE')")
+    @Operation(summary = "Atualiza usuário")
+    public ResponseEntity<UsuarioResponse> update(@PathVariable UUID id,
+                                                  @Validated @RequestBody UsuarioRequest dto) {
+
+        Set<PerfilModel> perfis = validarEConverterPerfis(dto.perfilIds());
+
+        UsuarioModel domain = UsuarioModel.builder()
+                .id(id)
+                .username(dto.username())
+                .nome(dto.nome())
+                .email(dto.email())
+                .senhaHash(dto.senhaHash())
+                .ativo(dto.ativo() == null || dto.ativo())
+                .perfis(perfis)
+                .build();
+
+        try {
+            UsuarioModel updated = usuarioUseCasePort.update(id, domain);
+            return ResponseEntity.ok(toDto(updated));
+        } catch (DataIntegrityViolationException ex) {
+            throw new DataIntegrityViolationException("Já existe usuário com username/email.", ex);
+        }
+    }
+
+    // ========================= DELETE =========================
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('DELETE')")
+    @Operation(summary = "Remove usuário")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        usuarioUseCasePort.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ========================= FIND BY ID =========================
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('READ')")
+    @Operation(summary = "Busca usuário por ID")
+    public ResponseEntity<UsuarioResponse> findById(@PathVariable UUID id) {
+        UsuarioModel usuario = usuarioUseCasePort.findById(id);
+        return ResponseEntity.ok(toDto(usuario));
+    }
+
+    // ========================= LIST =========================
+    @GetMapping
+    @PreAuthorize("hasAuthority('READ_ALL')")
+    @Operation(summary = "Lista usuários")
+    public ResponseEntity<List<UsuarioResponse>> listAll() {
+        List<UsuarioResponse> list = usuarioUseCasePort.listAll().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(list);
     }
 }

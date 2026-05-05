@@ -1,9 +1,18 @@
 package br.com.escola.accesscontrol.adapter.in.web.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,77 +20,126 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.accesscontrol.adapter.in.web.dto.PerfilRequest;
 import br.com.escola.accesscontrol.adapter.in.web.dto.PerfilResponse;
-import br.com.escola.accesscontrol.adapter.out.persistence.entity.PerfilEntity;
-import br.com.escola.accesscontrol.adapter.out.persistence.repository.PerfilJpaRepository;
-import org.springframework.jdbc.core.JdbcTemplate;
-import jakarta.validation.Valid;
+import br.com.escola.accesscontrol.adapter.out.persistence.mapper.PerfilMapper;
+import br.com.escola.accesscontrol.application.port.in.PerfilUseCasePort;
+import br.com.escola.accesscontrol.application.port.in.PermissaoUseCasePort;
+import br.com.escola.accesscontrol.domain.model.PerfilModel;
+import br.com.escola.shared.exception.ErrorResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/perfis")
+@RequiredArgsConstructor
+@Tag(name = "Perfis", description = "Gerenciamento de perfis")
+@Validated
+@CrossOrigin(origins = "http://localhost:4200")
 public class PerfilController {
-    private static final String PERFIL_ADMIN = "ADMIN";
-    private final PerfilJpaRepository repository;
-    private final JdbcTemplate jdbcTemplate;
 
-    public PerfilController(PerfilJpaRepository repository, JdbcTemplate jdbcTemplate) {
-        this.repository = repository;
-        this.jdbcTemplate = jdbcTemplate;
+    private final PerfilUseCasePort perfilUseCasePort;
+    private final PermissaoUseCasePort permissaoUseCase;
+
+    private ResponseEntity<ErrorResponse> buildErrorResponse(@NonNull HttpStatus status, String message, HttpServletRequest request) {
+        return ResponseEntity.status(status)
+                .body(ErrorResponse.builder()
+                        .timestamp(LocalDateTime.now())
+                        .status(status.value())
+                        .error(status.getReasonPhrase())
+                        .message(message)
+                        .path(request.getRequestURI())
+                        .build());
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public PerfilResponse criar(@Valid @RequestBody PerfilRequest request) {
-        if (repository.existsByCodigo(request.codigo())) throw new IllegalArgumentException("Código já cadastrado");
-        PerfilEntity created = repository.save(new PerfilEntity(null, request.codigo().trim(), request.nome().trim(), request.descricao()));
-        vincularPermissoes(created.getId(), request.permissaoIds());
-        return toResponse(created);
-    }
+    @PreAuthorize("hasAuthority('CREATE')")
+    @Operation(summary = "Cria um novo perfil")
+    public ResponseEntity<?> create(@Validated @RequestBody PerfilRequest dto, HttpServletRequest request) {
 
-    @GetMapping("/{id}")
-    public PerfilResponse buscarPorId(@PathVariable java.util.UUID id) {
-        var entity = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Perfil não encontrado"));
-        return toResponse(entity);
-    }
+        if (perfilUseCasePort.existsByCodigo(dto.codigo())) {
+            return buildErrorResponse(HttpStatus.CONFLICT, "Perfil já existe: " + dto.codigo(), request);
+        }
 
-    @GetMapping
-    public List<PerfilResponse> listar() { return repository.findAll().stream().map(this::toResponse).toList(); }
+        var permissoes = Optional.ofNullable(dto.permissoesIds())
+                .orElse(Set.of())
+                .stream()
+                .map(id -> permissaoUseCase.findById(id)
+                        .orElseThrow(() -> new IllegalArgumentException("Permissão não encontrada: " + id)))
+                .collect(Collectors.toSet());
+
+        PerfilModel domain = PerfilMapper.toDomain(dto, permissoes);
+        PerfilModel created = perfilUseCasePort.create(domain);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(PerfilMapper.toResponse(created));
+    }
 
     @PutMapping("/{id}")
-    public PerfilResponse atualizar(@PathVariable java.util.UUID id, @Valid @RequestBody PerfilRequest request) {
-        PerfilEntity entity = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Perfil não encontrado"));
-        if (PERFIL_ADMIN.equalsIgnoreCase(entity.getCodigo()) && !PERFIL_ADMIN.equalsIgnoreCase(request.codigo().trim())) {
-            throw new IllegalArgumentException("O perfil ADMIN é protegido e não pode ter o código alterado.");
-        }
-        entity.setCodigo(request.codigo().trim());
-        entity.setNome(request.nome().trim());
-        entity.setDescricao(request.descricao());
-        PerfilEntity atualizado = repository.save(entity);
-        vincularPermissoes(atualizado.getId(), request.permissaoIds());
-        return toResponse(atualizado);
+    @PreAuthorize("hasAuthority('UPDATE')")
+    public ResponseEntity<?> update(@PathVariable UUID id,
+                                    @Validated @RequestBody PerfilRequest dto,
+                                    HttpServletRequest request) {
+
+        perfilUseCasePort.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Perfil não encontrado: " + id));
+
+        var permissoes = Optional.ofNullable(dto.permissoesIds())
+                .orElse(Set.of())
+                .stream()
+                .map(pid -> permissaoUseCase.findById(pid)
+                        .orElseThrow(() -> new IllegalArgumentException("Permissão não encontrada: " + pid)))
+                .collect(Collectors.toSet());
+
+        PerfilModel domain = PerfilMapper.toDomain(dto, permissoes);
+        PerfilModel updated = perfilUseCasePort.update(id, domain);
+
+        return ResponseEntity.ok(PerfilMapper.toResponse(updated));
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void excluir(@PathVariable java.util.UUID id) {
-        PerfilEntity entity = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Perfil não encontrado"));
-        if (PERFIL_ADMIN.equalsIgnoreCase(entity.getCodigo())) {
-            throw new IllegalArgumentException("O perfil ADMIN é protegido e não pode ser removido.");
+    @PreAuthorize("hasAuthority('DELETE')")
+    public ResponseEntity<?> delete(@PathVariable UUID id, HttpServletRequest request) {
+
+        Optional<PerfilModel> existing = perfilUseCasePort.findById(id);
+        if (existing.isPresent()) {
+            perfilUseCasePort.delete(id);
+            return ResponseEntity.noContent().build();
         }
-        repository.deleteById(id);
+
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Perfil não encontrado: " + id, request);
     }
 
-    private void vincularPermissoes(UUID idPerfil, List<UUID> permissaoIds){
-        jdbcTemplate.update("DELETE FROM perfil_permissao WHERE id_perfil = ?", idPerfil);
-        if (permissaoIds == null) return;
-        for (UUID idPermissao : permissaoIds){
-            jdbcTemplate.update("INSERT INTO perfil_permissao (id_perfil_permissao,id_perfil,id_permissao) VALUES (?,?,?)", UUID.randomUUID(), idPerfil, idPermissao);
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('READ')")
+    public ResponseEntity<?> findById(@PathVariable UUID id, HttpServletRequest request) {
+
+        Optional<PerfilModel> existing = perfilUseCasePort.findById(id);
+        if (existing.isPresent()) {
+            return ResponseEntity.ok(PerfilMapper.toResponse(existing.get()));
         }
+
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Perfil não encontrado: " + id, request);
     }
 
-    private PerfilResponse toResponse(PerfilEntity e) { return new PerfilResponse(e.getId(), e.getCodigo(), e.getNome(), e.getDescricao(), e.getCreatedAt()); }
+    @GetMapping
+    @PreAuthorize("hasAuthority('READ_ALL')")
+    public ResponseEntity<?> listAll(HttpServletRequest request) {
+
+        List<PerfilModel> domains = perfilUseCasePort.listAll();
+
+        if (domains.isEmpty()) {
+            return buildErrorResponse(HttpStatus.NOT_FOUND, "Nenhum Perfil encontrado", request);
+        }
+
+        List<PerfilResponse> list = domains.stream()
+                .map(PerfilMapper::toResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(list);
+    }
 }

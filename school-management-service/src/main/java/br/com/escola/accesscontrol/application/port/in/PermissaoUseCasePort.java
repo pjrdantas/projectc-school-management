@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import br.com.escola.accesscontrol.domain.model.PermissaoModel;
 
-public interface PermissaoUseCase {
+public interface PermissaoUseCasePort {
 
     List<PermissaoModel> listAll();
 

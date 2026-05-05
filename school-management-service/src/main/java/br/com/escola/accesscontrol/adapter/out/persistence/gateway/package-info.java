@@ -1,1 +1,0 @@
-package br.com.escola.accesscontrol.adapter.out.persistence.gateway;

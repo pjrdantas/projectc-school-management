@@ -13,9 +13,19 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "usuario")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UsuarioEntity {
 
     @Id
@@ -43,20 +53,10 @@ public class UsuarioEntity {
     @ManyToMany
     @JoinTable(name = "usuario_perfil",
             joinColumns = @JoinColumn(name = "id_usuario"),
-            inverseJoinColumns = @JoinColumn(name = "id_perfil"))
+            inverseJoinColumns = @JoinColumn(name = "id_perfil")
+    )
+    @Builder.Default
     private Set<PerfilEntity> perfis = new HashSet<>();
-
-    protected UsuarioEntity() {
-    }
-
-    public UsuarioEntity(UUID id, String username, String nome, String email, String senhaHash, boolean ativo) {
-        this.id = id;
-        this.username = username;
-        this.nome = nome;
-        this.email = email;
-        this.senhaHash = senhaHash;
-        this.ativo = ativo;
-    }
 
     @PrePersist
     void prePersist() {
@@ -68,12 +68,4 @@ public class UsuarioEntity {
         }
     }
 
-    public UUID getId() { return id; }
-    public String getUsername() { return username; }
-    public String getNome() { return nome; }
-    public String getEmail() { return email; }
-    public String getSenhaHash() { return senhaHash; }
-    public boolean isAtivo() { return ativo; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public Set<PerfilEntity> getPerfis() { return perfis; }
 }

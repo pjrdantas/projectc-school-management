@@ -1,4 +1,4 @@
-package br.com.escola.accesscontrol.application.usercase;
+package br.com.escola.accesscontrol.application.usecase;
 
 import java.util.List;
 import java.util.Optional;
@@ -6,12 +6,12 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import br.com.escola.accesscontrol.application.port.in.PermissaoUseCase;
+import br.com.escola.accesscontrol.application.port.in.PermissaoUseCasePort;
 import br.com.escola.accesscontrol.application.port.out.PermissaoRepositoryPort;
 import br.com.escola.accesscontrol.domain.model.PermissaoModel;
 
 @Service
-public class PermissaoInteractor implements PermissaoUseCase {
+public class PermissaoInteractor implements PermissaoUseCasePort {
 
     private final PermissaoRepositoryPort repository;
 

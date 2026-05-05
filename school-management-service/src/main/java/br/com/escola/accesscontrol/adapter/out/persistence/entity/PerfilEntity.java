@@ -8,12 +8,22 @@ import java.util.UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "perfil")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class PerfilEntity {
 
     @Id
@@ -33,37 +43,18 @@ public class PerfilEntity {
     private LocalDateTime createdAt;
 
     @ManyToMany(mappedBy = "perfis")
+    @Builder.Default
     private Set<UsuarioEntity> usuarios = new HashSet<>();
 
     @ManyToMany
-    @jakarta.persistence.JoinTable(name = "perfil_permissao",
+    @JoinTable(name = "perfil_permissao",
             joinColumns = @jakarta.persistence.JoinColumn(name = "id_perfil"),
-            inverseJoinColumns = @jakarta.persistence.JoinColumn(name = "id_permissao"))
+            inverseJoinColumns = @jakarta.persistence.JoinColumn(name = "id_permissao")
+    )
+    @Builder.Default
     private Set<PermissaoEntity> permissoes = new HashSet<>();
 
-    protected PerfilEntity() {}
-
-    public PerfilEntity(UUID id, String codigo, String nome, String descricao) {
-        this.id = id;
-        this.codigo = codigo;
-        this.nome = nome;
-        this.descricao = descricao;
-    }
-
-    @PrePersist
-    void prePersist() {
-        if (id == null) id = UUID.randomUUID();
-        if (createdAt == null) createdAt = LocalDateTime.now();
-    }
-
-    public UUID getId() { return id; }
-    public String getCodigo() { return codigo; }
-    public String getNome() { return nome; }
-    public String getDescricao() { return descricao; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public Set<UsuarioEntity> getUsuarios() { return usuarios; }
-    public Set<PermissaoEntity> getPermissoes() { return permissoes; }
-    public void setCodigo(String codigo) { this.codigo = codigo; }
-    public void setNome(String nome) { this.nome = nome; }
-    public void setDescricao(String descricao) { this.descricao = descricao; }
+   
+    
+   
 }

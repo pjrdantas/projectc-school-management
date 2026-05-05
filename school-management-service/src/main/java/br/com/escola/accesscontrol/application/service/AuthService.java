@@ -8,15 +8,15 @@ import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import br.com.escola.accesscontrol.adapter.in.web.dto.AuthResponse;
 import br.com.escola.accesscontrol.adapter.out.persistence.entity.SessaoAutenticacaoEntity;
 import br.com.escola.accesscontrol.adapter.out.persistence.entity.UsuarioEntity;
 import br.com.escola.accesscontrol.adapter.out.persistence.repository.SessaoAutenticacaoJpaRepository;
-import br.com.escola.accesscontrol.adapter.out.persistence.repository.UsuarioJpaRepository;
+import br.com.escola.accesscontrol.adapter.out.persistence.repository.SpringUsuarioJpaRepository;
 import br.com.escola.accesscontrol.domain.exception.CredenciaisInvalidasException;
 import br.com.escola.accesscontrol.domain.exception.TokenInvalidoOuExpiradoException;
 
@@ -26,13 +26,13 @@ public class AuthService {
     private static final int REFRESH_DIAS = 7;
     private static final int ACCESS_MINUTOS = 30;
 
-    private final UsuarioJpaRepository usuarioRepository;
+    private final SpringUsuarioJpaRepository usuarioRepository;
     private final SessaoAutenticacaoJpaRepository sessaoRepository;
     private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
 
     public AuthService(
-            UsuarioJpaRepository usuarioRepository,
+    		SpringUsuarioJpaRepository usuarioRepository,
             SessaoAutenticacaoJpaRepository sessaoRepository,
             PasswordEncoder passwordEncoder,
             JdbcTemplate jdbcTemplate) {

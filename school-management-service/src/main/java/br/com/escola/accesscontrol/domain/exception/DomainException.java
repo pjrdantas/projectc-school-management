@@ -1,10 +1,11 @@
 package br.com.escola.accesscontrol.domain.exception;
 
-public class CredenciaisInvalidasException extends RuntimeException {
+public class DomainException extends RuntimeException {
 
+    
 	private static final long serialVersionUID = 1L;
 
-	public CredenciaisInvalidasException(String message) {
+	public DomainException(String message) {
         super(message);
     }
 }

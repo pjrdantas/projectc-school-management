@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.accesscontrol.adapter.in.web.dto.PermissaoRequest;
 import br.com.escola.accesscontrol.adapter.out.persistence.mapper.PermissaoMapper;
-import br.com.escola.accesscontrol.application.port.in.PermissaoUseCase;
+import br.com.escola.accesscontrol.application.port.in.PermissaoUseCasePort;
 import br.com.escola.accesscontrol.domain.model.PermissaoModel;
 import br.com.escola.shared.exception.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,7 +42,7 @@ public class PermissaoController {
 
     private static final String PERMISSAO_ADMIN = "ADMIN";
 
-    private final PermissaoUseCase useCase;
+    private final PermissaoUseCasePort useCase;
 
     // ===== ERROR PADRÃO =====
     private ResponseEntity<ErrorResponse> buildErrorResponse(

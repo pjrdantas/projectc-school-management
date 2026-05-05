@@ -1,4 +1,4 @@
-package br.com.escola.accesscontrol.domain.exception;
+package br.com.escola.accesscontrol.infrastructure.security;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
