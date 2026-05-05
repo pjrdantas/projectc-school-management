@@ -59,12 +59,14 @@ public class PerfilInteractor implements PerfilUseCasePort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<PerfilModel> findById(UUID id) {
         Objects.requireNonNull(id, "ID não pode ser nulo");
         return repository.findById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PerfilModel> listAll() {
         return repository.listAll();
     }

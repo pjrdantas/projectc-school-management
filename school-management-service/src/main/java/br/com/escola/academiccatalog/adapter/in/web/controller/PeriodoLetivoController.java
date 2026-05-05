@@ -1,5 +1,6 @@
 package br.com.escola.academiccatalog.adapter.in.web.controller;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import br.com.escola.academiccatalog.application.dto.PeriodoLetivoInput;
 import br.com.escola.academiccatalog.application.dto.PeriodoLetivoOutput;
 import br.com.escola.academiccatalog.application.usecase.BuscarPeriodoLetivoPorIdUseCase;
 import br.com.escola.academiccatalog.application.usecase.CriarPeriodoLetivoUseCase;
+import br.com.escola.academiccatalog.application.usecase.ListarPeriodosLetivosUseCase;
 import jakarta.validation.Valid;
 
 @RestController
@@ -26,12 +28,15 @@ public class PeriodoLetivoController {
 
     private final CriarPeriodoLetivoUseCase criarPeriodoLetivoUseCase;
     private final BuscarPeriodoLetivoPorIdUseCase buscarPeriodoLetivoPorIdUseCase;
+    private final ListarPeriodosLetivosUseCase listarPeriodosLetivosUseCase;
 
     public PeriodoLetivoController(
             CriarPeriodoLetivoUseCase criarPeriodoLetivoUseCase,
-            BuscarPeriodoLetivoPorIdUseCase buscarPeriodoLetivoPorIdUseCase) {
+            BuscarPeriodoLetivoPorIdUseCase buscarPeriodoLetivoPorIdUseCase,
+            ListarPeriodosLetivosUseCase listarPeriodosLetivosUseCase) {
         this.criarPeriodoLetivoUseCase = criarPeriodoLetivoUseCase;
         this.buscarPeriodoLetivoPorIdUseCase = buscarPeriodoLetivoPorIdUseCase;
+        this.listarPeriodosLetivosUseCase = listarPeriodosLetivosUseCase;
     }
 
     @PostMapping
@@ -40,6 +45,11 @@ public class PeriodoLetivoController {
         PeriodoLetivoOutput output = criarPeriodoLetivoUseCase.executar(
                 new PeriodoLetivoInput(request.nome(), request.dataInicio(), request.dataFim()));
         return toResponse(output);
+    }
+
+    @GetMapping
+    public List<PeriodoLetivoResponse> listar() {
+        return listarPeriodosLetivosUseCase.executar().stream().map(this::toResponse).toList();
     }
 
     @GetMapping("/{id}")
