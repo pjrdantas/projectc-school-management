@@ -51,9 +51,8 @@ class AlunoResponsavelVinculoControllerIntegrationTest {
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/api/alunos/{idAluno}/responsaveis", alunoId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$").isEmpty());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404));
     }
 
     @Test

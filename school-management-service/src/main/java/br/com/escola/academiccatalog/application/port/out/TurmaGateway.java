@@ -2,6 +2,7 @@ package br.com.escola.academiccatalog.application.port.out;
 
 import java.util.UUID;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.lang.NonNull;
@@ -16,4 +17,6 @@ public interface TurmaGateway {
     Optional<TurmaOutput> findByCodigoAndPeriodoLetivoId(String codigo, UUID periodoLetivoId);
 
     TurmaOutput save(TurmaInput input);
+
+    List<TurmaOutput> findAll();
 }

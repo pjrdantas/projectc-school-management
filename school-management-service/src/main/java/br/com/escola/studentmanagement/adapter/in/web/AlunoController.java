@@ -6,6 +6,7 @@ import java.util.List;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -68,7 +69,11 @@ public class AlunoController {
                     .toList();
         }
 
-        return alunos.stream().map(this::toResponse).toList();
+        List<AlunoResponse> response = alunos.stream().map(this::toResponse).toList();
+        if (response.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nenhum aluno encontrado");
+        }
+        return response;
     }
 
     @GetMapping("/{id}")
