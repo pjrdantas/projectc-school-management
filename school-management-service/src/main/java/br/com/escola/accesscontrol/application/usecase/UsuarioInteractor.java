@@ -87,6 +87,7 @@ public class UsuarioInteractor implements UsuarioUseCasePort {
 
     // ================= FIND BY ID =================
     @Override
+    @Transactional(readOnly = true)
     public UsuarioModel findById(UUID id) {
         return repository.findById(id)
                 .map(mapper::toDomain)
@@ -95,6 +96,7 @@ public class UsuarioInteractor implements UsuarioUseCasePort {
 
     // ================= FIND BY USERNAME =================
     @Override
+    @Transactional(readOnly = true)
     public UsuarioModel findByUsername(String username) {
         return repository.findByUsername(username)
                 .map(mapper::toDomain)
@@ -103,6 +105,7 @@ public class UsuarioInteractor implements UsuarioUseCasePort {
 
     // ================= LIST =================
     @Override
+    @Transactional(readOnly = true)
     public List<UsuarioModel> listAll() {
         return repository.findAll().stream()
                 .map(mapper::toDomain)

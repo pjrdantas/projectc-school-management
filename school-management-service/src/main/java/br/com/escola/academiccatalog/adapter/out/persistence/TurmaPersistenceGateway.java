@@ -3,6 +3,7 @@ package br.com.escola.academiccatalog.adapter.out.persistence;
 import java.util.UUID;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.lang.NonNull;
@@ -50,6 +51,11 @@ public class TurmaPersistenceGateway implements TurmaGateway {
         entity.setPeriodoLetivo(periodo);
         entity.setCreatedAt(LocalDateTime.now());
         return toOutput(turmaJpaRepository.save(entity));
+    }
+
+    @Override
+    public List<TurmaOutput> findAll() {
+        return turmaJpaRepository.findAll().stream().map(this::toOutput).toList();
     }
 
     private TurmaOutput toOutput(TurmaEntity entity) {
