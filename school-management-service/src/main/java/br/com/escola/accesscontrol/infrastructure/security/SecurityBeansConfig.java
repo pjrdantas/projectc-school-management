@@ -2,7 +2,6 @@ package br.com.escola.accesscontrol.infrastructure.security;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,7 +9,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -19,29 +17,21 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-
+import br.com.escola.accesscontrol.application.service.AuthService;
 
 @Configuration
 @EnableMethodSecurity
-public class SecurityConfig {
+public class SecurityBeansConfig {
 
-    private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
-    private final AuthSessaoService authSessaoService;
+    private final AuthService authService;
 
-    public SecurityConfig(
-            JwtUtil jwtUtil,
-            @Qualifier("jwtUserDetailsService") UserDetailsService userDetailsService,
-            AuthSessaoService authSessaoService
-    ) {
-        this.jwtUtil = jwtUtil;
-        this.userDetailsService = userDetailsService;
-        this.authSessaoService = authSessaoService;
+    public SecurityBeansConfig(AuthService authService) {
+        this.authService = authService;
     }
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtUtil, userDetailsService, authSessaoService);
+        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(authService);
 
         return http
             .csrf(csrf -> csrf.disable())
@@ -49,7 +39,7 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/v3/api-docs/**", "/v3/api-docs.yaml", "/swagger-ui/**", 
+                    "/v3/api-docs/**", "/v3/api-docs.yaml", "/swagger-ui/**",
                     "/swagger-ui.html", "/swagger-resources/**", "/webjars/**"
                 ).permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
