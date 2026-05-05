@@ -12,41 +12,34 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
+import br.com.escola.accesscontrol.adapter.out.persistence.entity.UsuarioEntity;
+import br.com.escola.accesscontrol.adapter.out.persistence.repository.SpringUsuarioJpaRepository;
 import lombok.RequiredArgsConstructor;
 
-@Service("jwtUserDetailsService") 
-@Primary    
+@Service("jwtUserDetailsService")
+@Primary
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final AuthUsuarioRepositoryPort userRepository;
+    private final SpringUsuarioJpaRepository userRepository;
 
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        
-        AuthUsuario authUsuario = userRepository.findByLogin(username)
+        UsuarioEntity usuario = userRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
 
-        if (!"S".equalsIgnoreCase(authUsuario.getAtivo())) {
+        if (!usuario.isAtivo()) {
             throw new DisabledException("Usuário inativo");
         }
 
         Set<String> authorities = new HashSet<>();
-        
-        authUsuario.getPerfis().forEach(perfil -> {
-            
-            authorities.add("ROLE_" + perfil.getNmPerfil().toUpperCase()); 
+        userRepository.findPerfisByIdUsuario(usuario.getId()).forEach(perfil -> authorities.add("ROLE_" + perfil));
+        userRepository.findPermissoesByIdUsuario(usuario.getId()).forEach(authorities::add);
 
-            perfil.getPermissoes().forEach(permissao -> {
-                authorities.add(permissao.getNmPermissao().toUpperCase()); 
-            });
-        });
-
-        return User.withUsername(authUsuario.getLogin())
-                .password(authUsuario.getSenha())
-                .authorities(authorities.toArray(new String[0])) 
+        return User.withUsername(usuario.getUsername())
+                .password(usuario.getSenhaHash())
+                .authorities(authorities.toArray(new String[0]))
                 .build();
     }
 }

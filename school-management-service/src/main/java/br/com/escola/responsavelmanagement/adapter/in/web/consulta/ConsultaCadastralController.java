@@ -20,12 +20,12 @@ public class ConsultaCadastralController {
 
     @GetMapping
     public ConsultaCadastralPageOutput consultar(
-            @RequestParam(required = false) String nomeAluno,
-            @RequestParam(required = false) String cpfAluno,
-            @RequestParam(required = false) String nomeResponsavel,
-            @RequestParam(required = false) String cpfResponsavel,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(name = "nomeAluno", required = false) String nomeAluno,
+            @RequestParam(name = "cpfAluno", required = false) String cpfAluno,
+            @RequestParam(name = "nomeResponsavel", required = false) String nomeResponsavel,
+            @RequestParam(name = "cpfResponsavel", required = false) String cpfResponsavel,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
         return consultarCadastroAlunoResponsavelUseCase.executar(
                 nomeAluno,
                 cpfAluno,
