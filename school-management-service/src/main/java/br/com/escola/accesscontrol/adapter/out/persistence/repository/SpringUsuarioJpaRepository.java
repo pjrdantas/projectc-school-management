@@ -49,4 +49,5 @@ public interface SpringUsuarioJpaRepository extends JpaRepository<UsuarioEntity,
     List<String> findPerfisByIdUsuario(@Param("idUsuario") UUID idUsuario);
     
     boolean existsByUsernameAndIdNot(String username, UUID id);
+    boolean existsByEmailAndIdNot(String email, UUID id);
 }

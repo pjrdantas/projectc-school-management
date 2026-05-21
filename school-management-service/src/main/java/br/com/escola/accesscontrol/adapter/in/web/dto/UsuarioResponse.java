@@ -1,6 +1,8 @@
 package br.com.escola.accesscontrol.adapter.in.web.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public record UsuarioResponse(
@@ -9,5 +11,7 @@ public record UsuarioResponse(
         String nome,
         String email,
         boolean ativo,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        List<UUID> perfilIds,
+        Set<String> perfis
 ) {}

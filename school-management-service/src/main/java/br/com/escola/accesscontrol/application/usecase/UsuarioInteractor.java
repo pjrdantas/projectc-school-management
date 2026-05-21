@@ -61,9 +61,13 @@ public class UsuarioInteractor implements UsuarioUseCasePort {
             throw new DataIntegrityViolationException("Já existe um usuário com este username.");
         }
 
-        existing.setUsername(model.getUsername());
+        if (repository.existsByEmailAndIdNot(model.getEmail(), id)) {
+            throw new DataIntegrityViolationException("Já existe um usuário com este email.");
+        }
+
+        existing.setUsername(model.getUsername().trim());
         existing.setNome(model.getNome());
-        existing.setEmail(model.getEmail());
+        existing.setEmail(model.getEmail().trim());
         existing.setAtivo(model.isAtivo());
 
         if (model.getSenhaHash() != null && !model.getSenhaHash().isBlank()) {

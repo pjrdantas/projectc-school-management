@@ -110,10 +110,10 @@ export class AccessAdminService {
 
   private mapUserToApi(payload: UserInput): any {
     return {
-      nome: payload.nome,
-      username: payload.username,
-      login: payload.username,
-      email: payload.email,
+      nome: (payload.nome ?? "").trim(),
+      username: (payload.username ?? "").trim(),
+      login: (payload.username ?? "").trim(),
+      email: (payload.email ?? "").trim(),
       senhaHash: payload.senhaHash,
       senha: payload.senhaHash,
       ativo: payload.ativo,
@@ -151,6 +151,7 @@ export class AccessAdminService {
 
   private mapPermissionToApi(payload: PermissionInput): any {
     return {
+      codigo: payload.codigo,
       nmPermissao: payload.codigo,
       descricao: payload.descricao,
     };
