@@ -151,6 +151,7 @@ export class AccessAdminService {
 
   private mapPermissionToApi(payload: PermissionInput): any {
     return {
+      codigo: payload.codigo,
       nmPermissao: payload.codigo,
       descricao: payload.descricao,
     };
