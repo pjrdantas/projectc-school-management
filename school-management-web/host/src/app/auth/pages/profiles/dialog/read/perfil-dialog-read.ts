@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
-import { Profile } from '../../../../../models/profile.model';
+import { Profile } from '../../../../models/profile.model';
 
 @Component({
   selector: 'app-perfil-dialog-read',
