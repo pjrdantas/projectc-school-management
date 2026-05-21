@@ -12,7 +12,6 @@ export class AccessAdminService {
 
   private selectedUserId: string | null = null;
   private selectedProfileId: string | null = null;
-  private selectedPermissionId: string | null = null;
   private selectedUser: User | null = null;
   private selectedProfile: Profile | null = null;
   selectUser(id: string | null) { this.selectedUserId = id; }
@@ -23,8 +22,6 @@ export class AccessAdminService {
   selectProfileEntity(profile: Profile | null) { this.selectedProfile = profile; this.selectedProfileId = profile?.id ?? null; }
   currentProfileId() { return this.selectedProfileId; }
   currentProfile() { return this.selectedProfile; }
-  selectPermission(id: string | null) { this.selectedPermissionId = id; }
-  currentPermissionId() { return this.selectedPermissionId; }
 
   listarUsuarios(): Observable<User[]> {
     return this.http.get<any[]>(`${API_BASE_URL}/api/usuarios`).pipe(map(rows => rows.map(this.mapUserFromApi)));

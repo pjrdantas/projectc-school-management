@@ -153,8 +153,8 @@ export const routes: Routes = [
       {
         path: 'auth/permissions',
         loadComponent: () =>
-          import('./auth/pages/permissions/list/auth-permissions-list.component').then(
-            m => m.AuthPermissionsListComponent,
+          import('./auth/pages/permissions/permissoes.component').then(
+            m => m.PermissoesComponent,
           ),
       },
 
@@ -179,27 +179,7 @@ export const routes: Routes = [
             m => m.PerfisComponent,
           ),
       },
-      {
-        path: 'auth/permissions/new',
-        loadComponent: () =>
-          import('./auth/pages/permissions/new/auth-permissions-new.component').then(
-            m => m.AuthPermissionsNewComponent,
-          ),
-      },
-      {
-        path: 'auth/permissions/detail',
-        loadComponent: () =>
-          import('./auth/pages/permissions/detail/auth-permissions-detail.component').then(
-            m => m.AuthPermissionsDetailComponent,
-          ),
-      },
-      {
-        path: 'auth/permissions/edit',
-        loadComponent: () =>
-          import('./auth/pages/permissions/new/auth-permissions-new.component').then(
-            m => m.AuthPermissionsNewComponent,
-          ),
-      },
+
       {
         path: 'microfrontend',
         loadComponent: () =>
