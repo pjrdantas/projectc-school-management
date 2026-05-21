@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AccessAdminService } from '../../services/access-admin.service';
 import { Permission } from '../../models/permission.model';
-import { PermissaoDialogEditComponent } from './dialog/edit-insert/permissao-dialog-edit.component';
+import { PermissaoDialogEditComponent } from './dialog/permissao-dialog-edit.component';
 
 @Component({
   selector: 'app-permissoes',
