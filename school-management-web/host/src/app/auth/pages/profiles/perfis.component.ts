@@ -4,8 +4,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { AccessAdminService } from '../../../services/access-admin.service';
-import { Profile } from '../../../models/profile.model';
+import { AccessAdminService } from '../../services/access-admin.service';
+import { Profile } from '../../models/profile.model';
 import { PerfilDialogEditComponent } from './dialog/edit-isert/perfil-dialog-edit';
 import { PerfilDialogReadComponent } from './dialog/read/perfil-dialog-read';
 
