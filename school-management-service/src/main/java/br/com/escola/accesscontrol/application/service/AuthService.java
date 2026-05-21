@@ -45,6 +45,8 @@ public class AuthService {
     public AuthResponse login(String login, String senha) {
         UsuarioEntity usuario = usuarioRepository.findByUsernameIgnoreCaseAndAtivoTrue(login)
                 .or(() -> usuarioRepository.findByEmailIgnoreCaseAndAtivoTrue(login))
+                .or(() -> usuarioRepository.findByUsernameTrimmedIgnoreCaseAndAtivoTrue(login))
+                .or(() -> usuarioRepository.findByEmailTrimmedIgnoreCaseAndAtivoTrue(login))
                 .orElseThrow(() -> new CredenciaisInvalidasException("Usuário ou senha inválidos"));
 
         if (!isValidPassword(senha, usuario.getSenhaHash(), usuario.getId(), usuario.getUsername())) {
