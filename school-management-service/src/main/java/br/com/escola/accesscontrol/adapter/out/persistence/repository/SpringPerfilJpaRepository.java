@@ -19,6 +19,29 @@ public interface SpringPerfilJpaRepository extends JpaRepository<PerfilEntity, U
     Optional<PerfilEntity> findByCodigo(String codigo);
 
     @Modifying
+    @Query(value = """
+            INSERT INTO perfil (id_perfil, codigo, nome, descricao, created_at)
+            VALUES (:id, :codigo, :nome, :descricao, CURRENT_TIMESTAMP)
+            """, nativeQuery = true)
+    void insertPerfil(@Param("id") UUID id,
+                      @Param("codigo") String codigo,
+                      @Param("nome") String nome,
+                      @Param("descricao") String descricao);
+
+    @Modifying
+    @Query(value = """
+            UPDATE perfil
+               SET codigo = :codigo,
+                   nome = :nome,
+                   descricao = :descricao
+             WHERE id_perfil = :id
+            """, nativeQuery = true)
+    void updatePerfilFields(@Param("id") UUID id,
+                            @Param("codigo") String codigo,
+                            @Param("nome") String nome,
+                            @Param("descricao") String descricao);
+
+    @Modifying
     @Query(value = "DELETE FROM perfil_permissao WHERE id_perfil = :perfilId", nativeQuery = true)
     void deletePermissoesByPerfilId(@Param("perfilId") UUID perfilId);
 
