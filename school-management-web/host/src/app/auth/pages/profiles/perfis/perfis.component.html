@@ -1,0 +1,29 @@
+<div class="page-container">
+  <mat-card class="student-card">
+    <mat-card-header>
+      <mat-card-title>Gestão de Perfis</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="actions">
+        <button mat-raised-button color="primary" (click)="openDialogCreate()">
+          <mat-icon>add</mat-icon>
+          Novo Perfil
+        </button>
+      </div>
+
+      <div class="list">
+        <div class="item" *ngFor="let p of perfis">
+          <div>
+            <strong>{{ p.nome }}</strong>
+            <p>{{ p.codigo }}</p>
+          </div>
+          <div>
+            <button mat-button (click)="openDialogDetails(p)">Consultar</button>
+            <button mat-button (click)="openDialogEdit(p)">Editar</button>
+            <button mat-button color="warn" (click)="delete(p.id)">Excluir</button>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

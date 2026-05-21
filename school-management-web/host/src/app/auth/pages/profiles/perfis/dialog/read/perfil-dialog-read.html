@@ -1,0 +1,13 @@
+<h2 mat-dialog-title class="dialog-title"><mat-icon>verified_user</mat-icon>Detalhes do Perfil</h2>
+<mat-dialog-content class="content">
+  <div class="info-grid"><div class="info-item item-full"><label>Nome do Perfil</label><p class="perfil-name">{{ data.nome }}</p></div></div>
+  <mat-divider class="divider"></mat-divider>
+  <div class="perfis-section">
+    <label>Permissões Vinculadas</label>
+    <mat-chip-set class="chip-list">
+      <mat-chip class="custom-chip" *ngFor="let p of data.permissoes">{{ p }}</mat-chip>
+      <p class="no-data" *ngIf="!data.permissoes?.length">Nenhuma permissão vinculada.</p>
+    </mat-chip-set>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end"><button mat-raised-button color="primary" class="botao-ok" (click)="dialogRef.close()"><mat-icon>close</mat-icon> Fechar</button></mat-dialog-actions>

@@ -1,0 +1,35 @@
+<h2 mat-dialog-title>{{ data ? 'Editar Perfil' : 'Novo Perfil' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="form-grid">
+    <mat-form-field appearance="outline" class="form-field">
+      <mat-label>Nome</mat-label>
+      <input matInput formControlName="nome" placeholder="Nome do perfil" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="permissao-field">
+      <mat-label>Permissão</mat-label>
+      <mat-select formControlName="permissaoSelecionada">
+        <mat-option *ngFor="let p of permissions" [value]="p.id">{{ p.codigo }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-raised-button type="button" (click)="addPermissao()" class="botao-adicionar">
+      <mat-icon>add</mat-icon>
+      Adicionar
+    </button>
+  </form>
+
+  <table mat-table [dataSource]="selectedPermissions" class="mat-elevation-z1">
+    <ng-container matColumnDef="id"><th mat-header-cell *matHeaderCellDef>ID</th><td mat-cell *matCellDef="let p">{{ p.id }}</td></ng-container>
+    <ng-container matColumnDef="codigo"><th mat-header-cell *matHeaderCellDef>Permissão</th><td mat-cell *matCellDef="let p">{{ p.codigo }}</td></ng-container>
+    <ng-container matColumnDef="actions"><th mat-header-cell *matHeaderCellDef>Ações</th><td mat-cell *matCellDef="let p"><button mat-icon-button color="warn" (click)="removePermissao(p)"><mat-icon>delete</mat-icon></button></td></ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions">
+  <button mat-button type="button" (click)="cancel()" class="botao-cancel"><mat-icon>cancel</mat-icon>Cancelar</button>
+  <button mat-raised-button (click)="save()" [disabled]="form.invalid" class="botao-ok"><mat-icon>check_circle</mat-icon>Salvar</button>
+</mat-dialog-actions>
