@@ -56,6 +56,14 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
         return repository.existsByUsernameAndIdNot(username, id);
     }
 
+
+    @Override
+    public boolean existsByEmailAndIdNot(String email, UUID id) {
+        Objects.requireNonNull(email, "email não pode ser nulo");
+        Objects.requireNonNull(id, "id não pode ser nulo");
+        return repository.existsByEmailAndIdNot(email, id);
+    }
+
     @Override
     public boolean existsById(UUID id) {
         Objects.requireNonNull(id, "id não pode ser nulo");
