@@ -16,6 +16,20 @@ public interface SpringUsuarioJpaRepository extends JpaRepository<UsuarioEntity,
     Optional<UsuarioEntity> findByUsernameIgnoreCaseAndAtivoTrue(String username);
     Optional<UsuarioEntity> findByUsernameIgnoreCase(String username);
     Optional<UsuarioEntity> findByEmailIgnoreCaseAndAtivoTrue(String email);
+    
+    @Query("""
+            SELECT u FROM UsuarioEntity u
+            WHERE u.ativo = true
+              AND lower(trim(u.username)) = lower(trim(:login))
+            """)
+    Optional<UsuarioEntity> findByUsernameTrimmedIgnoreCaseAndAtivoTrue(@Param("login") String login);
+
+    @Query("""
+            SELECT u FROM UsuarioEntity u
+            WHERE u.ativo = true
+              AND lower(trim(u.email)) = lower(trim(:login))
+            """)
+    Optional<UsuarioEntity> findByEmailTrimmedIgnoreCaseAndAtivoTrue(@Param("login") String login);
 
     @Query(value = """
             SELECT DISTINCT p.codigo
