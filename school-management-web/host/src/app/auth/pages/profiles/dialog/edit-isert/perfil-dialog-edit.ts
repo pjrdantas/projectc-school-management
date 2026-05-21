@@ -9,9 +9,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
-import { AccessAdminService } from '../../../../../services/access-admin.service';
-import { Permission } from '../../../../../models/permission.model';
-import { Profile } from '../../../../../models/profile.model';
+import { AccessAdminService } from '../../../../services/access-admin.service';
+import { Permission } from '../../../../models/permission.model';
+import { Profile } from '../../../../models/profile.model';
 
 @Component({
   selector: 'app-perfil-dialog-edit',
@@ -39,10 +39,12 @@ export class PerfilDialogEditComponent implements OnInit {
     if (this.data) {
       this.form.patchValue({ nome: this.data.nome });
     }
-    this.s.listarPermissoes().subscribe((p) => {
-      this.permissions = p;
-      const ids = this.data?.permissaoIds ?? [];
-      this.selectedPermissions = p.filter((x) => ids.includes(x.id));
+    this.s.listarPermissoes().subscribe((p: Permission[]) => {
+      queueMicrotask(() => {
+        this.permissions = p;
+        const ids = this.data?.permissaoIds ?? [];
+        this.selectedPermissions = p.filter((x: Permission) => ids.includes(x.id));
+      });
     });
   }
 
