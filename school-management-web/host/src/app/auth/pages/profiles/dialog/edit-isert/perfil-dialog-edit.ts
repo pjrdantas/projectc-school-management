@@ -40,9 +40,11 @@ export class PerfilDialogEditComponent implements OnInit {
       this.form.patchValue({ nome: this.data.nome });
     }
     this.s.listarPermissoes().subscribe((p: Permission[]) => {
-      this.permissions = p;
-      const ids = this.data?.permissaoIds ?? [];
-      this.selectedPermissions = p.filter((x: Permission) => ids.includes(x.id));
+      queueMicrotask(() => {
+        this.permissions = p;
+        const ids = this.data?.permissaoIds ?? [];
+        this.selectedPermissions = p.filter((x: Permission) => ids.includes(x.id));
+      });
     });
   }
 
