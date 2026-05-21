@@ -3,13 +3,15 @@
     <mat-card-content>
       <h1>CRUD de Usuários</h1>
       <form [formGroup]="form" (ngSubmit)="salvar()">
-        <input matInput placeholder="Username" formControlName="username">
-        <input matInput placeholder="Nome" formControlName="nome">
-        <input matInput placeholder="Email" formControlName="email">
-        <input matInput placeholder="Senha" formControlName="senhaHash">
+        <input matInput placeholder="Username" formControlName="username" />
+        <input matInput placeholder="Nome" formControlName="nome" />
+        <input matInput placeholder="Email" formControlName="email" />
+        <input matInput placeholder="Senha" formControlName="senhaHash" />
         <button mat-raised-button color="primary" type="submit">Salvar</button>
       </form>
-      <ul><li *ngFor="let u of usuarios">{{u.nome}} ({{u.username}})</li></ul>
+      <ul>
+        <li *ngFor="let u of usuarios">{{ u.nome }} ({{ u.username }})</li>
+      </ul>
     </mat-card-content>
   </mat-card>
 </div>

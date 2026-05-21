@@ -21,9 +21,20 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Período letivo *</mat-label>
-          <input matInput formControlName="periodoLetivoNome" [matAutocomplete]="autoPeriodo" (input)="onPeriodInput(($any($event.target).value || '').toString())" placeholder="Primeiro semestre" />
-          <mat-autocomplete #autoPeriodo="matAutocomplete" (optionSelected)="onPeriodOptionSelected($event.option.value)">
-            <mat-option *ngFor="let period of filteredPeriods()" [value]="period.id">{{ period.nome }}</mat-option>
+          <input
+            matInput
+            formControlName="periodoLetivoNome"
+            [matAutocomplete]="autoPeriodo"
+            (input)="onPeriodInput(($any($event.target).value || '').toString())"
+            placeholder="Primeiro semestre"
+          />
+          <mat-autocomplete
+            #autoPeriodo="matAutocomplete"
+            (optionSelected)="onPeriodOptionSelected($event.option.value)"
+          >
+            <mat-option *ngFor="let period of filteredPeriods()" [value]="period.id">{{
+              period.nome
+            }}</mat-option>
           </mat-autocomplete>
         </mat-form-field>
 
@@ -33,20 +44,37 @@
         </mat-form-field>
 
         <div class="actions">
-          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">{{ editingClassId() ? 'Atualizar turma' : 'Salvar turma' }}</button>
-          <button mat-stroked-button type="button" *ngIf="editingClassId()" (click)="clearForm()">Cancelar edição</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">
+            {{ editingClassId() ? 'Atualizar turma' : 'Salvar turma' }}
+          </button>
+          <button mat-stroked-button type="button" *ngIf="editingClassId()" (click)="clearForm()">
+            Cancelar edição
+          </button>
         </div>
       </form>
 
       <form class="search-row" [formGroup]="searchForm" (ngSubmit)="onSearchByName()">
         <mat-form-field appearance="outline" class="search-field">
           <mat-label>Consultar por nome da turma *</mat-label>
-          <input matInput formControlName="nome" [matAutocomplete]="autoClass" (input)="onClassSearchInput(($any($event.target).value || '').toString())" placeholder="Digite o nome da turma" />
+          <input
+            matInput
+            formControlName="nome"
+            [matAutocomplete]="autoClass"
+            (input)="onClassSearchInput(($any($event.target).value || '').toString())"
+            placeholder="Digite o nome da turma"
+          />
         </mat-form-field>
-        <mat-autocomplete #autoClass="matAutocomplete" (optionSelected)="onClassOptionSelected($event.option.value)">
-          <mat-option *ngFor="let turma of filteredClasses()" [value]="turma.id">{{ turma.nome }}</mat-option>
+        <mat-autocomplete
+          #autoClass="matAutocomplete"
+          (optionSelected)="onClassOptionSelected($event.option.value)"
+        >
+          <mat-option *ngFor="let turma of filteredClasses()" [value]="turma.id">{{
+            turma.nome
+          }}</mat-option>
         </mat-autocomplete>
-        <button mat-stroked-button type="submit" [disabled]="isLoading()"><mat-icon fontIcon="search"></mat-icon>Buscar</button>
+        <button mat-stroked-button type="submit" [disabled]="isLoading()">
+          <mat-icon fontIcon="search"></mat-icon>Buscar
+        </button>
       </form>
 
       <div class="empty-state" *ngIf="total() === 0">Nenhuma turma carregada ainda.</div>
@@ -61,11 +89,22 @@
           </div>
           <div class="actions-row">
             <button mat-stroked-button type="button" (click)="onEdit(turma.id)">Editar</button>
-            <button mat-stroked-button color="warn" type="button" (click)="onDelete(turma.id)">Excluir</button>
+            <button mat-stroked-button color="warn" type="button" (click)="onDelete(turma.id)">
+              Excluir
+            </button>
           </div>
         </div>
 
-      <mat-paginator *ngIf="total() > 5" [length]="total()" [pageIndex]="pageIndex()" [pageSize]="pageSize()" [pageSizeOptions]="pageSizeOptions" [hidePageSize]="true" showFirstLastButtons (page)="onPageChange($event)"></mat-paginator>
+        <mat-paginator
+          *ngIf="total() > 5"
+          [length]="total()"
+          [pageIndex]="pageIndex()"
+          [pageSize]="pageSize()"
+          [pageSizeOptions]="pageSizeOptions"
+          [hidePageSize]="true"
+          showFirstLastButtons
+          (page)="onPageChange($event)"
+        ></mat-paginator>
       </div>
     </mat-card-content>
   </mat-card>

@@ -60,7 +60,7 @@ export class EnrollmentSearchComponent {
     };
 
     this.enrollmentService.search(filter).subscribe({
-      next: response => {
+      next: (response) => {
         this.isLoading.set(false);
         this.result.set(response);
       },

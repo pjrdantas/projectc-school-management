@@ -64,7 +64,7 @@ export class EnrollmentNewComponent implements OnInit {
 
   protected readonly filteredStudents = computed(() =>
     this.students()
-      .filter(s =>
+      .filter((s) =>
         s.nomeCompleto
           .toLowerCase()
           .includes(this.form.controls.alunoNome.value.toLowerCase().trim()),
@@ -72,16 +72,20 @@ export class EnrollmentNewComponent implements OnInit {
       .slice(0, 10),
   );
 
-
   protected readonly filteredEnrollments = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     const list = this.enrollments();
     if (!term) return list;
-    return list.filter(item => {
+    return list.filter((item) => {
       const aluno = this.nomeAluno(item.alunoId).toLowerCase();
       const turma = this.nomeTurma(item.turmaId).toLowerCase();
       const periodo = this.nomePeriodo(item.periodoLetivoId).toLowerCase();
-      return aluno.includes(term) || turma.includes(term) || periodo.includes(term) || item.status.toLowerCase().includes(term);
+      return (
+        aluno.includes(term) ||
+        turma.includes(term) ||
+        periodo.includes(term) ||
+        item.status.toLowerCase().includes(term)
+      );
     });
   });
 
@@ -92,10 +96,9 @@ export class EnrollmentNewComponent implements OnInit {
   });
 
   constructor() {
-    this.studentsService.syncFromApi().subscribe({ next: list => this.students.set(list) });
-    this.enrollmentService.search({}).subscribe({ next: list => this.enrollments.set(list) });
+    this.studentsService.syncFromApi().subscribe({ next: (list) => this.students.set(list) });
+    this.enrollmentService.search({}).subscribe({ next: (list) => this.enrollments.set(list) });
   }
-
 
   ngOnInit(): void {
     this.academicService.hydrateSeedData().subscribe();
@@ -121,7 +124,7 @@ export class EnrollmentNewComponent implements OnInit {
 
     if (this.editingId()) {
       this.enrollments.set(
-        this.enrollments().map(item => (item.id === enrollment.id ? enrollment : item)),
+        this.enrollments().map((item) => (item.id === enrollment.id ? enrollment : item)),
       );
       this.clear();
       return;
@@ -135,7 +138,7 @@ export class EnrollmentNewComponent implements OnInit {
         periodoLetivoId: enrollment.periodoLetivoId,
       })
       .subscribe({
-        next: response => {
+        next: (response) => {
           this.isLoading.set(false);
           this.enrollments.set([{ ...response, status: raw.status }, ...this.enrollments()]);
           this.clear();
@@ -160,7 +163,7 @@ export class EnrollmentNewComponent implements OnInit {
 
   protected onEdit(item: Enrollment): void {
     this.editingId.set(item.id);
-    const aluno = this.students().find(s => s.id === item.alunoId);
+    const aluno = this.students().find((s) => s.id === item.alunoId);
     this.selectedAlunoId.set(item.alunoId);
     this.form.patchValue({
       alunoNome: aluno?.nomeCompleto ?? '',
@@ -171,7 +174,7 @@ export class EnrollmentNewComponent implements OnInit {
   }
 
   protected onDelete(id: string): void {
-    this.enrollments.set(this.enrollments().filter(i => i.id !== id));
+    this.enrollments.set(this.enrollments().filter((i) => i.id !== id));
   }
 
   protected clear(): void {
@@ -181,13 +184,17 @@ export class EnrollmentNewComponent implements OnInit {
   }
 
   protected nomeAluno(id: string): string {
-    return this.students().find(s => s.id === id)?.nomeCompleto ?? 'Aluno não encontrado';
+    return this.students().find((s) => s.id === id)?.nomeCompleto ?? 'Aluno não encontrado';
   }
   protected nomeTurma(id: string): string {
-    return this.academicService.listClasses().find(c => c.id === id)?.nome ?? 'Turma não encontrada';
+    return (
+      this.academicService.listClasses().find((c) => c.id === id)?.nome ?? 'Turma não encontrada'
+    );
   }
   protected nomePeriodo(id: string): string {
-    return this.academicService.listPeriods().find(p => p.id === id)?.nome ?? 'Período não encontrado';
+    return (
+      this.academicService.listPeriods().find((p) => p.id === id)?.nome ?? 'Período não encontrado'
+    );
   }
 
   protected get turmas() {
@@ -198,7 +205,16 @@ export class EnrollmentNewComponent implements OnInit {
     return this.academicService.listPeriods();
   }
 
-  protected onSearchTermChange(value: string): void { this.searchTerm.set(value); this.pageIndex.set(0); }
-  protected clearSearch(): void { this.searchTerm.set(''); this.pageIndex.set(0); }
-  protected onPageChange(event: PageEvent): void { this.pageSize.set(event.pageSize); this.pageIndex.set(event.pageIndex); }
+  protected onSearchTermChange(value: string): void {
+    this.searchTerm.set(value);
+    this.pageIndex.set(0);
+  }
+  protected clearSearch(): void {
+    this.searchTerm.set('');
+    this.pageIndex.set(0);
+  }
+  protected onPageChange(event: PageEvent): void {
+    this.pageSize.set(event.pageSize);
+    this.pageIndex.set(event.pageIndex);
+  }
 }

@@ -6,12 +6,18 @@
       <form class="form-grid" [formGroup]="form" (ngSubmit)="onCreateOrUpdate()">
         <mat-form-field appearance="outline">
           <mat-label>Aluno *</mat-label>
-          <input matInput formControlName="alunoNome" [matAutocomplete]="autoAluno" (input)="onAlunoInput()" />
+          <input
+            matInput
+            formControlName="alunoNome"
+            [matAutocomplete]="autoAluno"
+            (input)="onAlunoInput()"
+          />
           <mat-autocomplete #autoAluno="matAutocomplete">
             <mat-option
               *ngFor="let aluno of filteredStudents()"
               [value]="aluno.nomeCompleto"
-              (onSelectionChange)="selectAluno(aluno.id, aluno.nomeCompleto)">
+              (onSelectionChange)="selectAluno(aluno.id, aluno.nomeCompleto)"
+            >
               {{ aluno.nomeCompleto }}
             </mat-option>
           </mat-autocomplete>
@@ -20,14 +26,18 @@
         <mat-form-field appearance="outline">
           <mat-label>Turma *</mat-label>
           <mat-select formControlName="turmaId">
-            <mat-option *ngFor="let turma of turmas" [value]="turma.id">{{ turma.nome }}</mat-option>
+            <mat-option *ngFor="let turma of turmas" [value]="turma.id">{{
+              turma.nome
+            }}</mat-option>
           </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Período letivo *</mat-label>
           <mat-select formControlName="periodoLetivoId">
-            <mat-option *ngFor="let periodo of periodos" [value]="periodo.id">{{ periodo.nome }}</mat-option>
+            <mat-option *ngFor="let periodo of periodos" [value]="periodo.id">{{
+              periodo.nome
+            }}</mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -42,15 +52,28 @@
           <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">
             {{ editingId() ? 'Atualizar' : 'Criar matrícula' }}
           </button>
-          <button mat-stroked-button type="button" *ngIf="editingId()" (click)="clear()">Cancelar</button>
+          <button mat-stroked-button type="button" *ngIf="editingId()" (click)="clear()">
+            Cancelar
+          </button>
         </div>
       </form>
 
-
       <mat-form-field appearance="outline" class="search-field">
         <mat-label>Consultar por nome da turma/aluno/período/status</mat-label>
-        <input matInput [value]="searchTerm()" (input)="onSearchTermChange($any($event.target).value)" autocomplete="off" />
-        <button *ngIf="searchTerm()" mat-icon-button matSuffix type="button" aria-label="Limpar busca" (click)="clearSearch()">
+        <input
+          matInput
+          [value]="searchTerm()"
+          (input)="onSearchTermChange($any($event.target).value)"
+          autocomplete="off"
+        />
+        <button
+          *ngIf="searchTerm()"
+          mat-icon-button
+          matSuffix
+          type="button"
+          aria-label="Limpar busca"
+          (click)="clearSearch()"
+        >
           <mat-icon fontIcon="close"></mat-icon>
         </button>
       </mat-form-field>
@@ -65,12 +88,23 @@
           </div>
           <div class="actions-row">
             <button mat-stroked-button type="button" (click)="onEdit(enrollment)">Editar</button>
-            <button mat-stroked-button color="warn" type="button" (click)="onDelete(enrollment.id)">Excluir</button>
+            <button mat-stroked-button color="warn" type="button" (click)="onDelete(enrollment.id)">
+              Excluir
+            </button>
           </div>
         </div>
       </div>
 
-      <mat-paginator *ngIf="totalEnrollments() > 5" [length]="totalEnrollments()" [pageIndex]="pageIndex()" [pageSize]="pageSize()" [pageSizeOptions]="pageSizeOptions" [hidePageSize]="true" showFirstLastButtons (page)="onPageChange($event)"></mat-paginator>
+      <mat-paginator
+        *ngIf="totalEnrollments() > 5"
+        [length]="totalEnrollments()"
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="pageSizeOptions"
+        [hidePageSize]="true"
+        showFirstLastButtons
+        (page)="onPageChange($event)"
+      ></mat-paginator>
     </mat-card-content>
   </mat-card>
 </div>

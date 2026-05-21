@@ -13,7 +13,14 @@ import { Profile } from '../../../models/profile.model';
 @Component({
   standalone: true,
   selector: 'app-auth-users-detail',
-  imports: [CommonModule, MatButtonModule, MatCardModule, MatIconModule, MatChipsModule, MatDividerModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    MatChipsModule,
+    MatDividerModule,
+  ],
   templateUrl: './auth-users-detail.component.html',
 })
 export class AuthUsersDetailComponent implements OnInit {
@@ -39,7 +46,7 @@ export class AuthUsersDetailComponent implements OnInit {
     const id = this.route.snapshot.queryParamMap.get('id') ?? this.service.currentUserId();
     if (!id) return;
 
-    this.service.buscarUsuario(id).subscribe(u => {
+    this.service.buscarUsuario(id).subscribe((u) => {
       this.usuario = u;
       if ((u.perfis ?? []).length) {
         this.profileNames = u.perfis ?? [];
@@ -55,11 +62,13 @@ export class AuthUsersDetailComponent implements OnInit {
       return;
     }
 
-    this.service.listarPerfis().subscribe(all => {
+    this.service.listarPerfis().subscribe((all) => {
       const byId = new Map(all.map((p: Profile) => [p.id, p.nome]));
-      this.profileNames = ids.map(id => byId.get(id) ?? id);
+      this.profileNames = ids.map((id) => byId.get(id) ?? id);
     });
   }
 
-  voltar() { this.router.navigate(['/auth/users']); }
+  voltar() {
+    this.router.navigate(['/auth/users']);
+  }
 }

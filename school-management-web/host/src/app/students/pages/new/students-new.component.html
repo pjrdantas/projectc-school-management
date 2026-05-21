@@ -17,7 +17,12 @@
 
         <mat-form-field appearance="outline">
           <mat-label>CPF *</mat-label>
-          <input matInput formControlName="cpf" (input)="onCpfInput()" placeholder="000.000.000-00" />
+          <input
+            matInput
+            formControlName="cpf"
+            (input)="onCpfInput()"
+            placeholder="000.000.000-00"
+          />
           <mat-error *ngIf="alunoForm.controls.cpf.hasError('cpfInvalido')">
             Informe um CPF válido.
           </mat-error>
@@ -41,7 +46,12 @@
 
         <mat-form-field appearance="outline">
           <mat-label>E-mail *</mat-label>
-          <input matInput type="email" formControlName="email" placeholder="fulano.silva@email.com" />
+          <input
+            matInput
+            type="email"
+            formControlName="email"
+            placeholder="fulano.silva@email.com"
+          />
           <mat-error *ngIf="alunoForm.controls.email.hasError('emailInvalido')">
             Informe um e-mail válido no formato usuario@dominio.
           </mat-error>
@@ -79,8 +89,12 @@
             <mat-autocomplete
               #autoResponsible="matAutocomplete"
               [displayWith]="displayResponsible"
-              (optionSelected)="onResponsibleOptionSelected($event.option.value)">
-              <mat-option *ngFor="let responsible of filteredResponsibles()" [value]="responsible.id">
+              (optionSelected)="onResponsibleOptionSelected($event.option.value)"
+            >
+              <mat-option
+                *ngFor="let responsible of filteredResponsibles()"
+                [value]="responsible.id"
+              >
                 {{ responsible.nomeCompleto }} - {{ formatCpf(responsible.cpf) }}
               </mat-option>
             </mat-autocomplete>
@@ -90,7 +104,10 @@
             </button>
           </div>
 
-          <div class="responsaveis-lista" *ngIf="selectedResponsibles().length; else noResponsibles">
+          <div
+            class="responsaveis-lista"
+            *ngIf="selectedResponsibles().length; else noResponsibles"
+          >
             <div class="responsavel-item" *ngFor="let responsible of selectedResponsibles()">
               <div>
                 <strong>{{ responsible.nomeCompleto }}</strong>
@@ -98,7 +115,12 @@
                 <p>E-mail: {{ responsible.email || 'Não informado' }}</p>
                 <p>Telefone: {{ responsible.telefone || 'Não informado' }}</p>
               </div>
-              <button mat-button color="warn" type="button" (click)="removeResponsible(responsible.id)">
+              <button
+                mat-button
+                color="warn"
+                type="button"
+                (click)="removeResponsible(responsible.id)"
+              >
                 Excluir
               </button>
             </div>
