@@ -2,7 +2,7 @@
   <mat-card class="federated-card">
     <mat-card-content>
       <h1>Consulta de matrículas</h1>
-            <form class="form-grid" [formGroup]="form" (ngSubmit)="onSearch()">
+      <form class="form-grid" [formGroup]="form" (ngSubmit)="onSearch()">
         <mat-form-field appearance="outline">
           <mat-label>ID do aluno</mat-label>
           <input matInput formControlName="alunoId" />
@@ -46,7 +46,9 @@
           <p><strong>Aluno:</strong> {{ enrollment.alunoId }}</p>
           <p><strong>Turma:</strong> {{ enrollment.turmaId }}</p>
           <p><strong>Período:</strong> {{ enrollment.periodoLetivoId }}</p>
-          <p><strong>Status:</strong> <span class="status">{{ enrollment.status }}</span></p>
+          <p>
+            <strong>Status:</strong> <span class="status">{{ enrollment.status }}</span>
+          </p>
         </div>
       </div>
     </mat-card-content>

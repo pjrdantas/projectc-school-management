@@ -51,7 +51,7 @@ export class StudentsListComponent implements OnInit {
     const students = this.studentsSignal();
     const filtered = !term
       ? students
-      : students.filter(student => student.nomeCompleto.toLowerCase().includes(term));
+      : students.filter((student) => student.nomeCompleto.toLowerCase().includes(term));
 
     return [...filtered].sort((a, b) =>
       a.nomeCompleto.localeCompare(b.nomeCompleto, 'pt-BR', { sensitivity: 'base' }),

@@ -1,6 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -50,7 +57,7 @@ export class ResponsiblesNewComponent implements OnInit {
     if (!id) return;
 
     this.responsiblesService.fetchByIdFromApi(id).subscribe({
-      next: responsible => {
+      next: (responsible) => {
         this.responsibleId.set(id);
         this.form.patchValue({
           nomeCompleto: responsible.nomeCompleto,
@@ -87,7 +94,8 @@ export class ResponsiblesNewComponent implements OnInit {
           this.snackBar.open('Responsável atualizado com sucesso.', 'Fechar', { duration: 3000 });
           this.router.navigate(['/responsibles']);
         },
-        error: () => this.snackBar.open('Erro ao atualizar responsável.', 'Fechar', { duration: 4000 }),
+        error: () =>
+          this.snackBar.open('Erro ao atualizar responsável.', 'Fechar', { duration: 4000 }),
       });
       return;
     }
@@ -97,7 +105,8 @@ export class ResponsiblesNewComponent implements OnInit {
         this.snackBar.open('Responsável cadastrado com sucesso.', 'Fechar', { duration: 3000 });
         this.router.navigate(['/responsibles']);
       },
-      error: () => this.snackBar.open('Erro ao cadastrar responsável.', 'Fechar', { duration: 4000 }),
+      error: () =>
+        this.snackBar.open('Erro ao cadastrar responsável.', 'Fechar', { duration: 4000 }),
     });
   }
 
@@ -106,11 +115,15 @@ export class ResponsiblesNewComponent implements OnInit {
   }
 
   protected onCpfInput(): void {
-    this.form.controls.cpf.setValue(this.formatCpf(this.form.controls.cpf.value), { emitEvent: false });
+    this.form.controls.cpf.setValue(this.formatCpf(this.form.controls.cpf.value), {
+      emitEvent: false,
+    });
   }
 
   protected onTelefoneInput(): void {
-    this.form.controls.telefone.setValue(this.formatTelefone(this.form.controls.telefone.value), { emitEvent: false });
+    this.form.controls.telefone.setValue(this.formatTelefone(this.form.controls.telefone.value), {
+      emitEvent: false,
+    });
   }
 
   private cpfValidator(): ValidatorFn {
@@ -144,7 +157,8 @@ export class ResponsiblesNewComponent implements OnInit {
     const digits = this.onlyDigits(value).slice(0, 11);
     if (digits.length <= 2) return digits;
     if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    if (digits.length <= 10)
+      return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
     return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
   }
 }

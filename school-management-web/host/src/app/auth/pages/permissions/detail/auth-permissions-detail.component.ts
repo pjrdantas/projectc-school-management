@@ -1,2 +1,25 @@
-import { CommonModule } from '@angular/common'; import { Component, OnInit, inject } from '@angular/core'; import { ActivatedRoute, Router } from '@angular/router'; import { MatButtonModule } from '@angular/material/button'; import { MatCardModule } from '@angular/material/card'; import { AccessAdminService } from '../../../services/access-admin.service'; import { Permission } from '../../../models/permission.model';
-@Component({standalone:true,imports:[CommonModule,MatButtonModule,MatCardModule],templateUrl:'./auth-permissions-detail.component.html'}) export class AuthPermissionsDetailComponent implements OnInit{private route=inject(ActivatedRoute); private s=inject(AccessAdminService); private r=inject(Router); permissao?:Permission; ngOnInit(){const id=this.s.currentPermissionId(); if(id)this.s.buscarPermissao(id).subscribe(v=>this.permissao=v);} voltar(){this.r.navigate(['/auth/permissions']);}}
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { AccessAdminService } from '../../../services/access-admin.service';
+import { Permission } from '../../../models/permission.model';
+@Component({
+  standalone: true,
+  imports: [CommonModule, MatButtonModule, MatCardModule],
+  templateUrl: './auth-permissions-detail.component.html',
+})
+export class AuthPermissionsDetailComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private s = inject(AccessAdminService);
+  private r = inject(Router);
+  permissao?: Permission;
+  ngOnInit() {
+    const id = this.s.currentPermissionId();
+    if (id) this.s.buscarPermissao(id).subscribe((v) => (this.permissao = v));
+  }
+  voltar() {
+    this.r.navigate(['/auth/permissions']);
+  }
+}

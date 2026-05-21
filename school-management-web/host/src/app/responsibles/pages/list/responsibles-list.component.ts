@@ -50,7 +50,7 @@ export class ResponsiblesListComponent implements OnInit {
     const items = this.responsiblesSignal();
     const filtered = !term
       ? items
-      : items.filter(item => item.nomeCompleto.toLowerCase().includes(term));
+      : items.filter((item) => item.nomeCompleto.toLowerCase().includes(term));
 
     return [...filtered].sort((a, b) =>
       a.nomeCompleto.localeCompare(b.nomeCompleto, 'pt-BR', { sensitivity: 'base' }),
@@ -67,7 +67,8 @@ export class ResponsiblesListComponent implements OnInit {
 
   ngOnInit(): void {
     this.responsiblesService.syncFromApi().subscribe({
-      error: () => this.snackBar.open('Não foi possível carregar responsáveis.', 'Fechar', { duration: 4000 }),
+      error: () =>
+        this.snackBar.open('Não foi possível carregar responsáveis.', 'Fechar', { duration: 4000 }),
     });
   }
 
@@ -80,7 +81,8 @@ export class ResponsiblesListComponent implements OnInit {
     this.searchTerm.set(term);
     this.pageIndex.set(0);
     this.responsiblesService.syncFromApi(term || undefined).subscribe({
-      error: () => this.snackBar.open('Não foi possível buscar responsáveis.', 'Fechar', { duration: 4000 }),
+      error: () =>
+        this.snackBar.open('Não foi possível buscar responsáveis.', 'Fechar', { duration: 4000 }),
     });
   }
 
@@ -88,7 +90,10 @@ export class ResponsiblesListComponent implements OnInit {
     this.searchTerm.set('');
     this.pageIndex.set(0);
     this.responsiblesService.syncFromApi().subscribe({
-      error: () => this.snackBar.open('Não foi possível recarregar responsáveis.', 'Fechar', { duration: 4000 }),
+      error: () =>
+        this.snackBar.open('Não foi possível recarregar responsáveis.', 'Fechar', {
+          duration: 4000,
+        }),
     });
   }
 

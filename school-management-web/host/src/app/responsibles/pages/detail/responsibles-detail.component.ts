@@ -30,7 +30,7 @@ export class ResponsiblesDetailComponent implements OnInit {
     }
 
     this.responsiblesService.fetchByIdFromApi(id).subscribe({
-      next: responsible => this.responsible.set(responsible),
+      next: (responsible) => this.responsible.set(responsible),
       error: () => {
         this.snackBar.open('Responsável não encontrado.', 'Fechar', { duration: 3000 });
         this.router.navigate(['/responsibles']);

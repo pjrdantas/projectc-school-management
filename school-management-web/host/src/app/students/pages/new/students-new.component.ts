@@ -58,7 +58,7 @@ export class StudentsNewComponent implements OnInit {
     const termRaw = this.responsibleSearchTerm().trim().toLowerCase();
     const selectedIds = new Set(this.selectedResponsibleIds());
 
-    return this.responsibles().filter(responsible => {
+    return this.responsibles().filter((responsible) => {
       if (selectedIds.has(responsible.id)) {
         return false;
       }
@@ -74,7 +74,7 @@ export class StudentsNewComponent implements OnInit {
   protected readonly searchedResponsible = computed(() => this.filteredResponsibles()[0] ?? null);
   protected readonly selectedResponsibles = computed(() => {
     const selectedIds = new Set(this.selectedResponsibleIds());
-    return this.responsibles().filter(item => selectedIds.has(item.id));
+    return this.responsibles().filter((item) => selectedIds.has(item.id));
   });
 
   protected readonly alunoForm = this.fb.nonNullable.group({
@@ -87,7 +87,7 @@ export class StudentsNewComponent implements OnInit {
 
   ngOnInit(): void {
     this.responsiblesService.syncFromApi().subscribe({
-      next: responsaveis => this.responsibles.set(responsaveis),
+      next: (responsaveis) => this.responsibles.set(responsaveis),
       error: () => {
         this.snackBar.open('Não foi possível carregar responsáveis para vínculo.', 'Fechar', {
           duration: 3000,
@@ -101,7 +101,7 @@ export class StudentsNewComponent implements OnInit {
     }
 
     this.studentsService.fetchByIdFromApi(id).subscribe({
-      next: student => {
+      next: (student) => {
         this.studentId.set(id);
         this.alunoForm.patchValue({
           nomeCompleto: student.nomeCompleto,
@@ -151,21 +151,17 @@ export class StudentsNewComponent implements OnInit {
       ? this.studentsService.updateOnApi(id, payload)
       : this.studentsService.createOnApi(payload);
 
-    request$
-      .pipe(switchMap(student => this.sincronizarResponsaveis(student.id)))
-      .subscribe({
-        next: () => {
-          const mensagem = id
-            ? 'Aluno atualizado com sucesso.'
-            : 'Aluno cadastrado com sucesso.';
-          this.snackBar.open(mensagem, 'Fechar', { duration: 3000 });
-          this.router.navigate(['/students']);
-        },
-        error: (error: { status?: number }) => {
-          const message = this.mapApiErrorMessage(error?.status);
-          this.snackBar.open(message, 'Fechar', { duration: 4000 });
-        },
-      });
+    request$.pipe(switchMap((student) => this.sincronizarResponsaveis(student.id))).subscribe({
+      next: () => {
+        const mensagem = id ? 'Aluno atualizado com sucesso.' : 'Aluno cadastrado com sucesso.';
+        this.snackBar.open(mensagem, 'Fechar', { duration: 3000 });
+        this.router.navigate(['/students']);
+      },
+      error: (error: { status?: number }) => {
+        const message = this.mapApiErrorMessage(error?.status);
+        this.snackBar.open(message, 'Fechar', { duration: 4000 });
+      },
+    });
   }
 
   protected onCancel(): void {
@@ -208,12 +204,16 @@ export class StudentsNewComponent implements OnInit {
 
   protected addResponsibleFromSearch(): void {
     const found = this.pendingResponsibleId()
-      ? this.responsibles().find(item => item.id === this.pendingResponsibleId())
+      ? this.responsibles().find((item) => item.id === this.pendingResponsibleId())
       : null;
     if (!found) {
-      this.snackBar.open('Selecione um responsável pelo nome antes de clicar em selecionar.', 'Fechar', {
-        duration: 3000,
-      });
+      this.snackBar.open(
+        'Selecione um responsável pelo nome antes de clicar em selecionar.',
+        'Fechar',
+        {
+          duration: 3000,
+        },
+      );
       return;
     }
 
@@ -231,7 +231,7 @@ export class StudentsNewComponent implements OnInit {
   }
 
   protected removeResponsible(idResponsible: string): void {
-    const updatedIds = this.selectedResponsibleIds().filter(id => id !== idResponsible);
+    const updatedIds = this.selectedResponsibleIds().filter((id) => id !== idResponsible);
     this.selectedResponsibleIds.set(updatedIds);
   }
 
@@ -240,14 +240,14 @@ export class StudentsNewComponent implements OnInit {
       return '';
     }
 
-    const responsible = this.responsibles().find(item => item.id === idResponsible);
+    const responsible = this.responsibles().find((item) => item.id === idResponsible);
     return responsible ? `${responsible.nomeCompleto} - ${this.formatCpf(responsible.cpf)}` : '';
   };
 
   private carregarResponsaveisVinculados(idAluno: string): void {
     this.responsiblesService.listarResponsaveisPorAluno(idAluno).subscribe({
-      next: responsaveis => {
-        const ids = responsaveis.map(item => item.id);
+      next: (responsaveis) => {
+        const ids = responsaveis.map((item) => item.id);
         this.selectedResponsibleIds.set(ids);
       },
       error: () => {
@@ -262,16 +262,16 @@ export class StudentsNewComponent implements OnInit {
     const selectedIds = [...new Set(this.selectedResponsibleIds())];
 
     return this.responsiblesService.listarResponsaveisPorAluno(idAluno).pipe(
-      switchMap(vinculosAtuais => {
-        const atuaisIds = vinculosAtuais.map(item => item.id);
-        const toAdd = selectedIds.filter(id => !atuaisIds.includes(id));
-        const toRemove = atuaisIds.filter(id => !selectedIds.includes(id));
+      switchMap((vinculosAtuais) => {
+        const atuaisIds = vinculosAtuais.map((item) => item.id);
+        const toAdd = selectedIds.filter((id) => !atuaisIds.includes(id));
+        const toRemove = atuaisIds.filter((id) => !selectedIds.includes(id));
 
         const requests: Observable<unknown>[] = [
-          ...toAdd.map(idResponsavel =>
+          ...toAdd.map((idResponsavel) =>
             this.responsiblesService.vincularAlunoResponsavel(idAluno, idResponsavel),
           ),
-          ...toRemove.map(idResponsavel =>
+          ...toRemove.map((idResponsavel) =>
             this.responsiblesService.desvincularAlunoResponsavel(idAluno, idResponsavel),
           ),
         ];

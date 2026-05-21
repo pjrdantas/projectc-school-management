@@ -12,7 +12,14 @@ import { Permission } from '../../../models/permission.model';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatCardModule, MatIconModule, MatChipsModule, MatDividerModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    MatChipsModule,
+    MatDividerModule,
+  ],
   templateUrl: './auth-profiles-detail.component.html',
 })
 export class AuthProfilesDetailComponent implements OnInit {
@@ -38,7 +45,7 @@ export class AuthProfilesDetailComponent implements OnInit {
     const id = this.route.snapshot.queryParamMap.get('id') ?? this.s.currentProfileId();
     if (!id) return;
 
-    this.s.buscarPerfil(id).subscribe(v => {
+    this.s.buscarPerfil(id).subscribe((v) => {
       this.perfil = v;
       if ((v.permissoes ?? []).length) {
         this.permissionNames = v.permissoes ?? [];
@@ -54,11 +61,13 @@ export class AuthProfilesDetailComponent implements OnInit {
       return;
     }
 
-    this.s.listarPermissoes().subscribe(all => {
+    this.s.listarPermissoes().subscribe((all) => {
       const byId = new Map(all.map((p: Permission) => [p.id, p.codigo]));
-      this.permissionNames = ids.map(id => byId.get(id) ?? id);
+      this.permissionNames = ids.map((id) => byId.get(id) ?? id);
     });
   }
 
-  voltar() { this.r.navigate(['/auth/profiles']); }
+  voltar() {
+    this.r.navigate(['/auth/profiles']);
+  }
 }

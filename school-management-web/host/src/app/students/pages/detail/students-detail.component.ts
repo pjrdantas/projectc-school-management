@@ -17,13 +17,7 @@ import { ResponsiblesService } from '../../../responsibles/services/responsibles
 @Component({
   selector: 'app-students-detail',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    RouterLink,
-    MatSnackBarModule,
-  ],
+  imports: [CommonModule, MatCardModule, MatButtonModule, RouterLink, MatSnackBarModule],
   templateUrl: './students-detail.component.html',
   styleUrls: ['./students-detail.component.scss'],
 })
@@ -47,7 +41,7 @@ export class StudentsDetailComponent implements OnInit {
     }
 
     this.studentsService.fetchByIdFromApi(id).subscribe({
-      next: student => {
+      next: (student) => {
         this.student.set(student);
         this.carregarResponsaveis(student.id);
       },
@@ -58,7 +52,7 @@ export class StudentsDetailComponent implements OnInit {
     });
 
     this.responsiblesService.syncFromApi().subscribe({
-      next: responsibles => this.responsibles.set(responsibles),
+      next: (responsibles) => this.responsibles.set(responsibles),
       error: () => {
         this.snackBar.open('Não foi possível carregar responsáveis.', 'Fechar', { duration: 3000 });
       },
@@ -69,16 +63,18 @@ export class StudentsDetailComponent implements OnInit {
     const aluno = this.student();
     if (!aluno || !this.selectedResponsibleId) return;
 
-    this.responsiblesService.vincularAlunoResponsavel(aluno.id, this.selectedResponsibleId).subscribe({
-      next: () => {
-        this.snackBar.open('Responsável vinculado com sucesso.', 'Fechar', { duration: 3000 });
-        this.selectedResponsibleId = '';
-        this.carregarResponsaveis(aluno.id);
-      },
-      error: () => {
-        this.snackBar.open('Erro ao vincular responsável.', 'Fechar', { duration: 4000 });
-      },
-    });
+    this.responsiblesService
+      .vincularAlunoResponsavel(aluno.id, this.selectedResponsibleId)
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Responsável vinculado com sucesso.', 'Fechar', { duration: 3000 });
+          this.selectedResponsibleId = '';
+          this.carregarResponsaveis(aluno.id);
+        },
+        error: () => {
+          this.snackBar.open('Erro ao vincular responsável.', 'Fechar', { duration: 4000 });
+        },
+      });
   }
 
   protected desvincularResponsavel(idResponsavel: string): void {
@@ -110,9 +106,11 @@ export class StudentsDetailComponent implements OnInit {
 
   private carregarResponsaveis(idAluno: string): void {
     this.responsiblesService.listarResponsaveisPorAluno(idAluno).subscribe({
-      next: responsaveis => this.vinculos.set(responsaveis),
+      next: (responsaveis) => this.vinculos.set(responsaveis),
       error: () => {
-        this.snackBar.open('Não foi possível carregar vínculos do aluno.', 'Fechar', { duration: 3000 });
+        this.snackBar.open('Não foi possível carregar vínculos do aluno.', 'Fechar', {
+          duration: 3000,
+        });
       },
     });
   }

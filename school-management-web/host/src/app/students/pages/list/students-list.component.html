@@ -17,14 +17,16 @@
           matInput
           [value]="searchTerm()"
           (input)="onSearchTermChange($any($event.target).value)"
-          autocomplete="off" />
+          autocomplete="off"
+        />
         <button
           *ngIf="searchTerm()"
           mat-icon-button
           matSuffix
           type="button"
           aria-label="Limpar busca"
-          (click)="clearSearch()">
+          (click)="clearSearch()"
+        >
           <mat-icon fontIcon="close"></mat-icon>
         </button>
       </mat-form-field>
@@ -48,7 +50,9 @@
           </div>
           <div class="actions-row">
             <button mat-stroked-button [routerLink]="['/students', student.id]">Consultar</button>
-            <button mat-stroked-button [routerLink]="['/students', student.id, 'edit']">Editar</button>
+            <button mat-stroked-button [routerLink]="['/students', student.id, 'edit']">
+              Editar
+            </button>
             <button mat-stroked-button color="warn" (click)="remover(student.id)">Excluir</button>
           </div>
         </div>
@@ -63,7 +67,8 @@
         [hidePageSize]="true"
         showFirstLastButtons
         aria-label="Paginação da lista de alunos"
-        (page)="onPageChange($event)">
+        (page)="onPageChange($event)"
+      >
       </mat-paginator>
     </mat-card-content>
   </mat-card>

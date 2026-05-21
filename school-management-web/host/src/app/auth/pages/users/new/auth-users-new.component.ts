@@ -12,16 +12,59 @@ import { MatSelectModule } from '@angular/material/select';
 import { Profile } from '../../../models/profile.model';
 import { AccessAdminService } from '../../../services/access-admin.service';
 
-@Component({standalone:true,imports:[CommonModule,ReactiveFormsModule,MatButtonModule,MatCardModule,MatFormFieldModule,MatInputModule,MatSlideToggleModule,MatIconModule,MatSelectModule],templateUrl:'./auth-users-new.component.html',styleUrls:['./auth-users-new.component.scss']})
-export class AuthUsersNewComponent implements OnInit{ private fb=inject(FormBuilder); private service=inject(AccessAdminService); private router=inject(Router); private route=inject(ActivatedRoute); userId=signal<string|null>(null); profiles: Profile[] = [];
-form=this.fb.group({username:['',Validators.required],nome:['',Validators.required],email:['',[Validators.required,Validators.email]],senhaHash:['',Validators.required],ativo:[true],perfilIds:[[] as string[]]});
-ngOnInit(){
-  this.service.listarPerfis().subscribe(p => this.profiles = p);
-  const id=this.route.snapshot.queryParamMap.get('id') ?? this.service.currentUserId();
-  if(!id) return;
-  this.userId.set(id);
-  this.service.buscarUsuario(id).subscribe(u=>this.form.patchValue({...u, senhaHash:'********'}));
+@Component({
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSlideToggleModule,
+    MatIconModule,
+    MatSelectModule,
+  ],
+  templateUrl: './auth-users-new.component.html',
+  styleUrls: ['./auth-users-new.component.scss'],
+})
+export class AuthUsersNewComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private service = inject(AccessAdminService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  userId = signal<string | null>(null);
+  profiles: Profile[] = [];
+  form = this.fb.group({
+    username: ['', Validators.required],
+    nome: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    senhaHash: ['', Validators.required],
+    ativo: [true],
+    perfilIds: [[] as string[]],
+  });
+  ngOnInit() {
+    this.service.listarPerfis().subscribe((p) => (this.profiles = p));
+    const id = this.route.snapshot.queryParamMap.get('id') ?? this.service.currentUserId();
+    if (!id) return;
+    this.userId.set(id);
+    this.service
+      .buscarUsuario(id)
+      .subscribe((u) => this.form.patchValue({ ...u, senhaHash: '********' }));
+  }
+  salvar() {
+    if (this.form.invalid) return;
+    const id = this.userId();
+    const payload = this.form.getRawValue() as any;
+    const obs = id
+      ? this.service.atualizarUsuario(id, payload)
+      : this.service.criarUsuario(payload);
+    obs.subscribe(() => this.router.navigate(['/auth/users']));
+  }
+  isAdminProfile(codigo?: string) {
+    return (codigo || '').toUpperCase() === 'ADMIN';
+  }
+  onCancel() {
+    this.router.navigate(['/auth/users']);
+  }
 }
- salvar(){if(this.form.invalid)return; const id=this.userId(); const payload=this.form.getRawValue() as any; const obs=id?this.service.atualizarUsuario(id,payload):this.service.criarUsuario(payload); obs.subscribe(()=>this.router.navigate(['/auth/users']));}
- isAdminProfile(codigo?:string){return (codigo||'').toUpperCase()==='ADMIN';}
- onCancel(){this.router.navigate(['/auth/users']);}}
