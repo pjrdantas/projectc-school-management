@@ -14,7 +14,7 @@ import { PerfilDialogReadComponent } from './dialog/read/perfil-dialog-read';
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatCardModule, MatIconModule, MatDialogModule],
   templateUrl: './perfis.component.html',
-  styleUrls: ['../list/auth-profiles-list.component.scss', './perfis.component.scss'],
+  styleUrls: ['./perfis.component.scss'],
 })
 export class PerfisComponent implements OnInit {
   private s = inject(AccessAdminService);
