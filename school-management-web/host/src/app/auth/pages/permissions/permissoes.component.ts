@@ -7,7 +7,6 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AccessAdminService } from '../../services/access-admin.service';
 import { Permission } from '../../models/permission.model';
 import { PermissaoDialogEditComponent } from './dialog/edit-insert/permissao-dialog-edit.component';
-import { PermissaoDialogReadComponent } from './dialog/read/permissao-dialog-read.component';
 
 @Component({
   selector: 'app-permissoes',
@@ -50,9 +49,6 @@ export class PermissoesComponent implements OnInit {
       });
   }
 
-  openDialogDetails(permissao: Permission) {
-    this.dialog.open(PermissaoDialogReadComponent, { width: '600px', data: permissao });
-  }
 
   delete(id: string) {
     this.s.excluirPermissao(id).subscribe(() => this.loadAll());
