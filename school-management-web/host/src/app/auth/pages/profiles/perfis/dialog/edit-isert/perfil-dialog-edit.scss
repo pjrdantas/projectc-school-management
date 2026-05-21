@@ -1,0 +1,14 @@
+.form-grid {
+  display: grid;
+  grid-column: 3;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  align-items: center !important;
+}
+
+mat-form-field { width: 100%; margin-top: 4px; }
+.dialog-actions { display: flex; justify-content:right; align-items: center; margin-right: 16px; gap: 8px; margin-top: -8px; margin-bottom: 16px; }
+.botao-ok { width: 160px !important; background-color: #667eea !important; color: white !important; }
+.botao-cancel { width: 160px !important; }
+.botao-adicionar { width: 160px !important; background-color: #667eea !important; color: white !important; margin-top: -18px !important; margin-left: auto; }
+.form-field{ width: auto !important; }

@@ -146,8 +146,8 @@ export const routes: Routes = [
       {
         path: 'auth/profiles',
         loadComponent: () =>
-          import('./auth/pages/profiles/list/auth-profiles-list.component').then(
-            m => m.AuthProfilesListComponent,
+          import('./auth/pages/profiles/perfis/perfis.component').then(
+            m => m.PerfisComponent,
           ),
       },
       {
@@ -161,22 +161,22 @@ export const routes: Routes = [
       {
         path: 'auth/profiles/new',
         loadComponent: () =>
-          import('./auth/pages/profiles/new/auth-profiles-new.component').then(
-            m => m.AuthProfilesNewComponent,
+          import('./auth/pages/profiles/perfis/perfis.component').then(
+            m => m.PerfisComponent,
           ),
       },
       {
         path: 'auth/profiles/detail',
         loadComponent: () =>
-          import('./auth/pages/profiles/detail/auth-profiles-detail.component').then(
-            m => m.AuthProfilesDetailComponent,
+          import('./auth/pages/profiles/perfis/perfis.component').then(
+            m => m.PerfisComponent,
           ),
       },
       {
         path: 'auth/profiles/edit',
         loadComponent: () =>
-          import('./auth/pages/profiles/new/auth-profiles-new.component').then(
-            m => m.AuthProfilesNewComponent,
+          import('./auth/pages/profiles/perfis/perfis.component').then(
+            m => m.PerfisComponent,
           ),
       },
       {
