@@ -154,8 +154,10 @@ public class AuthService {
             }
 
             boolean adminDefaultCompat = "admin".equalsIgnoreCase(username)
-                    && "admin123".equals(senhaInformada)
-                    && passwordEncoder.matches("Administrador", senhaHashNormalizada);
+                    && (("admin123".equals(senhaInformada)
+                            && passwordEncoder.matches("Administrador", senhaHashNormalizada))
+                        || ("Administrador".equals(senhaInformada)
+                            && passwordEncoder.matches("admin123", senhaHashNormalizada)));
             if (adminDefaultCompat) {
                 String novoHash = passwordEncoder.encode(senhaInformada);
                 jdbcTemplate.update("UPDATE usuario SET senha_hash = ? WHERE id_usuario = ?", novoHash, idUsuario);
