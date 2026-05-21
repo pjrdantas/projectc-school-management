@@ -35,13 +35,13 @@ export class AuthUsersNewComponent implements OnInit {
   private route = inject(ActivatedRoute);
   userId = signal<string | null>(null);
   profiles: Profile[] = [];
-  form = this.fb.group({
+  form = this.fb.nonNullable.group({
     username: ['', Validators.required],
     nome: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     senhaHash: ['', Validators.required],
     ativo: [true],
-    perfilIds: [[] as string[]],
+    perfilIds: [[] as string[], Validators.required],
   });
   ngOnInit() {
     this.service.listarPerfis().subscribe((p) => (this.profiles = p));
@@ -53,9 +53,16 @@ export class AuthUsersNewComponent implements OnInit {
       .subscribe((u) => this.form.patchValue({ ...u, senhaHash: '********' }));
   }
   salvar() {
+    const raw = this.form.getRawValue() as any;
+    const perfilIds = Array.isArray(raw.perfilIds) ? raw.perfilIds.filter((v: string) => !!v) : [];
+    if (!perfilIds.length) {
+      this.form.controls.perfilIds.setErrors({ required: true });
+      this.form.markAllAsTouched();
+      return;
+    }
     if (this.form.invalid) return;
     const id = this.userId();
-    const payload = this.form.getRawValue() as any;
+    const payload = { ...raw, perfilIds } as any;
     const obs = id
       ? this.service.atualizarUsuario(id, payload)
       : this.service.criarUsuario(payload);

@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.accesscontrol.adapter.out.persistence.entity.PerfilEntity;
 import br.com.escola.accesscontrol.adapter.out.persistence.mapper.PerfilMapper;
-import br.com.escola.accesscontrol.adapter.out.persistence.mapper.PermissaoMapper;
 import br.com.escola.accesscontrol.adapter.out.persistence.repository.SpringPerfilJpaRepository;
 import br.com.escola.accesscontrol.application.port.out.PerfilRepositoryPort;
 import br.com.escola.accesscontrol.domain.model.PerfilModel;
@@ -53,10 +52,17 @@ public class PerfilRepositoryAdapter implements PerfilRepositoryPort {
     @Override
     @Transactional
     public @NonNull PerfilModel create(@NonNull PerfilModel domain) {
-        PerfilEntity entity = PerfilMapper.toEntity(domain);
-        PerfilEntity saved = repository.save(entity);
+        UUID perfilId = UUID.randomUUID();
+        repository.insertPerfil(perfilId, domain.getCodigo(), domain.getNome(), domain.getDescricao());
 
-        return Objects.requireNonNull(PerfilMapper.toDomain(saved));
+        if (domain.getPermissoes() != null) {
+            domain.getPermissoes().forEach(permissao ->
+                    repository.insertPerfilPermissao(UUID.randomUUID(), perfilId, permissao.getId()));
+        }
+
+        return repository.findById(perfilId)
+                .map(PerfilMapper::toDomain)
+                .orElseThrow(() -> new RuntimeException("Perfil não encontrado após criação: " + perfilId));
     }
 
     @Override
@@ -72,19 +78,18 @@ public class PerfilRepositoryAdapter implements PerfilRepositoryPort {
                     existing.setNome(domain.getNome());
                     existing.setDescricao(domain.getDescricao());
 
-                    existing.getPermissoes().clear();
+                    repository.updatePerfilFields(existing.getId(), domain.getCodigo(), domain.getNome(), domain.getDescricao());
+
+                    repository.deletePermissoesByPerfilId(existing.getId());
 
                     if (domain.getPermissoes() != null) {
-                        existing.getPermissoes().addAll(
-                                domain.getPermissoes()
-                                        .stream()
-                                        .map(PermissaoMapper::toEntity)
-                                        .collect(Collectors.toSet())
-                        );
+                        domain.getPermissoes().forEach(permissao ->
+                                repository.insertPerfilPermissao(UUID.randomUUID(), existing.getId(), permissao.getId()));
                     }
 
-                    PerfilEntity saved = repository.save(existing);
-                    return PerfilMapper.toDomain(saved);
+                    return repository.findById(existing.getId())
+                            .map(PerfilMapper::toDomain)
+                            .orElseThrow(() -> new RuntimeException("Perfil não encontrado após atualização: " + existing.getId()));
                 })
                 .orElseThrow(() -> new RuntimeException("Perfil não encontrado: " + id));
 

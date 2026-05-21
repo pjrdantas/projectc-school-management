@@ -40,7 +40,10 @@ public class UsuarioController {
                 m.getNome(),
                 m.getEmail(),
                 m.isAtivo(),
-                m.getCreatedAt()
+                m.getCreatedAt(),
+                m.getPerfis() != null
+                        ? m.getPerfis().stream().map(PerfilModel::getId).toList()
+                        : List.of()
         );
     }
 

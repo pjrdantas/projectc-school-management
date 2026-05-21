@@ -20,6 +20,8 @@ public interface UsuarioRepositoryPort {
 
     boolean existsByUsernameAndIdNot(String username, UUID id);
 
+    boolean existsByEmailAndIdNot(String email, UUID id);
+
     boolean existsById(UUID id);
 
     boolean existsByUsername(String username);
