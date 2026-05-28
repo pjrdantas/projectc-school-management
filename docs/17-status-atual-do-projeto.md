@@ -211,6 +211,9 @@ Ainda existe uso de `localStorage` para sessao/autenticacao. Dados de negocio co
 - Regra frontend de permissao centralizada com suporte a permissao `ADMIN`.
 - Tela de secretaria/matriculas evoluida com resumo operacional, filtros avancados e consulta sem acoes locais que nao existem no backend.
 - Matricula permite cadastro rapido de novo aluno; responsavel e obrigatorio apenas para aluno menor de 18 anos.
+- O fluxo de matricula/status/cancelamento em uso esta aceito pelo cliente dentro dos parametros esperados para o MVP atual.
+- Historico, documentos e transferencia pertencem ao escopo ja trabalhado neste ciclo; nao devem ser tratados como proximo epico.
+- A matriz completa de permissoes por funcionalidade fica planejada para o final do projeto, apos estabilizacao das funcionalidades finais.
 
 ## Testes existentes
 
@@ -225,8 +228,14 @@ O backend possui testes de integracao para:
 
 ## Proximas prioridades recomendadas
 
-1. Evoluir configuracao da URL da API para ambiente.
-2. Revisar permissoes por rota, tela e endpoint.
-3. Decidir se matricula tera atualizacao/cancelamento no backend ou apenas consulta/criacao no MVP.
-4. Atualizar Swagger/OpenAPI e exemplos de teste sempre que o contrato mudar.
-5. Manter este documento sincronizado a cada marco funcional.
+1. Evoluir configuracao da URL da API para ambiente quando houver necessidade de empacotamento/deploy fora do ambiente local.
+2. Planejar o proximo epico funcional: aulas, professores, alunos, notas, comportamento e dashboards operacionais/academicos.
+3. Atualizar Swagger/OpenAPI e exemplos de teste sempre que o contrato mudar.
+4. Manter este documento sincronizado a cada marco funcional.
+
+## Decisoes de produto atualizadas
+
+- Nao existe pendencia de decisao sobre matricula/status/cancelamento para o MVP atual; o comportamento implementado e testado pelo cliente esta aceito.
+- Historico, documentos e transferencia nao sao o proximo epico; fazem parte do ciclo funcional ja desenvolvido ate aqui.
+- Permissoes granulares por rota, tela e endpoint serao tratadas no final do projeto para evitar retrabalho recorrente a cada nova funcionalidade.
+- O proximo epico deve concentrar a evolucao do produto em aulas, professores, alunos, notas, evolucao dos alunos, comportamento e dashboards.

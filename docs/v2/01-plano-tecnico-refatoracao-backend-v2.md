@@ -61,8 +61,8 @@ O codigo atual ja usa essas tabelas e colunas principais. Este deve ser o primei
 - refresh;
 - logout;
 - leitura de perfis;
-- leitura de permissoes;
-- autorizacao por role/permissao.
+- leitura tecnica dos cadastros de permissoes existentes;
+- validacao da protecao basica dos endpoints, sem fechar matriz granular de permissoes nesta fase.
 
 ### Dominios que precisam ser refatorados antes de uso real
 
@@ -514,7 +514,7 @@ Status em 2026-05-26:
 - Removido o metodo legado `hydrateSeedData`.
 - Removido comentario transitorio `/* unchanged */`.
 - Conferido que as rotas antigas de usuarios apontam para o componente novo `usuarios.component`.
-- Conferido que a area `student-records` usa endpoints reais existentes, mas ainda nao foi validada neste checkpoint.
+- Conferido que a area `student-records` usa endpoints reais existentes; historico, documentos e transferencia permanecem como parte do ciclo funcional ja desenvolvido.
 
 Validacao executada:
 
@@ -530,3 +530,13 @@ Cada checkpoint deve ter:
 2. teste ou chamada real contra `gestao_escolar`;
 3. evidencia de que nao houve alteracao de schema;
 4. atualizacao de documento em `docs/v2` quando houver decisao tecnica nova.
+
+### Checkpoint 9 - alinhamento de escopo pos-MVP
+
+Status em 2026-05-28:
+
+- O cliente confirmou que os fluxos atuais do MVP foram testados dentro dos parametros desejados e estao aceitos.
+- Nao existe pendencia de decisao sobre matricula/status/cancelamento para o MVP atual.
+- Historico, documentos e transferencia nao devem ser tratados como proximo epico, pois fazem parte do ciclo funcional ja desenvolvido.
+- A implementacao granular de permissoes fica planejada para o final do projeto, apos as funcionalidades principais estarem estabilizadas.
+- O proximo epico funcional deve focar aulas, professores, alunos em contexto de aula, notas, comportamento e dashboards.
