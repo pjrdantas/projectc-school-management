@@ -23,13 +23,12 @@ consistente para futuras conversas, decisoes arquiteturais e planejamento de imp
 ### 1. Autenticacao e Controle de Acesso
 
 Objetivo:
-Permitir acesso seguro ao sistema com perfis distintos e regras de autorizacao.
+Permitir acesso seguro ao sistema com perfis basicos. A matriz granular de autorizacao/permissoes sera refinada no final do projeto, apos estabilizacao das funcionalidades principais.
 
 Escopo inicial:
 - login;
 - logout;
-- perfis de usuario;
-- permissoes por funcao;
+- perfis basicos de usuario;
 - recuperacao de senha;
 - auditoria basica de acesso.
 
@@ -149,7 +148,7 @@ Historia 1:
 Como administrador, quero autenticar no sistema para acessar as funcionalidades administrativas com seguranca.
 
 Historia 2:
-Como administrador, quero cadastrar perfis de acesso para limitar o que cada usuario pode visualizar e alterar.
+Como administrador, quero manter perfis basicos de acesso para organizar a operacao inicial, deixando a matriz granular de permissoes para o final do projeto.
 
 Historia 3:
 Como usuario operacional, quero recuperar minha senha para voltar a acessar o sistema sem depender de suporte manual.

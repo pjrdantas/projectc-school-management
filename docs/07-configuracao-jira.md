@@ -97,18 +97,23 @@ Criar os seguintes epicos no Jira:
 4. `Gestao de Matricula`
 5. `Portal Operacional e Consultas`
 
+Proximo epico funcional apos o MVP aceito pelo cliente:
+
+6. `Aulas, Professores, Notas e Dashboards`
+
 Epicos posteriores, para backlog futuro:
 
-6. `Financeiro Escolar`
-7. `Comunicacao e Notificacoes`
-8. `Relatorios e Auditoria`
+7. `Financeiro Escolar`
+8. `Comunicacao e Notificacoes`
+9. `Relatorios e Auditoria Avancados`
+10. `Matriz Granular de Permissoes` (ao final do projeto)
 
 ## Historias Iniciais Por Epico
 
 ### Epic: Autenticacao e Controle de Acesso
 
 - Como administrador, quero autenticar no sistema para acessar as funcionalidades administrativas com seguranca.
-- Como administrador, quero cadastrar perfis de acesso para limitar o que cada usuario pode visualizar e alterar.
+- Como administrador, quero manter perfis basicos de acesso para organizar a operacao inicial, deixando a matriz granular de permissoes para o final do projeto.
 - Como usuario operacional, quero recuperar minha senha para voltar a acessar o sistema sem depender de suporte manual.
 
 ### Epic: Cadastro Academico
@@ -269,7 +274,8 @@ Colunas sugeridas:
 - nao abrir um projeto separado para backend e outro para frontend;
 - nao criar estados demais;
 - nao cadastrar todos os modulos futuros como sprint ativa;
-- nao tentar modelar financeiro, notificacoes e mobile no mesmo ciclo do MVP.
+- nao tentar modelar financeiro, notificacoes e mobile no mesmo ciclo do MVP;
+- nao iniciar matriz granular de permissoes antes da estabilizacao das funcionalidades principais.
 
 ## Decisao Recomendada para o Projeto Criado no Template Errado
 
