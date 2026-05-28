@@ -8,7 +8,7 @@ Este documento consolida os epicos iniciais e as primeiras historias do sistema 
 
 ### Objetivo
 
-Permitir acesso seguro ao sistema com regras de autorizacao por perfil.
+Permitir acesso seguro ao sistema. A matriz granular de autorizacao por perfil sera refinada no final do projeto, apos estabilizacao das funcionalidades principais.
 
 ### Historias
 
@@ -16,7 +16,7 @@ Historia 1:
 Como administrador, quero autenticar no sistema para acessar as funcionalidades administrativas com seguranca.
 
 Historia 2:
-Como administrador, quero cadastrar perfis de acesso para limitar o que cada usuario pode visualizar e alterar.
+Como administrador, quero manter perfis basicos de acesso para organizar a operacao inicial, deixando a matriz granular de permissoes para o final do projeto.
 
 Historia 3:
 Como usuario operacional, quero recuperar minha senha para voltar a acessar o sistema sem depender de suporte manual.
@@ -89,12 +89,38 @@ Como usuario operacional, quero pesquisar matriculas por aluno, turma e periodo 
 Historia 15:
 Como usuario operacional, quero filtrar matriculas por status para priorizar meu trabalho diario.
 
+## Epico 6. Aulas, Professores, Notas e Dashboards
+
+### Objetivo
+
+Organizar a operacao pedagogica diaria envolvendo professores, aulas, alunos, notas, comportamento e dashboards de acompanhamento.
+
+### Historias
+
+Historia 16:
+Como administrador academico, quero cadastrar professores e vincula-los a turmas/disciplinas para organizar a operacao de aulas.
+
+Historia 17:
+Como professor ou administrador academico, quero planejar e registrar aulas para acompanhar o que foi previsto e realizado.
+
+Historia 18:
+Como professor, quero visualizar os alunos da turma no contexto da aula para registrar participacao, observacoes e acompanhamento.
+
+Historia 19:
+Como professor, quero lancar notas dos alunos para acompanhar o desempenho academico.
+
+Historia 20:
+Como equipe pedagogica, quero registrar eventos comportamentais de alunos e professores para apoiar o acompanhamento escolar.
+
+Historia 21:
+Como gestor, quero dashboards de aulas, matriculas e evolucao de alunos para acompanhar a operacao da escola.
+
 ## Epicos Posteriores
 
 Os epicos abaixo sao esperados para fases seguintes:
 - financeiro escolar;
 - comunicacao e notificacoes;
-- relatorios e auditoria;
+- relatorios e auditoria avancados;
 - portal do aluno ou responsavel;
-- portal do professor;
-- mobile, se houver demanda real.
+- mobile, se houver demanda real;
+- matriz granular de permissoes, ao final do projeto.

@@ -20,9 +20,10 @@ Estado: em uso.
 - As rotas antigas de usuarios foram substituidas por `usuarios.component`.
 - Os arquivos antigos de usuarios em `auth/pages/users/list`, `new` e `detail` estao removidos no working tree.
 
-Pendencia:
+Validacao de negocio:
 
-- Validar visualmente as telas de usuarios, perfis e permissoes contra a base real depois da limpeza.
+- Fluxo considerado aceito pelo cliente dentro dos parametros esperados para o MVP atual.
+- A matriz completa de permissoes por funcionalidade sera implementada no final do projeto, nao como pendencia deste checkpoint.
 
 ### Alunos e responsaveis
 
@@ -36,9 +37,9 @@ Estado: alinhado ao contrato v2 inicial.
   - `GET /enderecos/cep/{cep}`.
 - Models contemplam dados pessoais e endereco.
 
-Pendencia:
+Validacao de negocio:
 
-- Validar no navegador o fluxo aluno -> responsavel -> vinculo.
+- Fluxo aluno -> responsavel -> vinculo considerado aceito pelo cliente dentro dos parametros esperados para o MVP atual.
 
 ### Academico minimo
 
@@ -55,10 +56,10 @@ Estado: saneado neste checkpoint.
   - `POST/PUT /api/turmas`.
 - O dialogo de turma passou a exigir `serieId`.
 
-Pendencias:
+Status de produto:
 
-- Implementar atualizacao real de periodo letivo se a tela precisar editar persistindo no backend. Hoje a edicao de periodo ainda e local.
-- Validar no navegador criacao de periodo, serie existente e turma.
+- O funcionamento atual de periodo, serie e turma esta aceito pelo cliente dentro dos parametros esperados para o MVP atual.
+- Ajustes adicionais de edicao persistida de periodo letivo so devem ser tratados se voltarem como necessidade explicita de produto.
 
 ### Matriculas
 
@@ -82,9 +83,10 @@ Estado: parcialmente alinhado ao contrato v2.
   - `CONCLUIDA`.
 - Para vagas e bloqueio de aluno ja matriculado, o frontend considera `EFETIVADA` como matricula ativa.
 
-Pendencia:
+Validacao de negocio:
 
-- Validar no navegador o fluxo de criacao e mudanca de status de matricula.
+- Fluxo de criacao, status e cancelamento de matricula considerado aceito pelo cliente dentro dos parametros esperados para o MVP atual.
+- Nao ha pendencia aberta de decisao sobre matricula/status/cancelamento neste checkpoint.
 
 ### Historico, documentos e disciplinas
 
@@ -97,9 +99,10 @@ Estado: contrato backend validado contra PostgreSQL.
   - `/api/documentos-alunos`;
   - `/enderecos/cep/{cep}`.
 
-Pendencia:
+Status de produto:
 
-- Validar visualmente as telas `student-records` no navegador.
+- Historico, documentos e transferencia pertencem ao escopo ja trabalhado neste ciclo e nao devem ser tratados como proximo epico.
+- Ajustes futuros nessa area devem nascer de necessidades novas ou refinamentos explicitamente solicitados.
 
 ## Limpezas executadas
 
@@ -128,12 +131,13 @@ Application bundle generation complete.
 
 ## Proximo passo recomendado
 
-Antes de novas funcionalidades, validar no navegador contra backend `8080` e base `gestao_escolar`:
+Com o MVP atual aceito pelo cliente, o proximo passo deixa de ser validacao pendente do ciclo anterior e passa a ser o planejamento do novo epico funcional:
 
-1. login;
-2. usuarios/perfis/permissoes;
-3. alunos;
-4. responsaveis;
-5. vinculo aluno-responsavel;
-6. periodos e turmas;
-7. matricula.
+1. aulas e planejamento de aulas;
+2. professores e relacao professor/turma/disciplina;
+3. alunos em contexto de aula;
+4. lancamento e acompanhamento de notas;
+5. comportamento de alunos e professores;
+6. dashboards de aulas, matriculas e evolucao dos alunos.
+
+Permissoes granulares devem ficar para o final do projeto, depois que as funcionalidades principais estiverem estabilizadas.

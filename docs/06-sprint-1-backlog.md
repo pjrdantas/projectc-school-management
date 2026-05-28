@@ -102,7 +102,7 @@ Esta sprint nao cobre:
 - criar migration da tabela de matricula;
 - implementar caso de uso de matricular aluno;
 - validar existencia de aluno, turma e periodo antes da matricula;
-- implementar cancelamento basico de matricula, se couber na sprint;
+- implementar cancelamento/status de matricula conforme comportamento aceito no MVP;
 - implementar consulta de matricula.
 
 ### B7. Implementar filtros operacionais
