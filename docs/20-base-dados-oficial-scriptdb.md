@@ -4,7 +4,7 @@
 
 Este documento registra a decisao de que o arquivo `docs/v2/scriptdb.sql` e a referencia oficial de banco de dados do projeto neste momento.
 
-Qualquer novo desenvolvimento, documentacao tecnica, exemplo de payload, seed ou ajuste de contrato deve considerar `docs/v2/scriptdb.sql` como base ativa. Materiais anteriores que descrevem outra modelagem foram movidos para `docs/historico` para nao interferirem na concepcao atual do projeto.
+Qualquer novo desenvolvimento, documentacao tecnica, exemplo de payload, seed ou ajuste de contrato deve considerar `docs/v2/scriptdb.sql` como base ativa. Materiais anteriores que descrevem outra modelagem foram organizados em `docs/historico` para consulta e nao devem interferir na concepcao atual do projeto.
 
 ## Arquivo oficial
 
@@ -85,10 +85,10 @@ psql -U postgres -d gestao_escolar -f docs/v2/scriptdb.sql
 ## Regras de alinhamento
 
 1. `docs/v2/scriptdb.sql` e a fonte oficial para nomes de tabelas, colunas, constraints e relacionamentos.
-2. Scripts SQL antigos ficam apenas em `docs/historico/sql-legado`.
-3. Documentos antigos de planejamento ou refatoracao ficam apenas em `docs/historico`.
+2. Scripts SQL antigos devem ser tratados como historicos; a copia organizada fica em `docs/historico/sql-legado`.
+3. Documentos antigos de planejamento ou refatoracao devem ser tratados como historicos; a copia organizada fica em `docs/historico`.
 4. Novos documentos ativos devem referenciar este arquivo quando falarem da base de dados.
-5. Caso codigo, README ou exemplos entrem em conflito com `scriptdb.sql`, o documento/codigo deve ser revisado ou o material antigo deve ser movido para historico.
+5. Caso codigo, README ou exemplos entrem em conflito com `scriptdb.sql`, o documento/codigo deve ser revisado ou o material antigo deve ser reclassificado como historico.
 
 ## Observacao sobre materiais historicos
 

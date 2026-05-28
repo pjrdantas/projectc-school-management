@@ -181,7 +181,7 @@ O documento ativo da base oficial e:
 docs/20-base-dados-oficial-scriptdb.md
 ```
 
-Regra atual: exemplos, contratos e novas implementacoes devem usar `docs/v2/scriptdb.sql` como fonte para nomes de tabelas, colunas, constraints e relacionamentos. Scripts SQL e documentos desalinhados foram movidos para `docs/historico`.
+Regra atual: exemplos, contratos e novas implementacoes devem usar `docs/v2/scriptdb.sql` como fonte para nomes de tabelas, colunas, constraints e relacionamentos. Scripts SQL e documentos desalinhados devem ser tratados como historicos; copias organizadas ficam em `docs/historico`.
 
 ## Frontend
 

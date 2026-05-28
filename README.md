@@ -47,7 +47,7 @@ Use este arquivo como fonte para nomes de tabelas, colunas, constraints, relacio
 docs/20-base-dados-oficial-scriptdb.md
 ```
 
-Scripts SQL e documentos que nao devem orientar a modelagem atual foram movidos para:
+Copias organizadas dos scripts SQL e documentos que nao devem orientar a modelagem atual ficam em:
 
 ```text
 docs/historico

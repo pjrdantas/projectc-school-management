@@ -96,4 +96,4 @@ npm run build
 - A sessao usa `localStorage` para tokens e dados do usuario autenticado.
 - Dados de negocio usam o backend como fonte oficial; caches de tela ficam apenas em memoria durante a sessao.
 - A URL da API esta centralizada em `core/config/api.config.ts`; uma melhoria futura e trocar esse valor por configuracao por ambiente quando houver necessidade de empacotamento/deploy fora do ambiente local.
-- Documentos e scripts antigos foram movidos para `../docs/historico` e nao devem orientar novas implementacoes.
+- Documentos e scripts antigos possuem copias organizadas em `../docs/historico` e nao devem orientar novas implementacoes.

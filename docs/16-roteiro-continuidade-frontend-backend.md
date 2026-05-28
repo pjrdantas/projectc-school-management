@@ -60,7 +60,7 @@ A documentacao ativa da base oficial fica em:
 docs/20-base-dados-oficial-scriptdb.md
 ```
 
-Documentos e scripts que descrevem modelagens anteriores foram movidos para `docs/historico` e nao devem orientar novas implementacoes.
+Documentos e scripts que descrevem modelagens anteriores foram organizados em `docs/historico` e nao devem orientar novas implementacoes.
 
 ### Frontend
 
@@ -130,15 +130,15 @@ Prioridade sugerida:
 
 Permissoes granulares por rota, tela e endpoint ficam planejadas para o final do projeto, depois que as funcionalidades principais estiverem estabilizadas.
 
-## Itens fora de contexto removidos da documentacao ativa
+## Itens fora de contexto retirados da referencia ativa
 
-Foram retirados da documentacao ativa:
+Nao devem ser usados como referencia ativa:
 
 - roteiro antigo de KAN-33, pois o cadastro de aluno ja existe;
 - roteiro antigo de KAN-3, pois responsavel/vinculo/consulta cadastral ja existem no backend;
 - roteiro de migracao BIGINT para UUID, pois o projeto atual ja opera com UUID;
 - script SQL legado baseado em BIGINT;
-- documentos e scripts desalinhados com `docs/v2/scriptdb.sql`, preservados em `docs/historico`.
+- documentos e scripts desalinhados com `docs/v2/scriptdb.sql`, com copias preservadas em `docs/historico`.
 
 ## Prompt sugerido para continuidade
 
