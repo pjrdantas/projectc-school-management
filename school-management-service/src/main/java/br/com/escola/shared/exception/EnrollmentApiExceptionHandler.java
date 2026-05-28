@@ -7,9 +7,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import br.com.escola.enrollment.adapter.in.web.MatriculaController;
 import br.com.escola.enrollment.domain.exception.MatriculaAlunoNaoEncontradoException;
+import br.com.escola.enrollment.domain.exception.MatriculaAtivaDuplicadaException;
+import br.com.escola.enrollment.domain.exception.MatriculaNaoEncontradaException;
 import br.com.escola.enrollment.domain.exception.MatriculaPeriodoNaoEncontradoException;
 import br.com.escola.enrollment.domain.exception.MatriculaStatusInvalidoException;
+import br.com.escola.enrollment.domain.exception.MatriculaTipoInvalidoException;
 import br.com.escola.enrollment.domain.exception.MatriculaTurmaNaoEncontradaException;
+import br.com.escola.enrollment.domain.exception.MatriculaTurmaSemVagaException;
+import br.com.escola.enrollment.domain.exception.RematriculaNaoPermitidaException;
+import br.com.escola.enrollment.domain.exception.TransferenciaDadosObrigatoriosException;
 import br.com.escola.enrollment.domain.exception.TurmaPeriodoInconsistenteException;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -31,13 +37,43 @@ public class EnrollmentApiExceptionHandler extends BaseApiExceptionHandler {
         return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
     }
 
+    @ExceptionHandler(MatriculaNaoEncontradaException.class)
+    public ResponseEntity<ApiErrorResponse> handleMatriculaNotFound(MatriculaNaoEncontradaException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
     @ExceptionHandler(MatriculaStatusInvalidoException.class)
     public ResponseEntity<ApiErrorResponse> handleStatusInvalido(MatriculaStatusInvalidoException ex, HttpServletRequest request) {
         return buildError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", ex.getMessage(), request);
     }
 
+    @ExceptionHandler(MatriculaTipoInvalidoException.class)
+    public ResponseEntity<ApiErrorResponse> handleTipoInvalido(MatriculaTipoInvalidoException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MatriculaAtivaDuplicadaException.class)
+    public ResponseEntity<ApiErrorResponse> handleMatriculaAtivaDuplicada(MatriculaAtivaDuplicadaException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(RematriculaNaoPermitidaException.class)
+    public ResponseEntity<ApiErrorResponse> handleRematriculaNaoPermitida(RematriculaNaoPermitidaException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(TransferenciaDadosObrigatoriosException.class)
+    public ResponseEntity<ApiErrorResponse> handleTransferenciaDadosObrigatorios(TransferenciaDadosObrigatoriosException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", ex.getMessage(), request);
+    }
+
     @ExceptionHandler(TurmaPeriodoInconsistenteException.class)
     public ResponseEntity<ApiErrorResponse> handleInconsistencia(TurmaPeriodoInconsistenteException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MatriculaTurmaSemVagaException.class)
+    public ResponseEntity<ApiErrorResponse> handleTurmaSemVaga(MatriculaTurmaSemVagaException ex, HttpServletRequest request) {
         return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
     }
 }

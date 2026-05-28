@@ -11,4 +11,10 @@ public interface TurmaConsultaGateway {
     boolean existsById(@NonNull UUID id);
 
     Optional<UUID> findPeriodoLetivoIdByTurmaId(@NonNull UUID turmaId);
+
+    Optional<Integer> findCapacidadeByTurmaId(@NonNull UUID turmaId);
+
+    Optional<UUID> findSerieIdByTurmaId(@NonNull UUID turmaId);
+
+    Optional<Integer> findSerieOrdemByTurmaId(@NonNull UUID turmaId);
 }

@@ -1,17 +1,15 @@
 import { Routes } from '@angular/router';
 import { loadRemoteModule } from '@angular-architects/native-federation';
-import { authGuard, guestGuard } from './auth/guards/auth.guard';
+import { authGuard } from './auth/guards/auth.guard';
 
 export const routes: Routes = [
   {
     path: 'login',
-    canMatch: [guestGuard],
     loadComponent: () =>
       import('./auth/pages/login/login.component').then(m => m.LoginComponent),
   },
   {
     path: 'auth/login',
-    canMatch: [guestGuard],
     loadComponent: () =>
       import('./auth/pages/login/login.component').then(m => m.LoginComponent),
   },
@@ -100,10 +98,31 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'academic/series',
+        loadComponent: () =>
+          import('./academic/pages/series/academic-series.component').then(
+            m => m.AcademicSeriesComponent,
+          ),
+      },
+      {
+        path: 'academic/shifts',
+        loadComponent: () =>
+          import('./academic/pages/shifts/academic-shifts.component').then(
+            m => m.AcademicShiftsComponent,
+          ),
+      },
+      {
         path: 'academic/classes',
         loadComponent: () =>
           import('./academic/pages/classes/academic-classes.component').then(
             m => m.AcademicClassesComponent,
+          ),
+      },
+      {
+        path: 'academic/disciplines',
+        loadComponent: () =>
+          import('./student-records/pages/disciplines/disciplines.component').then(
+            m => m.DisciplinesComponent,
           ),
       },
       {
@@ -116,8 +135,8 @@ export const routes: Routes = [
       {
         path: 'auth/users',
         loadComponent: () =>
-          import('./auth/pages/users/list/auth-users-list.component').then(
-            m => m.AuthUsersListComponent,
+          import('./auth/pages/users/usuarios.component').then(
+            m => m.UsuariosComponent,
           ),
       },
 
@@ -125,22 +144,22 @@ export const routes: Routes = [
       {
         path: 'auth/users/new',
         loadComponent: () =>
-          import('./auth/pages/users/new/auth-users-new.component').then(
-            m => m.AuthUsersNewComponent,
+          import('./auth/pages/users/usuarios.component').then(
+            m => m.UsuariosComponent,
           ),
       },
       {
         path: 'auth/users/detail',
         loadComponent: () =>
-          import('./auth/pages/users/detail/auth-users-detail.component').then(
-            m => m.AuthUsersDetailComponent,
+          import('./auth/pages/users/usuarios.component').then(
+            m => m.UsuariosComponent,
           ),
       },
       {
         path: 'auth/users/edit',
         loadComponent: () =>
-          import('./auth/pages/users/new/auth-users-new.component').then(
-            m => m.AuthUsersNewComponent,
+          import('./auth/pages/users/usuarios.component').then(
+            m => m.UsuariosComponent,
           ),
       },
       {

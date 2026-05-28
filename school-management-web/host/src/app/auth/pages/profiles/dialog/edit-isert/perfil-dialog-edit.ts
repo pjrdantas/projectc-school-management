@@ -30,7 +30,7 @@ export class PerfilDialogEditComponent implements OnInit {
 
   permissions: Permission[] = [];
   selectedPermissions: Permission[] = [];
-  displayedColumns = ['id', 'codigo', 'actions'];
+  displayedColumns = ['codigo', 'actions'];
 
   form = this.fb.group({
     nome: ['', Validators.required],

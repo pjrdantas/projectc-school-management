@@ -1,11 +1,13 @@
 package br.com.escola.responsavelmanagement.adapter.in.web;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -77,5 +79,67 @@ class ResponsavelControllerIntegrationTest {
                         .content(requestBody))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("Já existe responsável cadastrado com este CPF"));
+    }
+
+    @Test
+    @WithMockUser
+    void naoDeveExcluirResponsavelVinculadoAAluno() throws Exception {
+        UUID alunoId = criarAluno();
+        String responsavelId = criarResponsavel("Responsavel Vinculado", cpfAleatorio());
+
+        mockMvc.perform(post("/api/alunos/{idAluno}/responsaveis/{idResponsavel}", alunoId, responsavelId))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(delete("/api/responsaveis/{id}", responsavelId))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value(
+                        "Responsável não pode ser excluído porque ainda está vinculado a outro aluno: " + responsavelId));
+    }
+
+    private UUID criarAluno() throws Exception {
+        String requestBody = """
+                {
+                  "nomeCompleto": "Aluno Responsavel",
+                  "cpf": "%s",
+                  "email": "aluno.responsavel@example.com",
+                  "dataNascimento": "2010-05-15"
+                }
+                """.formatted(cpfAleatorio());
+
+        String responseBody = mockMvc.perform(post("/api/alunos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        return UUID.fromString(objectMapper.readTree(responseBody).get("id").asText());
+    }
+
+    private String criarResponsavel(String nome, String cpf) throws Exception {
+        String requestBody = """
+                {
+                  "nomeCompleto": "%s",
+                  "cpf": "%s",
+                  "email": "responsavel.vinculado@example.com",
+                  "telefone": "11999998888"
+                }
+                """.formatted(nome, cpf);
+
+        String responseBody = mockMvc.perform(post("/api/responsaveis")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        return objectMapper.readTree(responseBody).get("id").asText();
+    }
+
+    private String cpfAleatorio() {
+        long cpf = System.nanoTime() % 1_000_000_00000L;
+        return String.format("%011d", cpf);
     }
 }

@@ -13,4 +13,6 @@ public interface ResponsavelQueryGateway {
     List<ResponsavelOutput> findAll();
 
     boolean existsById(UUID id);
+
+    boolean hasAlunosVinculados(UUID id);
 }

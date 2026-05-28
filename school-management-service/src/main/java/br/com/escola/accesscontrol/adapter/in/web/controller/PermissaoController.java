@@ -111,6 +111,7 @@ public class PermissaoController {
     // ===== DELETE =====
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('DELETE','ADMIN')")
+    @Operation(summary = "Remove uma permissão")
     public ResponseEntity<?> delete(@PathVariable UUID id,
                                     HttpServletRequest request) {
 
@@ -134,6 +135,7 @@ public class PermissaoController {
     // ===== FIND BY ID =====
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('READ','ADMIN')")
+    @Operation(summary = "Busca permissão por ID")
     public ResponseEntity<?> findById(@PathVariable UUID id,
                                      HttpServletRequest request) {
 
@@ -152,6 +154,7 @@ public class PermissaoController {
     // ===== LIST =====
     @GetMapping
     @PreAuthorize("hasAnyAuthority('READ_ALL','ADMIN')")
+    @Operation(summary = "Lista permissões")
     public ResponseEntity<?> listAll(HttpServletRequest request) {
 
         List<PermissaoModel> list = useCase.listAll();

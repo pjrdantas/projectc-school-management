@@ -2,18 +2,33 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 import { AuthStateService } from '../../core/auth/auth-state.service';
+import { API_BASE_URL } from '../../core/config/api.config';
 import { Responsible, ResponsibleInput } from '../models/responsible.model';
-
-const STORAGE_KEY = 'responsibles-crud-v1';
-const API_BASE_URL = 'http://localhost:8080';
 
 interface ResponsavelApiResponse {
   id: string;
   nomeCompleto: string;
   cpf: string;
+  rg?: string;
   email?: string;
   telefone?: string;
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
   createdAt: string;
+}
+
+export interface CepEndereco {
+  cep: string;
+  logradouro: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+  complemento?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -21,7 +36,7 @@ export class ResponsiblesService {
   private readonly http = inject(HttpClient);
   private readonly authState = inject(AuthStateService);
 
-  private readonly responsiblesSubject = new BehaviorSubject<Responsible[]>(this.load());
+  private readonly responsiblesSubject = new BehaviorSubject<Responsible[]>([]);
   readonly responsibles$ = this.responsiblesSubject.asObservable();
 
   list(): Responsible[] {
@@ -54,7 +69,7 @@ export class ResponsiblesService {
 
   createOnApi(input: ResponsibleInput): Observable<Responsible> {
     return this.http
-      .post<ResponsavelApiResponse>(`${API_BASE_URL}/api/responsaveis`, input, {
+      .post<ResponsavelApiResponse>(`${API_BASE_URL}/api/responsaveis`, this.toPayload(input), {
         headers: this.buildHeaders(),
       })
       .pipe(
@@ -65,9 +80,13 @@ export class ResponsiblesService {
 
   updateOnApi(id: string, input: ResponsibleInput): Observable<Responsible> {
     return this.http
-      .put<ResponsavelApiResponse>(`${API_BASE_URL}/api/responsaveis/${id}`, input, {
-        headers: this.buildHeaders(),
-      })
+      .put<ResponsavelApiResponse>(
+        `${API_BASE_URL}/api/responsaveis/${id}`,
+        this.toPayload(input),
+        {
+          headers: this.buildHeaders(),
+        },
+      )
       .pipe(
         map(response => this.mapToResponsible(response)),
         tap(responsible => this.upsertResponsible(responsible)),
@@ -80,6 +99,12 @@ export class ResponsiblesService {
         headers: this.buildHeaders(),
       })
       .pipe(tap(() => this.removeLocal(id)));
+  }
+
+  consultarCep(cep: string): Observable<CepEndereco> {
+    return this.http.get<CepEndereco>(`${API_BASE_URL}/enderecos/cep/${cep}`, {
+      headers: this.buildHeaders(),
+    });
   }
 
   vincularAlunoResponsavel(idAluno: string, idResponsavel: string): Observable<void> {
@@ -128,9 +153,34 @@ export class ResponsiblesService {
       id: response.id,
       nomeCompleto: response.nomeCompleto,
       cpf: response.cpf.replace(/\D/g, ''),
+      rg: response.rg,
       email: response.email,
       telefone: response.telefone,
+      cep: response.cep,
+      logradouro: response.logradouro,
+      numero: response.numero,
+      complemento: response.complemento,
+      bairro: response.bairro,
+      cidade: response.cidade,
+      uf: response.uf,
       createdAt: response.createdAt,
+    };
+  }
+
+  private toPayload(input: ResponsibleInput): ResponsibleInput {
+    return {
+      nomeCompleto: input.nomeCompleto,
+      cpf: input.cpf,
+      rg: input.rg,
+      email: input.email,
+      telefone: input.telefone,
+      cep: input.cep,
+      logradouro: input.logradouro,
+      numero: input.numero,
+      complemento: input.complemento,
+      bairro: input.bairro,
+      cidade: input.cidade,
+      uf: input.uf,
     };
   }
 
@@ -146,16 +196,5 @@ export class ResponsiblesService {
 
   private commit(responsibles: Responsible[]): void {
     this.responsiblesSubject.next(responsibles);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(responsibles));
-  }
-
-  private load(): Responsible[] {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    try {
-      return JSON.parse(raw) as Responsible[];
-    } catch {
-      return [];
-    }
   }
 }

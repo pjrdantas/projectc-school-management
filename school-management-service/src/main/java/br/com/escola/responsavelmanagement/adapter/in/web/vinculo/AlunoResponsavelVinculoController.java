@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,10 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.escola.responsavelmanagement.application.dto.ResponsavelOutput;
+import br.com.escola.responsavelmanagement.application.dto.ResponsavelVinculadoOutput;
+import br.com.escola.responsavelmanagement.application.dto.VinculoAlunoResponsavelInput;
 import br.com.escola.responsavelmanagement.application.usecase.DesvincularResponsavelDoAlunoUseCase;
 import br.com.escola.responsavelmanagement.application.usecase.ListarResponsaveisPorAlunoUseCase;
 import br.com.escola.responsavelmanagement.application.usecase.VincularResponsavelAoAlunoUseCase;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 
 @RestController
@@ -40,15 +41,17 @@ public class AlunoResponsavelVinculoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Vincula responsável ao aluno")
     public void vincular(
             @PathVariable @NonNull UUID idAluno,
             @Valid @RequestBody VinculoResponsavelRequest request) {
-        vincularResponsavelAoAlunoUseCase.executar(idAluno, request.idResponsavel());
+        vincularResponsavelAoAlunoUseCase.executar(toInput(idAluno, request));
     }
 
 
     @PostMapping("/{idResponsavel}")
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Vincula responsável ao aluno por ID")
     public void vincularPorPath(
             @PathVariable @NonNull UUID idAluno,
             @PathVariable @NonNull UUID idResponsavel) {
@@ -56,31 +59,51 @@ public class AlunoResponsavelVinculoController {
     }
 
     @GetMapping
+    @Operation(summary = "Lista responsáveis vinculados ao aluno")
     public List<ResponsavelVinculadoResponse> listar(@PathVariable @NonNull UUID idAluno) {
-        List<ResponsavelVinculadoResponse> responsaveis = listarResponsaveisPorAlunoUseCase.executar(idAluno).stream()
+        return listarResponsaveisPorAlunoUseCase.executar(idAluno).stream()
                 .map(this::toResponse)
                 .toList();
-        if (responsaveis.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nenhum responsável encontrado para o aluno informado");
-        }
-        return responsaveis;
     }
 
     @DeleteMapping("/{idResponsavel}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Desvincula responsável do aluno")
     public void desvincular(
             @PathVariable @NonNull UUID idAluno,
             @PathVariable @NonNull UUID idResponsavel) {
         desvincularResponsavelDoAlunoUseCase.executar(idAluno, idResponsavel);
     }
 
-    private ResponsavelVinculadoResponse toResponse(ResponsavelOutput output) {
+    private ResponsavelVinculadoResponse toResponse(ResponsavelVinculadoOutput output) {
         return new ResponsavelVinculadoResponse(
                 output.id(),
                 output.nomeCompleto(),
                 output.cpf(),
                 output.email(),
                 output.telefone(),
+                output.rg(),
+                output.cep(),
+                output.logradouro(),
+                output.numero(),
+                output.complemento(),
+                output.bairro(),
+                output.cidade(),
+                output.uf(),
+                output.parentesco(),
+                output.responsavelFinanceiro(),
+                output.responsavelPedagogico(),
+                output.autorizadoRetirar(),
                 output.createdAt());
+    }
+
+    private VinculoAlunoResponsavelInput toInput(UUID idAluno, VinculoResponsavelRequest request) {
+        return new VinculoAlunoResponsavelInput(
+                idAluno,
+                request.idResponsavel(),
+                request.parentesco(),
+                request.responsavelFinanceiro(),
+                request.responsavelPedagogico(),
+                request.autorizadoRetirar());
     }
 }

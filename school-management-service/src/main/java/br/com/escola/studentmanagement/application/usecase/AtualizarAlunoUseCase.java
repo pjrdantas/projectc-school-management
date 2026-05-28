@@ -9,6 +9,8 @@ import br.com.escola.studentmanagement.application.dto.AlunoInput;
 import br.com.escola.studentmanagement.application.dto.AlunoOutput;
 import br.com.escola.studentmanagement.application.port.out.AlunoCommandGateway;
 import br.com.escola.studentmanagement.application.port.out.AlunoQueryGateway;
+import br.com.escola.shared.viacep.ViaCepResponse;
+import br.com.escola.shared.viacep.ViaCepService;
 import br.com.escola.studentmanagement.domain.exception.AlunoJaCadastradoException;
 import br.com.escola.studentmanagement.domain.exception.AlunoNaoEncontradoException;
 
@@ -17,10 +19,15 @@ public class AtualizarAlunoUseCase {
 
     private final AlunoCommandGateway alunoCommandGateway;
     private final AlunoQueryGateway alunoQueryGateway;
+    private final ViaCepService viaCepService;
 
-    public AtualizarAlunoUseCase(AlunoCommandGateway alunoCommandGateway, AlunoQueryGateway alunoQueryGateway) {
+    public AtualizarAlunoUseCase(
+            AlunoCommandGateway alunoCommandGateway,
+            AlunoQueryGateway alunoQueryGateway,
+            ViaCepService viaCepService) {
         this.alunoCommandGateway = alunoCommandGateway;
         this.alunoQueryGateway = alunoQueryGateway;
+        this.viaCepService = viaCepService;
     }
 
     public AlunoOutput executar(@NonNull UUID id, AlunoInput input) {
@@ -32,6 +39,41 @@ public class AtualizarAlunoUseCase {
             throw new AlunoJaCadastradoException();
         }
 
-        return alunoCommandGateway.update(id, input);
+        return alunoCommandGateway.update(id, preencherEndereco(input));
+    }
+
+    private AlunoInput preencherEndereco(AlunoInput input) {
+        ViaCepResponse endereco = viaCepService.consultar(input.cep());
+        if (endereco == null) {
+            return input;
+        }
+        validarNumero(input.numero());
+        return new AlunoInput(
+                input.nomeCompleto(),
+                input.cpf(),
+                input.email(),
+                input.telefone(),
+                input.dataNascimento(),
+                input.rg(),
+                input.orgaoEmissorRg(),
+                input.ufRg(),
+                input.nacionalidade(),
+                input.naturalidade(),
+                input.sexo(),
+                input.nomeSocial(),
+                viaCepService.normalizar(input.cep()),
+                endereco.logradouro(),
+                input.numero(),
+                input.complemento(),
+                endereco.bairro(),
+                endereco.localidade(),
+                endereco.uf(),
+                input.statusAluno());
+    }
+
+    private void validarNumero(String numero) {
+        if (numero == null || numero.isBlank()) {
+            throw new IllegalArgumentException("numero é obrigatório quando cep é informado");
+        }
     }
 }

@@ -5,5 +5,7 @@ import java.util.UUID;
 public record MatriculaInput(
         UUID alunoId,
         UUID turmaId,
-        UUID periodoLetivoId) {
+        UUID periodoLetivoId,
+        String tipoMatricula,
+        String observacao) {
 }

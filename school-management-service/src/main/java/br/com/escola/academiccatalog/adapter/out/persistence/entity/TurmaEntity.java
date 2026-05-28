@@ -37,6 +37,17 @@ public class TurmaEntity {
     @JoinColumn(name = "id_periodo_letivo", nullable = false)
     private PeriodoLetivoEntity periodoLetivo;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_serie", nullable = false)
+    private SerieEntity serie;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_turno")
+    private TurnoEntity turno;
+
+    @Column(name = "ativo", nullable = false)
+    private Boolean ativo = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -74,6 +85,38 @@ public class TurmaEntity {
 
     public void setPeriodoLetivo(PeriodoLetivoEntity periodoLetivo) {
         this.periodoLetivo = periodoLetivo;
+    }
+
+    public SerieEntity getSerie() {
+        return serie;
+    }
+
+    public void setSerie(SerieEntity serie) {
+        this.serie = serie;
+    }
+
+    public String getTurno() {
+        return turno == null ? null : turno.getCodigo();
+    }
+
+    public TurnoEntity getTurnoEntity() {
+        return turno;
+    }
+
+    public void setTurno(TurnoEntity turno) {
+        this.turno = turno;
+    }
+
+    public String getStatus() {
+        return Boolean.FALSE.equals(ativo) ? "INATIVA" : "ATIVA";
+    }
+
+    public Boolean getAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
     }
 
     @PrePersist

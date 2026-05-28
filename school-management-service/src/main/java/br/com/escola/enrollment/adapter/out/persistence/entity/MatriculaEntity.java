@@ -2,16 +2,14 @@ package br.com.escola.enrollment.adapter.out.persistence.entity;
 
 import java.util.UUID;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import br.com.escola.academiccatalog.adapter.out.persistence.entity.PeriodoLetivoEntity;
 import br.com.escola.academiccatalog.adapter.out.persistence.entity.TurmaEntity;
-import br.com.escola.enrollment.domain.MatriculaStatus;
 import br.com.escola.studentmanagement.adapter.out.persistence.entity.AlunoEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -42,9 +40,22 @@ public class MatriculaEntity {
     @JoinColumn(name = "id_periodo_letivo", nullable = false)
     private PeriodoLetivoEntity periodoLetivo;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private MatriculaStatus status;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_status_matricula", nullable = false)
+    private StatusMatriculaEntity status;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_tipo_matricula", nullable = false)
+    private TipoMatriculaEntity tipoMatricula;
+
+    @Column(name = "data_solicitacao", nullable = false)
+    private LocalDate dataSolicitacao;
+
+    @Column(name = "data_efetivacao")
+    private LocalDate dataEfetivacao;
+
+    @Column(name = "observacao", columnDefinition = "TEXT")
+    private String observacao;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -77,12 +88,48 @@ public class MatriculaEntity {
         this.periodoLetivo = periodoLetivo;
     }
 
-    public MatriculaStatus getStatus() {
+    public StatusMatriculaEntity getStatus() {
         return status;
     }
 
-    public void setStatus(MatriculaStatus status) {
+    public void setStatus(StatusMatriculaEntity status) {
         this.status = status;
+    }
+
+    public TipoMatriculaEntity getTipoMatricula() {
+        return tipoMatricula;
+    }
+
+    public void setTipoMatricula(TipoMatriculaEntity tipoMatricula) {
+        this.tipoMatricula = tipoMatricula;
+    }
+
+    public LocalDate getDataMatricula() {
+        return dataSolicitacao;
+    }
+
+    public LocalDate getDataSolicitacao() {
+        return dataSolicitacao;
+    }
+
+    public void setDataSolicitacao(LocalDate dataSolicitacao) {
+        this.dataSolicitacao = dataSolicitacao;
+    }
+
+    public LocalDate getDataEfetivacao() {
+        return dataEfetivacao;
+    }
+
+    public void setDataEfetivacao(LocalDate dataEfetivacao) {
+        this.dataEfetivacao = dataEfetivacao;
+    }
+
+    public String getObservacao() {
+        return observacao;
+    }
+
+    public void setObservacao(String observacao) {
+        this.observacao = observacao;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -95,6 +142,9 @@ public class MatriculaEntity {
 
     @PrePersist
     public void prePersist() {
+        if (dataSolicitacao == null) {
+            dataSolicitacao = LocalDate.now();
+        }
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }

@@ -3,8 +3,8 @@
 ## Objetivo
 
 Este documento define a arquitetura inicial recomendada para o sistema real de gestao escolar,
-usando o projeto `academic-core-service` como referencia conceitual, sem assumir reutilizacao direta
-do codigo como produto final.
+considerando o repositorio `projectc-school-management` como fonte ativa de codigo,
+documentacao e evolucao do MVP.
 
 ## Principios
 

@@ -7,9 +7,12 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -27,6 +30,19 @@ public class AlunoResponsavelEntity {
 
     @Column(name = "id_responsavel", nullable = false)
     private UUID idResponsavel;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_parentesco")
+    private ParentescoEntity parentesco;
+
+    @Column(name = "responsavel_financeiro", nullable = false)
+    private Boolean responsavelFinanceiro = false;
+
+    @Column(name = "responsavel_pedagogico", nullable = false)
+    private Boolean responsavelPedagogico = false;
+
+    @Column(name = "autorizado_retirar", nullable = false)
+    private Boolean autorizadoRetirar = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
@@ -50,6 +66,42 @@ public class AlunoResponsavelEntity {
 
     public void setIdResponsavel(UUID idResponsavel) {
         this.idResponsavel = idResponsavel;
+    }
+
+    public String getParentesco() {
+        return parentesco != null ? parentesco.getCodigo() : null;
+    }
+
+    public ParentescoEntity getParentescoEntity() {
+        return parentesco;
+    }
+
+    public void setParentesco(ParentescoEntity parentesco) {
+        this.parentesco = parentesco;
+    }
+
+    public Boolean getResponsavelFinanceiro() {
+        return responsavelFinanceiro;
+    }
+
+    public void setResponsavelFinanceiro(Boolean responsavelFinanceiro) {
+        this.responsavelFinanceiro = responsavelFinanceiro;
+    }
+
+    public Boolean getResponsavelPedagogico() {
+        return responsavelPedagogico;
+    }
+
+    public void setResponsavelPedagogico(Boolean responsavelPedagogico) {
+        this.responsavelPedagogico = responsavelPedagogico;
+    }
+
+    public Boolean getAutorizadoRetirar() {
+        return autorizadoRetirar;
+    }
+
+    public void setAutorizadoRetirar(Boolean autorizadoRetirar) {
+        this.autorizadoRetirar = autorizadoRetirar;
     }
 
     public LocalDateTime getCreatedAt() {

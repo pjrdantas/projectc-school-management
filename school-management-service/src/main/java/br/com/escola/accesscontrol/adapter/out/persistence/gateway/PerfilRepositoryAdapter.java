@@ -10,7 +10,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.escola.accesscontrol.adapter.out.persistence.entity.PerfilEntity;
 import br.com.escola.accesscontrol.adapter.out.persistence.mapper.PerfilMapper;
 import br.com.escola.accesscontrol.adapter.out.persistence.repository.SpringPerfilJpaRepository;
 import br.com.escola.accesscontrol.application.port.out.PerfilRepositoryPort;

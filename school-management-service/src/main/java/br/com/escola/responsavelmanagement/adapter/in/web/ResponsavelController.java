@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +23,7 @@ import br.com.escola.responsavelmanagement.application.usecase.BuscarResponsavel
 import br.com.escola.responsavelmanagement.application.usecase.CriarResponsavelUseCase;
 import br.com.escola.responsavelmanagement.application.usecase.ExcluirResponsavelUseCase;
 import br.com.escola.responsavelmanagement.application.usecase.ListarResponsaveisUseCase;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 
 @RestController
@@ -51,12 +51,14 @@ public class ResponsavelController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Cria um responsável")
     public ResponsavelResponse criar(@Valid @RequestBody ResponsavelRequest request) {
         ResponsavelOutput output = criarResponsavelUseCase.executar(toInput(request));
         return toResponse(output);
     }
 
     @GetMapping
+    @Operation(summary = "Lista responsáveis")
     public List<ResponsavelResponse> listar(
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) String cpf) {
@@ -76,19 +78,17 @@ public class ResponsavelController {
                     .toList();
         }
 
-        List<ResponsavelResponse> response = responsaveis.stream().map(this::toResponse).toList();
-        if (response.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nenhum responsável encontrado");
-        }
-        return response;
+        return responsaveis.stream().map(this::toResponse).toList();
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Busca responsável por ID")
     public ResponsavelResponse buscarPorId(@PathVariable @NonNull UUID id) {
         return toResponse(buscarResponsavelPorIdUseCase.executar(id));
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Atualiza um responsável")
     public ResponsavelResponse atualizar(@PathVariable @NonNull UUID id, @Valid @RequestBody ResponsavelRequest request) {
         ResponsavelOutput output = atualizarResponsavelUseCase.executar(id, toInput(request));
         return toResponse(output);
@@ -96,12 +96,25 @@ public class ResponsavelController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Exclui um responsável")
     public void excluir(@PathVariable @NonNull UUID id) {
         excluirResponsavelUseCase.executar(id);
     }
 
     private ResponsavelInput toInput(ResponsavelRequest request) {
-        return new ResponsavelInput(request.nomeCompleto(), request.cpf(), request.email(), request.telefone());
+        return new ResponsavelInput(
+                request.nomeCompleto(),
+                request.cpf(),
+                request.email(),
+                request.telefone(),
+                request.rg(),
+                request.cep(),
+                request.logradouro(),
+                request.numero(),
+                request.complemento(),
+                request.bairro(),
+                request.cidade(),
+                request.uf());
     }
 
     private ResponsavelResponse toResponse(ResponsavelOutput output) {
@@ -111,6 +124,14 @@ public class ResponsavelController {
                 output.cpf(),
                 output.email(),
                 output.telefone(),
+                output.rg(),
+                output.cep(),
+                output.logradouro(),
+                output.numero(),
+                output.complemento(),
+                output.bairro(),
+                output.cidade(),
+                output.uf(),
                 output.createdAt());
     }
 }

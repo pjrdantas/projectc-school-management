@@ -12,6 +12,9 @@ public record MatriculaRequest(
         UUID turmaId,
 
         @NotNull(message = "periodoLetivoId é obrigatório")
-        UUID periodoLetivoId
+        UUID periodoLetivoId,
+
+        String tipoMatricula,
+        String observacao
 ) {
 }

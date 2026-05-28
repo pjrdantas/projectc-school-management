@@ -9,6 +9,8 @@ public record PeriodoLetivoRequest(
         @NotBlank(message = "nome é obrigatório")
         String nome,
 
+        Integer ano,
+
         @NotNull(message = "dataInicio é obrigatória")
         LocalDate dataInicio,
 

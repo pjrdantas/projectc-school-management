@@ -2,6 +2,8 @@ package br.com.escola.shared.exception;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -14,9 +16,15 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.server.ResponseStatusException;
 
 import br.com.escola.enrollment.domain.exception.MatriculaAlunoNaoEncontradoException;
+import br.com.escola.enrollment.domain.exception.MatriculaAtivaDuplicadaException;
+import br.com.escola.enrollment.domain.exception.MatriculaNaoEncontradaException;
 import br.com.escola.enrollment.domain.exception.MatriculaPeriodoNaoEncontradoException;
 import br.com.escola.enrollment.domain.exception.MatriculaStatusInvalidoException;
+import br.com.escola.enrollment.domain.exception.MatriculaTipoInvalidoException;
 import br.com.escola.enrollment.domain.exception.MatriculaTurmaNaoEncontradaException;
+import br.com.escola.enrollment.domain.exception.MatriculaTurmaSemVagaException;
+import br.com.escola.enrollment.domain.exception.RematriculaNaoPermitidaException;
+import br.com.escola.enrollment.domain.exception.TransferenciaDadosObrigatoriosException;
 import br.com.escola.enrollment.domain.exception.TurmaPeriodoInconsistenteException;
 import br.com.escola.responsavelmanagement.domain.exception.ResponsavelJaCadastradoException;
 import br.com.escola.responsavelmanagement.domain.exception.ResponsavelNaoEncontradoException;
@@ -24,10 +32,19 @@ import br.com.escola.responsavelmanagement.domain.exception.AlunoResponsavelVinc
 import br.com.escola.responsavelmanagement.domain.exception.AlunoResponsavelVinculoNaoEncontradoException;
 import br.com.escola.accesscontrol.domain.exception.CredenciaisInvalidasException;
 import br.com.escola.accesscontrol.domain.exception.TokenInvalidoOuExpiradoException;
+import br.com.escola.schoolhistory.domain.exception.HistoricoEscolarInvalidoException;
+import br.com.escola.schoolhistory.domain.exception.HistoricoEscolarNaoEncontradoException;
+import br.com.escola.shared.viacep.CepInvalidoException;
+import br.com.escola.shared.viacep.CepNaoEncontradoException;
+import br.com.escola.shared.viacep.ViaCepIndisponivelException;
+import br.com.escola.shared.document.domain.exception.DocumentoInvalidoException;
+import br.com.escola.shared.document.domain.exception.DocumentoNaoEncontradoException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class ApiExceptionHandler extends BaseApiExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(
@@ -98,6 +115,62 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
         return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
     }
 
+    @ExceptionHandler(CepNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleCepNaoEncontrado(
+            CepNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(CepInvalidoException.class)
+    public ResponseEntity<ApiErrorResponse> handleCepInvalido(
+            CepInvalidoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ViaCepIndisponivelException.class)
+    public ResponseEntity<ApiErrorResponse> handleViaCepIndisponivel(
+            ViaCepIndisponivelException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(DocumentoNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleDocumentoNaoEncontrado(
+            DocumentoNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(DocumentoInvalidoException.class)
+    public ResponseEntity<ApiErrorResponse> handleDocumentoInvalido(
+            DocumentoInvalidoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(HistoricoEscolarNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleHistoricoEscolarNaoEncontrado(
+            HistoricoEscolarNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(HistoricoEscolarInvalidoException.class)
+    public ResponseEntity<ApiErrorResponse> handleHistoricoEscolarInvalido(
+            HistoricoEscolarInvalidoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MatriculaNaoEncontradaException.class)
+    public ResponseEntity<ApiErrorResponse> handleMatriculaNotFound(
+            MatriculaNaoEncontradaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
     @ExceptionHandler(MatriculaStatusInvalidoException.class)
     public ResponseEntity<ApiErrorResponse> handleMatriculaStatusInvalido(
             MatriculaStatusInvalidoException ex,
@@ -105,9 +178,44 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
         return buildError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", ex.getMessage(), request);
     }
 
+    @ExceptionHandler(MatriculaTipoInvalidoException.class)
+    public ResponseEntity<ApiErrorResponse> handleMatriculaTipoInvalido(
+            MatriculaTipoInvalidoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MatriculaAtivaDuplicadaException.class)
+    public ResponseEntity<ApiErrorResponse> handleMatriculaAtivaDuplicada(
+            MatriculaAtivaDuplicadaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(RematriculaNaoPermitidaException.class)
+    public ResponseEntity<ApiErrorResponse> handleRematriculaNaoPermitida(
+            RematriculaNaoPermitidaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(TransferenciaDadosObrigatoriosException.class)
+    public ResponseEntity<ApiErrorResponse> handleTransferenciaDadosObrigatorios(
+            TransferenciaDadosObrigatoriosException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", ex.getMessage(), request);
+    }
+
     @ExceptionHandler(TurmaPeriodoInconsistenteException.class)
     public ResponseEntity<ApiErrorResponse> handleTurmaPeriodoInconsistente(
             TurmaPeriodoInconsistenteException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MatriculaTurmaSemVagaException.class)
+    public ResponseEntity<ApiErrorResponse> handleMatriculaTurmaSemVaga(
+            MatriculaTurmaSemVagaException ex,
             HttpServletRequest request) {
         return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
     }
@@ -183,6 +291,7 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
+        log.error("Erro interno não tratado em {}", request.getRequestURI(), ex);
         return buildError(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "INTERNAL_SERVER_ERROR",

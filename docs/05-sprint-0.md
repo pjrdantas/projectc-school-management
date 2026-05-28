@@ -19,11 +19,11 @@ Ao final da Sprint 0, o projeto deve ter:
 ## Entradas da Sprint 0
 
 Os documentos base para esta sprint sao:
-- [00-gestao-escolar-base.md](C:\Projeto\git\academic-core-service\docs\00-gestao-escolar-base.md)
-- [01-mvp-gestao-escolar.md](C:\Projeto\git\academic-core-service\docs\01-mvp-gestao-escolar.md)
-- [02-epicos-e-historias.md](C:\Projeto\git\academic-core-service\docs\02-epicos-e-historias.md)
-- [03-decisoes-arquiteturais.md](C:\Projeto\git\academic-core-service\docs\03-decisoes-arquiteturais.md)
-- [04-arquitetura-inicial.md](C:\Projeto\git\academic-core-service\docs\04-arquitetura-inicial.md)
+- [00-gestao-escolar-base.md](00-gestao-escolar-base.md)
+- [01-mvp-gestao-escolar.md](01-mvp-gestao-escolar.md)
+- [02-epicos-e-historias.md](02-epicos-e-historias.md)
+- [03-decisoes-arquiteturais.md](03-decisoes-arquiteturais.md)
+- [04-arquitetura-inicial.md](04-arquitetura-inicial.md)
 
 ## Escopo da Sprint 0
 

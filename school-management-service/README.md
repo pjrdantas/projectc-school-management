@@ -1,137 +1,247 @@
 # school-management-service
 
-API backend do MVP de gestão escolar, implementada em Spring Boot com arquitetura modular.
+API backend do MVP de gestao escolar, implementada em Spring Boot com arquitetura modular.
 
-## Status atual do projeto
+## Status atual
 
-Hoje o projeto já possui base funcional para:
+O backend possui base funcional para:
 
-- `accesscontrol` (autenticação básica via HTTP Basic);
-- `studentmanagement` (cadastro de aluno com validações e persistência);
-- `responsavelmanagement`:
-  - cadastro de responsável (KAN-3 H2);
-  - vínculo aluno-responsável (KAN-3 H3);
-  - consulta cadastral consolidada (KAN-3 H4 - backend);
-- `shared` (tratamento de exceções e respostas de erro).
+- `accesscontrol`: login JWT, refresh, logout, usuarios, perfis, permissoes e sessoes;
+- `studentmanagement`: cadastro de aluno com validacoes e persistencia;
+- `responsavelmanagement`: cadastro de responsavel, vinculo aluno-responsavel e consulta cadastral;
+- `academiccatalog`: cadastro e consulta de periodos letivos e turmas;
+- `enrollment`: criacao e consulta de matriculas;
+- `shared`: tratamento de excecoes e respostas de erro.
 
-Também já existe configuração de banco local com PostgreSQL e migrations com Flyway.
+IDs principais usam `UUID`.
 
-## Endpoints principais (backend)
+## Stack
 
-### 1) Responsável (H2)
-
-- `POST /api/responsaveis`
-- `GET /api/responsaveis/{id}`
-- `GET /api/responsaveis?nome=&cpf=`
-- `PUT /api/responsaveis/{id}`
-- `DELETE /api/responsaveis/{id}`
-
-### 2) Vínculo Aluno-Responsável (H3)
-
-- `POST /api/alunos/{idAluno}/responsaveis` com body:
-
-```json
-{ "idResponsavel": "<uuid>" }
-```
-
-- `POST /api/alunos/{idAluno}/responsaveis/{idResponsavel}` (atalho sem body)
-- `GET /api/alunos/{idAluno}/responsaveis`
-- `DELETE /api/alunos/{idAluno}/responsaveis/{idResponsavel}`
-
-### 3) Consulta Cadastral Básica (H4 - backend)
-
-- `GET /api/consulta-cadastral`
-
-Parâmetros de filtro suportados:
-
-- `nomeAluno`
-- `cpfAluno`
-- `nomeResponsavel`
-- `cpfResponsavel`
-- `page` (default `0`)
-- `size` (default `20`, máximo `100`)
-
-Resposta:
-
-```json
-{
-  "content": [
-    {
-      "idAluno": "...",
-      "nomeCompleto": "...",
-      "cpf": "...",
-      "email": "...",
-      "telefone": "...",
-      "dataNascimento": "...",
-      "createdAt": "...",
-      "responsaveis": [
-        {
-          "id": "...",
-          "nomeCompleto": "...",
-          "cpf": "...",
-          "email": "...",
-          "telefone": "...",
-          "createdAt": "..."
-        }
-      ]
-    }
-  ],
-  "totalElements": 1,
-  "page": 0,
-  "size": 20
-}
-```
-
-## Banco de dados e migrations
-
-- `V001__initial_baseline.sql`
-- `V002__create_table_aluno.sql`
-- `V003__create_table_periodo_letivo.sql`
-- `V004__create_table_turma.sql`
-- `V005__create_table_matricula.sql`
-- `V006__add_column_telefone_to_aluno.sql`
-- `V007__migrate_bigint_to_uuid.sql`
-- `V008__create_table_responsavel.sql`
-- `V009__create_table_aluno_responsavel.sql`
+- Java 21
+- Spring Boot
+- Spring Web
+- Spring Security
+- JWT
+- Spring Data JPA
+- PostgreSQL
+- Flyway
+- Bean Validation
+- Springdoc OpenAPI
 
 ## Como executar localmente
 
-### Pré-requisitos
+Pre-requisitos:
 
 - Java 21
-- PostgreSQL em execução
-- Banco `school_management` criado
+- PostgreSQL em execucao
+- Banco `gestao_escolar` criado com a modelagem v2
 
-### Configuração local
-
-As configurações de ambiente local estão em `src/main/resources/application-local.yaml`.
-
-Para subir com esse profile:
+Executar com profile local:
 
 ```bash
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-Ou configurando variável:
+No Windows:
 
 ```bash
-SPRING_PROFILES_ACTIVE=local ./mvnw spring-boot:run
+mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-### Script SQL de apoio (UUID)
+## Banco de dados
 
-Para preparar o banco local já no padrão UUID (compatível com a API atual), use:
+As configuracoes locais ficam em:
+
+```text
+src/main/resources/application-local.yaml
+```
+
+Configuracao local padrao:
+
+- URL: `jdbc:postgresql://localhost:5432/gestao_escolar`
+- Usuario: `postgres`
+- Senha: `root123`
+
+A base v2 ja deve estar criada antes de subir a aplicacao. O Flyway foi mantido habilitado para as proximas evolucoes da nova estrutura, mas os scripts antigos da base anterior foram removidos.
+
+## Autenticacao local
+
+Credenciais seed:
+
+- login: `admin`
+- senha: `admin123`
+
+Login:
+
+```http
+POST /api/auth/login
+```
+
+```json
+{
+  "login": "admin",
+  "senha": "admin123"
+}
+```
+
+A resposta retorna `accessToken` e `refreshToken`.
+
+## Endpoints principais
+
+### Autenticacao
+
+- `POST /api/auth/login`
+- `POST /api/auth/refresh`
+- `POST /api/auth/logout`
+
+### Controle de acesso
+
+- `GET /api/usuarios`
+- `GET /api/usuarios/{id}`
+- `POST /api/usuarios`
+- `PUT /api/usuarios/{id}`
+- `DELETE /api/usuarios/{id}`
+- `GET /api/perfis`
+- `GET /api/perfis/{id}`
+- `POST /api/perfis`
+- `PUT /api/perfis/{id}`
+- `DELETE /api/perfis/{id}`
+- `GET /api/permissoes`
+- `GET /api/permissoes/{id}`
+- `POST /api/permissoes`
+- `PUT /api/permissoes/{id}`
+- `DELETE /api/permissoes/{id}`
+
+### Alunos
+
+- `GET /api/alunos`
+- `GET /api/alunos/{id}`
+- `POST /api/alunos`
+- `PUT /api/alunos/{id}`
+- `DELETE /api/alunos/{id}`
+
+Payload:
+
+```json
+{
+  "nomeCompleto": "Joao da Silva",
+  "cpf": "12345678901",
+  "email": "joao.silva@example.com",
+  "telefone": "11999999999",
+  "dataNascimento": "2010-05-15"
+}
+```
+
+### Responsaveis
+
+- `GET /api/responsaveis`
+- `GET /api/responsaveis/{id}`
+- `POST /api/responsaveis`
+- `PUT /api/responsaveis/{id}`
+- `DELETE /api/responsaveis/{id}`
+
+Payload:
+
+```json
+{
+  "nomeCompleto": "Maria Responsavel",
+  "cpf": "98765432100",
+  "email": "maria@example.com",
+  "telefone": "11988888888"
+}
+```
+
+### Vinculo aluno-responsavel
+
+- `POST /api/alunos/{idAluno}/responsaveis`
+- `POST /api/alunos/{idAluno}/responsaveis/{idResponsavel}`
+- `GET /api/alunos/{idAluno}/responsaveis`
+- `DELETE /api/alunos/{idAluno}/responsaveis/{idResponsavel}`
+
+Payload alternativo:
+
+```json
+{
+  "idResponsavel": "00000000-0000-0000-0000-000000000000"
+}
+```
+
+### Consulta cadastral
+
+- `GET /api/consulta-cadastral`
+
+Filtros:
+
+- `nomeAluno`
+- `cpfAluno`
+- `nomeResponsavel`
+- `cpfResponsavel`
+- `page`
+- `size`
+
+### Periodos letivos
+
+- `GET /api/periodos-letivos`
+- `GET /api/periodos-letivos/{id}`
+- `POST /api/periodos-letivos`
+
+Payload:
+
+```json
+{
+  "nome": "2026.1",
+  "dataInicio": "2026-02-01",
+  "dataFim": "2026-06-30"
+}
+```
+
+### Turmas
+
+- `GET /api/turmas`
+- `GET /api/turmas/{id}`
+- `POST /api/turmas`
+
+Payload:
+
+```json
+{
+  "codigo": "TURMA-A",
+  "nome": "Turma A",
+  "capacidade": 30,
+  "periodoLetivoId": "00000000-0000-0000-0000-000000000000"
+}
+```
+
+### Matriculas
+
+- `GET /api/matriculas`
+- `POST /api/matriculas`
+
+Payload:
+
+```json
+{
+  "alunoId": "00000000-0000-0000-0000-000000000000",
+  "turmaId": "00000000-0000-0000-0000-000000000000",
+  "periodoLetivoId": "00000000-0000-0000-0000-000000000000"
+}
+```
+
+Filtros:
+
+- `alunoId`
+- `turmaId`
+- `periodoLetivoId`
+- `status`
+
+## Testes
 
 ```bash
-psql -U postgres -d school_management -f ../docs/school_management_uuid.sql
+./mvnw test
 ```
 
-## Credenciais de autenticação local (login JWT)
+No Windows:
 
-No profile local:
-
-- usuário: `admin`
-- senha: `admin123` (compatibilidade: `Administrador`)
-
-
-Use as credenciais abaixo no endpoint `POST /api/auth/login` com senha em texto puro.
+```bash
+mvnw.cmd test
+```

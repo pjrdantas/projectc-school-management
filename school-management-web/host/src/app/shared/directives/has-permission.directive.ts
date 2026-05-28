@@ -7,6 +7,7 @@ import {
   inject,
 } from '@angular/core';
 import { AuthStateService } from '../../core/auth/auth-state.service';
+import { hasPermission } from '../../core/auth/permission.util';
 import { Subscription } from 'rxjs';
 
 @Directive({
@@ -36,11 +37,11 @@ export class HasPermissionDirective implements OnDestroy {
   private updateView() {
     const userPermissions = this.authState.getPermissions();
 
-    const hasPermission = this.currentPermission
-      ? userPermissions.includes(this.currentPermission)
+    const canRender = this.currentPermission
+      ? hasPermission(userPermissions, this.currentPermission)
       : false;
 
-    if (hasPermission) {
+    if (canRender) {
       if (this.vcr.length === 0) {
         this.vcr.createEmbeddedView(this.templateRef);
       }

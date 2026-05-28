@@ -45,6 +45,9 @@ public class UsuarioController {
                         ? m.getPerfis().stream().map(PerfilModel::getId).toList()
                         : List.of(),
                 m.getPerfis() != null
+                        ? m.getPerfis().stream().map(PerfilModel::getCodigo).collect(Collectors.toSet())
+                        : Set.of(),
+                m.getPerfis() != null
                         ? m.getPerfis().stream().map(PerfilModel::getNome).collect(Collectors.toSet())
                         : Set.of()
         );

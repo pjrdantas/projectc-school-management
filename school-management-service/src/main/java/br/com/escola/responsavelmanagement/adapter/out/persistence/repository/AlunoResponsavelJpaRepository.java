@@ -13,5 +13,9 @@ public interface AlunoResponsavelJpaRepository extends JpaRepository<AlunoRespon
 
     List<AlunoResponsavelEntity> findByIdAluno(UUID idAluno);
 
+    long countByIdResponsavel(UUID idResponsavel);
+
+    void deleteByIdAluno(UUID idAluno);
+
     void deleteByIdAlunoAndIdResponsavel(UUID idAluno, UUID idResponsavel);
 }

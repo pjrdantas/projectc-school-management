@@ -54,6 +54,11 @@
 							{
 								"glob": "**/*",
 								"input": "public"
+							},
+							{
+								"glob": "**/*",
+								"input": "node_modules/.cache/native-federation/host",
+								"output": "/"
 							}
 						],
 						"styles": [
@@ -71,6 +76,11 @@
 							{
 								"glob": "**/*",
 								"input": "public"
+							},
+							{
+								"glob": "**/*",
+								"input": "node_modules/.cache/native-federation/host",
+								"output": "/"
 							}
 						],
 						"styles": [

@@ -13,11 +13,19 @@ import { Student } from '../../models/student.model';
 import { StudentsService } from '../../services/students.service';
 import { Responsible } from '../../../responsibles/models/responsible.model';
 import { ResponsiblesService } from '../../../responsibles/services/responsibles.service';
+import { StudentRecordsPanelComponent } from '../../../student-records/components/student-records-panel.component';
 
 @Component({
   selector: 'app-students-detail',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, RouterLink, MatSnackBarModule],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    RouterLink,
+    MatSnackBarModule,
+    StudentRecordsPanelComponent,
+  ],
   templateUrl: './students-detail.component.html',
   styleUrls: ['./students-detail.component.scss'],
 })

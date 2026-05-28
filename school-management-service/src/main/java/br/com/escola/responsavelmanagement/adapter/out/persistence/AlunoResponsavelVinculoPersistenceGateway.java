@@ -1,6 +1,7 @@
 package br.com.escola.responsavelmanagement.adapter.out.persistence;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
@@ -8,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.responsavelmanagement.adapter.out.persistence.entity.AlunoResponsavelEntity;
 import br.com.escola.responsavelmanagement.adapter.out.persistence.repository.AlunoResponsavelJpaRepository;
+import br.com.escola.responsavelmanagement.adapter.out.persistence.repository.ParentescoJpaRepository;
 import br.com.escola.responsavelmanagement.application.dto.VinculoAlunoResponsavelInput;
 import br.com.escola.responsavelmanagement.application.dto.VinculoAlunoResponsavelOutput;
 import br.com.escola.responsavelmanagement.application.port.out.AlunoResponsavelVinculoGateway;
@@ -16,9 +18,13 @@ import br.com.escola.responsavelmanagement.application.port.out.AlunoResponsavel
 public class AlunoResponsavelVinculoPersistenceGateway implements AlunoResponsavelVinculoGateway {
 
     private final AlunoResponsavelJpaRepository alunoResponsavelJpaRepository;
+    private final ParentescoJpaRepository parentescoJpaRepository;
 
-    public AlunoResponsavelVinculoPersistenceGateway(AlunoResponsavelJpaRepository alunoResponsavelJpaRepository) {
+    public AlunoResponsavelVinculoPersistenceGateway(
+            AlunoResponsavelJpaRepository alunoResponsavelJpaRepository,
+            ParentescoJpaRepository parentescoJpaRepository) {
         this.alunoResponsavelJpaRepository = alunoResponsavelJpaRepository;
+        this.parentescoJpaRepository = parentescoJpaRepository;
     }
 
     @Override
@@ -31,6 +37,10 @@ public class AlunoResponsavelVinculoPersistenceGateway implements AlunoResponsav
         AlunoResponsavelEntity entity = new AlunoResponsavelEntity();
         entity.setIdAluno(input.idAluno());
         entity.setIdResponsavel(input.idResponsavel());
+        entity.setParentesco(parentesco(input.parentesco()));
+        entity.setResponsavelFinanceiro(Boolean.TRUE.equals(input.responsavelFinanceiro()));
+        entity.setResponsavelPedagogico(Boolean.TRUE.equals(input.responsavelPedagogico()));
+        entity.setAutorizadoRetirar(Boolean.TRUE.equals(input.autorizadoRetirar()));
         return toOutput(alunoResponsavelJpaRepository.save(entity));
     }
 
@@ -50,6 +60,18 @@ public class AlunoResponsavelVinculoPersistenceGateway implements AlunoResponsav
                 entity.getId(),
                 entity.getIdAluno(),
                 entity.getIdResponsavel(),
+                entity.getParentesco(),
+                entity.getResponsavelFinanceiro(),
+                entity.getResponsavelPedagogico(),
+                entity.getAutorizadoRetirar(),
                 entity.getCreatedAt());
+    }
+
+    private br.com.escola.responsavelmanagement.adapter.out.persistence.entity.ParentescoEntity parentesco(String codigo) {
+        String codigoNormalizado = codigo == null || codigo.isBlank()
+                ? "RESPONSAVEL_LEGAL"
+                : codigo.trim().toUpperCase(Locale.ROOT);
+        return parentescoJpaRepository.findByCodigo(codigoNormalizado)
+                .orElseThrow(() -> new IllegalArgumentException("Parentesco nao cadastrado: " + codigoNormalizado));
     }
 }

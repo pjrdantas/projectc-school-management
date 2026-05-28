@@ -16,5 +16,17 @@ public record ResponsavelRequest(
         String email,
 
         @Pattern(regexp = "(^$|^\\(\\d{2}\\)\\s\\d{4,5}-\\d{4}$|^\\d{10,11}$)", message = "telefone deve estar no formato (99) 99999-9999, (99) 9999-9999 ou somente dígitos")
-        String telefone) {
+        String telefone,
+
+        String rg,
+
+        @Pattern(regexp = "(^$|^\\d{8}$|^\\d{5}-\\d{3}$)", message = "cep deve estar no formato 00000000 ou 00000-000")
+        String cep,
+
+        String logradouro,
+        String numero,
+        String complemento,
+        String bairro,
+        String cidade,
+        String uf) {
 }

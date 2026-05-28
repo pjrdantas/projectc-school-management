@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.escola.responsavelmanagement.application.dto.consulta.ConsultaCadastralPageOutput;
 import br.com.escola.responsavelmanagement.application.usecase.consulta.ConsultarCadastroAlunoResponsavelUseCase;
+import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
 @RequestMapping("/api/consulta-cadastral")
@@ -21,6 +22,7 @@ public class ConsultaCadastralController {
     }
 
     @GetMapping
+    @Operation(summary = "Consulta cadastro de alunos e responsáveis")
     public ConsultaCadastralPageOutput consultar(
             @RequestParam(name = "nomeAluno", required = false) String nomeAluno,
             @RequestParam(name = "cpfAluno", required = false) String cpfAluno,

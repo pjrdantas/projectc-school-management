@@ -14,9 +14,9 @@
 
       <mat-form-field appearance="outline">
         <mat-label>Senha</mat-label>
-        <input matInput [type]="mostrarSenha() ? 'text' : 'password'" formControlName="senha" />
-        <button type="button" mat-icon-button matSuffix (click)="mostrarSenha.set(!mostrarSenha())">
-          <mat-icon>{{ mostrarSenha() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        <input matInput [type]="mostrarSenha ? 'text' : 'password'" formControlName="senha" />
+        <button type="button" mat-icon-button matSuffix (click)="mostrarSenha = !mostrarSenha">
+          <mat-icon>{{ mostrarSenha ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
         <mat-error *ngIf="form.controls.senha.touched && form.controls.senha.hasError('required')">
           Informe a senha.
@@ -26,11 +26,11 @@
         </mat-error>
       </mat-form-field>
 
-      <p class="error" *ngIf="authError()">{{ authError() }}</p>
+      <p class="error" *ngIf="authError">{{ authError }}</p>
 
-      <button mat-raised-button color="primary" type="submit" [disabled]="loading()">
-        <span *ngIf="!loading()">Entrar</span>
-        <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
+      <button mat-raised-button color="primary" type="submit" [disabled]="loading">
+        <span *ngIf="!loading">Entrar</span>
+        <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
       </button>
     </form>
   </div>

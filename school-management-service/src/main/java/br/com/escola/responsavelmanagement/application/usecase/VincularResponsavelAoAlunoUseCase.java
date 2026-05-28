@@ -30,6 +30,13 @@ public class VincularResponsavelAoAlunoUseCase {
     }
 
     public VinculoAlunoResponsavelOutput executar(UUID idAluno, UUID idResponsavel) {
+        return executar(new VinculoAlunoResponsavelInput(idAluno, idResponsavel, null, false, false, false));
+    }
+
+    public VinculoAlunoResponsavelOutput executar(VinculoAlunoResponsavelInput input) {
+        UUID idAluno = input.idAluno();
+        UUID idResponsavel = input.idResponsavel();
+
         if (!alunoQueryGateway.existsById(idAluno)) {
             throw new AlunoNaoEncontradoException(idAluno);
         }
@@ -42,6 +49,6 @@ public class VincularResponsavelAoAlunoUseCase {
             throw new AlunoResponsavelVinculoDuplicadoException();
         }
 
-        return alunoResponsavelVinculoGateway.save(new VinculoAlunoResponsavelInput(idAluno, idResponsavel));
+        return alunoResponsavelVinculoGateway.save(input);
     }
 }

@@ -6,5 +6,9 @@ import jakarta.validation.constraints.NotNull;
 
 public record VinculoResponsavelRequest(
         @NotNull(message = "idResponsavel é obrigatório")
-        UUID idResponsavel) {
+        UUID idResponsavel,
+        String parentesco,
+        Boolean responsavelFinanceiro,
+        Boolean responsavelPedagogico,
+        Boolean autorizadoRetirar) {
 }

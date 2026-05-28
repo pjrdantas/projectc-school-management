@@ -2,19 +2,41 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 import { AuthStateService } from '../../core/auth/auth-state.service';
+import { API_BASE_URL } from '../../core/config/api.config';
 import { Student, StudentInput } from '../models/student.model';
-
-const STORAGE_KEY = 'students-crud-v1';
-const API_BASE_URL = 'http://localhost:8080';
 
 interface AlunoApiResponse {
   id: string;
   nomeCompleto: string;
   cpf: string;
+  rg?: string;
+  orgaoEmissorRg?: string;
+  ufRg?: string;
   email: string;
   telefone?: string;
   dataNascimento: string;
+  nacionalidade?: string;
+  naturalidade?: string;
+  sexo?: string;
+  nomeSocial?: string;
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
+  statusAluno?: string;
   createdAt: string;
+}
+
+export interface CepEndereco {
+  cep: string;
+  logradouro: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+  complemento?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -22,7 +44,7 @@ export class StudentsService {
   private readonly http = inject(HttpClient);
   private readonly authState = inject(AuthStateService);
 
-  private readonly studentsSubject = new BehaviorSubject<Student[]>(this.load());
+  private readonly studentsSubject = new BehaviorSubject<Student[]>([]);
   readonly students$ = this.studentsSubject.asObservable();
 
   list(): Student[] {
@@ -65,13 +87,7 @@ export class StudentsService {
   }
 
   createOnApi(input: StudentInput): Observable<Student> {
-    const payload = {
-      nomeCompleto: input.nomeCompleto,
-      cpf: input.cpf,
-      email: input.email,
-      telefone: input.telefone,
-      dataNascimento: input.dataNascimento,
-    };
+    const payload = this.toPayload(input);
 
     return this.http
       .post<AlunoApiResponse>(`${API_BASE_URL}/api/alunos`, payload, {
@@ -84,13 +100,7 @@ export class StudentsService {
   }
 
   updateOnApi(id: string, input: StudentInput): Observable<Student> {
-    const payload = {
-      nomeCompleto: input.nomeCompleto,
-      cpf: input.cpf,
-      email: input.email,
-      telefone: input.telefone,
-      dataNascimento: input.dataNascimento,
-    };
+    const payload = this.toPayload(input);
 
     return this.http
       .put<AlunoApiResponse>(`${API_BASE_URL}/api/alunos/${id}`, payload, {
@@ -108,6 +118,12 @@ export class StudentsService {
         headers: this.buildHeaders(),
       })
       .pipe(tap(() => this.removeLocal(id)));
+  }
+
+  consultarCep(cep: string): Observable<CepEndereco> {
+    return this.http.get<CepEndereco>(`${API_BASE_URL}/enderecos/cep/${cep}`, {
+      headers: this.buildHeaders(),
+    });
   }
 
   private removeLocal(id: string): void {
@@ -132,10 +148,50 @@ export class StudentsService {
       id: response.id,
       nomeCompleto: response.nomeCompleto,
       cpf: this.onlyDigits(response.cpf),
+      rg: response.rg,
+      orgaoEmissorRg: response.orgaoEmissorRg,
+      ufRg: response.ufRg,
       email: response.email,
       dataNascimento: response.dataNascimento,
       telefone: telefone ?? response.telefone,
+      nacionalidade: response.nacionalidade,
+      naturalidade: response.naturalidade,
+      sexo: response.sexo,
+      nomeSocial: response.nomeSocial,
+      cep: response.cep,
+      logradouro: response.logradouro,
+      numero: response.numero,
+      complemento: response.complemento,
+      bairro: response.bairro,
+      cidade: response.cidade,
+      uf: response.uf,
+      statusAluno: response.statusAluno,
       createdAt: response.createdAt,
+    };
+  }
+
+  private toPayload(input: StudentInput): StudentInput {
+    return {
+      nomeCompleto: input.nomeCompleto,
+      cpf: input.cpf,
+      rg: input.rg,
+      orgaoEmissorRg: input.orgaoEmissorRg,
+      ufRg: input.ufRg,
+      email: input.email,
+      telefone: input.telefone,
+      dataNascimento: input.dataNascimento,
+      nacionalidade: input.nacionalidade,
+      naturalidade: input.naturalidade,
+      sexo: input.sexo,
+      nomeSocial: input.nomeSocial,
+      cep: input.cep,
+      logradouro: input.logradouro,
+      numero: input.numero,
+      complemento: input.complemento,
+      bairro: input.bairro,
+      cidade: input.cidade,
+      uf: input.uf,
+      statusAluno: input.statusAluno,
     };
   }
 
@@ -159,19 +215,5 @@ export class StudentsService {
 
   private commit(students: Student[]): void {
     this.studentsSubject.next(students);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
-  }
-
-  private load(): Student[] {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return [];
-    }
-
-    try {
-      return JSON.parse(raw) as Student[];
-    } catch {
-      return [];
-    }
   }
 }

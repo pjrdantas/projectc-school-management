@@ -1,0 +1,376 @@
+<mat-tab-group class="records-tabs">
+  <mat-tab label="Histórico escolar">
+    <section class="tab-content">
+      <div class="section-header">
+        <h3>Históricos</h3>
+        <button mat-stroked-button type="button" (click)="carregarTudo()">
+          <mat-icon fontIcon="refresh"></mat-icon>
+          Atualizar
+        </button>
+      </div>
+
+      <div class="empty-state" *ngIf="historicos().length === 0">
+        Nenhum histórico escolar cadastrado.
+      </div>
+
+      <div class="record-item" *ngFor="let historico of historicos()">
+        <div class="record-header">
+          <div>
+            <strong>{{ historico.ensinoConcluido || 'Histórico escolar' }}</strong>
+            <p>Aluno: {{ historico.nomeAluno }}</p>
+            <p>RA: {{ historico.ra || 'Não informado' }} | RM: {{ historico.rm || 'Não informado' }}</p>
+            <p>Ano de conclusão: {{ historico.anoConclusao || 'Não informado' }}</p>
+          </div>
+        </div>
+
+        <p>Nascimento: {{ formatDate(historico.dataNascimento) }}</p>
+        <p *ngIf="historico.nomeEscola">Escola: {{ historico.nomeEscola }}</p>
+        <p *ngIf="historico.dataEmissao">Emissão: {{ formatDate(historico.dataEmissao) }}</p>
+        <p *ngIf="historico.observacoes">Observações: {{ historico.observacoes }}</p>
+
+        <div class="discipline-list" *ngIf="historico.componentesCurriculares?.length">
+          <div class="discipline-item" *ngFor="let componente of historico.componentesCurriculares">
+            <strong>{{ componente.componenteCurricular }}</strong>
+            <p>
+              Ano: {{ componente.anoLetivo || '-' }} |
+              Série: {{ componente.serie || '-' }} |
+              Ciclo: {{ componente.ciclo || '-' }}
+            </p>
+            <p>
+              Nota/conceito: {{ componente.notaConceito || '-' }} |
+              Total de aulas: {{ componente.totalAulas || '-' }} |
+              Carga horária anual: {{ componente.cargaHoraria || '-' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <ng-container *ngIf="!readonly">
+        <h3>Novo histórico</h3>
+        <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>RA</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.ra" name="historicoRa" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>RM</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.rm" name="historicoRm" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>RG/REN</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.rgRen" name="rgRen" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Ano de conclusão</mat-label>
+          <input matInput type="number" [(ngModel)]="novoHistorico.anoConclusao" name="anoConclusao" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Ensino concluído</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.ensinoConcluido" name="ensinoConcluido" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Data de emissão</mat-label>
+          <input matInput type="date" [(ngModel)]="novoHistorico.dataEmissao" name="dataEmissao" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Município nascimento</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.municipioNascimento" name="municipioNascimento" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Estado nascimento</mat-label>
+          <input matInput maxlength="2" [(ngModel)]="novoHistorico.estadoNascimento" name="estadoNascimento" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>País nascimento</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.paisNascimento" name="paisNascimento" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Nome da escola</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.nomeEscola" name="nomeEscolaHistorico" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Endereço da escola</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.enderecoEscola" name="enderecoEscolaHistorico" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Município da escola</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.municipioEscola" name="municipioEscola" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>CEP da escola</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.cepEscola" name="cepEscolaHistorico" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Telefone da escola</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.telefoneEscola" name="telefoneEscolaHistorico" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Email da escola</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.emailEscola" name="emailEscolaHistorico" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Diretor</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.diretorNome" name="diretorNome" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>RG do diretor</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.diretorRg" name="diretorRg" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>DOE número</mat-label>
+          <input matInput [(ngModel)]="novoHistorico.doeNumero" name="doeNumero" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>DOE data</mat-label>
+          <input matInput type="date" [(ngModel)]="novoHistorico.doeData" name="doeData" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Observações</mat-label>
+          <textarea matInput rows="3" [(ngModel)]="novoHistorico.observacoes" name="observacoesHistorico"></textarea>
+        </mat-form-field>
+        </div>
+
+        <h3>Componentes curriculares</h3>
+        <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Disciplina cadastrada</mat-label>
+          <mat-select [(ngModel)]="componenteDraft.disciplinaId" name="disciplinaId">
+            <mat-option value="">Informar manualmente</mat-option>
+            <mat-option *ngFor="let disciplina of disciplinas()" [value]="disciplina.id">
+              {{ disciplina.nome }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Componente curricular</mat-label>
+          <input matInput [(ngModel)]="componenteDraft.componenteCurricular" name="componenteCurricular" [disabled]="!!componenteDraft.disciplinaId" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Ano letivo</mat-label>
+          <input matInput type="number" [(ngModel)]="componenteDraft.anoLetivo" name="anoLetivo" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Série</mat-label>
+          <input matInput [(ngModel)]="componenteDraft.serie" name="serieHistoricoItem" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Ciclo</mat-label>
+          <input matInput [(ngModel)]="componenteDraft.ciclo" name="cicloHistoricoItem" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Nota/conceito</mat-label>
+          <input matInput [(ngModel)]="componenteDraft.notaConceito" name="notaConceito" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Total de aulas</mat-label>
+          <input matInput type="number" [(ngModel)]="componenteDraft.totalAulas" name="totalAulas" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Carga horária anual</mat-label>
+          <input matInput type="number" [(ngModel)]="componenteDraft.cargaHoraria" name="cargaHorariaHistorico" />
+        </mat-form-field>
+        </div>
+
+        <div class="actions-row">
+          <button mat-stroked-button type="button" (click)="adicionarComponenteAoHistorico()">
+            <mat-icon fontIcon="add"></mat-icon>
+            Adicionar componente
+          </button>
+        </div>
+
+        <div class="pending-list" *ngIf="componentesCurriculares().length">
+          <div class="pending-item" *ngFor="let item of componentesCurriculares(); let i = index">
+            <span>{{ item.componenteCurricular }} - {{ item.anoLetivo || '-' }} - {{ item.serie || '-' }}</span>
+            <button mat-button color="warn" type="button" (click)="removerComponenteDoHistorico(i)">
+              Remover
+            </button>
+          </div>
+        </div>
+
+        <div class="actions-row">
+          <button mat-raised-button color="primary" type="button" (click)="criarHistorico()">
+            <mat-icon fontIcon="save"></mat-icon>
+            Salvar histórico
+          </button>
+        </div>
+      </ng-container>
+    </section>
+  </mat-tab>
+
+  <mat-tab label="Transferência">
+    <section class="tab-content">
+      <div class="empty-state" *ngIf="transferencias().length === 0">
+        Nenhuma transferência cadastrada.
+      </div>
+
+      <div class="record-item" *ngFor="let transferencia of transferencias()">
+        <strong>{{ transferencia.escolaOrigem.nomeEscola }}</strong>
+        <p>Tipo: {{ labelTipoTransferencia(transferencia.tipoTransferencia) }}</p>
+        <p>Status: {{ labelStatusTransferencia(transferencia.statusTransferencia) }}</p>
+        <p>Série de origem: {{ transferencia.serieOrigem }}</p>
+        <p>Ano letivo: {{ transferencia.anoLetivoOrigem }}</p>
+        <p>Data: {{ formatDate(transferencia.dataTransferencia) }}</p>
+        <p>Situação: {{ transferencia.situacaoOrigem || 'Não informada' }}</p>
+        <p>Operador: {{ transferencia.usuarioOperacao || 'Não informado' }}</p>
+        <p>Data e hora da operação: {{ formatDateTime(transferencia.dataHoraOperacao || transferencia.createdAt) }}</p>
+        <p *ngIf="transferencia.documentosEntregues">Documentos: {{ transferencia.documentosEntregues }}</p>
+        <p *ngIf="transferencia.observacao">Observação: {{ transferencia.observacao }}</p>
+      </div>
+
+      <ng-container *ngIf="!readonly">
+        <h3>Nova transferência</h3>
+        <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Tipo de transferência</mat-label>
+          <mat-select [(ngModel)]="novaTransferencia.tipoTransferencia" name="tipoTransferencia">
+            <mat-option *ngFor="let tipo of tiposTransferencia" [value]="tipo.value">
+              {{ tipo.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Status da transferência</mat-label>
+          <mat-select [(ngModel)]="novaTransferencia.statusTransferencia" name="statusTransferencia">
+            <mat-option *ngFor="let status of statusTransferenciaOptions" [value]="status.value">
+              {{ status.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Escola de origem/destino</mat-label>
+          <input matInput [(ngModel)]="novaTransferencia.escolaOrigem.nomeEscola" name="nomeEscola" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Código INEP</mat-label>
+          <input matInput [(ngModel)]="novaTransferencia.escolaOrigem.codigoInep" name="codigoInep" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>CNPJ</mat-label>
+          <input matInput [(ngModel)]="novaTransferencia.escolaOrigem.cnpj" name="cnpj" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>CEP</mat-label>
+          <input matInput [(ngModel)]="novaTransferencia.escolaOrigem.cep" name="cepEscola" (input)="onCepEscolaInput()" />
+          <button mat-icon-button matSuffix type="button" aria-label="Consultar CEP" (click)="buscarCepEscola()">
+            <mat-icon fontIcon="search"></mat-icon>
+          </button>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Logradouro</mat-label>
+          <input matInput [(ngModel)]="novaTransferencia.escolaOrigem.logradouro" name="logradouroEscola" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Número</mat-label>
+          <input matInput [(ngModel)]="novaTransferencia.escolaOrigem.numero" name="numeroEscola" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Complemento</mat-label>
+          <input matInput [(ngModel)]="novaTransferencia.escolaOrigem.complemento" name="complementoEscola" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Bairro</mat-label>
+          <input matInput [(ngModel)]="novaTransferencia.escolaOrigem.bairro" name="bairroEscola" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Cidade</mat-label>
+          <input matInput [(ngModel)]="novaTransferencia.escolaOrigem.cidade" name="cidadeEscola" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>UF</mat-label>
+          <input matInput maxlength="2" [(ngModel)]="novaTransferencia.escolaOrigem.uf" name="ufEscola" (input)="onUfEscolaInput()" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Série de origem</mat-label>
+          <input matInput [(ngModel)]="novaTransferencia.serieOrigem" name="serieOrigem" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Ano letivo de origem</mat-label>
+          <input matInput [(ngModel)]="novaTransferencia.anoLetivoOrigem" name="anoLetivoOrigem" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Data da transferência</mat-label>
+          <input matInput type="date" [(ngModel)]="novaTransferencia.dataTransferencia" name="dataTransferencia" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Situação de origem</mat-label>
+          <input matInput [(ngModel)]="novaTransferencia.situacaoOrigem" name="situacaoOrigem" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Motivo</mat-label>
+          <textarea matInput rows="2" [(ngModel)]="novaTransferencia.motivoTransferencia" name="motivoTransferencia"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Documentos entregues</mat-label>
+          <textarea matInput rows="2" [(ngModel)]="novaTransferencia.documentosEntregues" name="documentosEntregues"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Observação</mat-label>
+          <textarea matInput rows="2" [(ngModel)]="novaTransferencia.observacao" name="observacaoTransferencia"></textarea>
+        </mat-form-field>
+        </div>
+
+        <div class="actions-row">
+          <button mat-raised-button color="primary" type="button" (click)="criarTransferencia()">
+            <mat-icon fontIcon="save"></mat-icon>
+            Salvar transferência
+          </button>
+        </div>
+      </ng-container>
+    </section>
+  </mat-tab>
+
+  <mat-tab label="Documentos">
+    <section class="tab-content">
+      <app-documents-panel
+        entidadeTipo="ALUNO"
+        [entidadeId]="aluno.id"
+        [readonly]="readonly"
+        [requiredDocumentTypes]="documentosObrigatoriosAluno"
+      ></app-documents-panel>
+    </section>
+  </mat-tab>
+</mat-tab-group>

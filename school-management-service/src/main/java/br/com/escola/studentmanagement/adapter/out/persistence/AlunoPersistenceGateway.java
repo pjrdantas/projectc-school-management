@@ -2,28 +2,76 @@ package br.com.escola.studentmanagement.adapter.out.persistence;
 
 import java.util.UUID;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Locale;
 
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import br.com.escola.responsavelmanagement.adapter.out.persistence.entity.AlunoResponsavelEntity;
+import br.com.escola.responsavelmanagement.adapter.out.persistence.repository.AlunoResponsavelJpaRepository;
+import br.com.escola.responsavelmanagement.adapter.out.persistence.repository.ResponsavelJpaRepository;
+import br.com.escola.schoolhistory.adapter.out.persistence.repository.HistoricoEscolarJpaRepository;
+import br.com.escola.schoolhistory.adapter.out.persistence.repository.HistoricoEscolarItemJpaRepository;
+import br.com.escola.shared.document.adapter.out.persistence.repository.DocumentoJpaRepository;
 import br.com.escola.studentmanagement.adapter.out.persistence.entity.AlunoEntity;
 import br.com.escola.studentmanagement.adapter.out.persistence.repository.AlunoJpaRepository;
+import br.com.escola.studentmanagement.adapter.out.persistence.repository.StatusAlunoJpaRepository;
 import br.com.escola.studentmanagement.application.dto.AlunoInput;
 import br.com.escola.studentmanagement.application.dto.AlunoOutput;
 import br.com.escola.studentmanagement.application.port.out.AlunoCommandGateway;
 import br.com.escola.studentmanagement.application.port.out.AlunoQueryGateway;
 import br.com.escola.studentmanagement.domain.exception.AlunoNaoEncontradoException;
+import br.com.escola.transfermanagement.adapter.out.persistence.repository.TransferenciaAlunoJpaRepository;
+import br.com.escola.shared.person.dto.EnderecoDados;
+import br.com.escola.shared.person.dto.PessoaCriada;
+import br.com.escola.shared.person.dto.PessoaDados;
+import br.com.escola.shared.person.entity.EnderecoEntity;
+import br.com.escola.shared.person.entity.PessoaEnderecoEntity;
+import br.com.escola.shared.person.repository.PessoaEnderecoJpaRepository;
+import br.com.escola.shared.person.repository.PessoaJpaRepository;
+import br.com.escola.shared.person.service.PessoaFoundationService;
 
 @Component
 public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryGateway {
 
     private final AlunoJpaRepository alunoJpaRepository;
+    private final StatusAlunoJpaRepository statusAlunoJpaRepository;
+    private final PessoaJpaRepository pessoaJpaRepository;
+    private final PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository;
+    private final PessoaFoundationService pessoaFoundationService;
+    private final AlunoResponsavelJpaRepository alunoResponsavelJpaRepository;
+    private final ResponsavelJpaRepository responsavelJpaRepository;
+    private final HistoricoEscolarJpaRepository historicoEscolarJpaRepository;
+    private final HistoricoEscolarItemJpaRepository historicoEscolarItemJpaRepository;
+    private final TransferenciaAlunoJpaRepository transferenciaAlunoJpaRepository;
+    private final DocumentoJpaRepository documentoJpaRepository;
 
-    public AlunoPersistenceGateway(AlunoJpaRepository alunoJpaRepository) {
+    public AlunoPersistenceGateway(
+            AlunoJpaRepository alunoJpaRepository,
+            StatusAlunoJpaRepository statusAlunoJpaRepository,
+            PessoaJpaRepository pessoaJpaRepository,
+            PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository,
+            PessoaFoundationService pessoaFoundationService,
+            AlunoResponsavelJpaRepository alunoResponsavelJpaRepository,
+            ResponsavelJpaRepository responsavelJpaRepository,
+            HistoricoEscolarJpaRepository historicoEscolarJpaRepository,
+            HistoricoEscolarItemJpaRepository historicoEscolarItemJpaRepository,
+            TransferenciaAlunoJpaRepository transferenciaAlunoJpaRepository,
+            DocumentoJpaRepository documentoJpaRepository) {
         this.alunoJpaRepository = alunoJpaRepository;
+        this.statusAlunoJpaRepository = statusAlunoJpaRepository;
+        this.pessoaJpaRepository = pessoaJpaRepository;
+        this.pessoaEnderecoJpaRepository = pessoaEnderecoJpaRepository;
+        this.pessoaFoundationService = pessoaFoundationService;
+        this.alunoResponsavelJpaRepository = alunoResponsavelJpaRepository;
+        this.responsavelJpaRepository = responsavelJpaRepository;
+        this.historicoEscolarJpaRepository = historicoEscolarJpaRepository;
+        this.historicoEscolarItemJpaRepository = historicoEscolarItemJpaRepository;
+        this.transferenciaAlunoJpaRepository = transferenciaAlunoJpaRepository;
+        this.documentoJpaRepository = documentoJpaRepository;
     }
 
     @Override
@@ -37,32 +85,51 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     }
 
     @Override
+    @Transactional
     public AlunoOutput save(AlunoInput input) {
+        PessoaCriada pessoaCriada = pessoaFoundationService.criarPessoaComTipoEEndereco(
+                toPessoaDados(input),
+                "ALUNO",
+                toEnderecoDados(input));
+
         AlunoEntity alunoEntity = new AlunoEntity();
-        alunoEntity.setNomeCompleto(input.nomeCompleto());
-        alunoEntity.setCpf(input.cpf());
-        alunoEntity.setEmail(input.email());
-        alunoEntity.setTelefone(input.telefone());
-        alunoEntity.setDataNascimento(input.dataNascimento());
-        alunoEntity.setCreatedAt(LocalDateTime.now());
+        alunoEntity.setPessoa(pessoaJpaRepository.getReferenceById(pessoaCriada.pessoaId()));
+        alunoEntity.setStatusAluno(buscarStatus(input.statusAluno()));
         return toOutput(alunoJpaRepository.save(alunoEntity));
     }
 
     @Override
+    @Transactional
     public AlunoOutput update(@NonNull UUID id, AlunoInput input) {
         AlunoEntity alunoEntity = alunoJpaRepository.findById(id)
                 .orElseThrow(() -> new AlunoNaoEncontradoException(id));
 
-        alunoEntity.setNomeCompleto(input.nomeCompleto());
-        alunoEntity.setCpf(input.cpf());
-        alunoEntity.setEmail(input.email());
-        alunoEntity.setTelefone(input.telefone());
-        alunoEntity.setDataNascimento(input.dataNascimento());
+        pessoaFoundationService.atualizarPessoaEEndereco(
+                alunoEntity.getPessoa(),
+                toPessoaDados(input),
+                toEnderecoDados(input));
+        alunoEntity.setStatusAluno(buscarStatus(input.statusAluno()));
         return toOutput(alunoJpaRepository.save(alunoEntity));
     }
 
     @Override
+    @Transactional
     public void deleteById(@NonNull UUID id) {
+        AlunoEntity aluno = alunoJpaRepository.findById(id)
+                .orElseThrow(() -> new AlunoNaoEncontradoException(id));
+        List<UUID> responsaveisVinculados = alunoResponsavelJpaRepository.findByIdAluno(id).stream()
+                .map(AlunoResponsavelEntity::getIdResponsavel)
+                .toList();
+
+        documentoJpaRepository.deletePessoaDocumentoByPessoaId(aluno.getPessoa().getId());
+        documentoJpaRepository.deleteDocumentosSemVinculo();
+        transferenciaAlunoJpaRepository.deleteByAluno_Id(id);
+        historicoEscolarItemJpaRepository.deleteByAlunoDocumental(aluno.getNomeCompleto(), aluno.getDataNascimento());
+        historicoEscolarJpaRepository.deleteByAlunoDocumental(aluno.getNomeCompleto(), aluno.getDataNascimento());
+        alunoResponsavelJpaRepository.deleteByIdAluno(id);
+        responsaveisVinculados.stream()
+                .filter(responsavelId -> alunoResponsavelJpaRepository.countByIdResponsavel(responsavelId) == 0)
+                .forEach(responsavelJpaRepository::deleteById);
         alunoJpaRepository.deleteById(id);
     }
 
@@ -82,6 +149,11 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     }
 
     private AlunoOutput toOutput(AlunoEntity entity) {
+        EnderecoEntity endereco = pessoaEnderecoJpaRepository
+                .findPrincipalByPessoaId(entity.getPessoa().getId())
+                .map(PessoaEnderecoEntity::getEndereco)
+                .orElse(null);
+
         return new AlunoOutput(
                 entity.getId(),
                 entity.getNomeCompleto(),
@@ -89,6 +161,59 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
                 entity.getEmail(),
                 entity.getTelefone(),
                 entity.getDataNascimento(),
+                entity.getRg(),
+                entity.getOrgaoEmissorRg(),
+                entity.getUfRg(),
+                entity.getNacionalidade(),
+                entity.getNaturalidade(),
+                entity.getSexo(),
+                entity.getNomeSocial(),
+                endereco != null ? endereco.getCep() : null,
+                endereco != null ? endereco.getLogradouro() : null,
+                endereco != null ? endereco.getNumero() : null,
+                endereco != null ? endereco.getComplemento() : null,
+                endereco != null ? endereco.getBairro() : null,
+                endereco != null ? endereco.getCidade() : null,
+                endereco != null ? endereco.getUf() : null,
+                entity.getStatusAluno(),
                 entity.getCreatedAt());
+    }
+
+    private PessoaDados toPessoaDados(AlunoInput input) {
+        return new PessoaDados(
+                input.nomeCompleto(),
+                input.cpf(),
+                input.rg(),
+                input.orgaoEmissorRg(),
+                input.ufRg(),
+                input.email(),
+                input.telefone(),
+                input.dataNascimento(),
+                input.sexo(),
+                input.nomeSocial(),
+                input.nacionalidade(),
+                input.naturalidade(),
+                true);
+    }
+
+    private EnderecoDados toEnderecoDados(AlunoInput input) {
+        return new EnderecoDados(
+                input.cep(),
+                input.logradouro(),
+                input.numero(),
+                input.complemento(),
+                input.bairro(),
+                input.cidade(),
+                input.uf(),
+                "RESIDENCIAL",
+                true);
+    }
+
+    private br.com.escola.studentmanagement.adapter.out.persistence.entity.StatusAlunoEntity buscarStatus(String codigo) {
+        String codigoNormalizado = codigo == null || codigo.isBlank()
+                ? "ATIVO"
+                : codigo.trim().toUpperCase(Locale.ROOT);
+        return statusAlunoJpaRepository.findByCodigo(codigoNormalizado)
+                .orElseThrow(() -> new IllegalArgumentException("Status de aluno nao cadastrado: " + codigoNormalizado));
     }
 }

@@ -8,7 +8,9 @@ import java.time.LocalDateTime;
 public record PeriodoLetivoOutput(
         UUID id,
         String nome,
+        Integer ano,
         LocalDate dataInicio,
         LocalDate dataFim,
+        Boolean ativo,
         LocalDateTime createdAt) {
 }

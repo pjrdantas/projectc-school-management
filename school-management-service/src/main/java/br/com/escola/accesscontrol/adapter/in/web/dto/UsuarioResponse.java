@@ -13,5 +13,6 @@ public record UsuarioResponse(
         boolean ativo,
         LocalDateTime createdAt,
         List<UUID> perfilIds,
-        Set<String> perfis
+        Set<String> perfis,
+        Set<String> perfilNomes
 ) {}

@@ -1,15 +1,18 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, catchError, forkJoin, map, of, tap } from 'rxjs';
+import { BehaviorSubject, Observable, forkJoin, map, tap } from 'rxjs';
 import { AuthStateService } from '../../core/auth/auth-state.service';
+import { API_BASE_URL } from '../../core/config/api.config';
 import {
   AcademicClass,
   AcademicClassInput,
   AcademicPeriod,
   AcademicPeriodInput,
+  AcademicSeries,
+  AcademicSeriesInput,
+  AcademicShift,
+  AcademicShiftInput,
 } from '../models/academic.model';
-
-const API_BASE_URL = 'http://localhost:8080';
 
 @Injectable({ providedIn: 'root' })
 export class AcademicService {
@@ -17,9 +20,13 @@ export class AcademicService {
   private readonly authState = inject(AuthStateService);
 
   private readonly periodsSubject = new BehaviorSubject<AcademicPeriod[]>([]);
+  private readonly seriesSubject = new BehaviorSubject<AcademicSeries[]>([]);
+  private readonly shiftsSubject = new BehaviorSubject<AcademicShift[]>([]);
   private readonly classesSubject = new BehaviorSubject<AcademicClass[]>([]);
 
   readonly periods$ = this.periodsSubject.asObservable();
+  readonly series$ = this.seriesSubject.asObservable();
+  readonly shifts$ = this.shiftsSubject.asObservable();
   readonly classes$ = this.classesSubject.asObservable();
 
   listPeriods(): AcademicPeriod[] {
@@ -30,41 +37,81 @@ export class AcademicService {
     return this.classesSubject.value;
   }
 
+  listSeries(): AcademicSeries[] {
+    return this.seriesSubject.value;
+  }
 
-  hydrateSeedData(): Observable<void> {
-    const periodIds = Array.from({ length: 20 }, (_, i) =>
-      `10000000-0000-0000-0000-${String(i + 1).padStart(12, '0')}`,
-    );
-    const classIds = Array.from({ length: 10 }, (_, i) =>
-      `20000000-0000-0000-0000-${String(i + 1).padStart(12, '0')}`,
-    );
+  listShifts(): AcademicShift[] {
+    return this.shiftsSubject.value;
+  }
 
-    const periodRequests = periodIds.map(id =>
-      this.http
-        .get<AcademicPeriod>(`${API_BASE_URL}/api/periodos-letivos/${id}`, { headers: this.buildHeaders() })
-        .pipe(catchError(() => of(null))),
-    );
+  createSeries(input: AcademicSeriesInput): Observable<AcademicSeries> {
+    return this.http
+      .post<AcademicSeries>(`${API_BASE_URL}/api/series`, input, {
+        headers: this.buildHeaders(),
+      })
+      .pipe(tap(serie => this.upsertSeries(serie)));
+  }
 
-    const classRequests = classIds.map(id =>
-      this.http
-        .get<AcademicClass>(`${API_BASE_URL}/api/turmas/${id}`, { headers: this.buildHeaders() })
-        .pipe(catchError(() => of(null))),
-    );
+  updateSeries(id: string, input: AcademicSeriesInput): Observable<AcademicSeries> {
+    return this.http
+      .put<AcademicSeries>(`${API_BASE_URL}/api/series/${id}`, input, {
+        headers: this.buildHeaders(),
+      })
+      .pipe(tap(serie => this.upsertSeries(serie)));
+  }
 
-    return forkJoin([...periodRequests, ...classRequests]).pipe(
-      tap(results => {
-        const periods = results.slice(0, periodIds.length).filter(Boolean) as AcademicPeriod[];
-        const classes = results.slice(periodIds.length).filter(Boolean) as AcademicClass[];
-        if (periods.length) {
-          this.periodsSubject.next(periods);
-        }
-        if (classes.length) {
-          this.classesSubject.next(classes);
-        }
+  deleteSeriesLocally(id: string): void {
+    const current = this.seriesSubject.value;
+    this.seriesSubject.next(current.filter(item => item.id !== id));
+  }
+
+  createShift(input: AcademicShiftInput): Observable<AcademicShift> {
+    return this.http
+      .post<AcademicShift>(`${API_BASE_URL}/api/turnos`, input, {
+        headers: this.buildHeaders(),
+      })
+      .pipe(tap(turno => this.upsertShift(turno)));
+  }
+
+  updateShift(id: string, input: AcademicShiftInput): Observable<AcademicShift> {
+    return this.http
+      .put<AcademicShift>(`${API_BASE_URL}/api/turnos/${id}`, input, {
+        headers: this.buildHeaders(),
+      })
+      .pipe(tap(turno => this.upsertShift(turno)));
+  }
+
+  deleteShiftLocally(id: string): void {
+    const current = this.shiftsSubject.value;
+    this.shiftsSubject.next(current.filter(item => item.id !== id));
+  }
+
+  syncFromApi(): Observable<void> {
+    return forkJoin({
+      periods: this.http.get<AcademicPeriod[]>(`${API_BASE_URL}/api/periodos-letivos`, {
+        headers: this.buildHeaders(),
+      }),
+      series: this.http.get<AcademicSeries[]>(`${API_BASE_URL}/api/series`, {
+        headers: this.buildHeaders(),
+      }),
+      shifts: this.http.get<AcademicShift[]>(`${API_BASE_URL}/api/turnos`, {
+        headers: this.buildHeaders(),
+      }),
+      classes: this.http.get<AcademicClass[]>(`${API_BASE_URL}/api/turmas`, {
+        headers: this.buildHeaders(),
+      }),
+    }).pipe(
+      tap(({ periods, series, shifts, classes }) => {
+        this.periodsSubject.next(periods);
+        this.seriesSubject.next(series);
+        this.shiftsSubject.next(shifts);
+        this.classesSubject.next(classes);
       }),
       map(() => void 0),
     );
   }
+
   createPeriod(input: AcademicPeriodInput): Observable<AcademicPeriod> {
     return this.http
       .post<AcademicPeriod>(`${API_BASE_URL}/api/periodos-letivos`, input, {
@@ -105,6 +152,14 @@ export class AcademicService {
       .pipe(tap(turma => this.upsertClass(turma)));
   }
 
+  updateClass(id: string, input: AcademicClassInput): Observable<AcademicClass> {
+    return this.http
+      .put<AcademicClass>(`${API_BASE_URL}/api/turmas/${id}`, input, {
+        headers: this.buildHeaders(),
+      })
+      .pipe(tap(turma => this.upsertClass(turma)));
+  }
+
   updateClassLocally(id: string, input: AcademicClassInput): void {
     const current = this.classesSubject.value;
     const index = current.findIndex(item => item.id === id);
@@ -121,6 +176,9 @@ export class AcademicService {
       nome: input.nome,
       capacidade: input.capacidade,
       periodoLetivoId: input.periodoLetivoId,
+      serieId: input.serieId,
+      turno: input.turno ?? target.turno,
+      status: input.status ?? target.status,
     };
     this.classesSubject.next(next);
   }
@@ -162,6 +220,34 @@ export class AcademicService {
     const next = [...current];
     next[index] = period;
     this.periodsSubject.next(next);
+  }
+
+  private upsertSeries(serie: AcademicSeries): void {
+    const current = this.seriesSubject.value;
+    const index = current.findIndex(item => item.id === serie.id);
+
+    if (index === -1) {
+      this.seriesSubject.next([serie, ...current]);
+      return;
+    }
+
+    const next = [...current];
+    next[index] = serie;
+    this.seriesSubject.next(next);
+  }
+
+  private upsertShift(turno: AcademicShift): void {
+    const current = this.shiftsSubject.value;
+    const index = current.findIndex(item => item.id === turno.id);
+
+    if (index === -1) {
+      this.shiftsSubject.next([turno, ...current]);
+      return;
+    }
+
+    const next = [...current];
+    next[index] = turno;
+    this.shiftsSubject.next(next);
   }
 
   private upsertClass(turma: AcademicClass): void {

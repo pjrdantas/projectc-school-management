@@ -25,11 +25,17 @@ public class PeriodoLetivoEntity {
     @Column(name = "nome", nullable = false, length = 80)
     private String nome;
 
+    @Column(name = "ano", nullable = false)
+    private Integer ano;
+
     @Column(name = "data_inicio", nullable = false)
     private LocalDate dataInicio;
 
     @Column(name = "data_fim", nullable = false)
     private LocalDate dataFim;
+
+    @Column(name = "ativo", nullable = false)
+    private Boolean ativo = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -46,6 +52,14 @@ public class PeriodoLetivoEntity {
         this.nome = nome;
     }
 
+    public Integer getAno() {
+        return ano;
+    }
+
+    public void setAno(Integer ano) {
+        this.ano = ano;
+    }
+
     public LocalDate getDataInicio() {
         return dataInicio;
     }
@@ -60,6 +74,14 @@ public class PeriodoLetivoEntity {
 
     public void setDataFim(LocalDate dataFim) {
         this.dataFim = dataFim;
+    }
+
+    public Boolean getAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
     }
 
     @PrePersist

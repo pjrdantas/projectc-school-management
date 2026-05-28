@@ -1,10 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
+import { API_BASE_URL } from '../../core/config/api.config';
 import { Permission, PermissionInput } from '../models/permission.model';
 import { Profile, ProfileInput } from '../models/profile.model';
 import { User, UserInput } from '../models/user.model';
-const API_BASE_URL = 'http://localhost:8080';
 
 @Injectable({ providedIn: 'root' })
 export class AccessAdminService {

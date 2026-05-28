@@ -1,57 +1,13 @@
 <div class="page-container">
   <mat-card class="federated-card">
     <mat-card-content>
-      <div class="header-row"><h1>Turmas</h1></div>
-
-      <form class="form-grid" [formGroup]="form" (ngSubmit)="onCreateOrUpdate()">
-        <mat-form-field appearance="outline">
-          <mat-label>Turma *</mat-label>
-          <input matInput formControlName="turmaNome" placeholder="5 série A" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Período *</mat-label>
-          <input matInput formControlName="periodo" placeholder="Período da manhã" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Capacidade *</mat-label>
-          <input matInput type="number" formControlName="capacidade" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Período letivo *</mat-label>
-          <input
-            matInput
-            formControlName="periodoLetivoNome"
-            [matAutocomplete]="autoPeriodo"
-            (input)="onPeriodInput(($any($event.target).value || '').toString())"
-            placeholder="Primeiro semestre"
-          />
-          <mat-autocomplete
-            #autoPeriodo="matAutocomplete"
-            (optionSelected)="onPeriodOptionSelected($event.option.value)"
-          >
-            <mat-option *ngFor="let period of filteredPeriods()" [value]="period.id">{{
-              period.nome
-            }}</mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Ano *</mat-label>
-          <input matInput type="number" formControlName="ano" placeholder="2026" />
-        </mat-form-field>
-
-        <div class="actions">
-          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">
-            {{ editingClassId() ? 'Atualizar turma' : 'Salvar turma' }}
-          </button>
-          <button mat-stroked-button type="button" *ngIf="editingClassId()" (click)="clearForm()">
-            Cancelar edição
-          </button>
-        </div>
-      </form>
+      <div class="header-row">
+        <h1>Turmas</h1>
+        <button mat-raised-button color="primary" type="button" (click)="openCreateDialog()" [disabled]="isLoading()">
+          <mat-icon fontIcon="add"></mat-icon>
+          Nova turma
+        </button>
+      </div>
 
       <form class="search-row" [formGroup]="searchForm" (ngSubmit)="onSearchByName()">
         <mat-form-field appearance="outline" class="search-field">
@@ -82,10 +38,11 @@
         <div class="list-item" *ngFor="let turma of pagedClasses()">
           <div>
             <h3>Turma: {{ turma.nome }}</h3>
-            <p><strong>Período:</strong> {{ getShiftFromCode(turma.codigo) }}</p>
+            <p><strong>Série:</strong> {{ getSerieName(turma.serieId, turma.serieNome) }}</p>
+            <p><strong>Turno:</strong> {{ getShiftName(turma.turno) }}</p>
             <p><strong>Capacidade:</strong> {{ turma.capacidade }}</p>
             <p><strong>Período letivo:</strong> {{ getPeriodName(turma.periodoLetivoId) }}</p>
-            <p><strong>Ano:</strong> {{ getYearFromCode(turma.codigo) }}</p>
+            <p><strong>Status:</strong> {{ turma.status || '-' }}</p>
           </div>
           <div class="actions-row">
             <button mat-stroked-button type="button" (click)="onEdit(turma.id)">Editar</button>

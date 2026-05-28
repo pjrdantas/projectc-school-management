@@ -7,5 +7,9 @@ public record VinculoAlunoResponsavelOutput(
         UUID id,
         UUID idAluno,
         UUID idResponsavel,
+        String parentesco,
+        Boolean responsavelFinanceiro,
+        Boolean responsavelPedagogico,
+        Boolean autorizadoRetirar,
         LocalDateTime createdAt) {
 }

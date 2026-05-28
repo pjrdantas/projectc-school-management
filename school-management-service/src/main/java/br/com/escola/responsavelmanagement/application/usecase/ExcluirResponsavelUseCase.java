@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import br.com.escola.responsavelmanagement.application.port.out.ResponsavelCommandGateway;
 import br.com.escola.responsavelmanagement.application.port.out.ResponsavelQueryGateway;
+import br.com.escola.responsavelmanagement.domain.exception.ResponsavelComAlunoVinculadoException;
 import br.com.escola.responsavelmanagement.domain.exception.ResponsavelNaoEncontradoException;
 
 @Service
@@ -24,6 +25,9 @@ public class ExcluirResponsavelUseCase {
     public void executar(UUID id) {
         if (!responsavelQueryGateway.existsById(id)) {
             throw new ResponsavelNaoEncontradoException(id);
+        }
+        if (responsavelQueryGateway.hasAlunosVinculados(id)) {
+            throw new ResponsavelComAlunoVinculadoException(id);
         }
         responsavelCommandGateway.deleteById(id);
     }

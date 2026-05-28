@@ -6,13 +6,24 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import br.com.escola.academiccatalog.adapter.in.web.controller.PeriodoLetivoController;
+import br.com.escola.academiccatalog.adapter.in.web.controller.SerieController;
+import br.com.escola.academiccatalog.adapter.in.web.controller.TurmaController;
+import br.com.escola.academiccatalog.adapter.in.web.controller.TurnoController;
 import br.com.escola.academiccatalog.domain.exception.PeriodoLetivoInvalidoException;
 import br.com.escola.academiccatalog.domain.exception.PeriodoLetivoNaoEncontradoException;
+import br.com.escola.academiccatalog.domain.exception.SerieNaoEncontradaException;
+import br.com.escola.academiccatalog.domain.exception.TurmaCapacidadeInvalidaException;
 import br.com.escola.academiccatalog.domain.exception.TurmaJaCadastradaException;
 import br.com.escola.academiccatalog.domain.exception.TurmaNaoEncontradaException;
+import br.com.escola.academiccatalog.domain.exception.TurnoNaoEncontradoException;
 import jakarta.servlet.http.HttpServletRequest;
 
-@RestControllerAdvice(basePackageClasses = PeriodoLetivoController.class)
+@RestControllerAdvice(basePackageClasses = {
+        PeriodoLetivoController.class,
+        SerieController.class,
+        TurmaController.class,
+        TurnoController.class
+})
 public class AcademicCatalogApiExceptionHandler extends BaseApiExceptionHandler {
 
     @ExceptionHandler(PeriodoLetivoInvalidoException.class)
@@ -30,8 +41,23 @@ public class AcademicCatalogApiExceptionHandler extends BaseApiExceptionHandler 
         return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
     }
 
+    @ExceptionHandler(SerieNaoEncontradaException.class)
+    public ResponseEntity<ApiErrorResponse> handleSerieNotFound(SerieNaoEncontradaException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(TurnoNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleTurnoNotFound(TurnoNaoEncontradoException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
     @ExceptionHandler(TurmaJaCadastradaException.class)
     public ResponseEntity<ApiErrorResponse> handleTurmaDuplicada(TurmaJaCadastradaException ex, HttpServletRequest request) {
         return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(TurmaCapacidadeInvalidaException.class)
+    public ResponseEntity<ApiErrorResponse> handleTurmaCapacidadeInvalida(TurmaCapacidadeInvalidaException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
     }
 }

@@ -81,6 +81,7 @@ public class PerfilController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('UPDATE','ADMIN')")
+    @Operation(summary = "Atualiza um perfil")
     public ResponseEntity<?> update(@PathVariable UUID id,
                                     @Validated @RequestBody PerfilRequest dto,
                                     HttpServletRequest request) {
@@ -103,6 +104,7 @@ public class PerfilController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('DELETE','ADMIN')")
+    @Operation(summary = "Remove um perfil")
     public ResponseEntity<?> delete(@PathVariable UUID id, HttpServletRequest request) {
 
         Optional<PerfilModel> existing = perfilUseCasePort.findById(id);
@@ -116,6 +118,7 @@ public class PerfilController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('READ','ADMIN')")
+    @Operation(summary = "Busca perfil por ID")
     public ResponseEntity<?> findById(@PathVariable UUID id, HttpServletRequest request) {
 
         Optional<PerfilModel> existing = perfilUseCasePort.findById(id);
@@ -128,6 +131,7 @@ public class PerfilController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('READ_ALL','ADMIN')")
+    @Operation(summary = "Lista perfis")
     public ResponseEntity<?> listAll(HttpServletRequest request) {
 
         List<PerfilModel> domains = perfilUseCasePort.listAll();

@@ -23,6 +23,25 @@ public record AlunoRequest(
 
         @NotNull(message = "dataNascimento é obrigatória")
         @Past(message = "dataNascimento deve estar no passado")
-        LocalDate dataNascimento
+        LocalDate dataNascimento,
+
+        String rg,
+        String orgaoEmissorRg,
+        String ufRg,
+        String nacionalidade,
+        String naturalidade,
+        String sexo,
+        String nomeSocial,
+
+        @Pattern(regexp = "(^$|^\\d{8}$|^\\d{5}-\\d{3}$)", message = "cep deve estar no formato 00000000 ou 00000-000")
+        String cep,
+
+        String logradouro,
+        String numero,
+        String complemento,
+        String bairro,
+        String cidade,
+        String uf,
+        String statusAluno
 ) {
 }

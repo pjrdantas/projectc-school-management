@@ -8,10 +8,31 @@
     </mat-card-header>
 
     <mat-card-content>
-      <p><strong>CPF:</strong> {{ formatCpf(item.cpf) }}</p>
-      <p><strong>E-mail:</strong> {{ item.email || 'Não informado' }}</p>
-      <p><strong>Telefone:</strong> {{ item.telefone || 'Não informado' }}</p>
-      <p><strong>Cadastrado em:</strong> {{ item.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+      <section class="detail-section">
+        <h3>Dados pessoais</h3>
+        <div class="detail-grid">
+          <p><strong>Nome completo</strong><span>{{ item.nomeCompleto }}</span></p>
+          <p><strong>CPF</strong><span>{{ formatCpf(item.cpf) }}</span></p>
+          <p><strong>RG</strong><span>{{ item.rg || 'Não informado' }}</span></p>
+          <p><strong>E-mail</strong><span>{{ item.email || 'Não informado' }}</span></p>
+          <p><strong>Telefone</strong><span>{{ item.telefone || 'Não informado' }}</span></p>
+          <p><strong>Cadastrado em</strong><span>{{ item.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span></p>
+        </div>
+      </section>
+
+      <section class="detail-section">
+        <h3>Endereço</h3>
+        <div class="detail-grid">
+          <p><strong>CEP</strong><span>{{ formatCep(item.cep) }}</span></p>
+          <p class="span-2"><strong>Endereço completo</strong><span>{{ enderecoCompleto(item) }}</span></p>
+          <p><strong>Logradouro</strong><span>{{ item.logradouro || 'Não informado' }}</span></p>
+          <p><strong>Número</strong><span>{{ item.numero || 'Não informado' }}</span></p>
+          <p><strong>Complemento</strong><span>{{ item.complemento || 'Não informado' }}</span></p>
+          <p><strong>Bairro</strong><span>{{ item.bairro || 'Não informado' }}</span></p>
+          <p><strong>Cidade</strong><span>{{ item.cidade || 'Não informado' }}</span></p>
+          <p><strong>UF</strong><span>{{ item.uf || 'Não informado' }}</span></p>
+        </div>
+      </section>
 
       <div class="actions">
         <button mat-raised-button color="primary" routerLink="/responsibles">Voltar</button>

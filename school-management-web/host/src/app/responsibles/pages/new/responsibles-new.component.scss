@@ -15,14 +15,63 @@
 }
 
 .student-form {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
   margin-top: 8px;
 }
 
+.form-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+
+  h3 {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
 .actions {
-  grid-column: 1 / -1;
   display: flex;
   gap: 12px;
+  margin-top: 20px;
+}
+
+.documents-section,
+.records-placeholder {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #d7def8;
+
+  h3 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.records-placeholder {
+  padding: 14px;
+  border: 1px solid #d7def8;
+  border-radius: 8px;
+  background: #f7f8ff;
+}
+
+@media (max-width: 640px) {
+  .span-2 {
+    grid-column: 1 / -1;
+  }
+
+  .actions {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+    }
+  }
 }

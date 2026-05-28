@@ -4,11 +4,15 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { getApiErrorMessage } from '../../../core/http/api-error';
+import { MessageDialogComponent } from '../../../shared/dialogs/message-dialog/message-dialog.component';
+import { Student } from '../../models/student.model';
 import { StudentsService } from '../../services/students.service';
 
 @Component({
@@ -17,6 +21,7 @@ import { StudentsService } from '../../services/students.service';
   imports: [
     MatCardModule,
     MatButtonModule,
+    MatDialogModule,
     MatIconModule,
     MatSnackBarModule,
     MatPaginatorModule,
@@ -32,6 +37,7 @@ import { StudentsService } from '../../services/students.service';
 })
 export class StudentsListComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly studentsService = inject(StudentsService);
 
@@ -107,7 +113,35 @@ export class StudentsListComponent implements OnInit {
     });
   }
 
-  protected remover(id: string): void {
+  protected remover(student: Student): void {
+    const dialogRef = this.dialog.open(MessageDialogComponent, {
+      width: '640px',
+      maxWidth: 'calc(100vw - 32px)',
+      disableClose: true,
+      data: {
+        title: 'Confirmar exclusão',
+        message: `Deseja excluir o aluno ${student.nomeCompleto}?`,
+        details: [
+          'Também serão excluídos histórico escolar, transferências e documentos relacionados ao aluno.',
+          'Responsáveis serão removidos apenas quando não estiverem vinculados a outro aluno.',
+        ],
+        confirmLabel: 'Excluir aluno',
+        cancelLabel: 'Cancelar',
+        icon: 'delete',
+        tone: 'danger',
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.excluirAluno(student.id);
+    });
+  }
+
+  private excluirAluno(id: string): void {
     this.studentsService.removeOnApi(id).subscribe({
       next: () => {
         this.snackBar.open('Aluno removido com sucesso.', 'Fechar', { duration: 3000 });
@@ -118,8 +152,12 @@ export class StudentsListComponent implements OnInit {
           this.pageIndex.set(Math.max(Math.ceil(total / this.pageSize()) - 1, 0));
         }
       },
-      error: () => {
-        this.snackBar.open('Erro ao excluir aluno no backend.', 'Fechar', { duration: 4000 });
+      error: (error: unknown) => {
+        this.snackBar.open(
+          getApiErrorMessage(error, 'Não foi possível excluir aluno.'),
+          'Fechar',
+          { duration: 5000 },
+        );
       },
     });
   }

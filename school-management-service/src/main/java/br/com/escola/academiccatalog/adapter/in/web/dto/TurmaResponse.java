@@ -10,6 +10,10 @@ public record TurmaResponse(
         String nome,
         Integer capacidade,
         UUID periodoLetivoId,
+        UUID serieId,
+        String serieNome,
+        String turno,
+        String status,
         LocalDateTime createdAt
 ) {
 }

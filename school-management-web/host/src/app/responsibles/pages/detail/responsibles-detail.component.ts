@@ -44,4 +44,23 @@ export class ResponsiblesDetailComponent implements OnInit {
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
   }
+
+  protected formatCep(cep?: string): string {
+    if (!cep) return 'Não informado';
+    const digits = cep.replace(/\D/g, '').slice(0, 8);
+    if (digits.length !== 8) return cep;
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  }
+
+  protected enderecoCompleto(item: Responsible): string {
+    const partes = [
+      item.logradouro,
+      item.numero ? `nº ${item.numero}` : undefined,
+      item.complemento,
+      item.bairro,
+      item.cidade && item.uf ? `${item.cidade}/${item.uf}` : item.cidade || item.uf,
+    ].filter(Boolean);
+
+    return partes.length ? partes.join(', ') : 'Não informado';
+  }
 }

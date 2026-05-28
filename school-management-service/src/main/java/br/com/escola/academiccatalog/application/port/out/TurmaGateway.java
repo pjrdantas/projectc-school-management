@@ -18,5 +18,7 @@ public interface TurmaGateway {
 
     TurmaOutput save(TurmaInput input);
 
+    TurmaOutput update(UUID id, TurmaInput input);
+
     List<TurmaOutput> findAll();
 }

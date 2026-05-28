@@ -3,15 +3,15 @@
 ## Objetivo Deste Documento
 
 Este documento registra a direcao inicial para o desenvolvimento do sistema real de gestao escolar.
-Ele usa o projeto `academic-core-service` como referencia de aprendizado e como norte arquitetural,
-mas nao assume que este repositorio sera transformado diretamente no produto final.
+Ele consolida as decisoes de produto, arquitetura e implementacao do repositorio
+`projectc-school-management`.
 
 O objetivo e preservar os aprendizados tecnicos, reduzir retrabalho e manter um ponto de referencia
 consistente para futuras conversas, decisoes arquiteturais e planejamento de implementacao.
 
 ## Premissas
 
-- O projeto atual de matricula funcionou como prova de conceito e laboratorio tecnico.
+- O projeto evoluiu a partir de uma prova de conceito para um MVP operacional.
 - O sistema real deve nascer com fronteiras de dominio mais claras.
 - O sistema inicial deve priorizar organizacao e clareza de responsabilidades antes de sofisticacao excessiva.
 - A recomendacao inicial e um monolito modular, preparado para futura extracao de servicos.
@@ -388,11 +388,11 @@ Este arquivo deve funcionar como memoria operacional do projeto.
 
 Quando quiser retomar em outro chat, basta dizer algo como:
 
-"Considere o documento `docs/gestao-escolar-base.md` como referencia do projeto."
+"Considere o documento `docs/00-gestao-escolar-base.md` como referencia do projeto."
 
 Ou:
 
-"Leia `docs/gestao-escolar-base.md` e continue a partir dos epicos e da arquitetura definidos ali."
+"Leia `docs/00-gestao-escolar-base.md` e continue a partir dos epicos e da arquitetura definidos ali."
 
 Isso permite que a conversa recomece com muito mais consistencia, mesmo fora deste chat.
 

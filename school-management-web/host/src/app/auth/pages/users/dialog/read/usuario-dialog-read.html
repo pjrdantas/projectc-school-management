@@ -1,0 +1,58 @@
+<h2 mat-dialog-title class="dialog-title">
+  <mat-icon>person</mat-icon>
+  Detalhes do Usuário
+</h2>
+
+<mat-dialog-content class="content">
+  <div class="info-grid">
+    <div class="info-item">
+      <label>Nome Completo</label>
+      <p>{{ data.nome }}</p>
+    </div>
+
+    <div class="info-item">
+      <label>Login</label>
+      <p>{{ data.username }}</p>
+    </div>
+
+    <div class="info-item">
+      <label>E-mail</label>
+      <p>{{ data.email }}</p>
+    </div>
+
+    <div class="info-item">
+      <label>Status</label>
+      <p>
+        <span [class]="data.ativo ? 'status-active' : 'status-inactive'">
+          <mat-icon>{{ data.ativo ? 'check_circle' : 'cancel' }}</mat-icon>
+          {{ data.ativo ? 'Ativo' : 'Inativo' }}
+        </span>
+      </p>
+    </div>
+  </div>
+
+  <mat-divider class="divider"></mat-divider>
+
+  <div class="perfis-section">
+    <label>Perfis Associados</label>
+    <mat-chip-set>
+      @for (perfil of profileNames; track perfil) {
+        <mat-chip class="custom-chip">
+          {{ perfil }}
+        </mat-chip>
+      } @empty {
+        <p class="no-data">Nenhum perfil vinculado.</p>
+      }
+    </mat-chip-set>
+  </div>
+
+  <div class="audit-section">
+    <small>Criado em: {{ data.createdAt | date: 'dd/MM/yyyy HH:mm' }}</small>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="primary" (click)="close()">
+    <mat-icon>close</mat-icon> Fechar
+  </button>
+</mat-dialog-actions>

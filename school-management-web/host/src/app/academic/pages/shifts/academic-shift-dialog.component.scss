@@ -1,0 +1,20 @@
+:host {
+  display: block;
+}
+
+.dialog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 12px;
+  padding-top: 4px;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .dialog-grid {
+    grid-template-columns: 1fr;
+  }
+}

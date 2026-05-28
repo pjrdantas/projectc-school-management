@@ -50,9 +50,24 @@
     <span class="item-menu">Períodos letivos</span>
   </button>
 
+  <button mat-menu-item (click)="irAcademicSeries()">
+    <mat-icon fontIcon="format_list_numbered"></mat-icon>
+    <span class="item-menu">Séries</span>
+  </button>
+
+  <button mat-menu-item (click)="irAcademicShifts()">
+    <mat-icon fontIcon="schedule"></mat-icon>
+    <span class="item-menu">Turnos</span>
+  </button>
+
   <button mat-menu-item (click)="irAcademicClasses()">
     <mat-icon fontIcon="class"></mat-icon>
     <span class="item-menu">Turmas</span>
+  </button>
+
+  <button mat-menu-item (click)="irAcademicDisciplines()">
+    <mat-icon fontIcon="menu_book"></mat-icon>
+    <span class="item-menu">Disciplinas</span>
   </button>
 
   <button mat-menu-item (click)="irEnrollment()">

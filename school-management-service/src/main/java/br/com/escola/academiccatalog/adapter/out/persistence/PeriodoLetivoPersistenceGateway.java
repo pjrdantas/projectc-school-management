@@ -38,8 +38,10 @@ public class PeriodoLetivoPersistenceGateway implements PeriodoLetivoGateway {
     public PeriodoLetivoOutput save(PeriodoLetivoInput input) {
         PeriodoLetivoEntity entity = new PeriodoLetivoEntity();
         entity.setNome(input.nome());
+        entity.setAno(resolveAno(input));
         entity.setDataInicio(input.dataInicio());
         entity.setDataFim(input.dataFim());
+        entity.setAtivo(true);
         entity.setCreatedAt(LocalDateTime.now());
         return toOutput(periodoLetivoJpaRepository.save(entity));
     }
@@ -53,8 +55,17 @@ public class PeriodoLetivoPersistenceGateway implements PeriodoLetivoGateway {
         return new PeriodoLetivoOutput(
                 entity.getId(),
                 entity.getNome(),
+                entity.getAno(),
                 entity.getDataInicio(),
                 entity.getDataFim(),
+                entity.getAtivo(),
                 entity.getCreatedAt());
+    }
+
+    private Integer resolveAno(PeriodoLetivoInput input) {
+        if (input.ano() != null) {
+            return input.ano();
+        }
+        return input.dataInicio().getYear();
     }
 }

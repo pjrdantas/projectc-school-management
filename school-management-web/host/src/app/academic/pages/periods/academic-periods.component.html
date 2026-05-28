@@ -14,18 +14,36 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Data início *</mat-label>
-          <input matInput type="date" formControlName="dataInicio" />
+          <input
+            matInput
+            formControlName="dataInicio"
+            placeholder="dd/MM/aaaa"
+            maxlength="10"
+            (input)="onDateInput('dataInicio')"
+          />
           <mat-error *ngIf="form.controls.dataInicio.hasError('required')">
             Data de início é obrigatória.
+          </mat-error>
+          <mat-error *ngIf="form.controls.dataInicio.hasError('dataInvalida')">
+            Use o formato dd/MM/aaaa com uma data válida.
           </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Data fim *</mat-label>
-          <input matInput type="date" formControlName="dataFim" />
+          <input
+            matInput
+            formControlName="dataFim"
+            placeholder="dd/MM/aaaa"
+            maxlength="10"
+            (input)="onDateInput('dataFim')"
+          />
           <mat-error *ngIf="form.controls.dataFim.hasError('required')"
             >Data final é obrigatória.</mat-error
           >
+          <mat-error *ngIf="form.controls.dataFim.hasError('dataInvalida')">
+            Use o formato dd/MM/aaaa com uma data válida.
+          </mat-error>
         </mat-form-field>
 
         <div class="actions">
@@ -78,8 +96,8 @@
           <div>
             <h3>{{ period.nome }}</h3>
             <div class="period-dates">
-              <p><strong>Início:</strong> {{ period.dataInicio }}</p>
-              <p><strong>Fim:</strong> {{ period.dataFim }}</p>
+              <p><strong>Início:</strong> {{ formatDate(period.dataInicio) }}</p>
+              <p><strong>Fim:</strong> {{ formatDate(period.dataFim) }}</p>
             </div>
           </div>
 

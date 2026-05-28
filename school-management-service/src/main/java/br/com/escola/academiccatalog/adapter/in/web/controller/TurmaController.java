@@ -4,11 +4,11 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -18,9 +18,11 @@ import br.com.escola.academiccatalog.adapter.in.web.dto.TurmaRequest;
 import br.com.escola.academiccatalog.adapter.in.web.dto.TurmaResponse;
 import br.com.escola.academiccatalog.application.dto.TurmaInput;
 import br.com.escola.academiccatalog.application.dto.TurmaOutput;
+import br.com.escola.academiccatalog.application.usecase.AtualizarTurmaUseCase;
 import br.com.escola.academiccatalog.application.usecase.BuscarTurmaPorIdUseCase;
 import br.com.escola.academiccatalog.application.usecase.CriarTurmaUseCase;
 import br.com.escola.academiccatalog.application.usecase.ListarTurmasUseCase;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 
 @RestController
@@ -28,33 +30,46 @@ import jakarta.validation.Valid;
 public class TurmaController {
 
     private final CriarTurmaUseCase criarTurmaUseCase;
+    private final AtualizarTurmaUseCase atualizarTurmaUseCase;
     private final BuscarTurmaPorIdUseCase buscarTurmaPorIdUseCase;
     private final ListarTurmasUseCase listarTurmasUseCase;
 
-    public TurmaController(CriarTurmaUseCase criarTurmaUseCase, BuscarTurmaPorIdUseCase buscarTurmaPorIdUseCase, ListarTurmasUseCase listarTurmasUseCase) {
+    public TurmaController(
+            CriarTurmaUseCase criarTurmaUseCase,
+            AtualizarTurmaUseCase atualizarTurmaUseCase,
+            BuscarTurmaPorIdUseCase buscarTurmaPorIdUseCase,
+            ListarTurmasUseCase listarTurmasUseCase) {
         this.criarTurmaUseCase = criarTurmaUseCase;
+        this.atualizarTurmaUseCase = atualizarTurmaUseCase;
         this.buscarTurmaPorIdUseCase = buscarTurmaPorIdUseCase;
         this.listarTurmasUseCase = listarTurmasUseCase;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Cria uma turma")
     public TurmaResponse criar(@Valid @RequestBody TurmaRequest request) {
-        TurmaOutput output = criarTurmaUseCase.executar(
-                new TurmaInput(request.codigo(), request.nome(), request.capacidade(), request.periodoLetivoId()));
+        TurmaOutput output = criarTurmaUseCase.executar(toInput(request));
+        return toResponse(output);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Atualiza uma turma")
+    public TurmaResponse atualizar(@PathVariable @NonNull UUID id, @Valid @RequestBody TurmaRequest request) {
+        TurmaOutput output = atualizarTurmaUseCase.executar(
+                id,
+                toInput(request));
         return toResponse(output);
     }
 
     @GetMapping
+    @Operation(summary = "Lista turmas")
     public List<TurmaResponse> listar() {
-        List<TurmaResponse> turmas = listarTurmasUseCase.executar().stream().map(this::toResponse).toList();
-        if (turmas.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nenhuma turma encontrada");
-        }
-        return turmas;
+        return listarTurmasUseCase.executar().stream().map(this::toResponse).toList();
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Busca turma por ID")
     public TurmaResponse buscarPorId(@PathVariable @NonNull UUID id) {
         return toResponse(buscarTurmaPorIdUseCase.executar(id));
     }
@@ -66,6 +81,21 @@ public class TurmaController {
                 output.nome(),
                 output.capacidade(),
                 output.periodoLetivoId(),
+                output.serieId(),
+                output.serieNome(),
+                output.turno(),
+                output.status(),
                 output.createdAt());
+    }
+
+    private TurmaInput toInput(TurmaRequest request) {
+        return new TurmaInput(
+                request.codigo(),
+                request.nome(),
+                request.capacidade(),
+                request.periodoLetivoId(),
+                request.serieId(),
+                request.turno(),
+                request.status());
     }
 }

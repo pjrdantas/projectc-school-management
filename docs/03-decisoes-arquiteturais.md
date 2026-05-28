@@ -5,19 +5,19 @@
 Este documento registra as principais decisoes arquiteturais iniciais do projeto,
 para que elas possam ser revisitadas, refinadas ou substituidas com contexto.
 
-## DA-001 - Usar o projeto atual como referencia, nao como produto final
+## DA-001 - Manter o repositorio atual como fonte ativa do MVP
 
 ### Decisao
 
-O `academic-core-service` sera tratado como referencia de aprendizado, arquitetura e fluxo,
-mas nao como base obrigatoria do sistema real.
+O repositorio `projectc-school-management` e a fonte ativa para codigo, documentacao,
+contratos e proximas evolucoes do MVP.
 
 ### Justificativa
 
-- o projeto atual cumpriu papel de laboratorio tecnico;
-- ele ja validou conceitos importantes;
-- evitar mexer em algo estavel reduz risco;
-- o produto real precisa nascer com fronteiras mais claras de dominio.
+- o backend e o frontend ja existem no mesmo repositorio;
+- os fluxos principais do MVP ja possuem implementacao;
+- manter documentacao e codigo juntos reduz divergencia;
+- novas decisoes devem partir do estado real do projeto, nao de roteiros antigos.
 
 ### Consequencia
 

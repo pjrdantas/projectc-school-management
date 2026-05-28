@@ -10,5 +10,5 @@ import br.com.escola.academiccatalog.adapter.out.persistence.entity.TurmaEntity;
 
 public interface TurmaJpaRepository extends JpaRepository<TurmaEntity, UUID> {
 
-    Optional<TurmaEntity> findByCodigoAndPeriodoLetivoId(String codigo, UUID periodoLetivoId);
+    Optional<TurmaEntity> findByCodigoAndPeriodoLetivo_Id(String codigo, UUID periodoLetivoId);
 }

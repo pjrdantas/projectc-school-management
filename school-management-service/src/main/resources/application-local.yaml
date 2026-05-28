@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/school_management}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:root123}
     driver-class-name: org.postgresql.Driver
@@ -12,3 +12,5 @@ spring:
 
   flyway:
     enabled: ${SPRING_FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:true}
+    baseline-version: ${SPRING_FLYWAY_BASELINE_VERSION:0}

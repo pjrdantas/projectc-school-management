@@ -1,0 +1,25 @@
+<h2 mat-dialog-title>{{ title }}</h2>
+
+<mat-dialog-content>
+  <form class="dialog-grid" [formGroup]="form" (ngSubmit)="save()">
+    <mat-form-field appearance="outline">
+      <mat-label>Série *</mat-label>
+      <input matInput formControlName="nome" placeholder="1 ano" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Ordem *</mat-label>
+      <input matInput type="number" formControlName="ordem" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Nível de ensino</mat-label>
+      <input matInput formControlName="nivelEnsino" placeholder="ENSINO_FUNDAMENTAL" />
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">Cancelar</button>
+  <button mat-raised-button color="primary" type="button" (click)="save()">Salvar</button>
+</mat-dialog-actions>

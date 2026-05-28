@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import br.com.escola.responsavelmanagement.application.dto.ResponsavelOutput;
+import br.com.escola.responsavelmanagement.application.dto.ResponsavelVinculadoOutput;
 import br.com.escola.responsavelmanagement.application.port.out.AlunoResponsavelVinculoGateway;
 import br.com.escola.responsavelmanagement.application.port.out.ResponsavelQueryGateway;
 import br.com.escola.studentmanagement.application.port.out.AlunoQueryGateway;
@@ -27,14 +27,16 @@ public class ListarResponsaveisPorAlunoUseCase {
         this.alunoQueryGateway = alunoQueryGateway;
     }
 
-    public List<ResponsavelOutput> executar(UUID idAluno) {
+    public List<ResponsavelVinculadoOutput> executar(UUID idAluno) {
         if (!alunoQueryGateway.existsById(idAluno)) {
             throw new AlunoNaoEncontradoException(idAluno);
         }
 
         return alunoResponsavelVinculoGateway.findByAluno(idAluno).stream()
-                .map(vinculo -> responsavelQueryGateway.findById(vinculo.idResponsavel()).orElse(null))
-                .filter(responsavel -> responsavel != null)
+                .map(vinculo -> responsavelQueryGateway.findById(vinculo.idResponsavel())
+                        .map(responsavel -> ResponsavelVinculadoOutput.of(responsavel, vinculo))
+                        .orElse(null))
+                .filter(responsavelVinculado -> responsavelVinculado != null)
                 .toList();
     }
 }

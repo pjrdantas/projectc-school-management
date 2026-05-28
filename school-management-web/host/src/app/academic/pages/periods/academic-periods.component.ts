@@ -1,7 +1,14 @@
 import { NgFor, NgIf } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -10,7 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ApiErrorResponse } from '../../models/academic.model';
+import { getApiErrorMessage } from '../../../core/http/api-error';
 import { AcademicService } from '../../services/academic.service';
 
 @Component({
@@ -48,8 +55,8 @@ export class AcademicPeriodsComponent implements OnInit {
 
   protected readonly form = this.fb.nonNullable.group({
     nome: ['', [Validators.required, Validators.maxLength(30)]],
-    dataInicio: ['', [Validators.required]],
-    dataFim: ['', [Validators.required]],
+    dataInicio: ['', [Validators.required, this.dataBrValidator()]],
+    dataFim: ['', [Validators.required, this.dataBrValidator()]],
   });
   protected readonly searchForm = this.fb.nonNullable.group({ nome: ['', [Validators.required]] });
 
@@ -73,16 +80,20 @@ export class AcademicPeriodsComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.academicService.hydrateSeedData().subscribe();
+    this.academicService.syncFromApi().subscribe();
   }
 
   protected onCreateOrUpdate(): void {
-    /* unchanged */
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-    const payload = this.form.getRawValue();
+    const formValue = this.form.getRawValue();
+    const payload = {
+      nome: formValue.nome,
+      dataInicio: this.brToIso(formValue.dataInicio),
+      dataFim: this.brToIso(formValue.dataFim),
+    };
     const editingId = this.editingPeriodId();
     if (editingId) {
       this.academicService.updatePeriodLocally(editingId, payload);
@@ -97,10 +108,10 @@ export class AcademicPeriodsComponent implements OnInit {
         this.form.reset();
         this.snackBar.open('Período letivo cadastrado com sucesso.', 'Fechar', { duration: 3000 });
       },
-      error: (error: { error?: ApiErrorResponse }) => {
+      error: (error: unknown) => {
         this.isLoading.set(false);
         this.snackBar.open(
-          error.error?.message ?? 'Não foi possível cadastrar período letivo.',
+          getApiErrorMessage(error, 'Não foi possível cadastrar período letivo.'),
           'Fechar',
           { duration: 4000 },
         );
@@ -123,8 +134,8 @@ export class AcademicPeriodsComponent implements OnInit {
     }
     this.form.patchValue({
       nome: found.nome,
-      dataInicio: found.dataInicio,
-      dataFim: found.dataFim,
+      dataInicio: this.isoToBr(found.dataInicio),
+      dataFim: this.isoToBr(found.dataFim),
     });
     this.editingPeriodId.set(found.id);
   }
@@ -147,8 +158,8 @@ export class AcademicPeriodsComponent implements OnInit {
     if (!period) return;
     this.form.patchValue({
       nome: period.nome,
-      dataInicio: period.dataInicio,
-      dataFim: period.dataFim,
+      dataInicio: this.isoToBr(period.dataInicio),
+      dataFim: this.isoToBr(period.dataFim),
     });
     this.editingPeriodId.set(period.id);
   }
@@ -162,5 +173,59 @@ export class AcademicPeriodsComponent implements OnInit {
   protected onPageChange(event: PageEvent): void {
     this.pageSize.set(event.pageSize);
     this.pageIndex.set(event.pageIndex);
+  }
+
+  protected onDateInput(controlName: 'dataInicio' | 'dataFim'): void {
+    const control = this.form.controls[controlName];
+    control.setValue(this.formatDateBr(control.value), { emitEvent: false });
+  }
+
+  protected formatDate(value: string): string {
+    return this.isoToBr(value);
+  }
+
+  private dataBrValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) {
+        return null;
+      }
+
+      const value = String(control.value);
+      const validPattern = /^\d{2}\/\d{2}\/\d{4}$/.test(value);
+      if (!validPattern) {
+        return { dataInvalida: true };
+      }
+
+      const [dd, mm, yyyy] = value.split('/').map(Number);
+      const date = new Date(yyyy, mm - 1, dd);
+      const validDate =
+        date.getFullYear() === yyyy && date.getMonth() === mm - 1 && date.getDate() === dd;
+
+      return validDate ? null : { dataInvalida: true };
+    };
+  }
+
+  private onlyDigits(value: string): string {
+    return value.replace(/\D/g, '');
+  }
+
+  private formatDateBr(value: string): string {
+    const digits = this.onlyDigits(value).slice(0, 8);
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+  }
+
+  private brToIso(value: string): string {
+    const [dd, mm, yyyy] = value.split('/');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  private isoToBr(value: string): string {
+    if (!value) return '';
+    if (value.includes('/')) return value;
+
+    const [yyyy, mm, dd] = value.split('-');
+    return dd && mm && yyyy ? `${dd}/${mm}/${yyyy}` : value;
   }
 }

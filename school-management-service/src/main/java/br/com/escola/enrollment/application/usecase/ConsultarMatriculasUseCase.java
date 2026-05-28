@@ -30,8 +30,16 @@ public class ConsultarMatriculasUseCase {
             return null;
         }
 
+        String normalized = status.trim().toUpperCase();
+        if (normalized.equals("ATIVA")) {
+            return MatriculaStatus.EFETIVADA;
+        }
+        if (normalized.equals("TRANCADA")) {
+            return MatriculaStatus.CANCELADA;
+        }
+
         try {
-            return MatriculaStatus.valueOf(status.trim().toUpperCase());
+            return MatriculaStatus.valueOf(normalized);
         } catch (IllegalArgumentException ex) {
             throw new MatriculaStatusInvalidoException(status);
         }
