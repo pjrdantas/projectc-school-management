@@ -21,7 +21,7 @@ Sugestao:
 
 **Descricao:**
 
-Permitir acesso seguro ao sistema com regras de autenticacao e autorizacao por perfil.
+Permitir acesso seguro ao sistema com autenticacao e perfis basicos. A matriz granular de permissoes por funcionalidade sera refinada no final do projeto.
 
 Este epic cobre o controle inicial de acesso ao sistema no MVP, incluindo login, perfis e protecao das funcionalidades principais.
 
@@ -29,7 +29,7 @@ Escopo inicial:
 - login;
 - logout;
 - perfis de usuario;
-- permissao por funcao;
+- perfis basicos de acesso;
 - recuperacao de senha em fase posterior do MVP.
 
 Resultado esperado:
@@ -171,7 +171,7 @@ Criterios de aceite:
 
 Fora do escopo nesta story:
 - recuperacao de senha;
-- matriz completa de perfis complexos;
+- matriz completa de perfis complexos, planejada para o final do projeto;
 - auditoria avancada de acesso.
 
 **Labels sugeridas:** `mvp`, `sprint-1`, `auth`

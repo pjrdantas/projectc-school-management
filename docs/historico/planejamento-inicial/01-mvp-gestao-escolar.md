@@ -25,8 +25,9 @@ O objetivo nao e cobrir toda a gestao escolar de uma vez.
 
 Inclui:
 - login;
-- perfis de acesso;
-- permissao por tipo de usuario.
+- perfis de acesso basicos para operacao atual.
+
+A matriz granular de permissoes por rota, tela e endpoint nao faz parte do fechamento deste MVP; sera implementada no final do projeto para evitar retrabalho recorrente a cada nova funcionalidade.
 
 ### 2. Cadastro de Alunos e Responsaveis
 
@@ -127,3 +128,9 @@ O MVP sera considerado bem sucedido quando permitir:
 - cadastro de alunos e dados academicos essenciais;
 - realizacao de matricula sem improviso manual;
 - consulta operacional confiavel dos registros principais.
+
+## Estado de aceite
+
+O MVP atual foi considerado aceito pelo cliente dentro dos parametros desejados. Nao existe pendencia de decisao sobre matricula/status/cancelamento para este ciclo.
+
+Historico, documentos e transferencia pertencem ao ciclo funcional ja desenvolvido ate aqui. O proximo epico deve focar aulas, professores, alunos, notas, comportamento e dashboards.

@@ -2,27 +2,56 @@
 
 Projeto de gestao escolar com backend Spring Boot, frontend Angular e documentacao de produto/arquitetura mantida no proprio repositorio.
 
-## Estrutura
+## Estrutura atual
 
-- `docs`: planejamento, arquitetura, backlog, roteiros atuais e scripts SQL de apoio.
-- `school-management-service`: API backend do MVP.
+- `docs/16-roteiro-continuidade-frontend-backend.md`: roteiro ativo de continuidade.
+- `docs/17-status-atual-do-projeto.md`: fotografia tecnica atual do projeto.
+- `docs/18-url-para-testes.md`: checklist de testes HTTP manuais.
+- `docs/19-proximo-epico-aulas-professores-notas-dashboards.md`: direcionamento do proximo epico funcional.
+- `docs/20-base-dados-oficial-scriptdb.md`: documentacao da base oficial.
+- `docs/v2/scriptdb.sql`: dump SQL oficial da base `gestao_escolar`.
+- `docs/historico`: documentos e scripts antigos preservados apenas para consulta historica.
+- `school-management-service`: API backend.
 - `school-management-web/host`: aplicacao Angular principal.
 - `school-management-web/microfrontend`: aplicacao Angular remota usada como base de microfrontend federado.
 
 ## Status atual
 
-O projeto ja possui um fluxo MVP funcional cobrindo:
+O MVP atual foi considerado aceito pelo cliente dentro dos parametros desejados. O projeto ja possui fluxo funcional cobrindo:
 
 - autenticacao com login JWT, refresh e logout;
-- administracao de usuarios, perfis e permissoes;
+- administracao tecnica de usuarios, perfis e permissoes;
 - cadastro de alunos;
 - cadastro de responsaveis;
 - vinculo entre aluno e responsavel;
 - consulta cadastral consolidada;
-- cadastro de periodos letivos e turmas;
-- matricula de aluno em turma/periodo letivo.
+- cadastro academico com periodos letivos, series, turnos e turmas;
+- matricula de aluno em turma/periodo letivo, incluindo status/cancelamento conforme fluxo aceito;
+- documentos de alunos;
+- historico escolar;
+- transferencia de alunos.
 
-IDs principais usam `UUID`. Scripts e exemplos antigos baseados em `BIGINT` foram removidos da documentacao ativa.
+A matriz granular de permissoes por rota/tela/endpoint sera implementada no final do projeto, apos estabilizacao das funcionalidades principais.
+
+## Base de dados oficial
+
+A base oficial atual e `gestao_escolar`, representada por:
+
+```text
+docs/v2/scriptdb.sql
+```
+
+Use este arquivo como fonte para nomes de tabelas, colunas, constraints, relacionamentos e dados de apoio. A documentacao da decisao esta em:
+
+```text
+docs/20-base-dados-oficial-scriptdb.md
+```
+
+Scripts SQL e documentos que nao devem orientar a modelagem atual foram movidos para:
+
+```text
+docs/historico
+```
 
 ## Backend
 
@@ -94,18 +123,16 @@ npm start
 
 Por padrao, os services Angular consomem o backend em `http://localhost:8080`.
 
-## Documentos principais
+## Proximo epico funcional
 
-- `docs/00-gestao-escolar-base.md`: visao ampla do produto.
-- `docs/01-mvp-gestao-escolar.md`: escopo do MVP.
-- `docs/04-arquitetura-inicial.md`: arquitetura recomendada.
-- `docs/06-sprint-1-backlog.md`: backlog inicial do MVP.
-- `docs/10-convencoes-tecnicas-iniciais.md`: convencoes tecnicas.
-- `docs/12-padroes-minimos-de-estrutura-e-responsabilidade.md`: responsabilidades por camada e modulo.
-- `docs/15-plano-frontend-angular-material-microfrontend-federado.md`: diretriz do frontend.
-- `docs/16-roteiro-continuidade-frontend-backend.md`: continuidade atual.
-- `docs/17-status-atual-do-projeto.md`: fotografia tecnica atual do projeto.
-- `docs/18-url-para-testes.md`: checklist de testes HTTP.
+O proximo epico deve focar:
+
+- aulas e planejamento de aulas;
+- professores e relacao professor/turma/disciplina;
+- alunos em contexto de aula;
+- notas e acompanhamento de evolucao;
+- comportamento de alunos e professores;
+- dashboards de aulas, matriculas e evolucao dos alunos.
 
 ## Validacao
 

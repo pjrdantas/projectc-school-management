@@ -2,10 +2,16 @@
 
 ## Objetivo
 
-Checklist de testes HTTP para validar o fluxo MVP usando o backend em:
+Checklist de testes HTTP para validar manualmente os fluxos principais usando o backend em:
 
 ```text
 http://localhost:8080
+```
+
+A base oficial para estes testes e:
+
+```text
+docs/v2/scriptdb.sql
 ```
 
 Os exemplos usam `UUID`. Substitua os placeholders retornados nos passos anteriores.
@@ -50,7 +56,13 @@ POST http://localhost:8080/api/alunos
   "cpf": "12345678901",
   "email": "joao.silva@example.com",
   "telefone": "11999999999",
-  "dataNascimento": "2010-05-15"
+  "dataNascimento": "2010-05-15",
+  "cep": "01001000",
+  "logradouro": "Praca da Se",
+  "numero": "100",
+  "bairro": "Se",
+  "cidade": "Sao Paulo",
+  "uf": "SP"
 }
 ```
 
@@ -65,15 +77,7 @@ Guarde:
 <alunoId>
 ```
 
-### 2. Consultar aluno por ID
-
-```http
-GET http://localhost:8080/api/alunos/<alunoId>
-```
-
-Esperado: `200 OK`.
-
-### 3. Criar responsavel
+### 2. Criar responsavel
 
 ```http
 POST http://localhost:8080/api/responsaveis
@@ -84,7 +88,13 @@ POST http://localhost:8080/api/responsaveis
   "nomeCompleto": "Maria Responsavel",
   "cpf": "98765432100",
   "email": "maria.responsavel@example.com",
-  "telefone": "11988888888"
+  "telefone": "11988888888",
+  "cep": "01001000",
+  "logradouro": "Praca da Se",
+  "numero": "200",
+  "bairro": "Se",
+  "cidade": "Sao Paulo",
+  "uf": "SP"
 }
 ```
 
@@ -99,7 +109,7 @@ Guarde:
 <responsavelId>
 ```
 
-### 4. Vincular aluno e responsavel
+### 3. Vincular aluno e responsavel
 
 ```http
 POST http://localhost:8080/api/alunos/<alunoId>/responsaveis/<responsavelId>
@@ -107,15 +117,15 @@ POST http://localhost:8080/api/alunos/<alunoId>/responsaveis/<responsavelId>
 
 Esperado: `201 Created` ou sucesso equivalente definido pelo controller.
 
-### 5. Consultar responsaveis do aluno
+### 4. Consultar cadastro consolidado
 
 ```http
-GET http://localhost:8080/api/alunos/<alunoId>/responsaveis
+GET http://localhost:8080/api/consulta-cadastral?nomeAluno=Joao
 ```
 
-Esperado: `200 OK` com lista contendo o responsavel vinculado.
+Esperado: `200 OK` com aluno e responsaveis vinculados.
 
-### 6. Criar periodo letivo
+### 5. Criar periodo letivo
 
 ```http
 POST http://localhost:8080/api/periodos-letivos
@@ -123,9 +133,10 @@ POST http://localhost:8080/api/periodos-letivos
 
 ```json
 {
-  "nome": "2026.1",
+  "nome": "2026",
+  "ano": 2026,
   "dataInicio": "2026-02-01",
-  "dataFim": "2026-06-30"
+  "dataFim": "2026-12-20"
 }
 ```
 
@@ -140,6 +151,34 @@ Guarde:
 <periodoLetivoId>
 ```
 
+### 6. Listar series e selecionar uma serie
+
+```http
+GET http://localhost:8080/api/series
+```
+
+Esperado: `200 OK`.
+
+Guarde um identificador retornado:
+
+```text
+<serieId>
+```
+
+Se nao houver serie cadastrada na base usada no teste, crie uma:
+
+```http
+POST http://localhost:8080/api/series
+```
+
+```json
+{
+  "nome": "5 Serie",
+  "ordem": 5,
+  "nivelEnsino": "FUNDAMENTAL"
+}
+```
+
 ### 7. Criar turma
 
 ```http
@@ -148,10 +187,13 @@ POST http://localhost:8080/api/turmas
 
 ```json
 {
-  "codigo": "TURMA-A",
-  "nome": "Turma A",
+  "codigo": "2026-MANHA-5A",
+  "nome": "5 Serie A",
   "capacidade": 30,
-  "periodoLetivoId": "<periodoLetivoId>"
+  "periodoLetivoId": "<periodoLetivoId>",
+  "serieId": "<serieId>",
+  "turno": "MANHA",
+  "status": "ATIVA"
 }
 ```
 
@@ -176,16 +218,39 @@ POST http://localhost:8080/api/matriculas
 {
   "alunoId": "<alunoId>",
   "turmaId": "<turmaId>",
-  "periodoLetivoId": "<periodoLetivoId>"
+  "periodoLetivoId": "<periodoLetivoId>",
+  "tipoMatricula": "NOVA",
+  "observacao": "Matricula inicial"
 }
 ```
 
 Esperado:
 
 - `201 Created`;
-- status da matricula igual a `ATIVA`.
+- resposta com `id` UUID e status definido pelo fluxo de matricula em uso.
 
-### 9. Consultar matriculas
+Guarde:
+
+```text
+<matriculaId>
+```
+
+### 9. Atualizar status da matricula
+
+```http
+PATCH http://localhost:8080/api/matriculas/<matriculaId>/status
+```
+
+```json
+{
+  "status": "EFETIVADA",
+  "justificativa": "Documentacao conferida"
+}
+```
+
+Esperado: `200 OK` com o status atualizado.
+
+### 10. Consultar matriculas
 
 ```http
 GET http://localhost:8080/api/matriculas
@@ -197,18 +262,78 @@ Filtros opcionais:
 GET http://localhost:8080/api/matriculas?alunoId=<alunoId>
 GET http://localhost:8080/api/matriculas?turmaId=<turmaId>
 GET http://localhost:8080/api/matriculas?periodoLetivoId=<periodoLetivoId>
-GET http://localhost:8080/api/matriculas?status=ATIVA
+GET http://localhost:8080/api/matriculas?status=EFETIVADA
 ```
 
 Esperado: `200 OK`.
 
-### 10. Consultar cadastro consolidado
+### 11. Documentos de aluno
 
 ```http
-GET http://localhost:8080/api/consulta-cadastral?nomeAluno=Joao
+POST http://localhost:8080/api/documentos-alunos
 ```
 
-Esperado: `200 OK` com aluno e responsaveis vinculados.
+```json
+{
+  "alunoId": "<alunoId>",
+  "tipoDocumento": "RG",
+  "numeroDocumento": "123456789",
+  "caminhoArquivo": "/tmp/rg-aluno.pdf",
+  "observacao": "Documento conferido"
+}
+```
+
+Esperado: `201 Created`.
+
+Consultar documentos do aluno:
+
+```http
+GET http://localhost:8080/api/documentos-alunos/alunos/<alunoId>
+```
+
+### 12. Transferencia de aluno
+
+Criar escola de origem:
+
+```http
+POST http://localhost:8080/api/escolas-origem
+```
+
+```json
+{
+  "nomeEscola": "Escola Origem",
+  "codigoInep": "12345678",
+  "cidade": "Sao Paulo",
+  "uf": "SP"
+}
+```
+
+Guarde:
+
+```text
+<escolaOrigemId>
+```
+
+Criar transferencia:
+
+```http
+POST http://localhost:8080/api/transferencias
+```
+
+```json
+{
+  "alunoId": "<alunoId>",
+  "escolaOrigemId": "<escolaOrigemId>",
+  "serieOrigem": "4 Serie",
+  "anoLetivoOrigem": "2025",
+  "dataTransferencia": "2026-01-20",
+  "tipoTransferencia": "ENTRADA",
+  "statusTransferencia": "CONFIRMADA",
+  "usuarioOperacao": "admin"
+}
+```
+
+Esperado: `201 Created`.
 
 ## Checklist negativo
 
@@ -256,34 +381,16 @@ POST http://localhost:8080/api/periodos-letivos
 
 ```json
 {
-  "nome": "2026.1",
-  "dataInicio": "2026-06-30",
+  "nome": "2026",
+  "ano": 2026,
+  "dataInicio": "2026-12-20",
   "dataFim": "2026-02-01"
 }
 ```
 
 Esperado: `400 Bad Request`.
 
-### 5. Turma duplicada no mesmo periodo
-
-Execute duas vezes com o mesmo `codigo` e `periodoLetivoId`:
-
-```http
-POST http://localhost:8080/api/turmas
-```
-
-```json
-{
-  "codigo": "TURMA-DUP",
-  "nome": "Turma Duplicada",
-  "capacidade": 30,
-  "periodoLetivoId": "<periodoLetivoId>"
-}
-```
-
-Esperado na segunda execucao: `409 Conflict`.
-
-### 6. Matricula com aluno inexistente
+### 5. Matricula com aluno inexistente
 
 ```http
 POST http://localhost:8080/api/matriculas
@@ -293,13 +400,14 @@ POST http://localhost:8080/api/matriculas
 {
   "alunoId": "00000000-0000-0000-0000-000000000000",
   "turmaId": "<turmaId>",
-  "periodoLetivoId": "<periodoLetivoId>"
+  "periodoLetivoId": "<periodoLetivoId>",
+  "tipoMatricula": "NOVA"
 }
 ```
 
 Esperado: `404 Not Found`.
 
-### 7. Status invalido no filtro de matricula
+### 6. Status invalido no filtro de matricula
 
 ```http
 GET http://localhost:8080/api/matriculas?status=INVALIDO
