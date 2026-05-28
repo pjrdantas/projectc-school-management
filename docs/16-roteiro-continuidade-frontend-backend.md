@@ -17,9 +17,12 @@ Modulos atuais:
 - `accesscontrol`: autenticacao, sessoes, usuarios, perfis e permissoes;
 - `studentmanagement`: cadastro de alunos;
 - `responsavelmanagement`: cadastro de responsaveis, vinculo aluno-responsavel e consulta cadastral;
-- `academiccatalog`: periodos letivos e turmas;
-- `enrollment`: matriculas;
-- `shared`: tratamento global de erros e estruturas comuns.
+- `academiccatalog`: periodos letivos, series, turnos, turmas e catalogos academicos;
+- `enrollment`: matriculas, status e catalogos de matricula;
+- `studentdocument`: documentos de alunos;
+- `schoolhistory`: historicos escolares;
+- `transfermanagement`: escolas de origem e transferencias;
+- `shared`: tratamento global de erros, documentos compartilhados e estruturas comuns.
 
 Principais endpoints:
 
@@ -34,14 +37,30 @@ Principais endpoints:
 - `GET|POST|DELETE /api/alunos/{idAluno}/responsaveis`
 - `GET /api/consulta-cadastral`
 - `GET|POST /api/periodos-letivos`
-- `GET|POST /api/turmas`
-- `GET|POST /api/matriculas`
+- `GET|POST|PUT /api/series`
+- `GET|POST|PUT /api/turnos`
+- `GET|POST|PUT /api/turmas`
+- `GET|POST|PATCH|DELETE /api/matriculas`
+- `GET|POST|DELETE /api/documentos-alunos`
+- `GET|POST|PUT|DELETE /api/historicos-escolares`
+- `GET|POST /api/escolas-origem`
+- `GET|POST /api/transferencias`
 
 ### Banco de dados
 
-O projeto usa PostgreSQL com Flyway.
+O projeto usa PostgreSQL. A base oficial atual e `gestao_escolar`, representada por:
 
-O schema atual trabalha com `UUID` nos identificadores principais. A migracao `V007__migrate_bigint_to_uuid.sql` ja faz parte do historico Flyway, portanto documentos ativos nao devem orientar novas implementacoes com IDs numericos.
+```text
+docs/v2/scriptdb.sql
+```
+
+A documentacao ativa da base oficial fica em:
+
+```text
+docs/20-base-dados-oficial-scriptdb.md
+```
+
+Documentos e scripts que descrevem modelagens anteriores foram organizados em `docs/historico` e nao devem orientar novas implementacoes.
 
 ### Frontend
 
@@ -52,8 +71,11 @@ O frontend `school-management-web/host` ja possui rotas e services HTTP para:
 - alunos;
 - responsaveis;
 - periodos letivos;
+- series;
+- turnos;
 - turmas;
 - matriculas;
+- documentos/historico/transferencias;
 - usuarios;
 - perfis;
 - permissoes.
@@ -72,7 +94,8 @@ Atualizar continuamente:
 - `school-management-service/README.md`;
 - `school-management-web/README.md`;
 - `docs/17-status-atual-do-projeto.md`;
-- `docs/18-url-para-testes.md`.
+- `docs/18-url-para-testes.md`;
+- `docs/20-base-dados-oficial-scriptdb.md`.
 
 ### 2. Planejar o proximo epico funcional
 
@@ -107,19 +130,20 @@ Prioridade sugerida:
 
 Permissoes granulares por rota, tela e endpoint ficam planejadas para o final do projeto, depois que as funcionalidades principais estiverem estabilizadas.
 
-## Itens fora de contexto removidos da documentacao ativa
+## Itens fora de contexto retirados da referencia ativa
 
-Foram retirados da documentacao ativa:
+Nao devem ser usados como referencia ativa:
 
 - roteiro antigo de KAN-33, pois o cadastro de aluno ja existe;
 - roteiro antigo de KAN-3, pois responsavel/vinculo/consulta cadastral ja existem no backend;
 - roteiro de migracao BIGINT para UUID, pois o projeto atual ja opera com UUID;
-- script SQL legado baseado em BIGINT.
+- script SQL legado baseado em BIGINT;
+- documentos e scripts desalinhados com `docs/v2/scriptdb.sql`, com copias preservadas em `docs/historico`.
 
 ## Prompt sugerido para continuidade
 
 ```text
-Contexto: o projeto projectc-school-management ja possui backend Spring Boot, frontend Angular host/microfrontend, autenticacao JWT, CRUDs principais, UUID e Flyway.
+Contexto: o projeto projectc-school-management ja possui backend Spring Boot, frontend Angular host/microfrontend, autenticacao JWT, CRUDs principais e base oficial documentada em docs/v2/scriptdb.sql.
 
 Objetivo: evoluir o produto a partir do MVP aceito pelo cliente.
 

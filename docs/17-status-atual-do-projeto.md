@@ -11,6 +11,8 @@ Use este documento como ponto de partida para proximas conversas e para evitar r
 ```text
 projectc-school-management/
   docs/
+    v2/scriptdb.sql
+    historico/
   school-management-service/
   school-management-web/
     host/
@@ -41,9 +43,12 @@ Stack:
 | `accesscontrol` | Login, refresh, logout, usuarios, perfis, permissoes e sessoes |
 | `studentmanagement` | Cadastro e manutencao de alunos |
 | `responsavelmanagement` | Responsaveis, vinculo aluno-responsavel e consulta cadastral |
-| `academiccatalog` | Periodos letivos e turmas |
-| `enrollment` | Matriculas |
-| `shared` | Excecoes, respostas de erro e componentes comuns |
+| `academiccatalog` | Periodos letivos, series, turnos, turmas e catalogos academicos |
+| `enrollment` | Matriculas, status, cancelamento/exclusao e catalogos de matricula |
+| `studentdocument` | Documentos vinculados a alunos |
+| `schoolhistory` | Historicos escolares |
+| `transfermanagement` | Escolas de origem e transferencias de alunos |
+| `shared` | Excecoes, respostas de erro, documentos compartilhados e componentes comuns |
 
 ### Endpoints principais
 
@@ -112,14 +117,30 @@ Filtros:
 - `GET /api/periodos-letivos`
 - `GET /api/periodos-letivos/{id}`
 - `POST /api/periodos-letivos`
+- `GET /api/series`
+- `GET /api/series/{id}`
+- `POST /api/series`
+- `PUT /api/series/{id}`
+- `GET /api/turnos`
+- `GET /api/turnos/{id}`
+- `POST /api/turnos`
+- `PUT /api/turnos/{id}`
 - `GET /api/turmas`
 - `GET /api/turmas/{id}`
 - `POST /api/turmas`
+- `PUT /api/turmas/{id}`
+- `GET /api/academico/catalogos/niveis-ensino`
+- `GET /api/academico/catalogos/turnos`
 
 #### Matriculas
 
 - `GET /api/matriculas`
 - `POST /api/matriculas`
+- `PATCH /api/matriculas/{id}/status`
+- `DELETE /api/matriculas/{id}`
+- `GET /api/matriculas/catalogos/tipos`
+- `GET /api/matriculas/catalogos/status`
+- `GET /api/matriculas/catalogos/status-etapas`
 
 Filtros de listagem:
 
@@ -128,30 +149,39 @@ Filtros de listagem:
 - `periodoLetivoId`
 - `status`
 
+#### Documentos, historico e transferencia
+
+- `GET /api/documentos-alunos/{id}`
+- `GET /api/documentos-alunos/alunos/{alunoId}`
+- `POST /api/documentos-alunos`
+- `DELETE /api/documentos-alunos/{id}`
+- `GET /api/historicos-escolares`
+- `GET /api/historicos-escolares/{id}`
+- `POST /api/historicos-escolares`
+- `PUT /api/historicos-escolares/{id}`
+- `DELETE /api/historicos-escolares/{id}`
+- `GET /api/escolas-origem`
+- `GET /api/escolas-origem/{id}`
+- `POST /api/escolas-origem`
+- `GET /api/transferencias/{id}`
+- `GET /api/transferencias/alunos/{alunoId}`
+- `POST /api/transferencias`
+
 ## Banco de dados
 
-O projeto usa Flyway em `school-management-service/src/main/resources/db/migration`.
+A base oficial do projeto e `gestao_escolar`, representada pelo dump:
 
-Migrations existentes:
+```text
+docs/v2/scriptdb.sql
+```
 
-- `V001__initial_baseline.sql`
-- `V002__create_table_aluno.sql`
-- `V003__create_table_periodo_letivo.sql`
-- `V004__create_table_turma.sql`
-- `V005__create_table_matricula.sql`
-- `V006__add_column_telefone_to_aluno.sql`
-- `V007__migrate_bigint_to_uuid.sql`
-- `V008__create_table_responsavel.sql`
-- `V009__create_table_aluno_responsavel.sql`
-- `V010__create_access_control_tables.sql`
-- `V011__add_access_token_columns_to_sessao_autenticacao.sql`
-- `V012__seed_default_admin_user.sql`
-- `V013__normalize_default_admin_password.sql`
-- `V014__rename_usuario_permission_to_admin.sql`
-- `V015__ensure_default_admin_access.sql`
-- `V016__set_defaults_for_join_table_ids.sql`
+O documento ativo da base oficial e:
 
-Regra atual: exemplos, contratos e novas implementacoes devem usar `UUID` para IDs principais.
+```text
+docs/20-base-dados-oficial-scriptdb.md
+```
+
+Regra atual: exemplos, contratos e novas implementacoes devem usar `docs/v2/scriptdb.sql` como fonte para nomes de tabelas, colunas, constraints e relacionamentos. Scripts SQL e documentos desalinhados devem ser tratados como historicos; copias organizadas ficam em `docs/historico`.
 
 ## Frontend
 
@@ -197,7 +227,7 @@ Services Angular consomem a URL base centralizada em `school-management-web/host
 - autenticacao;
 - alunos;
 - responsaveis;
-- periodos/turmas;
+- periodos/series/turnos/turmas;
 - matriculas;
 - usuarios/perfis/permissoes.
 
