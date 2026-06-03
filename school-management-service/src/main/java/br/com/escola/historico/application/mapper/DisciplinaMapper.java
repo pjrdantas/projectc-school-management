@@ -2,9 +2,9 @@ package br.com.escola.historico.application.mapper;
 
 import org.springframework.stereotype.Component;
 
+import br.com.escola.catalogo.adapter.out.persistence.entity.DisciplinaEntity;
 import br.com.escola.historico.adapter.in.web.dto.DisciplinaRequest;
 import br.com.escola.historico.adapter.in.web.dto.DisciplinaResponse;
-import br.com.escola.historico.adapter.out.persistence.entity.DisciplinaEntity;
 
 @Component
 public class DisciplinaMapper {

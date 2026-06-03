@@ -1,4 +1,4 @@
-package br.com.escola.historico.adapter.out.persistence.entity;
+package br.com.escola.catalogo.adapter.out.persistence.entity;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

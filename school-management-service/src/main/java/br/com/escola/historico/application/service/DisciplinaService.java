@@ -6,10 +6,10 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.escola.catalogo.adapter.out.persistence.entity.DisciplinaEntity;
+import br.com.escola.catalogo.adapter.out.persistence.repository.DisciplinaJpaRepository;
 import br.com.escola.historico.adapter.in.web.dto.DisciplinaRequest;
 import br.com.escola.historico.adapter.in.web.dto.DisciplinaResponse;
-import br.com.escola.historico.adapter.out.persistence.entity.DisciplinaEntity;
-import br.com.escola.historico.adapter.out.persistence.repository.DisciplinaJpaRepository;
 import br.com.escola.historico.application.mapper.DisciplinaMapper;
 import br.com.escola.historico.domain.exception.DisciplinaNaoEncontradaException;
 
