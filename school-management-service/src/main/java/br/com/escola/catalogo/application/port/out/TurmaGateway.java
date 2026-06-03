@@ -1,0 +1,24 @@
+package br.com.escola.catalogo.application.port.out;
+
+import java.util.UUID;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.lang.NonNull;
+
+import br.com.escola.catalogo.application.dto.TurmaInput;
+import br.com.escola.catalogo.application.dto.TurmaOutput;
+
+public interface TurmaGateway {
+
+    Optional<TurmaOutput> findById(@NonNull UUID id);
+
+    Optional<TurmaOutput> findByCodigoAndPeriodoLetivoId(String codigo, UUID periodoLetivoId);
+
+    TurmaOutput save(TurmaInput input);
+
+    TurmaOutput update(UUID id, TurmaInput input);
+
+    List<TurmaOutput> findAll();
+}
