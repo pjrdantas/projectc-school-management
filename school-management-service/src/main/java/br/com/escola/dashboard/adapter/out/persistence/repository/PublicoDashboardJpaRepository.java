@@ -10,4 +10,6 @@ import br.com.escola.dashboard.adapter.out.persistence.entity.PublicoDashboardEn
 public interface PublicoDashboardJpaRepository extends JpaRepository<PublicoDashboardEntity, UUID> {
 
     Optional<PublicoDashboardEntity> findByCodigo(String codigo);
+
+    boolean existsByCodigo(String codigo);
 }

@@ -12,5 +12,11 @@ public interface DashboardJpaRepository extends JpaRepository<DashboardEntity, U
 
     Optional<DashboardEntity> findByCodigo(String codigo);
 
+    boolean existsByCodigo(String codigo);
+
+    List<DashboardEntity> findAllByOrderByNomeAsc();
+
     List<DashboardEntity> findByPublicoDashboardId(UUID publicoDashboardId);
+
+    List<DashboardEntity> findByPublicoDashboardIdOrderByNomeAsc(UUID publicoDashboardId);
 }

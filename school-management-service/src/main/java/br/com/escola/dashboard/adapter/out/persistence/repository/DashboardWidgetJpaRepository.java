@@ -12,5 +12,9 @@ public interface DashboardWidgetJpaRepository extends JpaRepository<DashboardWid
 
     Optional<DashboardWidgetEntity> findByDashboardIdAndCodigo(UUID dashboardId, String codigo);
 
+    boolean existsByDashboardIdAndCodigo(UUID dashboardId, String codigo);
+
     List<DashboardWidgetEntity> findByDashboardId(UUID dashboardId);
+
+    List<DashboardWidgetEntity> findByDashboardIdOrderByOrdemAscTituloAsc(UUID dashboardId);
 }
