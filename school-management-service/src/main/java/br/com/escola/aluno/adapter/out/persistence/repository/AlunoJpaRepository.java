@@ -14,6 +14,10 @@ public interface AlunoJpaRepository extends JpaRepository<AlunoEntity, UUID> {
     @EntityGraph(attributePaths = {"pessoa", "statusAluno"})
     Optional<AlunoEntity> findByPessoaCpf(String cpf);
 
+    long countByAtivoTrue();
+
+    long countByAtivoFalse();
+
     boolean existsByPessoaCpfAndIdNot(String cpf, UUID id);
 
     default Optional<AlunoEntity> findByCpf(String cpf) {
