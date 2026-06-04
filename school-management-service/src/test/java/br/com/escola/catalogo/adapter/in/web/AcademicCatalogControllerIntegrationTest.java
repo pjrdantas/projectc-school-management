@@ -306,6 +306,66 @@ class AcademicCatalogControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Dados de entrada inválidos"));
     }
 
+    @Test
+    @WithMockUser
+    void deveCadastrarEConsultarDisciplinaPorId() throws Exception {
+        String requestBody = """
+                {
+                  "nome": "Matematica aplicada",
+                  "cargaHoraria": 80,
+                  "status": "ATIVA"
+                }
+                """;
+
+        String responseBody = mockMvc.perform(post("/api/disciplinas")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nome").value("Matematica aplicada"))
+                .andExpect(jsonPath("$.cargaHoraria").value(80))
+                .andExpect(jsonPath("$.status").value("ATIVA"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        UUID id = UUID.fromString(objectMapper.readTree(responseBody).get("id").asText());
+
+        mockMvc.perform(get("/api/disciplinas/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()))
+                .andExpect(jsonPath("$.nome").value("Matematica aplicada"));
+    }
+
+    @Test
+    @WithMockUser
+    void deveVincularDisciplinaATurmaEListarVinculos() throws Exception {
+        UUID periodoId = criarPeriodo("2030.1", "2030-02-01", "2030-06-30");
+        UUID turmaId = criarTurma("TURMA-VINCULO-A", "Turma Vinculo A", 30, periodoId);
+        UUID disciplinaId = criarDisciplina("Ciencias integradas", 60);
+
+        String vinculoRequest = """
+                {
+                  "disciplinaId": "%s",
+                  "cargaHoraria": 60
+                }
+                """.formatted(disciplinaId);
+
+        mockMvc.perform(post("/api/turmas/{turmaId}/disciplinas", turmaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(vinculoRequest))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.turmaId").value(turmaId.toString()))
+                .andExpect(jsonPath("$.disciplinaId").value(disciplinaId.toString()))
+                .andExpect(jsonPath("$.disciplinaNome").value("Ciencias integradas"))
+                .andExpect(jsonPath("$.cargaHoraria").value(60));
+
+        mockMvc.perform(get("/api/turmas/{turmaId}/disciplinas", turmaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].turmaId").value(turmaId.toString()))
+                .andExpect(jsonPath("$[0].disciplinaId").value(disciplinaId.toString()))
+                .andExpect(jsonPath("$[0].disciplinaNome").value("Ciencias integradas"));
+    }
+
     private UUID criarPeriodo(String nome, String dataInicio, String dataFim) throws Exception {
         String requestBody = """
                 {
@@ -357,6 +417,26 @@ class AcademicCatalogControllerIntegrationTest {
                 """.formatted(codigo, nome, capacidade, periodoId, SERIE_PADRAO_ID);
 
         String responseBody = mockMvc.perform(post("/api/turmas")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        return UUID.fromString(objectMapper.readTree(responseBody).get("id").asText());
+    }
+
+    private UUID criarDisciplina(String nome, int cargaHoraria) throws Exception {
+        String requestBody = """
+                {
+                  "nome": "%s",
+                  "cargaHoraria": %d,
+                  "status": "ATIVA"
+                }
+                """.formatted(nome, cargaHoraria);
+
+        String responseBody = mockMvc.perform(post("/api/disciplinas")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isCreated())

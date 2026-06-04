@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import br.com.escola.matricula.application.dto.MatriculaHistoricoOutput;
 import br.com.escola.matricula.application.dto.MatriculaInput;
 import br.com.escola.matricula.application.dto.MatriculaOutput;
 import br.com.escola.matricula.application.port.out.AlunoConsultaGateway;
@@ -122,8 +123,22 @@ public class CriarMatriculaUseCase {
     }
 
     private void validarRematricula(MatriculaInput input) {
-        throw new RematriculaNaoPermitidaException(
-                "validação de rematrícula deve ser redefinida para a nova estrutura documental de histórico escolar");
+        MatriculaHistoricoOutput historicoAnterior = matriculaGateway
+                .findHistoricoAnteriorMaisRecente(input.alunoId(), input.periodoLetivoId())
+                .orElseThrow(() -> new RematriculaNaoPermitidaException(
+                        "aluno não possui matrícula anterior para renovação"));
+
+        if (!MatriculaStatus.EFETIVADA.name().equalsIgnoreCase(historicoAnterior.status())) {
+            throw new RematriculaNaoPermitidaException(
+                    "matrícula anterior deve estar efetivada para renovação");
+        }
+
+        Integer novaSerieOrdem = turmaConsultaGateway.findSerieOrdemByTurmaId(input.turmaId())
+                .orElseThrow(() -> new MatriculaTurmaNaoEncontradaException(input.turmaId()));
+        if (novaSerieOrdem == null || !novaSerieOrdem.equals(historicoAnterior.serieOrdem() + 1)) {
+            throw new RematriculaNaoPermitidaException(
+                    "turma de destino deve ser da série imediatamente posterior à matrícula anterior");
+        }
     }
 
     private boolean isBlank(String value) {

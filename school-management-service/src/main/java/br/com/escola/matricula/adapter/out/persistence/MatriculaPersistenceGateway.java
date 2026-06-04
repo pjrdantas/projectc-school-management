@@ -20,6 +20,7 @@ import br.com.escola.matricula.adapter.out.persistence.entity.StatusEtapaMatricu
 import br.com.escola.matricula.adapter.out.persistence.entity.StatusMatriculaEntity;
 import br.com.escola.matricula.adapter.out.persistence.entity.TipoMatriculaEntity;
 import br.com.escola.matricula.adapter.out.persistence.repository.EtapaMatriculaModeloJpaRepository;
+import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaDocumentoEntregueJpaRepository;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaEtapaJpaRepository;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
 import br.com.escola.matricula.adapter.out.persistence.repository.StatusEtapaMatriculaJpaRepository;
@@ -46,6 +47,7 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
 
     private final MatriculaJpaRepository matriculaJpaRepository;
     private final MatriculaEtapaJpaRepository matriculaEtapaJpaRepository;
+    private final MatriculaDocumentoEntregueJpaRepository matriculaDocumentoEntregueJpaRepository;
     private final TipoMatriculaJpaRepository tipoMatriculaJpaRepository;
     private final StatusMatriculaJpaRepository statusMatriculaJpaRepository;
     private final StatusEtapaMatriculaJpaRepository statusEtapaMatriculaJpaRepository;
@@ -55,6 +57,7 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
     public MatriculaPersistenceGateway(
             MatriculaJpaRepository matriculaJpaRepository,
             MatriculaEtapaJpaRepository matriculaEtapaJpaRepository,
+            MatriculaDocumentoEntregueJpaRepository matriculaDocumentoEntregueJpaRepository,
             TipoMatriculaJpaRepository tipoMatriculaJpaRepository,
             StatusMatriculaJpaRepository statusMatriculaJpaRepository,
             StatusEtapaMatriculaJpaRepository statusEtapaMatriculaJpaRepository,
@@ -62,6 +65,7 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
             EntityManager entityManager) {
         this.matriculaJpaRepository = matriculaJpaRepository;
         this.matriculaEtapaJpaRepository = matriculaEtapaJpaRepository;
+        this.matriculaDocumentoEntregueJpaRepository = matriculaDocumentoEntregueJpaRepository;
         this.tipoMatriculaJpaRepository = tipoMatriculaJpaRepository;
         this.statusMatriculaJpaRepository = statusMatriculaJpaRepository;
         this.statusEtapaMatriculaJpaRepository = statusEtapaMatriculaJpaRepository;
@@ -184,6 +188,7 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
     @Override
     @Transactional
     public void deleteById(UUID id) {
+        matriculaDocumentoEntregueJpaRepository.deleteByMatricula_Id(id);
         matriculaEtapaJpaRepository.deleteByMatricula_Id(id);
         matriculaJpaRepository.deleteById(id);
     }

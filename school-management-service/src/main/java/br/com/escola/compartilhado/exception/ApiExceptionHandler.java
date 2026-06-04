@@ -17,10 +17,16 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.escola.matricula.domain.exception.MatriculaAlunoNaoEncontradoException;
 import br.com.escola.matricula.domain.exception.MatriculaAtivaDuplicadaException;
+import br.com.escola.matricula.domain.exception.MatriculaDocumentoExigidoDuplicadoException;
+import br.com.escola.matricula.domain.exception.MatriculaDocumentoExigidoNaoEncontradoException;
+import br.com.escola.matricula.domain.exception.MatriculaDocumentoNaoEncontradoException;
+import br.com.escola.matricula.domain.exception.MatriculaEtapaNaoEncontradaException;
 import br.com.escola.matricula.domain.exception.MatriculaNaoEncontradaException;
 import br.com.escola.matricula.domain.exception.MatriculaPeriodoNaoEncontradoException;
 import br.com.escola.matricula.domain.exception.MatriculaStatusInvalidoException;
+import br.com.escola.matricula.domain.exception.MatriculaTipoDocumentoNaoEncontradoException;
 import br.com.escola.matricula.domain.exception.MatriculaTipoInvalidoException;
+import br.com.escola.matricula.domain.exception.MatriculaTipoNaoEncontradoException;
 import br.com.escola.matricula.domain.exception.MatriculaTurmaNaoEncontradaException;
 import br.com.escola.matricula.domain.exception.MatriculaTurmaSemVagaException;
 import br.com.escola.matricula.domain.exception.RematriculaNaoPermitidaException;
@@ -171,6 +177,41 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
         return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
     }
 
+    @ExceptionHandler(MatriculaEtapaNaoEncontradaException.class)
+    public ResponseEntity<ApiErrorResponse> handleMatriculaEtapaNotFound(
+            MatriculaEtapaNaoEncontradaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MatriculaDocumentoNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleMatriculaDocumentoNotFound(
+            MatriculaDocumentoNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MatriculaDocumentoExigidoNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleMatriculaDocumentoExigidoNotFound(
+            MatriculaDocumentoExigidoNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MatriculaTipoNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleMatriculaTipoNotFound(
+            MatriculaTipoNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MatriculaTipoDocumentoNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleMatriculaTipoDocumentoNotFound(
+            MatriculaTipoDocumentoNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
     @ExceptionHandler(MatriculaStatusInvalidoException.class)
     public ResponseEntity<ApiErrorResponse> handleMatriculaStatusInvalido(
             MatriculaStatusInvalidoException ex,
@@ -188,6 +229,13 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
     @ExceptionHandler(MatriculaAtivaDuplicadaException.class)
     public ResponseEntity<ApiErrorResponse> handleMatriculaAtivaDuplicada(
             MatriculaAtivaDuplicadaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MatriculaDocumentoExigidoDuplicadoException.class)
+    public ResponseEntity<ApiErrorResponse> handleMatriculaDocumentoExigidoDuplicado(
+            MatriculaDocumentoExigidoDuplicadoException ex,
             HttpServletRequest request) {
         return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
     }

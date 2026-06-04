@@ -82,6 +82,39 @@ class AlunoControllerIntegrationTest {
 
     @Test
     @WithMockUser
+    void deveBuscarFichaConsolidadaDoAlunoComResponsaveis() throws Exception {
+        UUID alunoId = criarAluno("Aluno Ficha", cpfAleatorio(), "aluno.ficha@example.com");
+        UUID responsavelId = criarResponsavel("Responsavel Ficha", cpfAleatorio());
+
+        String bodyVinculo = """
+                {
+                  "idResponsavel": "%s",
+                  "parentesco": "MAE",
+                  "responsavelFinanceiro": true,
+                  "responsavelPedagogico": true,
+                  "autorizadoRetirar": true
+                }
+                """.formatted(responsavelId);
+
+        mockMvc.perform(post("/api/alunos/{idAluno}/responsaveis", alunoId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyVinculo))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/alunos/{id}/ficha", alunoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.aluno.id").value(alunoId.toString()))
+                .andExpect(jsonPath("$.aluno.nomeCompleto").value("Aluno Ficha"))
+                .andExpect(jsonPath("$.responsaveis[0].id").value(responsavelId.toString()))
+                .andExpect(jsonPath("$.responsaveis[0].nomeCompleto").value("Responsavel Ficha"))
+                .andExpect(jsonPath("$.responsaveis[0].parentesco").value("MAE"))
+                .andExpect(jsonPath("$.responsaveis[0].responsavelFinanceiro").value(true))
+                .andExpect(jsonPath("$.responsaveis[0].responsavelPedagogico").value(true))
+                .andExpect(jsonPath("$.responsaveis[0].autorizadoRetirar").value(true));
+    }
+
+    @Test
+    @WithMockUser
     void deveRetornarNotFoundQuandoAlunoNaoExistir() throws Exception {
         mockMvc.perform(get("/api/alunos/{id}", "00000000-0000-0000-0000-000000000001"))
                 .andExpect(status().isNotFound())

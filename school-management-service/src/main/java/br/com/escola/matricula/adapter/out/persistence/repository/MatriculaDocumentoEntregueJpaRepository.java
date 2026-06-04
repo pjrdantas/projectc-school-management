@@ -9,5 +9,7 @@ import br.com.escola.matricula.adapter.out.persistence.entity.MatriculaDocumento
 
 public interface MatriculaDocumentoEntregueJpaRepository extends JpaRepository<MatriculaDocumentoEntregueEntity, UUID> {
 
-    List<MatriculaDocumentoEntregueEntity> findByMatriculaId(UUID matriculaId);
+    List<MatriculaDocumentoEntregueEntity> findByMatricula_Id(UUID matriculaId);
+
+    void deleteByMatricula_Id(UUID matriculaId);
 }

@@ -27,4 +27,24 @@ public class TipoDocumentoEntity {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getCodigo() {
+        return codigo;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public boolean isObrigatorioPadrao() {
+        return obrigatorioPadrao;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 }

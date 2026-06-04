@@ -19,10 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.escola.matricula.application.dto.MatriculaFiltro;
 import br.com.escola.matricula.application.dto.MatriculaInput;
 import br.com.escola.matricula.application.dto.MatriculaOutput;
+import br.com.escola.matricula.application.service.MatriculaFluxoService;
 import br.com.escola.matricula.application.usecase.AtualizarStatusMatriculaUseCase;
 import br.com.escola.matricula.application.usecase.ConsultarMatriculasUseCase;
 import br.com.escola.matricula.application.usecase.CriarMatriculaUseCase;
 import br.com.escola.matricula.application.usecase.ExcluirMatriculaUseCase;
+import br.com.escola.matricula.application.dto.MatriculaEtapaOutput;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 
@@ -34,16 +36,19 @@ public class MatriculaController {
     private final ConsultarMatriculasUseCase consultarMatriculasUseCase;
     private final AtualizarStatusMatriculaUseCase atualizarStatusMatriculaUseCase;
     private final ExcluirMatriculaUseCase excluirMatriculaUseCase;
+    private final MatriculaFluxoService matriculaFluxoService;
 
     public MatriculaController(
             CriarMatriculaUseCase criarMatriculaUseCase,
             ConsultarMatriculasUseCase consultarMatriculasUseCase,
             AtualizarStatusMatriculaUseCase atualizarStatusMatriculaUseCase,
-            ExcluirMatriculaUseCase excluirMatriculaUseCase) {
+            ExcluirMatriculaUseCase excluirMatriculaUseCase,
+            MatriculaFluxoService matriculaFluxoService) {
         this.criarMatriculaUseCase = criarMatriculaUseCase;
         this.consultarMatriculasUseCase = consultarMatriculasUseCase;
         this.atualizarStatusMatriculaUseCase = atualizarStatusMatriculaUseCase;
         this.excluirMatriculaUseCase = excluirMatriculaUseCase;
+        this.matriculaFluxoService = matriculaFluxoService;
     }
 
     @PostMapping
@@ -84,6 +89,42 @@ public class MatriculaController {
     @Operation(summary = "Exclui uma matrícula")
     public void excluir(@PathVariable UUID id) {
         excluirMatriculaUseCase.executar(id);
+    }
+
+    @GetMapping("/{id}/etapas")
+    @Operation(summary = "Lista etapas da matrícula")
+    public List<MatriculaEtapaOutput> listarEtapas(@PathVariable UUID id) {
+        return matriculaFluxoService.listarEtapas(id);
+    }
+
+    @PatchMapping("/{id}/etapas/{etapaId}/status")
+    @Operation(summary = "Atualiza status de uma etapa da matrícula")
+    public MatriculaEtapaOutput atualizarStatusEtapa(
+            @PathVariable UUID id,
+            @PathVariable UUID etapaId,
+            @Valid @RequestBody MatriculaEtapaStatusRequest request) {
+        return matriculaFluxoService.atualizarStatusEtapa(id, etapaId, request);
+    }
+
+    @GetMapping("/{id}/documentos-entregues")
+    @Operation(summary = "Lista documentos entregues da matrícula")
+    public List<MatriculaDocumentoEntregueResponse> listarDocumentosEntregues(@PathVariable UUID id) {
+        return matriculaFluxoService.listarDocumentosEntregues(id);
+    }
+
+    @GetMapping("/{id}/documentos-exigidos")
+    @Operation(summary = "Lista documentos exigidos da matrícula")
+    public List<MatriculaDocumentoExigidoResponse> listarDocumentosExigidos(@PathVariable UUID id) {
+        return matriculaFluxoService.listarDocumentosExigidos(id);
+    }
+
+    @PostMapping("/{id}/documentos-entregues")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Registra documento entregue da matrícula")
+    public MatriculaDocumentoEntregueResponse registrarDocumentoEntregue(
+            @PathVariable UUID id,
+            @Valid @RequestBody MatriculaDocumentoEntregueRequest request) {
+        return matriculaFluxoService.registrarDocumentoEntregue(id, request);
     }
 
     private MatriculaResponse toResponse(MatriculaOutput output) {

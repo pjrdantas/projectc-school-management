@@ -25,6 +25,9 @@ import br.com.escola.aluno.application.usecase.BuscarAlunoPorIdUseCase;
 import br.com.escola.aluno.application.usecase.CriarAlunoUseCase;
 import br.com.escola.aluno.application.usecase.ExcluirAlunoUseCase;
 import br.com.escola.aluno.application.usecase.ListarAlunosUseCase;
+import br.com.escola.responsavel.adapter.in.web.vinculo.ResponsavelVinculadoResponse;
+import br.com.escola.responsavel.application.dto.ResponsavelVinculadoOutput;
+import br.com.escola.responsavel.application.usecase.ListarResponsaveisPorAlunoUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
@@ -36,18 +39,21 @@ public class AlunoController {
     private final ListarAlunosUseCase listarAlunosUseCase;
     private final AtualizarAlunoUseCase atualizarAlunoUseCase;
     private final ExcluirAlunoUseCase excluirAlunoUseCase;
+    private final ListarResponsaveisPorAlunoUseCase listarResponsaveisPorAlunoUseCase;
 
     public AlunoController(
             CriarAlunoUseCase criarAlunoUseCase,
             BuscarAlunoPorIdUseCase buscarAlunoPorIdUseCase,
             ListarAlunosUseCase listarAlunosUseCase,
             AtualizarAlunoUseCase atualizarAlunoUseCase,
-            ExcluirAlunoUseCase excluirAlunoUseCase) {
+            ExcluirAlunoUseCase excluirAlunoUseCase,
+            ListarResponsaveisPorAlunoUseCase listarResponsaveisPorAlunoUseCase) {
         this.criarAlunoUseCase = criarAlunoUseCase;
         this.buscarAlunoPorIdUseCase = buscarAlunoPorIdUseCase;
         this.listarAlunosUseCase = listarAlunosUseCase;
         this.atualizarAlunoUseCase = atualizarAlunoUseCase;
         this.excluirAlunoUseCase = excluirAlunoUseCase;
+        this.listarResponsaveisPorAlunoUseCase = listarResponsaveisPorAlunoUseCase;
     }
 
     @PostMapping
@@ -77,6 +83,16 @@ public class AlunoController {
     @Operation(summary = "Busca aluno por ID")
     public AlunoResponse buscarPorId(@PathVariable @NonNull UUID id) {
         return toResponse(buscarAlunoPorIdUseCase.executar(id));
+    }
+
+    @GetMapping("/{id}/ficha")
+    @Operation(summary = "Busca ficha consolidada do aluno")
+    public AlunoFichaResponse buscarFicha(@PathVariable @NonNull UUID id) {
+        AlunoResponse aluno = toResponse(buscarAlunoPorIdUseCase.executar(id));
+        List<ResponsavelVinculadoResponse> responsaveis = listarResponsaveisPorAlunoUseCase.executar(id).stream()
+                .map(this::toResponsavelVinculadoResponse)
+                .toList();
+        return new AlunoFichaResponse(aluno, responsaveis);
     }
 
     @PutMapping("/{id}")
@@ -118,6 +134,28 @@ public class AlunoController {
                 output.cidade(),
                 output.uf(),
                 output.statusAluno(),
+                output.createdAt());
+    }
+
+    private ResponsavelVinculadoResponse toResponsavelVinculadoResponse(ResponsavelVinculadoOutput output) {
+        return new ResponsavelVinculadoResponse(
+                output.id(),
+                output.nomeCompleto(),
+                output.cpf(),
+                output.email(),
+                output.telefone(),
+                output.rg(),
+                output.cep(),
+                output.logradouro(),
+                output.numero(),
+                output.complemento(),
+                output.bairro(),
+                output.cidade(),
+                output.uf(),
+                output.parentesco(),
+                output.responsavelFinanceiro(),
+                output.responsavelPedagogico(),
+                output.autorizadoRetirar(),
                 output.createdAt());
     }
 
