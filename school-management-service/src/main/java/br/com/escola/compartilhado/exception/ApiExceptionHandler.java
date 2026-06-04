@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.escola.matricula.domain.exception.MatriculaAlunoNaoEncontradoException;
 import br.com.escola.matricula.domain.exception.MatriculaAtivaDuplicadaException;
+import br.com.escola.matricula.domain.exception.MatriculaConclusaoAcademicaInvalidaException;
 import br.com.escola.matricula.domain.exception.MatriculaDocumentoExigidoDuplicadoException;
 import br.com.escola.matricula.domain.exception.MatriculaDocumentoExigidoNaoEncontradoException;
 import br.com.escola.matricula.domain.exception.MatriculaDocumentoNaoEncontradoException;
@@ -32,6 +33,16 @@ import br.com.escola.matricula.domain.exception.MatriculaTurmaSemVagaException;
 import br.com.escola.matricula.domain.exception.RematriculaNaoPermitidaException;
 import br.com.escola.matricula.domain.exception.TransferenciaDadosObrigatoriosException;
 import br.com.escola.matricula.domain.exception.TurmaPeriodoInconsistenteException;
+import br.com.escola.professor.domain.exception.AulaFrequenciaAlunoDuplicadaException;
+import br.com.escola.professor.domain.exception.AulaFrequenciaProfessorDuplicadaException;
+import br.com.escola.professor.domain.exception.AulaMatriculaTurmaInconsistenteException;
+import br.com.escola.professor.domain.exception.AulaNaoEncontradaException;
+import br.com.escola.professor.domain.exception.ProfessorFuncionarioInativoException;
+import br.com.escola.professor.domain.exception.ProfessorJaCadastradoException;
+import br.com.escola.professor.domain.exception.ProfessorNaoEncontradoException;
+import br.com.escola.professor.domain.exception.ProfessorTurmaDisciplinaDuplicadaException;
+import br.com.escola.professor.domain.exception.ProfessorTurmaDisciplinaNaoEncontradaException;
+import br.com.escola.professor.domain.exception.SituacaoFrequenciaNaoEncontradaException;
 import br.com.escola.responsavel.domain.exception.ResponsavelJaCadastradoException;
 import br.com.escola.responsavel.domain.exception.ResponsavelNaoEncontradoException;
 import br.com.escola.responsavel.domain.exception.AlunoResponsavelVinculoDuplicadoException;
@@ -45,6 +56,14 @@ import br.com.escola.compartilhado.viacep.CepNaoEncontradoException;
 import br.com.escola.compartilhado.viacep.ViaCepIndisponivelException;
 import br.com.escola.documento.domain.exception.DocumentoInvalidoException;
 import br.com.escola.documento.domain.exception.DocumentoNaoEncontradoException;
+import br.com.escola.avaliacao.domain.exception.AvaliacaoMatriculaTurmaInconsistenteException;
+import br.com.escola.avaliacao.domain.exception.AvaliacaoNaoEncontradaException;
+import br.com.escola.avaliacao.domain.exception.AvaliacaoNotaDuplicadaException;
+import br.com.escola.avaliacao.domain.exception.AvaliacaoNotaInvalidaException;
+import br.com.escola.avaliacao.domain.exception.TipoAvaliacaoNaoEncontradoException;
+import br.com.escola.historico.domain.exception.BoletimFechadoNaoEncontradoException;
+import br.com.escola.historico.domain.exception.BoletimFechamentoDuplicadoException;
+import br.com.escola.historico.domain.exception.HistoricoEscolarDuplicadoException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
@@ -219,6 +238,13 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
         return buildError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", ex.getMessage(), request);
     }
 
+    @ExceptionHandler(MatriculaConclusaoAcademicaInvalidaException.class)
+    public ResponseEntity<ApiErrorResponse> handleMatriculaConclusaoAcademicaInvalida(
+            MatriculaConclusaoAcademicaInvalidaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
     @ExceptionHandler(MatriculaTipoInvalidoException.class)
     public ResponseEntity<ApiErrorResponse> handleMatriculaTipoInvalido(
             MatriculaTipoInvalidoException ex,
@@ -266,6 +292,132 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
             MatriculaTurmaSemVagaException ex,
             HttpServletRequest request) {
         return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ProfessorNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleProfessorNotFound(
+            ProfessorNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ProfessorTurmaDisciplinaNaoEncontradaException.class)
+    public ResponseEntity<ApiErrorResponse> handleProfessorTurmaDisciplinaNotFound(
+            ProfessorTurmaDisciplinaNaoEncontradaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ProfessorJaCadastradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleProfessorDuplicado(
+            ProfessorJaCadastradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ProfessorTurmaDisciplinaDuplicadaException.class)
+    public ResponseEntity<ApiErrorResponse> handleProfessorTurmaDisciplinaDuplicado(
+            ProfessorTurmaDisciplinaDuplicadaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ProfessorFuncionarioInativoException.class)
+    public ResponseEntity<ApiErrorResponse> handleProfessorFuncionarioInativo(
+            ProfessorFuncionarioInativoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AulaNaoEncontradaException.class)
+    public ResponseEntity<ApiErrorResponse> handleAulaNotFound(
+            AulaNaoEncontradaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(SituacaoFrequenciaNaoEncontradaException.class)
+    public ResponseEntity<ApiErrorResponse> handleSituacaoFrequenciaNotFound(
+            SituacaoFrequenciaNaoEncontradaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AulaFrequenciaProfessorDuplicadaException.class)
+    public ResponseEntity<ApiErrorResponse> handleAulaFrequenciaProfessorDuplicada(
+            AulaFrequenciaProfessorDuplicadaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AulaFrequenciaAlunoDuplicadaException.class)
+    public ResponseEntity<ApiErrorResponse> handleAulaFrequenciaAlunoDuplicada(
+            AulaFrequenciaAlunoDuplicadaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AulaMatriculaTurmaInconsistenteException.class)
+    public ResponseEntity<ApiErrorResponse> handleAulaMatriculaTurmaInconsistente(
+            AulaMatriculaTurmaInconsistenteException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AvaliacaoNaoEncontradaException.class)
+    public ResponseEntity<ApiErrorResponse> handleAvaliacaoNotFound(
+            AvaliacaoNaoEncontradaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(TipoAvaliacaoNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleTipoAvaliacaoNotFound(
+            TipoAvaliacaoNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AvaliacaoNotaDuplicadaException.class)
+    public ResponseEntity<ApiErrorResponse> handleAvaliacaoNotaDuplicada(
+            AvaliacaoNotaDuplicadaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AvaliacaoNotaInvalidaException.class)
+    public ResponseEntity<ApiErrorResponse> handleAvaliacaoNotaInvalida(
+            AvaliacaoNotaInvalidaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AvaliacaoMatriculaTurmaInconsistenteException.class)
+    public ResponseEntity<ApiErrorResponse> handleAvaliacaoMatriculaTurmaInconsistente(
+            AvaliacaoMatriculaTurmaInconsistenteException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(BoletimFechamentoDuplicadoException.class)
+    public ResponseEntity<ApiErrorResponse> handleBoletimFechamentoDuplicado(
+            BoletimFechamentoDuplicadoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(BoletimFechadoNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleBoletimFechadoNaoEncontrado(
+            BoletimFechadoNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(HistoricoEscolarDuplicadoException.class)
+    public ResponseEntity<ApiErrorResponse> handleHistoricoEscolarDuplicado(
+            HistoricoEscolarDuplicadoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
     }
 
 

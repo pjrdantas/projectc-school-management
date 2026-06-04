@@ -31,8 +31,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
                 "DELETE FROM matricula_documento_exigido",
                 "DELETE FROM pessoa_documento",
                 "DELETE FROM documento",
+                "DELETE FROM boletim_item",
+                "DELETE FROM boletim",
                 "DELETE FROM matricula_etapa",
                 "DELETE FROM matricula",
+                "DELETE FROM disciplina WHERE nome LIKE 'MATRICULA-Conclusao-%'",
                 "DELETE FROM turma WHERE codigo LIKE 'MATRICULA-%' OR codigo LIKE 'MATR-%'",
                 "DELETE FROM periodo_letivo WHERE nome LIKE 'MATRICULA-%'",
                 "DELETE FROM serie WHERE nome LIKE 'MATRICULA-%'"
@@ -221,7 +224,7 @@ class MatriculaControllerIntegrationTest {
 
     @Test
     @WithMockUser
-    void deveCriarRematriculaQuandoMatriculaAnteriorEstiverEfetivadaESeriePosterior() throws Exception {
+    void deveCriarRematriculaQuandoMatriculaAnteriorEstiverConcluidaESeriePosterior() throws Exception {
         UUID alunoId = criarAluno("Aluno Rematricula", cpfAleatorio(), "aluno.rematricula@example.com");
         UUID segundaSerieId = criarSerie("MATRICULA-2-ANO", 2);
         UUID periodoAnteriorId = criarPeriodo("MATRICULA-2033.1", "2033-02-01", "2033-06-30");
@@ -235,7 +238,7 @@ class MatriculaControllerIntegrationTest {
                 segundaSerieId);
 
         UUID matriculaAnteriorId = criarMatricula(alunoId, turmaAnteriorId, periodoAnteriorId);
-        atualizarStatusMatricula(matriculaAnteriorId, "EFETIVADA", "Ano letivo concluído");
+        atualizarStatusMatricula(matriculaAnteriorId, "CONCLUIDA", "Ano letivo concluído");
 
         String request = """
                 {
@@ -257,6 +260,74 @@ class MatriculaControllerIntegrationTest {
                 .andExpect(jsonPath("$.tipoMatricula").value("RENOVACAO"))
                 .andExpect(jsonPath("$.status").value("SOLICITADA"))
                 .andExpect(jsonPath("$.serieNome").value("MATRICULA-2-ANO"));
+    }
+
+    @Test
+    @WithMockUser
+    void deveCriarRematriculaOperacionalAPartirDaMatriculaConcluida() throws Exception {
+        UUID alunoId = criarAluno("Aluno Rematricula Operacional", cpfAleatorio(), "aluno.rematricula.operacional@example.com");
+        UUID segundaSerieId = criarSerie("MATRICULA-2-ANO-OPER", 2);
+        UUID periodoAnteriorId = criarPeriodo("MATRICULA-2038.1", "2038-02-01", "2038-12-15");
+        UUID periodoNovoId = criarPeriodo("MATRICULA-2039.1", "2039-02-01", "2039-12-15");
+        UUID turmaAnteriorId = criarTurma("MATR-ANT-OP", "Matricula Turma Anterior Operacional", 30, periodoAnteriorId);
+        UUID turmaNovaId = criarTurma(
+                "MATR-REN-OP",
+                "Matricula Turma Renovacao Operacional",
+                30,
+                periodoNovoId,
+                segundaSerieId);
+        UUID matriculaAnteriorId = criarMatricula(alunoId, turmaAnteriorId, periodoAnteriorId);
+        atualizarStatusMatricula(matriculaAnteriorId, "CONCLUIDA", "Ano letivo concluído");
+
+        String request = """
+                {
+                  "turmaId": "%s",
+                  "periodoLetivoId": "%s",
+                  "observacao": "Rematrícula gerada pelo fluxo operacional"
+                }
+                """.formatted(turmaNovaId, periodoNovoId);
+
+        mockMvc.perform(post("/api/matriculas/{id}/rematricula", matriculaAnteriorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.alunoId").value(alunoId.toString()))
+                .andExpect(jsonPath("$.turmaId").value(turmaNovaId.toString()))
+                .andExpect(jsonPath("$.periodoLetivoId").value(periodoNovoId.toString()))
+                .andExpect(jsonPath("$.tipoMatricula").value("RENOVACAO"))
+                .andExpect(jsonPath("$.status").value("SOLICITADA"))
+                .andExpect(jsonPath("$.observacao").value("Rematrícula gerada pelo fluxo operacional"));
+    }
+
+    @Test
+    @WithMockUser
+    void deveConsultarElegibilidadeDeRematriculaComDestinoValido() throws Exception {
+        UUID alunoId = criarAluno("Aluno Elegivel Rematricula", cpfAleatorio(), "aluno.elegivel.rematricula@example.com");
+        UUID segundaSerieId = criarSerie("MATRICULA-2-ANO-ELEG", 2);
+        UUID periodoAnteriorId = criarPeriodo("MATRICULA-2042.1", "2042-02-01", "2042-12-15");
+        UUID periodoNovoId = criarPeriodo("MATRICULA-2043.1", "2043-02-01", "2043-12-15");
+        UUID turmaAnteriorId = criarTurma("MATR-ANT-ELEG", "Matricula Turma Anterior Elegivel", 30, periodoAnteriorId);
+        UUID turmaNovaId = criarTurma(
+                "MATR-REN-ELEG",
+                "Matricula Turma Renovacao Elegivel",
+                30,
+                periodoNovoId,
+                segundaSerieId);
+        UUID matriculaAnteriorId = criarMatricula(alunoId, turmaAnteriorId, periodoAnteriorId);
+        atualizarStatusMatricula(matriculaAnteriorId, "CONCLUIDA", "Ano letivo concluído");
+
+        mockMvc.perform(get("/api/matriculas/{id}/rematricula/elegibilidade", matriculaAnteriorId)
+                        .param("turmaId", turmaNovaId.toString())
+                        .param("periodoLetivoId", periodoNovoId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.matriculaBaseId").value(matriculaAnteriorId.toString()))
+                .andExpect(jsonPath("$.alunoId").value(alunoId.toString()))
+                .andExpect(jsonPath("$.statusBase").value("CONCLUIDA"))
+                .andExpect(jsonPath("$.turmaDestinoId").value(turmaNovaId.toString()))
+                .andExpect(jsonPath("$.periodoLetivoDestinoId").value(periodoNovoId.toString()))
+                .andExpect(jsonPath("$.serieDestinoNome").value("MATRICULA-2-ANO-ELEG"))
+                .andExpect(jsonPath("$.elegivel").value(true))
+                .andExpect(jsonPath("$.motivos").isEmpty());
     }
 
     @Test
@@ -290,7 +361,102 @@ class MatriculaControllerIntegrationTest {
                         .content(request))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message")
-                        .value("Rematrícula não permitida: matrícula anterior deve estar efetivada para renovação"));
+                        .value("Rematrícula não permitida: matrícula anterior deve estar concluída para renovação"));
+    }
+
+    @Test
+    @WithMockUser
+    void deveBloquearRematriculaOperacionalQuandoMatriculaBaseNaoEstiverConcluida() throws Exception {
+        UUID alunoId = criarAluno("Aluno Rematricula Operacional Bloqueada", cpfAleatorio(), "aluno.rematricula.operacional.bloqueada@example.com");
+        UUID segundaSerieId = criarSerie("MATRICULA-2-ANO-OPER-BLOQ", 2);
+        UUID periodoAnteriorId = criarPeriodo("MATRICULA-2040.1", "2040-02-01", "2040-12-15");
+        UUID periodoNovoId = criarPeriodo("MATRICULA-2041.1", "2041-02-01", "2041-12-15");
+        UUID turmaAnteriorId = criarTurma("MATR-ANT-OP-B", "Matricula Turma Anterior Operacional Bloqueada", 30, periodoAnteriorId);
+        UUID turmaNovaId = criarTurma(
+                "MATR-REN-OP-B",
+                "Matricula Turma Renovacao Operacional Bloqueada",
+                30,
+                periodoNovoId,
+                segundaSerieId);
+        UUID matriculaAnteriorId = criarMatricula(alunoId, turmaAnteriorId, periodoAnteriorId);
+        atualizarStatusMatricula(matriculaAnteriorId, "EFETIVADA", "Aluno ainda cursando");
+
+        String request = """
+                {
+                  "turmaId": "%s",
+                  "periodoLetivoId": "%s"
+                }
+                """.formatted(turmaNovaId, periodoNovoId);
+
+        mockMvc.perform(post("/api/matriculas/{id}/rematricula", matriculaAnteriorId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Rematrícula não permitida: matrícula base deve estar concluída para renovação"));
+    }
+
+    @Test
+    @WithMockUser
+    void deveConsultarInelegibilidadeDeRematriculaQuandoBaseNaoEstiverConcluida() throws Exception {
+        UUID alunoId = criarAluno("Aluno Inelegivel Rematricula", cpfAleatorio(), "aluno.inelegivel.rematricula@example.com");
+        UUID segundaSerieId = criarSerie("MATRICULA-2-ANO-INELEG", 2);
+        UUID periodoAnteriorId = criarPeriodo("MATRICULA-2044.1", "2044-02-01", "2044-12-15");
+        UUID periodoNovoId = criarPeriodo("MATRICULA-2045.1", "2045-02-01", "2045-12-15");
+        UUID turmaAnteriorId = criarTurma("MATR-ANT-INE", "Matricula Turma Anterior Inelegivel", 30, periodoAnteriorId);
+        UUID turmaNovaId = criarTurma(
+                "MATR-REN-INE",
+                "Matricula Turma Renovacao Inelegivel",
+                30,
+                periodoNovoId,
+                segundaSerieId);
+        UUID matriculaAnteriorId = criarMatricula(alunoId, turmaAnteriorId, periodoAnteriorId);
+        atualizarStatusMatricula(matriculaAnteriorId, "EFETIVADA", "Aluno ainda cursando");
+
+        mockMvc.perform(get("/api/matriculas/{id}/rematricula/elegibilidade", matriculaAnteriorId)
+                        .param("turmaId", turmaNovaId.toString())
+                        .param("periodoLetivoId", periodoNovoId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.matriculaBaseId").value(matriculaAnteriorId.toString()))
+                .andExpect(jsonPath("$.statusBase").value("EFETIVADA"))
+                .andExpect(jsonPath("$.elegivel").value(false))
+                .andExpect(jsonPath("$.motivos[0]").value("Matrícula base deve estar concluída para renovação"));
+    }
+
+    @Test
+    @WithMockUser
+    void deveConcluirAcademicamenteMatriculaAprovadaPorBoletimFechado() throws Exception {
+        UUID alunoId = criarAluno("Aluno Conclusao Academica", cpfAleatorio(), "aluno.conclusao.academica@example.com");
+        UUID periodoId = criarPeriodo("MATRICULA-2037.1", "2037-02-01", "2037-12-15");
+        UUID turmaId = criarTurma("MATR-CONC", "Matricula Turma Conclusao", 30, periodoId);
+        UUID matriculaId = criarMatricula(alunoId, turmaId, periodoId);
+        atualizarStatusMatricula(matriculaId, "EFETIVADA", "Aluno cursando");
+        UUID disciplinaId = criarDisciplina("MATRICULA-Conclusao-Matematica", 80);
+        UUID boletimId = criarBoletimFechado(matriculaId, disciplinaId, "APROVADO");
+
+        String request = """
+                {
+                  "boletimId": "%s",
+                  "observacao": "Fechamento aprovado pela secretaria"
+                }
+                """.formatted(boletimId);
+
+        mockMvc.perform(post("/api/matriculas/{id}/conclusao-academica", matriculaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.matriculaId").value(matriculaId.toString()))
+                .andExpect(jsonPath("$.boletimId").value(boletimId.toString()))
+                .andExpect(jsonPath("$.resultadoFinal").value("APROVADO"))
+                .andExpect(jsonPath("$.status").value("CONCLUIDA"))
+                .andExpect(jsonPath("$.observacao").value(org.hamcrest.Matchers.containsString("Fechamento aprovado pela secretaria")));
+
+        mockMvc.perform(get("/api/matriculas")
+                        .param("alunoId", alunoId.toString())
+                        .param("status", "CONCLUIDA"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(matriculaId.toString()))
+                .andExpect(jsonPath("$[0].status").value("CONCLUIDA"));
     }
 
     @Test
@@ -505,6 +671,30 @@ class MatriculaControllerIntegrationTest {
 
         JsonNode json = objectMapper.readTree(responseBody);
         return UUID.fromString(json.get("id").asText());
+    }
+
+    private UUID criarDisciplina(String nome, int cargaHoraria) {
+        UUID disciplinaId = UUID.randomUUID();
+        jdbcTemplate.update("""
+                INSERT INTO disciplina (id_disciplina, nome, carga_horaria, ativo, created_at)
+                VALUES (?, ?, ?, true, CURRENT_TIMESTAMP)
+                """, disciplinaId, nome, cargaHoraria);
+        return disciplinaId;
+    }
+
+    private UUID criarBoletimFechado(UUID matriculaId, UUID disciplinaId, String resultado) {
+        UUID boletimId = UUID.randomUUID();
+        jdbcTemplate.update("""
+                INSERT INTO boletim (id_boletim, id_matricula, periodo_referencia, data_fechamento, created_at)
+                VALUES (?, ?, '2037.1', CURRENT_DATE, CURRENT_TIMESTAMP)
+                """, boletimId, matriculaId);
+        jdbcTemplate.update("""
+                INSERT INTO boletim_item (
+                    id_boletim_item, id_boletim, id_disciplina, media,
+                    frequencia_percentual, resultado, carga_horaria
+                ) VALUES (?, ?, ?, 8.50, 100.00, ?, 80)
+                """, UUID.randomUUID(), boletimId, disciplinaId, resultado);
+        return boletimId;
     }
 
     private void criarDocumentoExigidoPrimeiraMatricula(String tipoDocumentoId, boolean obrigatorio, int ordem) {

@@ -1,6 +1,7 @@
 package br.com.escola.professor.adapter.out.persistence.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,4 +11,8 @@ import br.com.escola.professor.adapter.out.persistence.entity.ProfessorTurmaDisc
 public interface ProfessorTurmaDisciplinaJpaRepository extends JpaRepository<ProfessorTurmaDisciplinaEntity, UUID> {
 
     List<ProfessorTurmaDisciplinaEntity> findByProfessorId(UUID professorId);
+
+    List<ProfessorTurmaDisciplinaEntity> findByTurmaDisciplinaTurmaId(UUID turmaId);
+
+    Optional<ProfessorTurmaDisciplinaEntity> findByProfessorIdAndTurmaDisciplinaId(UUID professorId, UUID turmaDisciplinaId);
 }

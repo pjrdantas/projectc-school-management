@@ -127,6 +127,32 @@ public class MatriculaController {
         return matriculaFluxoService.registrarDocumentoEntregue(id, request);
     }
 
+    @PostMapping("/{id}/conclusao-academica")
+    @Operation(summary = "Conclui academicamente a matrícula a partir de boletim fechado")
+    public MatriculaConclusaoAcademicaResponse concluirAcademicamente(
+            @PathVariable UUID id,
+            @Valid @RequestBody MatriculaConclusaoAcademicaRequest request) {
+        return matriculaFluxoService.concluirAcademicamente(id, request);
+    }
+
+    @PostMapping("/{id}/rematricula")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Cria rematrícula a partir de matrícula concluída")
+    public MatriculaResponse rematricular(
+            @PathVariable UUID id,
+            @Valid @RequestBody MatriculaRematriculaRequest request) {
+        return toResponse(matriculaFluxoService.rematricular(id, request));
+    }
+
+    @GetMapping("/{id}/rematricula/elegibilidade")
+    @Operation(summary = "Consulta elegibilidade para rematrícula")
+    public MatriculaRematriculaElegibilidadeResponse consultarElegibilidadeRematricula(
+            @PathVariable UUID id,
+            @RequestParam(required = false) UUID turmaId,
+            @RequestParam(required = false) UUID periodoLetivoId) {
+        return matriculaFluxoService.consultarElegibilidadeRematricula(id, turmaId, periodoLetivoId);
+    }
+
     private MatriculaResponse toResponse(MatriculaOutput output) {
         return new MatriculaResponse(
                 output.id(),

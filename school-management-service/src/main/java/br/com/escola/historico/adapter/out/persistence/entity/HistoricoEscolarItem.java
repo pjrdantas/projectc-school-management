@@ -1,7 +1,11 @@
 package br.com.escola.historico.adapter.out.persistence.entity;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
+import br.com.escola.catalogo.adapter.out.persistence.entity.DisciplinaEntity;
+import br.com.escola.catalogo.adapter.out.persistence.entity.PeriodoLetivoEntity;
+import br.com.escola.catalogo.adapter.out.persistence.entity.SerieEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -36,6 +40,18 @@ public class HistoricoEscolarItem {
     @JoinColumn(name = "id_historico_escolar", nullable = false)
     private HistoricoEscolar historicoEscolar;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_periodo_letivo")
+    private PeriodoLetivoEntity periodoLetivo;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_serie")
+    private SerieEntity serieEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_disciplina")
+    private DisciplinaEntity disciplina;
+
     @Column(name = "componente_curricular", nullable = false)
     private String componenteCurricular;
 
@@ -51,9 +67,15 @@ public class HistoricoEscolarItem {
     @Column(name = "nota_conceito")
     private String notaConceito;
 
+    @Column(name = "frequencia_percentual")
+    private BigDecimal frequenciaPercentual;
+
     @Column(name = "total_aulas")
     private Integer totalAulas;
 
     @Column(name = "carga_horaria")
     private Integer cargaHoraria;
+
+    @Column(name = "resultado")
+    private String resultado;
 }

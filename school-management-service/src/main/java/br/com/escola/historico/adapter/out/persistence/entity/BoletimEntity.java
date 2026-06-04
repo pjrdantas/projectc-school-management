@@ -15,6 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,7 +28,11 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "boletim")
+@Table(
+        name = "boletim",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_boletim_matricula_periodo",
+                columnNames = {"id_matricula", "periodo_referencia"}))
 public class BoletimEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -37,7 +42,7 @@ public class BoletimEntity implements Serializable {
     @Column(name = "id_boletim", nullable = false)
     private UUID id;
 
-    @Column(name = "periodo_referencia", nullable = false, unique = true, length = 60)
+    @Column(name = "periodo_referencia", nullable = false, length = 60)
     private String periodoReferencia;
 
     @Column(name = "data_fechamento")

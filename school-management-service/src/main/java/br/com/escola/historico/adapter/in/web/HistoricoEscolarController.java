@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarRequest;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarResponse;
+import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarGeracaoRequest;
 import br.com.escola.historico.application.service.HistoricoEscolarService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -63,5 +64,14 @@ public class HistoricoEscolarController {
     @Operation(summary = "Lista históricos escolares")
     public Page<HistoricoEscolarResponse> listar(@PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
         return historicoEscolarService.listar(pageable);
+    }
+
+    @PostMapping("/matriculas/{matriculaId}/geracao-por-boletim")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Gera histórico escolar a partir de boletim fechado")
+    public HistoricoEscolarResponse gerarPorBoletim(
+            @PathVariable @NonNull UUID matriculaId,
+            @Valid @RequestBody HistoricoEscolarGeracaoRequest request) {
+        return historicoEscolarService.gerarPorBoletim(matriculaId, request);
     }
 }

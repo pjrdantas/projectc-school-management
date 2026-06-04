@@ -128,9 +128,9 @@ public class CriarMatriculaUseCase {
                 .orElseThrow(() -> new RematriculaNaoPermitidaException(
                         "aluno não possui matrícula anterior para renovação"));
 
-        if (!MatriculaStatus.EFETIVADA.name().equalsIgnoreCase(historicoAnterior.status())) {
+        if (!MatriculaStatus.CONCLUIDA.name().equalsIgnoreCase(historicoAnterior.status())) {
             throw new RematriculaNaoPermitidaException(
-                    "matrícula anterior deve estar efetivada para renovação");
+                    "matrícula anterior deve estar concluída para renovação");
         }
 
         Integer novaSerieOrdem = turmaConsultaGateway.findSerieOrdemByTurmaId(input.turmaId())

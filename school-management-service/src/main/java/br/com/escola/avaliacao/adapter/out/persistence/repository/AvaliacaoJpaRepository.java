@@ -10,4 +10,6 @@ import br.com.escola.avaliacao.adapter.out.persistence.entity.AvaliacaoEntity;
 public interface AvaliacaoJpaRepository extends JpaRepository<AvaliacaoEntity, UUID> {
 
     List<AvaliacaoEntity> findByProfessorTurmaDisciplinaId(UUID professorTurmaDisciplinaId);
+
+    List<AvaliacaoEntity> findByProfessorTurmaDisciplinaTurmaDisciplinaTurmaId(UUID turmaId);
 }

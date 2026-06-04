@@ -10,4 +10,6 @@ import br.com.escola.historico.adapter.out.persistence.entity.BoletimItemEntity;
 public interface BoletimItemJpaRepository extends JpaRepository<BoletimItemEntity, UUID> {
 
     List<BoletimItemEntity> findByBoletimId(UUID boletimId);
+
+    void deleteByBoletimId(UUID boletimId);
 }

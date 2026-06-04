@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,7 +27,11 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "boletim_item")
+@Table(
+        name = "boletim_item",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_boletim_item_boletim_disciplina",
+                columnNames = {"id_boletim", "id_disciplina"}))
 public class BoletimItemEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;

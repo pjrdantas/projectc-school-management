@@ -39,6 +39,9 @@ public class HistoricoEscolar {
     @Column(name = "id_aluno")
     private UUID alunoId;
 
+    @Column(name = "origem", nullable = false, length = 20)
+    private String origem;
+
     @Transient
     private String nomeAluno;
 
@@ -143,6 +146,9 @@ public class HistoricoEscolar {
 
     @PrePersist
     public void prePersist() {
+        if (origem == null || origem.isBlank()) {
+            origem = "EXTERNO";
+        }
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }

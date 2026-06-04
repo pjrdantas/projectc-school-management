@@ -47,7 +47,8 @@ INSERT INTO status_matricula (id_status_matricula, codigo, descricao) VALUES
 ('00000000-0000-0000-0000-000000000075', 'EFETIVADA', 'Matricula efetivada'),
 ('00000000-0000-0000-0000-000000000076', 'CANCELADA', 'Matricula cancelada'),
 ('00000000-0000-0000-0000-000000000077', 'INDEFERIDA', 'Matricula indeferida'),
-('00000000-0000-0000-0000-000000000078', 'TRANSFERIDO', 'Aluno transferido');
+('00000000-0000-0000-0000-000000000078', 'TRANSFERIDO', 'Aluno transferido'),
+('00000000-0000-0000-0000-000000000079', 'CONCLUIDA', 'Matricula concluida');
 
 INSERT INTO status_etapa_matricula (id_status_etapa_matricula, codigo, descricao) VALUES
 ('00000000-0000-0000-0000-000000000081', 'PENDENTE', 'Pendente'),

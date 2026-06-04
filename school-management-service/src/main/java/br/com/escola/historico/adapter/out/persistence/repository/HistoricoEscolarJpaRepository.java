@@ -1,6 +1,7 @@
 package br.com.escola.historico.adapter.out.persistence.repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,9 +14,24 @@ import br.com.escola.historico.adapter.out.persistence.entity.HistoricoEscolar;
 
 public interface HistoricoEscolarJpaRepository extends JpaRepository<HistoricoEscolar, UUID> {
 
+    long countByOrigemIgnoreCase(String origem);
+
     @EntityGraph(attributePaths = "componentesCurriculares")
     @Query("select h from HistoricoEscolar h where h.id = :id")
     Optional<HistoricoEscolar> findWithComponentesCurricularesById(UUID id);
+
+    @EntityGraph(attributePaths = "componentesCurriculares")
+    List<HistoricoEscolar> findByAlunoId(UUID alunoId);
+
+    @EntityGraph(attributePaths = "componentesCurriculares")
+    @Query("""
+            select distinct h
+              from HistoricoEscolar h
+              join h.componentesCurriculares item
+             where h.alunoId = :alunoId
+               and item.periodoLetivo.id = :periodoLetivoId
+            """)
+    List<HistoricoEscolar> findByAlunoIdAndPeriodoLetivoId(UUID alunoId, UUID periodoLetivoId);
 
     @Modifying
     @Query(value = """

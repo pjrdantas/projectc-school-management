@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarRequest;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarResponse;
+import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarGeracaoRequest;
 
 public interface HistoricoEscolarService {
 
@@ -19,4 +20,6 @@ public interface HistoricoEscolarService {
     HistoricoEscolarResponse buscarPorId(UUID id);
 
     Page<HistoricoEscolarResponse> listar(Pageable pageable);
+
+    HistoricoEscolarResponse gerarPorBoletim(UUID matriculaId, HistoricoEscolarGeracaoRequest request);
 }
