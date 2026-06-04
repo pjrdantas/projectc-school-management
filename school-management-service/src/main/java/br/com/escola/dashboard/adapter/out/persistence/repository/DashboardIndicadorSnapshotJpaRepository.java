@@ -18,4 +18,11 @@ public interface DashboardIndicadorSnapshotJpaRepository
             LocalDate referenciaData);
 
     List<DashboardIndicadorSnapshotEntity> findByPublicoDashboardId(UUID publicoDashboardId);
+
+    List<DashboardIndicadorSnapshotEntity> findByPublicoDashboardIdOrderByReferenciaDataDescCodigoIndicadorAsc(
+            UUID publicoDashboardId);
+
+    List<DashboardIndicadorSnapshotEntity> findByPublicoDashboardIdAndReferenciaDataOrderByCodigoIndicadorAsc(
+            UUID publicoDashboardId,
+            LocalDate referenciaData);
 }
