@@ -1,6 +1,7 @@
 package br.com.escola.dashboard.adapter.in.web;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -26,12 +27,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Sql(
         statements = {
                 "DELETE FROM dashboard_indicador_snapshot WHERE codigo_indicador LIKE 'DASH-SNAP-%'",
+                "DELETE FROM dashboard_indicador_snapshot WHERE codigo_indicador LIKE 'PROFESSOR_%'",
                 "DELETE FROM publico_dashboard WHERE codigo LIKE 'DASH-SNAP-%'"
         },
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(
         statements = {
                 "DELETE FROM dashboard_indicador_snapshot WHERE codigo_indicador LIKE 'DASH-SNAP-%'",
+                "DELETE FROM dashboard_indicador_snapshot WHERE codigo_indicador LIKE 'PROFESSOR_%'",
                 "DELETE FROM publico_dashboard WHERE codigo LIKE 'DASH-SNAP-%'"
         },
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
@@ -104,6 +107,69 @@ class DashboardIndicadorSnapshotControllerIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    @WithMockUser
+    void deveConsultarHistoricoComVariacaoPorIndicador() throws Exception {
+        UUID publicoId = criarPublico("DASH-SNAP-HIST", "Histórico snapshot");
+        salvarSnapshot(publicoId, "dash-snap-total-matriculas", "Total de matrículas", "10.00", null, "2055-04-01");
+        salvarSnapshot(publicoId, "dash-snap-total-matriculas", "Total de matrículas", "15.00", null, "2055-04-10");
+        salvarSnapshot(publicoId, "dash-snap-total-matriculas", "Total de matrículas", "18.00", null, "2055-04-20");
+        salvarSnapshot(publicoId, "dash-snap-outro", "Outro indicador", "99.00", null, "2055-04-10");
+
+        mockMvc.perform(get("/api/dashboard/snapshots/historico/publicos/{publicoCodigo}", "dash-snap-hist")
+                        .param("codigoIndicador", "dash-snap-total-matriculas")
+                        .param("dataInicio", "2055-04-01")
+                        .param("dataFim", "2055-04-20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].publicoCodigo").value("DASH-SNAP-HIST"))
+                .andExpect(jsonPath("$[0].codigoIndicador").value("DASH-SNAP-TOTAL-MATRICULAS"))
+                .andExpect(jsonPath("$[0].valorAtual").value(18.00))
+                .andExpect(jsonPath("$[0].valorAnterior").value(15.00))
+                .andExpect(jsonPath("$[0].variacaoPercentual").value(20.00))
+                .andExpect(jsonPath("$[0].pontos", hasSize(3)))
+                .andExpect(jsonPath("$[0].pontos[0].referenciaData").value("2055-04-01"))
+                .andExpect(jsonPath("$[0].pontos[2].referenciaData").value("2055-04-20"));
+    }
+
+    @Test
+    @WithMockUser
+    void deveConsultarHistoricoDoProfessorPorIndicadorEscopado() throws Exception {
+        UUID publicoId = criarPublico("DASH-SNAP-PROFESSOR", "Professor snapshot");
+        UUID professorId = UUID.randomUUID();
+        UUID outroProfessorId = UUID.randomUUID();
+        String prefixoProfessor = "PROFESSOR_" + professorId.toString().replace("-", "").toUpperCase();
+        String prefixoOutroProfessor = "PROFESSOR_" + outroProfessorId.toString().replace("-", "").toUpperCase();
+        salvarSnapshot(publicoId, prefixoProfessor + "_AULAS_REALIZADAS", "Aulas realizadas", "4.00", professorId.toString(), "2055-04-01");
+        salvarSnapshot(publicoId, prefixoProfessor + "_AULAS_REALIZADAS", "Aulas realizadas", "6.00", professorId.toString(), "2055-04-10");
+        salvarSnapshot(publicoId, prefixoOutroProfessor + "_AULAS_REALIZADAS", "Aulas realizadas", "30.00", outroProfessorId.toString(), "2055-04-10");
+
+        mockMvc.perform(get("/api/dashboard/snapshots/historico/publicos/{publicoCodigo}", "dash-snap-professor")
+                        .param("professorId", professorId.toString())
+                        .param("codigoIndicador", "aulas_realizadas")
+                        .param("dataInicio", "2055-04-01")
+                        .param("dataFim", "2055-04-10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].codigoIndicador").value(prefixoProfessor + "_AULAS_REALIZADAS"))
+                .andExpect(jsonPath("$[0].valorAtual").value(6.00))
+                .andExpect(jsonPath("$[0].valorAnterior").value(4.00))
+                .andExpect(jsonPath("$[0].variacaoPercentual").value(50.00))
+                .andExpect(jsonPath("$[0].pontos", hasSize(2)))
+                .andExpect(jsonPath("$[0].pontos[*].valorTexto").value(hasItem(professorId.toString())));
+    }
+
+    @Test
+    @WithMockUser
+    void deveRejeitarHistoricoComPeriodoInvertido() throws Exception {
+        criarPublico("DASH-SNAP-HIST-INVALIDO", "Histórico inválido");
+
+        mockMvc.perform(get("/api/dashboard/snapshots/historico/publicos/{publicoCodigo}", "dash-snap-hist-invalido")
+                        .param("dataInicio", "2055-04-20")
+                        .param("dataFim", "2055-04-01"))
+                .andExpect(status().isBadRequest());
+    }
+
     private UUID criarPublico(String codigo, String descricao) {
         UUID publicoId = UUID.randomUUID();
         jdbcTemplate.update("""
@@ -133,6 +199,28 @@ class DashboardIndicadorSnapshotControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk()));
+    }
+
+    private void salvarSnapshot(
+            UUID publicoId,
+            String codigoIndicador,
+            String descricao,
+            String valorNumeric,
+            String valorTexto,
+            String referenciaData) {
+        jdbcTemplate.update("""
+                INSERT INTO dashboard_indicador_snapshot (
+                    id_dashboard_indicador_snapshot, id_publico_dashboard, codigo_indicador,
+                    descricao, valor_numeric, valor_texto, referencia_data, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """,
+                UUID.randomUUID(),
+                publicoId,
+                codigoIndicador.toUpperCase(),
+                descricao,
+                new java.math.BigDecimal(valorNumeric),
+                valorTexto,
+                java.sql.Date.valueOf(referenciaData));
     }
 
     private final class SnapshotResultActions {

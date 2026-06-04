@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.escola.dashboard.adapter.in.web.dto.DashboardIndicadorHistoricoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardIndicadorSnapshotRequest;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardIndicadorSnapshotResponse;
 import br.com.escola.dashboard.application.service.DashboardIndicadorSnapshotService;
@@ -54,6 +55,17 @@ public class DashboardIndicadorSnapshotController {
             @PathVariable @NonNull String publicoCodigo,
             @RequestParam(required = false) LocalDate referenciaData) {
         return service.listarPorPublicoCodigo(publicoCodigo, referenciaData);
+    }
+
+    @GetMapping("/historico/publicos/{publicoCodigo}")
+    @Operation(summary = "Consulta histórico de indicadores por público")
+    public List<DashboardIndicadorHistoricoResponse> consultarHistorico(
+            @PathVariable @NonNull String publicoCodigo,
+            @RequestParam(required = false) String codigoIndicador,
+            @RequestParam(required = false) LocalDate dataInicio,
+            @RequestParam(required = false) LocalDate dataFim,
+            @RequestParam(required = false) UUID professorId) {
+        return service.consultarHistorico(publicoCodigo, codigoIndicador, dataInicio, dataFim, professorId);
     }
 
     @PutMapping
