@@ -16,4 +16,6 @@ public interface DashboardUsuarioConfiguracaoJpaRepository
             UUID dashboardWidgetId);
 
     List<DashboardUsuarioConfiguracaoEntity> findByUsuarioId(UUID usuarioId);
+
+    List<DashboardUsuarioConfiguracaoEntity> findByUsuarioIdOrderByOrdemAscDashboardWidgetTituloAsc(UUID usuarioId);
 }

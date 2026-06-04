@@ -42,6 +42,9 @@ public class DashboardUsuarioConfiguracaoEntity implements Serializable {
     @Column(name = "ordem")
     private Integer ordem;
 
+    @Column(name = "configuracao_json", columnDefinition = "TEXT")
+    private String configuracaoJson;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

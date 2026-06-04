@@ -867,6 +867,7 @@ CREATE TABLE IF NOT EXISTS dashboard_usuario_configuracao (
     id_dashboard_widget uuid NOT NULL REFERENCES dashboard_widget(id_dashboard_widget),
     visivel boolean DEFAULT true NOT NULL,
     ordem integer,
+    configuracao_json text,
     created_at timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp,
     UNIQUE (id_usuario, id_dashboard_widget)
