@@ -37,6 +37,8 @@ auth:
     refresh-expiration-ms: ${AUTH_JWT_REFRESH_EXPIRATION_MS:604800000}
 
 dashboard:
+  alertas:
+    limite-padrao: ${DASHBOARD_ALERTAS_LIMITE_PADRAO:0}
   snapshots:
     scheduler:
       enabled: ${DASHBOARD_SNAPSHOTS_SCHEDULER_ENABLED:true}
