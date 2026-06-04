@@ -35,3 +35,11 @@ auth:
     secret: ${AUTH_JWT_SECRET:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
     expiration-ms: ${AUTH_JWT_EXPIRATION_MS:1800000}
     refresh-expiration-ms: ${AUTH_JWT_REFRESH_EXPIRATION_MS:604800000}
+
+dashboard:
+  snapshots:
+    scheduler:
+      enabled: ${DASHBOARD_SNAPSHOTS_SCHEDULER_ENABLED:true}
+      cron: ${DASHBOARD_SNAPSHOTS_SCHEDULER_CRON:0 15 1 * * *}
+      zone: ${DASHBOARD_SNAPSHOTS_SCHEDULER_ZONE:America/Sao_Paulo}
+      publicos: ${DASHBOARD_SNAPSHOTS_SCHEDULER_PUBLICOS:ACADEMICO,SECRETARIA,DIRETOR}
