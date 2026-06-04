@@ -39,6 +39,8 @@ auth:
 dashboard:
   alertas:
     limite-padrao: ${DASHBOARD_ALERTAS_LIMITE_PADRAO:0}
+  frontend:
+    historico-dias: ${DASHBOARD_FRONTEND_HISTORICO_DIAS:30}
   snapshots:
     scheduler:
       enabled: ${DASHBOARD_SNAPSHOTS_SCHEDULER_ENABLED:true}
