@@ -10,4 +10,6 @@ import br.com.escola.aluno.adapter.out.persistence.entity.SolicitacaoExclusaoAlu
 public interface SolicitacaoExclusaoAlunoJpaRepository extends JpaRepository<SolicitacaoExclusaoAlunoEntity, UUID> {
 
     List<SolicitacaoExclusaoAlunoEntity> findByAlunoId(UUID alunoId);
+
+    long countByStatusIgnoreCase(String status);
 }
