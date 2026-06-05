@@ -11,7 +11,7 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthStateService } from '../../../core/auth/auth-state.service';
 import { hasPermission } from '../../../core/auth/permission.util';
-import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
+import { HasPermissionDirective } from '../../../compartilhado/directives/has-permission.directive';
 import { AccessAdminService } from '../../services/access-admin.service';
 import { Permission } from '../../models/permission.model';
 import { PermissaoDialogEditComponent } from './dialog/permissao-dialog-edit.component';

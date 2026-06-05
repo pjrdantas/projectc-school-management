@@ -21,10 +21,10 @@ import { Observable, forkJoin, map, of, switchMap } from 'rxjs';
 import { Student, StudentInput } from '../../models/student.model';
 import { StudentsService } from '../../services/students.service';
 import { validarCPF } from '../../utils/cpf-validator';
-import { Responsible } from '../../../responsibles/models/responsible.model';
-import { ResponsiblesService } from '../../../responsibles/services/responsibles.service';
+import { Responsible } from '../../../responsavel/models/responsible.model';
+import { ResponsiblesService } from '../../../responsavel/services/responsibles.service';
 import { getApiErrorMessage } from '../../../core/http/api-error';
-import { StudentRecordsPanelComponent } from '../../../student-records/components/student-records-panel.component';
+import { StudentRecordsPanelComponent } from '../../../historico/components/student-records-panel.component';
 
 @Component({
   selector: 'app-students-new',

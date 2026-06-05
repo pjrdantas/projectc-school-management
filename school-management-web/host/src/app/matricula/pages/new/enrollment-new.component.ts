@@ -13,12 +13,12 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AcademicClass, AcademicPeriod } from '../../../academic/models/academic.model';
-import { AcademicService } from '../../../academic/services/academic.service';
+import { AcademicClass, AcademicPeriod } from '../../../catalogo/models/academic.model';
+import { AcademicService } from '../../../catalogo/services/academic.service';
 import { getApiErrorMessage } from '../../../core/http/api-error';
-import { MessageDialogComponent } from '../../../shared/dialogs/message-dialog/message-dialog.component';
-import { Student } from '../../../students/models/student.model';
-import { StudentsService } from '../../../students/services/students.service';
+import { MessageDialogComponent } from '../../../compartilhado/dialogs/message-dialog/message-dialog.component';
+import { Student } from '../../../aluno/models/student.model';
+import { StudentsService } from '../../../aluno/services/students.service';
 import { Enrollment, EnrollmentFilter } from '../../models/enrollment.model';
 import { EnrollmentService } from '../../services/enrollment.service';
 

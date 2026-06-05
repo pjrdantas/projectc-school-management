@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, switchMap, throwError } from 'rxjs';
-import { AuthApiService } from '../../auth/services/auth-api.service';
+import { AuthApiService } from '../../seguranca/services/auth-api.service';
 import { AuthStateService } from './auth-state.service';
 
 const AUTH_PUBLIC_ENDPOINTS = ['/api/auth/login', '/api/auth/refresh'];

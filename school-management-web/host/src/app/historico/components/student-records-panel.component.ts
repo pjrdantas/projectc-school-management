@@ -13,8 +13,8 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { forkJoin } from 'rxjs';
 import { getApiErrorMessage } from '../../core/http/api-error';
 import { AuthStateService } from '../../core/auth/auth-state.service';
-import { Student } from '../../students/models/student.model';
-import { DocumentsPanelComponent } from '../../shared/documents/documents-panel.component';
+import { Student } from '../../aluno/models/student.model';
+import { DocumentsPanelComponent } from '../../documento/documents-panel.component';
 import {
   Disciplina,
   EscolaOrigemInput,

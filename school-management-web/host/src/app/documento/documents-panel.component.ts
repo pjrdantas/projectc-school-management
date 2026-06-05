@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { getApiErrorMessage } from '../../core/http/api-error';
+import { getApiErrorMessage } from '../core/http/api-error';
 import { DocumentEntityType, DocumentRecord } from './document.model';
 import { DocumentsService } from './documents.service';
 

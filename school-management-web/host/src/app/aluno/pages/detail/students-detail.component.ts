@@ -11,9 +11,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Student } from '../../models/student.model';
 import { StudentsService } from '../../services/students.service';
-import { Responsible } from '../../../responsibles/models/responsible.model';
-import { ResponsiblesService } from '../../../responsibles/services/responsibles.service';
-import { StudentRecordsPanelComponent } from '../../../student-records/components/student-records-panel.component';
+import { Responsible } from '../../../responsavel/models/responsible.model';
+import { ResponsiblesService } from '../../../responsavel/services/responsibles.service';
+import { StudentRecordsPanelComponent } from '../../../historico/components/student-records-panel.component';
 
 @Component({
   selector: 'app-students-detail',

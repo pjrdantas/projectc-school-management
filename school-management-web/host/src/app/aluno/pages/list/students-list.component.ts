@@ -11,7 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { getApiErrorMessage } from '../../../core/http/api-error';
-import { MessageDialogComponent } from '../../../shared/dialogs/message-dialog/message-dialog.component';
+import { MessageDialogComponent } from '../../../compartilhado/dialogs/message-dialog/message-dialog.component';
 import { Student } from '../../models/student.model';
 import { StudentsService } from '../../services/students.service';
 

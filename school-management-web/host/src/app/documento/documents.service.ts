@@ -1,8 +1,8 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AuthStateService } from '../../core/auth/auth-state.service';
-import { API_BASE_URL } from '../../core/config/api.config';
+import { AuthStateService } from '../core/auth/auth-state.service';
+import { API_BASE_URL } from '../core/config/api.config';
 import { DocumentEntityType, DocumentInput, DocumentRecord } from './document.model';
 
 @Injectable({ providedIn: 'root' })

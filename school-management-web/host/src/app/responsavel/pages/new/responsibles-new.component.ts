@@ -16,8 +16,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { getApiErrorMessage } from '../../../core/http/api-error';
-import { DocumentsPanelComponent } from '../../../shared/documents/documents-panel.component';
-import { validarCPF } from '../../../students/utils/cpf-validator';
+import { DocumentsPanelComponent } from '../../../documento/documents-panel.component';
+import { validarCPF } from '../../../aluno/utils/cpf-validator';
 import { ResponsibleInput } from '../../models/responsible.model';
 import { ResponsiblesService } from '../../services/responsibles.service';
 

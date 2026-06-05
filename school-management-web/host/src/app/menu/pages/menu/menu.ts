@@ -23,7 +23,7 @@ import { Subject, finalize, takeUntil } from 'rxjs';
 import { AuthStateService, UsuarioAuth } from '../../../core/auth/auth-state.service';
 import { AplicativosResponse } from '../../../models/aplicativos-response.model';
 import { AplicativosService } from '../../../services/aplicativos.service';
-import { AuthApiService } from '../../../auth/services/auth-api.service';
+import { AuthApiService } from '../../../seguranca/services/auth-api.service';
 
 @Component({
   selector: 'app-menu',
