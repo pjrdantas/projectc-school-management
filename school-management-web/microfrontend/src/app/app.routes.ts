@@ -92,4 +92,11 @@ export const routes: Routes = [
         m => m.EnrollmentNewComponent,
       ),
   },
+  {
+    path: 'academic/disciplines',
+    loadComponent: () =>
+      import('./historico/pages/disciplines/disciplines.component').then(
+        m => m.DisciplinesComponent,
+      ),
+  },
 ];

@@ -31,8 +31,8 @@ As funcionalidades escolares devem ser migradas em fases para o microfrontend:
 - responsavel (telas ja migradas para o microfrontend);
 - aluno (telas ja migradas para o microfrontend);
 - matricula (tela ja migrada para o microfrontend);
+- historico/disciplinas (tela ja migrada para o microfrontend);
 - documento;
-- historico;
 - dashboard;
 - demais dominios de negocio.
 
@@ -118,6 +118,7 @@ npm run build
 - As rotas `responsibles`, `responsibles/new`, `responsibles/:id` e `responsibles/:id/edit` sao carregadas pelo microfrontend remoto.
 - As rotas `students`, `students/new`, `students/:id` e `students/:id/edit` sao carregadas pelo microfrontend remoto.
 - A rota `enrollment` e carregada pelo microfrontend remoto.
+- A rota `academic/disciplines` e carregada pelo microfrontend remoto.
 - Dados de negocio usam o backend como fonte oficial; caches de tela ficam apenas em memoria durante a sessao.
 - A URL da API esta centralizada em `core/config/api.config.ts`; uma melhoria futura e trocar esse valor por configuracao por ambiente quando houver necessidade de empacotamento/deploy fora do ambiente local.
 - Documentos e scripts antigos possuem copias organizadas em `../docs/historico` e nao devem orientar novas implementacoes.

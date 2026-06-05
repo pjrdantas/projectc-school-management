@@ -17,6 +17,7 @@ module.exports = withNativeFederation({
     './AlunoNew': './src/app/aluno/pages/new/students-new.component.ts',
     './AlunoDetail': './src/app/aluno/pages/detail/students-detail.component.ts',
     './Matricula': './src/app/matricula/pages/new/enrollment-new.component.ts',
+    './HistoricoDisciplines': './src/app/historico/pages/disciplines/disciplines.component.ts',
   },
 
  shared: {

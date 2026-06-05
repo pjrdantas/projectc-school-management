@@ -18,6 +18,10 @@ function loadMatriculaRemoteComponent(exposedModule: string, exportName: string)
   return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
 }
 
+function loadHistoricoRemoteComponent(exposedModule: string, exportName: string) {
+  return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
+}
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -113,9 +117,7 @@ export const routes: Routes = [
       {
         path: 'academic/disciplines',
         loadComponent: () =>
-          import('./historico/pages/disciplines/disciplines.component').then(
-            m => m.DisciplinesComponent,
-          ),
+          loadHistoricoRemoteComponent('./HistoricoDisciplines', 'DisciplinesComponent'),
       },
       {
         path: 'enrollment',

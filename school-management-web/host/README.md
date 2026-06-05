@@ -20,7 +20,8 @@ Estado atual da migracao:
 - `responsibles`, `responsibles/new`, `responsibles/:id` e `responsibles/:id/edit` sao carregadas pelo microfrontend remoto.
 - `students`, `students/new`, `students/:id` e `students/:id/edit` sao carregadas pelo microfrontend remoto.
 - `enrollment` e carregada pelo microfrontend remoto.
-- `catalogo/models` e `catalogo/services` permanecem temporariamente no host por dependencia da tela local de disciplinas.
+- `academic/disciplines` e carregada pelo microfrontend remoto.
+- Os pacotes escolares locais de catalogo, aluno, responsavel, matricula, documento e historico foram removidos do host apos migracao das rotas ativas.
 
 ## Backend e base oficial
 
