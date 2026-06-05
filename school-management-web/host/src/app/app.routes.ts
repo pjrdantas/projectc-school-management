@@ -6,6 +6,10 @@ function loadCatalogoRemoteComponent(exposedModule: string, exportName: string) 
   return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
 }
 
+function loadResponsavelRemoteComponent(exposedModule: string, exportName: string) {
+  return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
+}
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -69,30 +73,22 @@ export const routes: Routes = [
       {
         path: 'responsibles',
         loadComponent: () =>
-          import('./responsavel/pages/list/responsibles-list.component').then(
-            m => m.ResponsiblesListComponent,
-          ),
+          loadResponsavelRemoteComponent('./ResponsavelList', 'ResponsiblesListComponent'),
       },
       {
         path: 'responsibles/new',
         loadComponent: () =>
-          import('./responsavel/pages/new/responsibles-new.component').then(
-            m => m.ResponsiblesNewComponent,
-          ),
+          loadResponsavelRemoteComponent('./ResponsavelNew', 'ResponsiblesNewComponent'),
       },
       {
         path: 'responsibles/:id',
         loadComponent: () =>
-          import('./responsavel/pages/detail/responsibles-detail.component').then(
-            m => m.ResponsiblesDetailComponent,
-          ),
+          loadResponsavelRemoteComponent('./ResponsavelDetail', 'ResponsiblesDetailComponent'),
       },
       {
         path: 'responsibles/:id/edit',
         loadComponent: () =>
-          import('./responsavel/pages/new/responsibles-new.component').then(
-            m => m.ResponsiblesNewComponent,
-          ),
+          loadResponsavelRemoteComponent('./ResponsavelNew', 'ResponsiblesNewComponent'),
       },
       {
         path: 'academic/periods',

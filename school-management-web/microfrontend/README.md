@@ -12,7 +12,10 @@ Estado atual:
 
 - `catalogo/pages` foi migrado para este microfrontend;
 - `CatalogoPeriods`, `CatalogoSeries`, `CatalogoShifts` e `CatalogoClasses` sao expostos via Native Federation;
+- `responsavel/pages` foi migrado para este microfrontend;
+- `ResponsavelList`, `ResponsavelNew` e `ResponsavelDetail` sao expostos via Native Federation;
 - o service de catalogo usa o contrato de shell para obter API base e token.
+- o service de responsavel e o service de documentos usados por responsavel tambem usam o contrato de shell.
 
 ## Desenvolvimento local
 

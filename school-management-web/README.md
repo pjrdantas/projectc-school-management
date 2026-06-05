@@ -28,8 +28,8 @@ O host deve permanecer como casca de seguranca e administracao tecnica:
 As funcionalidades escolares devem ser migradas em fases para o microfrontend:
 
 - catalogo (piloto ja iniciado no microfrontend);
+- responsavel (telas ja migradas para o microfrontend);
 - aluno;
-- responsavel;
 - documento;
 - historico;
 - matricula;
@@ -115,6 +115,7 @@ npm run build
 - A sessao usa `localStorage` para tokens e dados do usuario autenticado.
 - O host publica o contrato de shell para os remotos na chave `school-management.shell.context.v1` e no evento `school-management:shell-context-changed`.
 - As rotas `academic/periods`, `academic/series`, `academic/shifts` e `academic/classes` sao carregadas pelo microfrontend remoto.
+- As rotas `responsibles`, `responsibles/new`, `responsibles/:id` e `responsibles/:id/edit` sao carregadas pelo microfrontend remoto.
 - Dados de negocio usam o backend como fonte oficial; caches de tela ficam apenas em memoria durante a sessao.
 - A URL da API esta centralizada em `core/config/api.config.ts`; uma melhoria futura e trocar esse valor por configuracao por ambiente quando houver necessidade de empacotamento/deploy fora do ambiente local.
 - Documentos e scripts antigos possuem copias organizadas em `../docs/historico` e nao devem orientar novas implementacoes.

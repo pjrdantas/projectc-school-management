@@ -10,6 +10,9 @@ module.exports = withNativeFederation({
     './CatalogoSeries': './src/app/catalogo/pages/series/academic-series.component.ts',
     './CatalogoShifts': './src/app/catalogo/pages/shifts/academic-shifts.component.ts',
     './CatalogoClasses': './src/app/catalogo/pages/classes/academic-classes.component.ts',
+    './ResponsavelList': './src/app/responsavel/pages/list/responsibles-list.component.ts',
+    './ResponsavelNew': './src/app/responsavel/pages/new/responsibles-new.component.ts',
+    './ResponsavelDetail': './src/app/responsavel/pages/detail/responsibles-detail.component.ts',
   },
 
  shared: {
