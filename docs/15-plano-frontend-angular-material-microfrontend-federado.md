@@ -1,5 +1,7 @@
 # Plano Frontend Angular 20 + Angular Material + Microfrontend Federado
 
+> Nota de status: este documento registra o plano inicial. O estado atual do repositorio usa um `host` e um `microfrontend` unico para funcionalidades escolares de negocio, com rotas/menu federados definidos em `school-management-web/host/src/app/core/shell/shell-navigation.config.ts`. Para a fotografia atual, use `docs/17-status-atual-do-projeto.md` e `docs/v2/74-fase-43k-consolidacao-documentacao-arquitetura-federada.md`.
+
 ## Objetivo
 
 Definir a base tecnica do frontend para iniciar a implementacao da Sprint 1 com:

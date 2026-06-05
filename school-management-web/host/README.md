@@ -23,6 +23,21 @@ Estado atual da migracao:
 - `academic/disciplines` e carregada pelo microfrontend remoto.
 - Os pacotes escolares locais de catalogo, aluno, responsavel, matricula, documento e historico foram removidos do host apos migracao das rotas ativas.
 
+Exposes consumidos pelo host:
+
+- `CatalogoPeriods`;
+- `CatalogoSeries`;
+- `CatalogoShifts`;
+- `CatalogoClasses`;
+- `ResponsavelList`;
+- `ResponsavelNew`;
+- `ResponsavelDetail`;
+- `AlunoList`;
+- `AlunoNew`;
+- `AlunoDetail`;
+- `Matricula`;
+- `HistoricoDisciplines`.
+
 ## Backend e base oficial
 
 Por padrao, os services apontam para:

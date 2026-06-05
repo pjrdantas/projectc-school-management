@@ -64,25 +64,36 @@ Documentos e scripts que descrevem modelagens anteriores foram organizados em `d
 
 ### Frontend
 
-O frontend `school-management-web/host` ja possui rotas e services HTTP para:
+O frontend `school-management-web` esta organizado em host e microfrontend federado.
+
+O `host` concentra:
 
 - login;
 - home/menu;
-- alunos;
-- responsaveis;
-- periodos letivos;
-- series;
-- turnos;
-- turmas;
-- matriculas;
-- documentos/historico/transferencias;
+- estado de sessao;
+- publicacao do contrato de shell;
+- guards;
 - usuarios;
 - perfis;
-- permissoes.
+- permissoes;
+- rotas federadas estaticas.
 
-Tambem existe `school-management-web/microfrontend` como aplicacao remota federada.
+O `microfrontend` concentra as funcionalidades escolares de negocio:
 
-Os services do host consomem o backend em `http://localhost:8080`.
+- alunos;
+- responsaveis;
+- catalogo academico;
+- matriculas;
+- documentos;
+- historico/disciplinas.
+
+As rotas federadas e menus do MVP sao definidos no contrato declarativo:
+
+```text
+school-management-web/host/src/app/core/shell/shell-navigation.config.ts
+```
+
+O host publica API base, token, usuario, perfis e permissoes para o microfrontend por `school-management.shell.context.v1`. O refresh token permanece interno ao host.
 
 ## Proxima evolucao recomendada
 
@@ -124,6 +135,7 @@ Prioridade sugerida:
 
 - garantir `mvnw test` verde no backend;
 - garantir `npm run build` no host;
+- garantir `npm run build` no microfrontend;
 - revisar Swagger/OpenAPI quando endpoints mudarem;
 - evoluir `API_BASE_URL` centralizado para configuracao por ambiente quando houver necessidade de empacotamento/deploy;
 - documentar variaveis de ambiente/configuracao do frontend.

@@ -197,8 +197,21 @@ Stack:
 
 ### Aplicacoes
 
-- `host`: aplicacao principal.
-- `microfrontend`: aplicacao remota.
+- `host`: shell principal, responsavel por login, sessao, menu, guards, usuarios, perfis, permissoes e roteamento federado.
+- `microfrontend`: remoto federado, responsavel pelas funcionalidades escolares de negocio.
+
+O host publica o contexto de shell em:
+
+```text
+localStorage: school-management.shell.context.v1
+evento: school-management:shell-context-changed
+```
+
+As rotas federadas e itens de menu do MVP ficam centralizados em:
+
+```text
+school-management-web/host/src/app/core/shell/shell-navigation.config.ts
+```
 
 ### Rotas principais do host
 
@@ -213,23 +226,31 @@ Stack:
 - `/responsibles/:id`
 - `/responsibles/:id/edit`
 - `/academic/periods`
+- `/academic/series`
+- `/academic/shifts`
 - `/academic/classes`
+- `/academic/disciplines`
 - `/enrollment`
 - `/auth/users`
 - `/auth/profiles`
 - `/auth/permissions`
-- `/microfrontend`
 
 ### Integracoes HTTP atuais
 
-Services Angular consomem a URL base centralizada em `school-management-web/host/src/app/core/config/api.config.ts`, atualmente apontando para `http://localhost:8080`, para:
+O host consome a URL base centralizada em `school-management-web/host/src/app/core/config/api.config.ts`, atualmente apontando para `http://localhost:8080`, para:
 
 - autenticacao;
+- usuarios/perfis/permissoes.
+
+O microfrontend recebe a API base pelo contrato de shell e consome o backend para:
+
 - alunos;
 - responsaveis;
 - periodos/series/turnos/turmas;
 - matriculas;
-- usuarios/perfis/permissoes.
+- documentos;
+- historico;
+- disciplinas.
 
 Ainda existe uso de `localStorage` para sessao/autenticacao. Dados de negocio como alunos e responsaveis usam o backend como fonte oficial, com cache apenas em memoria durante a sessao.
 
@@ -244,6 +265,7 @@ Ainda existe uso de `localStorage` para sessao/autenticacao. Dados de negocio co
 - O fluxo de matricula/status/cancelamento em uso esta aceito pelo cliente dentro dos parametros esperados para o MVP atual.
 - Historico, documentos e transferencia pertencem ao escopo ja trabalhado neste ciclo; nao devem ser tratados como proximo epico.
 - A matriz completa de permissoes por funcionalidade fica planejada para o final do projeto, apos estabilizacao das funcionalidades finais.
+- A rota marcador `/microfrontend`, o expose `./Component` e o carregamento dinamico antigo por `AplicativosService` foram removidos; o MVP usa o contrato declarativo do shell.
 
 ## Testes existentes
 
@@ -262,6 +284,7 @@ O backend possui testes de integracao para:
 2. Planejar o proximo epico funcional: aulas, professores, alunos, notas, comportamento e dashboards operacionais/academicos.
 3. Atualizar Swagger/OpenAPI e exemplos de teste sempre que o contrato mudar.
 4. Manter este documento sincronizado a cada marco funcional.
+5. Validar `npm run build` no host e no microfrontend quando houver alteracao no frontend federado.
 
 ## Decisoes de produto atualizadas
 

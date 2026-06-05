@@ -21,6 +21,7 @@ Estado atual:
 - `historico/pages/disciplines` e o suporte de historico usado por aluno estao neste microfrontend;
 - `HistoricoDisciplines` e exposto via Native Federation;
 - a antiga tela marcador `pages/home` foi removida; a raiz do microfrontend redireciona para `academic/periods`;
+- nao existe mais expose `Component`; o remoto publica apenas telas funcionais;
 - o service de catalogo usa o contrato de shell para obter API base e token.
 - o service de responsavel e o service de documentos usados por responsavel tambem usam o contrato de shell.
 - o service de aluno e o painel historico usado por aluno tambem usam o contrato de shell.

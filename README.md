@@ -123,6 +123,14 @@ npm start
 
 Por padrao, os services Angular consomem o backend em `http://localhost:8080`.
 
+No estado atual, o host e o shell de seguranca/menu/administracao tecnica. As funcionalidades escolares de negocio ficam no microfrontend e sao carregadas por Native Federation a partir do contrato declarativo em:
+
+```text
+school-management-web/host/src/app/core/shell/shell-navigation.config.ts
+```
+
+A rota marcador `/microfrontend` e o expose `./Component` foram removidos; o remoto publica apenas telas funcionais.
+
 ## Proximo epico funcional
 
 O proximo epico deve focar:
@@ -147,5 +155,12 @@ Frontend host:
 
 ```bash
 cd school-management-web/host
+npm run build
+```
+
+Frontend microfrontend:
+
+```bash
+cd school-management-web/microfrontend
 npm run build
 ```
