@@ -114,6 +114,7 @@ npm run build
 
 - A sessao usa `localStorage` para tokens e dados do usuario autenticado.
 - O host publica o contrato de shell para os remotos na chave `school-management.shell.context.v1` e no evento `school-management:shell-context-changed`.
+- As rotas e menus federados do MVP sao definidos pelo contrato declarativo do shell no host.
 - As rotas `academic/periods`, `academic/series`, `academic/shifts` e `academic/classes` sao carregadas pelo microfrontend remoto.
 - As rotas `responsibles`, `responsibles/new`, `responsibles/:id` e `responsibles/:id/edit` sao carregadas pelo microfrontend remoto.
 - As rotas `students`, `students/new`, `students/:id` e `students/:id/edit` sao carregadas pelo microfrontend remoto.

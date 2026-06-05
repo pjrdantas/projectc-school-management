@@ -4,18 +4,15 @@ import {
   NgZone,
   OnDestroy,
   OnInit,
-  Type,
   inject,
 } from '@angular/core';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { Router, RouterModule, RouterOutlet } from '@angular/router';
-import { loadRemoteModule } from '@angular-architects/native-federation';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -26,8 +23,6 @@ import {
   SHELL_BUSINESS_MENU,
   ShellMenuItem,
 } from '../../../core/shell/shell-navigation.config';
-import { AplicativosResponse } from '../../../models/aplicativos-response.model';
-import { AplicativosService } from '../../../services/aplicativos.service';
 import { AuthApiService } from '../../../seguranca/services/auth-api.service';
 
 @Component({
@@ -44,7 +39,6 @@ import { AuthApiService } from '../../../seguranca/services/auth-api.service';
     MatTooltipModule,
     MatMenuModule,
     MatButtonModule,
-    MatSnackBarModule,
   ],
   templateUrl: './menu.html',
   styleUrls: ['./menu.scss'],
@@ -54,13 +48,10 @@ export class Menu implements OnInit, OnDestroy {
   public authState = inject(AuthStateService);
   private cdr = inject(ChangeDetectorRef);
   private zone = inject(NgZone);
-  private aplicativosService = inject(AplicativosService);
-  private snackBar = inject(MatSnackBar);
   private authApi = inject(AuthApiService);
 
   usuario: UsuarioAuth | null = null;
   dataHoraFormatada = '';
-  aplicativosAtivos: AplicativosResponse[] = [];
   readonly businessMenuItems: ShellMenuItem[] = SHELL_BUSINESS_MENU;
   readonly accessMenuItems: ShellMenuItem[] = SHELL_ACCESS_MENU;
   private timerId: ReturnType<typeof window.setInterval> | null = null;
@@ -73,12 +64,6 @@ export class Menu implements OnInit, OnDestroy {
       this.usuario = u;
       this.cdr.detectChanges();
     });
-
-    this.carregarAplicativosAtivos();
-
-    this.aplicativosService.update$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.carregarAplicativosAtivos());
 
     this.atualizarDataHora();
 
@@ -96,104 +81,6 @@ export class Menu implements OnInit, OnDestroy {
     }
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private carregarAplicativosAtivos(): void {
-    this.aplicativosService
-      .listActive()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: apps => {
-          this.aplicativosAtivos = apps;
-          this.registrarRotasMicrofrontend(apps);
-          this.cdr.detectChanges();
-        },
-        error: () => (this.aplicativosAtivos = []),
-      });
-  }
-
-  private isMicrofrontend(app: AplicativosResponse): boolean {
-    return !!(app.url?.trim() && app.exposedModule?.trim());
-  }
-
-  private normalizarRoutePath(routePath: string): string {
-    return (routePath || '').trim().replace(/^\/+/, '').replace(/^app\//i, '');
-  }
-
-  private carregarComponenteRemoto(
-    remoteEntry: string,
-    exposedModule: string,
-    exportName?: string,
-  ): Promise<Type<unknown>> {
-    return loadRemoteModule({ remoteEntry, exposedModule })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .then((m: any) => m[exportName || 'AppComponent'] || m['AppComponent'] || m['App'])
-      .catch(erro => {
-        this.snackBar.open('Microfrontend não encontrado.', 'Fechar', {
-          duration: 3500,
-        });
-        this.router.navigate(['/home']);
-        throw erro;
-      });
-  }
-
-  private registrarRotasMicrofrontend(apps: AplicativosResponse[]): void {
-    let alterou = false;
-
-    apps.filter(a => this.isMicrofrontend(a)).forEach(app => {
-      const path = this.normalizarRoutePath(app.routePath) || `mfe-${app.id}`;
-      this.upsertRotaMicrofrontend(path, app.url, app.exposedModule, app.moduleName);
-      alterou = true;
-    });
-
-    if (alterou) {
-      this.router.resetConfig([...this.router.config]);
-    }
-  }
-
-  private upsertRotaMicrofrontend(
-    path: string,
-    remoteEntry: string,
-    exposedModule: string,
-    exportName?: string,
-  ): void {
-    const existente = this.router.config.find(r => r.path === path);
-
-    if (existente) {
-      existente.loadComponent = () =>
-        this.carregarComponenteRemoto(remoteEntry, exposedModule, exportName);
-      return;
-    }
-
-    this.router.config.splice(this.router.config.length - 1, 0, {
-      path,
-      loadComponent: () => this.carregarComponenteRemoto(remoteEntry, exposedModule, exportName),
-    });
-  }
-
-  getIconeApp(app: AplicativosResponse): string {
-    return this.isMicrofrontend(app) ? 'widgets' : 'open_in_new';
-  }
-
-  navegarApp(app: AplicativosResponse): void {
-    if (this.isMicrofrontend(app)) {
-      const path = this.normalizarRoutePath(app.routePath) || `mfe-${app.id}`;
-
-      if (!app.exposedModule) {
-        this.snackBar.open('Exposed Module não informado.', 'Fechar', {
-          duration: 3500,
-        });
-        return;
-      }
-
-      this.upsertRotaMicrofrontend(path, app.url, app.exposedModule, app.moduleName);
-      this.router.resetConfig([...this.router.config]);
-      this.router.navigate([`/${path}`]);
-    } else if (app.routePath) {
-      this.router.navigate([app.routePath]);
-    } else if (app.url?.startsWith('http')) {
-      window.open(app.url, '_blank');
-    }
   }
 
   irHome() {

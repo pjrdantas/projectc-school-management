@@ -79,6 +79,7 @@ npm run build
 - O contrato inclui API base, token de acesso, usuario, perfis e permissoes. O refresh token permanece interno ao host.
 - As rotas federadas estaticas usam o helper unico `loadMfeComponent` em `src/app/app.routes.ts`.
 - O contrato declarativo de rotas/menu fica em `src/app/core/shell/shell-navigation.config.ts`.
-- O carregamento dinamico de aplicativos federados permanece em `AplicativosService` e `menu/pages/menu`.
+- O carregamento dinamico antigo por `AplicativosService` foi removido; o MVP usa o contrato declarativo do shell.
+- Nao recriar registro dinamico de remotos sem necessidade funcional validada; novas rotas devem entrar primeiro no contrato declarativo.
 - Dados de negocio devem vir do backend; nao usar seeds locais como fonte funcional.
 - Documentos/scripts antigos ficam em `../../docs/historico` apenas para consulta.
