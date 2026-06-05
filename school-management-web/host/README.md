@@ -66,5 +66,7 @@ npm run build
 ## Observacoes
 
 - Este projeto usa Angular 20, Angular Material e Native Federation.
+- O contexto de shell e publicado para microfrontends via `school-management.shell.context.v1` no `localStorage` e evento `school-management:shell-context-changed`.
+- O contrato inclui API base, token de acesso, usuario, perfis e permissoes. O refresh token permanece interno ao host.
 - Dados de negocio devem vir do backend; nao usar seeds locais como fonte funcional.
 - Documentos/scripts antigos ficam em `../../docs/historico` apenas para consulta.

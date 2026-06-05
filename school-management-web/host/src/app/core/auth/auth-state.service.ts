@@ -1,5 +1,9 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import {
+  SHELL_CONTEXT_EVENT,
+  SHELL_CONTEXT_STORAGE_KEY,
+} from '../shell/shell-context.model';
 
 export interface UsuarioAuth {
   usuario: string;
@@ -65,9 +69,11 @@ export class AuthStateService {
     localStorage.removeItem('usuario');
     localStorage.removeItem('nome');
     localStorage.removeItem('perfis');
+    localStorage.removeItem(SHELL_CONTEXT_STORAGE_KEY);
 
     this.tokenSubject.next(null);
     this.refreshTokenSubject.next(null);
     this.usuarioSubject.next(null);
+    window.dispatchEvent(new CustomEvent(SHELL_CONTEXT_EVENT, { detail: null }));
   }
 }

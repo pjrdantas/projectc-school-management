@@ -25,6 +25,17 @@ http://localhost:4201/remoteEntry.json
 
 Suba este remoto antes do `../host` quando for validar a federacao completa.
 
+## Contrato com o host
+
+O remoto consome o contexto publicado pelo host em:
+
+```text
+localStorage: school-management.shell.context.v1
+evento: school-management:shell-context-changed
+```
+
+O contrato fornece API base, token de acesso, usuario, perfis e permissoes. O microfrontend nao executa login proprio nem gerencia refresh token.
+
 ## Build
 
 ```bash
