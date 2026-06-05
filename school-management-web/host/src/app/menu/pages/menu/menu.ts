@@ -21,6 +21,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { Subject, finalize, takeUntil } from 'rxjs';
 import { AuthStateService, UsuarioAuth } from '../../../core/auth/auth-state.service';
+import {
+  SHELL_ACCESS_MENU,
+  SHELL_BUSINESS_MENU,
+  ShellMenuItem,
+} from '../../../core/shell/shell-navigation.config';
 import { AplicativosResponse } from '../../../models/aplicativos-response.model';
 import { AplicativosService } from '../../../services/aplicativos.service';
 import { AuthApiService } from '../../../seguranca/services/auth-api.service';
@@ -56,6 +61,8 @@ export class Menu implements OnInit, OnDestroy {
   usuario: UsuarioAuth | null = null;
   dataHoraFormatada = '';
   aplicativosAtivos: AplicativosResponse[] = [];
+  readonly businessMenuItems: ShellMenuItem[] = SHELL_BUSINESS_MENU;
+  readonly accessMenuItems: ShellMenuItem[] = SHELL_ACCESS_MENU;
   private timerId: ReturnType<typeof window.setInterval> | null = null;
   private destroy$ = new Subject<void>();
 
@@ -106,7 +113,7 @@ export class Menu implements OnInit, OnDestroy {
   }
 
   private isMicrofrontend(app: AplicativosResponse): boolean {
-    return !!(app.url?.trim() && (app.exposedModule?.trim() || app.moduleName?.trim()));
+    return !!(app.url?.trim() && app.exposedModule?.trim());
   }
 
   private normalizarRoutePath(routePath: string): string {
@@ -116,10 +123,11 @@ export class Menu implements OnInit, OnDestroy {
   private carregarComponenteRemoto(
     remoteEntry: string,
     exposedModule: string,
+    exportName?: string,
   ): Promise<Type<unknown>> {
     return loadRemoteModule({ remoteEntry, exposedModule })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .then((m: any) => m['HomeComponent'] || m['AppComponent'] || m['App'])
+      .then((m: any) => m[exportName || 'AppComponent'] || m['AppComponent'] || m['App'])
       .catch(erro => {
         this.snackBar.open('Microfrontend não encontrado.', 'Fechar', {
           duration: 3500,
@@ -134,7 +142,7 @@ export class Menu implements OnInit, OnDestroy {
 
     apps.filter(a => this.isMicrofrontend(a)).forEach(app => {
       const path = this.normalizarRoutePath(app.routePath) || `mfe-${app.id}`;
-      this.upsertRotaMicrofrontend(path, app.url, app.exposedModule);
+      this.upsertRotaMicrofrontend(path, app.url, app.exposedModule, app.moduleName);
       alterou = true;
     });
 
@@ -147,18 +155,19 @@ export class Menu implements OnInit, OnDestroy {
     path: string,
     remoteEntry: string,
     exposedModule: string,
+    exportName?: string,
   ): void {
     const existente = this.router.config.find(r => r.path === path);
 
     if (existente) {
       existente.loadComponent = () =>
-        this.carregarComponenteRemoto(remoteEntry, exposedModule);
+        this.carregarComponenteRemoto(remoteEntry, exposedModule, exportName);
       return;
     }
 
     this.router.config.splice(this.router.config.length - 1, 0, {
       path,
-      loadComponent: () => this.carregarComponenteRemoto(remoteEntry, exposedModule),
+      loadComponent: () => this.carregarComponenteRemoto(remoteEntry, exposedModule, exportName),
     });
   }
 
@@ -177,7 +186,7 @@ export class Menu implements OnInit, OnDestroy {
         return;
       }
 
-      this.upsertRotaMicrofrontend(path, app.url, app.exposedModule);
+      this.upsertRotaMicrofrontend(path, app.url, app.exposedModule, app.moduleName);
       this.router.resetConfig([...this.router.config]);
       this.router.navigate([`/${path}`]);
     } else if (app.routePath) {
@@ -187,44 +196,12 @@ export class Menu implements OnInit, OnDestroy {
     }
   }
 
-  irUsuarios() {
-    this.router.navigate(['/auth/users']);
-  }
-  irPerfis() {
-    this.router.navigate(['/auth/profiles']);
-  }
-  irPermissoes() {
-    this.router.navigate(['/auth/permissions']);
-  }
   irHome() {
     this.router.navigate(['/home']);
   }
-  irStudents() {
-    this.router.navigate(['/students']);
-  }
-  irResponsibles() {
-    this.router.navigate(['/responsibles']);
-  }
-  irAcademicPeriods() {
-    this.router.navigate(['/academic/periods']);
-  }
-  irAcademicSeries() {
-    this.router.navigate(['/academic/series']);
-  }
-  irAcademicShifts() {
-    this.router.navigate(['/academic/shifts']);
-  }
-  irAcademicClasses() {
-    this.router.navigate(['/academic/classes']);
-  }
-  irAcademicDisciplines() {
-    this.router.navigate(['/academic/disciplines']);
-  }
-  irEnrollment() {
-    this.router.navigate(['/enrollment']);
-  }
-  irMicrofrontend() {
-    this.router.navigate(['/microfrontend']);
+
+  navegarMenuItem(item: ShellMenuItem): void {
+    this.router.navigate([item.route]);
   }
 
   sair(): void {

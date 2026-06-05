@@ -2,6 +2,11 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: 'academic/periods',
+  },
+  {
     path: 'academic/periods',
     loadComponent: () =>
       import('./catalogo/pages/periods/academic-periods.component').then(

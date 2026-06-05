@@ -1,10 +1,16 @@
 import { Routes } from '@angular/router';
 import { loadRemoteModule } from '@angular-architects/native-federation';
 import { authGuard } from './seguranca/guards/auth.guard';
+import { SHELL_REMOTE_ROUTES } from './core/shell/shell-navigation.config';
 
 function loadMfeComponent(exposedModule: string, exportName: string) {
   return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
 }
+
+const remoteRoutes: Routes = SHELL_REMOTE_ROUTES.map(route => ({
+  path: route.path,
+  loadComponent: () => loadMfeComponent(route.exposedModule, route.exportName),
+}));
 
 export const routes: Routes = [
   {
@@ -37,77 +43,7 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./home/pages/home/home.component').then(m => m.HomeComponent),
       },
-      {
-        path: 'students',
-        loadComponent: () =>
-          loadMfeComponent('./AlunoList', 'StudentsListComponent'),
-      },
-      {
-        path: 'students/new',
-        loadComponent: () =>
-          loadMfeComponent('./AlunoNew', 'StudentsNewComponent'),
-      },
-      {
-        path: 'students/:id',
-        loadComponent: () =>
-          loadMfeComponent('./AlunoDetail', 'StudentsDetailComponent'),
-      },
-      {
-        path: 'students/:id/edit',
-        loadComponent: () =>
-          loadMfeComponent('./AlunoNew', 'StudentsNewComponent'),
-      },
-
-      {
-        path: 'responsibles',
-        loadComponent: () =>
-          loadMfeComponent('./ResponsavelList', 'ResponsiblesListComponent'),
-      },
-      {
-        path: 'responsibles/new',
-        loadComponent: () =>
-          loadMfeComponent('./ResponsavelNew', 'ResponsiblesNewComponent'),
-      },
-      {
-        path: 'responsibles/:id',
-        loadComponent: () =>
-          loadMfeComponent('./ResponsavelDetail', 'ResponsiblesDetailComponent'),
-      },
-      {
-        path: 'responsibles/:id/edit',
-        loadComponent: () =>
-          loadMfeComponent('./ResponsavelNew', 'ResponsiblesNewComponent'),
-      },
-      {
-        path: 'academic/periods',
-        loadComponent: () =>
-          loadMfeComponent('./CatalogoPeriods', 'AcademicPeriodsComponent'),
-      },
-      {
-        path: 'academic/series',
-        loadComponent: () =>
-          loadMfeComponent('./CatalogoSeries', 'AcademicSeriesComponent'),
-      },
-      {
-        path: 'academic/shifts',
-        loadComponent: () =>
-          loadMfeComponent('./CatalogoShifts', 'AcademicShiftsComponent'),
-      },
-      {
-        path: 'academic/classes',
-        loadComponent: () =>
-          loadMfeComponent('./CatalogoClasses', 'AcademicClassesComponent'),
-      },
-      {
-        path: 'academic/disciplines',
-        loadComponent: () =>
-          loadMfeComponent('./HistoricoDisciplines', 'DisciplinesComponent'),
-      },
-      {
-        path: 'enrollment',
-        loadComponent: () =>
-          loadMfeComponent('./Matricula', 'EnrollmentNewComponent'),
-      },
+      ...remoteRoutes,
       {
         path: 'auth/users',
         loadComponent: () =>
@@ -115,8 +51,6 @@ export const routes: Routes = [
             m => m.UsuariosComponent,
           ),
       },
-
-
       {
         path: 'auth/users/new',
         loadComponent: () =>
@@ -173,12 +107,6 @@ export const routes: Routes = [
           import('./seguranca/pages/profiles/perfis.component').then(
             m => m.PerfisComponent,
           ),
-      },
-
-      {
-        path: 'microfrontend',
-        loadComponent: () =>
-          loadMfeComponent('./Component', 'HomeComponent'),
       },
     ],
   },
