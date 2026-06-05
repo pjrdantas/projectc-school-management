@@ -2,23 +2,7 @@ import { Routes } from '@angular/router';
 import { loadRemoteModule } from '@angular-architects/native-federation';
 import { authGuard } from './seguranca/guards/auth.guard';
 
-function loadCatalogoRemoteComponent(exposedModule: string, exportName: string) {
-  return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
-}
-
-function loadResponsavelRemoteComponent(exposedModule: string, exportName: string) {
-  return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
-}
-
-function loadAlunoRemoteComponent(exposedModule: string, exportName: string) {
-  return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
-}
-
-function loadMatriculaRemoteComponent(exposedModule: string, exportName: string) {
-  return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
-}
-
-function loadHistoricoRemoteComponent(exposedModule: string, exportName: string) {
+function loadMfeComponent(exposedModule: string, exportName: string) {
   return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
 }
 
@@ -56,73 +40,73 @@ export const routes: Routes = [
       {
         path: 'students',
         loadComponent: () =>
-          loadAlunoRemoteComponent('./AlunoList', 'StudentsListComponent'),
+          loadMfeComponent('./AlunoList', 'StudentsListComponent'),
       },
       {
         path: 'students/new',
         loadComponent: () =>
-          loadAlunoRemoteComponent('./AlunoNew', 'StudentsNewComponent'),
+          loadMfeComponent('./AlunoNew', 'StudentsNewComponent'),
       },
       {
         path: 'students/:id',
         loadComponent: () =>
-          loadAlunoRemoteComponent('./AlunoDetail', 'StudentsDetailComponent'),
+          loadMfeComponent('./AlunoDetail', 'StudentsDetailComponent'),
       },
       {
         path: 'students/:id/edit',
         loadComponent: () =>
-          loadAlunoRemoteComponent('./AlunoNew', 'StudentsNewComponent'),
+          loadMfeComponent('./AlunoNew', 'StudentsNewComponent'),
       },
 
       {
         path: 'responsibles',
         loadComponent: () =>
-          loadResponsavelRemoteComponent('./ResponsavelList', 'ResponsiblesListComponent'),
+          loadMfeComponent('./ResponsavelList', 'ResponsiblesListComponent'),
       },
       {
         path: 'responsibles/new',
         loadComponent: () =>
-          loadResponsavelRemoteComponent('./ResponsavelNew', 'ResponsiblesNewComponent'),
+          loadMfeComponent('./ResponsavelNew', 'ResponsiblesNewComponent'),
       },
       {
         path: 'responsibles/:id',
         loadComponent: () =>
-          loadResponsavelRemoteComponent('./ResponsavelDetail', 'ResponsiblesDetailComponent'),
+          loadMfeComponent('./ResponsavelDetail', 'ResponsiblesDetailComponent'),
       },
       {
         path: 'responsibles/:id/edit',
         loadComponent: () =>
-          loadResponsavelRemoteComponent('./ResponsavelNew', 'ResponsiblesNewComponent'),
+          loadMfeComponent('./ResponsavelNew', 'ResponsiblesNewComponent'),
       },
       {
         path: 'academic/periods',
         loadComponent: () =>
-          loadCatalogoRemoteComponent('./CatalogoPeriods', 'AcademicPeriodsComponent'),
+          loadMfeComponent('./CatalogoPeriods', 'AcademicPeriodsComponent'),
       },
       {
         path: 'academic/series',
         loadComponent: () =>
-          loadCatalogoRemoteComponent('./CatalogoSeries', 'AcademicSeriesComponent'),
+          loadMfeComponent('./CatalogoSeries', 'AcademicSeriesComponent'),
       },
       {
         path: 'academic/shifts',
         loadComponent: () =>
-          loadCatalogoRemoteComponent('./CatalogoShifts', 'AcademicShiftsComponent'),
+          loadMfeComponent('./CatalogoShifts', 'AcademicShiftsComponent'),
       },
       {
         path: 'academic/classes',
         loadComponent: () =>
-          loadCatalogoRemoteComponent('./CatalogoClasses', 'AcademicClassesComponent'),
+          loadMfeComponent('./CatalogoClasses', 'AcademicClassesComponent'),
       },
       {
         path: 'academic/disciplines',
         loadComponent: () =>
-          loadHistoricoRemoteComponent('./HistoricoDisciplines', 'DisciplinesComponent'),
+          loadMfeComponent('./HistoricoDisciplines', 'DisciplinesComponent'),
       },
       {
         path: 'enrollment',
         loadComponent: () =>
-          loadMatriculaRemoteComponent('./Matricula', 'EnrollmentNewComponent'),
+          loadMfeComponent('./Matricula', 'EnrollmentNewComponent'),
       },
       {
         path: 'auth/users',
@@ -194,7 +178,7 @@ export const routes: Routes = [
       {
         path: 'microfrontend',
         loadComponent: () =>
-          loadRemoteModule('mfe1', './Component').then(m => m.HomeComponent),
+          loadMfeComponent('./Component', 'HomeComponent'),
       },
     ],
   },
