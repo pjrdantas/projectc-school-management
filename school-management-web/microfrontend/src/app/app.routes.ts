@@ -85,4 +85,11 @@ export const routes: Routes = [
         m => m.StudentsNewComponent,
       ),
   },
+  {
+    path: 'enrollment',
+    loadComponent: () =>
+      import('./matricula/pages/new/enrollment-new.component').then(
+        m => m.EnrollmentNewComponent,
+      ),
+  },
 ];

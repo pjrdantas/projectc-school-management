@@ -19,9 +19,8 @@ Estado atual da migracao:
 - `academic/periods`, `academic/series`, `academic/shifts` e `academic/classes` sao carregadas pelo microfrontend remoto.
 - `responsibles`, `responsibles/new`, `responsibles/:id` e `responsibles/:id/edit` sao carregadas pelo microfrontend remoto.
 - `students`, `students/new`, `students/:id` e `students/:id/edit` sao carregadas pelo microfrontend remoto.
-- `catalogo/models` e `catalogo/services` permanecem temporariamente no host por dependencia da tela de matricula.
-- `responsavel/models` e `responsavel/services` permanecem temporariamente no host por dependencia de aluno/matricula ainda residentes no host.
-- `aluno/models`, `aluno/services` e `aluno/utils` permanecem temporariamente no host por dependencia da tela de matricula.
+- `enrollment` e carregada pelo microfrontend remoto.
+- `catalogo/models` e `catalogo/services` permanecem temporariamente no host por dependencia da tela local de disciplinas.
 
 ## Backend e base oficial
 

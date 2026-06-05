@@ -14,6 +14,10 @@ function loadAlunoRemoteComponent(exposedModule: string, exportName: string) {
   return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
 }
 
+function loadMatriculaRemoteComponent(exposedModule: string, exportName: string) {
+  return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
+}
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -116,9 +120,7 @@ export const routes: Routes = [
       {
         path: 'enrollment',
         loadComponent: () =>
-          import('./matricula/pages/new/enrollment-new.component').then(
-            m => m.EnrollmentNewComponent,
-          ),
+          loadMatriculaRemoteComponent('./Matricula', 'EnrollmentNewComponent'),
       },
       {
         path: 'auth/users',

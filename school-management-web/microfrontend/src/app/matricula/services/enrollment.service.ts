@@ -1,17 +1,16 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AuthStateService } from '../../core/auth/auth-state.service';
-import { API_BASE_URL } from '../../core/config/api.config';
+import { ShellContextService } from '../../core/shell/shell-context.service';
 import { Enrollment, EnrollmentFilter, EnrollmentInput } from '../models/enrollment.model';
 
 @Injectable({ providedIn: 'root' })
 export class EnrollmentService {
   private readonly http = inject(HttpClient);
-  private readonly authState = inject(AuthStateService);
+  private readonly shellContext = inject(ShellContextService);
 
   create(input: EnrollmentInput): Observable<Enrollment> {
-    return this.http.post<Enrollment>(`${API_BASE_URL}/api/matriculas`, input, {
+    return this.http.post<Enrollment>(`${this.apiBaseUrl}/api/matriculas`, input, {
       headers: this.buildHeaders(),
     });
   }
@@ -35,7 +34,7 @@ export class EnrollmentService {
       params = params.set('status', filter.status);
     }
 
-    return this.http.get<Enrollment[]>(`${API_BASE_URL}/api/matriculas`, {
+    return this.http.get<Enrollment[]>(`${this.apiBaseUrl}/api/matriculas`, {
       headers: this.buildHeaders(),
       params,
     });
@@ -43,20 +42,24 @@ export class EnrollmentService {
 
   updateStatus(id: string, status: string): Observable<Enrollment> {
     return this.http.patch<Enrollment>(
-      `${API_BASE_URL}/api/matriculas/${id}/status`,
+      `${this.apiBaseUrl}/api/matriculas/${id}/status`,
       { status },
       { headers: this.buildHeaders() },
     );
   }
 
   delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${API_BASE_URL}/api/matriculas/${id}`, {
+    return this.http.delete<void>(`${this.apiBaseUrl}/api/matriculas/${id}`, {
       headers: this.buildHeaders(),
     });
   }
 
+  private get apiBaseUrl(): string {
+    return this.shellContext.getApiBaseUrl();
+  }
+
   private buildHeaders(): HttpHeaders {
-    const token = this.authState.getToken();
+    const token = this.shellContext.getToken();
     if (!token) {
       return new HttpHeaders({ 'Content-Type': 'application/json' });
     }
