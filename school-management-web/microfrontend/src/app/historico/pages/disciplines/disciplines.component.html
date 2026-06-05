@@ -1,0 +1,58 @@
+<div class="page-container">
+  <mat-card class="disciplines-card">
+    <mat-card-header>
+      <mat-card-title>Disciplinas</mat-card-title>
+      <mat-card-subtitle>Cadastro usado nos históricos escolares dos alunos</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form class="form-grid" (ngSubmit)="salvar()">
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Nome</mat-label>
+          <input matInput name="nome" [(ngModel)]="form.nome" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Carga horária anual</mat-label>
+          <input matInput type="number" name="cargaHoraria" [(ngModel)]="form.cargaHoraria" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Status</mat-label>
+          <mat-select name="status" [(ngModel)]="form.status">
+            <mat-option value="ATIVA">ATIVA</mat-option>
+            <mat-option value="INATIVA">INATIVA</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="actions-row">
+          <button mat-raised-button color="primary" type="submit">
+            <mat-icon fontIcon="save"></mat-icon>
+            {{ editingId ? 'Atualizar' : 'Salvar' }}
+          </button>
+          <button mat-stroked-button type="button" (click)="limpar()">
+            <mat-icon fontIcon="close"></mat-icon>
+            Limpar
+          </button>
+        </div>
+      </form>
+
+      <div class="empty-state" *ngIf="disciplinas().length === 0">
+        Nenhuma disciplina cadastrada.
+      </div>
+
+      <div class="list">
+        <div class="list-item" *ngFor="let disciplina of disciplinas()">
+          <div>
+            <strong>{{ disciplina.nome }}</strong>
+            <p>Carga horária anual: {{ disciplina.cargaHoraria || 'Não informada' }}</p>
+            <p>Status: {{ disciplina.status || 'ATIVA' }}</p>
+          </div>
+          <button mat-stroked-button type="button" (click)="editar(disciplina)">
+            Editar
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

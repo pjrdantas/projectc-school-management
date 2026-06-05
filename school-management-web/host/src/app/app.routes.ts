@@ -10,6 +10,10 @@ function loadResponsavelRemoteComponent(exposedModule: string, exportName: strin
   return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
 }
 
+function loadAlunoRemoteComponent(exposedModule: string, exportName: string) {
+  return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
+}
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -44,30 +48,22 @@ export const routes: Routes = [
       {
         path: 'students',
         loadComponent: () =>
-          import('./aluno/pages/list/students-list.component').then(
-            m => m.StudentsListComponent,
-          ),
+          loadAlunoRemoteComponent('./AlunoList', 'StudentsListComponent'),
       },
       {
         path: 'students/new',
         loadComponent: () =>
-          import('./aluno/pages/new/students-new.component').then(
-            m => m.StudentsNewComponent,
-          ),
+          loadAlunoRemoteComponent('./AlunoNew', 'StudentsNewComponent'),
       },
       {
         path: 'students/:id',
         loadComponent: () =>
-          import('./aluno/pages/detail/students-detail.component').then(
-            m => m.StudentsDetailComponent,
-          ),
+          loadAlunoRemoteComponent('./AlunoDetail', 'StudentsDetailComponent'),
       },
       {
         path: 'students/:id/edit',
         loadComponent: () =>
-          import('./aluno/pages/new/students-new.component').then(
-            m => m.StudentsNewComponent,
-          ),
+          loadAlunoRemoteComponent('./AlunoNew', 'StudentsNewComponent'),
       },
 
       {

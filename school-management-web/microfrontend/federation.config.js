@@ -13,6 +13,9 @@ module.exports = withNativeFederation({
     './ResponsavelList': './src/app/responsavel/pages/list/responsibles-list.component.ts',
     './ResponsavelNew': './src/app/responsavel/pages/new/responsibles-new.component.ts',
     './ResponsavelDetail': './src/app/responsavel/pages/detail/responsibles-detail.component.ts',
+    './AlunoList': './src/app/aluno/pages/list/students-list.component.ts',
+    './AlunoNew': './src/app/aluno/pages/new/students-new.component.ts',
+    './AlunoDetail': './src/app/aluno/pages/detail/students-detail.component.ts',
   },
 
  shared: {

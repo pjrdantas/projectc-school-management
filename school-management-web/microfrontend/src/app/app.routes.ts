@@ -57,4 +57,32 @@ export const routes: Routes = [
         m => m.ResponsiblesNewComponent,
       ),
   },
+  {
+    path: 'students',
+    loadComponent: () =>
+      import('./aluno/pages/list/students-list.component').then(
+        m => m.StudentsListComponent,
+      ),
+  },
+  {
+    path: 'students/new',
+    loadComponent: () =>
+      import('./aluno/pages/new/students-new.component').then(
+        m => m.StudentsNewComponent,
+      ),
+  },
+  {
+    path: 'students/:id',
+    loadComponent: () =>
+      import('./aluno/pages/detail/students-detail.component').then(
+        m => m.StudentsDetailComponent,
+      ),
+  },
+  {
+    path: 'students/:id/edit',
+    loadComponent: () =>
+      import('./aluno/pages/new/students-new.component').then(
+        m => m.StudentsNewComponent,
+      ),
+  },
 ];
