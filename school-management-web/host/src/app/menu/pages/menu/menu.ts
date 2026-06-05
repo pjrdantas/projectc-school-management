@@ -52,16 +52,19 @@ export class Menu implements OnInit, OnDestroy {
 
   usuario: UsuarioAuth | null = null;
   dataHoraFormatada = '';
-  readonly businessMenuItems: ShellMenuItem[] = SHELL_BUSINESS_MENU;
-  readonly accessMenuItems: ShellMenuItem[] = SHELL_ACCESS_MENU;
+  businessMenuItems: ShellMenuItem[] = [];
+  accessMenuItems: ShellMenuItem[] = [];
+  showAccessMenu = false;
   private timerId: ReturnType<typeof window.setInterval> | null = null;
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
     this.usuario = this.authState.getUsuario();
+    this.atualizarItensMenu();
 
     this.authState.usuario$.pipe(takeUntil(this.destroy$)).subscribe(u => {
       this.usuario = u;
+      this.atualizarItensMenu();
       this.cdr.detectChanges();
     });
 
@@ -84,7 +87,7 @@ export class Menu implements OnInit, OnDestroy {
   }
 
   irHome() {
-    this.router.navigate(['/home']);
+    this.router.navigate(['/dashboard']);
   }
 
   navegarMenuItem(item: ShellMenuItem): void {
@@ -108,6 +111,34 @@ export class Menu implements OnInit, OnDestroy {
   private finalizarLogoutLocal(): void {
     this.authState.clear();
     this.router.navigate(['/login']);
+  }
+
+  private atualizarItensMenu(): void {
+    this.businessMenuItems = this.filtrarMenuPorPerfil(SHELL_BUSINESS_MENU);
+    this.accessMenuItems = this.filtrarMenuPorPerfil(SHELL_ACCESS_MENU);
+    this.showAccessMenu = this.accessMenuItems.length > 0;
+  }
+
+  private filtrarMenuPorPerfil(items: ShellMenuItem[]): ShellMenuItem[] {
+    const perfisUsuario = this.obterPerfisUsuario();
+
+    if (perfisUsuario.includes('ADMIN')) {
+      return items;
+    }
+
+    return items.filter(item => {
+      if (!item.perfis?.length) {
+        return true;
+      }
+
+      return item.perfis.some(perfil => perfisUsuario.includes(perfil));
+    });
+  }
+
+  private obterPerfisUsuario(): string[] {
+    return (this.usuario?.perfis ?? [])
+      .map(perfil => perfil?.trim().toUpperCase())
+      .filter((perfil): perfil is string => Boolean(perfil));
   }
 
   private atualizarDataHora(): void {

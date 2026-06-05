@@ -40,17 +40,19 @@
     <span class="item-menu">{{ item.label }}</span>
   </button>
 
-  <button mat-menu-item [matMenuTriggerFor]="accessMenu">
-    <mat-icon fontIcon="admin_panel_settings"></mat-icon>
-    <span class="item-menu">Acesso</span>
-  </button>
-
-  <mat-menu #accessMenu="matMenu">
-    <button mat-menu-item *ngFor="let item of accessMenuItems" (click)="navegarMenuItem(item)">
-      <mat-icon [fontIcon]="item.icon"></mat-icon>
-      <span class="item-menu">{{ item.label }}</span>
+  <ng-container *ngIf="showAccessMenu">
+    <button mat-menu-item [matMenuTriggerFor]="accessMenu">
+      <mat-icon fontIcon="admin_panel_settings"></mat-icon>
+      <span class="item-menu">Acesso</span>
     </button>
-  </mat-menu>
+
+    <mat-menu #accessMenu="matMenu">
+      <button mat-menu-item *ngFor="let item of accessMenuItems" (click)="navegarMenuItem(item)">
+        <mat-icon [fontIcon]="item.icon"></mat-icon>
+        <span class="item-menu">{{ item.label }}</span>
+      </button>
+    </mat-menu>
+  </ng-container>
 
   <mat-divider></mat-divider>
 

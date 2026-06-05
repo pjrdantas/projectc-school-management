@@ -1,0 +1,377 @@
+import { DecimalPipe, NgFor, NgIf } from '@angular/common';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { getApiErrorMessage } from '../../core/http/api-error';
+import { ShellContextService } from '../../core/shell/shell-context.service';
+import {
+  DashboardFrontendResponse,
+  DashboardPublicoCodigo,
+  DashboardResumo,
+} from '../models/dashboard.model';
+import { DashboardService } from '../services/dashboard.service';
+
+interface DashboardMetric {
+  label: string;
+  value: number;
+  icon: string;
+  tone: 'primary' | 'warning' | 'success' | 'neutral';
+}
+
+interface ChartPoint {
+  label: string;
+  value: number;
+  color: string;
+  percentual: number;
+  tooltip: string;
+}
+
+interface PieSlice extends ChartPoint {
+  path: string;
+}
+
+interface LineChartPoint extends ChartPoint {
+  x: number;
+  y: number;
+}
+
+@Component({
+  selector: 'app-academic-operational-dashboard',
+  standalone: true,
+  imports: [
+    DecimalPipe,
+    NgFor,
+    NgIf,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    MatProgressBarModule,
+    MatSnackBarModule,
+  ],
+  templateUrl: './academic-operational-dashboard.component.html',
+  styleUrls: ['./academic-operational-dashboard.component.scss'],
+})
+export class AcademicOperationalDashboardComponent implements OnInit {
+  private readonly dashboardService = inject(DashboardService);
+  private readonly shellContext = inject(ShellContextService);
+  private readonly snackBar = inject(MatSnackBar);
+
+  protected readonly isLoading = signal(false);
+  protected readonly dashboard = signal<DashboardFrontendResponse | null>(null);
+  protected readonly professorDashboardPendente = signal(false);
+
+  protected readonly publicoCodigo = computed(() => this.dashboard()?.publicoCodigo ?? this.resolvePublicoCodigo());
+  protected readonly titulo = computed(() => {
+    switch (this.publicoCodigo()) {
+      case 'SECRETARIA':
+        return 'Home da secretaria';
+      case 'DIRETOR':
+        return 'Home da direção';
+      case 'PROFESSOR':
+        return 'Home do professor';
+      default:
+        return 'Home acadêmica';
+    }
+  });
+  protected readonly subtitulo = computed(() => {
+    switch (this.publicoCodigo()) {
+      case 'SECRETARIA':
+        return 'Rotina administrativa, matrículas e pendências';
+      case 'DIRETOR':
+        return 'Visão executiva por áreas da operação escolar';
+      case 'PROFESSOR':
+        return 'Atividades docentes e turmas vinculadas';
+      default:
+        return 'Operação acadêmica em tempo real';
+    }
+  });
+  protected readonly resumo = computed<DashboardResumo | null>(
+    () => this.dashboard()?.resumo ?? null,
+  );
+  protected readonly metrics = computed<DashboardMetric[]>(() => {
+    const resumo = this.resumo();
+    if (!resumo) {
+      return [];
+    }
+
+    switch (this.publicoCodigo()) {
+      case 'SECRETARIA':
+        return [
+          this.metric('Solicitadas', resumo.matriculasSolicitadas, 'assignment', 'primary'),
+          this.metric('Em andamento', resumo.matriculasEmAndamento, 'hourglass_top', 'neutral'),
+          this.metric('Documentos pendentes', resumo.matriculasComDocumentosPendentes, 'pending_actions', 'warning'),
+          this.metric('Transferências', resumo.transferencias, 'sync_alt', 'success'),
+        ];
+      case 'DIRETOR':
+        return [
+          this.metric('Matrículas', resumo.totalMatriculas, 'assignment', 'primary'),
+          this.metric('Pendentes', resumo.matriculasPendentes, 'pending_actions', 'warning'),
+          this.metric('Alunos ativos', resumo.alunosAtivos, 'groups', 'success'),
+          this.metric('Turmas ativas', resumo.turmasAtivas, 'class', 'neutral'),
+        ];
+      default:
+        return [
+          this.metric('Matrículas', resumo.totalMatriculas, 'assignment', 'primary'),
+          this.metric('Aguardando documentos', resumo.matriculasAguardandoDocumentos, 'pending_actions', 'warning'),
+          this.metric('Concluídas', resumo.matriculasConcluidas, 'task_alt', 'success'),
+          this.metric('Aptas para rematrícula', resumo.matriculasAptasRematricula, 'autorenew', 'neutral'),
+        ];
+    }
+  });
+  protected readonly maxStatusTotal = computed(() =>
+    Math.max(...(this.resumo()?.matriculasPorStatus ?? []).map(item => item.total), 1),
+  );
+  protected readonly maxVagasDisponiveis = computed(() =>
+    Math.max(...(this.resumo()?.turmasComVagas ?? []).map(item => item.vagasDisponiveis), 1),
+  );
+  protected readonly statusChart = computed<ChartPoint[]>(() =>
+    this.withPercentual(
+      (this.resumo()?.matriculasPorStatus ?? []).map((item, index) => ({
+        label: item.status,
+        value: item.total,
+        color: this.chartColors[index % this.chartColors.length],
+      })),
+    ),
+  );
+  protected readonly vagasChart = computed<ChartPoint[]>(() =>
+    this.withPercentual(
+      (this.resumo()?.turmasComVagas ?? []).slice(0, 6).map((item, index) => ({
+        label: item.turmaNome,
+        value: item.vagasDisponiveis,
+        color: this.chartColors[(index + 2) % this.chartColors.length],
+      })),
+    ),
+  );
+  protected readonly historicoChart = computed<ChartPoint[]>(() => {
+    const historico = this.dashboard()?.historico ?? [];
+    const principal = historico.find(item => item.pontos?.length)?.pontos ?? [];
+    if (principal.length > 0) {
+      return this.withPercentual(
+        principal.slice(-8).map((ponto, index) => ({
+          label: ponto.referenciaData,
+          value: Number(ponto.valorNumeric ?? 0),
+          color: this.chartColors[index % this.chartColors.length],
+        })),
+      );
+    }
+
+    return this.statusChart().slice(0, 8);
+  });
+  protected readonly pieSlices = computed(() => this.buildPieSlices(this.statusChart()));
+  protected readonly lineChartPoints = computed(() => this.buildLineChartPoints(this.historicoChart()));
+  protected readonly linePoints = computed(() => this.buildLinePoints(this.historicoChart()));
+  protected readonly lineChartContext = computed(() => {
+    const historico = this.dashboard()?.historico ?? [];
+    return historico.some(item => item.pontos?.length) ? 'período' : 'status';
+  });
+  protected readonly maxVagasChartValue = computed(() =>
+    Math.max(...this.vagasChart().map(item => item.value), 1),
+  );
+  private readonly chartColors = [
+    '#2f6fed',
+    '#16a34a',
+    '#f59e0b',
+    '#ef4444',
+    '#0891b2',
+    '#7c3aed',
+    '#64748b',
+    '#db2777',
+  ];
+  protected readonly setorAcademico = computed<DashboardMetric[]>(() => {
+    const resumo = this.resumo();
+    if (!resumo) return [];
+
+    return [
+      this.metric('Concluídas', resumo.matriculasConcluidas, 'task_alt', 'success'),
+      this.metric('Efetivadas', resumo.matriculasEfetivadas, 'how_to_reg', 'primary'),
+      this.metric('Boletins', resumo.boletinsFechados, 'fact_check', 'neutral'),
+      this.metric('Reprovados', resumo.alunosReprovados, 'report', 'warning'),
+    ];
+  });
+  protected readonly setorAdministrativo = computed<DashboardMetric[]>(() => {
+    const resumo = this.resumo();
+    if (!resumo) return [];
+
+    return [
+      this.metric('Documentos pendentes', resumo.matriculasComDocumentosPendentes, 'description', 'warning'),
+      this.metric('Histórico pendente', resumo.matriculasAguardandoHistoricoEscolar, 'history_edu', 'warning'),
+      this.metric('Transferências', resumo.transferencias, 'sync_alt', 'neutral'),
+      this.metric('Exclusões pendentes', resumo.solicitacoesExclusaoPendentes, 'delete_sweep', 'warning'),
+    ];
+  });
+  protected readonly setorPedagogico = computed<DashboardMetric[]>(() => {
+    const resumo = this.resumo();
+    if (!resumo) return [];
+
+    return [
+      this.metric('Professores alocados', resumo.professoresAlocados, 'co_present', 'primary'),
+      this.metric('Aulas realizadas', resumo.aulasRealizadas, 'event_available', 'success'),
+      this.metric('Avaliações', resumo.avaliacoesRegistradas, 'edit_note', 'neutral'),
+      this.metric('Notas pendentes', resumo.avaliacoesComNotasPendentes, 'rule', 'warning'),
+    ];
+  });
+
+  ngOnInit(): void {
+    this.carregar();
+  }
+
+  protected carregar(): void {
+    const publicoCodigo = this.resolvePublicoCodigo();
+    this.professorDashboardPendente.set(false);
+    this.dashboard.set(null);
+
+    if (publicoCodigo === 'PROFESSOR') {
+      this.professorDashboardPendente.set(true);
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.dashboardService.consultar(publicoCodigo).subscribe({
+      next: dashboard => {
+        this.dashboard.set(dashboard);
+        this.isLoading.set(false);
+      },
+      error: (error: unknown) => {
+        this.isLoading.set(false);
+        this.snackBar.open(
+          getApiErrorMessage(error, 'Não foi possível carregar a Home operacional.'),
+          'Fechar',
+          { duration: 4500 },
+        );
+      },
+    });
+  }
+
+  protected statusPercentual(total: number): number {
+    return Math.round((total / this.maxStatusTotal()) * 100);
+  }
+
+  protected vagasPercentual(vagasDisponiveis: number): number {
+    return Math.round((vagasDisponiveis / this.maxVagasDisponiveis()) * 100);
+  }
+
+  protected barHeight(value: number): number {
+    return Math.max(Math.round((value / this.maxVagasChartValue()) * 100), value > 0 ? 8 : 0);
+  }
+
+  protected value(value?: number | null): number {
+    return value ?? 0;
+  }
+
+  protected formatPercentual(percentual: number): string {
+    return `${percentual.toLocaleString('pt-BR', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    })}%`;
+  }
+
+  private metric(
+    label: string,
+    value: number | undefined | null,
+    icon: string,
+    tone: DashboardMetric['tone'],
+  ): DashboardMetric {
+    return {
+      label,
+      value: value ?? 0,
+      icon,
+      tone,
+    };
+  }
+
+  private resolvePublicoCodigo(): DashboardPublicoCodigo {
+    const perfis = this.shellContext
+      .getUsuario()
+      ?.perfis.map(perfil => perfil.trim().toUpperCase()) ?? [];
+
+    if (perfis.includes('ADMIN')) return 'ACADEMICO';
+    if (perfis.includes('DIRETOR')) return 'DIRETOR';
+    if (perfis.includes('SECRETARIA')) return 'SECRETARIA';
+    if (perfis.includes('PROFESSOR')) return 'PROFESSOR';
+
+    return 'ACADEMICO';
+  }
+
+  private withPercentual(
+    points: Array<Omit<ChartPoint, 'percentual' | 'tooltip'>>,
+  ): ChartPoint[] {
+    const total = points.reduce((sum, point) => sum + point.value, 0);
+
+    return points.map(point => {
+      const percentual = total > 0 ? (point.value / total) * 100 : 0;
+
+      return {
+        ...point,
+        percentual,
+        tooltip: this.formatPercentual(percentual),
+      };
+    });
+  }
+
+  private buildPieSlices(points: ChartPoint[]): PieSlice[] {
+    const total = points.reduce((sum, point) => sum + point.value, 0);
+    if (total <= 0) {
+      return [];
+    }
+
+    let startAngle = -90;
+
+    return points.map(point => {
+      const endAngle = startAngle + (point.value / total) * 360;
+      const path = this.describeArc(68, 68, 58, startAngle, endAngle);
+      startAngle = endAngle;
+
+      return {
+        ...point,
+        path,
+      };
+    });
+  }
+
+  private describeArc(cx: number, cy: number, radius: number, startAngle: number, endAngle: number): string {
+    const start = this.polarToCartesian(cx, cy, radius, endAngle);
+    const end = this.polarToCartesian(cx, cy, radius, startAngle);
+    const angle = endAngle - startAngle;
+
+    if (angle >= 359.99) {
+      const middle = this.polarToCartesian(cx, cy, radius, startAngle + 180);
+      return `M ${cx} ${cy} L ${end.x} ${end.y} A ${radius} ${radius} 0 1 1 ${middle.x} ${middle.y} A ${radius} ${radius} 0 1 1 ${end.x} ${end.y} Z`;
+    }
+
+    const largeArcFlag = angle <= 180 ? '0' : '1';
+    return `M ${cx} ${cy} L ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y} Z`;
+  }
+
+  private polarToCartesian(cx: number, cy: number, radius: number, angleInDegrees: number): { x: number; y: number } {
+    const angleInRadians = (angleInDegrees * Math.PI) / 180;
+
+    return {
+      x: cx + radius * Math.cos(angleInRadians),
+      y: cy + radius * Math.sin(angleInRadians),
+    };
+  }
+
+  private buildLinePoints(points: ChartPoint[]): string {
+    return this.buildLineChartPoints(points)
+      .map(point => `${point.x},${point.y}`)
+      .join(' ');
+  }
+
+  private buildLineChartPoints(points: ChartPoint[]): LineChartPoint[] {
+    if (points.length === 0) {
+      return [];
+    }
+
+    const maxValue = Math.max(...points.map(point => point.value), 1);
+    const step = points.length === 1 ? 240 : 240 / (points.length - 1);
+
+    return points.map((point, index) => ({
+      ...point,
+      x: 20 + index * step,
+      y: 110 - (point.value / maxValue) * 82,
+    }));
+  }
+}

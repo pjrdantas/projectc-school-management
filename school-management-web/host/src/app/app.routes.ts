@@ -36,12 +36,12 @@ export const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'home',
+        redirectTo: 'dashboard',
       },
       {
         path: 'home',
-        loadComponent: () =>
-          import('./home/pages/home/home.component').then(m => m.HomeComponent),
+        pathMatch: 'full',
+        redirectTo: 'dashboard',
       },
       ...remoteRoutes,
       {
