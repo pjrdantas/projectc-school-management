@@ -1,0 +1,48 @@
+<h2 mat-dialog-title>{{ title }}</h2>
+
+<mat-dialog-content>
+  <form class="dialog-grid" [formGroup]="form" (ngSubmit)="save()">
+    <mat-form-field appearance="outline">
+      <mat-label>Nome *</mat-label>
+      <input matInput formControlName="nome" placeholder="2026.1" />
+      <mat-error *ngIf="form.controls.nome.hasError('required')">Nome é obrigatório.</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Data início *</mat-label>
+      <input
+        matInput
+        formControlName="dataInicio"
+        placeholder="dd/MM/aaaa"
+        maxlength="10"
+        (input)="onDateInput('dataInicio')"
+      />
+      <mat-error *ngIf="form.controls.dataInicio.hasError('required')">
+        Data de início é obrigatória.
+      </mat-error>
+      <mat-error *ngIf="form.controls.dataInicio.hasError('dataInvalida')">
+        Use o formato dd/MM/aaaa com uma data válida.
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Data fim *</mat-label>
+      <input
+        matInput
+        formControlName="dataFim"
+        placeholder="dd/MM/aaaa"
+        maxlength="10"
+        (input)="onDateInput('dataFim')"
+      />
+      <mat-error *ngIf="form.controls.dataFim.hasError('required')">Data final é obrigatória.</mat-error>
+      <mat-error *ngIf="form.controls.dataFim.hasError('dataInvalida')">
+        Use o formato dd/MM/aaaa com uma data válida.
+      </mat-error>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">Cancelar</button>
+  <button mat-raised-button color="primary" type="button" (click)="save()">Salvar</button>
+</mat-dialog-actions>

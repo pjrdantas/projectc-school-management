@@ -3,60 +3,11 @@
     <mat-card-content>
       <div class="header-row">
         <h1>Períodos letivos</h1>
+        <button mat-raised-button color="primary" type="button" (click)="openCreateDialog()" [disabled]="isLoading()">
+          <mat-icon fontIcon="add"></mat-icon>
+          Novo período letivo
+        </button>
       </div>
-
-      <form class="form-grid" [formGroup]="form" (ngSubmit)="onCreateOrUpdate()">
-        <mat-form-field appearance="outline">
-          <mat-label>Nome *</mat-label>
-          <input matInput formControlName="nome" placeholder="2026.1" />
-          <mat-error *ngIf="form.controls.nome.hasError('required')">Nome é obrigatório.</mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Data início *</mat-label>
-          <input
-            matInput
-            formControlName="dataInicio"
-            placeholder="dd/MM/aaaa"
-            maxlength="10"
-            (input)="onDateInput('dataInicio')"
-          />
-          <mat-error *ngIf="form.controls.dataInicio.hasError('required')">
-            Data de início é obrigatória.
-          </mat-error>
-          <mat-error *ngIf="form.controls.dataInicio.hasError('dataInvalida')">
-            Use o formato dd/MM/aaaa com uma data válida.
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Data fim *</mat-label>
-          <input
-            matInput
-            formControlName="dataFim"
-            placeholder="dd/MM/aaaa"
-            maxlength="10"
-            (input)="onDateInput('dataFim')"
-          />
-          <mat-error *ngIf="form.controls.dataFim.hasError('required')"
-            >Data final é obrigatória.</mat-error
-          >
-          <mat-error *ngIf="form.controls.dataFim.hasError('dataInvalida')">
-            Use o formato dd/MM/aaaa com uma data válida.
-          </mat-error>
-        </mat-form-field>
-
-        <div class="actions">
-          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">
-            <mat-icon fontIcon="save"></mat-icon>
-            {{ editingPeriodId() ? 'Atualizar período' : 'Salvar período' }}
-          </button>
-
-          <button mat-stroked-button type="button" *ngIf="editingPeriodId()" (click)="clearForm()">
-            Cancelar edição
-          </button>
-        </div>
-      </form>
 
       <form class="search-row" [formGroup]="searchForm" (ngSubmit)="onSearchByName()">
         <mat-form-field appearance="outline" class="search-field">

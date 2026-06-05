@@ -1,6 +1,5 @@
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -14,6 +13,7 @@ import { getApiErrorMessage } from '../../../core/http/api-error';
 import { MessageDialogComponent } from '../../../compartilhado/dialogs/message-dialog/message-dialog.component';
 import { Student } from '../../models/student.model';
 import { StudentsService } from '../../services/students.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-students-list',
@@ -35,7 +35,7 @@ import { StudentsService } from '../../services/students.service';
   templateUrl: './students-list.component.html',
   styleUrls: ['./students-list.component.scss'],
 })
-export class StudentsListComponent implements OnInit {
+export class StudentsListComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -43,9 +43,8 @@ export class StudentsListComponent implements OnInit {
 
   protected readonly students$ = this.studentsService.students$;
 
-  private readonly studentsSignal = toSignal(this.studentsService.students$, {
-    initialValue: this.studentsService.list(),
-  });
+  private readonly studentsSignal = signal<Student[]>(this.studentsService.list());
+  private studentsSubscription?: Subscription;
 
   protected readonly pageSizeOptions = [5];
   protected readonly pageSize = signal(5);
@@ -74,6 +73,10 @@ export class StudentsListComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.studentsSubscription = this.studentsService.students$.subscribe((students) =>
+      this.studentsSignal.set(students),
+    );
+
     this.studentsService.syncFromApi().subscribe({
       error: () => {
         this.snackBar.open('Não foi possível carregar alunos do backend.', 'Fechar', {
@@ -139,6 +142,10 @@ export class StudentsListComponent implements OnInit {
 
       this.excluirAluno(student.id);
     });
+  }
+
+  ngOnDestroy(): void {
+    this.studentsSubscription?.unsubscribe();
   }
 
   private excluirAluno(id: string): void {

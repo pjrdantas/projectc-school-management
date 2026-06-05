@@ -37,6 +37,12 @@ export class StudentRecordsService {
     });
   }
 
+  excluirDisciplina(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiBaseUrl}/api/disciplinas/${id}`, {
+      headers: this.buildHeaders(),
+    });
+  }
+
   listarHistoricosPorAluno(alunoId: string): Observable<HistoricoEscolar[]> {
     return this.listarHistoricos().pipe(map((historicos) => historicos));
   }

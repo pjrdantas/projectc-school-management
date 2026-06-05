@@ -33,28 +33,31 @@
 
     <mat-form-field appearance="outline">
       <mat-label>Série *</mat-label>
-      <mat-select formControlName="serieId">
-        <mat-option *ngFor="let serie of data.series" [value]="serie.id">
+      <select matNativeControl formControlName="serieId">
+        <option value="">Selecione</option>
+        <option *ngFor="let serie of seriesOptions" [value]="serie.id">
           {{ serie.nome }}
-        </mat-option>
-      </mat-select>
+        </option>
+      </select>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Turno *</mat-label>
-      <mat-select formControlName="turno">
-        <mat-option *ngFor="let turno of data.shifts" [value]="turno.codigo">
+      <select matNativeControl formControlName="turno">
+        <option value="">Selecione</option>
+        <option *ngFor="let turno of shiftOptions" [value]="turno.codigo">
           {{ turno.descricao }}
-        </mat-option>
-      </mat-select>
+        </option>
+      </select>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Status *</mat-label>
-      <mat-select formControlName="status">
-        <mat-option value="ATIVA">Ativa</mat-option>
-        <mat-option value="INATIVA">Inativa</mat-option>
-      </mat-select>
+      <select matNativeControl formControlName="status">
+        <option *ngFor="let status of statusOptions" [value]="status.value">
+          {{ status.label }}
+        </option>
+      </select>
     </mat-form-field>
   </form>
 </mat-dialog-content>

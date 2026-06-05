@@ -1,6 +1,5 @@
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -10,6 +9,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ResponsiblesService } from '../../services/responsibles.service';
+import { Responsible } from '../../models/responsible.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-responsibles-list',
@@ -30,15 +31,14 @@ import { ResponsiblesService } from '../../services/responsibles.service';
   templateUrl: './responsibles-list.component.html',
   styleUrls: ['./responsibles-list.component.scss'],
 })
-export class ResponsiblesListComponent implements OnInit {
+export class ResponsiblesListComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
   private readonly responsiblesService = inject(ResponsiblesService);
 
   protected readonly responsibles$ = this.responsiblesService.responsibles$;
-  private readonly responsiblesSignal = toSignal(this.responsiblesService.responsibles$, {
-    initialValue: this.responsiblesService.list(),
-  });
+  private readonly responsiblesSignal = signal<Responsible[]>(this.responsiblesService.list());
+  private responsiblesSubscription?: Subscription;
 
   protected readonly pageSizeOptions = [5];
   protected readonly pageSize = signal(5);
@@ -66,10 +66,18 @@ export class ResponsiblesListComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.responsiblesSubscription = this.responsiblesService.responsibles$.subscribe((responsibles) =>
+      this.responsiblesSignal.set(responsibles),
+    );
+
     this.responsiblesService.syncFromApi().subscribe({
       error: () =>
         this.snackBar.open('Não foi possível carregar responsáveis.', 'Fechar', { duration: 4000 }),
     });
+  }
+
+  ngOnDestroy(): void {
+    this.responsiblesSubscription?.unsubscribe();
   }
 
   protected goToNew(): void {

@@ -1,6 +1,5 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,9 +11,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { getApiErrorMessage } from '../../../core/http/api-error';
-import { AcademicClassInput } from '../../models/academic.model';
+import { AcademicClass, AcademicClassInput, AcademicPeriod, AcademicSeries, AcademicShift } from '../../models/academic.model';
 import { AcademicService } from '../../services/academic.service';
 import { AcademicClassDialogComponent } from './academic-class-dialog.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-academic-classes',
@@ -36,28 +36,21 @@ import { AcademicClassDialogComponent } from './academic-class-dialog.component'
   templateUrl: './academic-classes.component.html',
   styleUrls: ['./academic-classes.component.scss'],
 })
-export class AcademicClassesComponent implements OnInit {
+export class AcademicClassesComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
   private readonly academicService = inject(AcademicService);
   private readonly dialog = inject(MatDialog);
 
   protected readonly classes$ = this.academicService.classes$;
-  protected readonly classes = toSignal(this.classes$, {
-    initialValue: this.academicService.listClasses(),
-  });
+  protected readonly classes = signal<AcademicClass[]>(this.academicService.listClasses());
   protected readonly periods$ = this.academicService.periods$;
-  protected readonly periods = toSignal(this.periods$, {
-    initialValue: this.academicService.listPeriods(),
-  });
+  protected readonly periods = signal<AcademicPeriod[]>(this.academicService.listPeriods());
   protected readonly series$ = this.academicService.series$;
-  protected readonly series = toSignal(this.series$, {
-    initialValue: this.academicService.listSeries(),
-  });
+  protected readonly series = signal<AcademicSeries[]>(this.academicService.listSeries());
   protected readonly shifts$ = this.academicService.shifts$;
-  protected readonly shifts = toSignal(this.shifts$, {
-    initialValue: this.academicService.listShifts(),
-  });
+  protected readonly shifts = signal<AcademicShift[]>(this.academicService.listShifts());
+  private readonly subscriptions = new Subscription();
 
   protected readonly pageSizeOptions = [5];
   protected readonly pageSize = signal(5);
@@ -86,7 +79,15 @@ export class AcademicClassesComponent implements OnInit {
   );
 
   ngOnInit(): void {
+    this.subscriptions.add(this.classes$.subscribe((classes) => this.classes.set(classes)));
+    this.subscriptions.add(this.periods$.subscribe((periods) => this.periods.set(periods)));
+    this.subscriptions.add(this.series$.subscribe((series) => this.series.set(series)));
+    this.subscriptions.add(this.shifts$.subscribe((shifts) => this.shifts.set(shifts)));
     this.academicService.syncFromApi().subscribe();
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   protected openCreateDialog(): void {
@@ -100,7 +101,7 @@ export class AcademicClassesComponent implements OnInit {
       return;
     }
 
-    this.openClassDialog(id);
+    this.openClassDialog(id, true);
   }
 
   protected onSearchByName(): void {
@@ -161,18 +162,55 @@ export class AcademicClassesComponent implements OnInit {
     this.pageIndex.set(event.pageIndex);
   }
 
-  private openClassDialog(id?: string): void {
-    const turma = id ? this.classes().find((item) => item.id === id) : undefined;
+  private openClassDialog(id?: string, forceSync = false): void {
+    const fallbackTurma = id ? this.classes().find((item) => item.id === id) : undefined;
+
+    if (forceSync || !this.hasClassReferenceData()) {
+      this.isLoading.set(true);
+      this.academicService.syncFromApi().subscribe({
+        next: () => {
+          this.isLoading.set(false);
+          this.openClassDialogWithCurrentData(id, fallbackTurma);
+        },
+        error: (error: unknown) => {
+          this.isLoading.set(false);
+          this.snackBar.open(
+            getApiErrorMessage(error, 'Não foi possível carregar séries, turnos e períodos para a turma.'),
+            'Fechar',
+            { duration: 4500 },
+          );
+        },
+      });
+      return;
+    }
+
+    this.openClassDialogWithCurrentData(id, fallbackTurma);
+  }
+
+  private openClassDialogWithCurrentData(id?: string, fallbackTurma?: AcademicClass): void {
+    if (!this.hasClassReferenceData()) {
+      this.snackBar.open('Cadastre ao menos um período letivo, uma série e um turno antes de cadastrar turmas.', 'Fechar', {
+        duration: 4500,
+      });
+      return;
+    }
+
+    const turma = id ? this.classes().find((item) => item.id === id) ?? fallbackTurma : undefined;
+    if (id && !turma) {
+      this.snackBar.open('Turma não encontrada na lista.', 'Fechar', { duration: 3000 });
+      return;
+    }
 
     this.dialog
       .open(AcademicClassDialogComponent, {
         width: '760px',
         maxWidth: '95vw',
+        disableClose: true,
         data: {
           turma,
-          periods: this.periods(),
-          series: this.series(),
-          shifts: this.shifts(),
+          periods: [...this.periods()],
+          series: [...this.series()],
+          shifts: [...this.shifts()],
         },
       })
       .afterClosed()
@@ -183,6 +221,10 @@ export class AcademicClassesComponent implements OnInit {
 
         this.saveClass(payload, id);
       });
+  }
+
+  private hasClassReferenceData(): boolean {
+    return this.periods().length > 0 && this.series().length > 0 && this.shifts().length > 0;
   }
 
   private saveClass(payload: AcademicClassInput, id?: string): void {

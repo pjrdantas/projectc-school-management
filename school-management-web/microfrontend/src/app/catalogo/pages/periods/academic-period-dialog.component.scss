@@ -1,0 +1,10 @@
+.dialog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  min-width: min(680px, 80vw);
+}
+
+mat-dialog-actions {
+  padding: 8px 24px 18px;
+}

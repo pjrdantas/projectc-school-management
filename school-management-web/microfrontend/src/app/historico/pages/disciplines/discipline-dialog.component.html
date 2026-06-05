@@ -1,0 +1,29 @@
+<h2 mat-dialog-title>{{ title }}</h2>
+
+<mat-dialog-content>
+  <form class="dialog-grid" [formGroup]="form" (ngSubmit)="save()">
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Disciplina *</mat-label>
+      <input matInput formControlName="nome" placeholder="Matemática" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Carga horária anual</mat-label>
+      <input matInput type="number" formControlName="cargaHoraria" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status *</mat-label>
+      <select matNativeControl formControlName="status">
+        <option *ngFor="let status of statusOptions" [value]="status.value">
+          {{ status.label }}
+        </option>
+      </select>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">Cancelar</button>
+  <button mat-raised-button color="primary" type="button" (click)="save()">Salvar</button>
+</mat-dialog-actions>

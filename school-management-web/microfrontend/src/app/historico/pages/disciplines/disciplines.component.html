@@ -1,57 +1,65 @@
 <div class="page-container">
-  <mat-card class="disciplines-card">
-    <mat-card-header>
-      <mat-card-title>Disciplinas</mat-card-title>
-      <mat-card-subtitle>Cadastro usado nos históricos escolares dos alunos</mat-card-subtitle>
-    </mat-card-header>
-
+  <mat-card class="federated-card">
     <mat-card-content>
-      <form class="form-grid" (ngSubmit)="salvar()">
-        <mat-form-field appearance="outline" class="span-2">
-          <mat-label>Nome</mat-label>
-          <input matInput name="nome" [(ngModel)]="form.nome" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Carga horária anual</mat-label>
-          <input matInput type="number" name="cargaHoraria" [(ngModel)]="form.cargaHoraria" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Status</mat-label>
-          <mat-select name="status" [(ngModel)]="form.status">
-            <mat-option value="ATIVA">ATIVA</mat-option>
-            <mat-option value="INATIVA">INATIVA</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <div class="actions-row">
-          <button mat-raised-button color="primary" type="submit">
-            <mat-icon fontIcon="save"></mat-icon>
-            {{ editingId ? 'Atualizar' : 'Salvar' }}
-          </button>
-          <button mat-stroked-button type="button" (click)="limpar()">
-            <mat-icon fontIcon="close"></mat-icon>
-            Limpar
-          </button>
-        </div>
-      </form>
-
-      <div class="empty-state" *ngIf="disciplinas().length === 0">
-        Nenhuma disciplina cadastrada.
+      <div class="header-row">
+        <h1>Disciplinas</h1>
+        <button mat-raised-button color="primary" type="button" (click)="openCreateDialog()" [disabled]="isLoading()">
+          <mat-icon fontIcon="add"></mat-icon>
+          Nova disciplina
+        </button>
       </div>
 
-      <div class="list">
-        <div class="list-item" *ngFor="let disciplina of disciplinas()">
+      <form class="search-row" [formGroup]="searchForm" (ngSubmit)="onSearchByName()">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Consultar por nome da disciplina *</mat-label>
+          <input
+            matInput
+            formControlName="nome"
+            [matAutocomplete]="autoDiscipline"
+            (input)="onDisciplineSearchInput(($any($event.target).value || '').toString())"
+            placeholder="Digite o nome da disciplina"
+          />
+        </mat-form-field>
+        <mat-autocomplete
+          #autoDiscipline="matAutocomplete"
+          (optionSelected)="onDisciplineOptionSelected($event.option.value)"
+        >
+          <mat-option *ngFor="let disciplina of filteredDisciplines()" [value]="disciplina.id">
+            {{ disciplina.nome }}
+          </mat-option>
+        </mat-autocomplete>
+        <button mat-stroked-button type="submit" [disabled]="isLoading()">
+          <mat-icon fontIcon="search"></mat-icon>Buscar
+        </button>
+      </form>
+
+      <div class="empty-state" *ngIf="total() === 0">Nenhuma disciplina cadastrada.</div>
+
+      <div class="list" *ngIf="total() > 0">
+        <div class="list-item" *ngFor="let disciplina of pagedDisciplines()">
           <div>
-            <strong>{{ disciplina.nome }}</strong>
-            <p>Carga horária anual: {{ disciplina.cargaHoraria || 'Não informada' }}</p>
-            <p>Status: {{ disciplina.status || 'ATIVA' }}</p>
+            <h3>Disciplina: {{ disciplina.nome }}</h3>
+            <p><strong>Carga horária anual:</strong> {{ disciplina.cargaHoraria || 'Não informada' }}</p>
+            <p><strong>Status:</strong> {{ disciplina.status || 'ATIVA' }}</p>
           </div>
-          <button mat-stroked-button type="button" (click)="editar(disciplina)">
-            Editar
-          </button>
+          <div class="actions-row">
+            <button mat-stroked-button type="button" (click)="onEdit(disciplina.id)">Editar</button>
+            <button mat-stroked-button color="warn" type="button" (click)="onDelete(disciplina.id)">
+              Excluir
+            </button>
+          </div>
         </div>
+
+        <mat-paginator
+          *ngIf="total() > 5"
+          [length]="total()"
+          [pageIndex]="pageIndex()"
+          [pageSize]="pageSize()"
+          [pageSizeOptions]="pageSizeOptions"
+          [hidePageSize]="true"
+          showFirstLastButtons
+          (page)="onPageChange($event)"
+        ></mat-paginator>
       </div>
     </mat-card-content>
   </mat-card>

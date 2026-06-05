@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,6 +42,13 @@ public class DisciplinaController {
     @Operation(summary = "Atualiza uma disciplina")
     public DisciplinaResponse atualizar(@PathVariable @NonNull UUID id, @Valid @RequestBody DisciplinaRequest request) {
         return disciplinaService.atualizar(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Exclui uma disciplina")
+    public void excluir(@PathVariable @NonNull UUID id) {
+        disciplinaService.excluir(id);
     }
 
     @GetMapping("/{id}")

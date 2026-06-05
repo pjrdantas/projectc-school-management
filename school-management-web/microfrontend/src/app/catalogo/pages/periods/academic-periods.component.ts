@@ -1,24 +1,20 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import {
-  AbstractControl,
-  FormBuilder,
-  ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
-  Validators,
-} from '@angular/forms';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { getApiErrorMessage } from '../../../core/http/api-error';
+import { AcademicPeriod, AcademicPeriodInput } from '../../models/academic.model';
 import { AcademicService } from '../../services/academic.service';
+import { Subscription } from 'rxjs';
+import { AcademicPeriodDialogComponent } from './academic-period-dialog.component';
 
 @Component({
   selector: 'app-academic-periods',
@@ -29,6 +25,7 @@ import { AcademicService } from '../../services/academic.service';
     ReactiveFormsModule,
     MatAutocompleteModule,
     MatCardModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
@@ -39,29 +36,23 @@ import { AcademicService } from '../../services/academic.service';
   templateUrl: './academic-periods.component.html',
   styleUrls: ['./academic-periods.component.scss'],
 })
-export class AcademicPeriodsComponent implements OnInit {
+export class AcademicPeriodsComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
   private readonly academicService = inject(AcademicService);
+  private readonly dialog = inject(MatDialog);
 
   protected readonly periods$ = this.academicService.periods$;
-  protected readonly periods = toSignal(this.periods$, {
-    initialValue: this.academicService.listPeriods(),
-  });
+  protected readonly periods = signal<AcademicPeriod[]>(this.academicService.listPeriods());
+  private periodsSubscription?: Subscription;
 
   protected readonly pageSizeOptions = [5];
   protected readonly pageSize = signal(5);
   protected readonly pageIndex = signal(0);
 
-  protected readonly form = this.fb.nonNullable.group({
-    nome: ['', [Validators.required, Validators.maxLength(30)]],
-    dataInicio: ['', [Validators.required, this.dataBrValidator()]],
-    dataFim: ['', [Validators.required, this.dataBrValidator()]],
-  });
   protected readonly searchForm = this.fb.nonNullable.group({ nome: ['', [Validators.required]] });
 
   protected readonly isLoading = signal(false);
-  protected readonly editingPeriodId = signal<string | null>(null);
   protected readonly periodSearchTerm = signal('');
   protected readonly pendingPeriodId = signal<string | null>(null);
   protected readonly filteredPeriods = computed(() => {
@@ -80,44 +71,18 @@ export class AcademicPeriodsComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.periodsSubscription = this.periods$.subscribe((periods) => this.periods.set(periods));
     this.academicService.syncFromApi().subscribe();
   }
 
-  protected onCreateOrUpdate(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-    const formValue = this.form.getRawValue();
-    const payload = {
-      nome: formValue.nome,
-      dataInicio: this.brToIso(formValue.dataInicio),
-      dataFim: this.brToIso(formValue.dataFim),
-    };
-    const editingId = this.editingPeriodId();
-    if (editingId) {
-      this.academicService.updatePeriodLocally(editingId, payload);
-      this.clearForm();
-      this.snackBar.open('Período letivo atualizado na lista.', 'Fechar', { duration: 3000 });
-      return;
-    }
-    this.isLoading.set(true);
-    this.academicService.createPeriod(payload).subscribe({
-      next: () => {
-        this.isLoading.set(false);
-        this.form.reset();
-        this.snackBar.open('Período letivo cadastrado com sucesso.', 'Fechar', { duration: 3000 });
-      },
-      error: (error: unknown) => {
-        this.isLoading.set(false);
-        this.snackBar.open(
-          getApiErrorMessage(error, 'Não foi possível cadastrar período letivo.'),
-          'Fechar',
-          { duration: 4000 },
-        );
-      },
-    });
+  ngOnDestroy(): void {
+    this.periodsSubscription?.unsubscribe();
   }
+
+  protected openCreateDialog(): void {
+    this.openPeriodDialog();
+  }
+
   protected onSearchByName(): void {
     if (this.searchForm.invalid) {
       this.searchForm.markAllAsTouched();
@@ -132,13 +97,9 @@ export class AcademicPeriodsComponent implements OnInit {
       });
       return;
     }
-    this.form.patchValue({
-      nome: found.nome,
-      dataInicio: this.isoToBr(found.dataInicio),
-      dataFim: this.isoToBr(found.dataFim),
-    });
-    this.editingPeriodId.set(found.id);
+    this.openEditDialog(found.id);
   }
+
   protected onPeriodSearchInput(value: string): void {
     this.periodSearchTerm.set(value);
     this.pendingPeriodId.set(null);
@@ -151,69 +112,78 @@ export class AcademicPeriodsComponent implements OnInit {
     !id ? '' : (this.periods().find((item) => item.id === id)?.nome ?? '');
   protected onDelete(id: string): void {
     this.academicService.deletePeriodLocally(id);
-    if (this.editingPeriodId() === id) this.clearForm();
   }
   protected onEdit(id: string): void {
-    const period = this.periods().find((item) => item.id === id);
-    if (!period) return;
-    this.form.patchValue({
-      nome: period.nome,
-      dataInicio: this.isoToBr(period.dataInicio),
-      dataFim: this.isoToBr(period.dataFim),
-    });
-    this.editingPeriodId.set(period.id);
+    this.openEditDialog(id);
   }
   protected clearForm(): void {
-    this.form.reset();
     this.searchForm.reset();
     this.periodSearchTerm.set('');
     this.pendingPeriodId.set(null);
-    this.editingPeriodId.set(null);
   }
   protected onPageChange(event: PageEvent): void {
     this.pageSize.set(event.pageSize);
     this.pageIndex.set(event.pageIndex);
   }
 
-  protected onDateInput(controlName: 'dataInicio' | 'dataFim'): void {
-    const control = this.form.controls[controlName];
-    control.setValue(this.formatDateBr(control.value), { emitEvent: false });
-  }
-
   protected formatDate(value: string): string {
     return this.isoToBr(value);
   }
 
-  private dataBrValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      if (!control.value) {
-        return null;
-      }
+  private openEditDialog(id: string): void {
+    const period = this.periods().find((item) => item.id === id);
+    if (!period) {
+      this.snackBar.open('Período letivo não encontrado na lista.', 'Fechar', { duration: 3000 });
+      return;
+    }
 
-      const value = String(control.value);
-      const validPattern = /^\d{2}\/\d{2}\/\d{4}$/.test(value);
-      if (!validPattern) {
-        return { dataInvalida: true };
-      }
-
-      const [dd, mm, yyyy] = value.split('/').map(Number);
-      const date = new Date(yyyy, mm - 1, dd);
-      const validDate =
-        date.getFullYear() === yyyy && date.getMonth() === mm - 1 && date.getDate() === dd;
-
-      return validDate ? null : { dataInvalida: true };
-    };
+    this.openPeriodDialog(id);
   }
 
-  private onlyDigits(value: string): string {
-    return value.replace(/\D/g, '');
+  private openPeriodDialog(id?: string): void {
+    const period = id ? this.periods().find((item) => item.id === id) : undefined;
+
+    this.dialog
+      .open(AcademicPeriodDialogComponent, {
+        width: '760px',
+        maxWidth: '95vw',
+        disableClose: true,
+        data: { period },
+      })
+      .afterClosed()
+      .subscribe((payload?: AcademicPeriodInput) => {
+        if (!payload) {
+          return;
+        }
+
+        this.savePeriod(payload, id);
+      });
   }
 
-  private formatDateBr(value: string): string {
-    const digits = this.onlyDigits(value).slice(0, 8);
-    if (digits.length <= 2) return digits;
-    if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+  private savePeriod(payload: AcademicPeriodInput, id?: string): void {
+    if (id) {
+      this.academicService.updatePeriodLocally(id, payload);
+      this.clearForm();
+      this.snackBar.open('Período letivo atualizado na lista.', 'Fechar', { duration: 3000 });
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.academicService.createPeriod(payload).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.clearForm();
+        this.snackBar.open('Período letivo cadastrado com sucesso.', 'Fechar', { duration: 3000 });
+      },
+      error: (error: unknown) => {
+        this.isLoading.set(false);
+        this.snackBar.open(
+          getApiErrorMessage(error, 'Não foi possível cadastrar período letivo.'),
+          'Fechar',
+          { duration: 4000 },
+        );
+      },
+    });
   }
 
   private brToIso(value: string): string {

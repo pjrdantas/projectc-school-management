@@ -2,72 +2,110 @@
   display: block;
 }
 
-.page-container,
-.disciplines-card {
-  width: 100%;
+.page-container {
+  min-height: 100%;
+  overflow: hidden;
 }
 
-.disciplines-card {
+.federated-card {
+  width: 100%;
   border: 2px solid #667eea;
   border-radius: 16px;
-  box-sizing: border-box;
 }
 
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-  margin-top: 8px;
-}
-
-.span-2 {
-  grid-column: span 2;
-}
-
-.actions-row {
+.header-row {
   display: flex;
-  gap: 10px;
-  align-items: flex-start;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-row h1 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.search-row {
+  margin-top: 14px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.search-field {
+  flex: 1;
 }
 
 .empty-state {
-  margin: 16px 0;
+  margin-top: 12px;
   padding: 10px;
   border-radius: 8px;
   background: #f7f8ff;
 }
 
 .list {
+  margin-top: 12px;
   display: grid;
-  gap: 10px;
-  margin-top: 18px;
+  gap: 6px;
 }
 
 .list-item {
+  border: 1px solid #d7def8;
+  border-radius: 10px;
+  padding: 8px 10px;
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  border: 1px solid #d7def8;
-  border-radius: 8px;
-  padding: 10px 12px;
-  background: #ffffff;
+  align-items: center;
+  gap: 6px;
 }
 
+.list-item h3,
 .list-item p {
-  margin: 4px 0;
+  margin: 0 0 2px;
+  font-size: 0.76rem;
+  line-height: 1.1;
+}
+
+.list-item h3 {
+  font-size: 0.85rem;
+}
+
+.actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 110px;
+}
+
+.actions-row button {
+  min-height: 26px;
+  padding-inline: 8px;
+  font-size: 0.74rem;
+  line-height: 1.05;
+}
+
+mat-paginator {
+  margin-top: 4px;
+  border-top: 1px solid #eef1ff;
+}
+
+.page-container,
+.federated-card,
+mat-card-content {
+  overflow: hidden;
 }
 
 @media (max-width: 640px) {
-  .span-2 {
-    grid-column: 1 / -1;
-  }
-
-  .actions-row,
+  .search-row,
   .list-item {
+    align-items: stretch;
     flex-direction: column;
   }
 
-  button {
+  .actions-row,
+  .actions-row button {
     width: 100%;
   }
 }

@@ -37,6 +37,14 @@ public class DisciplinaService {
         return disciplinaMapper.toResponse(disciplinaJpaRepository.save(entity));
     }
 
+    @Transactional
+    public void excluir(UUID id) {
+        if (!disciplinaJpaRepository.existsById(id)) {
+            throw new DisciplinaNaoEncontradaException(id);
+        }
+        disciplinaJpaRepository.deleteById(id);
+    }
+
     @Transactional(readOnly = true)
     public DisciplinaResponse buscarPorId(UUID id) {
         return disciplinaJpaRepository.findById(id)

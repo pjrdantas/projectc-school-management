@@ -1,6 +1,5 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,9 +11,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { getApiErrorMessage } from '../../../core/http/api-error';
-import { AcademicShiftInput } from '../../models/academic.model';
+import { AcademicShift, AcademicShiftInput } from '../../models/academic.model';
 import { AcademicService } from '../../services/academic.service';
 import { AcademicShiftDialogComponent } from './academic-shift-dialog.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-academic-shifts',
@@ -36,16 +36,15 @@ import { AcademicShiftDialogComponent } from './academic-shift-dialog.component'
   templateUrl: './academic-shifts.component.html',
   styleUrls: ['./academic-shifts.component.scss'],
 })
-export class AcademicShiftsComponent implements OnInit {
+export class AcademicShiftsComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
   private readonly academicService = inject(AcademicService);
   private readonly dialog = inject(MatDialog);
 
   protected readonly shifts$ = this.academicService.shifts$;
-  protected readonly shifts = toSignal(this.shifts$, {
-    initialValue: this.academicService.listShifts(),
-  });
+  protected readonly shifts = signal<AcademicShift[]>(this.academicService.listShifts());
+  private shiftsSubscription?: Subscription;
 
   protected readonly pageSizeOptions = [5];
   protected readonly pageSize = signal(5);
@@ -74,7 +73,12 @@ export class AcademicShiftsComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.shiftsSubscription = this.shifts$.subscribe((shifts) => this.shifts.set(shifts));
     this.academicService.syncFromApi().subscribe();
+  }
+
+  ngOnDestroy(): void {
+    this.shiftsSubscription?.unsubscribe();
   }
 
   protected openCreateDialog(): void {
@@ -143,6 +147,7 @@ export class AcademicShiftsComponent implements OnInit {
       .open(AcademicShiftDialogComponent, {
         width: '760px',
         maxWidth: '95vw',
+        disableClose: true,
         data: { turno },
       })
       .afterClosed()
