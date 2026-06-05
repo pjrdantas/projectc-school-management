@@ -4,7 +4,9 @@ Aplicacao Angular remota usada como base de microfrontend federado no projeto de
 
 ## Papel no projeto
 
-Este app funciona como remoto para evolucoes federadas. A aplicacao principal continua sendo o `host`.
+Este app funciona como remoto federado para as funcionalidades escolares de negocio. A direcao arquitetural vigente e migrar para ca, em fases, dominios como catalogo, aluno, responsavel, documento, historico, matricula e dashboard.
+
+O `host` deve permanecer como shell de seguranca, menu e administracao de usuarios, perfis e permissoes.
 
 ## Desenvolvimento local
 
@@ -14,6 +16,14 @@ npm start
 ```
 
 A aplicacao remota fica disponivel na porta configurada pelo projeto Angular/Native Federation.
+
+No ambiente local atual, o remoto deve publicar:
+
+```text
+http://localhost:4201/remoteEntry.json
+```
+
+Suba este remoto antes do `../host` quando for validar a federacao completa.
 
 ## Build
 

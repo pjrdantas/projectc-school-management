@@ -4,19 +4,15 @@ Aplicacao Angular principal do sistema de gestao escolar.
 
 ## Papel no projeto
 
-O host concentra as telas operacionais atuais:
+O host e a casca principal do frontend. A direcao arquitetural vigente e manter aqui somente seguranca, administracao tecnica e carregamento dos remotos federados:
 
 - autenticacao/login;
 - home/menu;
-- alunos;
-- responsaveis;
-- periodos letivos, series, turnos e turmas;
-- matriculas;
-- documentos, historico e transferencia;
-- usuarios, perfis e permissoes tecnicas;
+- guards e estado de sessao;
+- usuarios, perfis e permissoes;
 - integracao com o microfrontend remoto.
 
-A matriz granular de permissoes por rota/tela/endpoint sera implementada no final do projeto, apos estabilizacao das funcionalidades principais.
+As telas escolares existentes devem ser migradas gradualmente para o microfrontend, preservando contratos REST, autorizacao e rotas publicas ate que cada fase seja validada.
 
 ## Backend e base oficial
 
@@ -46,6 +42,8 @@ Documento de referencia:
 
 ## Desenvolvimento local
 
+Para validar o fluxo federado completo, suba primeiro `../microfrontend` e depois o host.
+
 ```bash
 npm install
 npm start
@@ -56,6 +54,8 @@ A aplicacao fica disponivel em:
 ```text
 http://localhost:4200
 ```
+
+Use `localhost` na validacao local. Nesta configuracao o dev-server pode escutar em IPv6 (`::1`), o que pode fazer `127.0.0.1` falhar mesmo com o servidor ativo.
 
 ## Build
 

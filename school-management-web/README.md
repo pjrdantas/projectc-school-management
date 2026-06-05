@@ -4,8 +4,8 @@ Frontend Angular do projeto de gestao escolar.
 
 ## Estrutura
 
-- `host`: aplicacao principal, com login, menu e telas funcionais do sistema.
-- `microfrontend`: aplicacao remota usada como base para federacao.
+- `host`: shell principal, com login, menu, autenticacao, autorizacao e administracao de usuarios, perfis e permissoes.
+- `microfrontend`: aplicacao remota que deve receber gradualmente as funcionalidades escolares de negocio.
 
 ## Stack
 
@@ -15,21 +15,26 @@ Frontend Angular do projeto de gestao escolar.
 - TypeScript
 - RxJS
 
-## Funcionalidades atuais do host
+## Direcao arquitetural
 
-- login;
-- home/menu;
-- alunos;
-- responsaveis;
-- periodos letivos;
-- series;
-- turnos/turmas;
-- matriculas;
-- documentos, historico e transferencia dentro do ciclo ja desenvolvido;
-- usuarios;
-- perfis;
-- permissoes;
-- rota para microfrontend remoto.
+O host deve permanecer como casca de seguranca e administracao tecnica:
+
+- login, sessao e token;
+- layout/menu;
+- guards e regras de autorizacao;
+- usuarios, perfis e permissoes;
+- carregamento dos remotos federados.
+
+As funcionalidades escolares devem ser migradas em fases para o microfrontend:
+
+- catalogo;
+- aluno;
+- responsavel;
+- documento;
+- historico;
+- matricula;
+- dashboard;
+- demais dominios de negocio.
 
 A matriz granular de permissoes por rota/tela/endpoint sera implementada no final do projeto.
 
@@ -59,7 +64,23 @@ A documentacao ativa da base esta em:
 ../docs/20-base-dados-oficial-scriptdb.md
 ```
 
-## Executar o host
+## Executar o ambiente federado
+
+Suba primeiro o microfrontend remoto e depois o host. Use `localhost`, pois o Angular dev-server pode publicar em IPv6 (`::1`) e nao responder a probes em `127.0.0.1`.
+
+```bash
+cd microfrontend
+npm install
+npm start
+```
+
+O remoto deve publicar:
+
+```text
+http://localhost:4201/remoteEntry.json
+```
+
+Em outro terminal:
 
 ```bash
 cd host
@@ -67,12 +88,10 @@ npm install
 npm start
 ```
 
-## Executar o microfrontend
+O host deve publicar:
 
-```bash
-cd microfrontend
-npm install
-npm start
+```text
+http://localhost:4200
 ```
 
 ## Validacao
