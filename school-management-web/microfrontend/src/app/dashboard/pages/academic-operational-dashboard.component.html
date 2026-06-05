@@ -1,0 +1,263 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <div>
+          <h1>{{ titulo() }}</h1>
+          <p>{{ subtitulo() }}</p>
+        </div>
+        <button mat-stroked-button type="button" (click)="carregar()" [disabled]="isLoading()">
+          <mat-icon fontIcon="refresh"></mat-icon>
+          Atualizar
+        </button>
+      </div>
+
+      <mat-progress-bar *ngIf="isLoading()" mode="indeterminate"></mat-progress-bar>
+
+      <div class="empty-state" *ngIf="professorDashboardPendente()">
+        A Home do professor precisa do vínculo entre usuário e professor para carregar turmas,
+        disciplinas, alunos, aulas, frequências e avaliações individuais. Esse vínculo ainda não
+        faz parte do contrato de autenticação.
+      </div>
+
+      <div class="empty-state" *ngIf="!isLoading() && !resumo()">
+        Nenhum dado de dashboard disponível.
+      </div>
+
+      <ng-container *ngIf="resumo() as data">
+        <div class="metric-grid">
+          <div class="metric-tile" *ngFor="let metric of metrics()" [class]="'tone-' + metric.tone">
+            <div class="metric-icon">
+              <mat-icon [fontIcon]="metric.icon"></mat-icon>
+            </div>
+            <div>
+              <span>{{ metric.label }}</span>
+              <strong>{{ metric.value | number: '1.0-0' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="chart-column">
+            <section class="panel chart-panel">
+              <div class="panel-header">
+                <h2>Matrículas por status</h2>
+                <span>Pizza</span>
+              </div>
+              <div class="empty-inline" *ngIf="statusChart().length === 0">
+                Sem dados para gráfico.
+              </div>
+              <div class="pie-layout" *ngIf="statusChart().length > 0">
+                <svg class="pie-chart" viewBox="0 0 136 136" role="img" aria-label="Matrículas por status">
+                  <path
+                    *ngFor="let slice of pieSlices()"
+                    class="pie-slice"
+                    [attr.d]="slice.path"
+                    [attr.fill]="slice.color"
+                  >
+                    <title>{{ slice.tooltip }}</title>
+                  </path>
+                  <circle cx="68" cy="68" r="30" fill="#ffffff"></circle>
+                  <text x="68" y="73" text-anchor="middle" fill="#263244" font-size="16" font-weight="700">
+                    {{ value(data.totalMatriculas) | number: '1.0-0' }}
+                  </text>
+                </svg>
+                <div class="chart-legend">
+                  <div class="legend-row" *ngFor="let item of statusChart()" [attr.title]="item.tooltip">
+                    <span class="legend-dot" [style.background]="item.color"></span>
+                    <span>{{ item.label }}</span>
+                    <strong>{{ item.value | number: '1.0-0' }}</strong>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel chart-panel">
+              <div class="panel-header">
+                <h2>Vagas disponíveis</h2>
+                <span>Colunas</span>
+              </div>
+              <div class="empty-inline" *ngIf="vagasChart().length === 0">
+                Sem turmas com vagas.
+              </div>
+              <div class="column-chart" *ngIf="vagasChart().length > 0">
+                <div class="column-item" *ngFor="let item of vagasChart()" [attr.title]="item.tooltip">
+                  <div class="column-bar-wrap">
+                    <div
+                      class="column-bar"
+                      [style.height.%]="barHeight(item.value)"
+                      [style.background]="item.color"
+                    ></div>
+                  </div>
+                  <strong>{{ item.value | number: '1.0-0' }}</strong>
+                  <span>{{ item.label }}</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel chart-panel">
+              <div class="panel-header">
+                <h2>Tendência operacional</h2>
+                <span>Quantidade por {{ lineChartContext() }}</span>
+              </div>
+              <svg class="line-chart" viewBox="0 0 280 130" width="100%" height="138" role="img" aria-label="Gráfico de linha">
+                <line x1="20" y1="110" x2="260" y2="110" stroke="#d7def8" stroke-width="1.2"></line>
+                <line x1="20" y1="20" x2="20" y2="110" stroke="#d7def8" stroke-width="1.2"></line>
+                <text class="axis-label y-axis-label" x="6" y="18">Qtd.</text>
+                <text class="axis-label x-axis-label" x="260" y="124" text-anchor="end">{{ lineChartContext() }}</text>
+                <polyline
+                  [attr.points]="linePoints()"
+                  fill="none"
+                  stroke="#2f6fed"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></polyline>
+                <circle
+                  *ngFor="let item of lineChartPoints()"
+                  [attr.cx]="item.x"
+                  [attr.cy]="item.y"
+                  [attr.fill]="item.color"
+                  r="4"
+                  stroke="#ffffff"
+                  stroke-width="2"
+                >
+                  <title>{{ item.label }}: {{ item.value | number: '1.0-0' }} ({{ item.tooltip }})</title>
+                </circle>
+              </svg>
+              <div class="mini-legend">
+                <span *ngFor="let item of historicoChart().slice(0, 4)" [attr.title]="item.tooltip">
+                  {{ item.label }}: {{ item.value | number: '1.0-0' }}
+                </span>
+              </div>
+            </section>
+          </div>
+
+          <div class="insight-column">
+            <div class="summary-grid">
+            <section class="panel">
+              <div class="panel-header">
+                <h2>Status das matrículas</h2>
+                <span>{{ data.matriculasPorStatus?.length ?? 0 }} status</span>
+              </div>
+              <div class="empty-inline" *ngIf="(data.matriculasPorStatus?.length ?? 0) === 0">
+                Sem distribuição por status.
+              </div>
+              <div class="status-list" *ngIf="(data.matriculasPorStatus?.length ?? 0) > 0">
+                <div class="status-row" *ngFor="let item of data.matriculasPorStatus">
+                  <div class="status-label">
+                    <span>{{ item.status }}</span>
+                    <strong>{{ item.total | number: '1.0-0' }}</strong>
+                  </div>
+                  <div class="bar-track">
+                    <div class="bar-fill" [style.width.%]="statusPercentual(item.total)"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <h2>Turmas com vagas</h2>
+                <span>{{ data.turmasComVagas?.length ?? 0 }} turmas</span>
+              </div>
+              <div class="empty-inline" *ngIf="(data.turmasComVagas?.length ?? 0) === 0">
+                Nenhuma turma com vaga disponível.
+              </div>
+              <div class="class-list" *ngIf="(data.turmasComVagas?.length ?? 0) > 0">
+                <div class="class-row" *ngFor="let turma of data.turmasComVagas">
+                  <div>
+                    <h3>{{ turma.turmaNome }}</h3>
+                    <p>
+                      {{ turma.vagasDisponiveis | number: '1.0-0' }} vagas disponíveis de
+                      {{ turma.capacidade | number: '1.0-0' }}
+                    </p>
+                  </div>
+                  <div class="class-meter">
+                    <div class="bar-track">
+                      <div class="bar-fill success" [style.width.%]="vagasPercentual(turma.vagasDisponiveis)"></div>
+                    </div>
+                    <span>{{ turma.vagasOcupadas | number: '1.0-0' }} ocupadas</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+            </div>
+
+            <div class="detail-grid">
+          <section class="panel compact">
+            <h2>Documentos e histórico</h2>
+            <div class="compact-list">
+              <span>Boletins fechados</span>
+              <strong>{{ value(data.boletinsFechados) | number: '1.0-0' }}</strong>
+              <span>Históricos internos</span>
+              <strong>{{ value(data.historicosInternosGerados) | number: '1.0-0' }}</strong>
+              <span>Efetivadas</span>
+              <strong>{{ value(data.matriculasEfetivadas) | number: '1.0-0' }}</strong>
+            </div>
+          </section>
+
+          <section class="panel compact">
+            <h2>Resultado acadêmico</h2>
+            <div class="compact-list">
+              <span>Aprovados</span>
+              <strong>{{ value(data.alunosAprovados) | number: '1.0-0' }}</strong>
+              <span>Reprovados</span>
+              <strong>{{ value(data.alunosReprovados) | number: '1.0-0' }}</strong>
+              <span>Alertas ativos</span>
+              <strong>{{ dashboard()?.alertas?.length ?? 0 }}</strong>
+            </div>
+          </section>
+            </div>
+
+            <div class="sector-grid" *ngIf="publicoCodigo() === 'DIRETOR'">
+          <section class="panel sector-panel">
+            <h2>Acadêmico</h2>
+            <div class="sector-list">
+              <div class="sector-item" *ngFor="let item of setorAcademico()">
+                <mat-icon [fontIcon]="item.icon"></mat-icon>
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value | number: '1.0-0' }}</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel sector-panel">
+            <h2>Administrativo</h2>
+            <div class="sector-list">
+              <div class="sector-item" *ngFor="let item of setorAdministrativo()">
+                <mat-icon [fontIcon]="item.icon"></mat-icon>
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value | number: '1.0-0' }}</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel sector-panel">
+            <h2>Pedagógico</h2>
+            <div class="sector-list">
+              <div class="sector-item" *ngFor="let item of setorPedagogico()">
+                <mat-icon [fontIcon]="item.icon"></mat-icon>
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value | number: '1.0-0' }}</strong>
+              </div>
+            </div>
+          </section>
+            </div>
+
+            <section class="panel alerts-panel" *ngIf="(dashboard()?.alertas?.length ?? 0) > 0">
+          <div class="panel-header">
+            <h2>Alertas</h2>
+            <span>{{ dashboard()?.alertas?.length }}</span>
+          </div>
+          <div class="alert-row" *ngFor="let alerta of dashboard()?.alertas">
+            <strong>{{ alerta.titulo }}</strong>
+            <span>{{ alerta.mensagem }}</span>
+          </div>
+            </section>
+          </div>
+        </div>
+      </ng-container>
+    </mat-card-content>
+  </mat-card>
+</div>

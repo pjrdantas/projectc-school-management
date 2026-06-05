@@ -5,6 +5,7 @@ module.exports = withNativeFederation({
   name: 'microfrontend',
 
   exposes: {
+    './Dashboard': './src/app/dashboard/pages/academic-operational-dashboard.component.ts',
     './CatalogoPeriods': './src/app/catalogo/pages/periods/academic-periods.component.ts',
     './CatalogoSeries': './src/app/catalogo/pages/series/academic-series.component.ts',
     './CatalogoShifts': './src/app/catalogo/pages/shifts/academic-shifts.component.ts',

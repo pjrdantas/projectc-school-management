@@ -8,9 +8,15 @@ export interface ShellMenuItem {
   label: string;
   icon: string;
   route: string;
+  perfis?: string[];
 }
 
 export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
+  {
+    path: 'dashboard',
+    exposedModule: './Dashboard',
+    exportName: 'AcademicOperationalDashboardComponent',
+  },
   {
     path: 'students',
     exposedModule: './AlunoList',
@@ -84,18 +90,18 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
 ];
 
 export const SHELL_BUSINESS_MENU: ShellMenuItem[] = [
-  { label: 'Alunos', icon: 'person', route: '/students' },
-  { label: 'Responsáveis', icon: 'family_restroom', route: '/responsibles' },
-  { label: 'Períodos letivos', icon: 'date_range', route: '/academic/periods' },
-  { label: 'Séries', icon: 'format_list_numbered', route: '/academic/series' },
-  { label: 'Turnos', icon: 'schedule', route: '/academic/shifts' },
-  { label: 'Turmas', icon: 'class', route: '/academic/classes' },
-  { label: 'Disciplinas', icon: 'menu_book', route: '/academic/disciplines' },
-  { label: 'Matrícula', icon: 'assignment', route: '/enrollment' },
+  { label: 'Alunos', icon: 'person', route: '/students', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
+  { label: 'Responsáveis', icon: 'family_restroom', route: '/responsibles', perfis: ['ADMIN', 'SECRETARIA'] },
+  { label: 'Períodos letivos', icon: 'date_range', route: '/academic/periods', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR'] },
+  { label: 'Séries', icon: 'format_list_numbered', route: '/academic/series', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR'] },
+  { label: 'Turnos', icon: 'schedule', route: '/academic/shifts', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR'] },
+  { label: 'Turmas', icon: 'class', route: '/academic/classes', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
+  { label: 'Disciplinas', icon: 'menu_book', route: '/academic/disciplines', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
+  { label: 'Matrícula', icon: 'assignment', route: '/enrollment', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR'] },
 ];
 
 export const SHELL_ACCESS_MENU: ShellMenuItem[] = [
-  { label: 'Usuários', icon: 'group', route: '/auth/users' },
-  { label: 'Perfis', icon: 'badge', route: '/auth/profiles' },
-  { label: 'Permissões', icon: 'verified_user', route: '/auth/permissions' },
+  { label: 'Usuários', icon: 'group', route: '/auth/users', perfis: ['ADMIN'] },
+  { label: 'Perfis', icon: 'badge', route: '/auth/profiles', perfis: ['ADMIN'] },
+  { label: 'Permissões', icon: 'verified_user', route: '/auth/permissions', perfis: ['ADMIN'] },
 ];

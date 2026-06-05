@@ -4,7 +4,14 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'academic/periods',
+    redirectTo: 'dashboard',
+  },
+  {
+    path: 'dashboard',
+    loadComponent: () =>
+      import('./dashboard/pages/academic-operational-dashboard.component').then(
+        m => m.AcademicOperationalDashboardComponent,
+      ),
   },
   {
     path: 'academic/periods',
