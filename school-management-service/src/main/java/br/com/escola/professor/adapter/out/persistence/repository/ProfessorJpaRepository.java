@@ -12,5 +12,7 @@ public interface ProfessorJpaRepository extends JpaRepository<ProfessorEntity, U
 
     Optional<ProfessorEntity> findByPessoaId(UUID pessoaId);
 
+    boolean existsByPessoaId(UUID pessoaId);
+
     List<ProfessorEntity> findByAtivoTrueOrderByCreatedAtAsc();
 }

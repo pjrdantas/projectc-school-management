@@ -1,0 +1,45 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <div>
+          <h1>Detalhe do professor</h1>
+          <p *ngIf="professor() as data">{{ data.nomeCompleto }}</p>
+        </div>
+        <button mat-stroked-button type="button" (click)="back()">
+          <mat-icon fontIcon="arrow_back"></mat-icon>
+          Voltar
+        </button>
+      </div>
+
+      <mat-progress-bar *ngIf="isLoading()" mode="indeterminate"></mat-progress-bar>
+
+      <section class="detail-grid" *ngIf="professor() as data">
+        <div class="info-panel">
+          <span>Nome</span>
+          <strong>{{ data.nomeCompleto }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Status</span>
+          <strong>{{ data.ativo ? 'Ativo' : 'Inativo' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Registro profissional</span>
+          <strong>{{ data.registroProfissional || 'Não informado' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Formação</span>
+          <strong>{{ data.formacao || 'Não informada' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Cadastro</span>
+          <strong>{{ data.createdAt ? (data.createdAt | date: 'dd/MM/yyyy HH:mm') : 'Não informado' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Última atualização</span>
+          <strong>{{ data.updatedAt ? (data.updatedAt | date: 'dd/MM/yyyy HH:mm') : 'Não informada' }}</strong>
+        </div>
+      </section>
+    </mat-card-content>
+  </mat-card>
+</div>

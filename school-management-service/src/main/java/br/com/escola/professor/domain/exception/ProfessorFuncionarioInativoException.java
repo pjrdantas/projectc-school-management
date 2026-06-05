@@ -4,7 +4,7 @@ public class ProfessorFuncionarioInativoException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
-    public ProfessorFuncionarioInativoException(Object id) {
-        super("Funcionário inativo não pode ser cadastrado como professor: " + id);
+    public ProfessorFuncionarioInativoException() {
+        super("Funcionário inativo não pode ser cadastrado como professor.");
     }
 }

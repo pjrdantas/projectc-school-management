@@ -111,4 +111,18 @@ export const routes: Routes = [
         m => m.DisciplinesComponent,
       ),
   },
+  {
+    path: 'teachers',
+    loadComponent: () =>
+      import('./professor/pages/list/teachers-list.component').then(
+        m => m.TeachersListComponent,
+      ),
+  },
+  {
+    path: 'teachers/:id',
+    loadComponent: () =>
+      import('./professor/pages/detail/teacher-detail.component').then(
+        m => m.TeacherDetailComponent,
+      ),
+  },
 ];

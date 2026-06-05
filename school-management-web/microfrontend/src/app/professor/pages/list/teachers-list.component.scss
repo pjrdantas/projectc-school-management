@@ -1,0 +1,87 @@
+:host {
+  display: block;
+}
+
+.page-container {
+  min-height: 100%;
+  overflow: hidden;
+}
+
+.federated-card {
+  width: 100%;
+  border: 2px solid #667eea;
+  border-radius: 16px;
+}
+
+.header-row,
+.search-row,
+.actions-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.header-row {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.header-row h1,
+.list-item h3 {
+  margin: 0;
+}
+
+mat-progress-bar {
+  margin-top: 12px;
+}
+
+.search-row {
+  margin-top: 14px;
+  align-items: flex-start;
+}
+
+.search-field {
+  flex: 1;
+}
+
+.empty-state {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f7f8ff;
+  color: #576071;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #d7def8;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.list-item p {
+  margin: 4px 0 0;
+  color: #576071;
+  font-size: 0.82rem;
+}
+
+.actions-row {
+  justify-content: flex-end;
+}
+
+@media (max-width: 700px) {
+  .search-row,
+  .list-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

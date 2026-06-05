@@ -1,0 +1,56 @@
+<h2 mat-dialog-title>Novo professor</h2>
+
+<mat-dialog-content>
+  <form class="dialog-grid" [formGroup]="form" (ngSubmit)="save()">
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Funcionário *</mat-label>
+      <select matNativeControl formControlName="funcionarioId">
+        <option value="">
+          {{ isLoadingFuncionarios() ? 'Carregando funcionários...' : 'Selecione um funcionário' }}
+        </option>
+        <option
+          *ngFor="let funcionario of funcionariosElegiveis()"
+          [value]="funcionario.funcionarioId"
+        >
+          {{ funcionario.nomeCompleto }}{{ funcionario.cargo ? ' - ' + funcionario.cargo : '' }}
+        </option>
+      </select>
+    </mat-form-field>
+
+    <p *ngIf="!isLoadingFuncionarios() && funcionariosElegiveis().length === 0" class="empty-message span-2">
+      Nenhum funcionário ativo disponível para cadastro de professor.
+    </p>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Registro profissional</mat-label>
+      <input matInput formControlName="registroProfissional" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status *</mat-label>
+      <select matNativeControl formControlName="ativo">
+        <option *ngFor="let status of statusOptions" [value]="status.value">
+          {{ status.label }}
+        </option>
+      </select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Formação</mat-label>
+      <input matInput formControlName="formacao" />
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">Cancelar</button>
+  <button
+    mat-raised-button
+    color="primary"
+    type="button"
+    [disabled]="isLoadingFuncionarios() || funcionariosElegiveis().length === 0"
+    (click)="save()"
+  >
+    Salvar
+  </button>
+</mat-dialog-actions>
