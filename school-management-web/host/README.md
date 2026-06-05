@@ -14,6 +14,11 @@ O host e a casca principal do frontend. A direcao arquitetural vigente e manter 
 
 As telas escolares existentes devem ser migradas gradualmente para o microfrontend, preservando contratos REST, autorizacao e rotas publicas ate que cada fase seja validada.
 
+Estado atual da migracao:
+
+- `academic/periods`, `academic/series`, `academic/shifts` e `academic/classes` sao carregadas pelo microfrontend remoto.
+- `catalogo/models` e `catalogo/services` permanecem temporariamente no host por dependencia da tela de matricula.
+
 ## Backend e base oficial
 
 Por padrao, os services apontam para:

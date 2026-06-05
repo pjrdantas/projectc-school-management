@@ -8,6 +8,12 @@ Este app funciona como remoto federado para as funcionalidades escolares de nego
 
 O `host` deve permanecer como shell de seguranca, menu e administracao de usuarios, perfis e permissoes.
 
+Estado atual:
+
+- `catalogo/pages` foi migrado para este microfrontend;
+- `CatalogoPeriods`, `CatalogoSeries`, `CatalogoShifts` e `CatalogoClasses` sao expostos via Native Federation;
+- o service de catalogo usa o contrato de shell para obter API base e token.
+
 ## Desenvolvimento local
 
 ```bash

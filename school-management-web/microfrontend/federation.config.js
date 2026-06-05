@@ -6,6 +6,10 @@ module.exports = withNativeFederation({
 
   exposes: {
     './Component': './src/app/pages/home/home.component.ts',
+    './CatalogoPeriods': './src/app/catalogo/pages/periods/academic-periods.component.ts',
+    './CatalogoSeries': './src/app/catalogo/pages/series/academic-series.component.ts',
+    './CatalogoShifts': './src/app/catalogo/pages/shifts/academic-shifts.component.ts',
+    './CatalogoClasses': './src/app/catalogo/pages/classes/academic-classes.component.ts',
   },
 
  shared: {

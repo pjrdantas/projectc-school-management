@@ -2,6 +2,10 @@ import { Routes } from '@angular/router';
 import { loadRemoteModule } from '@angular-architects/native-federation';
 import { authGuard } from './seguranca/guards/auth.guard';
 
+function loadCatalogoRemoteComponent(exposedModule: string, exportName: string) {
+  return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
+}
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -93,30 +97,22 @@ export const routes: Routes = [
       {
         path: 'academic/periods',
         loadComponent: () =>
-          import('./catalogo/pages/periods/academic-periods.component').then(
-            m => m.AcademicPeriodsComponent,
-          ),
+          loadCatalogoRemoteComponent('./CatalogoPeriods', 'AcademicPeriodsComponent'),
       },
       {
         path: 'academic/series',
         loadComponent: () =>
-          import('./catalogo/pages/series/academic-series.component').then(
-            m => m.AcademicSeriesComponent,
-          ),
+          loadCatalogoRemoteComponent('./CatalogoSeries', 'AcademicSeriesComponent'),
       },
       {
         path: 'academic/shifts',
         loadComponent: () =>
-          import('./catalogo/pages/shifts/academic-shifts.component').then(
-            m => m.AcademicShiftsComponent,
-          ),
+          loadCatalogoRemoteComponent('./CatalogoShifts', 'AcademicShiftsComponent'),
       },
       {
         path: 'academic/classes',
         loadComponent: () =>
-          import('./catalogo/pages/classes/academic-classes.component').then(
-            m => m.AcademicClassesComponent,
-          ),
+          loadCatalogoRemoteComponent('./CatalogoClasses', 'AcademicClassesComponent'),
       },
       {
         path: 'academic/disciplines',
