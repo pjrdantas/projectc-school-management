@@ -1,0 +1,66 @@
+<h2 mat-dialog-title>Nova aula</h2>
+
+<mat-dialog-content>
+  <form class="dialog-grid" [formGroup]="form" (ngSubmit)="save()">
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Professor, turma e disciplina *</mat-label>
+      <select matNativeControl formControlName="professorTurmaDisciplinaId">
+        <option value="">Selecione um vínculo pedagógico</option>
+        <option *ngFor="let allocation of allocations" [value]="allocation.id">
+          {{ allocation.professorNome }} - {{ allocation.turmaNome }} - {{ allocation.disciplinaNome }}
+        </option>
+      </select>
+    </mat-form-field>
+
+    <p *ngIf="allocations.length === 0" class="empty-message span-2">
+      Nenhum vínculo ativo de professor, turma e disciplina disponível.
+    </p>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Data da aula *</mat-label>
+      <input matInput type="date" formControlName="dataAula" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status *</mat-label>
+      <select matNativeControl formControlName="realizada">
+        <option *ngFor="let status of statusOptions" [value]="status.value">
+          {{ status.label }}
+        </option>
+      </select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Início</mat-label>
+      <input matInput type="time" formControlName="horarioInicio" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Fim</mat-label>
+      <input matInput type="time" formControlName="horarioFim" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Conteúdo</mat-label>
+      <input matInput formControlName="conteudoMinistrado" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Observação</mat-label>
+      <textarea matInput rows="4" formControlName="observacao"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">Cancelar</button>
+  <button
+    mat-raised-button
+    color="primary"
+    type="button"
+    [disabled]="allocations.length === 0"
+    (click)="save()"
+  >
+    Salvar
+  </button>
+</mat-dialog-actions>

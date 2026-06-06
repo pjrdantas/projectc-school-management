@@ -100,7 +100,7 @@ public class AvaliacaoService {
     public NotaAlunoResponse lancarNota(UUID avaliacaoId, NotaAlunoRequest request) {
         AvaliacaoEntity avaliacao = findAvaliacao(avaliacaoId);
         MatriculaEntity matricula = matriculaJpaRepository.findById(request.matriculaId())
-                .orElseThrow(() -> new AulaNaoEncontradaException("Matrícula não encontrada para o id " + request.matriculaId()));
+                .orElseThrow(() -> new AulaNaoEncontradaException("Matrícula não encontrada."));
 
         UUID turmaAvaliacaoId = avaliacao.getProfessorTurmaDisciplina().getTurmaDisciplina().getTurma().getId();
         UUID turmaMatriculaId = matricula.getTurma().getId();
@@ -141,7 +141,7 @@ public class AvaliacaoService {
     @Transactional(readOnly = true)
     public List<NotaAlunoResponse> listarNotasPorMatricula(UUID matriculaId) {
         if (!matriculaJpaRepository.existsById(matriculaId)) {
-            throw new AulaNaoEncontradaException("Matrícula não encontrada para o id " + matriculaId);
+            throw new AulaNaoEncontradaException("Matrícula não encontrada.");
         }
         return notaAlunoJpaRepository.findByMatriculaId(matriculaId).stream()
                 .map(this::toNotaResponse)

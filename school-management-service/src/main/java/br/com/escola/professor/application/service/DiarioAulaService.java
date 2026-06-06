@@ -123,7 +123,7 @@ public class DiarioAulaService {
     @Transactional(readOnly = true)
     public List<FrequenciaProfessorResponse> listarFrequenciaProfessor(UUID aulaId) {
         if (!aulaJpaRepository.existsById(aulaId)) {
-            throw new AulaNaoEncontradaException(aulaId);
+            throw new AulaNaoEncontradaException();
         }
         return frequenciaProfessorJpaRepository.findByAulaId(aulaId).stream()
                 .map(this::toFrequenciaProfessorResponse)
@@ -134,7 +134,7 @@ public class DiarioAulaService {
     public FrequenciaAlunoResponse registrarFrequenciaAluno(UUID aulaId, FrequenciaAlunoRequest request) {
         AulaEntity aula = findAula(aulaId);
         MatriculaEntity matricula = matriculaJpaRepository.findById(request.matriculaId())
-                .orElseThrow(() -> new AulaNaoEncontradaException("Matrícula não encontrada para o id " + request.matriculaId()));
+                .orElseThrow(() -> new AulaNaoEncontradaException("Matrícula não encontrada."));
 
         UUID turmaAulaId = aula.getProfessorTurmaDisciplina().getTurmaDisciplina().getTurma().getId();
         UUID turmaMatriculaId = matricula.getTurma().getId();
@@ -164,7 +164,7 @@ public class DiarioAulaService {
     @Transactional(readOnly = true)
     public List<FrequenciaAlunoResponse> listarFrequenciasAlunos(UUID aulaId) {
         if (!aulaJpaRepository.existsById(aulaId)) {
-            throw new AulaNaoEncontradaException(aulaId);
+            throw new AulaNaoEncontradaException();
         }
         return frequenciaAlunoJpaRepository.findByAulaId(aulaId).stream()
                 .map(this::toFrequenciaAlunoResponse)
@@ -173,7 +173,7 @@ public class DiarioAulaService {
 
     private AulaEntity findAula(UUID id) {
         return aulaJpaRepository.findById(id)
-                .orElseThrow(() -> new AulaNaoEncontradaException(id));
+                .orElseThrow(AulaNaoEncontradaException::new);
     }
 
     private AulaResponse toAulaResponse(AulaEntity entity) {

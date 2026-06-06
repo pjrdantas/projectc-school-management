@@ -20,6 +20,8 @@ module.exports = withNativeFederation({
     './HistoricoDisciplines': './src/app/historico/pages/disciplines/disciplines.component.ts',
     './ProfessorList': './src/app/professor/pages/list/teachers-list.component.ts',
     './ProfessorDetail': './src/app/professor/pages/detail/teacher-detail.component.ts',
+    './LessonList': './src/app/professor/pages/lessons/lessons-list.component.ts',
+    './LessonDetail': './src/app/professor/pages/lessons/lesson-detail.component.ts',
   },
 
  shared: {

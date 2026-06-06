@@ -125,4 +125,18 @@ export const routes: Routes = [
         m => m.TeacherDetailComponent,
       ),
   },
+  {
+    path: 'lessons',
+    loadComponent: () =>
+      import('./professor/pages/lessons/lessons-list.component').then(
+        m => m.LessonsListComponent,
+      ),
+  },
+  {
+    path: 'lessons/:id',
+    loadComponent: () =>
+      import('./professor/pages/lessons/lesson-detail.component').then(
+        m => m.LessonDetailComponent,
+      ),
+  },
 ];

@@ -1,0 +1,57 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <div>
+          <h1>Detalhe da aula</h1>
+          <p *ngIf="lesson() as data">{{ data.turmaNome }} - {{ data.disciplinaNome }}</p>
+        </div>
+        <button mat-stroked-button type="button" (click)="back()">
+          <mat-icon fontIcon="arrow_back"></mat-icon>
+          Voltar
+        </button>
+      </div>
+
+      <mat-progress-bar *ngIf="isLoading()" mode="indeterminate"></mat-progress-bar>
+
+      <section class="detail-grid" *ngIf="lesson() as data">
+        <div class="info-panel">
+          <span>Professor</span>
+          <strong>{{ data.professorNome }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Status</span>
+          <strong>{{ data.realizada ? 'Realizada' : 'Planejada' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Turma</span>
+          <strong>{{ data.turmaNome }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Disciplina</span>
+          <strong>{{ data.disciplinaNome }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Data</span>
+          <strong>{{ data.dataAula | date: 'dd/MM/yyyy' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Horário</span>
+          <strong>{{ data.horarioInicio || '--:--' }} às {{ data.horarioFim || '--:--' }}</strong>
+        </div>
+        <div class="info-panel span-2">
+          <span>Conteúdo</span>
+          <strong>{{ data.conteudoMinistrado || 'Não informado' }}</strong>
+        </div>
+        <div class="info-panel span-2">
+          <span>Observação</span>
+          <strong>{{ data.observacao || 'Não informada' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Cadastro</span>
+          <strong>{{ data.createdAt ? (data.createdAt | date: 'dd/MM/yyyy HH:mm') : 'Não informado' }}</strong>
+        </div>
+      </section>
+    </mat-card-content>
+  </mat-card>
+</div>
