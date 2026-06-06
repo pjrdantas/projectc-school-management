@@ -153,4 +153,11 @@ export const routes: Routes = [
         m => m.AssessmentDetailComponent,
       ),
   },
+  {
+    path: 'dashboard/config',
+    loadComponent: () =>
+      import('./dashboard/pages/config/dashboard-config-admin.component').then(
+        m => m.DashboardConfigAdminComponent,
+      ),
+  },
 ];

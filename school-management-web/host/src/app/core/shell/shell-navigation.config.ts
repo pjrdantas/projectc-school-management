@@ -113,6 +113,11 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     exportName: 'AssessmentDetailComponent',
   },
   {
+    path: 'dashboard/config',
+    exposedModule: './DashboardConfigAdmin',
+    exportName: 'DashboardConfigAdminComponent',
+  },
+  {
     path: 'enrollment',
     exposedModule: './Matricula',
     exportName: 'EnrollmentNewComponent',
@@ -137,4 +142,5 @@ export const SHELL_ACCESS_MENU: ShellMenuItem[] = [
   { label: 'Usuários', icon: 'group', route: '/auth/users', perfis: ['ADMIN'] },
   { label: 'Perfis', icon: 'badge', route: '/auth/profiles', perfis: ['ADMIN'] },
   { label: 'Permissões', icon: 'verified_user', route: '/auth/permissions', perfis: ['ADMIN'] },
+  { label: 'Dashboards', icon: 'dashboard_customize', route: '/dashboard/config', perfis: ['ADMIN'] },
 ];

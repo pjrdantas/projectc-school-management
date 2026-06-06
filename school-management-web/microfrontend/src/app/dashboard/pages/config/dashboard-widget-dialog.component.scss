@@ -1,0 +1,28 @@
+.dialog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 12px;
+  min-width: min(720px, 90vw);
+  padding-top: 4px;
+}
+
+.span-2 {
+  grid-column: 1 / -1;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+select[matNativeControl],
+select[matNativeControl] option {
+  color: #111827;
+  background: #ffffff;
+}
+
+@media (max-width: 680px) {
+  .dialog-grid {
+    grid-template-columns: 1fr;
+    min-width: auto;
+  }
+}
