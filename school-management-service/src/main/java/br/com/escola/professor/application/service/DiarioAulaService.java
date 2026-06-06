@@ -106,7 +106,7 @@ public class DiarioAulaService {
 
         frequenciaProfessorJpaRepository.findByAulaIdAndProfessorId(aulaId, professorId)
                 .ifPresent(frequencia -> {
-                    throw new AulaFrequenciaProfessorDuplicadaException(aulaId, professorId);
+                    throw new AulaFrequenciaProfessorDuplicadaException();
                 });
 
         FrequenciaProfessorEntity entity = FrequenciaProfessorEntity.builder()
@@ -139,16 +139,16 @@ public class DiarioAulaService {
         UUID turmaAulaId = aula.getProfessorTurmaDisciplina().getTurmaDisciplina().getTurma().getId();
         UUID turmaMatriculaId = matricula.getTurma().getId();
         if (!turmaAulaId.equals(turmaMatriculaId)) {
-            throw new AulaMatriculaTurmaInconsistenteException(aulaId, request.matriculaId());
+            throw new AulaMatriculaTurmaInconsistenteException();
         }
 
         frequenciaAlunoJpaRepository.findByAulaIdAndMatriculaId(aulaId, request.matriculaId())
                 .ifPresent(frequencia -> {
-                    throw new AulaFrequenciaAlunoDuplicadaException(aulaId, request.matriculaId());
+                    throw new AulaFrequenciaAlunoDuplicadaException();
                 });
 
         SituacaoFrequenciaEntity situacao = situacaoFrequenciaJpaRepository.findByCodigo(request.situacao().toUpperCase())
-                .orElseThrow(() -> new SituacaoFrequenciaNaoEncontradaException(request.situacao()));
+                .orElseThrow(SituacaoFrequenciaNaoEncontradaException::new);
 
         FrequenciaAlunoEntity entity = FrequenciaAlunoEntity.builder()
                 .aula(aula)

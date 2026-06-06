@@ -51,7 +51,7 @@ public class DashboardProfessorService {
     @Transactional(readOnly = true)
     public DashboardProfessorResponse consultar(UUID professorId) {
         if (!professorJpaRepository.existsById(professorId)) {
-            throw new ProfessorNaoEncontradoException(professorId);
+            throw new ProfessorNaoEncontradoException();
         }
 
         List<ProfessorTurmaDisciplinaEntity> alocacoes = professorTurmaDisciplinaJpaRepository.findByProfessorId(professorId);

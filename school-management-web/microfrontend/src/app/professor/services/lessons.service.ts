@@ -2,6 +2,12 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ShellContextService } from '../../core/shell/shell-context.service';
+import {
+  StudentFrequency,
+  StudentFrequencyInput,
+  TeacherFrequency,
+  TeacherFrequencyInput,
+} from '../models/frequency.model';
 import { Lesson, LessonInput } from '../models/lesson.model';
 
 @Injectable({ providedIn: 'root' })
@@ -34,6 +40,30 @@ export class LessonsService {
 
   criar(input: LessonInput): Observable<Lesson> {
     return this.http.post<Lesson>(`${this.apiBaseUrl}/api/aulas`, input, {
+      headers: this.buildHeaders(),
+    });
+  }
+
+  listarFrequenciaProfessor(aulaId: string): Observable<TeacherFrequency[]> {
+    return this.http.get<TeacherFrequency[]>(`${this.apiBaseUrl}/api/aulas/${aulaId}/frequencia-professor`, {
+      headers: this.buildHeaders(),
+    });
+  }
+
+  registrarFrequenciaProfessor(aulaId: string, input: TeacherFrequencyInput): Observable<TeacherFrequency> {
+    return this.http.post<TeacherFrequency>(`${this.apiBaseUrl}/api/aulas/${aulaId}/frequencia-professor`, input, {
+      headers: this.buildHeaders(),
+    });
+  }
+
+  listarFrequenciasAlunos(aulaId: string): Observable<StudentFrequency[]> {
+    return this.http.get<StudentFrequency[]>(`${this.apiBaseUrl}/api/aulas/${aulaId}/frequencias-alunos`, {
+      headers: this.buildHeaders(),
+    });
+  }
+
+  registrarFrequenciaAluno(aulaId: string, input: StudentFrequencyInput): Observable<StudentFrequency> {
+    return this.http.post<StudentFrequency>(`${this.apiBaseUrl}/api/aulas/${aulaId}/frequencias-alunos`, input, {
       headers: this.buildHeaders(),
     });
   }

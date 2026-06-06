@@ -52,6 +52,106 @@
           <strong>{{ data.createdAt ? (data.createdAt | date: 'dd/MM/yyyy HH:mm') : 'Não informado' }}</strong>
         </div>
       </section>
+
+      <section class="attendance-section" *ngIf="lesson() as data">
+        <div class="section-header">
+          <div>
+            <h2>Frequência do professor</h2>
+            <p>{{ data.professorNome }}</p>
+          </div>
+        </div>
+
+        <div class="registered-frequency" *ngIf="teacherFrequency() as frequency; else teacherFrequencyFormTpl">
+          <strong>{{ frequency.presente ? 'Presente' : 'Ausente' }}</strong>
+          <span>{{ frequency.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+          <p *ngIf="frequency.justificativa">{{ frequency.justificativa }}</p>
+        </div>
+
+        <ng-template #teacherFrequencyFormTpl>
+          <form class="attendance-form" [formGroup]="teacherFrequencyForm" (ngSubmit)="saveTeacherFrequency()">
+            <mat-form-field appearance="outline">
+              <mat-label>Situação</mat-label>
+              <select matNativeControl formControlName="presente">
+                <option value="true">Presente</option>
+                <option value="false">Ausente</option>
+              </select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Justificativa</mat-label>
+              <input matInput formControlName="justificativa" maxlength="4000" />
+            </mat-form-field>
+
+            <button mat-raised-button color="primary" type="submit" [disabled]="isSavingTeacherFrequency()">
+              Registrar
+            </button>
+          </form>
+        </ng-template>
+      </section>
+
+      <section class="attendance-section" *ngIf="lesson()">
+        <div class="section-header">
+          <div>
+            <h2>Frequência dos alunos</h2>
+            <p>{{ studentRows().length }} matrícula(s) elegível(is)</p>
+          </div>
+        </div>
+
+        <div class="student-attendance-list" *ngIf="studentRows().length > 0; else noStudentsTpl">
+          <article class="student-attendance-item" *ngFor="let row of studentRows()">
+            <div class="student-summary">
+              <strong>{{ row.studentName }}</strong>
+              <span>{{ row.enrollment.status }}</span>
+            </div>
+
+            <div class="registered-frequency" *ngIf="row.frequency; else studentFrequencyFormTpl">
+              <strong>{{ frequencyStatusLabel(row.frequency.situacao) }}</strong>
+              <span>{{ row.frequency.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+              <p *ngIf="row.frequency.justificativa">{{ row.frequency.justificativa }}</p>
+            </div>
+
+            <ng-template #studentFrequencyFormTpl>
+              <div class="attendance-form student-form">
+                <mat-form-field appearance="outline">
+                  <mat-label>Situação</mat-label>
+                  <select
+                    matNativeControl
+                    [value]="row.draft.situacao"
+                    (change)="updateStudentDraft(row.enrollment.id, { situacao: $any($event.target).value })"
+                  >
+                    <option *ngFor="let option of statusOptions" [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Justificativa</mat-label>
+                  <input
+                    matInput
+                    maxlength="4000"
+                    [value]="row.draft.justificativa"
+                    (input)="updateStudentDraft(row.enrollment.id, { justificativa: $any($event.target).value })"
+                  />
+                </mat-form-field>
+
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="saveStudentFrequency(row)"
+                  [disabled]="savingStudentEnrollmentId() === row.enrollment.id"
+                >
+                  Registrar
+                </button>
+              </div>
+            </ng-template>
+          </article>
+        </div>
+
+        <ng-template #noStudentsTpl>
+          <p class="empty-state">Nenhuma matrícula elegível para esta turma.</p>
+        </ng-template>
+      </section>
     </mat-card-content>
   </mat-card>
 </div>

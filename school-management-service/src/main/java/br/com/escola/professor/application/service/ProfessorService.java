@@ -124,7 +124,7 @@ public class ProfessorService {
     @Transactional(readOnly = true)
     public List<ProfessorAlocacaoResponse> listarAlocacoes(UUID professorId) {
         if (!professorJpaRepository.existsById(professorId)) {
-            throw new ProfessorNaoEncontradoException(professorId);
+            throw new ProfessorNaoEncontradoException();
         }
         return professorTurmaDisciplinaJpaRepository.findByProfessorId(professorId).stream()
                 .map(this::toAlocacaoResponse)
@@ -143,7 +143,7 @@ public class ProfessorService {
 
     private ProfessorEntity findProfessor(UUID id) {
         return professorJpaRepository.findById(id)
-                .orElseThrow(() -> new ProfessorNaoEncontradoException(id));
+                .orElseThrow(ProfessorNaoEncontradoException::new);
     }
 
     private ProfessorResponse toProfessorResponse(ProfessorEntity entity) {
