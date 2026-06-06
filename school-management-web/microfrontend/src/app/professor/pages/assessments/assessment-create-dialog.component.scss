@@ -9,6 +9,23 @@
   grid-column: 1 / -1;
 }
 
+.allocation-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.allocation-field mat-form-field {
+  width: 100%;
+}
+
+.field-label {
+  color: #374151;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
 .allocation-field select[matNativeControl],
 .allocation-field option {
   color: #111827;

@@ -224,12 +224,22 @@ export class AcademicOperationalDashboardComponent implements OnInit {
     this.dashboard.set(null);
 
     if (publicoCodigo === 'PROFESSOR') {
-      this.professorDashboardPendente.set(true);
+      const professorId = this.shellContext.getUsuario()?.professorId ?? null;
+      if (!professorId) {
+        this.professorDashboardPendente.set(true);
+        return;
+      }
+
+      this.carregarDashboard(publicoCodigo, professorId);
       return;
     }
 
+    this.carregarDashboard(publicoCodigo);
+  }
+
+  private carregarDashboard(publicoCodigo: DashboardPublicoCodigo, professorId?: string | null): void {
     this.isLoading.set(true);
-    this.dashboardService.consultar(publicoCodigo).subscribe({
+    this.dashboardService.consultar(publicoCodigo, professorId).subscribe({
       next: dashboard => {
         this.dashboard.set(dashboard);
         this.isLoading.set(false);

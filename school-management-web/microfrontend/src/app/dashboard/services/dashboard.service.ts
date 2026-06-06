@@ -14,6 +14,10 @@ export class DashboardService {
     professorId?: string | null,
   ): Observable<DashboardFrontendResponse> {
     let params = new HttpParams().set('publicoCodigo', publicoCodigo);
+    const usuarioId = this.shellContext.getUsuario()?.usuarioId;
+    if (usuarioId) {
+      params = params.set('usuarioId', usuarioId);
+    }
     if (professorId) {
       params = params.set('professorId', professorId);
     }

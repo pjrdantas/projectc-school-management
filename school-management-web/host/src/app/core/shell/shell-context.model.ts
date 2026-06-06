@@ -3,6 +3,8 @@ export const SHELL_CONTEXT_STORAGE_KEY = 'school-management.shell.context.v1';
 export const SHELL_CONTEXT_EVENT = 'school-management:shell-context-changed';
 
 export interface ShellUsuario {
+  usuarioId?: string | null;
+  professorId?: string | null;
   usuario: string;
   nome: string;
   perfis: string[];

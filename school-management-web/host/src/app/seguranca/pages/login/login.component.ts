@@ -69,6 +69,8 @@ export class LoginComponent implements OnInit, OnDestroy {
       const response = await firstValueFrom(this.authApi.login(this.form.getRawValue()));
 
       this.authState.setAuth(response.accessToken, response.refreshToken, {
+        usuarioId: response.usuarioId ?? null,
+        professorId: response.professorId ?? null,
         usuario: response.username ?? response.login ?? '',
         nome: response.nome,
         perfis: response.perfis ?? [],

@@ -2,15 +2,22 @@
 
 <mat-dialog-content>
   <form class="dialog-grid" [formGroup]="form" (ngSubmit)="save()">
-    <mat-form-field appearance="outline" class="span-2 allocation-field">
-      <mat-label>Professor, turma e disciplina</mat-label>
-      <select matNativeControl formControlName="professorTurmaDisciplinaId">
-        <option value="">Selecione</option>
-        <option *ngFor="let allocation of allocations" [value]="allocation.id">
-          {{ allocation.professorNome }} - {{ allocation.turmaNome }} - {{ allocation.disciplinaNome }}
-        </option>
-      </select>
-    </mat-form-field>
+    <div class="span-2 allocation-field">
+      <label class="field-label" for="assessment-allocation">Professor, turma e disciplina</label>
+      <mat-form-field appearance="outline">
+        <select
+          id="assessment-allocation"
+          matNativeControl
+          formControlName="professorTurmaDisciplinaId"
+          aria-label="Professor, turma e disciplina"
+        >
+          <option value="">Selecione</option>
+          <option *ngFor="let allocation of allocations" [value]="allocation.id">
+            {{ allocation.professorNome }} - {{ allocation.turmaNome }} - {{ allocation.disciplinaNome }}
+          </option>
+        </select>
+      </mat-form-field>
+    </div>
 
     <p *ngIf="allocations.length === 0" class="empty-message span-2">
       Nenhum vínculo ativo de professor, turma e disciplina disponível.
