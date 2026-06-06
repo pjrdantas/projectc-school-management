@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, forkJoin, map, tap } from 'rxjs';
 import { ShellContextService } from '../../core/shell/shell-context.service';
 import {
   AcademicClass,
+  AcademicClassDiscipline,
   AcademicClassInput,
   AcademicPeriod,
   AcademicPeriodInput,
@@ -193,6 +194,15 @@ export class AcademicService {
         headers: this.buildHeaders(),
       })
       .pipe(tap(turma => this.upsertClass(turma)));
+  }
+
+  listClassDisciplines(classId: string): Observable<AcademicClassDiscipline[]> {
+    return this.http.get<AcademicClassDiscipline[]>(
+      `${this.apiBaseUrl}/api/turmas/${classId}/disciplinas`,
+      {
+        headers: this.buildHeaders(),
+      },
+    );
   }
 
   private get apiBaseUrl(): string {

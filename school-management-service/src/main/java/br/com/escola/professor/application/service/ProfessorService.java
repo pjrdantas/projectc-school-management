@@ -102,11 +102,11 @@ public class ProfessorService {
     public ProfessorAlocacaoResponse vincularTurmaDisciplina(UUID professorId, ProfessorAlocacaoRequest request) {
         ProfessorEntity professor = findProfessor(professorId);
         TurmaDisciplinaEntity turmaDisciplina = turmaDisciplinaJpaRepository.findById(request.turmaDisciplinaId())
-                .orElseThrow(() -> new ProfessorTurmaDisciplinaNaoEncontradaException(request.turmaDisciplinaId()));
+                .orElseThrow(ProfessorTurmaDisciplinaNaoEncontradaException::new);
 
         professorTurmaDisciplinaJpaRepository.findByProfessorIdAndTurmaDisciplinaId(professorId, request.turmaDisciplinaId())
                 .ifPresent(vinculo -> {
-                    throw new ProfessorTurmaDisciplinaDuplicadaException(professorId, request.turmaDisciplinaId());
+                    throw new ProfessorTurmaDisciplinaDuplicadaException();
                 });
 
         ProfessorTurmaDisciplinaEntity entity = ProfessorTurmaDisciplinaEntity.builder()

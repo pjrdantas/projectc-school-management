@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { ShellContextService } from '../../core/shell/shell-context.service';
 import {
   Professor,
+  ProfessorAllocation,
+  ProfessorAllocationInput,
   ProfessorFuncionarioElegivel,
   ProfessorInput,
 } from '../models/teacher.model';
@@ -38,6 +40,37 @@ export class TeachersService {
     return this.http.post<Professor>(`${this.apiBaseUrl}/api/professores`, input, {
       headers: this.buildHeaders(),
     });
+  }
+
+  listarAlocacoes(professorId: string): Observable<ProfessorAllocation[]> {
+    return this.http.get<ProfessorAllocation[]>(
+      `${this.apiBaseUrl}/api/professores/${professorId}/turmas-disciplinas`,
+      {
+        headers: this.buildHeaders(),
+      },
+    );
+  }
+
+  vincularTurmaDisciplina(
+    professorId: string,
+    input: ProfessorAllocationInput,
+  ): Observable<ProfessorAllocation> {
+    return this.http.post<ProfessorAllocation>(
+      `${this.apiBaseUrl}/api/professores/${professorId}/turmas-disciplinas`,
+      input,
+      {
+        headers: this.buildHeaders(),
+      },
+    );
+  }
+
+  listarProfessoresPorTurma(turmaId: string): Observable<ProfessorAllocation[]> {
+    return this.http.get<ProfessorAllocation[]>(
+      `${this.apiBaseUrl}/api/turmas/${turmaId}/professores`,
+      {
+        headers: this.buildHeaders(),
+      },
+    );
   }
 
   private get apiBaseUrl(): string {

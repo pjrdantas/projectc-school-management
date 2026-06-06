@@ -61,7 +61,7 @@ public class DiarioAulaService {
     public AulaResponse criarAula(AulaRequest request) {
         ProfessorTurmaDisciplinaEntity alocacao = professorTurmaDisciplinaJpaRepository
                 .findById(request.professorTurmaDisciplinaId())
-                .orElseThrow(() -> new ProfessorTurmaDisciplinaNaoEncontradaException(request.professorTurmaDisciplinaId()));
+                .orElseThrow(ProfessorTurmaDisciplinaNaoEncontradaException::new);
 
         AulaEntity aula = AulaEntity.builder()
                 .professorTurmaDisciplina(alocacao)

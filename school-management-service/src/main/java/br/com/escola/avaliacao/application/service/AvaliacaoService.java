@@ -56,7 +56,7 @@ public class AvaliacaoService {
     public AvaliacaoResponse criar(AvaliacaoRequest request) {
         ProfessorTurmaDisciplinaEntity alocacao = professorTurmaDisciplinaJpaRepository
                 .findById(request.professorTurmaDisciplinaId())
-                .orElseThrow(() -> new ProfessorTurmaDisciplinaNaoEncontradaException(request.professorTurmaDisciplinaId()));
+                .orElseThrow(ProfessorTurmaDisciplinaNaoEncontradaException::new);
         TipoAvaliacaoEntity tipo = tipoAvaliacaoJpaRepository.findByCodigo(request.tipoAvaliacao().toUpperCase())
                 .orElseThrow(() -> new TipoAvaliacaoNaoEncontradoException(request.tipoAvaliacao()));
 

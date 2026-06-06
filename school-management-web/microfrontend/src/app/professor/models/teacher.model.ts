@@ -22,3 +22,25 @@ export interface ProfessorFuncionarioElegivel {
   cargo?: string | null;
   ativo: boolean;
 }
+
+export interface ProfessorAllocation {
+  id: string;
+  professorId: string;
+  professorNome: string;
+  turmaDisciplinaId: string;
+  turmaId: string;
+  turmaNome: string;
+  disciplinaId: string;
+  disciplinaNome: string;
+  dataInicio?: string | null;
+  dataFim?: string | null;
+  ativo: boolean;
+  createdAt?: string | null;
+}
+
+export interface ProfessorAllocationInput {
+  turmaDisciplinaId: string;
+  dataInicio?: string | null;
+  dataFim?: string | null;
+  ativo?: boolean | null;
+}
