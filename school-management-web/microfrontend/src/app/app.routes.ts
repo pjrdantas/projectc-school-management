@@ -139,4 +139,18 @@ export const routes: Routes = [
         m => m.LessonDetailComponent,
       ),
   },
+  {
+    path: 'assessments',
+    loadComponent: () =>
+      import('./professor/pages/assessments/assessments-list.component').then(
+        m => m.AssessmentsListComponent,
+      ),
+  },
+  {
+    path: 'assessments/:id',
+    loadComponent: () =>
+      import('./professor/pages/assessments/assessment-detail.component').then(
+        m => m.AssessmentDetailComponent,
+      ),
+  },
 ];

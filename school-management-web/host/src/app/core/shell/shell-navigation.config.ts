@@ -103,6 +103,16 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     exportName: 'LessonDetailComponent',
   },
   {
+    path: 'assessments',
+    exposedModule: './AssessmentList',
+    exportName: 'AssessmentsListComponent',
+  },
+  {
+    path: 'assessments/:id',
+    exposedModule: './AssessmentDetail',
+    exportName: 'AssessmentDetailComponent',
+  },
+  {
     path: 'enrollment',
     exposedModule: './Matricula',
     exportName: 'EnrollmentNewComponent',
@@ -119,6 +129,7 @@ export const SHELL_BUSINESS_MENU: ShellMenuItem[] = [
   { label: 'Disciplinas', icon: 'menu_book', route: '/academic/disciplines', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
   { label: 'Professores', icon: 'co_present', route: '/teachers', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR'] },
   { label: 'Aulas', icon: 'event_note', route: '/lessons', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
+  { label: 'Avaliações', icon: 'grading', route: '/assessments', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
   { label: 'Matrícula', icon: 'assignment', route: '/enrollment', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR'] },
 ];
 

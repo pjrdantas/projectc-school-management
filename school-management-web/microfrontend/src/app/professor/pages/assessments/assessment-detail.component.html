@@ -1,0 +1,125 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <div>
+          <h1>Detalhe da avaliação</h1>
+          <p *ngIf="assessment() as data">{{ data.turmaNome }} - {{ data.disciplinaNome }}</p>
+        </div>
+        <button mat-stroked-button type="button" (click)="back()">
+          <mat-icon fontIcon="arrow_back"></mat-icon>
+          Voltar
+        </button>
+      </div>
+
+      <mat-progress-bar *ngIf="isLoading()" mode="indeterminate"></mat-progress-bar>
+
+      <section class="detail-grid" *ngIf="assessment() as data">
+        <div class="info-panel span-2">
+          <span>Título</span>
+          <strong>{{ data.titulo }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Professor</span>
+          <strong>{{ data.professorNome }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Tipo</span>
+          <strong>{{ assessmentTypeLabel(data.tipoAvaliacao) }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Turma</span>
+          <strong>{{ data.turmaNome }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Disciplina</span>
+          <strong>{{ data.disciplinaNome }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Data</span>
+          <strong>{{ data.dataAplicacao ? (data.dataAplicacao | date: 'dd/MM/yyyy') : 'Não informada' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Valor</span>
+          <strong>{{ data.valorMaximo | number: '1.0-2' }} ponto(s)</strong>
+        </div>
+        <div class="info-panel">
+          <span>Peso</span>
+          <strong>{{ data.peso | number: '1.0-2' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Cadastro</span>
+          <strong>{{ data.createdAt ? (data.createdAt | date: 'dd/MM/yyyy HH:mm') : 'Não informado' }}</strong>
+        </div>
+        <div class="info-panel span-2">
+          <span>Descrição</span>
+          <strong>{{ data.descricao || 'Não informada' }}</strong>
+        </div>
+      </section>
+
+      <section class="grades-section" *ngIf="assessment() as data">
+        <div class="section-header">
+          <div>
+            <h2>Notas dos alunos</h2>
+            <p>{{ gradeRows().length }} matrícula(s) elegível(is)</p>
+          </div>
+        </div>
+
+        <div class="grade-list" *ngIf="gradeRows().length > 0; else noStudentsTpl">
+          <article class="grade-item" *ngFor="let row of gradeRows()">
+            <div class="student-summary">
+              <strong>{{ row.studentName }}</strong>
+              <span>{{ row.enrollment.status }}</span>
+            </div>
+
+            <div class="registered-grade" *ngIf="row.grade; else gradeFormTpl">
+              <strong>{{ row.grade.nota | number: '1.0-2' }} / {{ data.valorMaximo | number: '1.0-2' }}</strong>
+              <span>{{ row.grade.createdAt ? (row.grade.createdAt | date: 'dd/MM/yyyy HH:mm') : 'Lançada' }}</span>
+              <p *ngIf="row.grade.observacao">{{ row.grade.observacao }}</p>
+            </div>
+
+            <ng-template #gradeFormTpl>
+              <div class="grade-form">
+                <mat-form-field appearance="outline">
+                  <mat-label>Nota</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    min="0"
+                    [max]="data.valorMaximo"
+                    step="0.01"
+                    [value]="row.draft.nota"
+                    (input)="updateGradeDraft(row.enrollment.id, { nota: $any($event.target).value })"
+                  />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Observação</mat-label>
+                  <input
+                    matInput
+                    maxlength="4000"
+                    [value]="row.draft.observacao"
+                    (input)="updateGradeDraft(row.enrollment.id, { observacao: $any($event.target).value })"
+                  />
+                </mat-form-field>
+
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="saveGrade(row)"
+                  [disabled]="savingEnrollmentId() === row.enrollment.id"
+                >
+                  Lançar
+                </button>
+              </div>
+            </ng-template>
+          </article>
+        </div>
+
+        <ng-template #noStudentsTpl>
+          <p class="empty-state">Nenhuma matrícula elegível para esta turma.</p>
+        </ng-template>
+      </section>
+    </mat-card-content>
+  </mat-card>
+</div>

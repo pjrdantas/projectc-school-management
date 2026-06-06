@@ -13,6 +13,17 @@ mat-form-field {
   width: 100%;
 }
 
+select[matNativeControl],
+select[matNativeControl] option {
+  color: #111827;
+  background: #ffffff;
+}
+
+select[matNativeControl] {
+  width: 100%;
+  min-width: 0;
+}
+
 @media (max-width: 640px) {
   .dialog-grid {
     grid-template-columns: 1fr;

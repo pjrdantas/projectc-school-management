@@ -58,7 +58,7 @@ public class AvaliacaoService {
                 .findById(request.professorTurmaDisciplinaId())
                 .orElseThrow(ProfessorTurmaDisciplinaNaoEncontradaException::new);
         TipoAvaliacaoEntity tipo = tipoAvaliacaoJpaRepository.findByCodigo(request.tipoAvaliacao().toUpperCase())
-                .orElseThrow(() -> new TipoAvaliacaoNaoEncontradoException(request.tipoAvaliacao()));
+                .orElseThrow(TipoAvaliacaoNaoEncontradoException::new);
 
         AvaliacaoEntity avaliacao = AvaliacaoEntity.builder()
                 .professorTurmaDisciplina(alocacao)
@@ -105,16 +105,16 @@ public class AvaliacaoService {
         UUID turmaAvaliacaoId = avaliacao.getProfessorTurmaDisciplina().getTurmaDisciplina().getTurma().getId();
         UUID turmaMatriculaId = matricula.getTurma().getId();
         if (!turmaAvaliacaoId.equals(turmaMatriculaId)) {
-            throw new AvaliacaoMatriculaTurmaInconsistenteException(avaliacaoId, request.matriculaId());
+            throw new AvaliacaoMatriculaTurmaInconsistenteException();
         }
 
         if (request.nota().compareTo(BigDecimal.ZERO) < 0 || request.nota().compareTo(avaliacao.getValorMaximo()) > 0) {
-            throw new AvaliacaoNotaInvalidaException(request.nota(), avaliacao.getValorMaximo());
+            throw new AvaliacaoNotaInvalidaException();
         }
 
         notaAlunoJpaRepository.findByAvaliacaoIdAndMatriculaId(avaliacaoId, request.matriculaId())
                 .ifPresent(nota -> {
-                    throw new AvaliacaoNotaDuplicadaException(avaliacaoId, request.matriculaId());
+                    throw new AvaliacaoNotaDuplicadaException();
                 });
 
         NotaAlunoEntity entity = NotaAlunoEntity.builder()
@@ -131,7 +131,7 @@ public class AvaliacaoService {
     @Transactional(readOnly = true)
     public List<NotaAlunoResponse> listarNotasPorAvaliacao(UUID avaliacaoId) {
         if (!avaliacaoJpaRepository.existsById(avaliacaoId)) {
-            throw new AvaliacaoNaoEncontradaException(avaliacaoId);
+            throw new AvaliacaoNaoEncontradaException();
         }
         return notaAlunoJpaRepository.findByAvaliacaoId(avaliacaoId).stream()
                 .map(this::toNotaResponse)
@@ -150,7 +150,7 @@ public class AvaliacaoService {
 
     private AvaliacaoEntity findAvaliacao(UUID id) {
         return avaliacaoJpaRepository.findById(id)
-                .orElseThrow(() -> new AvaliacaoNaoEncontradaException(id));
+                .orElseThrow(AvaliacaoNaoEncontradaException::new);
     }
 
     private AvaliacaoResponse toAvaliacaoResponse(AvaliacaoEntity entity) {
