@@ -2,7 +2,12 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ShellContextService } from '../../core/shell/shell-context.service';
-import { DashboardFrontendResponse, DashboardPublicoCodigo } from '../models/dashboard.model';
+import {
+  DashboardFrontendResponse,
+  DashboardPublicoCodigo,
+  DashboardUsuarioConfiguracao,
+  DashboardUsuarioConfiguracaoInput,
+} from '../models/dashboard.model';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
@@ -26,6 +31,25 @@ export class DashboardService {
       headers: this.buildHeaders(),
       params,
     });
+  }
+
+  salvarConfiguracaoWidget(
+    usuarioId: string,
+    dashboardWidgetId: string,
+    payload: DashboardUsuarioConfiguracaoInput,
+  ): Observable<DashboardUsuarioConfiguracao> {
+    return this.http.put<DashboardUsuarioConfiguracao>(
+      `${this.apiBaseUrl}/api/dashboard/usuarios/${usuarioId}/widgets/${dashboardWidgetId}/configuracao`,
+      payload,
+      { headers: this.buildHeaders() },
+    );
+  }
+
+  excluirConfiguracaoWidget(usuarioId: string, dashboardWidgetId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiBaseUrl}/api/dashboard/usuarios/${usuarioId}/widgets/${dashboardWidgetId}/configuracao`,
+      { headers: this.buildHeaders() },
+    );
   }
 
   private get apiBaseUrl(): string {

@@ -75,11 +75,52 @@ export interface DashboardHistorico {
   pontos: DashboardHistoricoPonto[];
 }
 
+export interface DashboardFrontendWidget {
+  id: string;
+  codigo: string;
+  titulo: string;
+  descricao?: string | null;
+  tipoWidget: string;
+  ordem: number;
+  queryReferencia?: string | null;
+  ativo: boolean;
+}
+
+export interface DashboardFrontendConfiguracao {
+  id: string;
+  codigo: string;
+  nome: string;
+  descricao?: string | null;
+  ativo: boolean;
+  widgets: DashboardFrontendWidget[];
+}
+
+export interface DashboardUsuarioConfiguracao {
+  id: string;
+  usuarioId: string;
+  dashboardWidgetId: string;
+  widgetCodigo: string;
+  widgetTitulo: string;
+  dashboardId: string;
+  dashboardCodigo: string;
+  visivel: boolean;
+  ordem: number;
+  configuracaoJson?: string | null;
+}
+
+export interface DashboardUsuarioConfiguracaoInput {
+  visivel: boolean;
+  ordem: number;
+  configuracaoJson?: string | null;
+}
+
 export interface DashboardFrontendResponse {
   publicoCodigo: DashboardPublicoCodigo;
   usuarioId?: string | null;
   professorId?: string | null;
   resumo: DashboardResumo;
   alertas: DashboardAlerta[];
+  dashboards: DashboardFrontendConfiguracao[];
+  configuracoesUsuario: DashboardUsuarioConfiguracao[];
   historico: DashboardHistorico[];
 }

@@ -37,6 +37,56 @@
           </div>
         </div>
 
+        <section class="panel preferences-panel" *ngIf="personalizacaoItems().length > 0">
+          <div class="panel-header">
+            <div>
+              <h2>Preferências do dashboard</h2>
+              <span>{{ dashboardConfigurado()?.nome }}</span>
+            </div>
+            <span *ngIf="isSavingPreference()">Salvando</span>
+          </div>
+
+          <div class="preference-list">
+            <div
+              *ngFor="let item of personalizacaoItems()"
+              style="display: grid; grid-template-columns: minmax(0, 1fr) auto auto 34px; gap: 8px; align-items: center; margin-top: 8px;"
+            >
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem;">
+                <input
+                  type="checkbox"
+                  [checked]="item.visivel"
+                  [disabled]="isSavingPreference()"
+                  (change)="alterarVisibilidade(item, $event)"
+                />
+                <span>{{ item.widget.titulo }}</span>
+              </label>
+
+              <span class="widget-type">{{ item.widget.tipoWidget }}</span>
+
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem;">
+                <span>Ordem</span>
+                <input
+                  type="number"
+                  min="0"
+                  [value]="item.ordem"
+                  [disabled]="isSavingPreference()"
+                  (change)="alterarOrdem(item, $event)"
+                />
+              </label>
+
+              <button
+                mat-icon-button
+                type="button"
+                aria-label="Restaurar preferência"
+                [disabled]="isSavingPreference() || !item.config"
+                (click)="restaurarPreferencia(item)"
+              >
+                <mat-icon fontIcon="restart_alt"></mat-icon>
+              </button>
+            </div>
+          </div>
+        </section>
+
         <div class="dashboard-grid">
           <div class="chart-column">
             <section class="panel chart-panel">
