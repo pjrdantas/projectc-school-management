@@ -1,0 +1,103 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <div>
+          <h1>Aulas</h1>
+          <p>Planejamento e registro inicial de aulas por professor, turma e disciplina.</p>
+        </div>
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          [disabled]="isLoadingAllocations() || allocations().length === 0"
+          (click)="openCreateDialog()"
+        >
+          <mat-icon fontIcon="add"></mat-icon>
+          Nova aula
+        </button>
+      </div>
+
+      <mat-progress-bar *ngIf="isLoading()" mode="indeterminate"></mat-progress-bar>
+
+      <form class="filters-grid" [formGroup]="filterForm">
+        <mat-form-field appearance="outline">
+          <mat-label>Professor</mat-label>
+          <select matNativeControl formControlName="professorId">
+            <option value="">Todos</option>
+            <option *ngFor="let option of professorOptions()" [value]="option.id">
+              {{ option.label }}
+            </option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Turma</mat-label>
+          <select matNativeControl formControlName="turmaId">
+            <option value="">Todas</option>
+            <option *ngFor="let option of classOptions()" [value]="option.id">
+              {{ option.label }}
+            </option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Disciplina</mat-label>
+          <select matNativeControl formControlName="disciplinaId">
+            <option value="">Todas</option>
+            <option *ngFor="let option of disciplineOptions()" [value]="option.id">
+              {{ option.label }}
+            </option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Data</mat-label>
+          <input matInput type="date" formControlName="dataAula" />
+        </mat-form-field>
+
+        <button mat-stroked-button type="button" (click)="clearFilters()">
+          <mat-icon fontIcon="filter_alt_off"></mat-icon>
+          Limpar
+        </button>
+      </form>
+
+      <p *ngIf="!isLoadingAllocations() && allocations().length === 0" class="warning-state">
+        Cadastre vínculos de professor, turma e disciplina antes de registrar aulas.
+      </p>
+
+      <section class="lesson-list" *ngIf="!isLoading()">
+        <article class="lesson-item" *ngFor="let lesson of pagedLessons()">
+          <div class="lesson-main">
+            <strong>{{ lesson.turmaNome }} - {{ lesson.disciplinaNome }}</strong>
+            <span>{{ lesson.professorNome }}</span>
+            <span>{{ lesson.conteudoMinistrado || 'Conteúdo não informado' }}</span>
+          </div>
+          <div class="lesson-meta">
+            <span>{{ lesson.dataAula | date: 'dd/MM/yyyy' }}</span>
+            <span>
+              {{ lesson.horarioInicio || '--:--' }} às {{ lesson.horarioFim || '--:--' }}
+            </span>
+            <span>{{ lesson.realizada ? 'Realizada' : 'Planejada' }}</span>
+          </div>
+          <button mat-icon-button type="button" aria-label="Detalhar aula" (click)="onDetails(lesson.id)">
+            <mat-icon fontIcon="chevron_right"></mat-icon>
+          </button>
+        </article>
+
+        <p class="empty-state" *ngIf="filteredLessons().length === 0">
+          Nenhuma aula encontrada.
+        </p>
+      </section>
+
+      <mat-paginator
+        *ngIf="filteredLessons().length > pageSize()"
+        [length]="filteredLessons().length"
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="pageSizeOptions"
+        (page)="onPageChange($event)"
+      ></mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

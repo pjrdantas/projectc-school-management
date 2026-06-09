@@ -65,6 +65,8 @@ export class ShellContextService implements OnDestroy {
       accessToken: context.accessToken ?? null,
       usuario: context.usuario
         ? {
+            usuarioId: context.usuario.usuarioId ?? null,
+            professorId: context.usuario.professorId ?? null,
             usuario: context.usuario.usuario,
             nome: context.usuario.nome,
             perfis: context.usuario.perfis ?? [],

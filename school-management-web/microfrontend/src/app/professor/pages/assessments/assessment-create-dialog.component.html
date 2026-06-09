@@ -1,0 +1,73 @@
+<h2 mat-dialog-title>Nova avaliação</h2>
+
+<mat-dialog-content>
+  <form class="dialog-grid" [formGroup]="form" (ngSubmit)="save()">
+    <div class="span-2 allocation-field">
+      <label class="field-label" for="assessment-allocation">Professor, turma e disciplina</label>
+      <mat-form-field appearance="outline">
+        <select
+          id="assessment-allocation"
+          matNativeControl
+          formControlName="professorTurmaDisciplinaId"
+          aria-label="Professor, turma e disciplina"
+        >
+          <option value="">Selecione</option>
+          <option *ngFor="let allocation of allocations" [value]="allocation.id">
+            {{ allocation.professorNome }} - {{ allocation.turmaNome }} - {{ allocation.disciplinaNome }}
+          </option>
+        </select>
+      </mat-form-field>
+    </div>
+
+    <p *ngIf="allocations.length === 0" class="empty-message span-2">
+      Nenhum vínculo ativo de professor, turma e disciplina disponível.
+    </p>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Título</mat-label>
+      <input matInput formControlName="titulo" maxlength="150" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Tipo</mat-label>
+      <select matNativeControl formControlName="tipoAvaliacao">
+        <option *ngFor="let type of assessmentTypes" [value]="type.value">
+          {{ type.label }}
+        </option>
+      </select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Data</mat-label>
+      <input matInput type="date" formControlName="dataAplicacao" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Valor máximo</mat-label>
+      <input matInput type="number" min="0.01" step="0.01" formControlName="valorMaximo" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Peso</mat-label>
+      <input matInput type="number" min="0.01" step="0.01" formControlName="peso" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Descrição</mat-label>
+      <textarea matInput rows="3" formControlName="descricao"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">Cancelar</button>
+  <button
+    mat-raised-button
+    color="primary"
+    type="button"
+    [disabled]="form.invalid || allocations.length === 0"
+    (click)="save()"
+  >
+    Salvar
+  </button>
+</mat-dialog-actions>

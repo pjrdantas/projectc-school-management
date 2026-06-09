@@ -1,0 +1,82 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <div>
+          <h1>Detalhe do professor</h1>
+          <p *ngIf="professor() as data">{{ data.nomeCompleto }}</p>
+        </div>
+        <button mat-stroked-button type="button" (click)="back()">
+          <mat-icon fontIcon="arrow_back"></mat-icon>
+          Voltar
+        </button>
+      </div>
+
+      <mat-progress-bar *ngIf="isLoading()" mode="indeterminate"></mat-progress-bar>
+
+      <section class="detail-grid" *ngIf="professor() as data">
+        <div class="info-panel">
+          <span>Nome</span>
+          <strong>{{ data.nomeCompleto }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Status</span>
+          <strong>{{ data.ativo ? 'Ativo' : 'Inativo' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Registro profissional</span>
+          <strong>{{ data.registroProfissional || 'Não informado' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Formação</span>
+          <strong>{{ data.formacao || 'Não informada' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Cadastro</span>
+          <strong>{{ data.createdAt ? (data.createdAt | date: 'dd/MM/yyyy HH:mm') : 'Não informado' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Última atualização</span>
+          <strong>{{ data.updatedAt ? (data.updatedAt | date: 'dd/MM/yyyy HH:mm') : 'Não informada' }}</strong>
+        </div>
+      </section>
+
+      <section class="allocation-section" *ngIf="professor()">
+        <div class="section-header">
+          <div>
+            <h2>Turmas e disciplinas</h2>
+            <p>Vínculos pedagógicos ativos e históricos do professor.</p>
+          </div>
+          <button mat-raised-button color="primary" type="button" (click)="openAllocationDialog()">
+            <mat-icon fontIcon="add"></mat-icon>
+            Novo vínculo
+          </button>
+        </div>
+
+        <mat-progress-bar *ngIf="isLoadingAllocations()" mode="indeterminate"></mat-progress-bar>
+
+        <div class="allocation-list" *ngIf="!isLoadingAllocations()">
+          <article class="allocation-item" *ngFor="let allocation of allocations()">
+            <div>
+              <strong>{{ allocation.turmaNome }}</strong>
+              <span>{{ allocation.disciplinaNome }}</span>
+            </div>
+            <div class="allocation-meta">
+              <span>{{ allocation.ativo ? 'Ativo' : 'Inativo' }}</span>
+              <span>
+                {{ allocation.dataInicio ? (allocation.dataInicio | date: 'dd/MM/yyyy') : 'Início não informado' }}
+              </span>
+              <span>
+                {{ allocation.dataFim ? (allocation.dataFim | date: 'dd/MM/yyyy') : 'Sem data fim' }}
+              </span>
+            </div>
+          </article>
+
+          <p class="empty-state" *ngIf="allocations().length === 0">
+            Nenhum vínculo cadastrado para este professor.
+          </p>
+        </div>
+      </section>
+    </mat-card-content>
+  </mat-card>
+</div>

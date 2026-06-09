@@ -1,0 +1,22 @@
+.dialog-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.7fr) minmax(260px, 1.3fr);
+  gap: 12px;
+  min-width: min(620px, 86vw);
+  padding-top: 4px;
+}
+
+.span-2 {
+  grid-column: span 1;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .dialog-grid {
+    grid-template-columns: 1fr;
+    min-width: auto;
+  }
+}

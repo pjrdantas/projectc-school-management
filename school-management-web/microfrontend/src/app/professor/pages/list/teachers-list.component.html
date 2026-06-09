@@ -1,0 +1,59 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <h1>Professores</h1>
+        <button mat-raised-button color="primary" type="button" (click)="openCreateDialog()" [disabled]="isLoading()">
+          <mat-icon fontIcon="add"></mat-icon>
+          Novo professor
+        </button>
+      </div>
+
+      <mat-progress-bar *ngIf="isLoading()" mode="indeterminate"></mat-progress-bar>
+
+      <form class="search-row" [formGroup]="searchForm">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Buscar professor</mat-label>
+          <input
+            matInput
+            formControlName="termo"
+            placeholder="Nome, registro ou formação"
+            (input)="onSearchInput(($any($event.target).value || '').toString())"
+          />
+        </mat-form-field>
+        <button mat-stroked-button type="button" (click)="clearSearch()" [disabled]="isLoading()">
+          <mat-icon fontIcon="backspace"></mat-icon>Limpar
+        </button>
+      </form>
+
+      <div class="empty-state" *ngIf="total() === 0">Nenhum professor encontrado.</div>
+
+      <div class="list" *ngIf="total() > 0">
+        <div class="list-item" *ngFor="let professor of pagedTeachers()">
+          <div>
+            <h3>{{ professor.nomeCompleto }}</h3>
+            <p><strong>Registro:</strong> {{ professor.registroProfissional || 'Não informado' }}</p>
+            <p><strong>Formação:</strong> {{ professor.formacao || 'Não informada' }}</p>
+            <p><strong>Status:</strong> {{ professor.ativo ? 'Ativo' : 'Inativo' }}</p>
+          </div>
+          <div class="actions-row">
+            <button mat-stroked-button type="button" (click)="onDetails(professor.id)">
+              Detalhes
+            </button>
+          </div>
+        </div>
+
+        <mat-paginator
+          *ngIf="total() > 5"
+          [length]="total()"
+          [pageIndex]="pageIndex()"
+          [pageSize]="pageSize()"
+          [pageSizeOptions]="pageSizeOptions"
+          [hidePageSize]="true"
+          showFirstLastButtons
+          (page)="onPageChange($event)"
+        ></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

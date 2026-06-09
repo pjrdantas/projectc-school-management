@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import br.com.escola.seguranca.adapter.in.web.dto.AuthResponse;
+import br.com.escola.professor.adapter.out.persistence.repository.ProfessorJpaRepository;
 import br.com.escola.seguranca.adapter.out.persistence.entity.SessaoAutenticacaoEntity;
 import br.com.escola.seguranca.adapter.out.persistence.entity.UsuarioEntity;
 import br.com.escola.seguranca.adapter.out.persistence.repository.SessaoAutenticacaoJpaRepository;
@@ -28,16 +29,19 @@ public class AuthService {
 
     private final SpringUsuarioJpaRepository usuarioRepository;
     private final SessaoAutenticacaoJpaRepository sessaoRepository;
+    private final ProfessorJpaRepository professorRepository;
     private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
 
     public AuthService(
     		SpringUsuarioJpaRepository usuarioRepository,
             SessaoAutenticacaoJpaRepository sessaoRepository,
+            ProfessorJpaRepository professorRepository,
             PasswordEncoder passwordEncoder,
             JdbcTemplate jdbcTemplate) {
         this.usuarioRepository = usuarioRepository;
         this.sessaoRepository = sessaoRepository;
+        this.professorRepository = professorRepository;
         this.passwordEncoder = passwordEncoder;
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -68,7 +72,8 @@ public class AuthService {
                 LocalDateTime.now().plusDays(REFRESH_DIAS),
                 LocalDateTime.now().plusMinutes(ACCESS_MINUTOS)));
 
-        return new AuthResponse(accessToken, refreshToken, "Bearer", usuario.getUsername(), usuario.getNome(),
+        return new AuthResponse(accessToken, refreshToken, "Bearer", usuario.getId(), resolverProfessorId(usuario),
+                usuario.getUsername(), usuario.getNome(),
                 usuarioRepository.findPerfisByIdUsuario(usuario.getId()),
                 usuarioRepository.findPermissoesByIdUsuario(usuario.getId()));
     }
@@ -112,7 +117,8 @@ public class AuthService {
         sessaoRepository.save(sessao);
 
         UsuarioEntity usuario = sessao.getUsuario();
-        return new AuthResponse(newAccessToken, newRefreshToken, "Bearer", usuario.getUsername(), usuario.getNome(),
+        return new AuthResponse(newAccessToken, newRefreshToken, "Bearer", usuario.getId(), resolverProfessorId(usuario),
+                usuario.getUsername(), usuario.getNome(),
                 usuarioRepository.findPerfisByIdUsuario(usuario.getId()),
                 usuarioRepository.findPermissoesByIdUsuario(usuario.getId()));
     }
@@ -136,6 +142,13 @@ public class AuthService {
 
     public List<String> buscarPermissoes(UUID idUsuario) {
         return usuarioRepository.findPermissoesByIdUsuario(idUsuario);
+    }
+
+    private UUID resolverProfessorId(UsuarioEntity usuario) {
+        return professorRepository.findByUsuarioId(usuario.getId())
+                .or(() -> professorRepository.findAtivoByPessoaEmailIgnoreCase(usuario.getEmail()))
+                .map(professor -> professor.getId())
+                .orElse(null);
     }
 
 

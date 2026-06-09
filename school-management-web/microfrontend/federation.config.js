@@ -18,6 +18,13 @@ module.exports = withNativeFederation({
     './AlunoDetail': './src/app/aluno/pages/detail/students-detail.component.ts',
     './Matricula': './src/app/matricula/pages/new/enrollment-new.component.ts',
     './HistoricoDisciplines': './src/app/historico/pages/disciplines/disciplines.component.ts',
+    './ProfessorList': './src/app/professor/pages/list/teachers-list.component.ts',
+    './ProfessorDetail': './src/app/professor/pages/detail/teacher-detail.component.ts',
+    './LessonList': './src/app/professor/pages/lessons/lessons-list.component.ts',
+    './LessonDetail': './src/app/professor/pages/lessons/lesson-detail.component.ts',
+    './AssessmentList': './src/app/professor/pages/assessments/assessments-list.component.ts',
+    './AssessmentDetail': './src/app/professor/pages/assessments/assessment-detail.component.ts',
+    './DashboardConfigAdmin': './src/app/dashboard/pages/config/dashboard-config-admin.component.ts',
   },
 
  shared: {

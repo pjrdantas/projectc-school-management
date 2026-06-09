@@ -1,7 +1,6 @@
 import { NgFor } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
@@ -31,7 +30,6 @@ export interface AcademicClassDialogData {
   imports: [
     NgFor,
     ReactiveFormsModule,
-    MatAutocompleteModule,
     MatButtonModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -52,25 +50,13 @@ export class AcademicClassDialogComponent implements OnInit {
     { value: 'INATIVA', label: 'Inativa' },
   ];
 
-  protected readonly selectedPeriodId = signal<string | null>(
-    this.data.turma?.periodoLetivoId ?? null,
-  );
-  protected readonly periodSearchTerm = signal(this.getPeriodName(this.data.turma?.periodoLetivoId));
-
   protected readonly form = this.fb.nonNullable.group({
     nome: ['', [Validators.required, Validators.maxLength(80)]],
     capacidade: [30, [Validators.required, Validators.min(1)]],
-    periodoLetivoNome: ['', [Validators.required]],
+    periodoLetivoId: ['', [Validators.required]],
     serieId: ['', [Validators.required]],
     turno: ['', [Validators.required]],
     status: ['ATIVA', [Validators.required]],
-  });
-
-  protected readonly filteredPeriods = computed(() => {
-    const term = this.periodSearchTerm().toLowerCase().trim();
-    return this.periodOptions
-      .filter((period) => period.nome.toLowerCase().includes(term))
-      .slice(0, 10);
   });
 
   protected get title(): string {
@@ -79,36 +65,19 @@ export class AcademicClassDialogComponent implements OnInit {
 
   ngOnInit(): void {
     const turma = this.data.turma;
-    const periodName = this.getPeriodName(turma?.periodoLetivoId);
-    const periodId = turma?.periodoLetivoId ?? null;
 
-    this.selectedPeriodId.set(periodId);
-    this.periodSearchTerm.set(periodName);
     this.form.patchValue({
       nome: turma?.nome ?? '',
       capacidade: turma?.capacidade ?? 30,
-      periodoLetivoNome: periodName,
+      periodoLetivoId: turma?.periodoLetivoId ?? '',
       serieId: this.resolveSeriesId(turma),
       turno: this.resolveShiftCode(turma?.turno),
       status: this.normalizeStatus(turma?.status),
     });
   }
 
-  protected onPeriodInput(value: string): void {
-    this.periodSearchTerm.set(value);
-    this.selectedPeriodId.set(null);
-    this.form.controls.periodoLetivoNome.setValue(value, { emitEvent: false });
-  }
-
-  protected onPeriodOptionSelected(id: string): void {
-    const period = this.periodOptions.find((item) => item.id === id);
-    this.selectedPeriodId.set(id);
-    this.periodSearchTerm.set(period?.nome ?? '');
-    this.form.controls.periodoLetivoNome.setValue(period?.nome ?? '', { emitEvent: false });
-  }
-
   protected save(): void {
-    if (this.form.invalid || !this.selectedPeriodId()) {
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
@@ -118,7 +87,7 @@ export class AcademicClassDialogComponent implements OnInit {
       codigo: this.buildClassCode(raw.nome, raw.serieId, raw.turno),
       nome: raw.nome.trim(),
       capacidade: raw.capacidade,
-      periodoLetivoId: this.selectedPeriodId()!,
+      periodoLetivoId: raw.periodoLetivoId,
       serieId: raw.serieId,
       turno: raw.turno,
       status: this.normalizeStatus(raw.status),
@@ -140,13 +109,6 @@ export class AcademicClassDialogComponent implements OnInit {
       .filter(Boolean)
       .join('-')
       .slice(0, 20);
-  }
-
-  private getPeriodName(periodId?: string): string {
-    if (!periodId) {
-      return '';
-    }
-    return this.periodOptions.find((period) => period.id === periodId)?.nome ?? periodId;
   }
 
   private resolvePeriodOptions(): AcademicPeriod[] {

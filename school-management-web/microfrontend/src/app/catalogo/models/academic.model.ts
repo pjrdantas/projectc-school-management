@@ -62,3 +62,12 @@ export interface AcademicClassInput {
   turno?: string;
   status?: string;
 }
+
+export interface AcademicClassDiscipline {
+  id: string;
+  turmaId: string;
+  disciplinaId: string;
+  disciplinaNome: string;
+  cargaHoraria: number;
+  createdAt: string;
+}

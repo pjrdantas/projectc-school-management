@@ -12,6 +12,8 @@ export interface AuthApiResponse {
   accessToken: string;
   refreshToken: string;
   tokenType: string;
+  usuarioId?: string | null;
+  professorId?: string | null;
   username?: string;
   login?: string;
   nome: string;

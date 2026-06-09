@@ -1,0 +1,161 @@
+:host {
+  display: block;
+}
+
+.page-container {
+  min-height: 100%;
+  overflow: hidden;
+}
+
+.federated-card {
+  width: 100%;
+  border: 2px solid #667eea;
+  border-radius: 16px;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-row h1,
+.header-row p {
+  margin: 0;
+}
+
+.header-row p {
+  color: #576071;
+  font-size: 0.82rem;
+}
+
+mat-progress-bar {
+  margin-top: 12px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.info-panel {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid #d7def8;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.info-panel span {
+  color: #576071;
+  font-size: 0.76rem;
+}
+
+.span-2 {
+  grid-column: 1 / -1;
+}
+
+.attendance-section {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #d7def8;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.section-header h2,
+.section-header p {
+  margin: 0;
+}
+
+.section-header h2 {
+  font-size: 1rem;
+}
+
+.section-header p,
+.student-summary span,
+.registered-frequency span {
+  color: #576071;
+  font-size: 0.76rem;
+}
+
+.attendance-form {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) minmax(220px, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.attendance-form button {
+  min-height: 56px;
+}
+
+.registered-frequency {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid #d7def8;
+  border-radius: 8px;
+  background: #f8faff;
+}
+
+.registered-frequency p {
+  margin: 0;
+  color: #2f3747;
+  font-size: 0.84rem;
+}
+
+.student-attendance-list {
+  display: grid;
+  gap: 10px;
+}
+
+.student-attendance-item {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #d7def8;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.student-summary {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+
+.empty-state {
+  margin: 0;
+  color: #576071;
+  font-size: 0.86rem;
+}
+
+@media (max-width: 700px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .span-2 {
+    grid-column: auto;
+  }
+
+  .attendance-form,
+  .student-attendance-item {
+    grid-template-columns: 1fr;
+  }
+}

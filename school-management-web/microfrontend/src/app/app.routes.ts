@@ -111,4 +111,53 @@ export const routes: Routes = [
         m => m.DisciplinesComponent,
       ),
   },
+  {
+    path: 'teachers',
+    loadComponent: () =>
+      import('./professor/pages/list/teachers-list.component').then(
+        m => m.TeachersListComponent,
+      ),
+  },
+  {
+    path: 'teachers/:id',
+    loadComponent: () =>
+      import('./professor/pages/detail/teacher-detail.component').then(
+        m => m.TeacherDetailComponent,
+      ),
+  },
+  {
+    path: 'lessons',
+    loadComponent: () =>
+      import('./professor/pages/lessons/lessons-list.component').then(
+        m => m.LessonsListComponent,
+      ),
+  },
+  {
+    path: 'lessons/:id',
+    loadComponent: () =>
+      import('./professor/pages/lessons/lesson-detail.component').then(
+        m => m.LessonDetailComponent,
+      ),
+  },
+  {
+    path: 'assessments',
+    loadComponent: () =>
+      import('./professor/pages/assessments/assessments-list.component').then(
+        m => m.AssessmentsListComponent,
+      ),
+  },
+  {
+    path: 'assessments/:id',
+    loadComponent: () =>
+      import('./professor/pages/assessments/assessment-detail.component').then(
+        m => m.AssessmentDetailComponent,
+      ),
+  },
+  {
+    path: 'dashboard/config',
+    loadComponent: () =>
+      import('./dashboard/pages/config/dashboard-config-admin.component').then(
+        m => m.DashboardConfigAdminComponent,
+      ),
+  },
 ];

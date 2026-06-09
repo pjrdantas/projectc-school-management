@@ -6,6 +6,8 @@ import {
 } from '../shell/shell-context.model';
 
 export interface UsuarioAuth {
+  usuarioId?: string | null;
+  professorId?: string | null;
   usuario: string;
   nome: string;
   perfis: string[];

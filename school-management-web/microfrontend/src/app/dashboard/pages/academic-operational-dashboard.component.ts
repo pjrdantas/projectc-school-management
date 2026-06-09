@@ -8,9 +8,11 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { getApiErrorMessage } from '../../core/http/api-error';
 import { ShellContextService } from '../../core/shell/shell-context.service';
 import {
+  DashboardFrontendWidget,
   DashboardFrontendResponse,
   DashboardPublicoCodigo,
   DashboardResumo,
+  DashboardUsuarioConfiguracao,
 } from '../models/dashboard.model';
 import { DashboardService } from '../services/dashboard.service';
 
@@ -38,6 +40,13 @@ interface LineChartPoint extends ChartPoint {
   y: number;
 }
 
+interface DashboardPersonalizacaoItem {
+  widget: DashboardFrontendWidget;
+  config?: DashboardUsuarioConfiguracao;
+  visivel: boolean;
+  ordem: number;
+}
+
 @Component({
   selector: 'app-academic-operational-dashboard',
   standalone: true,
@@ -62,6 +71,7 @@ export class AcademicOperationalDashboardComponent implements OnInit {
   protected readonly isLoading = signal(false);
   protected readonly dashboard = signal<DashboardFrontendResponse | null>(null);
   protected readonly professorDashboardPendente = signal(false);
+  protected readonly isSavingPreference = signal(false);
 
   protected readonly publicoCodigo = computed(() => this.dashboard()?.publicoCodigo ?? this.resolvePublicoCodigo());
   protected readonly titulo = computed(() => {
@@ -91,6 +101,32 @@ export class AcademicOperationalDashboardComponent implements OnInit {
   protected readonly resumo = computed<DashboardResumo | null>(
     () => this.dashboard()?.resumo ?? null,
   );
+  protected readonly dashboardConfigurado = computed(() =>
+    (this.dashboard()?.dashboards ?? []).find(item => item.ativo) ?? null,
+  );
+  protected readonly personalizacaoItems = computed<DashboardPersonalizacaoItem[]>(() => {
+    const dashboard = this.dashboardConfigurado();
+    if (!dashboard) {
+      return [];
+    }
+
+    const configByWidgetId = new Map(
+      (this.dashboard()?.configuracoesUsuario ?? []).map(config => [config.dashboardWidgetId, config]),
+    );
+
+    return dashboard.widgets
+      .filter(widget => widget.ativo)
+      .map(widget => {
+        const config = configByWidgetId.get(widget.id);
+        return {
+          widget,
+          config,
+          visivel: config?.visivel ?? true,
+          ordem: config?.ordem ?? widget.ordem ?? 0,
+        };
+      })
+      .sort((left, right) => left.ordem - right.ordem || left.widget.titulo.localeCompare(right.widget.titulo, 'pt-BR'));
+  });
   protected readonly metrics = computed<DashboardMetric[]>(() => {
     const resumo = this.resumo();
     if (!resumo) {
@@ -224,12 +260,22 @@ export class AcademicOperationalDashboardComponent implements OnInit {
     this.dashboard.set(null);
 
     if (publicoCodigo === 'PROFESSOR') {
-      this.professorDashboardPendente.set(true);
+      const professorId = this.shellContext.getUsuario()?.professorId ?? null;
+      if (!professorId) {
+        this.professorDashboardPendente.set(true);
+        return;
+      }
+
+      this.carregarDashboard(publicoCodigo, professorId);
       return;
     }
 
+    this.carregarDashboard(publicoCodigo);
+  }
+
+  private carregarDashboard(publicoCodigo: DashboardPublicoCodigo, professorId?: string | null): void {
     this.isLoading.set(true);
-    this.dashboardService.consultar(publicoCodigo).subscribe({
+    this.dashboardService.consultar(publicoCodigo, professorId).subscribe({
       next: dashboard => {
         this.dashboard.set(dashboard);
         this.isLoading.set(false);
@@ -261,6 +307,41 @@ export class AcademicOperationalDashboardComponent implements OnInit {
     return value ?? 0;
   }
 
+  protected alterarVisibilidade(item: DashboardPersonalizacaoItem, event: Event): void {
+    const checked = (event.target as HTMLInputElement | null)?.checked ?? false;
+    this.salvarPreferencia(item, checked, item.ordem);
+  }
+
+  protected alterarOrdem(item: DashboardPersonalizacaoItem, event: Event): void {
+    const value = Number((event.target as HTMLInputElement | null)?.value ?? item.ordem);
+    this.salvarPreferencia(item, item.visivel, Number.isFinite(value) && value >= 0 ? value : item.ordem);
+  }
+
+  protected restaurarPreferencia(item: DashboardPersonalizacaoItem): void {
+    const usuarioId = this.shellContext.getUsuario()?.usuarioId;
+    if (!usuarioId) {
+      this.snackBar.open('Usuário não identificado para restaurar preferência.', 'Fechar', { duration: 3500 });
+      return;
+    }
+
+    this.isSavingPreference.set(true);
+    this.dashboardService.excluirConfiguracaoWidget(usuarioId, item.widget.id).subscribe({
+      next: () => {
+        this.isSavingPreference.set(false);
+        this.removerConfiguracaoSalva(item.widget.id);
+        this.snackBar.open('Preferência restaurada.', 'Fechar', { duration: 2500 });
+      },
+      error: (error: unknown) => {
+        this.isSavingPreference.set(false);
+        this.snackBar.open(
+          getApiErrorMessage(error, 'Não foi possível restaurar preferência.'),
+          'Fechar',
+          { duration: 4000 },
+        );
+      },
+    });
+  }
+
   protected formatPercentual(percentual: number): string {
     return `${percentual.toLocaleString('pt-BR', {
       minimumFractionDigits: 1,
@@ -280,6 +361,62 @@ export class AcademicOperationalDashboardComponent implements OnInit {
       icon,
       tone,
     };
+  }
+
+  private salvarPreferencia(item: DashboardPersonalizacaoItem, visivel: boolean, ordem: number): void {
+    const usuarioId = this.shellContext.getUsuario()?.usuarioId;
+    if (!usuarioId) {
+      this.snackBar.open('Usuário não identificado para salvar preferência.', 'Fechar', { duration: 3500 });
+      return;
+    }
+
+    this.isSavingPreference.set(true);
+    this.dashboardService.salvarConfiguracaoWidget(usuarioId, item.widget.id, {
+      visivel,
+      ordem,
+      configuracaoJson: item.config?.configuracaoJson ?? null,
+    }).subscribe({
+      next: saved => {
+        this.isSavingPreference.set(false);
+        this.aplicarConfiguracaoSalva(saved);
+        this.snackBar.open('Preferência salva.', 'Fechar', { duration: 2200 });
+      },
+      error: (error: unknown) => {
+        this.isSavingPreference.set(false);
+        this.snackBar.open(
+          getApiErrorMessage(error, 'Não foi possível salvar preferência.'),
+          'Fechar',
+          { duration: 4000 },
+        );
+      },
+    });
+  }
+
+  private aplicarConfiguracaoSalva(config: DashboardUsuarioConfiguracao): void {
+    const current = this.dashboard();
+    if (!current) {
+      return;
+    }
+
+    this.dashboard.set({
+      ...current,
+      configuracoesUsuario: [
+        ...current.configuracoesUsuario.filter(item => item.dashboardWidgetId !== config.dashboardWidgetId),
+        config,
+      ],
+    });
+  }
+
+  private removerConfiguracaoSalva(widgetId: string): void {
+    const current = this.dashboard();
+    if (!current) {
+      return;
+    }
+
+    this.dashboard.set({
+      ...current,
+      configuracoesUsuario: current.configuracoesUsuario.filter(item => item.dashboardWidgetId !== widgetId),
+    });
   }
 
   private resolvePublicoCodigo(): DashboardPublicoCodigo {

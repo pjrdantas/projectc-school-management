@@ -13,6 +13,7 @@ import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaJpaReposit
 import br.com.escola.catalogo.domain.exception.TurmaNaoEncontradaException;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorAlocacaoRequest;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorAlocacaoResponse;
+import br.com.escola.professor.adapter.in.web.dto.ProfessorFuncionarioElegivelResponse;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorRequest;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorResponse;
 import br.com.escola.professor.adapter.out.persistence.entity.ProfessorEntity;
@@ -52,15 +53,15 @@ public class ProfessorService {
     @Transactional
     public ProfessorResponse criar(ProfessorRequest request) {
         FuncionarioEntity funcionario = funcionarioJpaRepository.findById(request.funcionarioId())
-                .orElseThrow(() -> new ProfessorNaoEncontradoException("Funcionário não encontrado para o id " + request.funcionarioId()));
+                .orElseThrow(() -> new ProfessorNaoEncontradoException("Funcionário não encontrado."));
 
         if (Boolean.FALSE.equals(funcionario.getAtivo())) {
-            throw new ProfessorFuncionarioInativoException(request.funcionarioId());
+            throw new ProfessorFuncionarioInativoException();
         }
 
         professorJpaRepository.findByPessoaId(funcionario.getPessoa().getId())
                 .ifPresent(professor -> {
-                    throw new ProfessorJaCadastradoException(funcionario.getPessoa().getId());
+                    throw new ProfessorJaCadastradoException();
                 });
 
         ProfessorEntity professor = ProfessorEntity.builder()
@@ -82,6 +83,17 @@ public class ProfessorService {
     }
 
     @Transactional(readOnly = true)
+    public List<ProfessorFuncionarioElegivelResponse> listarFuncionariosElegiveis() {
+        return funcionarioJpaRepository.findAll().stream()
+                .filter(funcionario -> Boolean.TRUE.equals(funcionario.getAtivo()))
+                .filter(funcionario -> !professorJpaRepository.existsByPessoaId(funcionario.getPessoa().getId()))
+                .sorted((left, right) -> left.getPessoa().getNomeCompleto()
+                        .compareToIgnoreCase(right.getPessoa().getNomeCompleto()))
+                .map(this::toFuncionarioElegivelResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public ProfessorResponse buscarPorId(UUID id) {
         return toProfessorResponse(findProfessor(id));
     }
@@ -90,11 +102,11 @@ public class ProfessorService {
     public ProfessorAlocacaoResponse vincularTurmaDisciplina(UUID professorId, ProfessorAlocacaoRequest request) {
         ProfessorEntity professor = findProfessor(professorId);
         TurmaDisciplinaEntity turmaDisciplina = turmaDisciplinaJpaRepository.findById(request.turmaDisciplinaId())
-                .orElseThrow(() -> new ProfessorTurmaDisciplinaNaoEncontradaException(request.turmaDisciplinaId()));
+                .orElseThrow(ProfessorTurmaDisciplinaNaoEncontradaException::new);
 
         professorTurmaDisciplinaJpaRepository.findByProfessorIdAndTurmaDisciplinaId(professorId, request.turmaDisciplinaId())
                 .ifPresent(vinculo -> {
-                    throw new ProfessorTurmaDisciplinaDuplicadaException(professorId, request.turmaDisciplinaId());
+                    throw new ProfessorTurmaDisciplinaDuplicadaException();
                 });
 
         ProfessorTurmaDisciplinaEntity entity = ProfessorTurmaDisciplinaEntity.builder()
@@ -112,7 +124,7 @@ public class ProfessorService {
     @Transactional(readOnly = true)
     public List<ProfessorAlocacaoResponse> listarAlocacoes(UUID professorId) {
         if (!professorJpaRepository.existsById(professorId)) {
-            throw new ProfessorNaoEncontradoException(professorId);
+            throw new ProfessorNaoEncontradoException();
         }
         return professorTurmaDisciplinaJpaRepository.findByProfessorId(professorId).stream()
                 .map(this::toAlocacaoResponse)
@@ -131,7 +143,7 @@ public class ProfessorService {
 
     private ProfessorEntity findProfessor(UUID id) {
         return professorJpaRepository.findById(id)
-                .orElseThrow(() -> new ProfessorNaoEncontradoException(id));
+                .orElseThrow(ProfessorNaoEncontradoException::new);
     }
 
     private ProfessorResponse toProfessorResponse(ProfessorEntity entity) {
@@ -144,6 +156,14 @@ public class ProfessorService {
                 entity.getAtivo(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());
+    }
+
+    private ProfessorFuncionarioElegivelResponse toFuncionarioElegivelResponse(FuncionarioEntity entity) {
+        return new ProfessorFuncionarioElegivelResponse(
+                entity.getId(),
+                entity.getPessoa().getNomeCompleto(),
+                entity.getCargo() == null ? null : entity.getCargo().getDescricao(),
+                entity.getAtivo());
     }
 
     private ProfessorAlocacaoResponse toAlocacaoResponse(ProfessorTurmaDisciplinaEntity entity) {

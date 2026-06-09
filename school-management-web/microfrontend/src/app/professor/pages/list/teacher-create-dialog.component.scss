@@ -1,0 +1,22 @@
+.dialog-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.span-2 {
+  grid-column: 1 / -1;
+}
+
+.empty-message {
+  margin: -6px 0 2px;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .dialog-grid {
+    grid-template-columns: 1fr;
+  }
+}

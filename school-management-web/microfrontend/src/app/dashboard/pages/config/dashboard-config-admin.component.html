@@ -1,0 +1,145 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <div>
+          <h1>Configuração de dashboards</h1>
+          <p>Administração de públicos, dashboards e widgets operacionais.</p>
+        </div>
+        <button mat-raised-button color="primary" type="button" (click)="openPublicoDialog()">
+          <mat-icon fontIcon="add"></mat-icon>
+          Novo público
+        </button>
+      </div>
+
+      <mat-progress-bar *ngIf="isLoading()" mode="indeterminate"></mat-progress-bar>
+
+      <div class="config-layout">
+        <section class="panel publicos-panel">
+          <div class="panel-header">
+            <h2>Públicos</h2>
+            <span>{{ publicos().length }}</span>
+          </div>
+
+          <div class="empty-state" *ngIf="!isLoading() && publicos().length === 0">
+            Nenhum público configurado.
+          </div>
+
+          <button
+            class="publico-row"
+            type="button"
+            *ngFor="let publico of publicos()"
+            [ngClass]="{ selected: publico.id === selectedPublicoId() }"
+            (click)="selectPublico(publico)"
+          >
+            <span>{{ publico.descricao }}</span>
+            <strong>{{ publico.codigo }}</strong>
+          </button>
+
+          <div class="panel-actions" *ngIf="selectedPublico() as publico">
+            <button mat-stroked-button type="button" (click)="openPublicoDialog(publico)">
+              <mat-icon fontIcon="edit"></mat-icon>
+              Editar
+            </button>
+            <button mat-stroked-button color="warn" type="button" (click)="deletePublico(publico)">
+              <mat-icon fontIcon="delete"></mat-icon>
+              Excluir
+            </button>
+          </div>
+        </section>
+
+        <section class="panel dashboards-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Dashboards</h2>
+              <p *ngIf="selectedPublico() as publico">{{ publico.descricao }}</p>
+            </div>
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="!selectedPublicoId()"
+              (click)="openDashboardDialog()"
+            >
+              <mat-icon fontIcon="add"></mat-icon>
+              Novo
+            </button>
+          </div>
+
+          <mat-progress-bar *ngIf="isLoadingDashboards()" mode="indeterminate"></mat-progress-bar>
+
+          <div class="empty-state" *ngIf="!isLoadingDashboards() && orderedDashboards().length === 0">
+            Nenhum dashboard para o público selecionado.
+          </div>
+
+          <article
+            class="dashboard-row"
+            *ngFor="let dashboard of orderedDashboards()"
+            [ngClass]="{ selected: dashboard.id === selectedDashboardId() }"
+            (click)="selectDashboard(dashboard)"
+          >
+            <div>
+              <strong>{{ dashboard.nome }}</strong>
+              <span>{{ dashboard.codigo }}</span>
+              <p>{{ dashboard.descricao || 'Sem descrição.' }}</p>
+            </div>
+            <span class="status-pill" [ngClass]="{ inactive: !dashboard.ativo }">
+              {{ statusLabel(dashboard.ativo) }}
+            </span>
+            <div class="row-actions">
+              <button mat-icon-button type="button" aria-label="Editar dashboard" (click)="$event.stopPropagation(); openDashboardDialog(dashboard)">
+                <mat-icon fontIcon="edit"></mat-icon>
+              </button>
+              <button mat-icon-button color="warn" type="button" aria-label="Excluir dashboard" (click)="$event.stopPropagation(); deleteDashboard(dashboard)">
+                <mat-icon fontIcon="delete"></mat-icon>
+              </button>
+            </div>
+          </article>
+        </section>
+
+        <section class="panel widgets-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Widgets</h2>
+              <p *ngIf="selectedDashboard() as dashboard">{{ dashboard.nome }}</p>
+            </div>
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="!selectedDashboardId()"
+              (click)="openWidgetDialog()"
+            >
+              <mat-icon fontIcon="add"></mat-icon>
+              Novo
+            </button>
+          </div>
+
+          <mat-progress-bar *ngIf="isLoadingWidgets()" mode="indeterminate"></mat-progress-bar>
+
+          <div class="empty-state" *ngIf="!isLoadingWidgets() && orderedWidgets().length === 0">
+            Nenhum widget para o dashboard selecionado.
+          </div>
+
+          <article class="widget-row" *ngFor="let widget of orderedWidgets()">
+            <div class="widget-order">{{ widget.ordem }}</div>
+            <div class="widget-main">
+              <strong>{{ widget.titulo }}</strong>
+              <span>{{ widget.codigo }} · {{ widget.tipoWidget }}</span>
+              <p>{{ widget.descricao || widget.queryReferencia || 'Sem descrição.' }}</p>
+            </div>
+            <span class="status-pill" [ngClass]="{ inactive: !widget.ativo }">
+              {{ statusLabel(widget.ativo) }}
+            </span>
+            <div class="row-actions">
+              <button mat-icon-button type="button" aria-label="Editar widget" (click)="openWidgetDialog(widget)">
+                <mat-icon fontIcon="edit"></mat-icon>
+              </button>
+              <button mat-icon-button color="warn" type="button" aria-label="Excluir widget" (click)="deleteWidget(widget)">
+                <mat-icon fontIcon="delete"></mat-icon>
+              </button>
+            </div>
+          </article>
+        </section>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,107 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <div>
+          <h1>Avaliações</h1>
+          <p>Cadastro de avaliações e acesso ao lançamento de notas.</p>
+        </div>
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          [disabled]="isLoadingAllocations() || allocations().length === 0"
+          (click)="openCreateDialog()"
+        >
+          <mat-icon fontIcon="add"></mat-icon>
+          Nova avaliação
+        </button>
+      </div>
+
+      <mat-progress-bar *ngIf="isLoading()" mode="indeterminate"></mat-progress-bar>
+
+      <form class="filters-grid" [formGroup]="filterForm">
+        <mat-form-field appearance="outline">
+          <mat-label>Professor</mat-label>
+          <select matNativeControl formControlName="professorId">
+            <option value="">Todos</option>
+            <option *ngFor="let option of professorOptions()" [value]="option.id">
+              {{ option.label }}
+            </option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Turma</mat-label>
+          <select matNativeControl formControlName="turmaId">
+            <option value="">Todas</option>
+            <option *ngFor="let option of classOptions()" [value]="option.id">
+              {{ option.label }}
+            </option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Disciplina</mat-label>
+          <select matNativeControl formControlName="disciplinaId">
+            <option value="">Todas</option>
+            <option *ngFor="let option of disciplineOptions()" [value]="option.id">
+              {{ option.label }}
+            </option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tipo</mat-label>
+          <select matNativeControl formControlName="tipoAvaliacao">
+            <option value="">Todos</option>
+            <option *ngFor="let option of typeOptions()" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </mat-form-field>
+
+        <button mat-stroked-button type="button" (click)="clearFilters()">
+          <mat-icon fontIcon="filter_alt_off"></mat-icon>
+          Limpar
+        </button>
+      </form>
+
+      <p *ngIf="!isLoadingAllocations() && allocations().length === 0" class="warning-state">
+        Cadastre vínculos de professor, turma e disciplina antes de registrar avaliações.
+      </p>
+
+      <section class="assessment-list" *ngIf="!isLoading()">
+        <article class="assessment-item" *ngFor="let assessment of pagedAssessments()">
+          <div class="assessment-main">
+            <strong>{{ assessment.titulo }}</strong>
+            <span>{{ assessment.turmaNome }} - {{ assessment.disciplinaNome }}</span>
+            <span>{{ assessment.professorNome }}</span>
+          </div>
+          <div class="assessment-meta">
+            <span>{{ assessmentTypeLabel(assessment.tipoAvaliacao) }}</span>
+            <span>{{ assessment.dataAplicacao ? (assessment.dataAplicacao | date: 'dd/MM/yyyy') : 'Sem data' }}</span>
+            <span>{{ assessment.valorMaximo }} pts</span>
+            <span>Peso {{ assessment.peso }}</span>
+          </div>
+          <button mat-icon-button type="button" aria-label="Detalhar avaliação" (click)="onDetails(assessment.id)">
+            <mat-icon fontIcon="chevron_right"></mat-icon>
+          </button>
+        </article>
+
+        <p class="empty-state" *ngIf="filteredAssessments().length === 0">
+          Nenhuma avaliação encontrada.
+        </p>
+      </section>
+
+      <mat-paginator
+        *ngIf="filteredAssessments().length > pageSize()"
+        [length]="filteredAssessments().length"
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="pageSizeOptions"
+        (page)="onPageChange($event)"
+      ></mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

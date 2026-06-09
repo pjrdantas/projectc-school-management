@@ -1,0 +1,73 @@
+<h2 mat-dialog-title>Novo vínculo</h2>
+
+<mat-dialog-content>
+  <form class="dialog-grid" [formGroup]="form" (ngSubmit)="save()">
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Turma *</mat-label>
+      <select matNativeControl formControlName="turmaId">
+        <option value="">
+          {{ isLoadingClasses() ? 'Carregando turmas...' : 'Selecione uma turma' }}
+        </option>
+        <option *ngFor="let turma of classes()" [value]="turma.id">
+          {{ turma.nome }} - {{ turma.serieNome }} - {{ turma.turno }}
+        </option>
+      </select>
+    </mat-form-field>
+
+    <p *ngIf="!isLoadingTeachersInClass() && form.controls.turmaId.value" class="context-message span-2">
+      {{ teachersInClass().length }} professor(es) já vinculado(s) a esta turma.
+    </p>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Disciplina *</mat-label>
+      <select
+        matNativeControl
+        formControlName="turmaDisciplinaId"
+        [disabled]="!form.controls.turmaId.value || isLoadingDisciplines()"
+      >
+        <option value="">
+          {{ isLoadingDisciplines() ? 'Carregando disciplinas...' : 'Selecione uma disciplina' }}
+        </option>
+        <option *ngFor="let discipline of disciplines()" [value]="discipline.id">
+          {{ discipline.disciplinaNome }} - {{ discipline.cargaHoraria }}h
+        </option>
+      </select>
+    </mat-form-field>
+
+    <p *ngIf="!isLoadingDisciplines() && form.controls.turmaId.value && disciplines().length === 0" class="empty-message span-2">
+      Esta turma ainda não possui disciplinas vinculadas.
+    </p>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Início</mat-label>
+      <input matInput type="date" formControlName="dataInicio" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Fim</mat-label>
+      <input matInput type="date" formControlName="dataFim" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Status *</mat-label>
+      <select matNativeControl formControlName="ativo">
+        <option *ngFor="let status of statusOptions" [value]="status.value">
+          {{ status.label }}
+        </option>
+      </select>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">Cancelar</button>
+  <button
+    mat-raised-button
+    color="primary"
+    type="button"
+    [disabled]="isLoadingClasses() || isLoadingDisciplines() || disciplines().length === 0"
+    (click)="save()"
+  >
+    Salvar
+  </button>
+</mat-dialog-actions>

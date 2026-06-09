@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.professor.adapter.in.web.dto.ProfessorAlocacaoRequest;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorAlocacaoResponse;
+import br.com.escola.professor.adapter.in.web.dto.ProfessorFuncionarioElegivelResponse;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorRequest;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorResponse;
 import br.com.escola.professor.application.service.ProfessorService;
@@ -42,6 +43,12 @@ public class ProfessorController {
     @Operation(summary = "Lista professores")
     public List<ProfessorResponse> listar() {
         return professorService.listar();
+    }
+
+    @GetMapping("/funcionarios-elegiveis")
+    @Operation(summary = "Lista funcionários elegíveis para cadastro de professor")
+    public List<ProfessorFuncionarioElegivelResponse> listarFuncionariosElegiveis() {
+        return professorService.listarFuncionariosElegiveis();
     }
 
     @GetMapping("/{id}")

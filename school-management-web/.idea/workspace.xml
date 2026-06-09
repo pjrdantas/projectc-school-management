@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="dfd0ed3a-964d-4c23-8d4a-f996028552cf" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/microfrontend/src/app/dashboard/models/dashboard.model.ts" beforeDir="false" afterPath="$PROJECT_DIR$/microfrontend/src/app/dashboard/models/dashboard.model.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/microfrontend/src/app/dashboard/pages/academic-operational-dashboard.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/microfrontend/src/app/dashboard/pages/academic-operational-dashboard.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/microfrontend/src/app/dashboard/pages/academic-operational-dashboard.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/microfrontend/src/app/dashboard/pages/academic-operational-dashboard.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/microfrontend/src/app/dashboard/services/dashboard.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/microfrontend/src/app/dashboard/services/dashboard.service.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_C:/Projeto/git/projectc-school-management/school-management-web" value="3ErDQbhS8uTt5hK0imD5YXr0OEd" />
+    </persistenceIdMap>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="3ErDQbhS8uTt5hK0imD5YXr0OEd" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "develop",
+    "kotlin-language-version-configured": "true",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="dfd0ed3a-964d-4c23-8d4a-f996028552cf" name="Changes" comment="" />
+      <created>1780927781621</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1780927781621</updated>
+      <workItem from="1780927793705" duration="25000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>
