@@ -37,7 +37,11 @@
           </div>
         </div>
 
-        <section class="panel preferences-panel" *ngIf="personalizacaoItems().length > 0">
+        <section
+          class="panel preferences-panel"
+          style="margin-top: 12px; padding: 8px 10px;"
+          *ngIf="personalizacaoItems().length > 0"
+        >
           <div class="panel-header">
             <div>
               <h2>Preferências do dashboard</h2>
@@ -46,12 +50,15 @@
             <span *ngIf="isSavingPreference()">Salvando</span>
           </div>
 
-          <div class="preference-list">
+          <div
+            class="preference-list"
+            style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 10px;"
+          >
             <div
               *ngFor="let item of personalizacaoItems()"
-              style="display: grid; grid-template-columns: minmax(0, 1fr) auto auto 34px; gap: 8px; align-items: center; margin-top: 8px;"
+              style="display: grid; grid-template-columns: minmax(0, 1fr) auto auto 30px; gap: 6px; align-items: center;"
             >
-              <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem;">
+              <label style="display: flex; align-items: center; gap: 5px; font-size: 0.76rem; min-width: 0;">
                 <input
                   type="checkbox"
                   [checked]="item.visivel"
@@ -63,7 +70,7 @@
 
               <span class="widget-type">{{ item.widget.tipoWidget }}</span>
 
-              <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem;">
+              <label style="display: flex; align-items: center; gap: 4px; font-size: 0.76rem;">
                 <span>Ordem</span>
                 <input
                   type="number"
@@ -162,7 +169,7 @@
                 <h2>Tendência operacional</h2>
                 <span>Quantidade por {{ lineChartContext() }}</span>
               </div>
-              <svg class="line-chart" viewBox="0 0 280 130" width="100%" height="138" role="img" aria-label="Gráfico de linha">
+              <svg class="line-chart" viewBox="0 0 280 130" width="100%" height="116" role="img" aria-label="Gráfico de linha">
                 <line x1="20" y1="110" x2="260" y2="110" stroke="#d7def8" stroke-width="1.2"></line>
                 <line x1="20" y1="20" x2="20" y2="110" stroke="#d7def8" stroke-width="1.2"></line>
                 <text class="axis-label y-axis-label" x="6" y="18">Qtd.</text>

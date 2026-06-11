@@ -16,7 +16,8 @@
 .header-row,
 .panel-header,
 .row-actions,
-.panel-actions {
+.panel-actions,
+.header-actions {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -69,6 +70,11 @@ mat-progress-bar {
 .panel-header {
   justify-content: space-between;
   min-height: 36px;
+}
+
+.header-actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 .panel-header h2 {
@@ -145,6 +151,53 @@ mat-progress-bar {
   background: #eef2ff;
   font-size: 0.82rem;
   font-weight: 700;
+}
+
+.official-review {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.official-widget {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  background: #f0fdf4;
+}
+
+.official-widget.missing {
+  border-color: #fed7aa;
+  background: #fff7ed;
+}
+
+.official-widget.outdated {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.official-widget mat-icon {
+  color: #16a34a;
+  font-size: 20px;
+}
+
+.official-widget.missing mat-icon {
+  color: #f97316;
+}
+
+.official-widget.outdated mat-icon {
+  color: #ca8a04;
+}
+
+.official-widget strong,
+.official-widget span {
+  display: block;
+  font-size: 0.74rem;
 }
 
 .status-pill {
