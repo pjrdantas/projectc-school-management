@@ -21,6 +21,8 @@ interface DashboardMetric {
   value: number;
   icon: string;
   tone: 'primary' | 'warning' | 'success' | 'neutral';
+  widgetKey?: DashboardWidgetKey;
+  defaultOrder?: number;
 }
 
 interface ChartPoint {
@@ -47,6 +49,29 @@ interface DashboardPersonalizacaoItem {
   ordem: number;
 }
 
+type DashboardWidgetKey =
+  | 'metric-total-matriculas'
+  | 'metric-solicitadas'
+  | 'metric-em-andamento'
+  | 'metric-documentos'
+  | 'metric-transferencias'
+  | 'metric-pendentes'
+  | 'metric-alunos-ativos'
+  | 'metric-turmas-ativas'
+  | 'metric-concluidas'
+  | 'metric-rematricula'
+  | 'chart-status'
+  | 'chart-vagas'
+  | 'chart-tendencia'
+  | 'list-status'
+  | 'list-vagas'
+  | 'panel-documentos'
+  | 'panel-resultado'
+  | 'sector-academico'
+  | 'sector-administrativo'
+  | 'sector-pedagogico'
+  | 'panel-alertas';
+
 @Component({
   selector: 'app-academic-operational-dashboard',
   standalone: true,
@@ -67,6 +92,29 @@ export class AcademicOperationalDashboardComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private readonly shellContext = inject(ShellContextService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly widgetAliases: Record<DashboardWidgetKey, string[]> = {
+    'metric-total-matriculas': ['TOTAL MATRICULAS', 'MATRICULAS TOTAL'],
+    'metric-solicitadas': ['MATRICULAS SOLICITADAS', 'SOLICITADAS'],
+    'metric-em-andamento': ['MATRICULAS EM ANDAMENTO', 'EM ANDAMENTO'],
+    'metric-documentos': ['DOCUMENTOS PENDENTES', 'AGUARDANDO DOCUMENTOS', 'COM DOCUMENTOS PENDENTES'],
+    'metric-transferencias': ['TRANSFERENCIAS'],
+    'metric-pendentes': ['MATRICULAS PENDENTES', 'PENDENTES'],
+    'metric-alunos-ativos': ['ALUNOS ATIVOS'],
+    'metric-turmas-ativas': ['TURMAS ATIVAS'],
+    'metric-concluidas': ['MATRICULAS CONCLUIDAS', 'CONCLUIDAS'],
+    'metric-rematricula': ['APTAS REMATRICULA', 'REMATRICULA'],
+    'chart-status': ['GRAFICO STATUS', 'PIZZA STATUS', 'MATRICULAS POR STATUS', 'STATUS MATRICULAS'],
+    'chart-vagas': ['GRAFICO VAGAS', 'COLUNAS VAGAS', 'VAGAS DISPONIVEIS'],
+    'chart-tendencia': ['GRAFICO TENDENCIA', 'TENDENCIA OPERACIONAL', 'HISTORICO', 'LINHA'],
+    'list-status': ['LISTA STATUS', 'STATUS DAS MATRICULAS', 'DISTRIBUICAO POR STATUS'],
+    'list-vagas': ['LISTA VAGAS', 'TURMAS COM VAGAS'],
+    'panel-documentos': ['DOCUMENTOS E HISTORICO', 'BOLETINS', 'HISTORICOS INTERNOS'],
+    'panel-resultado': ['RESULTADO ACADEMICO', 'APROVADOS', 'REPROVADOS'],
+    'sector-academico': ['SETOR ACADEMICO', 'ACADEMICO'],
+    'sector-administrativo': ['SETOR ADMINISTRATIVO', 'ADMINISTRATIVO'],
+    'sector-pedagogico': ['SETOR PEDAGOGICO', 'PEDAGOGICO'],
+    'panel-alertas': ['ALERTAS'],
+  };
 
   protected readonly isLoading = signal(false);
   protected readonly dashboard = signal<DashboardFrontendResponse | null>(null);
@@ -136,27 +184,35 @@ export class AcademicOperationalDashboardComponent implements OnInit {
     switch (this.publicoCodigo()) {
       case 'SECRETARIA':
         return [
-          this.metric('Solicitadas', resumo.matriculasSolicitadas, 'assignment', 'primary'),
-          this.metric('Em andamento', resumo.matriculasEmAndamento, 'hourglass_top', 'neutral'),
-          this.metric('Documentos pendentes', resumo.matriculasComDocumentosPendentes, 'pending_actions', 'warning'),
-          this.metric('Transferências', resumo.transferencias, 'sync_alt', 'success'),
+          this.metric('Solicitadas', resumo.matriculasSolicitadas, 'assignment', 'primary', 'metric-solicitadas', 1),
+          this.metric('Em andamento', resumo.matriculasEmAndamento, 'hourglass_top', 'neutral', 'metric-em-andamento', 2),
+          this.metric('Documentos pendentes', resumo.matriculasComDocumentosPendentes, 'pending_actions', 'warning', 'metric-documentos', 3),
+          this.metric('Transferências', resumo.transferencias, 'sync_alt', 'success', 'metric-transferencias', 4),
         ];
       case 'DIRETOR':
         return [
-          this.metric('Matrículas', resumo.totalMatriculas, 'assignment', 'primary'),
-          this.metric('Pendentes', resumo.matriculasPendentes, 'pending_actions', 'warning'),
-          this.metric('Alunos ativos', resumo.alunosAtivos, 'groups', 'success'),
-          this.metric('Turmas ativas', resumo.turmasAtivas, 'class', 'neutral'),
+          this.metric('Matrículas', resumo.totalMatriculas, 'assignment', 'primary', 'metric-total-matriculas', 1),
+          this.metric('Pendentes', resumo.matriculasPendentes, 'pending_actions', 'warning', 'metric-pendentes', 2),
+          this.metric('Alunos ativos', resumo.alunosAtivos, 'groups', 'success', 'metric-alunos-ativos', 3),
+          this.metric('Turmas ativas', resumo.turmasAtivas, 'class', 'neutral', 'metric-turmas-ativas', 4),
         ];
       default:
         return [
-          this.metric('Matrículas', resumo.totalMatriculas, 'assignment', 'primary'),
-          this.metric('Aguardando documentos', resumo.matriculasAguardandoDocumentos, 'pending_actions', 'warning'),
-          this.metric('Concluídas', resumo.matriculasConcluidas, 'task_alt', 'success'),
-          this.metric('Aptas para rematrícula', resumo.matriculasAptasRematricula, 'autorenew', 'neutral'),
+          this.metric('Matrículas', resumo.totalMatriculas, 'assignment', 'primary', 'metric-total-matriculas', 1),
+          this.metric('Aguardando documentos', resumo.matriculasAguardandoDocumentos, 'pending_actions', 'warning', 'metric-documentos', 2),
+          this.metric('Concluídas', resumo.matriculasConcluidas, 'task_alt', 'success', 'metric-concluidas', 3),
+          this.metric('Aptas para rematrícula', resumo.matriculasAptasRematricula, 'autorenew', 'neutral', 'metric-rematricula', 4),
         ];
     }
   });
+  protected readonly metricTiles = computed(() =>
+    this.metrics()
+      .filter(metric => !metric.widgetKey || this.widgetVisivel(metric.widgetKey))
+      .sort((left, right) =>
+        this.widgetOrdem(left.widgetKey, left.defaultOrder ?? 0) -
+        this.widgetOrdem(right.widgetKey, right.defaultOrder ?? 0),
+      ),
+  );
   protected readonly maxStatusTotal = computed(() =>
     Math.max(...(this.resumo()?.matriculasPorStatus ?? []).map(item => item.total), 1),
   );
@@ -249,6 +305,11 @@ export class AcademicOperationalDashboardComponent implements OnInit {
       this.metric('Notas pendentes', resumo.avaliacoesComNotasPendentes, 'rule', 'warning'),
     ];
   });
+  protected readonly diretorSetoresVisiveis = computed(() =>
+    this.widgetVisivel('sector-academico') ||
+    this.widgetVisivel('sector-administrativo') ||
+    this.widgetVisivel('sector-pedagogico'),
+  );
 
   ngOnInit(): void {
     this.carregar();
@@ -307,6 +368,18 @@ export class AcademicOperationalDashboardComponent implements OnInit {
     return value ?? 0;
   }
 
+  protected widgetVisivel(key: DashboardWidgetKey): boolean {
+    return this.findPreferenceFor(key)?.visivel ?? true;
+  }
+
+  protected widgetOrdem(key: DashboardWidgetKey | undefined, defaultOrder: number): number {
+    if (!key) {
+      return defaultOrder;
+    }
+
+    return this.findPreferenceFor(key)?.ordem ?? defaultOrder;
+  }
+
   protected alterarVisibilidade(item: DashboardPersonalizacaoItem, event: Event): void {
     const checked = (event.target as HTMLInputElement | null)?.checked ?? false;
     this.salvarPreferencia(item, checked, item.ordem);
@@ -354,13 +427,44 @@ export class AcademicOperationalDashboardComponent implements OnInit {
     value: number | undefined | null,
     icon: string,
     tone: DashboardMetric['tone'],
+    widgetKey?: DashboardWidgetKey,
+    defaultOrder?: number,
   ): DashboardMetric {
     return {
       label,
       value: value ?? 0,
       icon,
       tone,
+      widgetKey,
+      defaultOrder,
     };
+  }
+
+  private findPreferenceFor(key: DashboardWidgetKey): DashboardPersonalizacaoItem | undefined {
+    return this.personalizacaoItems()
+      .filter(item => this.widgetMatches(item.widget, key))
+      .sort((left, right) => left.ordem - right.ordem)[0];
+  }
+
+  private widgetMatches(widget: DashboardFrontendWidget, key: DashboardWidgetKey): boolean {
+    const text = this.normalizeWidgetText([
+      widget.codigo,
+      widget.titulo,
+      widget.descricao,
+      widget.tipoWidget,
+      widget.queryReferencia,
+    ].filter(Boolean).join(' '));
+
+    return this.widgetAliases[key].some(alias => text.includes(alias));
+  }
+
+  private normalizeWidgetText(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, ' ')
+      .trim()
+      .toUpperCase();
   }
 
   private salvarPreferencia(item: DashboardPersonalizacaoItem, visivel: boolean, ordem: number): void {

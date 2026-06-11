@@ -26,7 +26,7 @@
 
       <ng-container *ngIf="resumo() as data">
         <div class="metric-grid">
-          <div class="metric-tile" *ngFor="let metric of metrics()" [class]="'tone-' + metric.tone">
+          <div class="metric-tile" *ngFor="let metric of metricTiles()" [class]="'tone-' + metric.tone">
             <div class="metric-icon">
               <mat-icon [fontIcon]="metric.icon"></mat-icon>
             </div>
@@ -89,7 +89,11 @@
 
         <div class="dashboard-grid">
           <div class="chart-column">
-            <section class="panel chart-panel">
+            <section
+              class="panel chart-panel"
+              *ngIf="widgetVisivel('chart-status')"
+              [style.order]="widgetOrdem('chart-status', 10)"
+            >
               <div class="panel-header">
                 <h2>Matrículas por status</h2>
                 <span>Pizza</span>
@@ -122,7 +126,11 @@
               </div>
             </section>
 
-            <section class="panel chart-panel">
+            <section
+              class="panel chart-panel"
+              *ngIf="widgetVisivel('chart-vagas')"
+              [style.order]="widgetOrdem('chart-vagas', 20)"
+            >
               <div class="panel-header">
                 <h2>Vagas disponíveis</h2>
                 <span>Colunas</span>
@@ -145,7 +153,11 @@
               </div>
             </section>
 
-            <section class="panel chart-panel">
+            <section
+              class="panel chart-panel"
+              *ngIf="widgetVisivel('chart-tendencia')"
+              [style.order]="widgetOrdem('chart-tendencia', 30)"
+            >
               <div class="panel-header">
                 <h2>Tendência operacional</h2>
                 <span>Quantidade por {{ lineChartContext() }}</span>
@@ -185,7 +197,11 @@
 
           <div class="insight-column">
             <div class="summary-grid">
-            <section class="panel">
+            <section
+              class="panel"
+              *ngIf="widgetVisivel('list-status')"
+              [style.order]="widgetOrdem('list-status', 40)"
+            >
               <div class="panel-header">
                 <h2>Status das matrículas</h2>
                 <span>{{ data.matriculasPorStatus?.length ?? 0 }} status</span>
@@ -206,7 +222,11 @@
               </div>
             </section>
 
-            <section class="panel">
+            <section
+              class="panel"
+              *ngIf="widgetVisivel('list-vagas')"
+              [style.order]="widgetOrdem('list-vagas', 50)"
+            >
               <div class="panel-header">
                 <h2>Turmas com vagas</h2>
                 <span>{{ data.turmasComVagas?.length ?? 0 }} turmas</span>
@@ -235,7 +255,11 @@
             </div>
 
             <div class="detail-grid">
-          <section class="panel compact">
+          <section
+            class="panel compact"
+            *ngIf="widgetVisivel('panel-documentos')"
+            [style.order]="widgetOrdem('panel-documentos', 60)"
+          >
             <h2>Documentos e histórico</h2>
             <div class="compact-list">
               <span>Boletins fechados</span>
@@ -247,7 +271,11 @@
             </div>
           </section>
 
-          <section class="panel compact">
+          <section
+            class="panel compact"
+            *ngIf="widgetVisivel('panel-resultado')"
+            [style.order]="widgetOrdem('panel-resultado', 70)"
+          >
             <h2>Resultado acadêmico</h2>
             <div class="compact-list">
               <span>Aprovados</span>
@@ -260,8 +288,12 @@
           </section>
             </div>
 
-            <div class="sector-grid" *ngIf="publicoCodigo() === 'DIRETOR'">
-          <section class="panel sector-panel">
+            <div class="sector-grid" *ngIf="publicoCodigo() === 'DIRETOR' && diretorSetoresVisiveis()">
+          <section
+            class="panel sector-panel"
+            *ngIf="widgetVisivel('sector-academico')"
+            [style.order]="widgetOrdem('sector-academico', 80)"
+          >
             <h2>Acadêmico</h2>
             <div class="sector-list">
               <div class="sector-item" *ngFor="let item of setorAcademico()">
@@ -272,7 +304,11 @@
             </div>
           </section>
 
-          <section class="panel sector-panel">
+          <section
+            class="panel sector-panel"
+            *ngIf="widgetVisivel('sector-administrativo')"
+            [style.order]="widgetOrdem('sector-administrativo', 90)"
+          >
             <h2>Administrativo</h2>
             <div class="sector-list">
               <div class="sector-item" *ngFor="let item of setorAdministrativo()">
@@ -283,7 +319,11 @@
             </div>
           </section>
 
-          <section class="panel sector-panel">
+          <section
+            class="panel sector-panel"
+            *ngIf="widgetVisivel('sector-pedagogico')"
+            [style.order]="widgetOrdem('sector-pedagogico', 100)"
+          >
             <h2>Pedagógico</h2>
             <div class="sector-list">
               <div class="sector-item" *ngFor="let item of setorPedagogico()">
@@ -295,7 +335,11 @@
           </section>
             </div>
 
-            <section class="panel alerts-panel" *ngIf="(dashboard()?.alertas?.length ?? 0) > 0">
+            <section
+              class="panel alerts-panel"
+              *ngIf="widgetVisivel('panel-alertas') && (dashboard()?.alertas?.length ?? 0) > 0"
+              [style.order]="widgetOrdem('panel-alertas', 110)"
+            >
           <div class="panel-header">
             <h2>Alertas</h2>
             <span>{{ dashboard()?.alertas?.length }}</span>

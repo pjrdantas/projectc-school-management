@@ -164,7 +164,11 @@ export class DashboardConfigAdminComponent implements OnInit {
         width: '780px',
         maxWidth: '95vw',
         disableClose: true,
-        data: { widget, dashboardId },
+        data: {
+          widget,
+          dashboardId,
+          publicoCodigo: this.selectedPublico()?.codigo,
+        },
       },
     );
 
