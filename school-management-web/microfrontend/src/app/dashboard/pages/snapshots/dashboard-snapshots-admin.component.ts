@@ -1,4 +1,4 @@
-import { DatePipe, NgFor, NgIf } from '@angular/common';
+import { DatePipe, NgClass, NgFor, NgIf } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,7 +12,11 @@ import { getApiErrorMessage } from '../../../core/http/api-error';
 import { Professor } from '../../../professor/models/teacher.model';
 import { TeachersService } from '../../../professor/services/teachers.service';
 import { DashboardPublico } from '../../models/dashboard-config.model';
-import { DashboardIndicadorSnapshot } from '../../models/dashboard-snapshot.model';
+import {
+  DashboardIndicadorHistorico,
+  DashboardIndicadorHistoricoPonto,
+  DashboardIndicadorSnapshot,
+} from '../../models/dashboard-snapshot.model';
 import { DashboardConfigService } from '../../services/dashboard-config.service';
 import { DashboardSnapshotService } from '../../services/dashboard-snapshot.service';
 
@@ -21,6 +25,7 @@ import { DashboardSnapshotService } from '../../services/dashboard-snapshot.serv
   standalone: true,
   imports: [
     DatePipe,
+    NgClass,
     NgFor,
     NgIf,
     ReactiveFormsModule,
@@ -45,15 +50,19 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
   protected readonly publicos = signal<DashboardPublico[]>([]);
   protected readonly professores = signal<Professor[]>([]);
   protected readonly snapshots = signal<DashboardIndicadorSnapshot[]>([]);
+  protected readonly historicos = signal<DashboardIndicadorHistorico[]>([]);
   protected readonly isLoadingPublicos = signal(false);
   protected readonly isLoadingProfessores = signal(false);
   protected readonly isLoadingSnapshots = signal(false);
+  protected readonly isLoadingHistorico = signal(false);
   protected readonly isGeneratingSnapshots = signal(false);
 
   protected readonly filterForm = this.fb.nonNullable.group({
     publicoCodigo: [''],
     professorId: [''],
     referenciaData: [''],
+    dataInicio: [''],
+    dataFim: [''],
   });
 
   protected readonly orderedSnapshots = computed(() =>
@@ -76,6 +85,11 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
     const dates = [...new Set(this.snapshots().map(item => item.referenciaData))];
     return dates.length === 1 ? dates[0] : `${dates.length} datas`;
   });
+  protected readonly orderedHistoricos = computed(() =>
+    [...this.historicos()].sort((left, right) =>
+      this.codigoIndicadorHistoricoVisivel(left).localeCompare(this.codigoIndicadorHistoricoVisivel(right), 'pt-BR'),
+    ),
+  );
   protected canGenerateSnapshots(): boolean {
     const publicoCodigo = this.filterForm.controls.publicoCodigo.value;
     const professorId = this.filterForm.controls.professorId.value;
@@ -85,6 +99,15 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
       && !this.isLoadingProfessores()
       && !this.isLoadingSnapshots()
       && !this.isGeneratingSnapshots();
+  }
+  protected canConsultarHistorico(): boolean {
+    const publicoCodigo = this.filterForm.controls.publicoCodigo.value;
+    const professorId = this.filterForm.controls.professorId.value;
+    return !!publicoCodigo
+      && (publicoCodigo !== 'PROFESSOR' || !!professorId)
+      && !this.isLoadingPublicos()
+      && !this.isLoadingProfessores()
+      && !this.isLoadingHistorico();
   }
 
   ngOnInit(): void {
@@ -100,6 +123,11 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
     }
 
     this.loadSnapshots(publicoCodigo, this.filterForm.controls.referenciaData.value);
+    if (this.canConsultarHistorico()) {
+      this.loadHistorico();
+    } else {
+      this.historicos.set([]);
+    }
   }
 
   protected limparData(): void {
@@ -141,6 +169,9 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
         this.snapshots.set(generated);
         this.snackBar.open(`${generated.length} snapshot(s) gerado(s).`, 'Fechar', { duration: 3000 });
         this.loadSnapshots(publicoCodigo, referenciaData);
+        if (this.canConsultarHistorico()) {
+          this.loadHistorico();
+        }
       },
       error: error => {
         this.isGeneratingSnapshots.set(false);
@@ -159,10 +190,53 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
 
   protected codigoIndicadorVisivel(snapshot: DashboardIndicadorSnapshot): string {
     if (snapshot.publicoCodigo === 'PROFESSOR') {
-      return snapshot.codigoIndicador.replace(/^PROFESSOR_[A-F0-9]{32}_/i, '');
+      return this.removeProfessorPrefix(snapshot.codigoIndicador);
     }
 
     return snapshot.codigoIndicador;
+  }
+
+  protected codigoIndicadorHistoricoVisivel(historico: DashboardIndicadorHistorico): string {
+    if (historico.publicoCodigo === 'PROFESSOR') {
+      return this.removeProfessorPrefix(historico.codigoIndicador);
+    }
+
+    return historico.codigoIndicador;
+  }
+
+  protected variacaoClass(historico: DashboardIndicadorHistorico): string {
+    const value = Number(historico.variacaoPercentual ?? 0);
+    if (value > 0) {
+      return 'positive';
+    }
+    if (value < 0) {
+      return 'negative';
+    }
+    return 'neutral';
+  }
+
+  protected formatPercent(value?: number | string | null): string {
+    if (value === null || value === undefined || value === '') {
+      return '-';
+    }
+
+    return `${Number(value).toFixed(1)}%`;
+  }
+
+  protected formatValue(value?: number | string | null): string {
+    if (value === null || value === undefined || value === '') {
+      return '-';
+    }
+
+    return String(value);
+  }
+
+  protected pontoValor(ponto: DashboardIndicadorHistoricoPonto): string {
+    if (ponto.valorNumeric !== null && ponto.valorNumeric !== undefined) {
+      return String(ponto.valorNumeric);
+    }
+
+    return ponto.valorTexto || '-';
   }
 
   private loadPublicos(): void {
@@ -220,6 +294,36 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
     });
   }
 
+  protected loadHistorico(): void {
+    const publicoCodigo = this.filterForm.controls.publicoCodigo.value;
+    if (!publicoCodigo) {
+      this.snackBar.open('Selecione um público antes de consultar o histórico.', 'Fechar', { duration: 3000 });
+      return;
+    }
+
+    if (publicoCodigo === 'PROFESSOR' && !this.filterForm.controls.professorId.value) {
+      this.snackBar.open('Selecione um professor para consultar o histórico do professor.', 'Fechar', { duration: 4000 });
+      return;
+    }
+
+    this.isLoadingHistorico.set(true);
+    this.snapshotService.consultarHistorico(publicoCodigo, {
+      dataInicio: this.filterForm.controls.dataInicio.value,
+      dataFim: this.filterForm.controls.dataFim.value,
+      professorId: publicoCodigo === 'PROFESSOR' ? this.filterForm.controls.professorId.value : null,
+    }).subscribe({
+      next: historicos => {
+        this.historicos.set(historicos);
+        this.isLoadingHistorico.set(false);
+      },
+      error: error => {
+        this.historicos.set([]);
+        this.isLoadingHistorico.set(false);
+        this.showError(error, 'Não foi possível carregar histórico de snapshots.');
+      },
+    });
+  }
+
   private filterProfessorSnapshots(snapshots: DashboardIndicadorSnapshot[]): DashboardIndicadorSnapshot[] {
     const publicoCodigo = this.filterForm.controls.publicoCodigo.value;
     const professorId = this.filterForm.controls.professorId.value;
@@ -228,6 +332,10 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
     }
 
     return snapshots.filter(snapshot => snapshot.valorTexto === professorId);
+  }
+
+  private removeProfessorPrefix(codigoIndicador: string): string {
+    return codigoIndicador.replace(/^PROFESSOR_[A-F0-9]{32}_/i, '');
   }
 
   private showError(error: unknown, fallbackMessage: string): void {

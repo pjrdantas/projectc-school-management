@@ -30,7 +30,7 @@
       </div>
 
       <mat-progress-bar
-        *ngIf="isLoadingPublicos() || isLoadingProfessores() || isLoadingSnapshots() || isGeneratingSnapshots()"
+        *ngIf="isLoadingPublicos() || isLoadingProfessores() || isLoadingSnapshots() || isLoadingHistorico() || isGeneratingSnapshots()"
         mode="indeterminate"
       ></mat-progress-bar>
 
@@ -59,9 +59,24 @@
           <input matInput type="date" formControlName="referenciaData" />
         </mat-form-field>
 
+        <mat-form-field appearance="outline">
+          <mat-label>Histórico de</mat-label>
+          <input matInput type="date" formControlName="dataInicio" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Histórico até</mat-label>
+          <input matInput type="date" formControlName="dataFim" />
+        </mat-form-field>
+
         <button mat-stroked-button type="button" [disabled]="isLoadingSnapshots() || isGeneratingSnapshots()" (click)="limparData()">
           <mat-icon fontIcon="filter_alt_off"></mat-icon>
           Todas as datas
+        </button>
+
+        <button mat-stroked-button type="button" [disabled]="!canConsultarHistorico()" (click)="loadHistorico()">
+          <mat-icon fontIcon="timeline"></mat-icon>
+          Histórico
         </button>
       </form>
 
@@ -85,6 +100,41 @@
         <div>
           <strong>{{ referenciaResumo() }}</strong>
           <span>referência</span>
+        </div>
+      </section>
+
+      <section class="history-panel" *ngIf="!isLoadingHistorico() && historicos().length > 0">
+        <div class="section-header">
+          <h2>Histórico comparativo</h2>
+          <span>{{ historicos().length }} indicador(es)</span>
+        </div>
+
+        <div class="history-grid">
+          <article class="history-card" *ngFor="let historico of orderedHistoricos()">
+            <div class="history-title">
+              <strong>{{ historico.descricao || codigoIndicadorHistoricoVisivel(historico) }}</strong>
+              <span>{{ codigoIndicadorHistoricoVisivel(historico) }}</span>
+            </div>
+            <div class="history-values">
+              <span>
+                Atual
+                <strong>{{ formatValue(historico.valorAtual) }}</strong>
+              </span>
+              <span>
+                Anterior
+                <strong>{{ formatValue(historico.valorAnterior) }}</strong>
+              </span>
+              <span class="variation" [ngClass]="variacaoClass(historico)">
+                Variação
+                <strong>{{ formatPercent(historico.variacaoPercentual) }}</strong>
+              </span>
+            </div>
+            <div class="history-points" *ngIf="historico.pontos.length > 0">
+              <span *ngFor="let ponto of historico.pontos">
+                {{ ponto.referenciaData | date: 'dd/MM' }}: {{ pontoValor(ponto) }}
+              </span>
+            </div>
+          </article>
         </div>
       </section>
 

@@ -37,7 +37,11 @@
 .header-row p,
 .snapshot-main span,
 .snapshot-value span,
-.summary-grid span {
+.summary-grid span,
+.section-header span,
+.history-title span,
+.history-values span,
+.history-points span {
   color: #576071;
   font-size: 0.82rem;
 }
@@ -48,7 +52,7 @@ mat-progress-bar {
 
 .filters-grid {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1fr) minmax(180px, 220px) auto;
+  grid-template-columns: minmax(170px, 1fr) minmax(210px, 1fr) repeat(3, minmax(150px, 180px)) auto auto;
   gap: 10px;
   align-items: center;
   margin-top: 14px;
@@ -79,6 +83,86 @@ mat-progress-bar {
   display: grid;
   gap: 8px;
   margin-top: 14px;
+}
+
+.history-panel {
+  margin-top: 14px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.section-header h2 {
+  margin: 0;
+  color: #263244;
+  font-size: 1rem;
+}
+
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 8px;
+}
+
+.history-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #d7def8;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.history-title,
+.history-values span {
+  display: grid;
+  gap: 3px;
+}
+
+.history-title strong,
+.history-values strong {
+  color: #263244;
+}
+
+.history-values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.history-values span {
+  padding: 8px;
+  border-radius: 8px;
+  background: #f8faff;
+}
+
+.history-values .variation.positive strong {
+  color: #166534;
+}
+
+.history-values .variation.negative strong {
+  color: #991b1b;
+}
+
+.history-values .variation.neutral strong {
+  color: #4f46e5;
+}
+
+.history-points {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.history-points span {
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #eef2ff;
 }
 
 .snapshot-row {
@@ -130,6 +214,7 @@ mat-progress-bar {
 @media (max-width: 820px) {
   .filters-grid,
   .summary-grid,
+  .history-values,
   .snapshot-row {
     grid-template-columns: 1fr;
   }
