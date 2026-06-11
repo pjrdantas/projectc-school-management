@@ -13,7 +13,7 @@
       <div>
         <strong>{{ labelDocumento(documento.tipoDocumento) }}</strong>
         <p>Número: {{ documento.numeroDocumento || 'Não informado' }}</p>
-        <p>Arquivo: {{ documento.caminhoArquivo }}</p>
+        <p>Arquivo: {{ fileName(documento.caminhoArquivo) }}</p>
         <p>Data de atualização: {{ formatDate(documento.dataUpload) }}</p>
         <p *ngIf="documento.observacao">Observação: {{ documento.observacao }}</p>
       </div>
