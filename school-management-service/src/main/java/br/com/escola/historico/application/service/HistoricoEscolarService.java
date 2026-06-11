@@ -1,5 +1,6 @@
 package br.com.escola.historico.application.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -18,6 +19,8 @@ public interface HistoricoEscolarService {
     void excluir(UUID id);
 
     HistoricoEscolarResponse buscarPorId(UUID id);
+
+    List<HistoricoEscolarResponse> listarPorAluno(UUID alunoId);
 
     Page<HistoricoEscolarResponse> listar(Pageable pageable);
 

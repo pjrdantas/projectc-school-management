@@ -6,6 +6,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { forkJoin } from 'rxjs';
 import { getApiErrorMessage } from '../../../core/http/api-error';
 import {
   DashboardConfiguracao,
@@ -15,6 +16,11 @@ import {
   DashboardWidget,
   DashboardWidgetInput,
 } from '../../models/dashboard-config.model';
+import { DashboardPublicoCodigo } from '../../models/dashboard.model';
+import {
+  DASHBOARD_WIDGET_CATALOG,
+  DashboardWidgetCatalogItem,
+} from '../../models/dashboard-widget-catalog';
 import { DashboardConfigService } from '../../services/dashboard-config.service';
 import {
   DashboardConfigDialogComponent,
@@ -28,6 +34,12 @@ import {
   DashboardWidgetDialogComponent,
   DashboardWidgetDialogData,
 } from './dashboard-widget-dialog.component';
+
+interface DashboardOfficialWidgetReview {
+  catalogItem: DashboardWidgetCatalogItem;
+  existingWidget?: DashboardWidget;
+  desatualizado: boolean;
+}
 
 @Component({
   selector: 'app-dashboard-config-admin',
@@ -59,6 +71,8 @@ export class DashboardConfigAdminComponent implements OnInit {
   protected readonly isLoading = signal(false);
   protected readonly isLoadingDashboards = signal(false);
   protected readonly isLoadingWidgets = signal(false);
+  protected readonly isProvisioningWidgets = signal(false);
+  protected readonly isUpdatingOfficialWidgets = signal(false);
 
   protected readonly selectedPublico = computed(() =>
     this.publicos().find(item => item.id === this.selectedPublicoId()) ?? null,
@@ -72,6 +86,44 @@ export class DashboardConfigAdminComponent implements OnInit {
   protected readonly orderedWidgets = computed(() =>
     [...this.widgets()].sort((left, right) => left.ordem - right.ordem || left.titulo.localeCompare(right.titulo, 'pt-BR')),
   );
+  protected readonly officialWidgetsForPublico = computed(() => {
+    const publicoCodigo = this.normalizePublicoCodigo(this.selectedPublico()?.codigo);
+
+    return DASHBOARD_WIDGET_CATALOG
+      .filter(item => item.publicos.includes('GERAL') || item.publicos.includes(publicoCodigo))
+      .sort((left, right) => left.ordem - right.ordem || left.titulo.localeCompare(right.titulo, 'pt-BR'));
+  });
+  protected readonly missingOfficialWidgets = computed(() => {
+    const existingCodes = new Set(this.widgets().map(widget => widget.codigo.trim().toUpperCase()));
+
+    return this.officialWidgetsForPublico()
+      .filter(item => !existingCodes.has(item.codigo));
+  });
+  protected readonly officialWidgetReview = computed<DashboardOfficialWidgetReview[]>(() => {
+    const existingByCode = new Map(
+      this.widgets().map(widget => [widget.codigo.trim().toUpperCase(), widget]),
+    );
+
+    return this.officialWidgetsForPublico().map(catalogItem => {
+      const existingWidget = existingByCode.get(catalogItem.codigo);
+      return {
+        catalogItem,
+        existingWidget,
+        desatualizado: existingWidget ? this.isOfficialWidgetOutdated(existingWidget, catalogItem) : false,
+      };
+    });
+  });
+  protected readonly outdatedOfficialWidgets = computed(() =>
+    this.officialWidgetReview()
+      .filter(item => item.existingWidget && item.desatualizado),
+  );
+  protected readonly officialCreatedCount = computed(() =>
+    this.officialWidgetReview().filter(item => item.existingWidget).length,
+  );
+  protected readonly customWidgetCount = computed(() => {
+    const officialCodes = new Set(this.officialWidgetsForPublico().map(item => item.codigo));
+    return this.widgets().filter(widget => !officialCodes.has(widget.codigo.trim().toUpperCase())).length;
+  });
 
   ngOnInit(): void {
     this.loadPublicos();
@@ -231,6 +283,59 @@ export class DashboardConfigAdminComponent implements OnInit {
     });
   }
 
+  protected provisionarWidgetsPadrao(): void {
+    const dashboardId = this.selectedDashboardId();
+    const missingWidgets = this.missingOfficialWidgets();
+    if (!dashboardId || missingWidgets.length === 0 || this.isProvisioningWidgets()) {
+      return;
+    }
+
+    this.isProvisioningWidgets.set(true);
+    forkJoin(missingWidgets.map(widget => this.service.criarWidget(this.toWidgetInput(dashboardId, widget))))
+      .subscribe({
+        next: created => {
+          this.isProvisioningWidgets.set(false);
+          this.snackBar.open(`${created.length} widget(s) padrão provisionado(s).`, 'Fechar', { duration: 3000 });
+          this.loadWidgets(dashboardId);
+        },
+        error: error => {
+          this.isProvisioningWidgets.set(false);
+          this.showError(error, 'Não foi possível provisionar widgets padrão.');
+        },
+      });
+  }
+
+  protected atualizarWidgetsOficiais(): void {
+    const dashboardId = this.selectedDashboardId();
+    const outdatedWidgets = this.outdatedOfficialWidgets();
+    if (!dashboardId || outdatedWidgets.length === 0 || this.isUpdatingOfficialWidgets()) {
+      return;
+    }
+
+    if (!confirm(`Atualizar metadados de ${outdatedWidgets.length} widget(s) oficial(is)?`)) {
+      return;
+    }
+
+    this.isUpdatingOfficialWidgets.set(true);
+    forkJoin(outdatedWidgets.map(item => {
+      const existingWidget = item.existingWidget as DashboardWidget;
+      return this.service.atualizarWidget(
+        existingWidget.id,
+        this.toWidgetInput(dashboardId, item.catalogItem, existingWidget.ativo),
+      );
+    })).subscribe({
+      next: updated => {
+        this.isUpdatingOfficialWidgets.set(false);
+        this.snackBar.open(`${updated.length} widget(s) oficial(is) atualizado(s).`, 'Fechar', { duration: 3000 });
+        this.loadWidgets(dashboardId);
+      },
+      error: error => {
+        this.isUpdatingOfficialWidgets.set(false);
+        this.showError(error, 'Não foi possível atualizar widgets oficiais.');
+      },
+    });
+  }
+
   protected statusLabel(active: boolean): string {
     return active ? 'Ativo' : 'Inativo';
   }
@@ -298,6 +403,36 @@ export class DashboardConfigAdminComponent implements OnInit {
         this.showError(error, 'Não foi possível carregar widgets.');
       },
     });
+  }
+
+  private toWidgetInput(dashboardId: string, widget: DashboardWidgetCatalogItem, ativo = true): DashboardWidgetInput {
+    return {
+      dashboardId,
+      codigo: widget.codigo,
+      titulo: widget.titulo,
+      descricao: widget.descricao,
+      tipoWidget: widget.tipoWidget,
+      ordem: widget.ordem,
+      queryReferencia: widget.queryReferencia,
+      ativo,
+    };
+  }
+
+  private isOfficialWidgetOutdated(widget: DashboardWidget, catalogItem: DashboardWidgetCatalogItem): boolean {
+    return widget.titulo !== catalogItem.titulo
+      || (widget.descricao ?? '') !== catalogItem.descricao
+      || widget.tipoWidget !== catalogItem.tipoWidget
+      || widget.ordem !== catalogItem.ordem
+      || (widget.queryReferencia ?? '') !== catalogItem.queryReferencia;
+  }
+
+  private normalizePublicoCodigo(value?: string | null): DashboardPublicoCodigo {
+    const normalized = value?.trim().toUpperCase();
+    if (normalized === 'SECRETARIA' || normalized === 'DIRETOR' || normalized === 'PROFESSOR') {
+      return normalized;
+    }
+
+    return 'ACADEMICO';
   }
 
   private showError(error: unknown, fallbackMessage: string): void {

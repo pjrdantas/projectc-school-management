@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.escola.aluno.adapter.out.persistence.repository.AlunoJpaRepository;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarGeracaoRequest;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarItemRequest;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarRequest;
@@ -39,6 +40,7 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
     private final BoletimJpaRepository boletimJpaRepository;
     private final BoletimItemJpaRepository boletimItemJpaRepository;
     private final HistoricoEscolarMapper historicoEscolarMapper;
+    private final AlunoJpaRepository alunoJpaRepository;
 
     @Override
     @Transactional
@@ -73,6 +75,17 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
         return historicoEscolarJpaRepository.findWithComponentesCurricularesById(id)
                 .map(historicoEscolarMapper::toResponse)
                 .orElseThrow(() -> new HistoricoEscolarNaoEncontradoException(id));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<HistoricoEscolarResponse> listarPorAluno(UUID alunoId) {
+        if (!alunoJpaRepository.existsById(alunoId)) {
+            throw new HistoricoEscolarInvalidoException("Aluno do histórico escolar não encontrado");
+        }
+        return historicoEscolarJpaRepository.findByAlunoId(alunoId).stream()
+                .map(historicoEscolarMapper::toResponse)
+                .toList();
     }
 
     @Override
@@ -164,6 +177,9 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
     }
 
     private void validarRequest(HistoricoEscolarRequest request) {
+        if (request.alunoId() != null && !alunoJpaRepository.existsById(request.alunoId())) {
+            throw new HistoricoEscolarInvalidoException("Aluno do histórico escolar não encontrado");
+        }
         if (request.componentesCurriculares() == null || request.componentesCurriculares().isEmpty()) {
             throw new HistoricoEscolarInvalidoException("Informe ao menos um componente curricular no histórico escolar");
         }

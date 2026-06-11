@@ -19,7 +19,7 @@ import { getApiErrorMessage } from '../../../core/http/api-error';
 import { MessageDialogComponent } from '../../../compartilhado/dialogs/message-dialog/message-dialog.component';
 import { Student } from '../../../aluno/models/student.model';
 import { StudentsService } from '../../../aluno/services/students.service';
-import { Enrollment, EnrollmentFilter } from '../../models/enrollment.model';
+import { Enrollment, EnrollmentCatalogItem, EnrollmentFilter } from '../../models/enrollment.model';
 import { EnrollmentService } from '../../services/enrollment.service';
 
 @Component({
@@ -65,16 +65,28 @@ export class EnrollmentNewComponent implements OnInit {
   protected readonly students = signal<Student[]>([]);
   protected readonly periods = signal<AcademicPeriod[]>([]);
   protected readonly classes = signal<AcademicClass[]>([]);
-  protected readonly statuses = [
-    'SOLICITADA',
-    'EM_ANDAMENTO',
-    'AGUARDANDO_DOCUMENTOS',
-    'AGUARDANDO_HISTORICO_ESCOLAR',
-    'EFETIVADA',
-    'CANCELADA',
-    'INDEFERIDA',
-    'TRANSFERIDO',
+  private readonly fallbackStatusOptions: EnrollmentCatalogItem[] = [
+    { id: 'SOLICITADA', codigo: 'SOLICITADA', descricao: 'Matrícula solicitada' },
+    { id: 'EM_ANDAMENTO', codigo: 'EM_ANDAMENTO', descricao: 'Matrícula em andamento' },
+    {
+      id: 'AGUARDANDO_DOCUMENTOS',
+      codigo: 'AGUARDANDO_DOCUMENTOS',
+      descricao: 'Aguardando documentos',
+    },
+    {
+      id: 'AGUARDANDO_HISTORICO_ESCOLAR',
+      codigo: 'AGUARDANDO_HISTORICO_ESCOLAR',
+      descricao: 'Aguardando histórico escolar',
+    },
+    { id: 'EFETIVADA', codigo: 'EFETIVADA', descricao: 'Matrícula efetivada' },
+    { id: 'CANCELADA', codigo: 'CANCELADA', descricao: 'Matrícula cancelada' },
+    { id: 'CONCLUIDA', codigo: 'CONCLUIDA', descricao: 'Matrícula concluída' },
+    { id: 'INDEFERIDA', codigo: 'INDEFERIDA', descricao: 'Matrícula indeferida' },
   ];
+  protected readonly statusCatalog = signal<EnrollmentCatalogItem[]>([]);
+  protected readonly statusOptions = computed(() =>
+    this.statusCatalog().length ? this.statusCatalog() : this.fallbackStatusOptions,
+  );
   protected readonly pageSizeOptions = [5, 10, 20];
   protected readonly pageSize = signal(5);
   protected readonly pageIndex = signal(0);
@@ -473,6 +485,14 @@ export class EnrollmentNewComponent implements OnInit {
           duration: 4000,
         });
       },
+    });
+
+    this.enrollmentService.listStatuses().subscribe({
+      next: (list) => this.statusCatalog.set(list),
+      error: () =>
+        this.snackBar.open('Não foi possível carregar status de matrícula.', 'Fechar', {
+          duration: 4000,
+        }),
     });
   }
 

@@ -3,11 +3,14 @@ import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { getApiErrorMessage } from '../../../core/http/api-error';
+import { MessageDialogComponent } from '../../../compartilhado/dialogs/message-dialog/message-dialog.component';
 import { ResponsiblesService } from '../../services/responsibles.service';
 import { Responsible } from '../../models/responsible.model';
 import { Subscription } from 'rxjs';
@@ -18,6 +21,7 @@ import { Subscription } from 'rxjs';
   imports: [
     MatCardModule,
     MatButtonModule,
+    MatDialogModule,
     MatIconModule,
     MatSnackBarModule,
     MatPaginatorModule,
@@ -33,6 +37,7 @@ import { Subscription } from 'rxjs';
 })
 export class ResponsiblesListComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly responsiblesService = inject(ResponsiblesService);
 
@@ -105,7 +110,35 @@ export class ResponsiblesListComponent implements OnInit, OnDestroy {
     });
   }
 
-  protected remover(id: string): void {
+  protected remover(responsible: Responsible): void {
+    const dialogRef = this.dialog.open(MessageDialogComponent, {
+      width: '640px',
+      maxWidth: 'calc(100vw - 32px)',
+      disableClose: true,
+      data: {
+        title: 'Confirmar exclusão',
+        message: `Deseja excluir o responsável ${responsible.nomeCompleto}?`,
+        details: [
+          'A exclusão será bloqueada se o responsável ainda estiver vinculado a algum aluno.',
+          'Documentos e endereço cadastrados para este responsável serão removidos junto com o cadastro.',
+        ],
+        confirmLabel: 'Excluir responsável',
+        cancelLabel: 'Cancelar',
+        icon: 'delete',
+        tone: 'danger',
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.excluirResponsavel(responsible.id);
+    });
+  }
+
+  private excluirResponsavel(id: string): void {
     this.responsiblesService.removeOnApi(id).subscribe({
       next: () => {
         this.snackBar.open('Responsável removido com sucesso.', 'Fechar', { duration: 3000 });
@@ -116,7 +149,10 @@ export class ResponsiblesListComponent implements OnInit, OnDestroy {
           this.pageIndex.set(Math.max(Math.ceil(total / this.pageSize()) - 1, 0));
         }
       },
-      error: () => this.snackBar.open('Erro ao excluir responsável.', 'Fechar', { duration: 4000 }),
+      error: (error: unknown) =>
+        this.snackBar.open(getApiErrorMessage(error, 'Erro ao excluir responsável.'), 'Fechar', {
+          duration: 5000,
+        }),
     });
   }
 

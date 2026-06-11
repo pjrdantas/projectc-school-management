@@ -15,7 +15,7 @@
       <mat-progress-bar *ngIf="isLoading()" mode="indeterminate"></mat-progress-bar>
 
       <div class="empty-state" *ngIf="professorDashboardPendente()">
-        A Home do professor precisa do vínculo entre usuário e professor para carregar turmas,
+        O dashboard do professor precisa do vínculo entre usuário e professor para carregar turmas,
         disciplinas, alunos, aulas, frequências e avaliações individuais. Vincule o usuário ao
         cadastro de professor para liberar esses indicadores.
       </div>
@@ -37,7 +37,10 @@
           </div>
         </div>
 
-        <section class="panel preferences-panel" *ngIf="personalizacaoItems().length > 0">
+        <section
+          class="panel preferences-panel"
+          *ngIf="personalizacaoItems().length > 0"
+        >
           <div class="panel-header">
             <div>
               <h2>Preferências do dashboard</h2>
@@ -46,26 +49,31 @@
             <span *ngIf="isSavingPreference()">Salvando</span>
           </div>
 
-          <div class="preference-list">
+          <div
+            class="preference-list"
+            style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 8px;"
+          >
             <div
               *ngFor="let item of personalizacaoItems()"
-              style="display: grid; grid-template-columns: minmax(0, 1fr) auto auto 34px; gap: 8px; align-items: center; margin-top: 8px;"
+              class="preference-row"
+              style="display: grid; grid-template-columns: minmax(0, 1fr) auto auto 28px; gap: 5px; align-items: center; min-width: 0;"
             >
-              <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem;">
+              <label class="preference-toggle" style="display: flex; align-items: center; gap: 4px; min-width: 0; font-size: 0.68rem;">
                 <input
                   type="checkbox"
                   [checked]="item.visivel"
                   [disabled]="isSavingPreference()"
                   (change)="alterarVisibilidade(item, $event)"
                 />
-                <span>{{ item.widget.titulo }}</span>
+                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.widget.titulo }}</span>
               </label>
 
-              <span class="widget-type">{{ item.widget.tipoWidget }}</span>
+              <span class="widget-type" style="color: #4f46e5; font-size: 0.6rem; font-weight: 700; white-space: nowrap;">{{ item.widget.tipoWidget }}</span>
 
-              <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem;">
+              <label class="order-control" style="display: flex; align-items: center; gap: 4px; min-width: 0; font-size: 0.68rem;">
                 <span>Ordem</span>
                 <input
+                  style="width: 42px; height: 22px; box-sizing: border-box; font-size: 0.68rem;"
                   type="number"
                   min="0"
                   [value]="item.ordem"
@@ -77,6 +85,7 @@
               <button
                 mat-icon-button
                 type="button"
+                style="width: 28px; height: 28px; padding: 0;"
                 aria-label="Restaurar preferência"
                 [disabled]="isSavingPreference() || !item.config"
                 (click)="restaurarPreferencia(item)"
@@ -162,7 +171,7 @@
                 <h2>Tendência operacional</h2>
                 <span>Quantidade por {{ lineChartContext() }}</span>
               </div>
-              <svg class="line-chart" viewBox="0 0 280 130" width="100%" height="138" role="img" aria-label="Gráfico de linha">
+              <svg class="line-chart" viewBox="0 0 280 130" width="100%" height="96" role="img" aria-label="Gráfico de linha">
                 <line x1="20" y1="110" x2="260" y2="110" stroke="#d7def8" stroke-width="1.2"></line>
                 <line x1="20" y1="20" x2="20" y2="110" stroke="#d7def8" stroke-width="1.2"></line>
                 <text class="axis-label y-axis-label" x="6" y="18">Qtd.</text>
@@ -235,7 +244,7 @@
                 Nenhuma turma com vaga disponível.
               </div>
               <div class="class-list" *ngIf="(data.turmasComVagas?.length ?? 0) > 0">
-                <div class="class-row" *ngFor="let turma of data.turmasComVagas">
+                <div class="class-row" *ngFor="let turma of (data.turmasComVagas ?? []).slice(0, 5)">
                   <div>
                     <h3>{{ turma.turmaNome }}</h3>
                     <p>
@@ -250,6 +259,12 @@
                     <span>{{ turma.vagasOcupadas | number: '1.0-0' }} ocupadas</span>
                   </div>
                 </div>
+                <p
+                  *ngIf="(data.turmasComVagas?.length ?? 0) > 5"
+                  style="margin: 4px 0 0; color: #4f46e5; font-size: 0.68rem; font-weight: 700;"
+                >
+                  +{{ (data.turmasComVagas?.length ?? 0) - 5 }} turmas com vagas
+                </p>
               </div>
             </section>
             </div>

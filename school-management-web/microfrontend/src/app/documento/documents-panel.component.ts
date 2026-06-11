@@ -166,6 +166,15 @@ export class DocumentsPanelComponent implements OnChanges {
     return dd && mm && yyyy ? `${dd}/${mm}/${yyyy}` : value;
   }
 
+  protected fileName(path?: string): string {
+    if (!path) {
+      return 'Não informado';
+    }
+
+    const name = path.split(/[\\/]/).pop() ?? path;
+    return name.replace(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-/i, '');
+  }
+
   private emptyDocumento() {
     return {
       tipoDocumento: this.requiredDocumentTypes[0] ?? this.availableDocumentTypes[0] ?? 'RG',

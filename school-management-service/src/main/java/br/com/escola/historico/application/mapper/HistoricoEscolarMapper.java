@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import br.com.escola.aluno.adapter.out.persistence.entity.AlunoEntity;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarItemRequest;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarItemResponse;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarRequest;
@@ -17,6 +18,7 @@ public class HistoricoEscolarMapper {
 
     public HistoricoEscolar toEntity(HistoricoEscolarRequest request) {
         HistoricoEscolar historico = HistoricoEscolar.builder()
+                .alunoId(request.alunoId())
                 .nomeAluno(request.nomeAluno().trim())
                 .rgRen(trimToNull(request.rgRen()))
                 .ra(trimToNull(request.ra()))
@@ -50,6 +52,7 @@ public class HistoricoEscolarMapper {
     }
 
     public void copyToEntity(HistoricoEscolarRequest request, HistoricoEscolar historico) {
+        historico.setAlunoId(request.alunoId());
         historico.setNomeAluno(request.nomeAluno().trim());
         historico.setRgRen(trimToNull(request.rgRen()));
         historico.setRa(trimToNull(request.ra()));
@@ -82,14 +85,15 @@ public class HistoricoEscolarMapper {
     public HistoricoEscolarResponse toResponse(HistoricoEscolar entity) {
         return new HistoricoEscolarResponse(
                 entity.getId(),
-                entity.getNomeAluno(),
-                entity.getRgRen(),
-                entity.getRa(),
-                entity.getRm(),
-                entity.getDataNascimento(),
-                entity.getMunicipioNascimento(),
+                entity.getAlunoId(),
+                firstNonBlank(entity.getNomeAluno(), entity.getAluno() == null ? null : entity.getAluno().getNomeCompleto()),
+                firstNonBlank(entity.getRgRen(), entity.getAluno() == null ? null : entity.getAluno().getRg()),
+                firstNonBlank(entity.getRa(), entity.getAluno() == null ? null : entity.getAluno().getRa()),
+                firstNonBlank(entity.getRm(), entity.getAluno() == null ? null : entity.getAluno().getRm()),
+                entity.getDataNascimento() != null ? entity.getDataNascimento() : alunoDataNascimento(entity.getAluno()),
+                firstNonBlank(entity.getMunicipioNascimento(), entity.getAluno() == null ? null : entity.getAluno().getNaturalidade()),
                 entity.getEstadoNascimento(),
-                entity.getPaisNascimento(),
+                firstNonBlank(entity.getPaisNascimento(), entity.getAluno() == null ? null : entity.getAluno().getNacionalidade()),
                 entity.getNomeEscola(),
                 entity.getEnderecoEscola(),
                 entity.getMunicipioEscola(),
@@ -152,5 +156,14 @@ public class HistoricoEscolarMapper {
             return null;
         }
         return value.trim();
+    }
+
+    private String firstNonBlank(String primary, String fallback) {
+        String value = trimToNull(primary);
+        return value != null ? value : trimToNull(fallback);
+    }
+
+    private java.time.LocalDate alunoDataNascimento(AlunoEntity aluno) {
+        return aluno == null ? null : aluno.getDataNascimento();
     }
 }

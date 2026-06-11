@@ -81,15 +81,16 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Turma</mat-label>
-            <mat-select formControlName="turmaId" [disabled]="!selectedAlunoId()">
-              <mat-option
+            <select matNativeControl formControlName="turmaId" [disabled]="!selectedAlunoId()">
+              <option value="">Selecione</option>
+              <option
                 *ngFor="let turma of currentClasses()"
                 [value]="turma.id"
                 [disabled]="isClassFull(turma.id)"
               >
                 {{ turma.nome }} - {{ availableSlots(turma.id) }} vaga(s)
-              </mat-option>
-            </mat-select>
+              </option>
+            </select>
           </mat-form-field>
 
           <div class="actions">
@@ -127,20 +128,22 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Turma</mat-label>
-            <mat-select formControlName="turmaId">
-              <mat-option value="">Todas</mat-option>
-              <mat-option *ngFor="let turma of currentClasses()" [value]="turma.id">
+            <select matNativeControl formControlName="turmaId">
+              <option value="">Todas</option>
+              <option *ngFor="let turma of currentClasses()" [value]="turma.id">
                 {{ turma.nome }}
-              </mat-option>
-            </mat-select>
+              </option>
+            </select>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Status</mat-label>
-            <mat-select formControlName="status">
-              <mat-option value="">Todos</mat-option>
-              <mat-option *ngFor="let status of statuses" [value]="status">{{ status }}</mat-option>
-            </mat-select>
+            <select matNativeControl formControlName="status">
+              <option value="">Todos</option>
+              <option *ngFor="let status of statusOptions()" [value]="status.codigo">
+                {{ status.descricao || status.codigo }}
+              </option>
+            </select>
           </mat-form-field>
 
           <div class="actions split-actions">
@@ -195,13 +198,21 @@
           </div>
           <div class="enrollment-meta">
             <mat-form-field appearance="outline" class="status-field">
-              <mat-select
+              <mat-label>Status</mat-label>
+              <select
+                matNativeControl
                 [value]="enrollment.status"
                 [disabled]="updatingEnrollmentStatusId() === enrollment.id"
-                (selectionChange)="changeStatus(enrollment, $event.value)"
+                (change)="changeStatus(enrollment, $any($event.target).value)"
               >
-                <mat-option *ngFor="let status of statuses" [value]="status">{{ status }}</mat-option>
-              </mat-select>
+                <option
+                  *ngFor="let status of statusOptions()"
+                  [value]="status.codigo"
+                  [selected]="status.codigo === enrollment.status"
+                >
+                  {{ status.descricao || status.codigo }}
+                </option>
+              </select>
             </mat-form-field>
             <button
               mat-icon-button

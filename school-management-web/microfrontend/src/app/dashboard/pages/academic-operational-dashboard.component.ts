@@ -125,13 +125,13 @@ export class AcademicOperationalDashboardComponent implements OnInit {
   protected readonly titulo = computed(() => {
     switch (this.publicoCodigo()) {
       case 'SECRETARIA':
-        return 'Home da secretaria';
+        return 'Dashboard da secretaria';
       case 'DIRETOR':
-        return 'Home da direção';
+        return 'Dashboard da direção';
       case 'PROFESSOR':
-        return 'Home do professor';
+        return 'Dashboard do professor';
       default:
-        return 'Home acadêmica';
+        return 'Dashboard acadêmica';
     }
   });
   protected readonly subtitulo = computed(() => {
@@ -344,7 +344,7 @@ export class AcademicOperationalDashboardComponent implements OnInit {
       error: (error: unknown) => {
         this.isLoading.set(false);
         this.snackBar.open(
-          getApiErrorMessage(error, 'Não foi possível carregar a Home operacional.'),
+          getApiErrorMessage(error, 'Não foi possível carregar o dashboard operacional.'),
           'Fechar',
           { duration: 4500 },
         );

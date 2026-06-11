@@ -124,8 +124,10 @@ class AlunoControllerIntegrationTest {
     @Test
     @WithMockUser
     void deveExcluirAlunoComResponsavelVinculado() throws Exception {
-        UUID alunoId = criarAluno("Aluno Para Excluir", cpfAleatorio(), "aluno.excluir@example.com");
-        UUID responsavelId = criarResponsavel("Responsavel Para Excluir", cpfAleatorio());
+        String alunoCpf = cpfAleatorio();
+        String responsavelCpf = cpfAleatorio();
+        UUID alunoId = criarAluno("Aluno Para Excluir", alunoCpf, "aluno.excluir@example.com");
+        UUID responsavelId = criarResponsavel("Responsavel Para Excluir", responsavelCpf);
 
         mockMvc.perform(post("/api/alunos/{idAluno}/responsaveis/{idResponsavel}", alunoId, responsavelId))
                 .andExpect(status().isCreated());
@@ -138,13 +140,17 @@ class AlunoControllerIntegrationTest {
 
         assertCount("SELECT COUNT(*) FROM aluno_responsavel WHERE id_aluno = ?", alunoId, 0);
         assertCount("SELECT COUNT(*) FROM responsavel WHERE id_responsavel = ?", responsavelId, 0);
+        assertCount("SELECT COUNT(*) FROM pessoa WHERE cpf = ?", alunoCpf, 0);
+        assertCount("SELECT COUNT(*) FROM pessoa WHERE cpf = ?", responsavelCpf, 0);
     }
 
     @Test
     @WithMockUser
     void deveExcluirAlunoComHistoricoTransferenciaDocumentoEResponsavelNaoCompartilhado() throws Exception {
-        UUID alunoId = criarAluno("Aluno Com Dependencias", cpfAleatorio(), "aluno.dependencias@example.com");
-        UUID responsavelId = criarResponsavel("Responsavel Unico", cpfAleatorio());
+        String alunoCpf = cpfAleatorio();
+        String responsavelCpf = cpfAleatorio();
+        UUID alunoId = criarAluno("Aluno Com Dependencias", alunoCpf, "aluno.dependencias@example.com");
+        UUID responsavelId = criarResponsavel("Responsavel Unico", responsavelCpf);
 
         mockMvc.perform(post("/api/alunos/{idAluno}/responsaveis/{idResponsavel}", alunoId, responsavelId))
                 .andExpect(status().isCreated());
@@ -166,6 +172,8 @@ class AlunoControllerIntegrationTest {
         assertCount("SELECT COUNT(*) FROM historico_escolar WHERE id_aluno = ?", alunoId, 0);
         assertCount("SELECT COUNT(*) FROM aluno_responsavel WHERE id_aluno = ?", alunoId, 0);
         assertCount("SELECT COUNT(*) FROM responsavel WHERE id_responsavel = ?", responsavelId, 0);
+        assertCount("SELECT COUNT(*) FROM pessoa WHERE cpf = ?", alunoCpf, 0);
+        assertCount("SELECT COUNT(*) FROM pessoa WHERE cpf = ?", responsavelCpf, 0);
     }
 
     @Test

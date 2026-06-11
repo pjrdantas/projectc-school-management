@@ -25,6 +25,7 @@ module.exports = withNativeFederation({
     './AssessmentList': './src/app/professor/pages/assessments/assessments-list.component.ts',
     './AssessmentDetail': './src/app/professor/pages/assessments/assessment-detail.component.ts',
     './DashboardConfigAdmin': './src/app/dashboard/pages/config/dashboard-config-admin.component.ts',
+    './DashboardSnapshotsAdmin': './src/app/dashboard/pages/snapshots/dashboard-snapshots-admin.component.ts',
   },
 
  shared: {

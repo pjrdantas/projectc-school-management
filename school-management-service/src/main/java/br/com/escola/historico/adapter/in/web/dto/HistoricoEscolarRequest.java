@@ -2,13 +2,17 @@ package br.com.escola.historico.adapter.in.web.dto;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 
 public record HistoricoEscolarRequest(
+        @NotNull(message = "alunoId é obrigatório")
+        UUID alunoId,
         @NotBlank(message = "nomeAluno é obrigatório")
         String nomeAluno,
         String rgRen,

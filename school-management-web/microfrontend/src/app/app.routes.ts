@@ -160,4 +160,11 @@ export const routes: Routes = [
         m => m.DashboardConfigAdminComponent,
       ),
   },
+  {
+    path: 'dashboard/snapshots',
+    loadComponent: () =>
+      import('./dashboard/pages/snapshots/dashboard-snapshots-admin.component').then(
+        m => m.DashboardSnapshotsAdminComponent,
+      ),
+  },
 ];

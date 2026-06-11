@@ -100,20 +100,83 @@
           <div class="panel-header">
             <div>
               <h2>Widgets</h2>
-              <p *ngIf="selectedDashboard() as dashboard">{{ dashboard.nome }}</p>
+              <p *ngIf="selectedDashboard() as dashboard">
+                {{ dashboard.nome }}
+              </p>
             </div>
-            <button
-              mat-stroked-button
-              type="button"
-              [disabled]="!selectedDashboardId()"
-              (click)="openWidgetDialog()"
-            >
-              <mat-icon fontIcon="add"></mat-icon>
-              Novo
-            </button>
+            <div class="header-actions">
+              <button
+                mat-stroked-button
+                type="button"
+                [disabled]="!selectedDashboardId() || outdatedOfficialWidgets().length === 0 || isUpdatingOfficialWidgets()"
+                (click)="atualizarWidgetsOficiais()"
+              >
+                <mat-icon fontIcon="sync"></mat-icon>
+                Sincronizar
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                [disabled]="!selectedDashboardId() || missingOfficialWidgets().length === 0 || isProvisioningWidgets()"
+                (click)="provisionarWidgetsPadrao()"
+              >
+                <mat-icon fontIcon="auto_fix_high"></mat-icon>
+                Criar faltantes
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                [disabled]="!selectedDashboardId()"
+                (click)="openWidgetDialog()"
+              >
+                <mat-icon fontIcon="add"></mat-icon>
+                Novo
+              </button>
+            </div>
           </div>
 
-          <mat-progress-bar *ngIf="isLoadingWidgets()" mode="indeterminate"></mat-progress-bar>
+          <mat-progress-bar
+            *ngIf="isLoadingWidgets() || isProvisioningWidgets() || isUpdatingOfficialWidgets()"
+            mode="indeterminate"
+          ></mat-progress-bar>
+
+          <div class="widget-summary" *ngIf="selectedDashboardId()">
+            <span>
+              <strong>{{ officialWidgetsForPublico().length }}</strong>
+              oficiais
+            </span>
+            <span>
+              <strong>{{ officialCreatedCount() }}</strong>
+              criados
+            </span>
+            <span class="warning" [ngClass]="{ active: missingOfficialWidgets().length > 0 }">
+              <strong>{{ missingOfficialWidgets().length }}</strong>
+              faltantes
+            </span>
+            <span class="warning" [ngClass]="{ active: outdatedOfficialWidgets().length > 0 }">
+              <strong>{{ outdatedOfficialWidgets().length }}</strong>
+              divergentes
+            </span>
+            <span>
+              <strong>{{ customWidgetCount() }}</strong>
+              customizados
+            </span>
+          </div>
+
+          <div class="official-review" *ngIf="selectedDashboardId() && officialWidgetReview().length > 0">
+            <div
+              class="official-widget"
+              *ngFor="let item of officialWidgetReview()"
+              [ngClass]="{ missing: !item.existingWidget, outdated: item.desatualizado }"
+            >
+              <mat-icon [fontIcon]="item.existingWidget ? (item.desatualizado ? 'sync_problem' : 'check_circle') : 'radio_button_unchecked'"></mat-icon>
+              <div>
+                <strong>{{ item.catalogItem.titulo }}</strong>
+                <span>{{ item.catalogItem.codigo }}</span>
+              </div>
+              <span>{{ item.existingWidget ? (item.desatualizado ? 'Divergente' : 'Criado') : 'Faltante' }}</span>
+            </div>
+          </div>
 
           <div class="empty-state" *ngIf="!isLoadingWidgets() && orderedWidgets().length === 0">
             Nenhum widget para o dashboard selecionado.

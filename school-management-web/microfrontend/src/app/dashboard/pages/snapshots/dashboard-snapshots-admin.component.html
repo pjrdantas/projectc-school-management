@@ -1,0 +1,159 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <div>
+          <h1>Snapshots de dashboard</h1>
+          <p>Consulta administrativa dos indicadores historizados por público.</p>
+        </div>
+        <div class="header-actions">
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="!canGenerateSnapshots()"
+            (click)="gerarSnapshot()"
+          >
+            <mat-icon fontIcon="add_chart"></mat-icon>
+            Gerar snapshot
+          </button>
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            [disabled]="isLoadingPublicos() || isLoadingSnapshots() || isGeneratingSnapshots()"
+            (click)="consultar()"
+          >
+            <mat-icon fontIcon="search"></mat-icon>
+            Consultar
+          </button>
+        </div>
+      </div>
+
+      <mat-progress-bar
+        *ngIf="isLoadingPublicos() || isLoadingProfessores() || isLoadingSnapshots() || isLoadingHistorico() || isGeneratingSnapshots()"
+        mode="indeterminate"
+      ></mat-progress-bar>
+
+      <form class="filters-grid" [formGroup]="filterForm">
+        <mat-form-field appearance="outline">
+          <mat-label>Público</mat-label>
+          <select matNativeControl formControlName="publicoCodigo">
+            <option *ngFor="let publico of publicos()" [value]="publico.codigo">
+              {{ publico.descricao }}
+            </option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="filterForm.controls.publicoCodigo.value === 'PROFESSOR'">
+          <mat-label>Professor</mat-label>
+          <select matNativeControl formControlName="professorId">
+            <option value="">Todos</option>
+            <option *ngFor="let professor of professores()" [value]="professor.id">
+              {{ professor.nomeCompleto }}
+            </option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Data de referência</mat-label>
+          <input matInput type="date" formControlName="referenciaData" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Histórico de</mat-label>
+          <input matInput type="date" formControlName="dataInicio" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Histórico até</mat-label>
+          <input matInput type="date" formControlName="dataFim" />
+        </mat-form-field>
+
+        <button mat-stroked-button type="button" [disabled]="isLoadingSnapshots() || isGeneratingSnapshots()" (click)="limparData()">
+          <mat-icon fontIcon="filter_alt_off"></mat-icon>
+          Todas as datas
+        </button>
+
+        <button mat-stroked-button type="button" [disabled]="!canConsultarHistorico()" (click)="loadHistorico()">
+          <mat-icon fontIcon="timeline"></mat-icon>
+          Histórico
+        </button>
+      </form>
+
+      <p class="warning-state" *ngIf="filterForm.controls.publicoCodigo.value === 'PROFESSOR' && !filterForm.controls.professorId.value">
+        A consulta pode listar todos os professores, mas a geração exige selecionar um professor específico.
+      </p>
+
+      <section class="summary-grid" *ngIf="snapshots().length > 0">
+        <div>
+          <strong>{{ snapshots().length }}</strong>
+          <span>indicadores</span>
+        </div>
+        <div>
+          <strong>{{ numericSnapshotsCount() }}</strong>
+          <span>numéricos</span>
+        </div>
+        <div>
+          <strong>{{ textSnapshotsCount() }}</strong>
+          <span>textuais</span>
+        </div>
+        <div>
+          <strong>{{ referenciaResumo() }}</strong>
+          <span>referência</span>
+        </div>
+      </section>
+
+      <section class="history-panel" *ngIf="!isLoadingHistorico() && historicos().length > 0">
+        <div class="section-header">
+          <h2>Histórico comparativo</h2>
+          <span>{{ historicos().length }} indicador(es)</span>
+        </div>
+
+        <div class="history-grid">
+          <article class="history-card" *ngFor="let historico of orderedHistoricos()">
+            <div class="history-title">
+              <strong>{{ historico.descricao || codigoIndicadorHistoricoVisivel(historico) }}</strong>
+              <span>{{ codigoIndicadorHistoricoVisivel(historico) }}</span>
+            </div>
+            <div class="history-values">
+              <span>
+                Atual
+                <strong>{{ formatValue(historico.valorAtual) }}</strong>
+              </span>
+              <span>
+                Anterior
+                <strong>{{ formatValue(historico.valorAnterior) }}</strong>
+              </span>
+              <span class="variation" [ngClass]="variacaoClass(historico)">
+                Variação
+                <strong>{{ formatPercent(historico.variacaoPercentual) }}</strong>
+              </span>
+            </div>
+            <div class="history-points" *ngIf="historico.pontos.length > 0">
+              <span *ngFor="let ponto of historico.pontos">
+                {{ ponto.referenciaData | date: 'dd/MM' }}: {{ pontoValor(ponto) }}
+              </span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="snapshot-list" *ngIf="!isLoadingSnapshots()">
+        <article class="snapshot-row" *ngFor="let snapshot of orderedSnapshots()">
+          <div class="snapshot-main">
+            <strong>{{ snapshot.descricao || snapshot.codigoIndicador }}</strong>
+            <span>{{ codigoIndicadorVisivel(snapshot) }} · {{ snapshot.publicoCodigo }}</span>
+          </div>
+          <div class="snapshot-value">
+            <strong>{{ valorPrincipal(snapshot) }}</strong>
+            <span>{{ snapshot.referenciaData | date: 'dd/MM/yyyy' }}</span>
+          </div>
+        </article>
+
+        <p class="empty-state" *ngIf="snapshots().length === 0">
+          Nenhum snapshot encontrado para os filtros selecionados.
+        </p>
+      </section>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -16,7 +16,8 @@
 .header-row,
 .panel-header,
 .row-actions,
-.panel-actions {
+.panel-actions,
+.header-actions {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -52,7 +53,7 @@ mat-progress-bar {
 
 .config-layout {
   display: grid;
-  grid-template-columns: minmax(190px, 0.7fr) minmax(280px, 1fr) minmax(320px, 1.2fr);
+  grid-template-columns: minmax(190px, 0.65fr) minmax(280px, 0.95fr) minmax(420px, 1.45fr);
   gap: 12px;
   align-items: start;
   margin-top: 14px;
@@ -71,6 +72,15 @@ mat-progress-bar {
   min-height: 36px;
 }
 
+.header-actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.header-actions button {
+  min-height: 34px;
+}
+
 .panel-header h2 {
   color: #263244;
   font-size: 1rem;
@@ -86,7 +96,6 @@ mat-progress-bar {
 .dashboard-row,
 .widget-row {
   width: 100%;
-  max-width: 100%;
   box-sizing: border-box;
   border: 1px solid #e5e9fb;
   border-radius: 8px;
@@ -119,7 +128,7 @@ mat-progress-bar {
 }
 
 .widget-row {
-  grid-template-columns: 34px minmax(0, 1fr) auto auto;
+  grid-template-columns: 34px minmax(180px, 1fr) auto auto;
   cursor: default;
 }
 
@@ -127,6 +136,21 @@ mat-progress-bar {
 .widget-row strong {
   display: block;
   color: #263244;
+}
+
+.widget-main {
+  min-width: 0;
+}
+
+.widget-main strong,
+.widget-main span,
+.widget-main p {
+  overflow-wrap: anywhere;
+}
+
+.widget-main span,
+.widget-main p {
+  display: block;
 }
 
 .dashboard-row.selected,
@@ -145,6 +169,97 @@ mat-progress-bar {
   background: #eef2ff;
   font-size: 0.82rem;
   font-weight: 700;
+}
+
+.widget-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.widget-summary span {
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid #e0e7ff;
+  border-radius: 8px;
+  color: #576071;
+  background: #f8faff;
+  font-size: 0.72rem;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.widget-summary strong {
+  display: block;
+  color: #263244;
+  font-size: 0.95rem;
+}
+
+.widget-summary .warning.active {
+  border-color: #fcd34d;
+  background: #fffbeb;
+}
+
+.official-review {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.official-widget {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) minmax(72px, auto);
+  gap: 8px;
+  align-items: start;
+  padding: 9px;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  background: #f0fdf4;
+}
+
+.official-widget div {
+  min-width: 0;
+}
+
+.official-widget.missing {
+  border-color: #fed7aa;
+  background: #fff7ed;
+}
+
+.official-widget.outdated {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.official-widget mat-icon {
+  color: #16a34a;
+  font-size: 19px;
+}
+
+.official-widget.missing mat-icon {
+  color: #f97316;
+}
+
+.official-widget.outdated mat-icon {
+  color: #ca8a04;
+}
+
+.official-widget strong,
+.official-widget span {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.official-widget > span {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  font-weight: 700;
+  text-align: center;
 }
 
 .status-pill {
@@ -194,7 +309,8 @@ mat-progress-bar {
 @media (max-width: 760px) {
   .config-layout,
   .dashboard-row,
-  .widget-row {
+  .widget-row,
+  .widget-summary {
     grid-template-columns: 1fr;
   }
 
