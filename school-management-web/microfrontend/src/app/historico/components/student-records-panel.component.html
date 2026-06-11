@@ -153,12 +153,12 @@
         <div class="form-grid">
         <mat-form-field appearance="outline">
           <mat-label>Disciplina cadastrada</mat-label>
-          <mat-select [(ngModel)]="componenteDraft.disciplinaId" name="disciplinaId">
-            <mat-option value="">Informar manualmente</mat-option>
-            <mat-option *ngFor="let disciplina of disciplinas()" [value]="disciplina.id">
+          <select matNativeControl [(ngModel)]="componenteDraft.disciplinaId" name="disciplinaId">
+            <option value="">Informar manualmente</option>
+            <option *ngFor="let disciplina of disciplinas()" [value]="disciplina.id">
               {{ disciplina.nome }}
-            </mat-option>
-          </mat-select>
+            </option>
+          </select>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
@@ -248,20 +248,20 @@
         <div class="form-grid">
         <mat-form-field appearance="outline">
           <mat-label>Tipo de transferência</mat-label>
-          <mat-select [(ngModel)]="novaTransferencia.tipoTransferencia" name="tipoTransferencia">
-            <mat-option *ngFor="let tipo of tiposTransferencia" [value]="tipo.value">
+          <select matNativeControl [(ngModel)]="novaTransferencia.tipoTransferencia" name="tipoTransferencia">
+            <option *ngFor="let tipo of tiposTransferencia" [value]="tipo.value">
               {{ tipo.label }}
-            </mat-option>
-          </mat-select>
+            </option>
+          </select>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Status da transferência</mat-label>
-          <mat-select [(ngModel)]="novaTransferencia.statusTransferencia" name="statusTransferencia">
-            <mat-option *ngFor="let status of statusTransferenciaOptions" [value]="status.value">
+          <select matNativeControl [(ngModel)]="novaTransferencia.statusTransferencia" name="statusTransferencia">
+            <option *ngFor="let status of statusTransferenciaOptions" [value]="status.value">
               {{ status.label }}
-            </mat-option>
-          </mat-select>
+            </option>
+          </select>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="span-2">

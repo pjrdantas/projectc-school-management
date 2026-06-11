@@ -34,11 +34,11 @@
     <div class="form-grid">
       <mat-form-field appearance="outline">
         <mat-label>Tipo</mat-label>
-        <mat-select [(ngModel)]="novoDocumento.tipoDocumento" name="tipoDocumento">
-          <mat-option *ngFor="let tipo of availableDocumentTypes" [value]="tipo">
+        <select matNativeControl [(ngModel)]="novoDocumento.tipoDocumento" name="tipoDocumento">
+          <option *ngFor="let tipo of availableDocumentTypes" [value]="tipo">
             {{ labelDocumento(tipo) }}
-          </mat-option>
-        </mat-select>
+          </option>
+        </select>
       </mat-form-field>
 
       <mat-form-field appearance="outline">

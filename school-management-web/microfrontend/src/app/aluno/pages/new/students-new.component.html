@@ -105,21 +105,21 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Sexo</mat-label>
-            <mat-select formControlName="sexo">
-              <mat-option value="">Não informado</mat-option>
-              <mat-option *ngFor="let sexo of sexoOptions" [value]="sexo">
+            <select matNativeControl formControlName="sexo">
+              <option value="">Não informado</option>
+              <option *ngFor="let sexo of sexoOptions" [value]="sexo">
                 {{ sexo }}
-              </mat-option>
-            </mat-select>
+              </option>
+            </select>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Status</mat-label>
-            <mat-select formControlName="statusAluno">
-              <mat-option *ngFor="let status of statusAlunoOptions" [value]="status">
+            <select matNativeControl formControlName="statusAluno">
+              <option *ngFor="let status of statusAlunoOptions" [value]="status">
                 {{ status }}
-              </mat-option>
-            </mat-select>
+              </option>
+            </select>
           </mat-form-field>
         </section>
 
