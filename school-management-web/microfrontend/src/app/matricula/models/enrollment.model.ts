@@ -37,3 +37,9 @@ export interface EnrollmentFilter {
   periodoLetivoId?: string;
   status?: string;
 }
+
+export interface EnrollmentCatalogItem {
+  id: string;
+  codigo: string;
+  descricao: string;
+}

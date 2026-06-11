@@ -140,7 +140,9 @@
             <mat-label>Status</mat-label>
             <select matNativeControl formControlName="status">
               <option value="">Todos</option>
-              <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+              <option *ngFor="let status of statusOptions()" [value]="status.codigo">
+                {{ status.descricao || status.codigo }}
+              </option>
             </select>
           </mat-form-field>
 
@@ -203,7 +205,13 @@
                 [disabled]="updatingEnrollmentStatusId() === enrollment.id"
                 (change)="changeStatus(enrollment, $any($event.target).value)"
               >
-                <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+                <option
+                  *ngFor="let status of statusOptions()"
+                  [value]="status.codigo"
+                  [selected]="status.codigo === enrollment.status"
+                >
+                  {{ status.descricao || status.codigo }}
+                </option>
               </select>
             </mat-form-field>
             <button

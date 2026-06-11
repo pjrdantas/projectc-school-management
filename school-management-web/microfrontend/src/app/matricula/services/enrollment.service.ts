@@ -2,7 +2,12 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ShellContextService } from '../../core/shell/shell-context.service';
-import { Enrollment, EnrollmentFilter, EnrollmentInput } from '../models/enrollment.model';
+import {
+  Enrollment,
+  EnrollmentCatalogItem,
+  EnrollmentFilter,
+  EnrollmentInput,
+} from '../models/enrollment.model';
 
 @Injectable({ providedIn: 'root' })
 export class EnrollmentService {
@@ -37,6 +42,12 @@ export class EnrollmentService {
     return this.http.get<Enrollment[]>(`${this.apiBaseUrl}/api/matriculas`, {
       headers: this.buildHeaders(),
       params,
+    });
+  }
+
+  listStatuses(): Observable<EnrollmentCatalogItem[]> {
+    return this.http.get<EnrollmentCatalogItem[]>(`${this.apiBaseUrl}/api/matriculas/catalogos/status`, {
+      headers: this.buildHeaders(),
     });
   }
 
