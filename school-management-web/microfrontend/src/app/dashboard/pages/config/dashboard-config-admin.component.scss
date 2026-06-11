@@ -53,7 +53,7 @@ mat-progress-bar {
 
 .config-layout {
   display: grid;
-  grid-template-columns: minmax(190px, 0.7fr) minmax(280px, 1fr) minmax(320px, 1.2fr);
+  grid-template-columns: minmax(190px, 0.65fr) minmax(280px, 0.95fr) minmax(420px, 1.45fr);
   gap: 12px;
   align-items: start;
   margin-top: 14px;
@@ -96,7 +96,6 @@ mat-progress-bar {
 .dashboard-row,
 .widget-row {
   width: 100%;
-  max-width: 100%;
   box-sizing: border-box;
   border: 1px solid #e5e9fb;
   border-radius: 8px;
@@ -129,7 +128,7 @@ mat-progress-bar {
 }
 
 .widget-row {
-  grid-template-columns: 34px minmax(0, 1fr) auto auto;
+  grid-template-columns: 34px minmax(180px, 1fr) auto auto;
   cursor: default;
 }
 
@@ -137,6 +136,21 @@ mat-progress-bar {
 .widget-row strong {
   display: block;
   color: #263244;
+}
+
+.widget-main {
+  min-width: 0;
+}
+
+.widget-main strong,
+.widget-main span,
+.widget-main p {
+  overflow-wrap: anywhere;
+}
+
+.widget-main span,
+.widget-main p {
+  display: block;
 }
 
 .dashboard-row.selected,
@@ -189,20 +203,24 @@ mat-progress-bar {
 
 .official-review {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
   margin-top: 10px;
 }
 
 .official-widget {
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) auto;
-  gap: 6px;
-  align-items: center;
-  padding: 7px;
+  grid-template-columns: 22px minmax(0, 1fr) minmax(72px, auto);
+  gap: 8px;
+  align-items: start;
+  padding: 9px;
   border: 1px solid #bbf7d0;
   border-radius: 8px;
   background: #f0fdf4;
+}
+
+.official-widget div {
+  min-width: 0;
 }
 
 .official-widget.missing {
@@ -231,8 +249,9 @@ mat-progress-bar {
 .official-widget strong,
 .official-widget span {
   display: block;
-  font-size: 0.68rem;
-  line-height: 1.2;
+  overflow-wrap: anywhere;
+  font-size: 0.72rem;
+  line-height: 1.25;
 }
 
 .official-widget > span {
@@ -240,7 +259,7 @@ mat-progress-bar {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.72);
   font-weight: 700;
-  white-space: nowrap;
+  text-align: center;
 }
 
 .status-pill {
