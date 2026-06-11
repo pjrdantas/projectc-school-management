@@ -25,13 +25,13 @@
 }
 
 .header-row h1 {
-  font-size: 1.35rem;
+  font-size: 1.24rem;
 }
 
 .header-row p {
   margin: 2px 0 0;
   color: #576071;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
 }
 
 mat-progress-bar {
@@ -48,15 +48,15 @@ mat-progress-bar {
 }
 
 .metric-grid {
-  margin-top: 14px;
+  margin-top: 10px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .metric-tile {
-  min-height: 78px;
+  min-height: 58px;
   border: 1px solid #d7def8;
   border-radius: 10px;
-  padding: 10px;
+  padding: 8px 10px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -64,8 +64,8 @@ mat-progress-bar {
 }
 
 .metric-icon {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
   display: grid;
   place-items: center;
@@ -85,22 +85,7 @@ mat-progress-bar {
 .metric-tile strong {
   display: block;
   margin-top: 2px;
-  font-size: 1.25rem;
-}
-
-.tone-warning .metric-icon {
-  background: #fff6db;
-  color: #8a6100;
-}
-
-.tone-success .metric-icon {
-  background: #e8f7ef;
-  color: #167346;
-}
-
-.tone-neutral .metric-icon {
-  background: #edf3f5;
-  color: #385766;
+  font-size: 1.1rem;
 }
 
 .summary-grid {
@@ -108,7 +93,7 @@ mat-progress-bar {
 }
 
 .dashboard-grid {
-  margin-top: 14px;
+  margin-top: 10px;
   grid-template-columns: 1fr;
   align-items: start;
 }
@@ -124,19 +109,19 @@ mat-progress-bar {
 }
 
 .detail-grid {
-  margin-top: 12px;
+  margin-top: 10px;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 .sector-grid {
-  margin-top: 12px;
+  margin-top: 10px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .panel {
   border: 1px solid #d7def8;
   border-radius: 10px;
-  padding: 10px;
+  padding: 8px 10px;
   background: #ffffff;
 }
 
@@ -145,18 +130,18 @@ mat-progress-bar {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .panel h2 {
-  font-size: 0.95rem;
+  font-size: 0.88rem;
 }
 
 .status-list,
 .class-list,
 .compact-list {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .status-label,
@@ -175,7 +160,7 @@ mat-progress-bar {
 
 .class-row {
   border-top: 1px solid #eef1ff;
-  padding-top: 8px;
+  padding-top: 6px;
 }
 
 .class-row:first-child {
@@ -221,8 +206,8 @@ mat-progress-bar {
 
 .sector-list {
   display: grid;
-  gap: 7px;
-  margin-top: 8px;
+  gap: 5px;
+  margin-top: 6px;
 }
 
 .sector-item {
@@ -231,12 +216,12 @@ mat-progress-bar {
   align-items: center;
   gap: 8px;
   border-top: 1px solid #eef1ff;
-  padding-top: 7px;
+  padding-top: 5px;
 }
 
 .alert-row {
   border-top: 1px solid #eef1ff;
-  padding-top: 8px;
+  padding-top: 6px;
   display: grid;
   gap: 2px;
 }
@@ -253,13 +238,13 @@ mat-progress-bar {
 
 .pie-layout {
   display: grid;
-  grid-template-columns: 120px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 10px;
   align-items: center;
 }
 
 .pie-chart {
-  width: 118px;
+  width: 104px;
   aspect-ratio: 1;
   border-radius: 50%;
   display: block;
@@ -286,7 +271,7 @@ mat-progress-bar {
 }
 
 .column-chart {
-  height: 124px;
+  height: 104px;
   display: grid;
   grid-template-columns: repeat(6, minmax(26px, 1fr));
   align-items: end;
@@ -296,14 +281,14 @@ mat-progress-bar {
 .column-item {
   min-width: 0;
   display: grid;
-  grid-template-rows: 76px 14px 20px;
+  grid-template-rows: 60px 14px 18px;
   gap: 4px;
   align-items: center;
   text-align: center;
 }
 
 .column-bar-wrap {
-  height: 76px;
+  height: 60px;
   width: 100%;
   display: flex;
   align-items: end;
@@ -326,12 +311,26 @@ mat-progress-bar {
   font-size: 0.58rem;
 }
 
+.preferences-panel {
+  margin-top: 10px;
+  padding: 7px 10px;
+}
+
+.preferences-panel .panel-header {
+  margin-bottom: 5px;
+}
+
+.preferences-panel h2 {
+  font-size: 0.84rem;
+}
+
 @media (max-width: 860px) {
   .metric-grid,
   .summary-grid,
   .detail-grid,
   .sector-grid,
   .chart-column,
+  .preference-list,
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
