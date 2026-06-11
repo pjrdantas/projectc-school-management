@@ -43,6 +43,7 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
   protected readonly snapshots = signal<DashboardIndicadorSnapshot[]>([]);
   protected readonly isLoadingPublicos = signal(false);
   protected readonly isLoadingSnapshots = signal(false);
+  protected readonly isGeneratingSnapshots = signal(false);
 
   protected readonly filterForm = this.fb.nonNullable.group({
     publicoCodigo: [''],
@@ -69,6 +70,14 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
     const dates = [...new Set(this.snapshots().map(item => item.referenciaData))];
     return dates.length === 1 ? dates[0] : `${dates.length} datas`;
   });
+  protected canGenerateSnapshots(): boolean {
+    const publicoCodigo = this.filterForm.controls.publicoCodigo.value;
+    return !!publicoCodigo
+      && publicoCodigo !== 'PROFESSOR'
+      && !this.isLoadingPublicos()
+      && !this.isLoadingSnapshots()
+      && !this.isGeneratingSnapshots();
+  }
 
   ngOnInit(): void {
     this.loadPublicos();
@@ -87,6 +96,39 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
   protected limparData(): void {
     this.filterForm.controls.referenciaData.setValue('');
     this.consultar();
+  }
+
+  protected gerarSnapshot(): void {
+    const publicoCodigo = this.filterForm.controls.publicoCodigo.value;
+    const referenciaData = this.filterForm.controls.referenciaData.value;
+    if (!publicoCodigo) {
+      this.snackBar.open('Selecione um público antes de gerar snapshots.', 'Fechar', { duration: 3000 });
+      return;
+    }
+
+    if (publicoCodigo === 'PROFESSOR') {
+      this.snackBar.open('Snapshots de professor exigem um professor específico.', 'Fechar', { duration: 4000 });
+      return;
+    }
+
+    const referenciaTexto = referenciaData || 'hoje';
+    if (!confirm(`Gerar snapshots para ${publicoCodigo} com referência ${referenciaTexto}?`)) {
+      return;
+    }
+
+    this.isGeneratingSnapshots.set(true);
+    this.snapshotService.gerarPorPublicoCodigo(publicoCodigo, referenciaData).subscribe({
+      next: generated => {
+        this.isGeneratingSnapshots.set(false);
+        this.snapshots.set(generated);
+        this.snackBar.open(`${generated.length} snapshot(s) gerado(s).`, 'Fechar', { duration: 3000 });
+        this.loadSnapshots(publicoCodigo, referenciaData);
+      },
+      error: error => {
+        this.isGeneratingSnapshots.set(false);
+        this.showError(error, 'Não foi possível gerar snapshots de dashboard.');
+      },
+    });
   }
 
   protected valorPrincipal(snapshot: DashboardIndicadorSnapshot): string {

@@ -6,19 +6,33 @@
           <h1>Snapshots de dashboard</h1>
           <p>Consulta administrativa dos indicadores historizados por público.</p>
         </div>
-        <button
-          mat-raised-button
-          color="primary"
-          type="button"
-          [disabled]="isLoadingPublicos() || isLoadingSnapshots()"
-          (click)="consultar()"
-        >
-          <mat-icon fontIcon="search"></mat-icon>
-          Consultar
-        </button>
+        <div class="header-actions">
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="!canGenerateSnapshots()"
+            (click)="gerarSnapshot()"
+          >
+            <mat-icon fontIcon="add_chart"></mat-icon>
+            Gerar snapshot
+          </button>
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            [disabled]="isLoadingPublicos() || isLoadingSnapshots() || isGeneratingSnapshots()"
+            (click)="consultar()"
+          >
+            <mat-icon fontIcon="search"></mat-icon>
+            Consultar
+          </button>
+        </div>
       </div>
 
-      <mat-progress-bar *ngIf="isLoadingPublicos() || isLoadingSnapshots()" mode="indeterminate"></mat-progress-bar>
+      <mat-progress-bar
+        *ngIf="isLoadingPublicos() || isLoadingSnapshots() || isGeneratingSnapshots()"
+        mode="indeterminate"
+      ></mat-progress-bar>
 
       <form class="filters-grid" [formGroup]="filterForm">
         <mat-form-field appearance="outline">
@@ -40,6 +54,10 @@
           Todas as datas
         </button>
       </form>
+
+      <p class="warning-state" *ngIf="filterForm.controls.publicoCodigo.value === 'PROFESSOR'">
+        A geração para professor exige selecionar um professor específico e será tratada em uma fase própria.
+      </p>
 
       <section class="summary-grid" *ngIf="snapshots().length > 0">
         <div>
