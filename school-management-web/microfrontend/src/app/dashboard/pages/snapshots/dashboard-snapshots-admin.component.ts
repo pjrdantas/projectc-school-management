@@ -9,6 +9,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { getApiErrorMessage } from '../../../core/http/api-error';
+import { Professor } from '../../../professor/models/teacher.model';
+import { TeachersService } from '../../../professor/services/teachers.service';
 import { DashboardPublico } from '../../models/dashboard-config.model';
 import { DashboardIndicadorSnapshot } from '../../models/dashboard-snapshot.model';
 import { DashboardConfigService } from '../../services/dashboard-config.service';
@@ -38,15 +40,19 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly snapshotService = inject(DashboardSnapshotService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly teachersService = inject(TeachersService);
 
   protected readonly publicos = signal<DashboardPublico[]>([]);
+  protected readonly professores = signal<Professor[]>([]);
   protected readonly snapshots = signal<DashboardIndicadorSnapshot[]>([]);
   protected readonly isLoadingPublicos = signal(false);
+  protected readonly isLoadingProfessores = signal(false);
   protected readonly isLoadingSnapshots = signal(false);
   protected readonly isGeneratingSnapshots = signal(false);
 
   protected readonly filterForm = this.fb.nonNullable.group({
     publicoCodigo: [''],
+    professorId: [''],
     referenciaData: [''],
   });
 
@@ -72,15 +78,18 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
   });
   protected canGenerateSnapshots(): boolean {
     const publicoCodigo = this.filterForm.controls.publicoCodigo.value;
+    const professorId = this.filterForm.controls.professorId.value;
     return !!publicoCodigo
-      && publicoCodigo !== 'PROFESSOR'
+      && (publicoCodigo !== 'PROFESSOR' || !!professorId)
       && !this.isLoadingPublicos()
+      && !this.isLoadingProfessores()
       && !this.isLoadingSnapshots()
       && !this.isGeneratingSnapshots();
   }
 
   ngOnInit(): void {
     this.loadPublicos();
+    this.loadProfessores();
   }
 
   protected consultar(): void {
@@ -100,24 +109,33 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
 
   protected gerarSnapshot(): void {
     const publicoCodigo = this.filterForm.controls.publicoCodigo.value;
+    const professorId = this.filterForm.controls.professorId.value;
     const referenciaData = this.filterForm.controls.referenciaData.value;
     if (!publicoCodigo) {
       this.snackBar.open('Selecione um público antes de gerar snapshots.', 'Fechar', { duration: 3000 });
       return;
     }
 
-    if (publicoCodigo === 'PROFESSOR') {
-      this.snackBar.open('Snapshots de professor exigem um professor específico.', 'Fechar', { duration: 4000 });
+    if (publicoCodigo === 'PROFESSOR' && !professorId) {
+      this.snackBar.open('Selecione um professor antes de gerar snapshots do professor.', 'Fechar', { duration: 4000 });
       return;
     }
 
     const referenciaTexto = referenciaData || 'hoje';
-    if (!confirm(`Gerar snapshots para ${publicoCodigo} com referência ${referenciaTexto}?`)) {
+    const alvoTexto = publicoCodigo === 'PROFESSOR'
+      ? this.professores().find(professor => professor.id === professorId)?.nomeCompleto ?? 'professor selecionado'
+      : publicoCodigo;
+
+    if (!confirm(`Gerar snapshots para ${alvoTexto} com referência ${referenciaTexto}?`)) {
       return;
     }
 
     this.isGeneratingSnapshots.set(true);
-    this.snapshotService.gerarPorPublicoCodigo(publicoCodigo, referenciaData).subscribe({
+    const request = publicoCodigo === 'PROFESSOR'
+      ? this.snapshotService.gerarProfessor(professorId, referenciaData)
+      : this.snapshotService.gerarPorPublicoCodigo(publicoCodigo, referenciaData);
+
+    request.subscribe({
       next: generated => {
         this.isGeneratingSnapshots.set(false);
         this.snapshots.set(generated);
@@ -137,6 +155,14 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
     }
 
     return snapshot.valorTexto || '-';
+  }
+
+  protected codigoIndicadorVisivel(snapshot: DashboardIndicadorSnapshot): string {
+    if (snapshot.publicoCodigo === 'PROFESSOR') {
+      return snapshot.codigoIndicador.replace(/^PROFESSOR_[A-F0-9]{32}_/i, '');
+    }
+
+    return snapshot.codigoIndicador;
   }
 
   private loadPublicos(): void {
@@ -160,11 +186,30 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
     });
   }
 
+  private loadProfessores(): void {
+    this.isLoadingProfessores.set(true);
+    this.teachersService.listar().subscribe({
+      next: professores => {
+        this.professores.set(
+          [...professores]
+            .filter(professor => professor.ativo)
+            .sort((left, right) => left.nomeCompleto.localeCompare(right.nomeCompleto, 'pt-BR')),
+        );
+        this.isLoadingProfessores.set(false);
+      },
+      error: error => {
+        this.professores.set([]);
+        this.isLoadingProfessores.set(false);
+        this.showError(error, 'Não foi possível carregar professores.');
+      },
+    });
+  }
+
   private loadSnapshots(publicoCodigo: string, referenciaData: string): void {
     this.isLoadingSnapshots.set(true);
     this.snapshotService.listarPorPublicoCodigo(publicoCodigo, referenciaData).subscribe({
       next: snapshots => {
-        this.snapshots.set(snapshots);
+        this.snapshots.set(this.filterProfessorSnapshots(snapshots));
         this.isLoadingSnapshots.set(false);
       },
       error: error => {
@@ -173,6 +218,16 @@ export class DashboardSnapshotsAdminComponent implements OnInit {
         this.showError(error, 'Não foi possível carregar snapshots de dashboard.');
       },
     });
+  }
+
+  private filterProfessorSnapshots(snapshots: DashboardIndicadorSnapshot[]): DashboardIndicadorSnapshot[] {
+    const publicoCodigo = this.filterForm.controls.publicoCodigo.value;
+    const professorId = this.filterForm.controls.professorId.value;
+    if (publicoCodigo !== 'PROFESSOR' || !professorId) {
+      return snapshots;
+    }
+
+    return snapshots.filter(snapshot => snapshot.valorTexto === professorId);
   }
 
   private showError(error: unknown, fallbackMessage: string): void {

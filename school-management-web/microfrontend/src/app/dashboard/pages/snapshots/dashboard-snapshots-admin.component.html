@@ -30,7 +30,7 @@
       </div>
 
       <mat-progress-bar
-        *ngIf="isLoadingPublicos() || isLoadingSnapshots() || isGeneratingSnapshots()"
+        *ngIf="isLoadingPublicos() || isLoadingProfessores() || isLoadingSnapshots() || isGeneratingSnapshots()"
         mode="indeterminate"
       ></mat-progress-bar>
 
@@ -44,19 +44,29 @@
           </select>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" *ngIf="filterForm.controls.publicoCodigo.value === 'PROFESSOR'">
+          <mat-label>Professor</mat-label>
+          <select matNativeControl formControlName="professorId">
+            <option value="">Todos</option>
+            <option *ngFor="let professor of professores()" [value]="professor.id">
+              {{ professor.nomeCompleto }}
+            </option>
+          </select>
+        </mat-form-field>
+
         <mat-form-field appearance="outline">
           <mat-label>Data de referência</mat-label>
           <input matInput type="date" formControlName="referenciaData" />
         </mat-form-field>
 
-        <button mat-stroked-button type="button" [disabled]="isLoadingSnapshots()" (click)="limparData()">
+        <button mat-stroked-button type="button" [disabled]="isLoadingSnapshots() || isGeneratingSnapshots()" (click)="limparData()">
           <mat-icon fontIcon="filter_alt_off"></mat-icon>
           Todas as datas
         </button>
       </form>
 
-      <p class="warning-state" *ngIf="filterForm.controls.publicoCodigo.value === 'PROFESSOR'">
-        A geração para professor exige selecionar um professor específico e será tratada em uma fase própria.
+      <p class="warning-state" *ngIf="filterForm.controls.publicoCodigo.value === 'PROFESSOR' && !filterForm.controls.professorId.value">
+        A consulta pode listar todos os professores, mas a geração exige selecionar um professor específico.
       </p>
 
       <section class="summary-grid" *ngIf="snapshots().length > 0">
@@ -82,7 +92,7 @@
         <article class="snapshot-row" *ngFor="let snapshot of orderedSnapshots()">
           <div class="snapshot-main">
             <strong>{{ snapshot.descricao || snapshot.codigoIndicador }}</strong>
-            <span>{{ snapshot.codigoIndicador }} · {{ snapshot.publicoCodigo }}</span>
+            <span>{{ codigoIndicadorVisivel(snapshot) }} · {{ snapshot.publicoCodigo }}</span>
           </div>
           <div class="snapshot-value">
             <strong>{{ valorPrincipal(snapshot) }}</strong>

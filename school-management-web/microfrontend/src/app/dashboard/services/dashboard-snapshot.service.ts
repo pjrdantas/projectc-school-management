@@ -40,6 +40,22 @@ export class DashboardSnapshotService {
     );
   }
 
+  gerarProfessor(professorId: string, referenciaData?: string | null): Observable<DashboardIndicadorSnapshot[]> {
+    let params = new HttpParams();
+    if (referenciaData) {
+      params = params.set('referenciaData', referenciaData);
+    }
+
+    return this.http.post<DashboardIndicadorSnapshot[]>(
+      `${this.baseUrl}/api/dashboard/snapshots/geracoes/professores/${professorId}`,
+      null,
+      {
+        headers: this.headers(),
+        params,
+      },
+    );
+  }
+
   private get baseUrl(): string {
     return this.shellContext.getApiBaseUrl();
   }
