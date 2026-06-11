@@ -77,6 +77,10 @@ mat-progress-bar {
   flex-wrap: wrap;
 }
 
+.header-actions button {
+  min-height: 34px;
+}
+
 .panel-header h2 {
   color: #263244;
   font-size: 1rem;
@@ -153,19 +157,49 @@ mat-progress-bar {
   font-weight: 700;
 }
 
+.widget-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.widget-summary span {
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid #e0e7ff;
+  border-radius: 8px;
+  color: #576071;
+  background: #f8faff;
+  font-size: 0.72rem;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.widget-summary strong {
+  display: block;
+  color: #263244;
+  font-size: 0.95rem;
+}
+
+.widget-summary .warning.active {
+  border-color: #fcd34d;
+  background: #fffbeb;
+}
+
 .official-review {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 6px;
   margin-top: 10px;
 }
 
 .official-widget {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) auto;
-  gap: 8px;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  gap: 6px;
   align-items: center;
-  padding: 8px;
+  padding: 7px;
   border: 1px solid #bbf7d0;
   border-radius: 8px;
   background: #f0fdf4;
@@ -183,7 +217,7 @@ mat-progress-bar {
 
 .official-widget mat-icon {
   color: #16a34a;
-  font-size: 20px;
+  font-size: 19px;
 }
 
 .official-widget.missing mat-icon {
@@ -197,7 +231,16 @@ mat-progress-bar {
 .official-widget strong,
 .official-widget span {
   display: block;
-  font-size: 0.74rem;
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
+.official-widget > span {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .status-pill {
@@ -247,7 +290,8 @@ mat-progress-bar {
 @media (max-width: 760px) {
   .config-layout,
   .dashboard-row,
-  .widget-row {
+  .widget-row,
+  .widget-summary {
     grid-template-columns: 1fr;
   }
 

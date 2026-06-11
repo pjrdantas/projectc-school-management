@@ -101,8 +101,7 @@
             <div>
               <h2>Widgets</h2>
               <p *ngIf="selectedDashboard() as dashboard">
-                {{ dashboard.nome }} · {{ missingOfficialWidgets().length }} faltante(s) ·
-                {{ outdatedOfficialWidgets().length }} divergente(s)
+                {{ dashboard.nome }}
               </p>
             </div>
             <div class="header-actions">
@@ -113,7 +112,7 @@
                 (click)="atualizarWidgetsOficiais()"
               >
                 <mat-icon fontIcon="sync"></mat-icon>
-                Atualizar
+                Sincronizar
               </button>
               <button
                 mat-stroked-button
@@ -122,7 +121,7 @@
                 (click)="provisionarWidgetsPadrao()"
               >
                 <mat-icon fontIcon="auto_fix_high"></mat-icon>
-                Padrão
+                Criar faltantes
               </button>
               <button
                 mat-stroked-button
@@ -140,6 +139,29 @@
             *ngIf="isLoadingWidgets() || isProvisioningWidgets() || isUpdatingOfficialWidgets()"
             mode="indeterminate"
           ></mat-progress-bar>
+
+          <div class="widget-summary" *ngIf="selectedDashboardId()">
+            <span>
+              <strong>{{ officialWidgetsForPublico().length }}</strong>
+              oficiais
+            </span>
+            <span>
+              <strong>{{ officialCreatedCount() }}</strong>
+              criados
+            </span>
+            <span class="warning" [ngClass]="{ active: missingOfficialWidgets().length > 0 }">
+              <strong>{{ missingOfficialWidgets().length }}</strong>
+              faltantes
+            </span>
+            <span class="warning" [ngClass]="{ active: outdatedOfficialWidgets().length > 0 }">
+              <strong>{{ outdatedOfficialWidgets().length }}</strong>
+              divergentes
+            </span>
+            <span>
+              <strong>{{ customWidgetCount() }}</strong>
+              customizados
+            </span>
+          </div>
 
           <div class="official-review" *ngIf="selectedDashboardId() && officialWidgetReview().length > 0">
             <div

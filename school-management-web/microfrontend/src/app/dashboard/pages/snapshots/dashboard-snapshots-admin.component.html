@@ -1,0 +1,81 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <div>
+          <h1>Snapshots de dashboard</h1>
+          <p>Consulta administrativa dos indicadores historizados por público.</p>
+        </div>
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          [disabled]="isLoadingPublicos() || isLoadingSnapshots()"
+          (click)="consultar()"
+        >
+          <mat-icon fontIcon="search"></mat-icon>
+          Consultar
+        </button>
+      </div>
+
+      <mat-progress-bar *ngIf="isLoadingPublicos() || isLoadingSnapshots()" mode="indeterminate"></mat-progress-bar>
+
+      <form class="filters-grid" [formGroup]="filterForm">
+        <mat-form-field appearance="outline">
+          <mat-label>Público</mat-label>
+          <select matNativeControl formControlName="publicoCodigo">
+            <option *ngFor="let publico of publicos()" [value]="publico.codigo">
+              {{ publico.descricao }}
+            </option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Data de referência</mat-label>
+          <input matInput type="date" formControlName="referenciaData" />
+        </mat-form-field>
+
+        <button mat-stroked-button type="button" [disabled]="isLoadingSnapshots()" (click)="limparData()">
+          <mat-icon fontIcon="filter_alt_off"></mat-icon>
+          Todas as datas
+        </button>
+      </form>
+
+      <section class="summary-grid" *ngIf="snapshots().length > 0">
+        <div>
+          <strong>{{ snapshots().length }}</strong>
+          <span>indicadores</span>
+        </div>
+        <div>
+          <strong>{{ numericSnapshotsCount() }}</strong>
+          <span>numéricos</span>
+        </div>
+        <div>
+          <strong>{{ textSnapshotsCount() }}</strong>
+          <span>textuais</span>
+        </div>
+        <div>
+          <strong>{{ referenciaResumo() }}</strong>
+          <span>referência</span>
+        </div>
+      </section>
+
+      <section class="snapshot-list" *ngIf="!isLoadingSnapshots()">
+        <article class="snapshot-row" *ngFor="let snapshot of orderedSnapshots()">
+          <div class="snapshot-main">
+            <strong>{{ snapshot.descricao || snapshot.codigoIndicador }}</strong>
+            <span>{{ snapshot.codigoIndicador }} · {{ snapshot.publicoCodigo }}</span>
+          </div>
+          <div class="snapshot-value">
+            <strong>{{ valorPrincipal(snapshot) }}</strong>
+            <span>{{ snapshot.referenciaData | date: 'dd/MM/yyyy' }}</span>
+          </div>
+        </article>
+
+        <p class="empty-state" *ngIf="snapshots().length === 0">
+          Nenhum snapshot encontrado para os filtros selecionados.
+        </p>
+      </section>
+    </mat-card-content>
+  </mat-card>
+</div>

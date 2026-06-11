@@ -117,6 +117,13 @@ export class DashboardConfigAdminComponent implements OnInit {
     this.officialWidgetReview()
       .filter(item => item.existingWidget && item.desatualizado),
   );
+  protected readonly officialCreatedCount = computed(() =>
+    this.officialWidgetReview().filter(item => item.existingWidget).length,
+  );
+  protected readonly customWidgetCount = computed(() => {
+    const officialCodes = new Set(this.officialWidgetsForPublico().map(item => item.codigo));
+    return this.widgets().filter(widget => !officialCodes.has(widget.codigo.trim().toUpperCase())).length;
+  });
 
   ngOnInit(): void {
     this.loadPublicos();
