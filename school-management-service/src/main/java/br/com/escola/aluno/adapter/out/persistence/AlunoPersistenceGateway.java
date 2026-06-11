@@ -30,8 +30,10 @@ import br.com.escola.compartilhado.pessoa.dto.PessoaCriada;
 import br.com.escola.compartilhado.pessoa.dto.PessoaDados;
 import br.com.escola.compartilhado.endereco.entity.EnderecoEntity;
 import br.com.escola.compartilhado.endereco.entity.PessoaEnderecoEntity;
+import br.com.escola.compartilhado.endereco.repository.EnderecoJpaRepository;
 import br.com.escola.compartilhado.endereco.repository.PessoaEnderecoJpaRepository;
 import br.com.escola.compartilhado.pessoa.repository.PessoaJpaRepository;
+import br.com.escola.compartilhado.pessoa.repository.PessoaTipoPessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.service.PessoaFoundationService;
 
 @Component
@@ -40,6 +42,8 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     private final AlunoJpaRepository alunoJpaRepository;
     private final StatusAlunoJpaRepository statusAlunoJpaRepository;
     private final PessoaJpaRepository pessoaJpaRepository;
+    private final PessoaTipoPessoaJpaRepository pessoaTipoPessoaJpaRepository;
+    private final EnderecoJpaRepository enderecoJpaRepository;
     private final PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository;
     private final PessoaFoundationService pessoaFoundationService;
     private final AlunoResponsavelJpaRepository alunoResponsavelJpaRepository;
@@ -53,6 +57,8 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
             AlunoJpaRepository alunoJpaRepository,
             StatusAlunoJpaRepository statusAlunoJpaRepository,
             PessoaJpaRepository pessoaJpaRepository,
+            PessoaTipoPessoaJpaRepository pessoaTipoPessoaJpaRepository,
+            EnderecoJpaRepository enderecoJpaRepository,
             PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository,
             PessoaFoundationService pessoaFoundationService,
             AlunoResponsavelJpaRepository alunoResponsavelJpaRepository,
@@ -64,6 +70,8 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
         this.alunoJpaRepository = alunoJpaRepository;
         this.statusAlunoJpaRepository = statusAlunoJpaRepository;
         this.pessoaJpaRepository = pessoaJpaRepository;
+        this.pessoaTipoPessoaJpaRepository = pessoaTipoPessoaJpaRepository;
+        this.enderecoJpaRepository = enderecoJpaRepository;
         this.pessoaEnderecoJpaRepository = pessoaEnderecoJpaRepository;
         this.pessoaFoundationService = pessoaFoundationService;
         this.alunoResponsavelJpaRepository = alunoResponsavelJpaRepository;
@@ -117,11 +125,12 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     public void deleteById(@NonNull UUID id) {
         AlunoEntity aluno = alunoJpaRepository.findById(id)
                 .orElseThrow(() -> new AlunoNaoEncontradoException(id));
+        UUID pessoaId = aluno.getPessoa().getId();
         List<UUID> responsaveisVinculados = alunoResponsavelJpaRepository.findByIdAluno(id).stream()
                 .map(AlunoResponsavelEntity::getIdResponsavel)
                 .toList();
 
-        documentoJpaRepository.deletePessoaDocumentoByPessoaId(aluno.getPessoa().getId());
+        documentoJpaRepository.deletePessoaDocumentoByPessoaId(pessoaId);
         documentoJpaRepository.deleteDocumentosSemVinculo();
         transferenciaAlunoJpaRepository.deleteByAluno_Id(id);
         historicoEscolarItemJpaRepository.deleteByAlunoDocumental(aluno.getNomeCompleto(), aluno.getDataNascimento());
@@ -129,8 +138,35 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
         alunoResponsavelJpaRepository.deleteByIdAluno(id);
         responsaveisVinculados.stream()
                 .filter(responsavelId -> alunoResponsavelJpaRepository.countByIdResponsavel(responsavelId) == 0)
-                .forEach(responsavelJpaRepository::deleteById);
-        alunoJpaRepository.deleteById(id);
+                .forEach(this::deleteResponsavelExclusivo);
+        alunoJpaRepository.delete(aluno);
+        alunoJpaRepository.flush();
+        cleanupPessoa(pessoaId);
+    }
+
+    private void deleteResponsavelExclusivo(UUID responsavelId) {
+        responsavelJpaRepository.findById(responsavelId).ifPresent(responsavel -> {
+            UUID pessoaId = responsavel.getPessoa().getId();
+            responsavelJpaRepository.delete(responsavel);
+            responsavelJpaRepository.flush();
+            cleanupPessoa(pessoaId);
+        });
+    }
+
+    private void cleanupPessoa(UUID pessoaId) {
+        List<UUID> enderecoIds = pessoaEnderecoJpaRepository.findByPessoaId(pessoaId).stream()
+                .map(PessoaEnderecoEntity::getEndereco)
+                .map(EnderecoEntity::getId)
+                .toList();
+
+        documentoJpaRepository.deletePessoaDocumentoByPessoaId(pessoaId);
+        documentoJpaRepository.deleteDocumentosSemVinculo();
+        pessoaEnderecoJpaRepository.deleteByPessoaId(pessoaId);
+        enderecoIds.stream()
+                .filter(enderecoId -> pessoaEnderecoJpaRepository.countByEnderecoId(enderecoId) == 0)
+                .forEach(enderecoJpaRepository::deleteById);
+        pessoaTipoPessoaJpaRepository.deleteByPessoaId(pessoaId);
+        pessoaJpaRepository.deleteById(pessoaId);
     }
 
     @Override

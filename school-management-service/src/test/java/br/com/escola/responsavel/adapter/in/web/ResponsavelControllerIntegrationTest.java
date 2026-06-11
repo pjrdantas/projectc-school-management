@@ -3,6 +3,7 @@ package br.com.escola.responsavel.adapter.in.web;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -16,6 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import br.com.escola.compartilhado.pessoa.repository.PessoaJpaRepository;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 class ResponsavelControllerIntegrationTest {
@@ -25,6 +28,9 @@ class ResponsavelControllerIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private PessoaJpaRepository pessoaJpaRepository;
 
     @Test
     @WithMockUser
@@ -94,6 +100,23 @@ class ResponsavelControllerIntegrationTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value(
                         "Responsável não pode ser excluído porque ainda está vinculado a outro aluno: " + responsavelId));
+    }
+
+    @Test
+    @WithMockUser
+    void deveExcluirResponsavelSemVinculoELiberarCpfDaPessoa() throws Exception {
+        String cpf = cpfAleatorio();
+        String responsavelId = criarResponsavel("Responsavel Sem Vinculo", cpf);
+
+        mockMvc.perform(delete("/api/responsaveis/{id}", responsavelId))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/responsaveis/{id}", responsavelId))
+                .andExpect(status().isNotFound());
+
+        assertThat(pessoaJpaRepository.findByCpf(cpf)).isEmpty();
+
+        criarResponsavel("Responsavel Recriado", cpf);
     }
 
     private UUID criarAluno() throws Exception {

@@ -20,15 +20,21 @@ import br.com.escola.compartilhado.pessoa.dto.PessoaCriada;
 import br.com.escola.compartilhado.pessoa.dto.PessoaDados;
 import br.com.escola.compartilhado.endereco.entity.EnderecoEntity;
 import br.com.escola.compartilhado.endereco.entity.PessoaEnderecoEntity;
+import br.com.escola.compartilhado.endereco.repository.EnderecoJpaRepository;
 import br.com.escola.compartilhado.endereco.repository.PessoaEnderecoJpaRepository;
 import br.com.escola.compartilhado.pessoa.repository.PessoaJpaRepository;
+import br.com.escola.compartilhado.pessoa.repository.PessoaTipoPessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.service.PessoaFoundationService;
+import br.com.escola.documento.adapter.out.persistence.repository.DocumentoJpaRepository;
 
 @Component
 public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway, ResponsavelQueryGateway {
 
     private final ResponsavelJpaRepository responsavelJpaRepository;
     private final PessoaJpaRepository pessoaJpaRepository;
+    private final PessoaTipoPessoaJpaRepository pessoaTipoPessoaJpaRepository;
+    private final EnderecoJpaRepository enderecoJpaRepository;
+    private final DocumentoJpaRepository documentoJpaRepository;
     private final PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository;
     private final PessoaFoundationService pessoaFoundationService;
     private final AlunoResponsavelJpaRepository alunoResponsavelJpaRepository;
@@ -36,11 +42,17 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
     public ResponsavelPersistenceGateway(
             ResponsavelJpaRepository responsavelJpaRepository,
             PessoaJpaRepository pessoaJpaRepository,
+            PessoaTipoPessoaJpaRepository pessoaTipoPessoaJpaRepository,
+            EnderecoJpaRepository enderecoJpaRepository,
+            DocumentoJpaRepository documentoJpaRepository,
             PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository,
             PessoaFoundationService pessoaFoundationService,
             AlunoResponsavelJpaRepository alunoResponsavelJpaRepository) {
         this.responsavelJpaRepository = responsavelJpaRepository;
         this.pessoaJpaRepository = pessoaJpaRepository;
+        this.pessoaTipoPessoaJpaRepository = pessoaTipoPessoaJpaRepository;
+        this.enderecoJpaRepository = enderecoJpaRepository;
+        this.documentoJpaRepository = documentoJpaRepository;
         this.pessoaEnderecoJpaRepository = pessoaEnderecoJpaRepository;
         this.pessoaFoundationService = pessoaFoundationService;
         this.alunoResponsavelJpaRepository = alunoResponsavelJpaRepository;
@@ -83,8 +95,25 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
     }
 
     @Override
+    @Transactional
     public void deleteById(UUID id) {
-        responsavelJpaRepository.deleteById(id);
+        ResponsavelEntity responsavel = responsavelJpaRepository.findById(id)
+                .orElseThrow(() -> new ResponsavelNaoEncontradoException(id));
+        UUID pessoaId = responsavel.getPessoa().getId();
+        List<UUID> enderecoIds = pessoaEnderecoJpaRepository.findByPessoaId(pessoaId).stream()
+                .map(vinculo -> vinculo.getEndereco().getId())
+                .toList();
+
+        responsavelJpaRepository.delete(responsavel);
+        responsavelJpaRepository.flush();
+        documentoJpaRepository.deletePessoaDocumentoByPessoaId(pessoaId);
+        documentoJpaRepository.deleteDocumentosSemVinculo();
+        pessoaEnderecoJpaRepository.deleteByPessoaId(pessoaId);
+        enderecoIds.stream()
+                .filter(enderecoId -> pessoaEnderecoJpaRepository.countByEnderecoId(enderecoId) == 0)
+                .forEach(enderecoJpaRepository::deleteById);
+        pessoaTipoPessoaJpaRepository.deleteByPessoaId(pessoaId);
+        pessoaJpaRepository.deleteById(pessoaId);
     }
 
     @Override
