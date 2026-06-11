@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -13,6 +14,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { forkJoin } from 'rxjs';
 import { getApiErrorMessage } from '../../core/http/api-error';
 import { ShellContextService } from '../../core/shell/shell-context.service';
+import { MessageDialogComponent } from '../../compartilhado/dialogs/message-dialog/message-dialog.component';
 import { Student } from '../../aluno/models/student.model';
 import { DocumentsPanelComponent } from '../../documento/documents-panel.component';
 import {
@@ -44,6 +46,7 @@ interface ComponenteDraft {
     MatButtonModule,
     MatCardModule,
     MatCheckboxModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -62,8 +65,10 @@ export class StudentRecordsPanelComponent implements OnInit {
   private readonly recordsService = inject(StudentRecordsService);
   private readonly shellContext = inject(ShellContextService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
 
   protected readonly carregando = signal(false);
+  protected readonly historicoExcluindoId = signal<string | null>(null);
   protected readonly historicos = signal<HistoricoEscolar[]>([]);
   protected readonly transferencias = signal<TransferenciaAluno[]>([]);
   protected readonly disciplinas = signal<Disciplina[]>([]);
@@ -149,7 +154,7 @@ export class StudentRecordsPanelComponent implements OnInit {
       disciplinas: this.recordsService.listarDisciplinas(),
     }).subscribe({
       next: ({ historicos, transferencias, disciplinas }) => {
-        this.historicos.set(this.filtrarHistoricosDoAluno(historicos));
+        this.historicos.set(historicos);
         this.transferencias.set(transferencias);
         this.disciplinas.set(disciplinas);
         this.carregando.set(false);
@@ -213,6 +218,52 @@ export class StudentRecordsPanelComponent implements OnInit {
     this.componentesCurriculares.set(this.componentesCurriculares().filter((_, i) => i !== index));
   }
 
+  protected excluirHistorico(historico: HistoricoEscolar): void {
+    if (this.readonly) return;
+
+    const dialogRef = this.dialog.open(MessageDialogComponent, {
+      width: '640px',
+      maxWidth: 'calc(100vw - 32px)',
+      disableClose: true,
+      data: {
+        title: 'Confirmar exclusão',
+        message: 'Deseja excluir este histórico escolar?',
+        details: [
+          `Aluno: ${historico.nomeAluno}`,
+          `Ensino: ${historico.ensinoConcluido || 'Não informado'}`,
+          `Ano de conclusão: ${historico.anoConclusao || 'Não informado'}`,
+        ],
+        confirmLabel: 'Excluir histórico',
+        cancelLabel: 'Cancelar',
+        icon: 'delete',
+        tone: 'danger',
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.historicoExcluindoId.set(historico.id);
+      this.recordsService.excluirHistorico(historico.id).subscribe({
+        next: () => {
+          this.historicos.set(this.historicos().filter((item) => item.id !== historico.id));
+          this.historicoExcluindoId.set(null);
+          this.snackBar.open('Histórico escolar excluído.', 'Fechar', { duration: 3000 });
+        },
+        error: (error: unknown) => {
+          this.historicoExcluindoId.set(null);
+          this.snackBar.open(
+            getApiErrorMessage(error, 'Não foi possível excluir histórico escolar.'),
+            'Fechar',
+            { duration: 5000 },
+          );
+        },
+      });
+    });
+  }
+
   protected criarHistorico(): void {
     if (this.readonly) return;
 
@@ -223,6 +274,7 @@ export class StudentRecordsPanelComponent implements OnInit {
 
     this.recordsService
       .criarHistorico({
+        alunoId: this.aluno.id,
         nomeAluno: this.aluno.nomeCompleto,
         rgRen: this.optional(this.novoHistorico.rgRen || this.aluno.rg || ''),
         ra: this.optional(this.novoHistorico.ra),
@@ -435,11 +487,6 @@ export class StudentRecordsPanelComponent implements OnInit {
       doePagina: '',
       observacoes: '',
     };
-  }
-
-  private filtrarHistoricosDoAluno(historicos: HistoricoEscolar[]): HistoricoEscolar[] {
-    const nomeAluno = this.aluno.nomeCompleto.trim().toUpperCase();
-    return historicos.filter((historico) => historico.nomeAluno?.trim().toUpperCase() === nomeAluno);
   }
 
   private resetTransferencia(): void {

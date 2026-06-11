@@ -1,5 +1,6 @@
 package br.com.escola.historico.adapter.in.web;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -58,6 +59,12 @@ public class HistoricoEscolarController {
     @Operation(summary = "Busca histórico escolar por ID")
     public HistoricoEscolarResponse buscarPorId(@PathVariable @NonNull UUID id) {
         return historicoEscolarService.buscarPorId(id);
+    }
+
+    @GetMapping("/alunos/{alunoId}")
+    @Operation(summary = "Lista históricos escolares por aluno")
+    public List<HistoricoEscolarResponse> listarPorAluno(@PathVariable @NonNull UUID alunoId) {
+        return historicoEscolarService.listarPorAluno(alunoId);
     }
 
     @GetMapping

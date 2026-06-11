@@ -25,10 +25,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Sql(
         statements = {
                 "DELETE FROM historico_escolar_item",
-                "DELETE FROM historico_escolar"
+                "DELETE FROM historico_escolar",
+                "DELETE FROM aluno WHERE id_aluno = '95000000-0000-0000-0000-000000000001'",
+                "DELETE FROM pessoa WHERE id_pessoa = '95000000-0000-0000-0000-000000000002'",
+                "INSERT INTO pessoa (id_pessoa, nome_completo, cpf, rg, data_nascimento, sexo, nacionalidade, naturalidade, ativo, created_at) VALUES ('95000000-0000-0000-0000-000000000002', 'PAULO JOSE ROCHA DANTAS', '95000000001', '17.612.153', DATE '1967-08-27', 'MASCULINO', 'BRASIL', 'GUARATINGUETA', true, CURRENT_TIMESTAMP)",
+                "INSERT INTO aluno (id_aluno, id_pessoa, id_status_aluno, ra, rm, emancipado, ativo, created_at) VALUES ('95000000-0000-0000-0000-000000000001', '95000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000021', '4228', 'RM-001', false, true, CURRENT_TIMESTAMP)"
         },
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class HistoricoEscolarControllerIntegrationTest {
+
+    private static final String ALUNO_ID = "95000000-0000-0000-0000-000000000001";
 
     @Autowired
     private MockMvc mockMvc;
@@ -43,6 +49,7 @@ class HistoricoEscolarControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(historicoRequest("PAULO JOSE ROCHA DANTAS", "4228", "Matemática", "Português")))
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.alunoId").value(ALUNO_ID))
                 .andExpect(jsonPath("$.nomeAluno").value("PAULO JOSE ROCHA DANTAS"))
                 .andExpect(jsonPath("$.ra").value("4228"))
                 .andExpect(jsonPath("$.anoConclusao").value(1983))
@@ -58,7 +65,13 @@ class HistoricoEscolarControllerIntegrationTest {
         mockMvc.perform(get("/api/historicos-escolares/{id}", historicoId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(historicoId.toString()))
+                .andExpect(jsonPath("$.alunoId").value(ALUNO_ID))
                 .andExpect(jsonPath("$.componentesCurriculares.length()").value(2));
+
+        mockMvc.perform(get("/api/historicos-escolares/alunos/{alunoId}", ALUNO_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(historicoId.toString()))
+                .andExpect(jsonPath("$[0].alunoId").value(ALUNO_ID));
 
         mockMvc.perform(get("/api/historicos-escolares")
                         .param("page", "0")
@@ -87,9 +100,10 @@ class HistoricoEscolarControllerIntegrationTest {
         String requestBody = """
                 {
                   "nomeAluno": "Aluno Sem Componentes",
+                  "alunoId": "%s",
                   "componentesCurriculares": []
                 }
-                """;
+                """.formatted(ALUNO_ID);
 
         mockMvc.perform(post("/api/historicos-escolares")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -131,6 +145,7 @@ class HistoricoEscolarControllerIntegrationTest {
         return """
                 {
                   "nomeAluno": "%s",
+                  "alunoId": "%s",
                   "rgRen": "17.612.153/SP",
                   "ra": "%s",
                   "rm": "RM-001",
@@ -158,6 +173,6 @@ class HistoricoEscolarControllerIntegrationTest {
                   "observacoes": "Histórico emitido conforme registros escolares.",
                   "componentesCurriculares": [%s]
                 }
-                """.formatted(nomeAluno, ra, itens);
+                """.formatted(nomeAluno, ALUNO_ID, ra, itens);
     }
 }

@@ -21,6 +21,16 @@
             <p>RA: {{ historico.ra || 'Não informado' }} | RM: {{ historico.rm || 'Não informado' }}</p>
             <p>Ano de conclusão: {{ historico.anoConclusao || 'Não informado' }}</p>
           </div>
+          <button
+            *ngIf="!readonly"
+            mat-button
+            color="warn"
+            type="button"
+            (click)="excluirHistorico(historico)"
+            [disabled]="historicoExcluindoId() === historico.id"
+          >
+            Excluir
+          </button>
         </div>
 
         <p>Nascimento: {{ formatDate(historico.dataNascimento) }}</p>

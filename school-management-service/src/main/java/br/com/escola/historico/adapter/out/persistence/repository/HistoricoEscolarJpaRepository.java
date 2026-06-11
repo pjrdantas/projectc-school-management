@@ -16,14 +16,14 @@ public interface HistoricoEscolarJpaRepository extends JpaRepository<HistoricoEs
 
     long countByOrigemIgnoreCase(String origem);
 
-    @EntityGraph(attributePaths = "componentesCurriculares")
+    @EntityGraph(attributePaths = { "componentesCurriculares", "aluno", "aluno.pessoa" })
     @Query("select h from HistoricoEscolar h where h.id = :id")
     Optional<HistoricoEscolar> findWithComponentesCurricularesById(UUID id);
 
-    @EntityGraph(attributePaths = "componentesCurriculares")
+    @EntityGraph(attributePaths = { "componentesCurriculares", "aluno", "aluno.pessoa" })
     List<HistoricoEscolar> findByAlunoId(UUID alunoId);
 
-    @EntityGraph(attributePaths = "componentesCurriculares")
+    @EntityGraph(attributePaths = { "componentesCurriculares", "aluno", "aluno.pessoa" })
     @Query("""
             select distinct h
               from HistoricoEscolar h

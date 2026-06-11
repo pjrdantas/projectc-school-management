@@ -44,7 +44,10 @@ export class StudentRecordsService {
   }
 
   listarHistoricosPorAluno(alunoId: string): Observable<HistoricoEscolar[]> {
-    return this.listarHistoricos().pipe(map((historicos) => historicos));
+    return this.http.get<HistoricoEscolar[]>(
+      `${this.apiBaseUrl}/api/historicos-escolares/alunos/${alunoId}`,
+      { headers: this.buildHeaders() },
+    );
   }
 
   listarHistoricos(): Observable<HistoricoEscolar[]> {

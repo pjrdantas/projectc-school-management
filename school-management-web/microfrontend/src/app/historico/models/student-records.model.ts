@@ -23,6 +23,7 @@ export interface HistoricoEscolarItemInput {
 }
 
 export interface HistoricoEscolarInput {
+  alunoId: string;
   nomeAluno: string;
   rgRen?: string;
   ra?: string;
@@ -65,6 +66,7 @@ export interface HistoricoEscolarItem {
 
 export interface HistoricoEscolar {
   id: string;
+  alunoId: string;
   nomeAluno: string;
   rgRen?: string;
   ra?: string;
