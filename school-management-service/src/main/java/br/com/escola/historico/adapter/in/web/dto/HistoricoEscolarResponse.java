@@ -7,6 +7,8 @@ import java.util.UUID;
 public record HistoricoEscolarResponse(
         UUID id,
         UUID alunoId,
+        UUID escolaId,
+        String escolaNome,
         String nomeAluno,
         String rgRen,
         String ra,

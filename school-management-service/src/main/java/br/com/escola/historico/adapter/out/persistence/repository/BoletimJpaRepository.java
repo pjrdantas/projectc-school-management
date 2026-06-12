@@ -13,7 +13,16 @@ public interface BoletimJpaRepository extends JpaRepository<BoletimEntity, UUID>
 
     List<BoletimEntity> findByMatriculaId(UUID matriculaId);
 
+    List<BoletimEntity> findByMatricula_IdAndMatricula_Turma_Escola_Id(UUID matriculaId, UUID escolaId);
+
     Optional<BoletimEntity> findByMatriculaIdAndPeriodoReferencia(UUID matriculaId, String periodoReferencia);
+
+    Optional<BoletimEntity> findByMatricula_IdAndMatricula_Turma_Escola_IdAndPeriodoReferencia(
+            UUID matriculaId,
+            UUID escolaId,
+            String periodoReferencia);
+
+    Optional<BoletimEntity> findByIdAndMatricula_Turma_Escola_Id(UUID id, UUID escolaId);
 
     @Query(value = """
             select count(distinct b.id_boletim)

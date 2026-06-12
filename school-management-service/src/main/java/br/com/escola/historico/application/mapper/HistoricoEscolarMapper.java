@@ -86,6 +86,12 @@ public class HistoricoEscolarMapper {
         return new HistoricoEscolarResponse(
                 entity.getId(),
                 entity.getAlunoId(),
+                entity.getAluno() == null || entity.getAluno().getPessoa() == null || entity.getAluno().getPessoa().getEscola() == null
+                        ? null
+                        : entity.getAluno().getPessoa().getEscola().getId(),
+                entity.getAluno() == null || entity.getAluno().getPessoa() == null || entity.getAluno().getPessoa().getEscola() == null
+                        ? null
+                        : entity.getAluno().getPessoa().getEscola().getNome(),
                 firstNonBlank(entity.getNomeAluno(), entity.getAluno() == null ? null : entity.getAluno().getNomeCompleto()),
                 firstNonBlank(entity.getRgRen(), entity.getAluno() == null ? null : entity.getAluno().getRg()),
                 firstNonBlank(entity.getRa(), entity.getAluno() == null ? null : entity.getAluno().getRa()),

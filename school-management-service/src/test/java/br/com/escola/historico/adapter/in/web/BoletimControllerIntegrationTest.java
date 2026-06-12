@@ -79,6 +79,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class BoletimControllerIntegrationTest {
 
     private static final UUID SERIE_PADRAO_ID = UUID.fromString("00000000-0000-0000-0000-000000000100");
+    private static final String ESCOLA_PADRAO_ID = "00000000-0000-0000-0000-000000000047";
 
     @Autowired
     private MockMvc mockMvc;
@@ -116,6 +117,7 @@ class BoletimControllerIntegrationTest {
                 .andExpect(jsonPath("$.turmaId").value(turmaId.toString()))
                 .andExpect(jsonPath("$.persistido").value(false))
                 .andExpect(jsonPath("$.periodoLetivoId").value(periodoId.toString()))
+                .andExpect(jsonPath("$.escolaId").value(ESCOLA_PADRAO_ID))
                 .andExpect(jsonPath("$.indicadores.totalDisciplinas").value(1))
                 .andExpect(jsonPath("$.indicadores.mediaGeral").value(8.50))
                 .andExpect(jsonPath("$.indicadores.frequenciaGeralPercentual").value(100.00))
@@ -162,6 +164,7 @@ class BoletimControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.boletimId").exists())
                 .andExpect(jsonPath("$.matriculaId").value(matriculaId.toString()))
+                .andExpect(jsonPath("$.escolaId").value(ESCOLA_PADRAO_ID))
                 .andExpect(jsonPath("$.periodoReferencia").value("2043.2"))
                 .andExpect(jsonPath("$.dataFechamento").value("2043-12-21"))
                 .andExpect(jsonPath("$.observacao").value("Fechamento oficial"))
@@ -200,6 +203,7 @@ class BoletimControllerIntegrationTest {
                         .content(geracaoHistoricoRequest))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.nomeAluno").value("Aluno Boletim Fase 24 B"))
+                .andExpect(jsonPath("$.escolaId").value(ESCOLA_PADRAO_ID))
                 .andExpect(jsonPath("$.anoConclusao").value(2043))
                 .andExpect(jsonPath("$.ensinoConcluido").value("ENSINO FUNDAMENTAL"))
                 .andExpect(jsonPath("$.observacoes").value("Histórico gerado por boletim fechado"))

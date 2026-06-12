@@ -28,6 +28,7 @@ import br.com.escola.historico.adapter.out.persistence.entity.BoletimItemEntity;
 import br.com.escola.historico.adapter.out.persistence.repository.BoletimItemJpaRepository;
 import br.com.escola.historico.adapter.out.persistence.repository.BoletimJpaRepository;
 import br.com.escola.historico.domain.exception.BoletimFechamentoDuplicadoException;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.matricula.adapter.out.persistence.entity.MatriculaEntity;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
 import br.com.escola.matricula.domain.exception.MatriculaNaoEncontradaException;
@@ -45,6 +46,7 @@ public class BoletimService {
     private final DisciplinaJpaRepository disciplinaJpaRepository;
     private final BoletimJpaRepository boletimJpaRepository;
     private final BoletimItemJpaRepository boletimItemJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     public BoletimService(
             MatriculaJpaRepository matriculaJpaRepository,
@@ -52,31 +54,35 @@ public class BoletimService {
             FrequenciaAlunoJpaRepository frequenciaAlunoJpaRepository,
             DisciplinaJpaRepository disciplinaJpaRepository,
             BoletimJpaRepository boletimJpaRepository,
-            BoletimItemJpaRepository boletimItemJpaRepository) {
+            BoletimItemJpaRepository boletimItemJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.matriculaJpaRepository = matriculaJpaRepository;
         this.notaAlunoJpaRepository = notaAlunoJpaRepository;
         this.frequenciaAlunoJpaRepository = frequenciaAlunoJpaRepository;
         this.disciplinaJpaRepository = disciplinaJpaRepository;
         this.boletimJpaRepository = boletimJpaRepository;
         this.boletimItemJpaRepository = boletimItemJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Transactional(readOnly = true)
     public BoletimResponse consultarPorMatricula(UUID matriculaId) {
-        MatriculaEntity matricula = matriculaJpaRepository.findById(matriculaId)
+        UUID escolaId = escolaId();
+        MatriculaEntity matricula = matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaId, escolaId)
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaId));
-        return gerarBoletimCalculado(matricula);
+        return gerarBoletimCalculado(matricula, escolaId);
     }
 
     @Transactional
     public BoletimResponse fecharBoletim(UUID matriculaId, BoletimFechamentoRequest request) {
-        MatriculaEntity matricula = matriculaJpaRepository.findById(matriculaId)
+        UUID escolaId = escolaId();
+        MatriculaEntity matricula = matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaId, escolaId)
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaId));
         String periodoReferencia = request.periodoReferencia().trim();
-        BoletimResponse calculado = gerarBoletimCalculado(matricula);
+        BoletimResponse calculado = gerarBoletimCalculado(matricula, escolaId);
 
         BoletimEntity boletim = boletimJpaRepository
-                .findByMatriculaIdAndPeriodoReferencia(matriculaId, periodoReferencia)
+                .findByMatricula_IdAndMatricula_Turma_Escola_IdAndPeriodoReferencia(matriculaId, escolaId, periodoReferencia)
                 .map(existente -> prepararBoletimExistente(existente, request))
                 .orElseGet(() -> novoBoletim(matricula, request, periodoReferencia));
 
@@ -89,10 +95,11 @@ public class BoletimService {
 
     @Transactional(readOnly = true)
     public List<BoletimResponse> listarFechamentos(UUID matriculaId) {
-        MatriculaEntity matricula = matriculaJpaRepository.findById(matriculaId)
+        UUID escolaId = escolaId();
+        MatriculaEntity matricula = matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaId, escolaId)
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaId));
 
-        return boletimJpaRepository.findByMatriculaId(matriculaId).stream()
+        return boletimJpaRepository.findByMatricula_IdAndMatricula_Turma_Escola_Id(matriculaId, escolaId).stream()
                 .sorted(Comparator.comparing(BoletimEntity::getDataFechamento, Comparator.nullsLast(Comparator.naturalOrder()))
                         .thenComparing(BoletimEntity::getPeriodoReferencia))
                 .map(boletim -> toBoletimPersistidoResponse(
@@ -105,13 +112,13 @@ public class BoletimService {
                 .toList();
     }
 
-    private BoletimResponse gerarBoletimCalculado(MatriculaEntity matricula) {
+    private BoletimResponse gerarBoletimCalculado(MatriculaEntity matricula, UUID escolaId) {
         UUID matriculaId = matricula.getId();
         Map<UUID, DisciplinaBoletim> disciplinas = new LinkedHashMap<>();
 
-        notaAlunoJpaRepository.findByMatriculaId(matriculaId)
+        notaAlunoJpaRepository.findByMatricula_IdAndMatricula_Turma_Escola_Id(matriculaId, escolaId)
                 .forEach(nota -> disciplinas.computeIfAbsent(disciplinaId(nota), id -> fromNota(nota)).notas.add(nota));
-        frequenciaAlunoJpaRepository.findByMatriculaId(matriculaId)
+        frequenciaAlunoJpaRepository.findByMatricula_IdAndMatricula_Turma_Escola_Id(matriculaId, escolaId)
                 .forEach(frequencia -> disciplinas.computeIfAbsent(disciplinaId(frequencia), id -> fromFrequencia(frequencia))
                         .frequencias.add(frequencia));
 
@@ -129,6 +136,8 @@ public class BoletimService {
                 matricula.getTurma().getNome(),
                 matricula.getPeriodoLetivo().getId(),
                 matricula.getPeriodoLetivo().getNome(),
+                matricula.getTurma().getEscola().getId(),
+                matricula.getTurma().getEscola().getNome(),
                 LocalDate.now(),
                 null,
                 null,
@@ -197,6 +206,8 @@ public class BoletimService {
                 matricula.getTurma().getNome(),
                 matricula.getPeriodoLetivo().getId(),
                 matricula.getPeriodoLetivo().getNome(),
+                matricula.getTurma().getEscola().getId(),
+                matricula.getTurma().getEscola().getNome(),
                 LocalDate.now(),
                 boletim.getPeriodoReferencia(),
                 boletim.getDataFechamento(),
@@ -204,6 +215,10 @@ public class BoletimService {
                 true,
                 toIndicadores(itens),
                 itens);
+    }
+
+    private UUID escolaId() {
+        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
     }
 
     private UUID disciplinaId(NotaAlunoEntity nota) {

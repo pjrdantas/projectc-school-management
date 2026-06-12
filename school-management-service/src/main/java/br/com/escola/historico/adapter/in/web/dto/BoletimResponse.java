@@ -13,6 +13,8 @@ public record BoletimResponse(
         String turmaNome,
         UUID periodoLetivoId,
         String periodoLetivoNome,
+        UUID escolaId,
+        String escolaNome,
         LocalDate dataGeracao,
         String periodoReferencia,
         LocalDate dataFechamento,

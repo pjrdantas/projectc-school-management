@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class HistoricoEscolarControllerIntegrationTest {
 
     private static final String ALUNO_ID = "95000000-0000-0000-0000-000000000001";
+    private static final String ESCOLA_PADRAO_ID = "00000000-0000-0000-0000-000000000047";
 
     @Autowired
     private MockMvc mockMvc;
@@ -50,6 +51,7 @@ class HistoricoEscolarControllerIntegrationTest {
                         .content(historicoRequest("PAULO JOSE ROCHA DANTAS", "4228", "Matemática", "Português")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.alunoId").value(ALUNO_ID))
+                .andExpect(jsonPath("$.escolaId").value(ESCOLA_PADRAO_ID))
                 .andExpect(jsonPath("$.nomeAluno").value("PAULO JOSE ROCHA DANTAS"))
                 .andExpect(jsonPath("$.ra").value("4228"))
                 .andExpect(jsonPath("$.anoConclusao").value(1983))

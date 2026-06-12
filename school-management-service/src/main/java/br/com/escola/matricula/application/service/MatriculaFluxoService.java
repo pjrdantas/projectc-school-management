@@ -178,7 +178,7 @@ public class MatriculaFluxoService {
             MatriculaConclusaoAcademicaRequest request) {
         MatriculaEntity matricula = matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaId, escolaId())
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaId));
-        BoletimEntity boletim = boletimJpaRepository.findById(request.boletimId())
+        BoletimEntity boletim = boletimJpaRepository.findByIdAndMatricula_Turma_Escola_Id(request.boletimId(), escolaId())
                 .orElseThrow(() -> new BoletimFechadoNaoEncontradoException(request.boletimId()));
         if (!boletim.getMatricula().getId().equals(matriculaId)) {
             throw new MatriculaConclusaoAcademicaInvalidaException(

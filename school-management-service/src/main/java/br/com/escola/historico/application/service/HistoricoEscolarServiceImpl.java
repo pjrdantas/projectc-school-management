@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.escola.aluno.adapter.out.persistence.entity.AlunoEntity;
 import br.com.escola.aluno.adapter.out.persistence.repository.AlunoJpaRepository;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarGeracaoRequest;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarItemRequest;
@@ -29,6 +30,7 @@ import br.com.escola.historico.domain.exception.BoletimFechadoNaoEncontradoExcep
 import br.com.escola.historico.domain.exception.HistoricoEscolarDuplicadoException;
 import br.com.escola.historico.domain.exception.HistoricoEscolarInvalidoException;
 import br.com.escola.historico.domain.exception.HistoricoEscolarNaoEncontradoException;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.matricula.domain.exception.MatriculaNaoEncontradaException;
 import lombok.RequiredArgsConstructor;
 
@@ -41,38 +43,42 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
     private final BoletimItemJpaRepository boletimItemJpaRepository;
     private final HistoricoEscolarMapper historicoEscolarMapper;
     private final AlunoJpaRepository alunoJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     @Override
     @Transactional
     public HistoricoEscolarResponse criar(HistoricoEscolarRequest request) {
         validarRequest(request);
         var historico = historicoEscolarMapper.toEntity(request);
-        return historicoEscolarMapper.toResponse(historicoEscolarJpaRepository.save(historico));
+        historico.setAluno(alunoEscopado(request.alunoId()));
+        var salvo = historicoEscolarJpaRepository.save(historico);
+        return historicoEscolarMapper.toResponse(buscarHistoricoEscopado(salvo.getId()));
     }
 
     @Override
     @Transactional
     public HistoricoEscolarResponse atualizar(UUID id, HistoricoEscolarRequest request) {
         validarRequest(request);
-        var historico = historicoEscolarJpaRepository.findWithComponentesCurricularesById(id)
+        var historico = historicoEscolarJpaRepository.findWithComponentesCurricularesByIdAndEscolaId(id, escolaId())
                 .orElseThrow(() -> new HistoricoEscolarNaoEncontradoException(id));
         historicoEscolarMapper.copyToEntity(request, historico);
-        return historicoEscolarMapper.toResponse(historicoEscolarJpaRepository.save(historico));
+        historico.setAluno(alunoEscopado(request.alunoId()));
+        var salvo = historicoEscolarJpaRepository.save(historico);
+        return historicoEscolarMapper.toResponse(buscarHistoricoEscopado(salvo.getId()));
     }
 
     @Override
     @Transactional
     public void excluir(UUID id) {
-        if (!historicoEscolarJpaRepository.existsById(id)) {
-            throw new HistoricoEscolarNaoEncontradoException(id);
-        }
-        historicoEscolarJpaRepository.deleteById(id);
+        var historico = historicoEscolarJpaRepository.findWithComponentesCurricularesByIdAndEscolaId(id, escolaId())
+                .orElseThrow(() -> new HistoricoEscolarNaoEncontradoException(id));
+        historicoEscolarJpaRepository.delete(historico);
     }
 
     @Override
     @Transactional(readOnly = true)
     public HistoricoEscolarResponse buscarPorId(UUID id) {
-        return historicoEscolarJpaRepository.findWithComponentesCurricularesById(id)
+        return historicoEscolarJpaRepository.findWithComponentesCurricularesByIdAndEscolaId(id, escolaId())
                 .map(historicoEscolarMapper::toResponse)
                 .orElseThrow(() -> new HistoricoEscolarNaoEncontradoException(id));
     }
@@ -80,10 +86,11 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
     @Override
     @Transactional(readOnly = true)
     public List<HistoricoEscolarResponse> listarPorAluno(UUID alunoId) {
-        if (!alunoJpaRepository.existsById(alunoId)) {
+        UUID escolaId = escolaId();
+        if (!alunoJpaRepository.existsByIdAndPessoa_Escola_Id(alunoId, escolaId)) {
             throw new HistoricoEscolarInvalidoException("Aluno do histórico escolar não encontrado");
         }
-        return historicoEscolarJpaRepository.findByAlunoId(alunoId).stream()
+        return historicoEscolarJpaRepository.findByAlunoIdAndAluno_Pessoa_Escola_Id(alunoId, escolaId).stream()
                 .map(historicoEscolarMapper::toResponse)
                 .toList();
     }
@@ -91,14 +98,15 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
     @Override
     @Transactional(readOnly = true)
     public Page<HistoricoEscolarResponse> listar(Pageable pageable) {
-        return historicoEscolarJpaRepository.findAll(pageable)
+        return historicoEscolarJpaRepository.findByAluno_Pessoa_Escola_Id(escolaId(), pageable)
                 .map(historicoEscolarMapper::toResponse);
     }
 
     @Override
     @Transactional
     public HistoricoEscolarResponse gerarPorBoletim(UUID matriculaId, HistoricoEscolarGeracaoRequest request) {
-        BoletimEntity boletim = boletimJpaRepository.findById(request.boletimId())
+        UUID escolaId = escolaId();
+        BoletimEntity boletim = boletimJpaRepository.findByIdAndMatricula_Turma_Escola_Id(request.boletimId(), escolaId)
                 .orElseThrow(() -> new BoletimFechadoNaoEncontradoException(request.boletimId()));
         if (!boletim.getMatricula().getId().equals(matriculaId)) {
             throw new MatriculaNaoEncontradaException(matriculaId);
@@ -109,7 +117,7 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
         UUID periodoLetivoId = matricula.getPeriodoLetivo().getId();
 
         List<HistoricoEscolar> duplicados = historicoEscolarJpaRepository
-                .findByAlunoIdAndPeriodoLetivoId(alunoId, periodoLetivoId);
+                .findByAlunoIdAndEscolaIdAndPeriodoLetivoId(alunoId, escolaId, periodoLetivoId);
         if (!duplicados.isEmpty() && !Boolean.TRUE.equals(request.sobrescrever())) {
             throw new HistoricoEscolarDuplicadoException(alunoId, periodoLetivoId);
         }
@@ -135,13 +143,15 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
                 .dataEmissao(LocalDate.now())
                 .observacoes(observacoesGeracao(request, boletim))
                 .build();
+        historico.setAluno(matricula.getAluno());
 
         boletimItens.stream()
                 .sorted((a, b) -> a.getDisciplina().getNome().compareToIgnoreCase(b.getDisciplina().getNome()))
                 .map(item -> toHistoricoItem(boletim, item))
                 .forEach(historico::addComponenteCurricular);
 
-        return historicoEscolarMapper.toResponse(historicoEscolarJpaRepository.save(historico));
+        var salvo = historicoEscolarJpaRepository.save(historico);
+        return historicoEscolarMapper.toResponse(buscarHistoricoEscopado(salvo.getId()));
     }
 
     private HistoricoEscolarItem toHistoricoItem(BoletimEntity boletim, BoletimItemEntity item) {
@@ -177,7 +187,7 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
     }
 
     private void validarRequest(HistoricoEscolarRequest request) {
-        if (request.alunoId() != null && !alunoJpaRepository.existsById(request.alunoId())) {
+        if (request.alunoId() != null && !alunoJpaRepository.existsByIdAndPessoa_Escola_Id(request.alunoId(), escolaId())) {
             throw new HistoricoEscolarInvalidoException("Aluno do histórico escolar não encontrado");
         }
         if (request.componentesCurriculares() == null || request.componentesCurriculares().isEmpty()) {
@@ -209,5 +219,19 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
 
     private String trimToNull(String value) {
         return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private HistoricoEscolar buscarHistoricoEscopado(UUID id) {
+        return historicoEscolarJpaRepository.findWithComponentesCurricularesByIdAndEscolaId(id, escolaId())
+                .orElseThrow(() -> new HistoricoEscolarNaoEncontradoException(id));
+    }
+
+    private AlunoEntity alunoEscopado(UUID alunoId) {
+        return alunoJpaRepository.findByIdAndPessoa_Escola_Id(alunoId, escolaId())
+                .orElseThrow(() -> new HistoricoEscolarInvalidoException("Aluno do histórico escolar não encontrado"));
+    }
+
+    private UUID escolaId() {
+        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
     }
 }
