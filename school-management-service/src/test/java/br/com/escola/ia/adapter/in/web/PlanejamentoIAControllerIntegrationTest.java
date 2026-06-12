@@ -74,6 +74,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class PlanejamentoIAControllerIntegrationTest {
 
     private static final UUID SERIE_PADRAO_ID = UUID.fromString("00000000-0000-0000-0000-000000000100");
+    private static final String ESCOLA_PADRAO_ID = "00000000-0000-0000-0000-000000000047";
 
     @Autowired
     private MockMvc mockMvc;
@@ -104,6 +105,7 @@ class PlanejamentoIAControllerIntegrationTest {
                         .content(gerarRequest))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.planejamentoBimestralId").value(planejamentoId.toString()))
+                .andExpect(jsonPath("$.escolaId").value(ESCOLA_PADRAO_ID))
                 .andExpect(jsonPath("$.titulo").value("Sequência sobre ecossistemas"))
                 .andExpect(jsonPath("$.tipoConteudo").value("PLANO_BIMESTRAL"))
                 .andExpect(jsonPath("$.status").value("GERADO"))
@@ -119,6 +121,7 @@ class PlanejamentoIAControllerIntegrationTest {
 
         mockMvc.perform(get("/api/planejamentos-bimestrais/{id}/ia/interacoes", planejamentoId))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].escolaId").value(ESCOLA_PADRAO_ID))
                 .andExpect(jsonPath("$[0].promptProfessor").value("Gerar proposta com sequência didática e atividades práticas."))
                 .andExpect(jsonPath("$[0].modeloIA").value("simulado-local-v1"));
 
@@ -154,6 +157,7 @@ class PlanejamentoIAControllerIntegrationTest {
                         .content(aprovarRequest))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(conteudoId.toString()))
+                .andExpect(jsonPath("$.escolaId").value(ESCOLA_PADRAO_ID))
                 .andExpect(jsonPath("$.status").value("APROVADO"))
                 .andExpect(jsonPath("$.versao").value(2))
                 .andExpect(jsonPath("$.aprovadoPeloProfessor").value(true))
@@ -162,6 +166,7 @@ class PlanejamentoIAControllerIntegrationTest {
         mockMvc.perform(get("/api/biblioteca-conteudos-pedagogicos")
                         .param("tema", "Ecossistemas"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].escolaId").value(ESCOLA_PADRAO_ID))
                 .andExpect(jsonPath("$[0].professorId").value(contexto.professorId().toString()))
                 .andExpect(jsonPath("$[0].disciplinaId").value(contexto.disciplinaId().toString()))
                 .andExpect(jsonPath("$[0].tipoConteudo").value("PLANO_BIMESTRAL"))

@@ -7,6 +7,8 @@ public record ConteudoIAResponse(
         UUID id,
         UUID planejamentoBimestralId,
         UUID interacaoId,
+        UUID escolaId,
+        String escolaNome,
         String titulo,
         String conteudo,
         Integer versao,

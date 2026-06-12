@@ -21,6 +21,7 @@ public interface BibliotecaConteudoPedagogicoJpaRepository extends JpaRepository
             LEFT JOIN conteudo.tipoConteudoIA tipo
             WHERE conteudo.ativo = true
               AND (:professorId IS NULL OR professor.id = :professorId)
+              AND professor.pessoa.escola.id = :escolaId
               AND (:disciplinaId IS NULL OR disciplina.id = :disciplinaId)
               AND (:tipoConteudo IS NULL OR tipo.codigo = :tipoConteudo)
               AND (:tema IS NULL OR LOWER(conteudo.tema) LIKE LOWER(CONCAT('%', :tema, '%')))
@@ -30,5 +31,6 @@ public interface BibliotecaConteudoPedagogicoJpaRepository extends JpaRepository
             @Param("professorId") UUID professorId,
             @Param("disciplinaId") UUID disciplinaId,
             @Param("tipoConteudo") String tipoConteudo,
-            @Param("tema") String tema);
+            @Param("tema") String tema,
+            @Param("escolaId") UUID escolaId);
 }

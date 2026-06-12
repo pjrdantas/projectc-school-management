@@ -10,4 +10,8 @@ import br.com.escola.ia.adapter.out.persistence.entity.PlanejamentoIAInteracaoEn
 public interface PlanejamentoIAInteracaoJpaRepository extends JpaRepository<PlanejamentoIAInteracaoEntity, UUID> {
 
     List<PlanejamentoIAInteracaoEntity> findByPlanejamentoBimestralId(UUID planejamentoBimestralId);
+
+    List<PlanejamentoIAInteracaoEntity> findByPlanejamentoBimestral_IdAndPlanejamentoBimestral_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(
+            UUID planejamentoBimestralId,
+            UUID escolaId);
 }

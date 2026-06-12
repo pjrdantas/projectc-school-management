@@ -14,10 +14,23 @@ public interface PlanejamentoIAConteudoVersaoJpaRepository
     List<PlanejamentoIAConteudoVersaoEntity> findByPlanejamentoIAConteudoGeradoId(
             UUID planejamentoIAConteudoGeradoId);
 
+    List<PlanejamentoIAConteudoVersaoEntity> findByPlanejamentoIAConteudoGerado_IdAndPlanejamentoIAConteudoGerado_PlanejamentoBimestral_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(
+            UUID planejamentoIAConteudoGeradoId,
+            UUID escolaId);
+
     Optional<PlanejamentoIAConteudoVersaoEntity> findByPlanejamentoIAConteudoGeradoIdAndNumeroVersao(
             UUID planejamentoIAConteudoGeradoId,
             Integer numeroVersao);
 
+    Optional<PlanejamentoIAConteudoVersaoEntity> findByPlanejamentoIAConteudoGerado_IdAndPlanejamentoIAConteudoGerado_PlanejamentoBimestral_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdAndNumeroVersao(
+            UUID planejamentoIAConteudoGeradoId,
+            UUID escolaId,
+            Integer numeroVersao);
+
     Optional<PlanejamentoIAConteudoVersaoEntity> findFirstByPlanejamentoIAConteudoGeradoIdOrderByNumeroVersaoDesc(
             UUID planejamentoIAConteudoGeradoId);
+
+    Optional<PlanejamentoIAConteudoVersaoEntity> findFirstByPlanejamentoIAConteudoGerado_IdAndPlanejamentoIAConteudoGerado_PlanejamentoBimestral_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdOrderByNumeroVersaoDesc(
+            UUID planejamentoIAConteudoGeradoId,
+            UUID escolaId);
 }

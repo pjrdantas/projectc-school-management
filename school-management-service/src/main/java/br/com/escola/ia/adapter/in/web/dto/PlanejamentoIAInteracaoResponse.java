@@ -7,6 +7,8 @@ import java.util.UUID;
 public record PlanejamentoIAInteracaoResponse(
         UUID id,
         UUID planejamentoBimestralId,
+        UUID escolaId,
+        String escolaNome,
         String promptProfessor,
         String respostaIA,
         String modeloIA,

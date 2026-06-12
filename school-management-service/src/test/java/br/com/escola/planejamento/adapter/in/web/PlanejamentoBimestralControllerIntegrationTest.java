@@ -67,6 +67,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class PlanejamentoBimestralControllerIntegrationTest {
 
     private static final UUID SERIE_PADRAO_ID = UUID.fromString("00000000-0000-0000-0000-000000000100");
+    private static final String ESCOLA_PADRAO_ID = "00000000-0000-0000-0000-000000000047";
 
     @Autowired
     private MockMvc mockMvc;
@@ -111,6 +112,7 @@ class PlanejamentoBimestralControllerIntegrationTest {
                 .andExpect(jsonPath("$.professorId").value(professorId.toString()))
                 .andExpect(jsonPath("$.turmaId").value(turmaId.toString()))
                 .andExpect(jsonPath("$.disciplinaId").value(disciplinaId.toString()))
+                .andExpect(jsonPath("$.escolaId").value(ESCOLA_PADRAO_ID))
                 .andExpect(jsonPath("$.periodoAvaliativoId").value(periodoAvaliativoId.toString()))
                 .andExpect(jsonPath("$.status").value("RASCUNHO"))
                 .andExpect(jsonPath("$.aprovadoPeloProfessor").value(false))
@@ -127,6 +129,7 @@ class PlanejamentoBimestralControllerIntegrationTest {
                         .param("periodoAvaliativoId", periodoAvaliativoId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(planejamentoId.toString()))
+                .andExpect(jsonPath("$[0].escolaId").value(ESCOLA_PADRAO_ID))
                 .andExpect(jsonPath("$[0].temaPrincipal").value("Ecossistemas"));
 
         String planejamentoAtualizadoRequest = """

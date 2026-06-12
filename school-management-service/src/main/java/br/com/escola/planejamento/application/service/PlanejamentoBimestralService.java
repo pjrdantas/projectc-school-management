@@ -12,6 +12,7 @@ import br.com.escola.avaliacao.adapter.out.persistence.entity.TipoAvaliacaoEntit
 import br.com.escola.avaliacao.adapter.out.persistence.repository.PeriodoAvaliativoJpaRepository;
 import br.com.escola.avaliacao.adapter.out.persistence.repository.TipoAvaliacaoJpaRepository;
 import br.com.escola.avaliacao.domain.exception.TipoAvaliacaoNaoEncontradoException;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.planejamento.adapter.in.web.dto.PlanejamentoBimestralAulaRequest;
 import br.com.escola.planejamento.adapter.in.web.dto.PlanejamentoBimestralAulaResponse;
 import br.com.escola.planejamento.adapter.in.web.dto.PlanejamentoBimestralAvaliacaoRequest;
@@ -48,6 +49,7 @@ public class PlanejamentoBimestralService {
     private final PeriodoAvaliativoJpaRepository periodoAvaliativoJpaRepository;
     private final StatusPlanejamentoJpaRepository statusPlanejamentoJpaRepository;
     private final TipoAvaliacaoJpaRepository tipoAvaliacaoJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     public PlanejamentoBimestralService(
             PlanejamentoBimestralJpaRepository planejamentoBimestralJpaRepository,
@@ -56,7 +58,8 @@ public class PlanejamentoBimestralService {
             ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository,
             PeriodoAvaliativoJpaRepository periodoAvaliativoJpaRepository,
             StatusPlanejamentoJpaRepository statusPlanejamentoJpaRepository,
-            TipoAvaliacaoJpaRepository tipoAvaliacaoJpaRepository) {
+            TipoAvaliacaoJpaRepository tipoAvaliacaoJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.planejamentoBimestralJpaRepository = planejamentoBimestralJpaRepository;
         this.planejamentoBimestralAulaJpaRepository = planejamentoBimestralAulaJpaRepository;
         this.planejamentoBimestralAvaliacaoJpaRepository = planejamentoBimestralAvaliacaoJpaRepository;
@@ -64,6 +67,7 @@ public class PlanejamentoBimestralService {
         this.periodoAvaliativoJpaRepository = periodoAvaliativoJpaRepository;
         this.statusPlanejamentoJpaRepository = statusPlanejamentoJpaRepository;
         this.tipoAvaliacaoJpaRepository = tipoAvaliacaoJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Transactional
@@ -98,7 +102,7 @@ public class PlanejamentoBimestralService {
             UUID disciplinaId,
             UUID periodoAvaliativoId) {
         return planejamentoBimestralJpaRepository
-                .filtrar(professorId, turmaId, disciplinaId, periodoAvaliativoId)
+                .filtrar(professorId, turmaId, disciplinaId, periodoAvaliativoId, escolaId())
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -193,12 +197,13 @@ public class PlanejamentoBimestralService {
     }
 
     private PlanejamentoBimestralEntity findPlanejamento(UUID id) {
-        return planejamentoBimestralJpaRepository.findById(id)
+        return planejamentoBimestralJpaRepository
+                .findByIdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(id, escolaId())
                 .orElseThrow(PlanejamentoBimestralNaoEncontradoException::new);
     }
 
     private ProfessorTurmaDisciplinaEntity findAlocacao(UUID id) {
-        return professorTurmaDisciplinaJpaRepository.findById(id)
+        return professorTurmaDisciplinaJpaRepository.findByIdAndTurmaDisciplina_Turma_Escola_Id(id, escolaId())
                 .orElseThrow(ProfessorTurmaDisciplinaNaoEncontradaException::new);
     }
 
@@ -206,7 +211,7 @@ public class PlanejamentoBimestralService {
         if (id == null) {
             return null;
         }
-        return periodoAvaliativoJpaRepository.findById(id)
+        return periodoAvaliativoJpaRepository.findByIdAndPeriodoLetivo_Escola_Id(id, escolaId())
                 .orElseThrow(PlanejamentoPeriodoAvaliativoNaoEncontradoException::new);
     }
 
@@ -229,6 +234,8 @@ public class PlanejamentoBimestralService {
                 alocacao.getTurmaDisciplina().getTurma().getNome(),
                 alocacao.getTurmaDisciplina().getDisciplina().getId(),
                 alocacao.getTurmaDisciplina().getDisciplina().getNome(),
+                alocacao.getTurmaDisciplina().getTurma().getEscola().getId(),
+                alocacao.getTurmaDisciplina().getTurma().getEscola().getNome(),
                 periodoAvaliativo == null ? null : periodoAvaliativo.getId(),
                 periodoAvaliativo == null ? null : periodoAvaliativo.getNome(),
                 status == null ? null : status.getCodigo(),
@@ -251,6 +258,10 @@ public class PlanejamentoBimestralService {
                 planejamentoBimestralAvaliacaoJpaRepository.findByPlanejamentoBimestralId(entity.getId()).stream()
                         .map(this::toAvaliacaoResponse)
                         .toList());
+    }
+
+    private UUID escolaId() {
+        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
     }
 
     private PlanejamentoBimestralAulaResponse toAulaResponse(PlanejamentoBimestralAulaEntity entity) {

@@ -1,6 +1,7 @@
 package br.com.escola.avaliacao.adapter.out.persistence.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,4 +11,6 @@ import br.com.escola.avaliacao.adapter.out.persistence.entity.PeriodoAvaliativoE
 public interface PeriodoAvaliativoJpaRepository extends JpaRepository<PeriodoAvaliativoEntity, UUID> {
 
     List<PeriodoAvaliativoEntity> findByPeriodoLetivoId(UUID periodoLetivoId);
+
+    Optional<PeriodoAvaliativoEntity> findByIdAndPeriodoLetivo_Escola_Id(UUID id, UUID escolaId);
 }

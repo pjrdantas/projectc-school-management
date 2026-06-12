@@ -13,6 +13,8 @@ public record PlanejamentoBimestralResponse(
         String turmaNome,
         UUID disciplinaId,
         String disciplinaNome,
+        UUID escolaId,
+        String escolaNome,
         UUID periodoAvaliativoId,
         String periodoAvaliativoNome,
         String status,

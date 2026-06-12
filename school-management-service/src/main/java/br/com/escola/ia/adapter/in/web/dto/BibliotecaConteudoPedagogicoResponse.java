@@ -5,6 +5,8 @@ import java.util.UUID;
 
 public record BibliotecaConteudoPedagogicoResponse(
         UUID id,
+        UUID escolaId,
+        String escolaNome,
         UUID professorId,
         String professorNome,
         UUID disciplinaId,
