@@ -10,6 +10,14 @@ import {
   BimonthlyPlanningInput,
   BimonthlyPlanningLesson,
   BimonthlyPlanningLessonInput,
+  PedagogicalContentLibraryFilters,
+  PedagogicalContentLibraryItem,
+  PlanningAiApprovalInput,
+  PlanningAiContent,
+  PlanningAiContentVersion,
+  PlanningAiGenerateInput,
+  PlanningAiInteraction,
+  PlanningAiVersionInput,
 } from '../models/planning.model';
 
 @Injectable({ providedIn: 'root' })
@@ -84,6 +92,87 @@ export class PlanningService {
       `${this.apiBaseUrl}/api/planejamentos-bimestrais/${id}/status`,
       { status },
       { headers: this.buildHeaders() },
+    );
+  }
+
+  gerarConteudoIA(id: string, input: PlanningAiGenerateInput): Observable<PlanningAiContent> {
+    return this.http.post<PlanningAiContent>(
+      `${this.apiBaseUrl}/api/planejamentos-bimestrais/${id}/ia/conteudos`,
+      input,
+      { headers: this.buildHeaders() },
+    );
+  }
+
+  listarInteracoesIA(id: string): Observable<PlanningAiInteraction[]> {
+    return this.http.get<PlanningAiInteraction[]>(
+      `${this.apiBaseUrl}/api/planejamentos-bimestrais/${id}/ia/interacoes`,
+      { headers: this.buildHeaders() },
+    );
+  }
+
+  listarConteudosIA(id: string): Observable<PlanningAiContent[]> {
+    return this.http.get<PlanningAiContent[]>(
+      `${this.apiBaseUrl}/api/planejamentos-bimestrais/${id}/ia/conteudos`,
+      { headers: this.buildHeaders() },
+    );
+  }
+
+  criarVersaoIA(conteudoId: string, input: PlanningAiVersionInput): Observable<PlanningAiContentVersion> {
+    return this.http.post<PlanningAiContentVersion>(
+      `${this.apiBaseUrl}/api/ia/conteudos/${conteudoId}/versoes`,
+      input,
+      { headers: this.buildHeaders() },
+    );
+  }
+
+  listarVersoesIA(conteudoId: string): Observable<PlanningAiContentVersion[]> {
+    return this.http.get<PlanningAiContentVersion[]>(
+      `${this.apiBaseUrl}/api/ia/conteudos/${conteudoId}/versoes`,
+      { headers: this.buildHeaders() },
+    );
+  }
+
+  aprovarVersaoIA(conteudoId: string, input: PlanningAiApprovalInput): Observable<PlanningAiContent> {
+    return this.http.patch<PlanningAiContent>(
+      `${this.apiBaseUrl}/api/ia/conteudos/${conteudoId}/aprovar-versao`,
+      input,
+      { headers: this.buildHeaders() },
+    );
+  }
+
+  publicarBibliotecaIA(conteudoId: string): Observable<PedagogicalContentLibraryItem> {
+    return this.http.post<PedagogicalContentLibraryItem>(
+      `${this.apiBaseUrl}/api/ia/conteudos/${conteudoId}/publicar-biblioteca`,
+      {},
+      { headers: this.buildHeaders() },
+    );
+  }
+
+  listarBiblioteca(filters: PedagogicalContentLibraryFilters = {}): Observable<PedagogicalContentLibraryItem[]> {
+    let params = new HttpParams();
+
+    if (filters.professorId) {
+      params = params.set('professorId', filters.professorId);
+    }
+
+    if (filters.disciplinaId) {
+      params = params.set('disciplinaId', filters.disciplinaId);
+    }
+
+    if (filters.tipoConteudo) {
+      params = params.set('tipoConteudo', filters.tipoConteudo);
+    }
+
+    if (filters.tema) {
+      params = params.set('tema', filters.tema);
+    }
+
+    return this.http.get<PedagogicalContentLibraryItem[]>(
+      `${this.apiBaseUrl}/api/biblioteca-conteudos-pedagogicos`,
+      {
+        headers: this.buildHeaders(),
+        params,
+      },
     );
   }
 

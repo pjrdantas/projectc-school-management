@@ -93,6 +93,152 @@
         </form>
       </section>
 
+      <section class="ai-section" *ngIf="planning() as data">
+        <div class="section-header">
+          <div>
+            <h2>IA e biblioteca pedagógica</h2>
+            <p>{{ aiContents().length }} conteúdo(s) gerado(s) e {{ libraryItems().length }} item(ns) reutilizável(is)</p>
+          </div>
+        </div>
+
+        <form class="ai-form" [formGroup]="aiForm" (ngSubmit)="generateAiContent()">
+          <mat-form-field appearance="outline" class="span-2">
+            <mat-label>Prompt do professor</mat-label>
+            <textarea matInput rows="3" formControlName="promptProfessor"></textarea>
+            <mat-error *ngIf="aiForm.controls.promptProfessor.hasError('required')">
+              Informe o prompt.
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Tipo de conteúdo</mat-label>
+            <select matNativeControl formControlName="tipoConteudo">
+              <option *ngFor="let option of aiTypeOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Título sugerido</mat-label>
+            <input matInput formControlName="titulo" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Reutilizável</mat-label>
+            <select matNativeControl formControlName="reutilizavel">
+              <option value="true">Sim</option>
+              <option value="false">Não</option>
+            </select>
+          </mat-form-field>
+
+          <button mat-raised-button color="primary" type="submit" [disabled]="isGeneratingAi()">
+            <mat-icon fontIcon="auto_awesome"></mat-icon>
+            Gerar
+          </button>
+        </form>
+
+        <mat-progress-bar *ngIf="isLoadingAi() || isGeneratingAi() || isSavingAi()" mode="indeterminate"></mat-progress-bar>
+
+        <div class="ai-layout">
+          <div class="ai-column">
+            <div class="subsection-title">
+              <strong>Conteúdos gerados</strong>
+              <span>{{ aiInteractions().length }} interação(ões)</span>
+            </div>
+
+            <div class="ai-content-list" *ngIf="aiContents().length > 0; else noAiContentsTpl">
+              <article
+                class="ai-content-item"
+                *ngFor="let content of aiContents()"
+                [class.selected]="isSelectedAiContent(content)"
+                (click)="selectAiContent(content)"
+              >
+                <div class="ai-content-main">
+                  <strong>{{ content.titulo }}</strong>
+                  <span>{{ aiTypeLabel(content.tipoConteudo, content.tipoConteudoDescricao) }}</span>
+                  <span>{{ contentStatusLabel(content.status, content.statusDescricao) }} - versão {{ content.versao }}</span>
+                </div>
+                <div class="ai-content-actions">
+                  <button mat-icon-button type="button" aria-label="Criar versão" (click)="openAiVersionDialog(content); $event.stopPropagation()">
+                    <mat-icon fontIcon="edit_note"></mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    aria-label="Publicar na biblioteca"
+                    [disabled]="!content.aprovadoPeloProfessor"
+                    (click)="publishAiContent(content); $event.stopPropagation()"
+                  >
+                    <mat-icon fontIcon="library_add"></mat-icon>
+                  </button>
+                </div>
+              </article>
+            </div>
+
+            <ng-template #noAiContentsTpl>
+              <p class="empty-state">Nenhum conteúdo gerado para este planejamento.</p>
+            </ng-template>
+          </div>
+
+          <div class="ai-column">
+            <div class="subsection-title">
+              <strong>Versões</strong>
+              <span *ngIf="selectedAiContent() as content">{{ content.titulo }}</span>
+            </div>
+
+            <div class="version-list" *ngIf="selectedAiContent() as content; else noSelectedContentTpl">
+              <article class="version-item" *ngFor="let version of aiVersions()">
+                <div>
+                  <strong>Versão {{ version.numeroVersao }}</strong>
+                  <span>{{ version.motivoAlteracao || 'Sem motivo informado' }}</span>
+                </div>
+                <pre>{{ version.conteudo }}</pre>
+                <div class="version-actions">
+                  <button mat-stroked-button type="button" [disabled]="isSavingAi()" (click)="approveAiVersion(content, version, false)">
+                    Aprovar
+                  </button>
+                  <button mat-raised-button color="primary" type="button" [disabled]="isSavingAi()" (click)="approveAiVersion(content, version, true)">
+                    Aprovar e publicar
+                  </button>
+                </div>
+              </article>
+            </div>
+
+            <ng-template #noSelectedContentTpl>
+              <p class="empty-state">Selecione um conteúdo para ver as versões.</p>
+            </ng-template>
+          </div>
+        </div>
+
+        <div class="library-preview">
+          <div class="subsection-title">
+            <strong>Biblioteca compatível</strong>
+            <span>{{ data.disciplinaNome }} - {{ data.temaPrincipal }}</span>
+          </div>
+
+          <mat-progress-bar *ngIf="isLoadingLibrary()" mode="indeterminate"></mat-progress-bar>
+
+          <div class="library-list" *ngIf="libraryItems().length > 0; else noLibraryTpl">
+            <article class="library-item" *ngFor="let item of libraryItems()">
+              <div>
+                <strong>{{ item.titulo }}</strong>
+                <span>{{ item.professorNome || 'Professor não informado' }} - {{ item.tipoConteudo || 'Tipo não informado' }}</span>
+                <span>{{ item.tema || 'Tema não informado' }}</span>
+              </div>
+              <button mat-stroked-button type="button" [disabled]="isSavingAi()" (click)="reuseLibraryContent(item)">
+                <mat-icon fontIcon="content_paste"></mat-icon>
+                Reaproveitar
+              </button>
+            </article>
+          </div>
+
+          <ng-template #noLibraryTpl>
+            <p class="empty-state">Nenhum conteúdo compatível encontrado na biblioteca.</p>
+          </ng-template>
+        </div>
+      </section>
+
       <section class="planned-section" *ngIf="planning() as data">
         <div class="section-header">
           <div>

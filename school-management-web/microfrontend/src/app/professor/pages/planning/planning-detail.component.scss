@@ -71,7 +71,8 @@ mat-progress-bar {
 }
 
 .status-section,
-.planned-section {
+.planned-section,
+.ai-section {
   display: grid;
   gap: 12px;
   margin-top: 18px;
@@ -88,6 +89,124 @@ mat-progress-bar {
 
 .status-form button {
   min-height: 56px;
+}
+
+.ai-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.ai-form button {
+  min-height: 56px;
+}
+
+.ai-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 12px;
+}
+
+.ai-column,
+.library-preview {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.subsection-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.subsection-title span {
+  color: #576071;
+  font-size: 0.82rem;
+}
+
+.ai-content-list,
+.version-list,
+.library-list {
+  display: grid;
+  gap: 10px;
+}
+
+.ai-content-item,
+.library-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #c7d8c9;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.ai-content-item {
+  cursor: pointer;
+}
+
+.ai-content-item.selected {
+  border-color: #2f6f91;
+  background: #f4fafc;
+}
+
+.ai-content-main,
+.ai-content-actions,
+.version-item,
+.library-item > div {
+  min-width: 0;
+}
+
+.ai-content-main,
+.library-item > div,
+.version-item > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.ai-content-main span,
+.library-item span,
+.version-item span {
+  color: #576071;
+  font-size: 0.82rem;
+}
+
+.ai-content-actions,
+.version-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.version-item {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #c7d8c9;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.version-item pre {
+  max-height: 260px;
+  overflow: auto;
+  margin: 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f7f8fa;
+  color: #1f2933;
+  font: inherit;
+  font-size: 0.86rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .planned-list {
@@ -141,6 +260,10 @@ mat-progress-bar {
 @media (max-width: 760px) {
   .detail-grid,
   .status-form,
+  .ai-form,
+  .ai-layout,
+  .ai-content-item,
+  .library-item,
   .planned-item {
     grid-template-columns: 1fr;
   }

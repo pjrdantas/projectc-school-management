@@ -168,6 +168,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'planning-library',
+    loadComponent: () =>
+      import('./professor/pages/planning/planning-library.component').then(
+        m => m.PlanningLibraryComponent,
+      ),
+  },
+  {
     path: 'dashboard/config',
     loadComponent: () =>
       import('./dashboard/pages/config/dashboard-config-admin.component').then(

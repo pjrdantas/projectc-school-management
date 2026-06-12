@@ -1,0 +1,25 @@
+<h2 mat-dialog-title>Nova versão</h2>
+
+<mat-dialog-content>
+  <form class="dialog-grid" [formGroup]="form" (ngSubmit)="save()">
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Conteúdo revisado</mat-label>
+      <textarea matInput rows="10" formControlName="conteudo"></textarea>
+      <mat-error *ngIf="form.controls.conteudo.hasError('required')">
+        Informe o conteúdo revisado.
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Motivo da alteração</mat-label>
+      <textarea matInput rows="3" formControlName="motivoAlteracao"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()">Cancelar</button>
+  <button mat-raised-button color="primary" type="button" (click)="save()">
+    Salvar versão
+  </button>
+</mat-dialog-actions>

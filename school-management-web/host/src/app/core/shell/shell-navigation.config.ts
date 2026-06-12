@@ -123,6 +123,11 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     exportName: 'PlanningDetailComponent',
   },
   {
+    path: 'planning-library',
+    exposedModule: './PlanningLibrary',
+    exportName: 'PlanningLibraryComponent',
+  },
+  {
     path: 'dashboard/config',
     exposedModule: './DashboardConfigAdmin',
     exportName: 'DashboardConfigAdminComponent',
@@ -151,6 +156,7 @@ export const SHELL_BUSINESS_MENU: ShellMenuItem[] = [
   { label: 'Aulas', icon: 'event_note', route: '/lessons', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
   { label: 'Avaliações', icon: 'grading', route: '/assessments', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
   { label: 'Planejamento', icon: 'edit_calendar', route: '/planning', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
+  { label: 'Biblioteca pedagógica', icon: 'local_library', route: '/planning-library', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
   { label: 'Matrícula', icon: 'assignment', route: '/enrollment', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR'] },
 ];
 

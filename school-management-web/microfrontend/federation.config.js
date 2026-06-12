@@ -26,6 +26,7 @@ module.exports = withNativeFederation({
     './AssessmentDetail': './src/app/professor/pages/assessments/assessment-detail.component.ts',
     './PlanningList': './src/app/professor/pages/planning/planning-list.component.ts',
     './PlanningDetail': './src/app/professor/pages/planning/planning-detail.component.ts',
+    './PlanningLibrary': './src/app/professor/pages/planning/planning-library.component.ts',
     './DashboardConfigAdmin': './src/app/dashboard/pages/config/dashboard-config-admin.component.ts',
     './DashboardSnapshotsAdmin': './src/app/dashboard/pages/snapshots/dashboard-snapshots-admin.component.ts',
   },

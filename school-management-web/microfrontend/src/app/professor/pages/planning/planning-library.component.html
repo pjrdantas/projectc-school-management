@@ -1,0 +1,56 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <div>
+          <h1>Biblioteca pedagógica</h1>
+          <p>Conteúdos aprovados para reutilização em planejamentos.</p>
+        </div>
+      </div>
+
+      <mat-progress-bar *ngIf="isLoading()" mode="indeterminate"></mat-progress-bar>
+
+      <form class="filters-grid" [formGroup]="filterForm" (ngSubmit)="load()">
+        <mat-form-field appearance="outline">
+          <mat-label>Tema</mat-label>
+          <input matInput formControlName="tema" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tipo</mat-label>
+          <select matNativeControl formControlName="tipoConteudo">
+            <option *ngFor="let option of typeOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" type="submit">
+          <mat-icon fontIcon="search"></mat-icon>
+          Filtrar
+        </button>
+
+        <button mat-stroked-button type="button" (click)="clearFilters()">
+          <mat-icon fontIcon="filter_alt_off"></mat-icon>
+          Limpar
+        </button>
+      </form>
+
+      <section class="library-list" *ngIf="!isLoading()">
+        <article class="library-item" *ngFor="let item of items()">
+          <div class="library-main">
+            <strong>{{ item.titulo }}</strong>
+            <span>{{ item.tema || 'Tema não informado' }}</span>
+            <span>{{ item.disciplinaNome || 'Disciplina não informada' }} - {{ typeLabel(item) }}</span>
+            <span>{{ item.professorNome || 'Professor não informado' }} - {{ item.origem || 'Origem não informada' }}</span>
+          </div>
+          <pre>{{ item.conteudo }}</pre>
+        </article>
+
+        <p class="empty-state" *ngIf="items().length === 0">
+          Nenhum conteúdo encontrado na biblioteca.
+        </p>
+      </section>
+    </mat-card-content>
+  </mat-card>
+</div>
