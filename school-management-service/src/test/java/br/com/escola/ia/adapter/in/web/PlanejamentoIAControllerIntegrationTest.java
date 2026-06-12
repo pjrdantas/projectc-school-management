@@ -172,6 +172,11 @@ class PlanejamentoIAControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].tipoConteudo").value("PLANO_BIMESTRAL"))
                 .andExpect(jsonPath("$[0].origem").value("PLANEJAMENTO_IA"))
                 .andExpect(jsonPath("$[0].conteudo").value(conteudoEditado));
+
+        mockMvc.perform(get("/api/biblioteca-conteudos-pedagogicos"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].escolaId").value(ESCOLA_PADRAO_ID))
+                .andExpect(jsonPath("$[0].conteudo").value(conteudoEditado));
     }
 
     @Test

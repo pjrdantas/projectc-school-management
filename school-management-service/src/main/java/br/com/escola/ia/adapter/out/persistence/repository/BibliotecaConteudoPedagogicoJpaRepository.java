@@ -24,10 +24,29 @@ public interface BibliotecaConteudoPedagogicoJpaRepository extends JpaRepository
               AND professor.pessoa.escola.id = :escolaId
               AND (:disciplinaId IS NULL OR disciplina.id = :disciplinaId)
               AND (:tipoConteudo IS NULL OR tipo.codigo = :tipoConteudo)
-              AND (:tema IS NULL OR LOWER(conteudo.tema) LIKE LOWER(CONCAT('%', :tema, '%')))
             ORDER BY conteudo.createdAt DESC
             """)
     List<BibliotecaConteudoPedagogicoEntity> filtrar(
+            @Param("professorId") UUID professorId,
+            @Param("disciplinaId") UUID disciplinaId,
+            @Param("tipoConteudo") String tipoConteudo,
+            @Param("escolaId") UUID escolaId);
+
+    @Query("""
+            SELECT conteudo
+            FROM BibliotecaConteudoPedagogicoEntity conteudo
+            LEFT JOIN conteudo.professor professor
+            LEFT JOIN conteudo.disciplina disciplina
+            LEFT JOIN conteudo.tipoConteudoIA tipo
+            WHERE conteudo.ativo = true
+              AND (:professorId IS NULL OR professor.id = :professorId)
+              AND professor.pessoa.escola.id = :escolaId
+              AND (:disciplinaId IS NULL OR disciplina.id = :disciplinaId)
+              AND (:tipoConteudo IS NULL OR tipo.codigo = :tipoConteudo)
+              AND LOWER(conteudo.tema) LIKE :tema
+            ORDER BY conteudo.createdAt DESC
+            """)
+    List<BibliotecaConteudoPedagogicoEntity> filtrarPorTema(
             @Param("professorId") UUID professorId,
             @Param("disciplinaId") UUID disciplinaId,
             @Param("tipoConteudo") String tipoConteudo,

@@ -247,7 +247,15 @@ public class PlanejamentoIAService {
             String tema) {
         String tipoNormalizado = tipoConteudo == null || tipoConteudo.isBlank() ? null : tipoConteudo.toUpperCase();
         String temaNormalizado = tema == null || tema.isBlank() ? null : tema.trim();
-        return bibliotecaJpaRepository.filtrar(professorId, disciplinaId, tipoNormalizado, temaNormalizado, escolaId()).stream()
+        var conteudos = temaNormalizado == null
+                ? bibliotecaJpaRepository.filtrar(professorId, disciplinaId, tipoNormalizado, escolaId())
+                : bibliotecaJpaRepository.filtrarPorTema(
+                        professorId,
+                        disciplinaId,
+                        tipoNormalizado,
+                        "%" + temaNormalizado.toLowerCase() + "%",
+                        escolaId());
+        return conteudos.stream()
                 .map(this::toBibliotecaResponse)
                 .toList();
     }
