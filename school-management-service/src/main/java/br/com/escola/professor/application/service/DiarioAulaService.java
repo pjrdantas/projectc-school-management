@@ -31,6 +31,7 @@ import br.com.escola.professor.domain.exception.AulaMatriculaTurmaInconsistenteE
 import br.com.escola.professor.domain.exception.AulaNaoEncontradaException;
 import br.com.escola.professor.domain.exception.SituacaoFrequenciaNaoEncontradaException;
 import br.com.escola.professor.domain.exception.ProfessorTurmaDisciplinaNaoEncontradaException;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Service
 public class DiarioAulaService {
@@ -41,6 +42,7 @@ public class DiarioAulaService {
     private final FrequenciaAlunoJpaRepository frequenciaAlunoJpaRepository;
     private final SituacaoFrequenciaJpaRepository situacaoFrequenciaJpaRepository;
     private final MatriculaJpaRepository matriculaJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     public DiarioAulaService(
             AulaJpaRepository aulaJpaRepository,
@@ -48,19 +50,21 @@ public class DiarioAulaService {
             FrequenciaProfessorJpaRepository frequenciaProfessorJpaRepository,
             FrequenciaAlunoJpaRepository frequenciaAlunoJpaRepository,
             SituacaoFrequenciaJpaRepository situacaoFrequenciaJpaRepository,
-            MatriculaJpaRepository matriculaJpaRepository) {
+            MatriculaJpaRepository matriculaJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.aulaJpaRepository = aulaJpaRepository;
         this.professorTurmaDisciplinaJpaRepository = professorTurmaDisciplinaJpaRepository;
         this.frequenciaProfessorJpaRepository = frequenciaProfessorJpaRepository;
         this.frequenciaAlunoJpaRepository = frequenciaAlunoJpaRepository;
         this.situacaoFrequenciaJpaRepository = situacaoFrequenciaJpaRepository;
         this.matriculaJpaRepository = matriculaJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Transactional
     public AulaResponse criarAula(AulaRequest request) {
         ProfessorTurmaDisciplinaEntity alocacao = professorTurmaDisciplinaJpaRepository
-                .findById(request.professorTurmaDisciplinaId())
+                .findByIdAndTurmaDisciplina_Turma_Escola_Id(request.professorTurmaDisciplinaId(), escolaId())
                 .orElseThrow(ProfessorTurmaDisciplinaNaoEncontradaException::new);
 
         AulaEntity aula = AulaEntity.builder()
@@ -80,16 +84,24 @@ public class DiarioAulaService {
     @Transactional(readOnly = true)
     public List<AulaResponse> listarAulas(UUID professorTurmaDisciplinaId, UUID turmaId) {
         if (professorTurmaDisciplinaId != null) {
-            return aulaJpaRepository.findByProfessorTurmaDisciplinaId(professorTurmaDisciplinaId).stream()
+            return aulaJpaRepository
+                    .findByProfessorTurmaDisciplina_IdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(
+                            professorTurmaDisciplinaId,
+                            escolaId())
+                    .stream()
                     .map(this::toAulaResponse)
                     .toList();
         }
         if (turmaId != null) {
-            return aulaJpaRepository.findByProfessorTurmaDisciplinaTurmaDisciplinaTurmaId(turmaId).stream()
+            return aulaJpaRepository
+                    .findByProfessorTurmaDisciplina_TurmaDisciplina_Turma_IdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(
+                            turmaId,
+                            escolaId())
+                    .stream()
                     .map(this::toAulaResponse)
                     .toList();
         }
-        return aulaJpaRepository.findAll().stream()
+        return aulaJpaRepository.findAllByProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(escolaId()).stream()
                 .map(this::toAulaResponse)
                 .toList();
     }
@@ -104,7 +116,11 @@ public class DiarioAulaService {
         AulaEntity aula = findAula(aulaId);
         UUID professorId = aula.getProfessorTurmaDisciplina().getProfessor().getId();
 
-        frequenciaProfessorJpaRepository.findByAulaIdAndProfessorId(aulaId, professorId)
+        frequenciaProfessorJpaRepository
+                .findByAula_IdAndAula_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdAndProfessor_Id(
+                        aulaId,
+                        escolaId(),
+                        professorId)
                 .ifPresent(frequencia -> {
                     throw new AulaFrequenciaProfessorDuplicadaException();
                 });
@@ -122,10 +138,12 @@ public class DiarioAulaService {
 
     @Transactional(readOnly = true)
     public List<FrequenciaProfessorResponse> listarFrequenciaProfessor(UUID aulaId) {
-        if (!aulaJpaRepository.existsById(aulaId)) {
+        if (!aulaJpaRepository.existsByIdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(aulaId, escolaId())) {
             throw new AulaNaoEncontradaException();
         }
-        return frequenciaProfessorJpaRepository.findByAulaId(aulaId).stream()
+        return frequenciaProfessorJpaRepository
+                .findByAula_IdAndAula_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(aulaId, escolaId())
+                .stream()
                 .map(this::toFrequenciaProfessorResponse)
                 .toList();
     }
@@ -133,7 +151,7 @@ public class DiarioAulaService {
     @Transactional
     public FrequenciaAlunoResponse registrarFrequenciaAluno(UUID aulaId, FrequenciaAlunoRequest request) {
         AulaEntity aula = findAula(aulaId);
-        MatriculaEntity matricula = matriculaJpaRepository.findById(request.matriculaId())
+        MatriculaEntity matricula = matriculaJpaRepository.findByIdAndTurma_Escola_Id(request.matriculaId(), escolaId())
                 .orElseThrow(() -> new AulaNaoEncontradaException("Matrícula não encontrada."));
 
         UUID turmaAulaId = aula.getProfessorTurmaDisciplina().getTurmaDisciplina().getTurma().getId();
@@ -142,7 +160,11 @@ public class DiarioAulaService {
             throw new AulaMatriculaTurmaInconsistenteException();
         }
 
-        frequenciaAlunoJpaRepository.findByAulaIdAndMatriculaId(aulaId, request.matriculaId())
+        frequenciaAlunoJpaRepository
+                .findByAula_IdAndAula_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdAndMatricula_Id(
+                        aulaId,
+                        escolaId(),
+                        request.matriculaId())
                 .ifPresent(frequencia -> {
                     throw new AulaFrequenciaAlunoDuplicadaException();
                 });
@@ -163,16 +185,18 @@ public class DiarioAulaService {
 
     @Transactional(readOnly = true)
     public List<FrequenciaAlunoResponse> listarFrequenciasAlunos(UUID aulaId) {
-        if (!aulaJpaRepository.existsById(aulaId)) {
+        if (!aulaJpaRepository.existsByIdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(aulaId, escolaId())) {
             throw new AulaNaoEncontradaException();
         }
-        return frequenciaAlunoJpaRepository.findByAulaId(aulaId).stream()
+        return frequenciaAlunoJpaRepository
+                .findByAula_IdAndAula_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(aulaId, escolaId())
+                .stream()
                 .map(this::toFrequenciaAlunoResponse)
                 .toList();
     }
 
     private AulaEntity findAula(UUID id) {
-        return aulaJpaRepository.findById(id)
+        return aulaJpaRepository.findByIdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(id, escolaId())
                 .orElseThrow(AulaNaoEncontradaException::new);
     }
 
@@ -185,6 +209,8 @@ public class DiarioAulaService {
                 alocacao.getProfessor().getPessoa().getNomeCompleto(),
                 alocacao.getTurmaDisciplina().getTurma().getId(),
                 alocacao.getTurmaDisciplina().getTurma().getNome(),
+                alocacao.getTurmaDisciplina().getTurma().getEscola().getId(),
+                alocacao.getTurmaDisciplina().getTurma().getEscola().getNome(),
                 alocacao.getTurmaDisciplina().getDisciplina().getId(),
                 alocacao.getTurmaDisciplina().getDisciplina().getNome(),
                 entity.getDataAula(),
@@ -202,6 +228,8 @@ public class DiarioAulaService {
                 entity.getAula().getId(),
                 entity.getProfessor().getId(),
                 entity.getProfessor().getPessoa().getNomeCompleto(),
+                entity.getAula().getProfessorTurmaDisciplina().getTurmaDisciplina().getTurma().getEscola().getId(),
+                entity.getAula().getProfessorTurmaDisciplina().getTurmaDisciplina().getTurma().getEscola().getNome(),
                 entity.getPresente(),
                 entity.getJustificativa(),
                 entity.getCreatedAt());
@@ -214,8 +242,14 @@ public class DiarioAulaService {
                 entity.getMatricula().getId(),
                 entity.getMatricula().getAluno().getId(),
                 entity.getMatricula().getAluno().getPessoa().getNomeCompleto(),
+                entity.getMatricula().getTurma().getEscola().getId(),
+                entity.getMatricula().getTurma().getEscola().getNome(),
                 entity.getSituacaoFrequencia().getCodigo(),
                 entity.getJustificativa(),
                 entity.getCreatedAt());
+    }
+
+    private UUID escolaId() {
+        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
     }
 }

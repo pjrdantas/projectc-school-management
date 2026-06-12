@@ -44,12 +44,15 @@ public class MatriculaAcademicoResumoService {
 
     @Transactional(readOnly = true)
     public MatriculaAcademicoResumoResponse consultar(UUID matriculaId) {
+        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
         MatriculaEntity matricula = matriculaJpaRepository
-                .findByIdAndTurma_Escola_Id(matriculaId, escolaTenantService.obterOuCriarEscolaPadrao().getId())
+                .findByIdAndTurma_Escola_Id(matriculaId, escolaId)
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaId));
 
-        List<FrequenciaAlunoEntity> frequencias = frequenciaAlunoJpaRepository.findByMatriculaId(matriculaId);
-        List<NotaAlunoEntity> notas = notaAlunoJpaRepository.findByMatriculaId(matriculaId);
+        List<FrequenciaAlunoEntity> frequencias = frequenciaAlunoJpaRepository
+                .findByMatricula_IdAndMatricula_Turma_Escola_Id(matriculaId, escolaId);
+        List<NotaAlunoEntity> notas = notaAlunoJpaRepository
+                .findByMatricula_IdAndMatricula_Turma_Escola_Id(matriculaId, escolaId);
 
         return new MatriculaAcademicoResumoResponse(
                 matricula.getId(),

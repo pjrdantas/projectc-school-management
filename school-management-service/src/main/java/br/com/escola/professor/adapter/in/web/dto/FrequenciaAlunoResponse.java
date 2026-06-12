@@ -9,6 +9,8 @@ public record FrequenciaAlunoResponse(
         UUID matriculaId,
         UUID alunoId,
         String alunoNome,
+        UUID escolaId,
+        String escolaNome,
         String situacao,
         String justificativa,
         LocalDateTime createdAt) {

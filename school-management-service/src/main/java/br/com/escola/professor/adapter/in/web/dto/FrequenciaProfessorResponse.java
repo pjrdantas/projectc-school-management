@@ -8,6 +8,8 @@ public record FrequenciaProfessorResponse(
         UUID aulaId,
         UUID professorId,
         String professorNome,
+        UUID escolaId,
+        String escolaNome,
         Boolean presente,
         String justificativa,
         LocalDateTime createdAt) {

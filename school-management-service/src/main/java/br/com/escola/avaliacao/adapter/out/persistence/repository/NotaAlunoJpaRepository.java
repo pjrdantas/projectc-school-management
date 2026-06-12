@@ -12,7 +12,18 @@ public interface NotaAlunoJpaRepository extends JpaRepository<NotaAlunoEntity, U
 
     List<NotaAlunoEntity> findByMatriculaId(UUID matriculaId);
 
+    List<NotaAlunoEntity> findByMatricula_IdAndMatricula_Turma_Escola_Id(UUID matriculaId, UUID escolaId);
+
     List<NotaAlunoEntity> findByAvaliacaoId(UUID avaliacaoId);
 
+    List<NotaAlunoEntity> findByAvaliacao_IdAndAvaliacao_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(
+            UUID avaliacaoId,
+            UUID escolaId);
+
     Optional<NotaAlunoEntity> findByAvaliacaoIdAndMatriculaId(UUID avaliacaoId, UUID matriculaId);
+
+    Optional<NotaAlunoEntity> findByAvaliacao_IdAndAvaliacao_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdAndMatricula_Id(
+            UUID avaliacaoId,
+            UUID escolaId,
+            UUID matriculaId);
 }

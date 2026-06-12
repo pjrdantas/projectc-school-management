@@ -11,6 +11,8 @@ public record NotaAlunoResponse(
         UUID matriculaId,
         UUID alunoId,
         String alunoNome,
+        UUID escolaId,
+        String escolaNome,
         BigDecimal nota,
         String observacao,
         LocalDateTime createdAt,

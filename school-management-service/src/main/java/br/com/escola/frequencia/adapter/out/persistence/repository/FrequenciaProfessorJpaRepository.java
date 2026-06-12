@@ -14,5 +14,14 @@ public interface FrequenciaProfessorJpaRepository extends JpaRepository<Frequenc
 
     List<FrequenciaProfessorEntity> findByAulaId(UUID aulaId);
 
+    List<FrequenciaProfessorEntity> findByAula_IdAndAula_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(
+            UUID aulaId,
+            UUID escolaId);
+
     Optional<FrequenciaProfessorEntity> findByAulaIdAndProfessorId(UUID aulaId, UUID professorId);
+
+    Optional<FrequenciaProfessorEntity> findByAula_IdAndAula_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdAndProfessor_Id(
+            UUID aulaId,
+            UUID escolaId,
+            UUID professorId);
 }

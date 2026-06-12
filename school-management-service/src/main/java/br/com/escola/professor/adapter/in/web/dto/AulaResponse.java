@@ -12,6 +12,8 @@ public record AulaResponse(
         String professorNome,
         UUID turmaId,
         String turmaNome,
+        UUID escolaId,
+        String escolaNome,
         UUID disciplinaId,
         String disciplinaNome,
         LocalDate dataAula,

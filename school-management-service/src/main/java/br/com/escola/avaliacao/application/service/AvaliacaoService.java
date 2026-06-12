@@ -29,6 +29,7 @@ import br.com.escola.professor.adapter.out.persistence.entity.ProfessorTurmaDisc
 import br.com.escola.professor.adapter.out.persistence.repository.ProfessorTurmaDisciplinaJpaRepository;
 import br.com.escola.professor.domain.exception.AulaNaoEncontradaException;
 import br.com.escola.professor.domain.exception.ProfessorTurmaDisciplinaNaoEncontradaException;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Service
 public class AvaliacaoService {
@@ -38,24 +39,27 @@ public class AvaliacaoService {
     private final TipoAvaliacaoJpaRepository tipoAvaliacaoJpaRepository;
     private final ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository;
     private final MatriculaJpaRepository matriculaJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     public AvaliacaoService(
             AvaliacaoJpaRepository avaliacaoJpaRepository,
             NotaAlunoJpaRepository notaAlunoJpaRepository,
             TipoAvaliacaoJpaRepository tipoAvaliacaoJpaRepository,
             ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository,
-            MatriculaJpaRepository matriculaJpaRepository) {
+            MatriculaJpaRepository matriculaJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.avaliacaoJpaRepository = avaliacaoJpaRepository;
         this.notaAlunoJpaRepository = notaAlunoJpaRepository;
         this.tipoAvaliacaoJpaRepository = tipoAvaliacaoJpaRepository;
         this.professorTurmaDisciplinaJpaRepository = professorTurmaDisciplinaJpaRepository;
         this.matriculaJpaRepository = matriculaJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Transactional
     public AvaliacaoResponse criar(AvaliacaoRequest request) {
         ProfessorTurmaDisciplinaEntity alocacao = professorTurmaDisciplinaJpaRepository
-                .findById(request.professorTurmaDisciplinaId())
+                .findByIdAndTurmaDisciplina_Turma_Escola_Id(request.professorTurmaDisciplinaId(), escolaId())
                 .orElseThrow(ProfessorTurmaDisciplinaNaoEncontradaException::new);
         TipoAvaliacaoEntity tipo = tipoAvaliacaoJpaRepository.findByCodigo(request.tipoAvaliacao().toUpperCase())
                 .orElseThrow(TipoAvaliacaoNaoEncontradoException::new);
@@ -77,16 +81,24 @@ public class AvaliacaoService {
     @Transactional(readOnly = true)
     public List<AvaliacaoResponse> listar(UUID professorTurmaDisciplinaId, UUID turmaId) {
         if (professorTurmaDisciplinaId != null) {
-            return avaliacaoJpaRepository.findByProfessorTurmaDisciplinaId(professorTurmaDisciplinaId).stream()
+            return avaliacaoJpaRepository
+                    .findByProfessorTurmaDisciplina_IdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(
+                            professorTurmaDisciplinaId,
+                            escolaId())
+                    .stream()
                     .map(this::toAvaliacaoResponse)
                     .toList();
         }
         if (turmaId != null) {
-            return avaliacaoJpaRepository.findByProfessorTurmaDisciplinaTurmaDisciplinaTurmaId(turmaId).stream()
+            return avaliacaoJpaRepository
+                    .findByProfessorTurmaDisciplina_TurmaDisciplina_Turma_IdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(
+                            turmaId,
+                            escolaId())
+                    .stream()
                     .map(this::toAvaliacaoResponse)
                     .toList();
         }
-        return avaliacaoJpaRepository.findAll().stream()
+        return avaliacaoJpaRepository.findAllByProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(escolaId()).stream()
                 .map(this::toAvaliacaoResponse)
                 .toList();
     }
@@ -99,7 +111,7 @@ public class AvaliacaoService {
     @Transactional
     public NotaAlunoResponse lancarNota(UUID avaliacaoId, NotaAlunoRequest request) {
         AvaliacaoEntity avaliacao = findAvaliacao(avaliacaoId);
-        MatriculaEntity matricula = matriculaJpaRepository.findById(request.matriculaId())
+        MatriculaEntity matricula = matriculaJpaRepository.findByIdAndTurma_Escola_Id(request.matriculaId(), escolaId())
                 .orElseThrow(() -> new AulaNaoEncontradaException("Matrícula não encontrada."));
 
         UUID turmaAvaliacaoId = avaliacao.getProfessorTurmaDisciplina().getTurmaDisciplina().getTurma().getId();
@@ -112,7 +124,11 @@ public class AvaliacaoService {
             throw new AvaliacaoNotaInvalidaException();
         }
 
-        notaAlunoJpaRepository.findByAvaliacaoIdAndMatriculaId(avaliacaoId, request.matriculaId())
+        notaAlunoJpaRepository
+                .findByAvaliacao_IdAndAvaliacao_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdAndMatricula_Id(
+                        avaliacaoId,
+                        escolaId(),
+                        request.matriculaId())
                 .ifPresent(nota -> {
                     throw new AvaliacaoNotaDuplicadaException();
                 });
@@ -130,26 +146,30 @@ public class AvaliacaoService {
 
     @Transactional(readOnly = true)
     public List<NotaAlunoResponse> listarNotasPorAvaliacao(UUID avaliacaoId) {
-        if (!avaliacaoJpaRepository.existsById(avaliacaoId)) {
+        if (!avaliacaoJpaRepository.existsByIdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(avaliacaoId, escolaId())) {
             throw new AvaliacaoNaoEncontradaException();
         }
-        return notaAlunoJpaRepository.findByAvaliacaoId(avaliacaoId).stream()
+        return notaAlunoJpaRepository
+                .findByAvaliacao_IdAndAvaliacao_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(
+                        avaliacaoId,
+                        escolaId())
+                .stream()
                 .map(this::toNotaResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public List<NotaAlunoResponse> listarNotasPorMatricula(UUID matriculaId) {
-        if (!matriculaJpaRepository.existsById(matriculaId)) {
+        if (!matriculaJpaRepository.existsByIdAndTurma_Escola_Id(matriculaId, escolaId())) {
             throw new AulaNaoEncontradaException("Matrícula não encontrada.");
         }
-        return notaAlunoJpaRepository.findByMatriculaId(matriculaId).stream()
+        return notaAlunoJpaRepository.findByMatricula_IdAndMatricula_Turma_Escola_Id(matriculaId, escolaId()).stream()
                 .map(this::toNotaResponse)
                 .toList();
     }
 
     private AvaliacaoEntity findAvaliacao(UUID id) {
-        return avaliacaoJpaRepository.findById(id)
+        return avaliacaoJpaRepository.findByIdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(id, escolaId())
                 .orElseThrow(AvaliacaoNaoEncontradaException::new);
     }
 
@@ -162,6 +182,8 @@ public class AvaliacaoService {
                 alocacao.getProfessor().getPessoa().getNomeCompleto(),
                 alocacao.getTurmaDisciplina().getTurma().getId(),
                 alocacao.getTurmaDisciplina().getTurma().getNome(),
+                alocacao.getTurmaDisciplina().getTurma().getEscola().getId(),
+                alocacao.getTurmaDisciplina().getTurma().getEscola().getNome(),
                 alocacao.getTurmaDisciplina().getDisciplina().getId(),
                 alocacao.getTurmaDisciplina().getDisciplina().getNome(),
                 entity.getTitulo(),
@@ -181,9 +203,15 @@ public class AvaliacaoService {
                 entity.getMatricula().getId(),
                 entity.getMatricula().getAluno().getId(),
                 entity.getMatricula().getAluno().getPessoa().getNomeCompleto(),
+                entity.getMatricula().getTurma().getEscola().getId(),
+                entity.getMatricula().getTurma().getEscola().getNome(),
                 entity.getNota(),
                 entity.getObservacao(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());
+    }
+
+    private UUID escolaId() {
+        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
     }
 }

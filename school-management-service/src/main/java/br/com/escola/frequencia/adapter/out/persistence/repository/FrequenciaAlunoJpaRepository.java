@@ -12,7 +12,18 @@ public interface FrequenciaAlunoJpaRepository extends JpaRepository<FrequenciaAl
 
     List<FrequenciaAlunoEntity> findByMatriculaId(UUID matriculaId);
 
+    List<FrequenciaAlunoEntity> findByMatricula_IdAndMatricula_Turma_Escola_Id(UUID matriculaId, UUID escolaId);
+
     List<FrequenciaAlunoEntity> findByAulaId(UUID aulaId);
 
+    List<FrequenciaAlunoEntity> findByAula_IdAndAula_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(
+            UUID aulaId,
+            UUID escolaId);
+
     Optional<FrequenciaAlunoEntity> findByAulaIdAndMatriculaId(UUID aulaId, UUID matriculaId);
+
+    Optional<FrequenciaAlunoEntity> findByAula_IdAndAula_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdAndMatricula_Id(
+            UUID aulaId,
+            UUID escolaId,
+            UUID matriculaId);
 }

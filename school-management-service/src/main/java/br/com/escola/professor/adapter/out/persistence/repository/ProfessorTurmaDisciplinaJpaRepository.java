@@ -15,4 +15,6 @@ public interface ProfessorTurmaDisciplinaJpaRepository extends JpaRepository<Pro
     List<ProfessorTurmaDisciplinaEntity> findByTurmaDisciplinaTurmaId(UUID turmaId);
 
     Optional<ProfessorTurmaDisciplinaEntity> findByProfessorIdAndTurmaDisciplinaId(UUID professorId, UUID turmaDisciplinaId);
+
+    Optional<ProfessorTurmaDisciplinaEntity> findByIdAndTurmaDisciplina_Turma_Escola_Id(UUID id, UUID escolaId);
 }
