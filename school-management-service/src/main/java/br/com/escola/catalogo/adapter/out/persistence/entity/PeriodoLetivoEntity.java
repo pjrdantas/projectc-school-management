@@ -10,8 +10,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.PrePersist;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 
 @Entity
 @Table(name = "periodo_letivo")
@@ -33,6 +37,10 @@ public class PeriodoLetivoEntity {
 
     @Column(name = "data_fim", nullable = false)
     private LocalDate dataFim;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_escola", nullable = false)
+    private EscolaEntity escola;
 
     @Column(name = "ativo", nullable = false)
     private Boolean ativo = true;
@@ -82,6 +90,14 @@ public class PeriodoLetivoEntity {
 
     public void setAtivo(Boolean ativo) {
         this.ativo = ativo;
+    }
+
+    public EscolaEntity getEscola() {
+        return escola;
+    }
+
+    public void setEscola(EscolaEntity escola) {
+        this.escola = escola;
     }
 
     @PrePersist

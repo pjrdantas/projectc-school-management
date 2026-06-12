@@ -116,16 +116,16 @@ class DashboardProfessorControllerIntegrationTest {
                 VALUES (?, ?, 'RP-DASH-PROF', 'Licenciatura', true, CURRENT_TIMESTAMP)
                 """, professorId, pessoaId);
         jdbcTemplate.update("""
-                INSERT INTO periodo_letivo (id_periodo_letivo, nome, ano, data_inicio, data_fim, ativo, created_at)
-                VALUES (?, 'DASHBOARD-PROFESSOR-2052.1', 2052, DATE '2052-02-01', DATE '2052-12-15', true, CURRENT_TIMESTAMP)
+                INSERT INTO periodo_letivo (id_periodo_letivo, nome, ano, data_inicio, data_fim, ativo, id_escola, created_at)
+                VALUES (?, 'DASHBOARD-PROFESSOR-2052.1', 2052, DATE '2052-02-01', DATE '2052-12-15', true, '00000000-0000-0000-0000-000000000047', CURRENT_TIMESTAMP)
                 """, periodoId);
         jdbcTemplate.update("""
-                INSERT INTO turma (id_turma, codigo, nome, capacidade, id_periodo_letivo, id_serie, ativo, created_at)
-                VALUES (?, 'DASH-PROF-A', 'Dashboard Professor Turma A', 30, ?, ?, true, CURRENT_TIMESTAMP)
+                INSERT INTO turma (id_turma, codigo, nome, capacidade, id_periodo_letivo, id_serie, ativo, id_escola, created_at)
+                VALUES (?, 'DASH-PROF-A', 'Dashboard Professor Turma A', 30, ?, ?, true, '00000000-0000-0000-0000-000000000047', CURRENT_TIMESTAMP)
                 """, turmaId, periodoId, SERIE_PADRAO_ID);
         jdbcTemplate.update("""
-                INSERT INTO disciplina (id_disciplina, nome, carga_horaria, ativo, created_at)
-                VALUES (?, 'Dashboard Professor Matematica', 80, true, CURRENT_TIMESTAMP)
+                INSERT INTO disciplina (id_disciplina, nome, carga_horaria, ativo, id_escola, created_at)
+                VALUES (?, 'Dashboard Professor Matematica', 80, true, '00000000-0000-0000-0000-000000000047', CURRENT_TIMESTAMP)
                 """, disciplinaId);
         jdbcTemplate.update("""
                 INSERT INTO turma_disciplina (id_turma_disciplina, id_turma, id_disciplina, carga_horaria, created_at)

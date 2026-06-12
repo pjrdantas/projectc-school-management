@@ -45,7 +45,7 @@ public class PeriodoLetivoController {
     @Operation(summary = "Cria um período letivo")
     public PeriodoLetivoResponse criar(@Valid @RequestBody PeriodoLetivoRequest request) {
         PeriodoLetivoOutput output = criarPeriodoLetivoUseCase.executar(
-                new PeriodoLetivoInput(request.nome(), request.ano(), request.dataInicio(), request.dataFim()));
+                new PeriodoLetivoInput(request.nome(), request.ano(), request.dataInicio(), request.dataFim(), request.escolaId()));
         return toResponse(output);
     }
 
@@ -69,6 +69,8 @@ public class PeriodoLetivoController {
                 output.dataInicio(),
                 output.dataFim(),
                 output.ativo(),
+                output.escolaId(),
+                output.escolaNome(),
                 output.createdAt());
     }
 }

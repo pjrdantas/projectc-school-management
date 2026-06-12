@@ -12,5 +12,7 @@ public record PeriodoLetivoOutput(
         LocalDate dataInicio,
         LocalDate dataFim,
         Boolean ativo,
+        UUID escolaId,
+        String escolaNome,
         LocalDateTime createdAt) {
 }

@@ -27,6 +27,8 @@ public class DisciplinaMapper {
                 entity.getNome(),
                 entity.getCargaHoraria(),
                 entity.getStatus(),
+                entity.getEscola().getId(),
+                entity.getEscola().getNome(),
                 entity.getCreatedAt());
     }
 }

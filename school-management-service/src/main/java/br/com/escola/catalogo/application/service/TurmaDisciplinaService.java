@@ -39,7 +39,9 @@ public class TurmaDisciplinaService {
     public TurmaDisciplinaResponse vincular(UUID turmaId, TurmaDisciplinaRequest request) {
         TurmaEntity turma = turmaJpaRepository.findById(turmaId)
                 .orElseThrow(() -> new TurmaNaoEncontradaException(turmaId));
-        DisciplinaEntity disciplina = disciplinaJpaRepository.findById(request.disciplinaId())
+        DisciplinaEntity disciplina = disciplinaJpaRepository.findByIdAndEscola_Id(
+                        request.disciplinaId(),
+                        turma.getEscola().getId())
                 .orElseThrow(() -> new DisciplinaNaoEncontradaException(request.disciplinaId()));
 
         turmaDisciplinaJpaRepository.findByTurmaIdAndDisciplinaId(turmaId, request.disciplinaId())
@@ -59,7 +61,9 @@ public class TurmaDisciplinaService {
 
     @Transactional(readOnly = true)
     public List<TurmaDisciplinaResponse> listarPorTurma(UUID turmaId) {
-        if (!turmaJpaRepository.existsById(turmaId)) {
+        if (!turmaJpaRepository.existsByIdAndEscola_Id(
+                turmaId,
+                br.com.escola.institucional.application.service.EscolaTenantService.ESCOLA_PADRAO_ID)) {
             throw new TurmaNaoEncontradaException(turmaId);
         }
         return turmaDisciplinaJpaRepository.findByTurmaId(turmaId).stream()

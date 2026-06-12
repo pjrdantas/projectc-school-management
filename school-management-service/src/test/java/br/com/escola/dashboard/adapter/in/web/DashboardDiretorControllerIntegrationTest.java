@@ -133,23 +133,23 @@ class DashboardDiretorControllerIntegrationTest {
         UUID alocacaoId = UUID.randomUUID();
 
         jdbcTemplate.update("""
-                INSERT INTO periodo_letivo (id_periodo_letivo, nome, ano, data_inicio, data_fim, ativo, created_at)
-                VALUES (?, 'DASHBOARD-DIRETOR-2053.1', 2053, DATE '2053-02-01', DATE '2053-12-15', true, CURRENT_TIMESTAMP)
+                INSERT INTO periodo_letivo (id_periodo_letivo, nome, ano, data_inicio, data_fim, ativo, id_escola, created_at)
+                VALUES (?, 'DASHBOARD-DIRETOR-2053.1', 2053, DATE '2053-02-01', DATE '2053-12-15', true, '00000000-0000-0000-0000-000000000047', CURRENT_TIMESTAMP)
                 """, periodoId);
         jdbcTemplate.update("""
-                INSERT INTO turma (id_turma, codigo, nome, capacidade, id_periodo_letivo, id_serie, ativo, created_at)
-                VALUES (?, 'DASH-DIR-A', 'Dashboard Diretor Turma A', 1, ?, ?, true, CURRENT_TIMESTAMP)
+                INSERT INTO turma (id_turma, codigo, nome, capacidade, id_periodo_letivo, id_serie, ativo, id_escola, created_at)
+                VALUES (?, 'DASH-DIR-A', 'Dashboard Diretor Turma A', 1, ?, ?, true, '00000000-0000-0000-0000-000000000047', CURRENT_TIMESTAMP)
                 """, turmaLotadaId, periodoId, SERIE_PADRAO_ID);
         jdbcTemplate.update("""
-                INSERT INTO turma (id_turma, codigo, nome, capacidade, id_periodo_letivo, id_serie, ativo, created_at)
-                VALUES (?, 'DASH-DIR-B', 'Dashboard Diretor Turma B', 5, ?, ?, true, CURRENT_TIMESTAMP)
+                INSERT INTO turma (id_turma, codigo, nome, capacidade, id_periodo_letivo, id_serie, ativo, id_escola, created_at)
+                VALUES (?, 'DASH-DIR-B', 'Dashboard Diretor Turma B', 5, ?, ?, true, '00000000-0000-0000-0000-000000000047', CURRENT_TIMESTAMP)
                 """, turmaComVagaId, periodoId, SERIE_PADRAO_ID);
         criarDocumentoExigidoPrimeiraMatricula();
         criarMatricula(alunoAtivoId, turmaLotadaId, periodoId, STATUS_MATRICULA_EFETIVADA_ID);
         criarMatricula(alunoInativoId, turmaComVagaId, periodoId, STATUS_MATRICULA_EM_ANDAMENTO_ID);
         jdbcTemplate.update("""
-                INSERT INTO disciplina (id_disciplina, nome, carga_horaria, ativo, created_at)
-                VALUES (?, 'Dashboard Diretor Matematica', 80, true, CURRENT_TIMESTAMP)
+                INSERT INTO disciplina (id_disciplina, nome, carga_horaria, ativo, id_escola, created_at)
+                VALUES (?, 'Dashboard Diretor Matematica', 80, true, '00000000-0000-0000-0000-000000000047', CURRENT_TIMESTAMP)
                 """, disciplinaId);
         jdbcTemplate.update("""
                 INSERT INTO turma_disciplina (id_turma_disciplina, id_turma, id_disciplina, carga_horaria, created_at)

@@ -8,39 +8,55 @@ import java.util.Optional;
 
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.catalogo.adapter.out.persistence.entity.PeriodoLetivoEntity;
 import br.com.escola.catalogo.adapter.out.persistence.repository.PeriodoLetivoJpaRepository;
 import br.com.escola.catalogo.application.dto.PeriodoLetivoInput;
 import br.com.escola.catalogo.application.dto.PeriodoLetivoOutput;
 import br.com.escola.catalogo.application.port.out.PeriodoLetivoGateway;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
+import br.com.escola.institucional.adapter.out.persistence.repository.EscolaJpaRepository;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Component
+@Transactional
 public class PeriodoLetivoPersistenceGateway implements PeriodoLetivoGateway {
 
     private final PeriodoLetivoJpaRepository periodoLetivoJpaRepository;
+    private final EscolaJpaRepository escolaJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
-    public PeriodoLetivoPersistenceGateway(PeriodoLetivoJpaRepository periodoLetivoJpaRepository) {
+    public PeriodoLetivoPersistenceGateway(
+            PeriodoLetivoJpaRepository periodoLetivoJpaRepository,
+            EscolaJpaRepository escolaJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.periodoLetivoJpaRepository = periodoLetivoJpaRepository;
+        this.escolaJpaRepository = escolaJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Override
     public Optional<PeriodoLetivoOutput> findById(@NonNull UUID id) {
-        return periodoLetivoJpaRepository.findById(id).map(this::toOutput);
+        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        return periodoLetivoJpaRepository.findByIdAndEscola_Id(id, escolaId).map(this::toOutput);
     }
 
     @Override
     public boolean existsById(@NonNull UUID id) {
-        return periodoLetivoJpaRepository.existsById(id);
+        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        return periodoLetivoJpaRepository.existsByIdAndEscola_Id(id, escolaId);
     }
 
     @Override
     public PeriodoLetivoOutput save(PeriodoLetivoInput input) {
+        EscolaEntity escola = resolverEscola(input.escolaId());
         PeriodoLetivoEntity entity = new PeriodoLetivoEntity();
         entity.setNome(input.nome());
         entity.setAno(resolveAno(input));
         entity.setDataInicio(input.dataInicio());
         entity.setDataFim(input.dataFim());
+        entity.setEscola(escola);
         entity.setAtivo(true);
         entity.setCreatedAt(LocalDateTime.now());
         return toOutput(periodoLetivoJpaRepository.save(entity));
@@ -48,7 +64,8 @@ public class PeriodoLetivoPersistenceGateway implements PeriodoLetivoGateway {
 
     @Override
     public List<PeriodoLetivoOutput> findAll() {
-        return periodoLetivoJpaRepository.findAll().stream().map(this::toOutput).toList();
+        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        return periodoLetivoJpaRepository.findAllByEscola_Id(escolaId).stream().map(this::toOutput).toList();
     }
 
     private PeriodoLetivoOutput toOutput(PeriodoLetivoEntity entity) {
@@ -59,7 +76,17 @@ public class PeriodoLetivoPersistenceGateway implements PeriodoLetivoGateway {
                 entity.getDataInicio(),
                 entity.getDataFim(),
                 entity.getAtivo(),
+                entity.getEscola().getId(),
+                entity.getEscola().getNome(),
                 entity.getCreatedAt());
+    }
+
+    private EscolaEntity resolverEscola(UUID escolaId) {
+        if (escolaId == null) {
+            return escolaTenantService.obterOuCriarEscolaPadrao();
+        }
+        return escolaJpaRepository.findById(escolaId)
+                .orElseThrow(() -> new IllegalArgumentException("Escola não encontrada."));
     }
 
     private Integer resolveAno(PeriodoLetivoInput input) {

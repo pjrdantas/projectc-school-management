@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 
 @Entity
 @Table(name = "serie")
@@ -31,6 +33,10 @@ public class SerieEntity {
     @ManyToOne
     @JoinColumn(name = "id_nivel_ensino")
     private NivelEnsinoEntity nivelEnsino;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_escola", nullable = false)
+    private EscolaEntity escola;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -65,6 +71,14 @@ public class SerieEntity {
 
     public void setNivelEnsino(NivelEnsinoEntity nivelEnsino) {
         this.nivelEnsino = nivelEnsino;
+    }
+
+    public EscolaEntity getEscola() {
+        return escola;
+    }
+
+    public void setEscola(EscolaEntity escola) {
+        this.escola = escola;
     }
 
     @PrePersist

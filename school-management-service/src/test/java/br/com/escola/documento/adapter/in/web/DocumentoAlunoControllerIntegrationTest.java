@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
                 "DELETE FROM pessoa_documento",
                 "DELETE FROM documento",
                 "DELETE FROM transferencia_aluno",
-                "DELETE FROM escola",
+                "DELETE FROM escola WHERE id_escola <> '00000000-0000-0000-0000-000000000047'",
                 "DELETE FROM historico_escolar_item",
                 "DELETE FROM historico_escolar",
                 "DELETE FROM disciplina",

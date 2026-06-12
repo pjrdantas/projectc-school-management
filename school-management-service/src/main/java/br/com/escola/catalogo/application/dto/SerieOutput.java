@@ -8,5 +8,7 @@ public record SerieOutput(
         String nome,
         Integer ordem,
         String nivelEnsino,
+        UUID escolaId,
+        String escolaNome,
         LocalDateTime createdAt) {
 }

@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.PrePersist;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 
 @Entity
 @Table(name = "turma")
@@ -44,6 +45,10 @@ public class TurmaEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_turno")
     private TurnoEntity turno;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_escola", nullable = false)
+    private EscolaEntity escola;
 
     @Column(name = "ativo", nullable = false)
     private Boolean ativo = true;
@@ -105,6 +110,14 @@ public class TurmaEntity {
 
     public void setTurno(TurnoEntity turno) {
         this.turno = turno;
+    }
+
+    public EscolaEntity getEscola() {
+        return escola;
+    }
+
+    public void setEscola(EscolaEntity escola) {
+        this.escola = escola;
     }
 
     public String getStatus() {

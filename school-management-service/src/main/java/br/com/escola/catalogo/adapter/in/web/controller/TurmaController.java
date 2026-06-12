@@ -85,6 +85,8 @@ public class TurmaController {
                 output.serieNome(),
                 output.turno(),
                 output.status(),
+                output.escolaId(),
+                output.escolaNome(),
                 output.createdAt());
     }
 
@@ -96,6 +98,7 @@ public class TurmaController {
                 request.periodoLetivoId(),
                 request.serieId(),
                 request.turno(),
-                request.status());
+                request.status(),
+                request.escolaId());
     }
 }

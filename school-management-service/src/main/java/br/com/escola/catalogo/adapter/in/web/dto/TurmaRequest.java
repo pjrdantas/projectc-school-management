@@ -30,6 +30,8 @@ public record TurmaRequest(
         String turno,
 
         @Size(max = 20, message = "status deve ter no máximo 20 caracteres")
-        String status
+        String status,
+
+        UUID escolaId
 ) {
 }

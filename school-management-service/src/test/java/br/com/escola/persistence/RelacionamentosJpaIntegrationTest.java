@@ -165,20 +165,20 @@ class RelacionamentosJpaIntegrationTest {
     private void inserirBaseAcademica(UUID periodoId, UUID turmaId, UUID disciplinaId, String codigoTurma) {
         jdbcTemplate.update("""
                 INSERT INTO periodo_letivo (
-                    id_periodo_letivo, nome, ano, data_inicio, data_fim, ativo, created_at
+                id_periodo_letivo, nome, ano, data_inicio, data_fim, ativo, id_escola, created_at
                 )
-                VALUES (?, ?, 2026, DATE '2026-02-01', DATE '2026-12-20', true, CURRENT_TIMESTAMP)
+                VALUES (?, ?, 2026, DATE '2026-02-01', DATE '2026-12-20', true, '00000000-0000-0000-0000-000000000047', CURRENT_TIMESTAMP)
                 """, periodoId, codigoTurma);
         jdbcTemplate.update("""
                 INSERT INTO turma (
                     id_turma, codigo, nome, capacidade, id_periodo_letivo,
-                    id_serie, id_turno, ativo, created_at
+                id_serie, id_turno, ativo, id_escola, created_at
                 )
-                VALUES (?, ?, ?, 30, ?, ?, ?, true, CURRENT_TIMESTAMP)
+                VALUES (?, ?, ?, 30, ?, ?, ?, true, '00000000-0000-0000-0000-000000000047', CURRENT_TIMESTAMP)
                 """, turmaId, codigoTurma, codigoTurma, periodoId, SERIE_PADRAO_ID, TURNO_MANHA_ID);
         jdbcTemplate.update("""
-                INSERT INTO disciplina (id_disciplina, nome, carga_horaria, ativo, created_at)
-                VALUES (?, ?, 80, true, CURRENT_TIMESTAMP)
+                INSERT INTO disciplina (id_disciplina, nome, carga_horaria, ativo, id_escola, created_at)
+                VALUES (?, ?, 80, true, '00000000-0000-0000-0000-000000000047', CURRENT_TIMESTAMP)
                 """, disciplinaId, "Disciplina " + codigoTurma);
     }
 

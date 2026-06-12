@@ -9,5 +9,6 @@ public record TurmaInput(
         UUID periodoLetivoId,
         UUID serieId,
         String turno,
-        String status) {
+        String status,
+        UUID escolaId) {
 }

@@ -30,8 +30,11 @@ INSERT INTO turno (id_turno, codigo, descricao) VALUES
 ('00000000-0000-0000-0000-000000000053', 'NOITE', 'Noite'),
 ('00000000-0000-0000-0000-000000000054', 'INTEGRAL', 'Integral');
 
-INSERT INTO serie (id_serie, id_nivel_ensino, nome, ordem, created_at) VALUES
-('00000000-0000-0000-0000-000000000100', '00000000-0000-0000-0000-000000000042', 'Serie padrao', 1, CURRENT_TIMESTAMP);
+INSERT INTO escola (id_escola, nome, ativo, created_at) VALUES
+('00000000-0000-0000-0000-000000000047', 'Escola padrão', true, CURRENT_TIMESTAMP);
+
+INSERT INTO serie (id_serie, id_nivel_ensino, id_escola, nome, ordem, created_at) VALUES
+('00000000-0000-0000-0000-000000000100', '00000000-0000-0000-0000-000000000042', '00000000-0000-0000-0000-000000000047', 'Serie padrao', 1, CURRENT_TIMESTAMP);
 
 INSERT INTO tipo_matricula (id_tipo_matricula, codigo, descricao) VALUES
 ('00000000-0000-0000-0000-000000000061', 'PRIMEIRA_MATRICULA', 'Primeira matricula'),

@@ -14,6 +14,8 @@ public record TurmaResponse(
         String serieNome,
         String turno,
         String status,
+        UUID escolaId,
+        String escolaNome,
         LocalDateTime createdAt
 ) {
 }

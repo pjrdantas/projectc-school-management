@@ -676,8 +676,8 @@ class MatriculaControllerIntegrationTest {
     private UUID criarDisciplina(String nome, int cargaHoraria) {
         UUID disciplinaId = UUID.randomUUID();
         jdbcTemplate.update("""
-                INSERT INTO disciplina (id_disciplina, nome, carga_horaria, ativo, created_at)
-                VALUES (?, ?, ?, true, CURRENT_TIMESTAMP)
+                INSERT INTO disciplina (id_disciplina, nome, carga_horaria, ativo, id_escola, created_at)
+                VALUES (?, ?, ?, true, '00000000-0000-0000-0000-000000000047', CURRENT_TIMESTAMP)
                 """, disciplinaId, nome, cargaHoraria);
         return disciplinaId;
     }

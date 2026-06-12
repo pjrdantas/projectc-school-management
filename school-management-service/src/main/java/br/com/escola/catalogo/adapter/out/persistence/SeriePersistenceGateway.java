@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.catalogo.adapter.out.persistence.entity.SerieEntity;
 import br.com.escola.catalogo.adapter.out.persistence.repository.NivelEnsinoJpaRepository;
@@ -15,53 +16,70 @@ import br.com.escola.catalogo.application.dto.SerieInput;
 import br.com.escola.catalogo.application.dto.SerieOutput;
 import br.com.escola.catalogo.application.port.out.SerieGateway;
 import br.com.escola.catalogo.domain.exception.SerieNaoEncontradaException;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
+import br.com.escola.institucional.adapter.out.persistence.repository.EscolaJpaRepository;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Component
+@Transactional
 public class SeriePersistenceGateway implements SerieGateway {
 
     private final SerieJpaRepository serieJpaRepository;
     private final NivelEnsinoJpaRepository nivelEnsinoJpaRepository;
+    private final EscolaJpaRepository escolaJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     public SeriePersistenceGateway(
             SerieJpaRepository serieJpaRepository,
-            NivelEnsinoJpaRepository nivelEnsinoJpaRepository) {
+            NivelEnsinoJpaRepository nivelEnsinoJpaRepository,
+            EscolaJpaRepository escolaJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.serieJpaRepository = serieJpaRepository;
         this.nivelEnsinoJpaRepository = nivelEnsinoJpaRepository;
+        this.escolaJpaRepository = escolaJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Override
     public Optional<SerieOutput> findById(UUID id) {
-        return serieJpaRepository.findById(id).map(this::toOutput);
+        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        return serieJpaRepository.findByIdAndEscola_Id(id, escolaId).map(this::toOutput);
     }
 
     @Override
     public boolean existsById(UUID id) {
-        return serieJpaRepository.existsById(id);
+        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        return serieJpaRepository.existsByIdAndEscola_Id(id, escolaId);
     }
 
     @Override
     public SerieOutput save(SerieInput input) {
+        EscolaEntity escola = resolverEscola(input.escolaId());
         SerieEntity entity = new SerieEntity();
         entity.setNome(input.nome());
         entity.setOrdem(input.ordem());
         entity.setNivelEnsino(resolveNivelEnsino(input.nivelEnsino()));
+        entity.setEscola(escola);
         entity.setCreatedAt(LocalDateTime.now());
         return toOutput(serieJpaRepository.save(entity));
     }
 
     @Override
     public SerieOutput update(UUID id, SerieInput input) {
-        SerieEntity entity = serieJpaRepository.findById(id)
+        EscolaEntity escola = resolverEscola(input.escolaId());
+        SerieEntity entity = serieJpaRepository.findByIdAndEscola_Id(id, escola.getId())
                 .orElseThrow(() -> new SerieNaoEncontradaException(id));
         entity.setNome(input.nome());
         entity.setOrdem(input.ordem());
         entity.setNivelEnsino(resolveNivelEnsino(input.nivelEnsino()));
+        entity.setEscola(escola);
         return toOutput(serieJpaRepository.save(entity));
     }
 
     @Override
     public List<SerieOutput> findAll() {
-        return serieJpaRepository.findAll().stream().map(this::toOutput).toList();
+        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        return serieJpaRepository.findAllByEscola_Id(escolaId).stream().map(this::toOutput).toList();
     }
 
     private SerieOutput toOutput(SerieEntity entity) {
@@ -70,7 +88,17 @@ public class SeriePersistenceGateway implements SerieGateway {
                 entity.getNome(),
                 entity.getOrdem(),
                 entity.getNivelEnsino(),
+                entity.getEscola().getId(),
+                entity.getEscola().getNome(),
                 entity.getCreatedAt());
+    }
+
+    private EscolaEntity resolverEscola(UUID escolaId) {
+        if (escolaId == null) {
+            return escolaTenantService.obterOuCriarEscolaPadrao();
+        }
+        return escolaJpaRepository.findById(escolaId)
+                .orElseThrow(() -> new IllegalArgumentException("Escola não encontrada."));
     }
 
     private br.com.escola.catalogo.adapter.out.persistence.entity.NivelEnsinoEntity resolveNivelEnsino(String codigo) {

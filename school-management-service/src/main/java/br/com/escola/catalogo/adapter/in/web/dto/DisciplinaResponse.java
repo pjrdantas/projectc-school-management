@@ -8,5 +8,7 @@ public record DisciplinaResponse(
         String nome,
         Integer cargaHoraria,
         String status,
+        UUID escolaId,
+        String escolaNome,
         LocalDateTime createdAt) {
 }

@@ -71,7 +71,7 @@ public class SerieController {
     }
 
     private SerieInput toInput(SerieRequest request) {
-        return new SerieInput(request.nome(), request.ordem(), request.nivelEnsino());
+        return new SerieInput(request.nome(), request.ordem(), request.nivelEnsino(), request.escolaId());
     }
 
     private SerieResponse toResponse(SerieOutput output) {
@@ -80,6 +80,8 @@ public class SerieController {
                 output.nome(),
                 output.ordem(),
                 output.nivelEnsino(),
+                output.escolaId(),
+                output.escolaNome(),
                 output.createdAt());
     }
 }

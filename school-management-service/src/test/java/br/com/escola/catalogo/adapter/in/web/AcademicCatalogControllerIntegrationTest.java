@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class AcademicCatalogControllerIntegrationTest {
 
     private static final UUID SERIE_PADRAO_ID = UUID.fromString("00000000-0000-0000-0000-000000000100");
+    private static final UUID ESCOLA_PADRAO_ID = UUID.fromString("00000000-0000-0000-0000-000000000047");
 
     @Autowired
     private MockMvc mockMvc;
@@ -56,7 +57,9 @@ class AcademicCatalogControllerIntegrationTest {
         mockMvc.perform(get("/api/periodos-letivos/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.nome").value("2026.1"));
+                .andExpect(jsonPath("$.nome").value("2026.1"))
+                .andExpect(jsonPath("$.escolaId").value(ESCOLA_PADRAO_ID.toString()))
+                .andExpect(jsonPath("$.escolaNome").value("Escola padrão"));
     }
 
     @Test
@@ -84,6 +87,7 @@ class AcademicCatalogControllerIntegrationTest {
                 .andExpect(jsonPath("$.nome").value("1º ano"))
                 .andExpect(jsonPath("$.ordem").value(1))
                 .andExpect(jsonPath("$.nivelEnsino").value("ENSINO_FUNDAMENTAL"))
+                .andExpect(jsonPath("$.escolaId").value(ESCOLA_PADRAO_ID.toString()))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -197,6 +201,7 @@ class AcademicCatalogControllerIntegrationTest {
                 .andExpect(jsonPath("$.serieId").value(SERIE_PADRAO_ID.toString()))
                 .andExpect(jsonPath("$.turno").value("MANHA"))
                 .andExpect(jsonPath("$.status").value("ATIVA"))
+                .andExpect(jsonPath("$.escolaId").value(ESCOLA_PADRAO_ID.toString()))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -324,6 +329,7 @@ class AcademicCatalogControllerIntegrationTest {
                 .andExpect(jsonPath("$.nome").value("Matematica aplicada"))
                 .andExpect(jsonPath("$.cargaHoraria").value(80))
                 .andExpect(jsonPath("$.status").value("ATIVA"))
+                .andExpect(jsonPath("$.escolaId").value(ESCOLA_PADRAO_ID.toString()))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
