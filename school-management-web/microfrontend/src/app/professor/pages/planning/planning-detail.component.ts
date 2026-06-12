@@ -23,7 +23,10 @@ import {
   PlanningAiVersionInput,
 } from '../../models/planning.model';
 import { PlanningService } from '../../services/planning.service';
-import { PlanningAiVersionDialogComponent } from './planning-ai-version-dialog.component';
+import {
+  PlanningAiVersionDialogComponent,
+  PlanningAiVersionDialogData,
+} from './planning-ai-version-dialog.component';
 import { PlanningAssessmentDialogComponent } from './planning-assessment-dialog.component';
 import { PlanningLessonDialogComponent } from './planning-lesson-dialog.component';
 
@@ -257,12 +260,15 @@ export class PlanningDetailComponent implements OnInit {
   protected openAiVersionDialog(content: PlanningAiContent): void {
     const dialogRef = this.dialog.open<
       PlanningAiVersionDialogComponent,
-      undefined,
+      PlanningAiVersionDialogData,
       PlanningAiVersionInput
     >(PlanningAiVersionDialogComponent, {
       width: '820px',
       maxWidth: '95vw',
       disableClose: true,
+      data: {
+        conteudoAtual: content.conteudo,
+      },
     });
 
     dialogRef.afterClosed().subscribe(payload => {
@@ -369,6 +375,43 @@ export class PlanningDetailComponent implements OnInit {
           this.isSavingAi.set(false);
           this.snackBar.open(
             getApiErrorMessage(error, 'Não foi possível reaproveitar conteúdo.'),
+            'Fechar',
+            { duration: 4000 },
+          );
+        },
+      });
+  }
+
+  protected applyAiContentToPlanning(content: PlanningAiContent): void {
+    const data = this.planning();
+    if (!data || !content.aprovadoPeloProfessor) {
+      return;
+    }
+
+    this.isSavingAi.set(true);
+    this.planningService
+      .atualizar(data.id, {
+        professorTurmaDisciplinaId: data.professorTurmaDisciplinaId,
+        periodoAvaliativoId: data.periodoAvaliativoId ?? null,
+        titulo: data.titulo,
+        temaPrincipal: data.temaPrincipal,
+        descricaoInicial: data.descricaoInicial,
+        objetivoGeral: data.objetivoGeral ?? null,
+        observacaoProfessor: data.observacaoProfessor ?? null,
+        conteudoFinalAprovado: content.conteudo,
+        reutilizavel: data.reutilizavel,
+        criadoComAuxilioIA: true,
+      })
+      .subscribe({
+        next: planning => {
+          this.isSavingAi.set(false);
+          this.planning.set(planning);
+          this.snackBar.open('Conteúdo aplicado ao planejamento.', 'Fechar', { duration: 3000 });
+        },
+        error: (error: unknown) => {
+          this.isSavingAi.set(false);
+          this.snackBar.open(
+            getApiErrorMessage(error, 'Não foi possível aplicar conteúdo ao planejamento.'),
             'Fechar',
             { duration: 4000 },
           );

@@ -172,6 +172,15 @@
                   >
                     <mat-icon fontIcon="library_add"></mat-icon>
                   </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    aria-label="Aplicar no planejamento"
+                    [disabled]="!content.aprovadoPeloProfessor || isSavingAi()"
+                    (click)="applyAiContentToPlanning(content); $event.stopPropagation()"
+                  >
+                    <mat-icon fontIcon="assignment_turned_in"></mat-icon>
+                  </button>
                 </div>
               </article>
             </div>
