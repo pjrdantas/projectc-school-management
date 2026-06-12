@@ -36,7 +36,7 @@ public class PlanejamentoIAConteudoVersaoEntity implements Serializable {
     @Column(name = "id_planejamento_ia_conteudo_versao", nullable = false)
     private UUID id;
 
-    @Column(name = "numero_versao", nullable = false, unique = true)
+    @Column(name = "numero_versao", nullable = false)
     private Integer numeroVersao;
 
     @Column(name = "conteudo", nullable = false, columnDefinition = "TEXT")

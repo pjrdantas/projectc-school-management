@@ -64,6 +64,11 @@ import br.com.escola.avaliacao.domain.exception.TipoAvaliacaoNaoEncontradoExcept
 import br.com.escola.historico.domain.exception.BoletimFechadoNaoEncontradoException;
 import br.com.escola.historico.domain.exception.BoletimFechamentoDuplicadoException;
 import br.com.escola.historico.domain.exception.HistoricoEscolarDuplicadoException;
+import br.com.escola.ia.domain.exception.ConteudoIANaoEncontradoException;
+import br.com.escola.ia.domain.exception.ConteudoIAPublicacaoInvalidaException;
+import br.com.escola.ia.domain.exception.ConteudoIAStatusNaoEncontradoException;
+import br.com.escola.ia.domain.exception.ConteudoIATipoNaoEncontradoException;
+import br.com.escola.ia.domain.exception.ConteudoIAVersaoNaoEncontradaException;
 import br.com.escola.planejamento.domain.exception.PlanejamentoAulaPrevistaDuplicadaException;
 import br.com.escola.planejamento.domain.exception.PlanejamentoBimestralNaoEncontradoException;
 import br.com.escola.planejamento.domain.exception.PlanejamentoPeriodoAvaliativoNaoEncontradoException;
@@ -429,6 +434,41 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
             PlanejamentoAulaPrevistaDuplicadaException ex,
             HttpServletRequest request) {
         return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ConteudoIANaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleConteudoIANaoEncontrado(
+            ConteudoIANaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ConteudoIAVersaoNaoEncontradaException.class)
+    public ResponseEntity<ApiErrorResponse> handleConteudoIAVersaoNaoEncontrada(
+            ConteudoIAVersaoNaoEncontradaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ConteudoIATipoNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleConteudoIATipoNaoEncontrado(
+            ConteudoIATipoNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ConteudoIAStatusNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handleConteudoIAStatusNaoEncontrado(
+            ConteudoIAStatusNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ConteudoIAPublicacaoInvalidaException.class)
+    public ResponseEntity<ApiErrorResponse> handleConteudoIAPublicacaoInvalida(
+            ConteudoIAPublicacaoInvalidaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
     }
 
     @ExceptionHandler(BoletimFechamentoDuplicadoException.class)
