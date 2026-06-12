@@ -1,6 +1,7 @@
 package br.com.escola.dashboard.application.service;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaJpaReposit
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardAcademicoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardDiretorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardSecretariaResponse;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
 import br.com.escola.matricula.domain.MatriculaStatus;
 import br.com.escola.professor.adapter.out.persistence.entity.ProfessorTurmaDisciplinaEntity;
@@ -37,6 +39,7 @@ public class DashboardDiretorService {
     private final AulaJpaRepository aulaJpaRepository;
     private final AvaliacaoJpaRepository avaliacaoJpaRepository;
     private final NotaAlunoJpaRepository notaAlunoJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     public DashboardDiretorService(
             DashboardAcademicoService dashboardAcademicoService,
@@ -47,7 +50,8 @@ public class DashboardDiretorService {
             ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository,
             AulaJpaRepository aulaJpaRepository,
             AvaliacaoJpaRepository avaliacaoJpaRepository,
-            NotaAlunoJpaRepository notaAlunoJpaRepository) {
+            NotaAlunoJpaRepository notaAlunoJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.dashboardAcademicoService = dashboardAcademicoService;
         this.dashboardSecretariaService = dashboardSecretariaService;
         this.alunoJpaRepository = alunoJpaRepository;
@@ -57,10 +61,12 @@ public class DashboardDiretorService {
         this.aulaJpaRepository = aulaJpaRepository;
         this.avaliacaoJpaRepository = avaliacaoJpaRepository;
         this.notaAlunoJpaRepository = notaAlunoJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Transactional(readOnly = true)
     public DashboardDiretorResponse consultar() {
+        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
         DashboardAcademicoResponse academico = dashboardAcademicoService.consultar();
         DashboardSecretariaResponse secretaria = dashboardSecretariaService.consultar();
 
@@ -70,14 +76,14 @@ public class DashboardDiretorService {
                 academico.matriculasConcluidas(),
                 academico.matriculasEfetivadas(),
                 academico.matriculasAptasRematricula(),
-                alunoJpaRepository.countByAtivoTrue(),
-                alunoJpaRepository.countByAtivoFalse(),
-                contarTurmasAtivas(),
-                contarTurmasLotadas(),
-                contarProfessoresAlocados(),
-                contarAulasRealizadas(),
-                avaliacaoJpaRepository.count(),
-                contarAvaliacoesComNotasPendentes(),
+                alunoJpaRepository.countByPessoa_Escola_IdAndAtivoTrue(escolaId),
+                alunoJpaRepository.countByPessoa_Escola_IdAndAtivoFalse(escolaId),
+                contarTurmasAtivas(escolaId),
+                contarTurmasLotadas(escolaId),
+                contarProfessoresAlocados(escolaId),
+                contarAulasRealizadas(escolaId),
+                avaliacaoJpaRepository.findAllByProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(escolaId).size(),
+                contarAvaliacoesComNotasPendentes(escolaId),
                 academico.boletinsFechados(),
                 academico.historicosInternosGerados(),
                 secretaria.transferencias(),
@@ -94,14 +100,14 @@ public class DashboardDiretorService {
                 + secretaria.matriculasAguardandoHistoricoEscolar();
     }
 
-    private long contarTurmasAtivas() {
-        return turmaJpaRepository.findAll().stream()
+    private long contarTurmasAtivas(UUID escolaId) {
+        return turmaJpaRepository.findAllByEscola_Id(escolaId).stream()
                 .filter(turma -> !Boolean.FALSE.equals(turma.getAtivo()))
                 .count();
     }
 
-    private long contarTurmasLotadas() {
-        return turmaJpaRepository.findAll().stream()
+    private long contarTurmasLotadas(UUID escolaId) {
+        return turmaJpaRepository.findAllByEscola_Id(escolaId).stream()
                 .filter(turma -> !Boolean.FALSE.equals(turma.getAtivo()))
                 .filter(this::isTurmaLotada)
                 .count();
@@ -109,14 +115,16 @@ public class DashboardDiretorService {
 
     private boolean isTurmaLotada(TurmaEntity turma) {
         int capacidade = turma.getCapacidade() == null ? 0 : turma.getCapacidade();
-        long vagasOcupadas = matriculaJpaRepository.countByTurma_IdAndStatus_CodigoNotIn(
+        long vagasOcupadas = matriculaJpaRepository.countByTurma_IdAndTurma_Escola_IdAndStatus_CodigoNotIn(
                 turma.getId(),
+                turma.getEscola().getId(),
                 STATUS_NAO_OCUPAM_VAGA);
         return capacidade <= vagasOcupadas;
     }
 
-    private long contarProfessoresAlocados() {
+    private long contarProfessoresAlocados(UUID escolaId) {
         return professorTurmaDisciplinaJpaRepository.findAll().stream()
+                .filter(alocacao -> escolaId.equals(alocacao.getTurmaDisciplina().getTurma().getEscola().getId()))
                 .filter(alocacao -> !Boolean.FALSE.equals(alocacao.getAtivo()))
                 .map(ProfessorTurmaDisciplinaEntity::getProfessor)
                 .map(professor -> professor.getId())
@@ -124,16 +132,20 @@ public class DashboardDiretorService {
                 .count();
     }
 
-    private long contarAulasRealizadas() {
-        return aulaJpaRepository.findAll().stream()
+    private long contarAulasRealizadas(UUID escolaId) {
+        return aulaJpaRepository.findAllByProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(escolaId).stream()
                 .filter(aula -> Boolean.TRUE.equals(aula.getRealizada()))
                 .count();
     }
 
-    private long contarAvaliacoesComNotasPendentes() {
-        return avaliacaoJpaRepository.findAll().stream()
+    private long contarAvaliacoesComNotasPendentes(UUID escolaId) {
+        return avaliacaoJpaRepository.findAllByProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(escolaId).stream()
                 .map(AvaliacaoEntity::getId)
-                .filter(avaliacaoId -> notaAlunoJpaRepository.findByAvaliacaoId(avaliacaoId).isEmpty())
+                .filter(avaliacaoId -> notaAlunoJpaRepository
+                        .findByAvaliacao_IdAndAvaliacao_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(
+                                avaliacaoId,
+                                escolaId)
+                        .isEmpty())
                 .count();
     }
 }

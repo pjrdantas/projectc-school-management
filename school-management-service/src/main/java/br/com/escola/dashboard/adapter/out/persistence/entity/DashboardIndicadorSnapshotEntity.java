@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -58,4 +59,8 @@ public class DashboardIndicadorSnapshotEntity implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_publico_dashboard", referencedColumnName = "id_publico_dashboard", nullable = false)
     private PublicoDashboardEntity publicoDashboard;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_escola", referencedColumnName = "id_escola", nullable = false)
+    private EscolaEntity escola;
 }

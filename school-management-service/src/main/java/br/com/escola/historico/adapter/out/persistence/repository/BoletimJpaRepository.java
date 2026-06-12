@@ -24,6 +24,8 @@ public interface BoletimJpaRepository extends JpaRepository<BoletimEntity, UUID>
 
     Optional<BoletimEntity> findByIdAndMatricula_Turma_Escola_Id(UUID id, UUID escolaId);
 
+    long countByMatricula_Turma_Escola_Id(UUID escolaId);
+
     @Query(value = """
             select count(distinct b.id_boletim)
               from boletim b
@@ -44,8 +46,39 @@ public interface BoletimJpaRepository extends JpaRepository<BoletimEntity, UUID>
     @Query(value = """
             select count(distinct b.id_boletim)
               from boletim b
+              join matricula m on m.id_matricula = b.id_matricula
+              join turma t on t.id_turma = m.id_turma
+             where t.id_escola = :escolaId
+               and exists (
+                   select 1
+                     from boletim_item bi
+                    where bi.id_boletim = b.id_boletim
+             )
+               and not exists (
+                   select 1
+                     from boletim_item bi
+                    where bi.id_boletim = b.id_boletim
+                      and upper(coalesce(bi.resultado, '')) in ('REPROVADO', 'PENDENTE')
+             )
+            """, nativeQuery = true)
+    long countBoletinsAprovadosByEscolaId(UUID escolaId);
+
+    @Query(value = """
+            select count(distinct b.id_boletim)
+              from boletim b
               join boletim_item bi on bi.id_boletim = b.id_boletim
              where upper(coalesce(bi.resultado, '')) = 'REPROVADO'
             """, nativeQuery = true)
     long countBoletinsReprovados();
+
+    @Query(value = """
+            select count(distinct b.id_boletim)
+              from boletim b
+              join matricula m on m.id_matricula = b.id_matricula
+              join turma t on t.id_turma = m.id_turma
+              join boletim_item bi on bi.id_boletim = b.id_boletim
+             where t.id_escola = :escolaId
+               and upper(coalesce(bi.resultado, '')) = 'REPROVADO'
+            """, nativeQuery = true)
+    long countBoletinsReprovadosByEscolaId(UUID escolaId);
 }

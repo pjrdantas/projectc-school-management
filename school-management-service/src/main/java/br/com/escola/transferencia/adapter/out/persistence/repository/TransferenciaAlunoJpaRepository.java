@@ -13,5 +13,7 @@ public interface TransferenciaAlunoJpaRepository extends JpaRepository<Transfere
     @EntityGraph(attributePaths = { "aluno", "escolaOrigem" })
     List<TransferenciaAlunoEntity> findByAluno_IdOrderByCreatedAtDesc(UUID alunoId);
 
+    long countByAluno_Pessoa_Escola_Id(UUID escolaId);
+
     void deleteByAluno_Id(UUID alunoId);
 }

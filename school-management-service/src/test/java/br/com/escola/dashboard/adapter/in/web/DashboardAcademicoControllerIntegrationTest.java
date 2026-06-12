@@ -31,9 +31,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
                 "DELETE FROM historico_escolar WHERE observacoes LIKE 'DASHBOARD-%'",
                 "DELETE FROM matricula_etapa",
                 "DELETE FROM matricula",
+                "DELETE FROM aluno WHERE id_pessoa IN (SELECT id_pessoa FROM pessoa WHERE email LIKE 'aluno.dashboard.outra.%')",
+                "DELETE FROM pessoa WHERE email LIKE 'aluno.dashboard.outra.%'",
                 "DELETE FROM disciplina WHERE nome LIKE 'DASHBOARD-%'",
                 "DELETE FROM turma WHERE codigo LIKE 'DASH-%'",
-                "DELETE FROM periodo_letivo WHERE nome LIKE 'DASHBOARD-%'"
+                "DELETE FROM periodo_letivo WHERE nome LIKE 'DASHBOARD-%'",
+                "DELETE FROM escola WHERE nome LIKE 'DASHBOARD-ACADEMICO-OUTRA-%'"
         },
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(
@@ -43,9 +46,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
                 "DELETE FROM historico_escolar WHERE observacoes LIKE 'DASHBOARD-%'",
                 "DELETE FROM matricula_etapa",
                 "DELETE FROM matricula",
+                "DELETE FROM aluno WHERE id_pessoa IN (SELECT id_pessoa FROM pessoa WHERE email LIKE 'aluno.dashboard.outra.%')",
+                "DELETE FROM pessoa WHERE email LIKE 'aluno.dashboard.outra.%'",
                 "DELETE FROM disciplina WHERE nome LIKE 'DASHBOARD-%'",
                 "DELETE FROM turma WHERE codigo LIKE 'DASH-%'",
-                "DELETE FROM periodo_letivo WHERE nome LIKE 'DASHBOARD-%'"
+                "DELETE FROM periodo_letivo WHERE nome LIKE 'DASHBOARD-%'",
+                "DELETE FROM escola WHERE nome LIKE 'DASHBOARD-ACADEMICO-OUTRA-%'"
         },
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 class DashboardAcademicoControllerIntegrationTest {
@@ -72,15 +78,16 @@ class DashboardAcademicoControllerIntegrationTest {
         UUID disciplinaId = criarDisciplina("DASHBOARD-Matematica", 80);
         criarBoletimFechado(matriculaId, disciplinaId, "APROVADO");
         criarHistoricoInterno(alunoId);
+        criarCenarioOutraEscolaIgnorado();
 
         mockMvc.perform(get("/api/dashboard/academico"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalMatriculas").value(greaterThanOrEqualTo(1)))
-                .andExpect(jsonPath("$.matriculasConcluidas").value(greaterThanOrEqualTo(1)))
-                .andExpect(jsonPath("$.matriculasAptasRematricula").value(greaterThanOrEqualTo(1)))
-                .andExpect(jsonPath("$.boletinsFechados").value(greaterThanOrEqualTo(1)))
-                .andExpect(jsonPath("$.historicosInternosGerados").value(greaterThanOrEqualTo(1)))
-                .andExpect(jsonPath("$.alunosAprovados").value(greaterThanOrEqualTo(1)))
+                .andExpect(jsonPath("$.totalMatriculas").value(1))
+                .andExpect(jsonPath("$.matriculasConcluidas").value(1))
+                .andExpect(jsonPath("$.matriculasAptasRematricula").value(1))
+                .andExpect(jsonPath("$.boletinsFechados").value(1))
+                .andExpect(jsonPath("$.historicosInternosGerados").value(1))
+                .andExpect(jsonPath("$.alunosAprovados").value(1))
                 .andExpect(jsonPath("$.matriculasPorStatus[?(@.status == 'CONCLUIDA')].total")
                         .value(hasItem(greaterThanOrEqualTo(1))))
                 .andExpect(jsonPath("$.turmasComVagas[?(@.turmaNome == 'Dashboard Turma A')].vagasDisponiveis")
@@ -218,6 +225,47 @@ class DashboardAcademicoControllerIntegrationTest {
                     ensino_concluido, data_emissao, observacoes, created_at
                 ) VALUES (?, ?, 'INTERNO', 2050, 'Ensino Fundamental', CURRENT_DATE, 'DASHBOARD-HISTORICO', CURRENT_TIMESTAMP)
                 """, UUID.randomUUID(), alunoId);
+    }
+
+    private void criarCenarioOutraEscolaIgnorado() {
+        UUID escolaId = UUID.randomUUID();
+        UUID pessoaId = UUID.randomUUID();
+        UUID alunoId = UUID.randomUUID();
+        UUID periodoId = UUID.randomUUID();
+        UUID turmaId = UUID.randomUUID();
+        UUID matriculaId = UUID.randomUUID();
+
+        jdbcTemplate.update("""
+                INSERT INTO escola (id_escola, nome, ativo, created_at)
+                VALUES (?, 'DASHBOARD-ACADEMICO-OUTRA-ESCOLA', true, CURRENT_TIMESTAMP)
+                """, escolaId);
+        jdbcTemplate.update("""
+                INSERT INTO pessoa (id_pessoa, nome_completo, cpf, email, id_escola, ativo, created_at)
+                VALUES (?, 'Aluno Dashboard Outra Escola', ?, ?, ?, true, CURRENT_TIMESTAMP)
+                """, pessoaId, cpfAleatorio(), "aluno.dashboard.outra.%s@example.com".formatted(alunoId), escolaId);
+        jdbcTemplate.update("""
+                INSERT INTO aluno (id_aluno, id_pessoa, id_status_aluno, ra, emancipado, ativo, created_at)
+                VALUES (?, ?, '00000000-0000-0000-0000-000000000021', ?, false, true, CURRENT_TIMESTAMP)
+                """, alunoId, pessoaId, "RA-OUTRA-" + System.nanoTime());
+        jdbcTemplate.update("""
+                INSERT INTO periodo_letivo (id_periodo_letivo, nome, ano, data_inicio, data_fim, ativo, id_escola, created_at)
+                VALUES (?, 'DASHBOARD-OUTRA-2050.1', 2050, DATE '2050-02-01', DATE '2050-12-15', true, ?, CURRENT_TIMESTAMP)
+                """, periodoId, escolaId);
+        jdbcTemplate.update("""
+                INSERT INTO turma (id_turma, codigo, nome, capacidade, id_periodo_letivo, id_serie, ativo, id_escola, created_at)
+                VALUES (?, 'DASH-OUTRA-A', 'Dashboard Outra Escola Turma A', 5, ?, ?, true, ?, CURRENT_TIMESTAMP)
+                """, turmaId, periodoId, SERIE_PADRAO_ID, escolaId);
+        jdbcTemplate.update("""
+                INSERT INTO matricula (
+                    id_matricula, id_aluno, id_turma, id_periodo_letivo,
+                    id_status_matricula, id_tipo_matricula, data_solicitacao, created_at
+                ) VALUES (
+                    ?, ?, ?, ?,
+                    (SELECT id_status_matricula FROM status_matricula WHERE codigo = 'CONCLUIDA'),
+                    (SELECT id_tipo_matricula FROM tipo_matricula WHERE codigo = 'PRIMEIRA_MATRICULA'),
+                    DATE '2050-01-15', CURRENT_TIMESTAMP
+                )
+                """, matriculaId, alunoId, turmaId, periodoId);
     }
 
     private String cpfAleatorio() {

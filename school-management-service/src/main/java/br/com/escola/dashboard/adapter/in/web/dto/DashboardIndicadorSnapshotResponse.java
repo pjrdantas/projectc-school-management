@@ -8,6 +8,8 @@ public record DashboardIndicadorSnapshotResponse(
         UUID id,
         UUID publicoDashboardId,
         String publicoCodigo,
+        UUID escolaId,
+        String escolaNome,
         String codigoIndicador,
         String descricao,
         BigDecimal valorNumeric,

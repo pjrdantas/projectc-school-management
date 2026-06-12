@@ -25,28 +25,37 @@ import br.com.escola.dashboard.adapter.out.persistence.entity.DashboardIndicador
 import br.com.escola.dashboard.adapter.out.persistence.entity.PublicoDashboardEntity;
 import br.com.escola.dashboard.adapter.out.persistence.repository.DashboardIndicadorSnapshotJpaRepository;
 import br.com.escola.dashboard.adapter.out.persistence.repository.PublicoDashboardJpaRepository;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Service
 public class DashboardIndicadorSnapshotService {
 
     private final DashboardIndicadorSnapshotJpaRepository dashboardIndicadorSnapshotJpaRepository;
     private final PublicoDashboardJpaRepository publicoDashboardJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     public DashboardIndicadorSnapshotService(
             DashboardIndicadorSnapshotJpaRepository dashboardIndicadorSnapshotJpaRepository,
-            PublicoDashboardJpaRepository publicoDashboardJpaRepository) {
+            PublicoDashboardJpaRepository publicoDashboardJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.dashboardIndicadorSnapshotJpaRepository = dashboardIndicadorSnapshotJpaRepository;
         this.publicoDashboardJpaRepository = publicoDashboardJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Transactional(readOnly = true)
     public List<DashboardIndicadorSnapshotResponse> listar(UUID publicoDashboardId, LocalDate referenciaData) {
         buscarPublico(publicoDashboardId);
+        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
         List<DashboardIndicadorSnapshotEntity> snapshots = referenciaData == null
                 ? dashboardIndicadorSnapshotJpaRepository
-                        .findByPublicoDashboardIdOrderByReferenciaDataDescCodigoIndicadorAsc(publicoDashboardId)
+                        .findByPublicoDashboardIdAndEscola_IdOrderByReferenciaDataDescCodigoIndicadorAsc(publicoDashboardId, escolaId)
                 : dashboardIndicadorSnapshotJpaRepository
-                        .findByPublicoDashboardIdAndReferenciaDataOrderByCodigoIndicadorAsc(publicoDashboardId, referenciaData);
+                        .findByPublicoDashboardIdAndEscola_IdAndReferenciaDataOrderByCodigoIndicadorAsc(
+                                publicoDashboardId,
+                                escolaId,
+                                referenciaData);
         return snapshots.stream()
                 .map(this::toResponse)
                 .toList();
@@ -73,9 +82,10 @@ public class DashboardIndicadorSnapshotService {
         PublicoDashboardEntity publico = publicoDashboardJpaRepository.findByCodigo(normalizarCodigo(publicoCodigo))
                 .orElseThrow(() -> notFound("Público de dashboard não encontrado para o código " + publicoCodigo));
         String codigoFiltro = normalizarCodigoFiltro(codigoIndicador, professorId);
+        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
 
         List<DashboardIndicadorSnapshotEntity> snapshots = dashboardIndicadorSnapshotJpaRepository
-                .findByPublicoDashboardIdOrderByReferenciaDataDescCodigoIndicadorAsc(publico.getId())
+                .findByPublicoDashboardIdAndEscola_IdOrderByReferenciaDataDescCodigoIndicadorAsc(publico.getId(), escolaId)
                 .stream()
                 .filter(snapshot -> filtrarPorData(snapshot, dataInicio, dataFim))
                 .filter(snapshot -> codigoFiltro == null || snapshot.getCodigoIndicador().equals(codigoFiltro))
@@ -99,21 +109,25 @@ public class DashboardIndicadorSnapshotService {
     @Transactional
     public DashboardIndicadorSnapshotResponse salvar(DashboardIndicadorSnapshotRequest request) {
         PublicoDashboardEntity publico = buscarPublico(request.publicoDashboardId());
+        EscolaEntity escola = escolaTenantService.obterOuCriarEscolaPadrao();
         String codigoIndicador = normalizarCodigo(request.codigoIndicador());
 
         DashboardIndicadorSnapshotEntity entity = dashboardIndicadorSnapshotJpaRepository
-                .findByPublicoDashboardIdAndCodigoIndicadorAndReferenciaData(
+                .findByPublicoDashboardIdAndEscola_IdAndCodigoIndicadorAndReferenciaData(
                         publico.getId(),
+                        escola.getId(),
                         codigoIndicador,
                         request.referenciaData())
                 .orElseGet(() -> DashboardIndicadorSnapshotEntity.builder()
                         .publicoDashboard(publico)
+                        .escola(escola)
                         .codigoIndicador(codigoIndicador)
                         .referenciaData(request.referenciaData())
                         .createdAt(LocalDateTime.now())
                         .build());
 
         entity.setPublicoDashboard(publico);
+        entity.setEscola(escola);
         entity.setCodigoIndicador(codigoIndicador);
         entity.setDescricao(request.descricao().trim());
         entity.setValorNumeric(request.valorNumeric());
@@ -141,6 +155,8 @@ public class DashboardIndicadorSnapshotService {
                 entity.getId(),
                 entity.getPublicoDashboard().getId(),
                 entity.getPublicoDashboard().getCodigo(),
+                entity.getEscola().getId(),
+                entity.getEscola().getNome(),
                 entity.getCodigoIndicador(),
                 entity.getDescricao(),
                 entity.getValorNumeric(),

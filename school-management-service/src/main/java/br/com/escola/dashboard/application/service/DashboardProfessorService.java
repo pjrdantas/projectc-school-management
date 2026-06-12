@@ -12,6 +12,7 @@ import br.com.escola.avaliacao.adapter.out.persistence.repository.NotaAlunoJpaRe
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorTurmaResponse;
 import br.com.escola.frequencia.adapter.out.persistence.repository.FrequenciaProfessorJpaRepository;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.planejamento.adapter.out.persistence.entity.PlanejamentoBimestralEntity;
 import br.com.escola.planejamento.adapter.out.persistence.repository.PlanejamentoBimestralJpaRepository;
 import br.com.escola.professor.adapter.out.persistence.entity.ProfessorTurmaDisciplinaEntity;
@@ -30,6 +31,7 @@ public class DashboardProfessorService {
     private final AvaliacaoJpaRepository avaliacaoJpaRepository;
     private final NotaAlunoJpaRepository notaAlunoJpaRepository;
     private final PlanejamentoBimestralJpaRepository planejamentoBimestralJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     public DashboardProfessorService(
             ProfessorJpaRepository professorJpaRepository,
@@ -38,7 +40,8 @@ public class DashboardProfessorService {
             FrequenciaProfessorJpaRepository frequenciaProfessorJpaRepository,
             AvaliacaoJpaRepository avaliacaoJpaRepository,
             NotaAlunoJpaRepository notaAlunoJpaRepository,
-            PlanejamentoBimestralJpaRepository planejamentoBimestralJpaRepository) {
+            PlanejamentoBimestralJpaRepository planejamentoBimestralJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.professorJpaRepository = professorJpaRepository;
         this.professorTurmaDisciplinaJpaRepository = professorTurmaDisciplinaJpaRepository;
         this.aulaJpaRepository = aulaJpaRepository;
@@ -46,15 +49,20 @@ public class DashboardProfessorService {
         this.avaliacaoJpaRepository = avaliacaoJpaRepository;
         this.notaAlunoJpaRepository = notaAlunoJpaRepository;
         this.planejamentoBimestralJpaRepository = planejamentoBimestralJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Transactional(readOnly = true)
     public DashboardProfessorResponse consultar(UUID professorId) {
-        if (!professorJpaRepository.existsById(professorId)) {
+        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        if (!professorJpaRepository.existsByIdAndPessoa_Escola_Id(professorId, escolaId)) {
             throw new ProfessorNaoEncontradoException();
         }
 
-        List<ProfessorTurmaDisciplinaEntity> alocacoes = professorTurmaDisciplinaJpaRepository.findByProfessorId(professorId);
+        List<ProfessorTurmaDisciplinaEntity> alocacoes = professorTurmaDisciplinaJpaRepository.findByProfessorId(professorId)
+                .stream()
+                .filter(alocacao -> escolaId.equals(alocacao.getTurmaDisciplina().getTurma().getEscola().getId()))
+                .toList();
         List<ProfessorTurmaDisciplinaEntity> alocacoesAtivas = alocacoes.stream()
                 .filter(alocacao -> !Boolean.FALSE.equals(alocacao.getAtivo()))
                 .toList();

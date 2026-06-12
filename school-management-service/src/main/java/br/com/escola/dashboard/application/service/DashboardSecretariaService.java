@@ -1,11 +1,14 @@
 package br.com.escola.dashboard.application.service;
 
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.aluno.adapter.out.persistence.repository.SolicitacaoExclusaoAlunoJpaRepository;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardAcademicoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardSecretariaResponse;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
 import br.com.escola.matricula.domain.MatriculaStatus;
 import br.com.escola.transferencia.adapter.out.persistence.repository.TransferenciaAlunoJpaRepository;
@@ -17,39 +20,43 @@ public class DashboardSecretariaService {
     private final MatriculaJpaRepository matriculaJpaRepository;
     private final TransferenciaAlunoJpaRepository transferenciaAlunoJpaRepository;
     private final SolicitacaoExclusaoAlunoJpaRepository solicitacaoExclusaoAlunoJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     public DashboardSecretariaService(
             DashboardAcademicoService dashboardAcademicoService,
             MatriculaJpaRepository matriculaJpaRepository,
             TransferenciaAlunoJpaRepository transferenciaAlunoJpaRepository,
-            SolicitacaoExclusaoAlunoJpaRepository solicitacaoExclusaoAlunoJpaRepository) {
+            SolicitacaoExclusaoAlunoJpaRepository solicitacaoExclusaoAlunoJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.dashboardAcademicoService = dashboardAcademicoService;
         this.matriculaJpaRepository = matriculaJpaRepository;
         this.transferenciaAlunoJpaRepository = transferenciaAlunoJpaRepository;
         this.solicitacaoExclusaoAlunoJpaRepository = solicitacaoExclusaoAlunoJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Transactional(readOnly = true)
     public DashboardSecretariaResponse consultar() {
+        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
         DashboardAcademicoResponse academico = dashboardAcademicoService.consultar();
 
         return new DashboardSecretariaResponse(
                 academico.totalMatriculas(),
-                countMatriculasPorStatus(MatriculaStatus.SOLICITADA),
-                countMatriculasPorStatus(MatriculaStatus.EM_ANDAMENTO),
+                countMatriculasPorStatus(escolaId, MatriculaStatus.SOLICITADA),
+                countMatriculasPorStatus(escolaId, MatriculaStatus.EM_ANDAMENTO),
                 academico.matriculasAguardandoDocumentos(),
-                countMatriculasPorStatus(MatriculaStatus.AGUARDANDO_HISTORICO_ESCOLAR),
-                matriculaJpaRepository.countMatriculasComDocumentosObrigatoriosPendentes(),
+                countMatriculasPorStatus(escolaId, MatriculaStatus.AGUARDANDO_HISTORICO_ESCOLAR),
+                matriculaJpaRepository.countMatriculasComDocumentosObrigatoriosPendentesByEscolaId(escolaId),
                 academico.matriculasAptasRematricula(),
                 academico.boletinsFechados(),
                 academico.historicosInternosGerados(),
-                transferenciaAlunoJpaRepository.count(),
-                solicitacaoExclusaoAlunoJpaRepository.countByStatusIgnoreCase("PENDENTE"),
+                transferenciaAlunoJpaRepository.countByAluno_Pessoa_Escola_Id(escolaId),
+                solicitacaoExclusaoAlunoJpaRepository.countByStatusIgnoreCaseAndAluno_Pessoa_Escola_Id("PENDENTE", escolaId),
                 academico.matriculasPorStatus(),
                 academico.turmasComVagas());
     }
 
-    private long countMatriculasPorStatus(MatriculaStatus status) {
-        return matriculaJpaRepository.countByStatus_CodigoIgnoreCase(status.name());
+    private long countMatriculasPorStatus(UUID escolaId, MatriculaStatus status) {
+        return matriculaJpaRepository.countByTurma_Escola_IdAndStatus_CodigoIgnoreCase(escolaId, status.name());
     }
 }

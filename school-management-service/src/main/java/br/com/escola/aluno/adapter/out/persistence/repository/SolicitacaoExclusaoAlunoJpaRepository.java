@@ -12,4 +12,6 @@ public interface SolicitacaoExclusaoAlunoJpaRepository extends JpaRepository<Sol
     List<SolicitacaoExclusaoAlunoEntity> findByAlunoId(UUID alunoId);
 
     long countByStatusIgnoreCase(String status);
+
+    long countByStatusIgnoreCaseAndAluno_Pessoa_Escola_Id(String status, UUID escolaId);
 }

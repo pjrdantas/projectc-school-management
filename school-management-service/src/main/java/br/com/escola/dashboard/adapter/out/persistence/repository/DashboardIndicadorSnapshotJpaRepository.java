@@ -12,17 +12,18 @@ import br.com.escola.dashboard.adapter.out.persistence.entity.DashboardIndicador
 public interface DashboardIndicadorSnapshotJpaRepository
         extends JpaRepository<DashboardIndicadorSnapshotEntity, UUID> {
 
-    Optional<DashboardIndicadorSnapshotEntity> findByPublicoDashboardIdAndCodigoIndicadorAndReferenciaData(
+    Optional<DashboardIndicadorSnapshotEntity> findByPublicoDashboardIdAndEscola_IdAndCodigoIndicadorAndReferenciaData(
             UUID publicoDashboardId,
+            UUID escolaId,
             String codigoIndicador,
             LocalDate referenciaData);
 
-    List<DashboardIndicadorSnapshotEntity> findByPublicoDashboardId(UUID publicoDashboardId);
-
-    List<DashboardIndicadorSnapshotEntity> findByPublicoDashboardIdOrderByReferenciaDataDescCodigoIndicadorAsc(
-            UUID publicoDashboardId);
-
-    List<DashboardIndicadorSnapshotEntity> findByPublicoDashboardIdAndReferenciaDataOrderByCodigoIndicadorAsc(
+    List<DashboardIndicadorSnapshotEntity> findByPublicoDashboardIdAndEscola_IdOrderByReferenciaDataDescCodigoIndicadorAsc(
             UUID publicoDashboardId,
+            UUID escolaId);
+
+    List<DashboardIndicadorSnapshotEntity> findByPublicoDashboardIdAndEscola_IdAndReferenciaDataOrderByCodigoIndicadorAsc(
+            UUID publicoDashboardId,
+            UUID escolaId,
             LocalDate referenciaData);
 }

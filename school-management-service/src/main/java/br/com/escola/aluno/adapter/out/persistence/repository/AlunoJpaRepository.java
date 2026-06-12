@@ -30,6 +30,10 @@ public interface AlunoJpaRepository extends JpaRepository<AlunoEntity, UUID> {
 
     long countByAtivoFalse();
 
+    long countByPessoa_Escola_IdAndAtivoTrue(UUID escolaId);
+
+    long countByPessoa_Escola_IdAndAtivoFalse(UUID escolaId);
+
     boolean existsByPessoaCpfAndIdNot(String cpf, UUID id);
 
     boolean existsByPessoa_CpfAndPessoa_Escola_IdAndIdNot(String cpf, UUID escolaId, UUID id);

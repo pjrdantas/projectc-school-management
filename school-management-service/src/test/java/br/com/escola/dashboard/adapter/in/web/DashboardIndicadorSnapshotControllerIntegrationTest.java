@@ -210,9 +210,9 @@ class DashboardIndicadorSnapshotControllerIntegrationTest {
             String referenciaData) {
         jdbcTemplate.update("""
                 INSERT INTO dashboard_indicador_snapshot (
-                    id_dashboard_indicador_snapshot, id_publico_dashboard, codigo_indicador,
+                    id_dashboard_indicador_snapshot, id_publico_dashboard, id_escola, codigo_indicador,
                     descricao, valor_numeric, valor_texto, referencia_data, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                ) VALUES (?, ?, '00000000-0000-0000-0000-000000000047', ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                 """,
                 UUID.randomUUID(),
                 publicoId,

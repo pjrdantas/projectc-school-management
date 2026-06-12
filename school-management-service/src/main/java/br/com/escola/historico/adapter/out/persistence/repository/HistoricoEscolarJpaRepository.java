@@ -18,6 +18,8 @@ public interface HistoricoEscolarJpaRepository extends JpaRepository<HistoricoEs
 
     long countByOrigemIgnoreCase(String origem);
 
+    long countByOrigemIgnoreCaseAndAluno_Pessoa_Escola_Id(String origem, UUID escolaId);
+
     @EntityGraph(attributePaths = { "componentesCurriculares", "aluno", "aluno.pessoa" })
     @Query("select h from HistoricoEscolar h where h.id = :id")
     Optional<HistoricoEscolar> findWithComponentesCurricularesById(UUID id);
