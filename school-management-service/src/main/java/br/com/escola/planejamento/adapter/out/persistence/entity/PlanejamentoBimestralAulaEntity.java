@@ -35,7 +35,7 @@ public class PlanejamentoBimestralAulaEntity implements Serializable {
     @Column(name = "id_planejamento_bimestral_aula", nullable = false)
     private UUID id;
 
-    @Column(name = "numero_aula", nullable = false, unique = true)
+    @Column(name = "numero_aula", nullable = false)
     private Integer numeroAula;
 
     @Column(name = "tema_aula", nullable = false, length = 180)

@@ -40,7 +40,7 @@ public class PlanejamentoBimestralEntity implements Serializable {
     @Column(name = "titulo", nullable = false, length = 180)
     private String titulo;
 
-    @Column(name = "tema_principal", nullable = false, unique = true, length = 180)
+    @Column(name = "tema_principal", nullable = false, length = 180)
     private String temaPrincipal;
 
     @Column(name = "descricao_inicial", nullable = false, columnDefinition = "TEXT")

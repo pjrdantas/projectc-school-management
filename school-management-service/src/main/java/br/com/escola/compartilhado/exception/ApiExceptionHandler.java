@@ -64,6 +64,10 @@ import br.com.escola.avaliacao.domain.exception.TipoAvaliacaoNaoEncontradoExcept
 import br.com.escola.historico.domain.exception.BoletimFechadoNaoEncontradoException;
 import br.com.escola.historico.domain.exception.BoletimFechamentoDuplicadoException;
 import br.com.escola.historico.domain.exception.HistoricoEscolarDuplicadoException;
+import br.com.escola.planejamento.domain.exception.PlanejamentoAulaPrevistaDuplicadaException;
+import br.com.escola.planejamento.domain.exception.PlanejamentoBimestralNaoEncontradoException;
+import br.com.escola.planejamento.domain.exception.PlanejamentoPeriodoAvaliativoNaoEncontradoException;
+import br.com.escola.planejamento.domain.exception.PlanejamentoStatusNaoEncontradoException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
@@ -397,6 +401,34 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
             AvaliacaoMatriculaTurmaInconsistenteException ex,
             HttpServletRequest request) {
         return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(PlanejamentoBimestralNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handlePlanejamentoBimestralNotFound(
+            PlanejamentoBimestralNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(PlanejamentoStatusNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handlePlanejamentoStatusNotFound(
+            PlanejamentoStatusNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(PlanejamentoPeriodoAvaliativoNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorResponse> handlePlanejamentoPeriodoAvaliativoNotFound(
+            PlanejamentoPeriodoAvaliativoNaoEncontradoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(PlanejamentoAulaPrevistaDuplicadaException.class)
+    public ResponseEntity<ApiErrorResponse> handlePlanejamentoAulaPrevistaDuplicada(
+            PlanejamentoAulaPrevistaDuplicadaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
     }
 
     @ExceptionHandler(BoletimFechamentoDuplicadoException.class)
