@@ -13,6 +13,11 @@ public interface MatriculaJpaRepository extends JpaRepository<MatriculaEntity, U
 
     long countByTurma_IdAndStatus_CodigoNotIn(UUID turmaId, Iterable<String> statusCodigos);
 
+    long countByTurma_IdAndTurma_Escola_IdAndStatus_CodigoNotIn(
+            UUID turmaId,
+            UUID escolaId,
+            Iterable<String> statusCodigos);
+
     long countByStatus_CodigoIgnoreCase(String codigo);
 
     @Query(value = """
@@ -42,12 +47,32 @@ public interface MatriculaJpaRepository extends JpaRepository<MatriculaEntity, U
 
     boolean existsByAluno_IdAndPeriodoLetivo_Id(UUID alunoId, UUID periodoLetivoId);
 
+    boolean existsByAluno_IdAndAluno_Pessoa_Escola_IdAndPeriodoLetivo_Id(
+            UUID alunoId,
+            UUID escolaId,
+            UUID periodoLetivoId);
+
     boolean existsByAluno_IdAndPeriodoLetivo_IdAndIdNot(
             UUID alunoId,
             UUID periodoLetivoId,
             UUID id);
 
+    boolean existsByAluno_IdAndAluno_Pessoa_Escola_IdAndPeriodoLetivo_IdAndIdNot(
+            UUID alunoId,
+            UUID escolaId,
+            UUID periodoLetivoId,
+            UUID id);
+
+    boolean existsByIdAndTurma_Escola_Id(UUID id, UUID escolaId);
+
+    Optional<MatriculaEntity> findByIdAndTurma_Escola_Id(UUID id, UUID escolaId);
+
     Optional<MatriculaEntity> findFirstByAluno_IdAndPeriodoLetivo_IdNotOrderByDataSolicitacaoDescCreatedAtDesc(
             UUID alunoId,
+            UUID periodoLetivoId);
+
+    Optional<MatriculaEntity> findFirstByAluno_IdAndAluno_Pessoa_Escola_IdAndPeriodoLetivo_IdNotOrderByDataSolicitacaoDescCreatedAtDesc(
+            UUID alunoId,
+            UUID escolaId,
             UUID periodoLetivoId);
 }

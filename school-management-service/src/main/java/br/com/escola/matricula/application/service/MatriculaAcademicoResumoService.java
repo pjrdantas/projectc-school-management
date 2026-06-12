@@ -19,6 +19,7 @@ import br.com.escola.matricula.adapter.in.web.dto.MatriculaAcademicoResumoRespon
 import br.com.escola.matricula.adapter.out.persistence.entity.MatriculaEntity;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
 import br.com.escola.matricula.domain.exception.MatriculaNaoEncontradaException;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Service
 public class MatriculaAcademicoResumoService {
@@ -28,19 +29,23 @@ public class MatriculaAcademicoResumoService {
     private final MatriculaJpaRepository matriculaJpaRepository;
     private final FrequenciaAlunoJpaRepository frequenciaAlunoJpaRepository;
     private final NotaAlunoJpaRepository notaAlunoJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     public MatriculaAcademicoResumoService(
             MatriculaJpaRepository matriculaJpaRepository,
             FrequenciaAlunoJpaRepository frequenciaAlunoJpaRepository,
-            NotaAlunoJpaRepository notaAlunoJpaRepository) {
+            NotaAlunoJpaRepository notaAlunoJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.matriculaJpaRepository = matriculaJpaRepository;
         this.frequenciaAlunoJpaRepository = frequenciaAlunoJpaRepository;
         this.notaAlunoJpaRepository = notaAlunoJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Transactional(readOnly = true)
     public MatriculaAcademicoResumoResponse consultar(UUID matriculaId) {
-        MatriculaEntity matricula = matriculaJpaRepository.findById(matriculaId)
+        MatriculaEntity matricula = matriculaJpaRepository
+                .findByIdAndTurma_Escola_Id(matriculaId, escolaTenantService.obterOuCriarEscolaPadrao().getId())
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaId));
 
         List<FrequenciaAlunoEntity> frequencias = frequenciaAlunoJpaRepository.findByMatriculaId(matriculaId);

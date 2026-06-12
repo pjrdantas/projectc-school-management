@@ -20,6 +20,8 @@ import br.com.escola.responsavel.adapter.out.persistence.entity.ResponsavelEntit
 import br.com.escola.responsavel.adapter.out.persistence.repository.ResponsavelJpaRepository;
 import br.com.escola.aluno.adapter.out.persistence.entity.AlunoEntity;
 import br.com.escola.aluno.adapter.out.persistence.repository.AlunoJpaRepository;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Component
 public class DocumentoPersistenceGateway implements DocumentoGateway {
@@ -28,16 +30,19 @@ public class DocumentoPersistenceGateway implements DocumentoGateway {
     private final AlunoJpaRepository alunoJpaRepository;
     private final ResponsavelJpaRepository responsavelJpaRepository;
     private final JdbcTemplate jdbcTemplate;
+    private final EscolaTenantService escolaTenantService;
 
     public DocumentoPersistenceGateway(
             DocumentoJpaRepository documentoJpaRepository,
             AlunoJpaRepository alunoJpaRepository,
             ResponsavelJpaRepository responsavelJpaRepository,
-            JdbcTemplate jdbcTemplate) {
+            JdbcTemplate jdbcTemplate,
+            EscolaTenantService escolaTenantService) {
         this.documentoJpaRepository = documentoJpaRepository;
         this.alunoJpaRepository = alunoJpaRepository;
         this.responsavelJpaRepository = responsavelJpaRepository;
         this.jdbcTemplate = jdbcTemplate;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Override
@@ -63,12 +68,14 @@ public class DocumentoPersistenceGateway implements DocumentoGateway {
     @Override
     @Transactional(readOnly = true)
     public DocumentoOutput findById(UUID id) {
-        DocumentoEntity documento = documentoJpaRepository.findById(id)
+        UUID escolaId = escolaId();
+        DocumentoEntity documento = documentoJpaRepository.findByIdAndEscolaId(id, escolaId)
                 .orElseThrow(() -> new DocumentoNaoEncontradoException(id));
+        DocumentoEntidade entidade = buscarEntidadePorDocumento(id, escolaId);
         return toOutput(
                 documento,
-                EntidadeDocumentalTipo.ALUNO,
-                buscarAlunoIdPorDocumento(id),
+                entidade.tipo(),
+                entidade.id(),
                 buscarTipoDocumentoPorDocumento(id));
     }
 
@@ -76,7 +83,7 @@ public class DocumentoPersistenceGateway implements DocumentoGateway {
     @Transactional(readOnly = true)
     public List<DocumentoOutput> findByEntidade(EntidadeDocumentalTipo entidadeTipo, UUID entidadeId) {
         UUID pessoaId = resolvePessoaId(entidadeTipo, entidadeId);
-        return documentoJpaRepository.findByPessoaIdOrderByDataUploadDesc(pessoaId).stream()
+        return documentoJpaRepository.findByPessoaIdAndEscolaIdOrderByDataUploadDesc(pessoaId, escolaId()).stream()
                 .map(documento -> toOutput(documento, entidadeTipo, entidadeId, buscarTipoDocumentoPorDocumento(documento.getId())))
                 .toList();
     }
@@ -84,10 +91,11 @@ public class DocumentoPersistenceGateway implements DocumentoGateway {
     @Override
     @Transactional
     public void deleteById(UUID id) {
-        if (!documentoJpaRepository.existsById(id)) {
+        UUID escolaId = escolaId();
+        if (!documentoJpaRepository.existsByIdAndEscolaId(id, escolaId)) {
             throw new DocumentoNaoEncontradoException(id);
         }
-        documentoJpaRepository.deletePessoaDocumentoByDocumentoId(id);
+        documentoJpaRepository.deletePessoaDocumentoByDocumentoIdAndEscolaId(id, escolaId);
         documentoJpaRepository.deleteById(id);
     }
 
@@ -101,13 +109,13 @@ public class DocumentoPersistenceGateway implements DocumentoGateway {
 
     private UUID resolvePessoaId(EntidadeDocumentalTipo entidadeTipo, UUID entidadeId) {
         if (entidadeTipo == EntidadeDocumentalTipo.ALUNO) {
-            return alunoJpaRepository.findById(entidadeId)
+            return alunoJpaRepository.findByIdAndPessoa_Escola_Id(entidadeId, escolaId())
                     .map(AlunoEntity::getPessoa)
                     .map(pessoa -> pessoa.getId())
                     .orElseThrow(() -> new DocumentoInvalidoException("Aluno não encontrado: " + entidadeId));
         }
         if (entidadeTipo == EntidadeDocumentalTipo.RESPONSAVEL) {
-            return responsavelJpaRepository.findById(entidadeId)
+            return responsavelJpaRepository.findByIdAndPessoa_Escola_Id(entidadeId, escolaId())
                     .map(ResponsavelEntity::getPessoa)
                     .map(pessoa -> pessoa.getId())
                     .orElseThrow(() -> new DocumentoInvalidoException("Responsável não encontrado: " + entidadeId));
@@ -120,10 +128,13 @@ public class DocumentoPersistenceGateway implements DocumentoGateway {
             EntidadeDocumentalTipo entidadeTipo,
             UUID entidadeId,
             String tipoDocumento) {
+        EscolaEntity escola = escolaTenantService.obterOuCriarEscolaPadrao();
         return new DocumentoOutput(
                 entity.getId(),
                 entidadeTipo.name(),
                 entidadeId,
+                escola.getId(),
+                escola.getNome(),
                 tipoDocumento,
                 entity.getNumeroDocumento(),
                 entity.getCaminhoArquivo(),
@@ -155,17 +166,52 @@ public class DocumentoPersistenceGateway implements DocumentoGateway {
         return codigos.isEmpty() ? null : codigos.getFirst();
     }
 
-    private UUID buscarAlunoIdPorDocumento(UUID documentoId) {
-        List<UUID> ids = jdbcTemplate.query(
+    private DocumentoEntidade buscarEntidadePorDocumento(UUID documentoId, UUID escolaId) {
+        List<DocumentoEntidade> alunos = jdbcTemplate.query(
                 """
                 SELECT a.id_aluno
                   FROM aluno a
+                  JOIN pessoa p ON p.id_pessoa = a.id_pessoa
                   JOIN pessoa_documento pd ON pd.id_pessoa = a.id_pessoa
                  WHERE pd.id_documento = ?
+                   AND p.id_escola = ?
                  LIMIT 1
                 """,
-                (rs, rowNum) -> rs.getObject("id_aluno", UUID.class),
-                documentoId);
-        return ids.isEmpty() ? null : ids.getFirst();
+                (rs, rowNum) -> new DocumentoEntidade(
+                        EntidadeDocumentalTipo.ALUNO,
+                        rs.getObject("id_aluno", UUID.class)),
+                documentoId,
+                escolaId);
+        if (!alunos.isEmpty()) {
+            return alunos.getFirst();
+        }
+
+        List<DocumentoEntidade> responsaveis = jdbcTemplate.query(
+                """
+                SELECT r.id_responsavel
+                  FROM responsavel r
+                  JOIN pessoa p ON p.id_pessoa = r.id_pessoa
+                  JOIN pessoa_documento pd ON pd.id_pessoa = r.id_pessoa
+                 WHERE pd.id_documento = ?
+                   AND p.id_escola = ?
+                 LIMIT 1
+                """,
+                (rs, rowNum) -> new DocumentoEntidade(
+                        EntidadeDocumentalTipo.RESPONSAVEL,
+                        rs.getObject("id_responsavel", UUID.class)),
+                documentoId,
+                escolaId);
+        if (!responsaveis.isEmpty()) {
+            return responsaveis.getFirst();
+        }
+
+        throw new DocumentoNaoEncontradoException(documentoId);
+    }
+
+    private UUID escolaId() {
+        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
+    }
+
+    private record DocumentoEntidade(EntidadeDocumentalTipo tipo, UUID id) {
     }
 }

@@ -158,6 +158,8 @@ public class MatriculaController {
                 output.id(),
                 output.alunoId(),
                 output.turmaId(),
+                output.escolaId(),
+                output.escolaNome(),
                 output.serieId(),
                 output.serieNome(),
                 output.periodoLetivoId(),

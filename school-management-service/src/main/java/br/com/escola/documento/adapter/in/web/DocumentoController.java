@@ -112,6 +112,8 @@ public class DocumentoController {
                 output.id(),
                 output.entidadeTipo(),
                 output.entidadeId(),
+                output.escolaId(),
+                output.escolaNome(),
                 output.tipoDocumento(),
                 output.numeroDocumento(),
                 output.caminhoArquivo(),

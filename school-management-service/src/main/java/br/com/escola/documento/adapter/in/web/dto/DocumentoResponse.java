@@ -7,6 +7,8 @@ public record DocumentoResponse(
         UUID id,
         String entidadeTipo,
         UUID entidadeId,
+        UUID escolaId,
+        String escolaNome,
         String tipoDocumento,
         String numeroDocumento,
         String caminhoArquivo,

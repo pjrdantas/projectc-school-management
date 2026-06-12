@@ -12,6 +12,8 @@ public record MatriculaResponse(
         UUID id,
         UUID alunoId,
         UUID turmaId,
+        UUID escolaId,
+        String escolaNome,
         UUID serieId,
         String serieNome,
         UUID periodoLetivoId,

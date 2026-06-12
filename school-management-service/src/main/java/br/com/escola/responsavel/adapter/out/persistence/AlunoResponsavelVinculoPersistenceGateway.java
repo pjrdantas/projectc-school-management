@@ -13,23 +13,27 @@ import br.com.escola.responsavel.adapter.out.persistence.repository.ParentescoJp
 import br.com.escola.responsavel.application.dto.VinculoAlunoResponsavelInput;
 import br.com.escola.responsavel.application.dto.VinculoAlunoResponsavelOutput;
 import br.com.escola.responsavel.application.port.out.AlunoResponsavelVinculoGateway;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Component
 public class AlunoResponsavelVinculoPersistenceGateway implements AlunoResponsavelVinculoGateway {
 
     private final AlunoResponsavelJpaRepository alunoResponsavelJpaRepository;
     private final ParentescoJpaRepository parentescoJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     public AlunoResponsavelVinculoPersistenceGateway(
             AlunoResponsavelJpaRepository alunoResponsavelJpaRepository,
-            ParentescoJpaRepository parentescoJpaRepository) {
+            ParentescoJpaRepository parentescoJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.alunoResponsavelJpaRepository = alunoResponsavelJpaRepository;
         this.parentescoJpaRepository = parentescoJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Override
     public boolean existsByAlunoAndResponsavel(UUID idAluno, UUID idResponsavel) {
-        return alunoResponsavelJpaRepository.existsByIdAlunoAndIdResponsavel(idAluno, idResponsavel);
+        return alunoResponsavelJpaRepository.existsByAlunoAndResponsavelAndEscolaId(idAluno, idResponsavel, escolaId());
     }
 
     @Override
@@ -46,13 +50,13 @@ public class AlunoResponsavelVinculoPersistenceGateway implements AlunoResponsav
 
     @Override
     public List<VinculoAlunoResponsavelOutput> findByAluno(UUID idAluno) {
-        return alunoResponsavelJpaRepository.findByIdAluno(idAluno).stream().map(this::toOutput).toList();
+        return alunoResponsavelJpaRepository.findByAlunoAndEscolaId(idAluno, escolaId()).stream().map(this::toOutput).toList();
     }
 
     @Override
     @Transactional
     public void deleteByAlunoAndResponsavel(UUID idAluno, UUID idResponsavel) {
-        alunoResponsavelJpaRepository.deleteByIdAlunoAndIdResponsavel(idAluno, idResponsavel);
+        alunoResponsavelJpaRepository.deleteByAlunoAndResponsavelAndEscolaId(idAluno, idResponsavel, escolaId());
     }
 
     private VinculoAlunoResponsavelOutput toOutput(AlunoResponsavelEntity entity) {
@@ -73,5 +77,9 @@ public class AlunoResponsavelVinculoPersistenceGateway implements AlunoResponsav
                 : codigo.trim().toUpperCase(Locale.ROOT);
         return parentescoJpaRepository.findByCodigo(codigoNormalizado)
                 .orElseThrow(() -> new IllegalArgumentException("Parentesco nao cadastrado: " + codigoNormalizado));
+    }
+
+    private UUID escolaId() {
+        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
     }
 }

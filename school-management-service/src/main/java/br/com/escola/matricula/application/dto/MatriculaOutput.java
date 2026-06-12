@@ -10,6 +10,8 @@ public record MatriculaOutput(
         UUID id,
         UUID alunoId,
         UUID turmaId,
+        UUID escolaId,
+        String escolaNome,
         UUID serieId,
         String serieNome,
         UUID periodoLetivoId,

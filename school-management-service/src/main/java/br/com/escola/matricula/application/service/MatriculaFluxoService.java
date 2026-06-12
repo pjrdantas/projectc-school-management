@@ -47,6 +47,7 @@ import br.com.escola.matricula.domain.exception.MatriculaConclusaoAcademicaInval
 import br.com.escola.matricula.domain.exception.MatriculaNaoEncontradaException;
 import br.com.escola.matricula.domain.exception.MatriculaStatusInvalidoException;
 import br.com.escola.matricula.domain.exception.RematriculaNaoPermitidaException;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Service
 public class MatriculaFluxoService {
@@ -64,6 +65,7 @@ public class MatriculaFluxoService {
     private final BoletimJpaRepository boletimJpaRepository;
     private final BoletimItemJpaRepository boletimItemJpaRepository;
     private final CriarMatriculaUseCase criarMatriculaUseCase;
+    private final EscolaTenantService escolaTenantService;
 
     public MatriculaFluxoService(
             MatriculaJpaRepository matriculaJpaRepository,
@@ -76,7 +78,8 @@ public class MatriculaFluxoService {
             MatriculaDocumentoExigidoJpaRepository matriculaDocumentoExigidoJpaRepository,
             BoletimJpaRepository boletimJpaRepository,
             BoletimItemJpaRepository boletimItemJpaRepository,
-            CriarMatriculaUseCase criarMatriculaUseCase) {
+            CriarMatriculaUseCase criarMatriculaUseCase,
+            EscolaTenantService escolaTenantService) {
         this.matriculaJpaRepository = matriculaJpaRepository;
         this.turmaJpaRepository = turmaJpaRepository;
         this.matriculaEtapaJpaRepository = matriculaEtapaJpaRepository;
@@ -88,6 +91,7 @@ public class MatriculaFluxoService {
         this.boletimJpaRepository = boletimJpaRepository;
         this.boletimItemJpaRepository = boletimItemJpaRepository;
         this.criarMatriculaUseCase = criarMatriculaUseCase;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Transactional(readOnly = true)
@@ -131,7 +135,7 @@ public class MatriculaFluxoService {
 
     @Transactional(readOnly = true)
     public List<MatriculaDocumentoExigidoResponse> listarDocumentosExigidos(UUID matriculaId) {
-        MatriculaEntity matricula = matriculaJpaRepository.findById(matriculaId)
+        MatriculaEntity matricula = matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaId, escolaId())
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaId));
         List<MatriculaDocumentoEntregueEntity> entregues =
                 matriculaDocumentoEntregueJpaRepository.findByMatricula_Id(matriculaId);
@@ -147,9 +151,9 @@ public class MatriculaFluxoService {
     public MatriculaDocumentoEntregueResponse registrarDocumentoEntregue(
             UUID matriculaId,
             MatriculaDocumentoEntregueRequest request) {
-        MatriculaEntity matricula = matriculaJpaRepository.findById(matriculaId)
+        MatriculaEntity matricula = matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaId, escolaId())
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaId));
-        DocumentoEntity documento = documentoJpaRepository.findById(request.documentoId())
+        DocumentoEntity documento = documentoJpaRepository.findByIdAndEscolaId(request.documentoId(), escolaId())
                 .orElseThrow(() -> new MatriculaDocumentoNaoEncontradoException(request.documentoId()));
 
         boolean conferido = Boolean.TRUE.equals(request.conferido());
@@ -172,7 +176,7 @@ public class MatriculaFluxoService {
     public MatriculaConclusaoAcademicaResponse concluirAcademicamente(
             UUID matriculaId,
             MatriculaConclusaoAcademicaRequest request) {
-        MatriculaEntity matricula = matriculaJpaRepository.findById(matriculaId)
+        MatriculaEntity matricula = matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaId, escolaId())
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaId));
         BoletimEntity boletim = boletimJpaRepository.findById(request.boletimId())
                 .orElseThrow(() -> new BoletimFechadoNaoEncontradoException(request.boletimId()));
@@ -220,7 +224,7 @@ public class MatriculaFluxoService {
 
     @Transactional
     public MatriculaOutput rematricular(UUID matriculaAnteriorId, MatriculaRematriculaRequest request) {
-        MatriculaEntity matriculaAnterior = matriculaJpaRepository.findById(matriculaAnteriorId)
+        MatriculaEntity matriculaAnterior = matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaAnteriorId, escolaId())
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaAnteriorId));
         if (!"CONCLUIDA".equalsIgnoreCase(matriculaAnterior.getStatus().getCodigo())) {
             throw new RematriculaNaoPermitidaException("matrícula base deve estar concluída para renovação");
@@ -239,7 +243,7 @@ public class MatriculaFluxoService {
             UUID matriculaAnteriorId,
             UUID turmaDestinoId,
             UUID periodoLetivoDestinoId) {
-        MatriculaEntity matriculaAnterior = matriculaJpaRepository.findById(matriculaAnteriorId)
+        MatriculaEntity matriculaAnterior = matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaAnteriorId, escolaId())
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaAnteriorId));
         List<String> motivos = new ArrayList<>();
 
@@ -249,7 +253,7 @@ public class MatriculaFluxoService {
 
         TurmaEntity turmaDestino = null;
         if (turmaDestinoId != null) {
-            turmaDestino = turmaJpaRepository.findById(turmaDestinoId).orElse(null);
+            turmaDestino = turmaJpaRepository.findByIdAndEscola_Id(turmaDestinoId, escolaId()).orElse(null);
             if (turmaDestino == null) {
                 motivos.add("Turma de destino não encontrada");
             }
@@ -261,8 +265,9 @@ public class MatriculaFluxoService {
         }
 
         if (periodoLetivoDestinoId != null
-                && matriculaJpaRepository.existsByAluno_IdAndPeriodoLetivo_Id(
+                && matriculaJpaRepository.existsByAluno_IdAndAluno_Pessoa_Escola_IdAndPeriodoLetivo_Id(
                         matriculaAnterior.getAluno().getId(),
+                        escolaId(),
                         periodoLetivoDestinoId)) {
             motivos.add("Aluno já possui matrícula no período letivo de destino");
         }
@@ -275,7 +280,10 @@ public class MatriculaFluxoService {
             }
 
             long matriculasQueOcupamVaga =
-                    matriculaJpaRepository.countByTurma_IdAndStatus_CodigoNotIn(turmaDestinoId, STATUS_NAO_OCUPAM_VAGA);
+                    matriculaJpaRepository.countByTurma_IdAndTurma_Escola_IdAndStatus_CodigoNotIn(
+                            turmaDestinoId,
+                            escolaId(),
+                            STATUS_NAO_OCUPAM_VAGA);
             if (matriculasQueOcupamVaga >= turmaDestino.getCapacidade()) {
                 motivos.add("Turma de destino não possui vaga disponível");
             }
@@ -329,9 +337,13 @@ public class MatriculaFluxoService {
     }
 
     private void validarMatriculaExistente(UUID matriculaId) {
-        if (!matriculaJpaRepository.existsById(matriculaId)) {
+        if (!matriculaJpaRepository.existsByIdAndTurma_Escola_Id(matriculaId, escolaId())) {
             throw new MatriculaNaoEncontradaException(matriculaId);
         }
+    }
+
+    private UUID escolaId() {
+        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
     }
 
     private MatriculaEtapaOutput toEtapaOutput(MatriculaEtapaEntity etapa) {

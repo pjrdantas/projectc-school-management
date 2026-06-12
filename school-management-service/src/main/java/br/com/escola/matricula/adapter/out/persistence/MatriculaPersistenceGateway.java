@@ -38,6 +38,7 @@ import br.com.escola.matricula.domain.exception.MatriculaNaoEncontradaException;
 import br.com.escola.matricula.domain.exception.MatriculaStatusInvalidoException;
 import br.com.escola.matricula.domain.exception.MatriculaTipoInvalidoException;
 import br.com.escola.aluno.adapter.out.persistence.entity.AlunoEntity;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 import jakarta.persistence.EntityManager;
 
 @Component
@@ -53,6 +54,7 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
     private final StatusEtapaMatriculaJpaRepository statusEtapaMatriculaJpaRepository;
     private final EtapaMatriculaModeloJpaRepository etapaMatriculaModeloJpaRepository;
     private final EntityManager entityManager;
+    private final EscolaTenantService escolaTenantService;
 
     public MatriculaPersistenceGateway(
             MatriculaJpaRepository matriculaJpaRepository,
@@ -62,7 +64,8 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
             StatusMatriculaJpaRepository statusMatriculaJpaRepository,
             StatusEtapaMatriculaJpaRepository statusEtapaMatriculaJpaRepository,
             EtapaMatriculaModeloJpaRepository etapaMatriculaModeloJpaRepository,
-            EntityManager entityManager) {
+            EntityManager entityManager,
+            EscolaTenantService escolaTenantService) {
         this.matriculaJpaRepository = matriculaJpaRepository;
         this.matriculaEtapaJpaRepository = matriculaEtapaJpaRepository;
         this.matriculaDocumentoEntregueJpaRepository = matriculaDocumentoEntregueJpaRepository;
@@ -71,6 +74,7 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
         this.statusEtapaMatriculaJpaRepository = statusEtapaMatriculaJpaRepository;
         this.etapaMatriculaModeloJpaRepository = etapaMatriculaModeloJpaRepository;
         this.entityManager = entityManager;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Override
@@ -106,7 +110,9 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
     @Override
     @Transactional(readOnly = true)
     public List<MatriculaOutput> findByFiltro(MatriculaFiltro filtro, MatriculaStatus status) {
-        Specification<MatriculaEntity> spec = (root, query, cb) -> cb.conjunction();
+        UUID escolaId = escolaId();
+        Specification<MatriculaEntity> spec = (root, query, cb) ->
+                cb.equal(root.get("turma").get("escola").get("id"), escolaId);
 
         if (filtro.alunoId() != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("aluno").get("id"), filtro.alunoId()));
@@ -126,19 +132,28 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
 
     @Override
     public long countMatriculasQueOcupamVagaByTurmaId(UUID turmaId) {
-        return matriculaJpaRepository.countByTurma_IdAndStatus_CodigoNotIn(turmaId, STATUS_NAO_OCUPAM_VAGA);
+        return matriculaJpaRepository.countByTurma_IdAndTurma_Escola_IdAndStatus_CodigoNotIn(
+                turmaId,
+                escolaId(),
+                STATUS_NAO_OCUPAM_VAGA);
     }
 
     @Override
     public boolean existsByAlunoIdAndPeriodoLetivoId(UUID alunoId, UUID periodoLetivoId) {
-        return matriculaJpaRepository.existsByAluno_IdAndPeriodoLetivo_Id(alunoId, periodoLetivoId);
+        return matriculaJpaRepository.existsByAluno_IdAndAluno_Pessoa_Escola_IdAndPeriodoLetivo_Id(
+                alunoId,
+                escolaId(),
+                periodoLetivoId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<MatriculaHistoricoOutput> findHistoricoAnteriorMaisRecente(UUID alunoId, UUID periodoLetivoId) {
         return matriculaJpaRepository
-                .findFirstByAluno_IdAndPeriodoLetivo_IdNotOrderByDataSolicitacaoDescCreatedAtDesc(alunoId, periodoLetivoId)
+                .findFirstByAluno_IdAndAluno_Pessoa_Escola_IdAndPeriodoLetivo_IdNotOrderByDataSolicitacaoDescCreatedAtDesc(
+                        alunoId,
+                        escolaId(),
+                        periodoLetivoId)
                 .map(entity -> new MatriculaHistoricoOutput(
                         entity.getId(),
                         entity.getTurma().getId(),
@@ -156,10 +171,11 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
     @Override
     @Transactional
     public MatriculaOutput updateStatus(UUID id, MatriculaStatus status, String justificativa) {
-        MatriculaEntity matricula = matriculaJpaRepository.findById(id)
+        MatriculaEntity matricula = matriculaJpaRepository.findByIdAndTurma_Escola_Id(id, escolaId())
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(id));
-        if (matriculaJpaRepository.existsByAluno_IdAndPeriodoLetivo_IdAndIdNot(
+        if (matriculaJpaRepository.existsByAluno_IdAndAluno_Pessoa_Escola_IdAndPeriodoLetivo_IdAndIdNot(
                 matricula.getAluno().getId(),
+                escolaId(),
                 matricula.getPeriodoLetivo().getId(),
                 matricula.getId())) {
             throw new MatriculaAtivaDuplicadaException(
@@ -182,7 +198,7 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
 
     @Override
     public boolean existsById(UUID id) {
-        return matriculaJpaRepository.existsById(id);
+        return matriculaJpaRepository.existsByIdAndTurma_Escola_Id(id, escolaId());
     }
 
     @Override
@@ -198,6 +214,8 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
                 entity.getId(),
                 entity.getAluno().getId(),
                 entity.getTurma().getId(),
+                entity.getTurma().getEscola().getId(),
+                entity.getTurma().getEscola().getNome(),
                 entity.getTurma().getSerie().getId(),
                 entity.getTurma().getSerie().getNome(),
                 entity.getPeriodoLetivo().getId(),
@@ -266,5 +284,9 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
                         etapa.getDataConclusao(),
                         etapa.getObservacao()))
                 .toList();
+    }
+
+    private UUID escolaId() {
+        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
     }
 }
