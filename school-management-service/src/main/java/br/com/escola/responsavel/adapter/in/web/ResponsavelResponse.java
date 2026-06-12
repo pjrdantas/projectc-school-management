@@ -17,5 +17,7 @@ public record ResponsavelResponse(
         String bairro,
         String cidade,
         String uf,
+        UUID escolaId,
+        String escolaNome,
         LocalDateTime createdAt) {
 }

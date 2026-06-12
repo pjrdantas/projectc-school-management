@@ -1,5 +1,7 @@
 package br.com.escola.responsavel.application.dto;
 
+import java.util.UUID;
+
 public record ResponsavelInput(
         String nomeCompleto,
         String cpf,
@@ -12,5 +14,6 @@ public record ResponsavelInput(
         String complemento,
         String bairro,
         String cidade,
-        String uf) {
+        String uf,
+        UUID escolaId) {
 }

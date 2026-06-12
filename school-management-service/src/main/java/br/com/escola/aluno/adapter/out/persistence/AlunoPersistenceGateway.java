@@ -35,6 +35,7 @@ import br.com.escola.compartilhado.endereco.repository.PessoaEnderecoJpaReposito
 import br.com.escola.compartilhado.pessoa.repository.PessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.repository.PessoaTipoPessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.service.PessoaFoundationService;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Component
 public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryGateway {
@@ -52,6 +53,7 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     private final HistoricoEscolarItemJpaRepository historicoEscolarItemJpaRepository;
     private final TransferenciaAlunoJpaRepository transferenciaAlunoJpaRepository;
     private final DocumentoJpaRepository documentoJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     public AlunoPersistenceGateway(
             AlunoJpaRepository alunoJpaRepository,
@@ -66,7 +68,8 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
             HistoricoEscolarJpaRepository historicoEscolarJpaRepository,
             HistoricoEscolarItemJpaRepository historicoEscolarItemJpaRepository,
             TransferenciaAlunoJpaRepository transferenciaAlunoJpaRepository,
-            DocumentoJpaRepository documentoJpaRepository) {
+            DocumentoJpaRepository documentoJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.alunoJpaRepository = alunoJpaRepository;
         this.statusAlunoJpaRepository = statusAlunoJpaRepository;
         this.pessoaJpaRepository = pessoaJpaRepository;
@@ -80,16 +83,17 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
         this.historicoEscolarItemJpaRepository = historicoEscolarItemJpaRepository;
         this.transferenciaAlunoJpaRepository = transferenciaAlunoJpaRepository;
         this.documentoJpaRepository = documentoJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Override
-    public boolean existsByCpf(String cpf) {
-        return alunoJpaRepository.findByCpf(cpf).isPresent();
+    public boolean existsByCpf(String cpf, UUID escolaId) {
+        return alunoJpaRepository.findByCpfAndEscolaId(cpf, resolverEscolaId(escolaId)).isPresent();
     }
 
     @Override
-    public boolean existsByCpfAndIdNot(String cpf, @NonNull UUID id) {
-        return alunoJpaRepository.existsByCpfAndIdNot(cpf, id);
+    public boolean existsByCpfAndIdNot(String cpf, UUID escolaId, @NonNull UUID id) {
+        return alunoJpaRepository.existsByCpfAndEscolaIdAndIdNot(cpf, resolverEscolaId(escolaId), id);
     }
 
     @Override
@@ -98,7 +102,8 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
         PessoaCriada pessoaCriada = pessoaFoundationService.criarPessoaComTipoEEndereco(
                 toPessoaDados(input),
                 "ALUNO",
-                toEnderecoDados(input));
+                toEnderecoDados(input),
+                input.escolaId());
 
         AlunoEntity alunoEntity = new AlunoEntity();
         alunoEntity.setPessoa(pessoaJpaRepository.getReferenceById(pessoaCriada.pessoaId()));
@@ -109,13 +114,14 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     @Override
     @Transactional
     public AlunoOutput update(@NonNull UUID id, AlunoInput input) {
-        AlunoEntity alunoEntity = alunoJpaRepository.findById(id)
+        AlunoEntity alunoEntity = alunoJpaRepository.findByIdAndPessoa_Escola_Id(id, resolverEscolaId(input.escolaId()))
                 .orElseThrow(() -> new AlunoNaoEncontradoException(id));
 
         pessoaFoundationService.atualizarPessoaEEndereco(
                 alunoEntity.getPessoa(),
                 toPessoaDados(input),
-                toEnderecoDados(input));
+                toEnderecoDados(input),
+                input.escolaId());
         alunoEntity.setStatusAluno(buscarStatus(input.statusAluno()));
         return toOutput(alunoJpaRepository.save(alunoEntity));
     }
@@ -123,7 +129,7 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     @Override
     @Transactional
     public void deleteById(@NonNull UUID id) {
-        AlunoEntity aluno = alunoJpaRepository.findById(id)
+        AlunoEntity aluno = alunoJpaRepository.findByIdAndPessoa_Escola_Id(id, resolverEscolaId(null))
                 .orElseThrow(() -> new AlunoNaoEncontradoException(id));
         UUID pessoaId = aluno.getPessoa().getId();
         List<UUID> responsaveisVinculados = alunoResponsavelJpaRepository.findByIdAluno(id).stream()
@@ -171,17 +177,17 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
 
     @Override
     public Optional<AlunoOutput> findById(@NonNull UUID id) {
-        return alunoJpaRepository.findById(id).map(this::toOutput);
+        return alunoJpaRepository.findByIdAndPessoa_Escola_Id(id, resolverEscolaId(null)).map(this::toOutput);
     }
 
     @Override
     public List<AlunoOutput> findAll() {
-        return alunoJpaRepository.findAll().stream().map(this::toOutput).toList();
+        return alunoJpaRepository.findAllByPessoa_Escola_Id(resolverEscolaId(null)).stream().map(this::toOutput).toList();
     }
 
     @Override
     public boolean existsById(@NonNull UUID id) {
-        return alunoJpaRepository.existsById(id);
+        return alunoJpaRepository.existsByIdAndPessoa_Escola_Id(id, resolverEscolaId(null));
     }
 
     private AlunoOutput toOutput(AlunoEntity entity) {
@@ -212,6 +218,8 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
                 endereco != null ? endereco.getCidade() : null,
                 endereco != null ? endereco.getUf() : null,
                 entity.getStatusAluno(),
+                entity.getPessoa().getEscola().getId(),
+                entity.getPessoa().getEscola().getNome(),
                 entity.getCreatedAt());
     }
 
@@ -251,5 +259,9 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
                 : codigo.trim().toUpperCase(Locale.ROOT);
         return statusAlunoJpaRepository.findByCodigo(codigoNormalizado)
                 .orElseThrow(() -> new IllegalArgumentException("Status de aluno nao cadastrado: " + codigoNormalizado));
+    }
+
+    private UUID resolverEscolaId(UUID escolaId) {
+        return escolaId == null ? escolaTenantService.obterOuCriarEscolaPadrao().getId() : escolaId;
     }
 }

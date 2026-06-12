@@ -21,7 +21,7 @@ public class CriarAlunoUseCase {
     }
 
     public AlunoOutput executar(AlunoInput input) {
-        if (alunoCommandGateway.existsByCpf(input.cpf())) {
+        if (alunoCommandGateway.existsByCpf(input.cpf(), input.escolaId())) {
             throw new AlunoJaCadastradoException();
         }
         return alunoCommandGateway.save(preencherEndereco(input));
@@ -53,7 +53,8 @@ public class CriarAlunoUseCase {
                 endereco.bairro(),
                 endereco.localidade(),
                 endereco.uf(),
-                input.statusAluno());
+                input.statusAluno(),
+                input.escolaId());
     }
 
     private void validarNumero(String numero) {

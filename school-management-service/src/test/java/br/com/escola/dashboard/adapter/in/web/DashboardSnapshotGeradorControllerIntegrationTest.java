@@ -135,8 +135,8 @@ class DashboardSnapshotGeradorControllerIntegrationTest {
         UUID pessoaId = UUID.randomUUID();
         UUID professorId = UUID.randomUUID();
         jdbcTemplate.update("""
-                INSERT INTO pessoa (id_pessoa, nome_completo, cpf, email, ativo, created_at)
-                VALUES (?, 'Professor Snapshot', ?, ?, true, CURRENT_TIMESTAMP)
+                INSERT INTO pessoa (id_pessoa, nome_completo, cpf, email, id_escola, ativo, created_at)
+                VALUES (?, 'Professor Snapshot', ?, ?, '00000000-0000-0000-0000-000000000047', true, CURRENT_TIMESTAMP)
                 """, pessoaId, cpfAleatorio(), "dashboard.snapshot.professor." + System.nanoTime() + "@example.com");
         jdbcTemplate.update("""
                 INSERT INTO professor (id_professor, id_pessoa, registro_profissional, formacao, ativo, created_at)

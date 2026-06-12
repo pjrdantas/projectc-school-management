@@ -7,9 +7,9 @@ import br.com.escola.responsavel.application.dto.ResponsavelOutput;
 
 public interface ResponsavelCommandGateway {
 
-    boolean existsByCpf(String cpf);
+    boolean existsByCpf(String cpf, UUID escolaId);
 
-    boolean existsByCpfAndIdNot(String cpf, UUID id);
+    boolean existsByCpfAndIdNot(String cpf, UUID escolaId, UUID id);
 
     ResponsavelOutput save(ResponsavelInput input);
 

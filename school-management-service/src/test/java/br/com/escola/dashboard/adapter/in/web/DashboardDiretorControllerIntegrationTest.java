@@ -181,8 +181,8 @@ class DashboardDiretorControllerIntegrationTest {
         UUID pessoaId = UUID.randomUUID();
         UUID alunoId = UUID.randomUUID();
         jdbcTemplate.update("""
-                INSERT INTO pessoa (id_pessoa, nome_completo, cpf, email, ativo, created_at)
-                VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                INSERT INTO pessoa (id_pessoa, nome_completo, cpf, email, id_escola, ativo, created_at)
+                VALUES (?, ?, ?, ?, '00000000-0000-0000-0000-000000000047', ?, CURRENT_TIMESTAMP)
                 """, pessoaId, nome, cpfAleatorio(), "dashboard.diretor.%s@example.com".formatted(alunoId), ativo);
         jdbcTemplate.update("""
                 INSERT INTO aluno (id_aluno, id_pessoa, id_status_aluno, ra, emancipado, ativo, created_at)
@@ -197,8 +197,8 @@ class DashboardDiretorControllerIntegrationTest {
         UUID funcionarioId = UUID.randomUUID();
         UUID professorId = UUID.randomUUID();
         jdbcTemplate.update("""
-                INSERT INTO pessoa (id_pessoa, nome_completo, cpf, email, ativo, created_at)
-                VALUES (?, 'Professor Dashboard Diretor', ?, 'dashboard.diretor.professor@example.com', true, CURRENT_TIMESTAMP)
+                INSERT INTO pessoa (id_pessoa, nome_completo, cpf, email, id_escola, ativo, created_at)
+                VALUES (?, 'Professor Dashboard Diretor', ?, 'dashboard.diretor.professor@example.com', '00000000-0000-0000-0000-000000000047', true, CURRENT_TIMESTAMP)
                 """, pessoaId, cpfAleatorio());
         jdbcTemplate.update("""
                 INSERT INTO cargo (id_cargo, codigo, descricao)

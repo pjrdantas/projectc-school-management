@@ -23,7 +23,7 @@ public class CriarResponsavelUseCase {
     }
 
     public ResponsavelOutput executar(ResponsavelInput input) {
-        if (responsavelCommandGateway.existsByCpf(input.cpf())) {
+        if (responsavelCommandGateway.existsByCpf(input.cpf(), input.escolaId())) {
             throw new ResponsavelJaCadastradoException();
         }
         return responsavelCommandGateway.save(preencherEndereco(input));
@@ -47,7 +47,8 @@ public class CriarResponsavelUseCase {
                 input.complemento(),
                 endereco.bairro(),
                 endereco.localidade(),
-                endereco.uf());
+                endereco.uf(),
+                input.escolaId());
     }
 
     private void validarNumero(String numero) {

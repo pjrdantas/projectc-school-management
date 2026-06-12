@@ -11,5 +11,9 @@ public interface PessoaJpaRepository extends JpaRepository<PessoaEntity, UUID> {
 
     Optional<PessoaEntity> findByCpf(String cpf);
 
+    Optional<PessoaEntity> findByCpfAndEscola_Id(String cpf, UUID escolaId);
+
     boolean existsByCpf(String cpf);
+
+    boolean existsByCpfAndEscola_Id(String cpf, UUID escolaId);
 }

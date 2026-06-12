@@ -9,10 +9,14 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 
 @Entity
 @Table(name = "pessoa")
@@ -62,6 +66,10 @@ public class PessoaEntity {
     @Column(name = "ativo", nullable = false)
     private boolean ativo = true;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_escola", nullable = false)
+    private EscolaEntity escola;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -98,6 +106,8 @@ public class PessoaEntity {
     public void setNaturalidade(String naturalidade) { this.naturalidade = naturalidade; }
     public boolean isAtivo() { return ativo; }
     public void setAtivo(boolean ativo) { this.ativo = ativo; }
+    public EscolaEntity getEscola() { return escola; }
+    public void setEscola(EscolaEntity escola) { this.escola = escola; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

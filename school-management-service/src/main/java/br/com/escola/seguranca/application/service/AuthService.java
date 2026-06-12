@@ -81,7 +81,7 @@ public class AuthService {
                 LocalDateTime.now().plusDays(REFRESH_DIAS),
                 LocalDateTime.now().plusMinutes(ACCESS_MINUTOS)));
 
-        return new AuthResponse(accessToken, refreshToken, "Bearer", usuario.getId(), resolverProfessorId(usuario),
+        return new AuthResponse(accessToken, refreshToken, "Bearer", usuario.getId(), resolverProfessorId(usuario, escolaAtiva.getId()),
                 escolaAtiva.getId(), escolaAtiva.getNome(),
                 usuario.getUsername(), usuario.getNome(),
                 usuarioRepository.findPerfisByIdUsuario(usuario.getId()),
@@ -131,7 +131,7 @@ public class AuthService {
         EscolaEntity escolaAtiva = sessao.getEscola() == null
                 ? escolaTenantService.resolverEscolaAtiva(usuario)
                 : sessao.getEscola();
-        return new AuthResponse(newAccessToken, newRefreshToken, "Bearer", usuario.getId(), resolverProfessorId(usuario),
+        return new AuthResponse(newAccessToken, newRefreshToken, "Bearer", usuario.getId(), resolverProfessorId(usuario, escolaAtiva.getId()),
                 escolaAtiva.getId(), escolaAtiva.getNome(),
                 usuario.getUsername(), usuario.getNome(),
                 usuarioRepository.findPerfisByIdUsuario(usuario.getId()),
@@ -161,9 +161,9 @@ public class AuthService {
         return usuarioRepository.findPermissoesByIdUsuario(idUsuario);
     }
 
-    private UUID resolverProfessorId(UsuarioEntity usuario) {
-        return professorRepository.findByUsuarioId(usuario.getId())
-                .or(() -> professorRepository.findAtivoByPessoaEmailIgnoreCase(usuario.getEmail()))
+    private UUID resolverProfessorId(UsuarioEntity usuario, UUID escolaId) {
+        return professorRepository.findByUsuario_IdAndPessoa_Escola_Id(usuario.getId(), escolaId)
+                .or(() -> professorRepository.findAtivoByPessoaEmailIgnoreCaseAndEscolaId(usuario.getEmail(), escolaId))
                 .map(professor -> professor.getId())
                 .orElse(null);
     }

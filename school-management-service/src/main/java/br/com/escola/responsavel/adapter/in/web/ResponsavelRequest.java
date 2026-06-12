@@ -1,5 +1,7 @@
 package br.com.escola.responsavel.adapter.in.web;
 
+import java.util.UUID;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -28,5 +30,6 @@ public record ResponsavelRequest(
         String complemento,
         String bairro,
         String cidade,
-        String uf) {
+        String uf,
+        UUID escolaId) {
 }

@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
                 "DELETE FROM historico_escolar",
                 "DELETE FROM aluno WHERE id_aluno = '95000000-0000-0000-0000-000000000001'",
                 "DELETE FROM pessoa WHERE id_pessoa = '95000000-0000-0000-0000-000000000002'",
-                "INSERT INTO pessoa (id_pessoa, nome_completo, cpf, rg, data_nascimento, sexo, nacionalidade, naturalidade, ativo, created_at) VALUES ('95000000-0000-0000-0000-000000000002', 'PAULO JOSE ROCHA DANTAS', '95000000001', '17.612.153', DATE '1967-08-27', 'MASCULINO', 'BRASIL', 'GUARATINGUETA', true, CURRENT_TIMESTAMP)",
+                "INSERT INTO pessoa (id_pessoa, nome_completo, cpf, rg, data_nascimento, sexo, nacionalidade, naturalidade, id_escola, ativo, created_at) VALUES ('95000000-0000-0000-0000-000000000002', 'PAULO JOSE ROCHA DANTAS', '95000000001', '17.612.153', DATE '1967-08-27', 'MASCULINO', 'BRASIL', 'GUARATINGUETA', '00000000-0000-0000-0000-000000000047', true, CURRENT_TIMESTAMP)",
                 "INSERT INTO aluno (id_aluno, id_pessoa, id_status_aluno, ra, rm, emancipado, ativo, created_at) VALUES ('95000000-0000-0000-0000-000000000001', '95000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000021', '4228', 'RM-001', false, true, CURRENT_TIMESTAMP)"
         },
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)

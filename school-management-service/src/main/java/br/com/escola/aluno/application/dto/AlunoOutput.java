@@ -27,5 +27,7 @@ public record AlunoOutput(
         String cidade,
         String uf,
         String statusAluno,
+        UUID escolaId,
+        String escolaNome,
         LocalDateTime createdAt) {
 }

@@ -9,9 +9,9 @@ import br.com.escola.aluno.application.dto.AlunoOutput;
 
 public interface AlunoCommandGateway {
 
-    boolean existsByCpf(String cpf);
+    boolean existsByCpf(String cpf, UUID escolaId);
 
-    boolean existsByCpfAndIdNot(String cpf, @NonNull UUID id);
+    boolean existsByCpfAndIdNot(String cpf, UUID escolaId, @NonNull UUID id);
 
     AlunoOutput save(AlunoInput input);
 

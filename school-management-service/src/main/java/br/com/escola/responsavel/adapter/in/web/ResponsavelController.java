@@ -114,7 +114,8 @@ public class ResponsavelController {
                 request.complemento(),
                 request.bairro(),
                 request.cidade(),
-                request.uf());
+                request.uf(),
+                request.escolaId());
     }
 
     private ResponsavelResponse toResponse(ResponsavelOutput output) {
@@ -132,6 +133,8 @@ public class ResponsavelController {
                 output.bairro(),
                 output.cidade(),
                 output.uf(),
+                output.escolaId(),
+                output.escolaNome(),
                 output.createdAt());
     }
 }

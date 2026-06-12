@@ -35,7 +35,7 @@ public class AtualizarAlunoUseCase {
             throw new AlunoNaoEncontradoException(id);
         }
 
-        if (alunoCommandGateway.existsByCpfAndIdNot(input.cpf(), id)) {
+        if (alunoCommandGateway.existsByCpfAndIdNot(input.cpf(), input.escolaId(), id)) {
             throw new AlunoJaCadastradoException();
         }
 
@@ -68,7 +68,8 @@ public class AtualizarAlunoUseCase {
                 endereco.bairro(),
                 endereco.localidade(),
                 endereco.uf(),
-                input.statusAluno());
+                input.statusAluno(),
+                input.escolaId());
     }
 
     private void validarNumero(String numero) {

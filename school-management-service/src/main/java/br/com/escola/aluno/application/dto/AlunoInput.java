@@ -1,6 +1,7 @@
 package br.com.escola.aluno.application.dto;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 public record AlunoInput(
         String nomeCompleto,
@@ -22,5 +23,6 @@ public record AlunoInput(
         String bairro,
         String cidade,
         String uf,
-        String statusAluno) {
+        String statusAluno,
+        UUID escolaId) {
 }

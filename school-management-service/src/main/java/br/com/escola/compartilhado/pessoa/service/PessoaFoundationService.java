@@ -3,6 +3,7 @@ package br.com.escola.compartilhado.pessoa.service;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,9 @@ import br.com.escola.compartilhado.pessoa.repository.PessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.repository.PessoaTipoPessoaJpaRepository;
 import br.com.escola.compartilhado.endereco.repository.TipoEnderecoJpaRepository;
 import br.com.escola.compartilhado.pessoa.repository.TipoPessoaJpaRepository;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
+import br.com.escola.institucional.adapter.out.persistence.repository.EscolaJpaRepository;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Service
 public class PessoaFoundationService {
@@ -36,6 +40,8 @@ public class PessoaFoundationService {
     private final EnderecoJpaRepository enderecoRepository;
     private final TipoEnderecoJpaRepository tipoEnderecoRepository;
     private final PessoaEnderecoJpaRepository pessoaEnderecoRepository;
+    private final EscolaJpaRepository escolaJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     public PessoaFoundationService(
             PessoaJpaRepository pessoaRepository,
@@ -43,13 +49,17 @@ public class PessoaFoundationService {
             PessoaTipoPessoaJpaRepository pessoaTipoPessoaRepository,
             EnderecoJpaRepository enderecoRepository,
             TipoEnderecoJpaRepository tipoEnderecoRepository,
-            PessoaEnderecoJpaRepository pessoaEnderecoRepository) {
+            PessoaEnderecoJpaRepository pessoaEnderecoRepository,
+            EscolaJpaRepository escolaJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.pessoaRepository = pessoaRepository;
         this.tipoPessoaRepository = tipoPessoaRepository;
         this.pessoaTipoPessoaRepository = pessoaTipoPessoaRepository;
         this.enderecoRepository = enderecoRepository;
         this.tipoEnderecoRepository = tipoEnderecoRepository;
         this.pessoaEnderecoRepository = pessoaEnderecoRepository;
+        this.escolaJpaRepository = escolaJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Transactional
@@ -57,8 +67,19 @@ public class PessoaFoundationService {
             PessoaDados pessoaDados,
             String tipoPessoaCodigo,
             EnderecoDados enderecoDados) {
+        return criarPessoaComTipoEEndereco(pessoaDados, tipoPessoaCodigo, enderecoDados, null);
+    }
+
+    @Transactional
+    public PessoaCriada criarPessoaComTipoEEndereco(
+            PessoaDados pessoaDados,
+            String tipoPessoaCodigo,
+            EnderecoDados enderecoDados,
+            UUID escolaId) {
         TipoPessoaEntity tipoPessoa = buscarTipoPessoaObrigatorio(tipoPessoaCodigo);
-        PessoaEntity pessoa = pessoaRepository.save(toPessoaEntity(pessoaDados));
+        PessoaEntity pessoa = toPessoaEntity(pessoaDados);
+        pessoa.setEscola(resolverEscola(escolaId));
+        pessoa = pessoaRepository.save(pessoa);
         vincularTipoPessoa(pessoa, tipoPessoa);
 
         if (enderecoDados == null || isEnderecoVazio(enderecoDados)) {
@@ -72,7 +93,13 @@ public class PessoaFoundationService {
 
     @Transactional
     public void atualizarPessoaEEndereco(PessoaEntity pessoa, PessoaDados pessoaDados, EnderecoDados enderecoDados) {
+        atualizarPessoaEEndereco(pessoa, pessoaDados, enderecoDados, null);
+    }
+
+    @Transactional
+    public void atualizarPessoaEEndereco(PessoaEntity pessoa, PessoaDados pessoaDados, EnderecoDados enderecoDados, UUID escolaId) {
         preencherPessoa(pessoa, pessoaDados);
+        pessoa.setEscola(resolverEscolaParaAtualizacao(pessoa, escolaId));
         pessoaRepository.save(pessoa);
 
         if (enderecoDados == null || isEnderecoVazio(enderecoDados)) {
@@ -112,7 +139,8 @@ public class PessoaFoundationService {
         if (!StringUtils.hasText(cpf)) {
             return Optional.empty();
         }
-        return pessoaRepository.findByCpf(cpf.trim());
+        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        return pessoaRepository.findByCpfAndEscola_Id(cpf.trim(), escolaId);
     }
 
     @Transactional(readOnly = true)
@@ -221,5 +249,20 @@ public class PessoaFoundationService {
 
     private String trimToNull(String value) {
         return StringUtils.hasText(value) ? value.trim() : null;
+    }
+
+    private EscolaEntity resolverEscola(UUID escolaId) {
+        if (escolaId == null) {
+            return escolaTenantService.obterOuCriarEscolaPadrao();
+        }
+        return escolaJpaRepository.findById(escolaId)
+                .orElseThrow(() -> new IllegalArgumentException("Escola não encontrada."));
+    }
+
+    private EscolaEntity resolverEscolaParaAtualizacao(PessoaEntity pessoa, UUID escolaId) {
+        if (escolaId == null && pessoa.getEscola() != null) {
+            return pessoa.getEscola();
+        }
+        return resolverEscola(escolaId);
     }
 }

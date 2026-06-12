@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 import java.time.LocalDate;
+import java.util.UUID;
 
 public record AlunoRequest(
         @NotBlank(message = "nomeCompleto é obrigatório")
@@ -42,6 +43,7 @@ public record AlunoRequest(
         String bairro,
         String cidade,
         String uf,
-        String statusAluno
+        String statusAluno,
+        UUID escolaId
 ) {
 }

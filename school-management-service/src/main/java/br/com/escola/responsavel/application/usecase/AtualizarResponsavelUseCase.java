@@ -25,7 +25,7 @@ public class AtualizarResponsavelUseCase {
     }
 
     public ResponsavelOutput executar(UUID id, ResponsavelInput input) {
-        if (responsavelCommandGateway.existsByCpfAndIdNot(input.cpf(), id)) {
+        if (responsavelCommandGateway.existsByCpfAndIdNot(input.cpf(), input.escolaId(), id)) {
             throw new ResponsavelJaCadastradoException();
         }
         return responsavelCommandGateway.update(id, preencherEndereco(input));
@@ -49,7 +49,8 @@ public class AtualizarResponsavelUseCase {
                 input.complemento(),
                 endereco.bairro(),
                 endereco.localidade(),
-                endereco.uf());
+                endereco.uf(),
+                input.escolaId());
     }
 
     private void validarNumero(String numero) {

@@ -134,6 +134,8 @@ public class AlunoController {
                 output.cidade(),
                 output.uf(),
                 output.statusAluno(),
+                output.escolaId(),
+                output.escolaNome(),
                 output.createdAt());
     }
 
@@ -180,6 +182,7 @@ public class AlunoController {
                 request.bairro(),
                 request.cidade(),
                 request.uf(),
-                request.statusAluno());
+                request.statusAluno(),
+                request.escolaId());
     }
 }

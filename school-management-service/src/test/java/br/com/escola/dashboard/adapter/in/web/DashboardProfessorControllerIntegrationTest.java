@@ -100,8 +100,8 @@ class DashboardProfessorControllerIntegrationTest {
         UUID alocacaoId = UUID.randomUUID();
 
         jdbcTemplate.update("""
-                INSERT INTO pessoa (id_pessoa, nome_completo, cpf, email, ativo, created_at)
-                VALUES (?, 'Professor Dashboard', ?, 'dashboard.professor.docente@example.com', true, CURRENT_TIMESTAMP)
+                INSERT INTO pessoa (id_pessoa, nome_completo, cpf, email, id_escola, ativo, created_at)
+                VALUES (?, 'Professor Dashboard', ?, 'dashboard.professor.docente@example.com', '00000000-0000-0000-0000-000000000047', true, CURRENT_TIMESTAMP)
                 """, pessoaId, cpfAleatorio());
         jdbcTemplate.update("""
                 INSERT INTO cargo (id_cargo, codigo, descricao)

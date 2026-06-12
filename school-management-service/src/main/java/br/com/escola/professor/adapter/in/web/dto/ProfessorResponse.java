@@ -7,6 +7,8 @@ public record ProfessorResponse(
         UUID id,
         UUID pessoaId,
         String nomeCompleto,
+        UUID escolaId,
+        String escolaNome,
         String registroProfissional,
         String formacao,
         Boolean ativo,

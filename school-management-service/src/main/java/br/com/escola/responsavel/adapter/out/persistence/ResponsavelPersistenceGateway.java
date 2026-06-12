@@ -26,6 +26,7 @@ import br.com.escola.compartilhado.pessoa.repository.PessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.repository.PessoaTipoPessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.service.PessoaFoundationService;
 import br.com.escola.documento.adapter.out.persistence.repository.DocumentoJpaRepository;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Component
 public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway, ResponsavelQueryGateway {
@@ -38,6 +39,7 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
     private final PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository;
     private final PessoaFoundationService pessoaFoundationService;
     private final AlunoResponsavelJpaRepository alunoResponsavelJpaRepository;
+    private final EscolaTenantService escolaTenantService;
 
     public ResponsavelPersistenceGateway(
             ResponsavelJpaRepository responsavelJpaRepository,
@@ -47,7 +49,8 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
             DocumentoJpaRepository documentoJpaRepository,
             PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository,
             PessoaFoundationService pessoaFoundationService,
-            AlunoResponsavelJpaRepository alunoResponsavelJpaRepository) {
+            AlunoResponsavelJpaRepository alunoResponsavelJpaRepository,
+            EscolaTenantService escolaTenantService) {
         this.responsavelJpaRepository = responsavelJpaRepository;
         this.pessoaJpaRepository = pessoaJpaRepository;
         this.pessoaTipoPessoaJpaRepository = pessoaTipoPessoaJpaRepository;
@@ -56,16 +59,17 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
         this.pessoaEnderecoJpaRepository = pessoaEnderecoJpaRepository;
         this.pessoaFoundationService = pessoaFoundationService;
         this.alunoResponsavelJpaRepository = alunoResponsavelJpaRepository;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Override
-    public boolean existsByCpf(String cpf) {
-        return responsavelJpaRepository.findByCpf(cpf).isPresent();
+    public boolean existsByCpf(String cpf, UUID escolaId) {
+        return responsavelJpaRepository.findByCpfAndEscolaId(cpf, resolverEscolaId(escolaId)).isPresent();
     }
 
     @Override
-    public boolean existsByCpfAndIdNot(String cpf, UUID id) {
-        return responsavelJpaRepository.existsByCpfAndIdNot(cpf, id);
+    public boolean existsByCpfAndIdNot(String cpf, UUID escolaId, UUID id) {
+        return responsavelJpaRepository.existsByCpfAndEscolaIdAndIdNot(cpf, resolverEscolaId(escolaId), id);
     }
 
     @Override
@@ -74,7 +78,8 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
         PessoaCriada pessoaCriada = pessoaFoundationService.criarPessoaComTipoEEndereco(
                 toPessoaDados(input),
                 "RESPONSAVEL",
-                toEnderecoDados(input));
+                toEnderecoDados(input),
+                input.escolaId());
 
         ResponsavelEntity entity = new ResponsavelEntity();
         entity.setPessoa(pessoaJpaRepository.getReferenceById(pessoaCriada.pessoaId()));
@@ -84,20 +89,21 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
     @Override
     @Transactional
     public ResponsavelOutput update(UUID id, ResponsavelInput input) {
-        ResponsavelEntity entity = responsavelJpaRepository.findById(id)
+        ResponsavelEntity entity = responsavelJpaRepository.findByIdAndPessoa_Escola_Id(id, resolverEscolaId(input.escolaId()))
                 .orElseThrow(() -> new ResponsavelNaoEncontradoException(id));
 
         pessoaFoundationService.atualizarPessoaEEndereco(
                 entity.getPessoa(),
                 toPessoaDados(input),
-                toEnderecoDados(input));
+                toEnderecoDados(input),
+                input.escolaId());
         return toOutput(responsavelJpaRepository.save(entity));
     }
 
     @Override
     @Transactional
     public void deleteById(UUID id) {
-        ResponsavelEntity responsavel = responsavelJpaRepository.findById(id)
+        ResponsavelEntity responsavel = responsavelJpaRepository.findByIdAndPessoa_Escola_Id(id, resolverEscolaId(null))
                 .orElseThrow(() -> new ResponsavelNaoEncontradoException(id));
         UUID pessoaId = responsavel.getPessoa().getId();
         List<UUID> enderecoIds = pessoaEnderecoJpaRepository.findByPessoaId(pessoaId).stream()
@@ -118,17 +124,17 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
 
     @Override
     public Optional<ResponsavelOutput> findById(UUID id) {
-        return responsavelJpaRepository.findById(id).map(this::toOutput);
+        return responsavelJpaRepository.findByIdAndPessoa_Escola_Id(id, resolverEscolaId(null)).map(this::toOutput);
     }
 
     @Override
     public List<ResponsavelOutput> findAll() {
-        return responsavelJpaRepository.findAll().stream().map(this::toOutput).toList();
+        return responsavelJpaRepository.findAllByPessoa_Escola_Id(resolverEscolaId(null)).stream().map(this::toOutput).toList();
     }
 
     @Override
     public boolean existsById(UUID id) {
-        return responsavelJpaRepository.existsById(id);
+        return responsavelJpaRepository.existsByIdAndPessoa_Escola_Id(id, resolverEscolaId(null));
     }
 
     @Override
@@ -156,6 +162,8 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
                 endereco != null ? endereco.getBairro() : null,
                 endereco != null ? endereco.getCidade() : null,
                 endereco != null ? endereco.getUf() : null,
+                entity.getPessoa().getEscola().getId(),
+                entity.getPessoa().getEscola().getNome(),
                 entity.getCreatedAt());
     }
 
@@ -187,5 +195,9 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
                 input.uf(),
                 "RESIDENCIAL",
                 true);
+    }
+
+    private UUID resolverEscolaId(UUID escolaId) {
+        return escolaId == null ? escolaTenantService.obterOuCriarEscolaPadrao().getId() : escolaId;
     }
 }

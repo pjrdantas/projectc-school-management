@@ -241,8 +241,8 @@ class PlanejamentoIAControllerIntegrationTest {
         UUID funcionarioId = UUID.randomUUID();
 
         jdbcTemplate.update("""
-                INSERT INTO pessoa (id_pessoa, nome_completo, cpf, email, ativo, created_at)
-                VALUES (?, ?, ?, ?, true, CURRENT_TIMESTAMP)
+                INSERT INTO pessoa (id_pessoa, nome_completo, cpf, email, id_escola, ativo, created_at)
+                VALUES (?, ?, ?, ?, '00000000-0000-0000-0000-000000000047', true, CURRENT_TIMESTAMP)
                 """, pessoaId, nome, cpfAleatorio(), email);
 
         jdbcTemplate.update("""
