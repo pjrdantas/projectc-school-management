@@ -9,6 +9,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
+import br.com.escola.institucional.adapter.out.persistence.repository.EscolaJpaRepository;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.seguranca.adapter.out.persistence.entity.UsuarioEntity;
 import br.com.escola.seguranca.adapter.out.persistence.mapper.UsuarioMapper;
 import br.com.escola.seguranca.application.port.in.UsuarioUseCasePort;
@@ -22,6 +25,8 @@ public class UsuarioInteractor implements UsuarioUseCasePort {
 
     private final UsuarioRepositoryPort repository;
     private final UsuarioMapper mapper;
+    private final EscolaJpaRepository escolaJpaRepository;
+    private final EscolaTenantService escolaTenantService;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     // ================= CREATE =================
@@ -43,6 +48,7 @@ public class UsuarioInteractor implements UsuarioUseCasePort {
         }
 
         UsuarioEntity entity = mapper.toEntity(model);
+        entity.setEscola(resolverEscola(model.getEscolaId()));
         UsuarioEntity saved = repository.save(entity);
 
         return mapper.toDomain(saved);
@@ -69,6 +75,7 @@ public class UsuarioInteractor implements UsuarioUseCasePort {
         existing.setNome(model.getNome());
         existing.setEmail(model.getEmail().trim());
         existing.setAtivo(model.isAtivo());
+        existing.setEscola(resolverEscola(model.getEscolaId()));
 
         if (model.getSenhaHash() != null && !model.getSenhaHash().isBlank()) {
             existing.setSenhaHash(passwordEncoder.encode(model.getSenhaHash()));
@@ -142,5 +149,14 @@ public class UsuarioInteractor implements UsuarioUseCasePort {
         if (model.getPerfis() == null || model.getPerfis().isEmpty()) {
             throw new IllegalArgumentException("Usuário deve possuir ao menos um perfil.");
         }
+    }
+
+    private EscolaEntity resolverEscola(UUID escolaId) {
+        if (escolaId == null) {
+            return escolaTenantService.obterOuCriarEscolaPadrao();
+        }
+
+        return escolaJpaRepository.findById(escolaId)
+                .orElseThrow(() -> new IllegalArgumentException("Escola não encontrada."));
     }
 }

@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import br.com.escola.transferencia.adapter.out.persistence.entity.EscolaOrigemEntity;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 
-public interface EscolaOrigemJpaRepository extends JpaRepository<EscolaOrigemEntity, UUID> {
+public interface EscolaOrigemJpaRepository extends JpaRepository<EscolaEntity, UUID> {
 }

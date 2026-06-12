@@ -24,6 +24,8 @@ public class UsuarioModel {
     private String email;
     private String senhaHash;
     private boolean ativo;
+    private UUID escolaId;
+    private String escolaNome;
 
     private LocalDateTime createdAt;
 

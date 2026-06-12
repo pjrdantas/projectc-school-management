@@ -14,7 +14,7 @@ import br.com.escola.transferencia.adapter.in.web.dto.EscolaOrigemRequest;
 import br.com.escola.transferencia.adapter.in.web.dto.EscolaOrigemResponse;
 import br.com.escola.transferencia.adapter.in.web.dto.TransferenciaAlunoRequest;
 import br.com.escola.transferencia.adapter.in.web.dto.TransferenciaAlunoResponse;
-import br.com.escola.transferencia.adapter.out.persistence.entity.EscolaOrigemEntity;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.transferencia.adapter.out.persistence.entity.TransferenciaAlunoEntity;
 import br.com.escola.transferencia.adapter.out.persistence.repository.EscolaOrigemJpaRepository;
 import br.com.escola.transferencia.adapter.out.persistence.repository.TransferenciaAlunoJpaRepository;
@@ -65,7 +65,7 @@ public class TransferenciaAlunoService {
     public TransferenciaAlunoResponse criarTransferencia(TransferenciaAlunoRequest request) {
         var aluno = alunoJpaRepository.findById(request.alunoId())
                 .orElseThrow(() -> new TransferenciaAlunoInvalidaException("Aluno não encontrado: " + request.alunoId()));
-        EscolaOrigemEntity escolaOrigem = resolverEscolaOrigem(request);
+        EscolaEntity escolaOrigem = resolverEscolaOrigem(request);
 
         TransferenciaAlunoEntity entity = new TransferenciaAlunoEntity();
         entity.setAluno(aluno);
@@ -105,7 +105,7 @@ public class TransferenciaAlunoService {
                 .toList();
     }
 
-    private EscolaOrigemEntity resolverEscolaOrigem(TransferenciaAlunoRequest request) {
+    private EscolaEntity resolverEscolaOrigem(TransferenciaAlunoRequest request) {
         if (request.escolaOrigemId() != null) {
             return escolaOrigemJpaRepository.findById(request.escolaOrigemId())
                     .orElseThrow(() -> new EscolaOrigemNaoEncontradaException(request.escolaOrigemId()));
@@ -116,8 +116,8 @@ public class TransferenciaAlunoService {
         return escolaOrigemJpaRepository.save(toEscolaEntity(request.escolaOrigem()));
     }
 
-    private EscolaOrigemEntity toEscolaEntity(EscolaOrigemRequest request) {
-        EscolaOrigemEntity entity = new EscolaOrigemEntity();
+    private EscolaEntity toEscolaEntity(EscolaOrigemRequest request) {
+        EscolaEntity entity = new EscolaEntity();
         entity.setNomeEscola(request.nomeEscola());
         entity.setCodigoInep(request.codigoInep());
         entity.setCnpj(request.cnpj());
@@ -132,7 +132,7 @@ public class TransferenciaAlunoService {
         return entity;
     }
 
-    private void preencherEnderecoComViaCep(EscolaOrigemEntity entity, EscolaOrigemRequest request) {
+    private void preencherEnderecoComViaCep(EscolaEntity entity, EscolaOrigemRequest request) {
         ViaCepResponse endereco = viaCepService.consultar(request.cep());
         if (endereco == null) {
             return;
@@ -217,7 +217,7 @@ public class TransferenciaAlunoService {
         return codigos.isEmpty() ? null : codigos.getFirst();
     }
 
-    private EscolaOrigemResponse toEscolaResponse(EscolaOrigemEntity entity) {
+    private EscolaOrigemResponse toEscolaResponse(EscolaEntity entity) {
         return new EscolaOrigemResponse(
                 entity.getId(),
                 entity.getNomeEscola(),

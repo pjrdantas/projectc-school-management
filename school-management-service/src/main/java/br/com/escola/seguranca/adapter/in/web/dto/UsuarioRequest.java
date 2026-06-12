@@ -27,7 +27,9 @@ public record UsuarioRequest(
 
         Boolean ativo,
 
-        List<UUID> perfilIds
+        List<UUID> perfilIds,
+
+        UUID escolaId
 ) {
 
     // 🔥 COMPATIBILIDADE COM CONTROLLER

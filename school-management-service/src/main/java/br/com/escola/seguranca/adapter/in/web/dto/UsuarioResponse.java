@@ -11,6 +11,8 @@ public record UsuarioResponse(
         String nome,
         String email,
         boolean ativo,
+        UUID escolaId,
+        String escolaNome,
         LocalDateTime createdAt,
         List<UUID> perfilIds,
         Set<String> perfis,

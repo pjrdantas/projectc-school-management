@@ -77,6 +77,8 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.usuarioId").value(usuarioId.toString()))
                 .andExpect(jsonPath("$.professorId").value(professorId.toString()))
+                .andExpect(jsonPath("$.escolaId").value("00000000-0000-0000-0000-000000000047"))
+                .andExpect(jsonPath("$.escolaNome").value("Escola padrão"))
                 .andExpect(jsonPath("$.username").value("professor44f"));
     }
 

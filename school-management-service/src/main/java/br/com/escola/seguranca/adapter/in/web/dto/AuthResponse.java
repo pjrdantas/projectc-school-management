@@ -9,6 +9,8 @@ public record AuthResponse(
         String tokenType,
         UUID usuarioId,
         UUID professorId,
+        UUID escolaId,
+        String escolaNome,
         String username,
         String nome,
         List<String> perfis,

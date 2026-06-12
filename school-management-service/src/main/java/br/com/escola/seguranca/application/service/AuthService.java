@@ -11,7 +11,10 @@ import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.seguranca.adapter.in.web.dto.AuthResponse;
 import br.com.escola.professor.adapter.out.persistence.repository.ProfessorJpaRepository;
 import br.com.escola.seguranca.adapter.out.persistence.entity.SessaoAutenticacaoEntity;
@@ -30,22 +33,26 @@ public class AuthService {
     private final SpringUsuarioJpaRepository usuarioRepository;
     private final SessaoAutenticacaoJpaRepository sessaoRepository;
     private final ProfessorJpaRepository professorRepository;
+    private final EscolaTenantService escolaTenantService;
     private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
 
     public AuthService(
-    		SpringUsuarioJpaRepository usuarioRepository,
+            SpringUsuarioJpaRepository usuarioRepository,
             SessaoAutenticacaoJpaRepository sessaoRepository,
             ProfessorJpaRepository professorRepository,
+            EscolaTenantService escolaTenantService,
             PasswordEncoder passwordEncoder,
             JdbcTemplate jdbcTemplate) {
         this.usuarioRepository = usuarioRepository;
         this.sessaoRepository = sessaoRepository;
         this.professorRepository = professorRepository;
+        this.escolaTenantService = escolaTenantService;
         this.passwordEncoder = passwordEncoder;
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    @Transactional
     public AuthResponse login(String login, String senha) {
         UsuarioEntity usuario = usuarioRepository.findByUsernameIgnoreCaseAndAtivoTrue(login)
                 .or(() -> usuarioRepository.findByEmailIgnoreCaseAndAtivoTrue(login))
@@ -64,15 +71,18 @@ public class AuthService {
 
         String accessToken = gerarToken();
         String refreshToken = gerarToken();
+        EscolaEntity escolaAtiva = escolaTenantService.resolverEscolaAtiva(usuario);
 
         sessaoRepository.save(new SessaoAutenticacaoEntity(
                 usuario,
+                escolaAtiva,
                 hashToken(refreshToken),
                 hashToken(accessToken),
                 LocalDateTime.now().plusDays(REFRESH_DIAS),
                 LocalDateTime.now().plusMinutes(ACCESS_MINUTOS)));
 
         return new AuthResponse(accessToken, refreshToken, "Bearer", usuario.getId(), resolverProfessorId(usuario),
+                escolaAtiva.getId(), escolaAtiva.getNome(),
                 usuario.getUsername(), usuario.getNome(),
                 usuarioRepository.findPerfisByIdUsuario(usuario.getId()),
                 usuarioRepository.findPermissoesByIdUsuario(usuario.getId()));
@@ -101,6 +111,7 @@ public class AuthService {
                 """, idUsuarioPerfil, idUsuario);
     }
 
+    @Transactional
     public AuthResponse refresh(String refreshToken) {
         SessaoAutenticacaoEntity sessao = sessaoRepository
                 .findByRefreshTokenHashAndRevogadoFalseAndExpiraEmAfter(hashToken(refreshToken), LocalDateTime.now())
@@ -117,12 +128,17 @@ public class AuthService {
         sessaoRepository.save(sessao);
 
         UsuarioEntity usuario = sessao.getUsuario();
+        EscolaEntity escolaAtiva = sessao.getEscola() == null
+                ? escolaTenantService.resolverEscolaAtiva(usuario)
+                : sessao.getEscola();
         return new AuthResponse(newAccessToken, newRefreshToken, "Bearer", usuario.getId(), resolverProfessorId(usuario),
+                escolaAtiva.getId(), escolaAtiva.getNome(),
                 usuario.getUsername(), usuario.getNome(),
                 usuarioRepository.findPerfisByIdUsuario(usuario.getId()),
                 usuarioRepository.findPermissoesByIdUsuario(usuario.getId()));
     }
 
+    @Transactional
     public void logout(String refreshToken) {
         SessaoAutenticacaoEntity sessao = sessaoRepository
                 .findByRefreshTokenHashAndRevogadoFalseAndExpiraEmAfter(hashToken(refreshToken), LocalDateTime.now())
@@ -132,6 +148,7 @@ public class AuthService {
         sessaoRepository.save(sessao);
     }
 
+    @Transactional(readOnly = true)
     public UsuarioEntity validarAccessToken(String accessToken) {
         SessaoAutenticacaoEntity sessao = sessaoRepository
                 .findByAccessTokenHashAndRevogadoFalseAndAccessExpiraEmAfter(hashToken(accessToken), LocalDateTime.now())

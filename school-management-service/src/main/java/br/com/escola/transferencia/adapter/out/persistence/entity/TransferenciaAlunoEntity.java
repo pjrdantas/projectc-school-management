@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import br.com.escola.aluno.adapter.out.persistence.entity.AlunoEntity;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -32,7 +33,7 @@ public class TransferenciaAlunoEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_escola_origem", nullable = false)
-    private EscolaOrigemEntity escolaOrigem;
+    private EscolaEntity escolaOrigem;
 
     @Column(name = "id_tipo_transferencia", nullable = false)
     private UUID tipoTransferenciaId;
@@ -79,8 +80,8 @@ public class TransferenciaAlunoEntity {
     public UUID getId() { return id; }
     public AlunoEntity getAluno() { return aluno; }
     public void setAluno(AlunoEntity aluno) { this.aluno = aluno; }
-    public EscolaOrigemEntity getEscolaOrigem() { return escolaOrigem; }
-    public void setEscolaOrigem(EscolaOrigemEntity escolaOrigem) { this.escolaOrigem = escolaOrigem; }
+    public EscolaEntity getEscolaOrigem() { return escolaOrigem; }
+    public void setEscolaOrigem(EscolaEntity escolaOrigem) { this.escolaOrigem = escolaOrigem; }
     public UUID getTipoTransferenciaId() { return tipoTransferenciaId; }
     public void setTipoTransferenciaId(UUID tipoTransferenciaId) { this.tipoTransferenciaId = tipoTransferenciaId; }
     public UUID getStatusTransferenciaId() { return statusTransferenciaId; }

@@ -40,6 +40,8 @@ public class UsuarioController {
                 m.getNome(),
                 m.getEmail(),
                 m.isAtivo(),
+                m.getEscolaId(),
+                m.getEscolaNome(),
                 m.getCreatedAt(),
                 m.getPerfis() != null
                         ? m.getPerfis().stream().map(PerfilModel::getId).toList()
@@ -83,6 +85,7 @@ public class UsuarioController {
                 .email(dto.email())
                 .senhaHash(dto.senhaHash())
                 .ativo(dto.ativo() == null || dto.ativo())
+                .escolaId(dto.escolaId())
                 .perfis(perfis)
                 .build();
 
@@ -110,6 +113,7 @@ public class UsuarioController {
                 .email(dto.email())
                 .senhaHash(dto.senhaHash())
                 .ativo(dto.ativo() == null || dto.ativo())
+                .escolaId(dto.escolaId())
                 .perfis(perfis)
                 .build();
 

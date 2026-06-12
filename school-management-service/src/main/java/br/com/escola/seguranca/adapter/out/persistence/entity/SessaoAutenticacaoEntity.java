@@ -3,6 +3,7 @@ package br.com.escola.seguranca.adapter.out.persistence.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -23,6 +24,10 @@ public class SessaoAutenticacaoEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_usuario", nullable = false)
     private UsuarioEntity usuario;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_escola")
+    private EscolaEntity escola;
 
     @Column(name = "refresh_token_hash", nullable = false, length = 255)
     private String refreshTokenHash;
@@ -46,11 +51,13 @@ public class SessaoAutenticacaoEntity {
 
     public SessaoAutenticacaoEntity(
             UsuarioEntity usuario,
+            EscolaEntity escola,
             String refreshTokenHash,
             String accessTokenHash,
             LocalDateTime expiraEm,
             LocalDateTime accessExpiraEm) {
         this.usuario = usuario;
+        this.escola = escola;
         this.refreshTokenHash = refreshTokenHash;
         this.accessTokenHash = accessTokenHash;
         this.expiraEm = expiraEm;
@@ -66,6 +73,7 @@ public class SessaoAutenticacaoEntity {
 
     public UUID getId() { return id; }
     public UsuarioEntity getUsuario() { return usuario; }
+    public EscolaEntity getEscola() { return escola; }
     public String getRefreshTokenHash() { return refreshTokenHash; }
     public String getAccessTokenHash() { return accessTokenHash; }
     public LocalDateTime getExpiraEm() { return expiraEm; }

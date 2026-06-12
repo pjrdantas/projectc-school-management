@@ -5,12 +5,15 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -49,6 +52,10 @@ public class UsuarioEntity {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_escola")
+    private EscolaEntity escola;
 
     @ManyToMany
     @JoinTable(name = "usuario_perfil",
