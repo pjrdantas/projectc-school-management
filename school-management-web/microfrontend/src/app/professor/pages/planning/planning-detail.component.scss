@@ -1,0 +1,155 @@
+:host {
+  display: block;
+}
+
+.page-container {
+  min-height: 100%;
+  overflow: hidden;
+}
+
+.federated-card {
+  width: 100%;
+  border: 2px solid #4b7f52;
+  border-radius: 16px;
+}
+
+.header-row,
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-row h1,
+.header-row p,
+.section-header h2,
+.section-header p {
+  margin: 0;
+}
+
+.header-row p,
+.section-header p,
+.info-panel span,
+.planned-main span,
+.planned-meta {
+  color: #576071;
+  font-size: 0.82rem;
+}
+
+.section-header h2 {
+  font-size: 1rem;
+}
+
+mat-progress-bar {
+  margin-top: 12px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.info-panel {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid #c7d8c9;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.info-panel strong {
+  overflow-wrap: anywhere;
+}
+
+.span-2 {
+  grid-column: 1 / -1;
+}
+
+.status-section,
+.planned-section {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #c7d8c9;
+}
+
+.status-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.status-form button {
+  min-height: 56px;
+}
+
+.planned-list {
+  display: grid;
+  gap: 10px;
+}
+
+.planned-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #c7d8c9;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.planned-number {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #4b7f52;
+  font-weight: 700;
+}
+
+.planned-main {
+  display: grid;
+  gap: 4px;
+}
+
+.planned-meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.empty-state {
+  margin: 0;
+  padding: 12px;
+  border: 1px dashed #b7cfbd;
+  border-radius: 10px;
+  color: #576071;
+  font-size: 0.86rem;
+}
+
+@media (max-width: 760px) {
+  .detail-grid,
+  .status-form,
+  .planned-item {
+    grid-template-columns: 1fr;
+  }
+
+  .span-2 {
+    grid-column: auto;
+  }
+
+  .planned-meta {
+    justify-content: flex-start;
+  }
+}

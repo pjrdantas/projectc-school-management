@@ -154,6 +154,20 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'planning',
+    loadComponent: () =>
+      import('./professor/pages/planning/planning-list.component').then(
+        m => m.PlanningListComponent,
+      ),
+  },
+  {
+    path: 'planning/:id',
+    loadComponent: () =>
+      import('./professor/pages/planning/planning-detail.component').then(
+        m => m.PlanningDetailComponent,
+      ),
+  },
+  {
     path: 'dashboard/config',
     loadComponent: () =>
       import('./dashboard/pages/config/dashboard-config-admin.component').then(

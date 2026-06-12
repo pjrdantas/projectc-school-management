@@ -1,0 +1,50 @@
+<h2 mat-dialog-title>Nova aula prevista</h2>
+
+<mat-dialog-content>
+  <form class="dialog-grid" [formGroup]="form" (ngSubmit)="save()">
+    <mat-form-field appearance="outline">
+      <mat-label>Número *</mat-label>
+      <input matInput type="number" min="1" formControlName="numeroAula" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Tema *</mat-label>
+      <input matInput formControlName="temaAula" maxlength="180" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Objetivo</mat-label>
+      <textarea matInput rows="3" formControlName="objetivoAula"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Conteúdo previsto</mat-label>
+      <textarea matInput rows="3" formControlName="conteudoPrevisto"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Metodologia</mat-label>
+      <input matInput formControlName="metodologia" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Recursos</mat-label>
+      <input matInput formControlName="recursos" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Atividade prevista</mat-label>
+      <textarea matInput rows="3" formControlName="atividadePrevista"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Observação</mat-label>
+      <textarea matInput rows="3" formControlName="observacao"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">Cancelar</button>
+  <button mat-raised-button color="primary" type="button" (click)="save()">Salvar</button>
+</mat-dialog-actions>

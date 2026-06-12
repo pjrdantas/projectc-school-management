@@ -1,0 +1,78 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Editar planejamento' : 'Novo planejamento' }}</h2>
+
+<mat-dialog-content>
+  <form class="dialog-grid" [formGroup]="form" (ngSubmit)="save()">
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Professor, turma e disciplina *</mat-label>
+      <select matNativeControl formControlName="professorTurmaDisciplinaId">
+        <option value="">Selecione um vínculo pedagógico</option>
+        <option *ngFor="let allocation of allocations" [value]="allocation.id">
+          {{ allocation.professorNome }} - {{ allocation.turmaNome }} - {{ allocation.disciplinaNome }}
+        </option>
+      </select>
+    </mat-form-field>
+
+    <p *ngIf="allocations.length === 0" class="empty-message span-2">
+      Nenhum vínculo ativo de professor, turma e disciplina disponível.
+    </p>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Título *</mat-label>
+      <input matInput formControlName="titulo" maxlength="180" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Tema principal *</mat-label>
+      <input matInput formControlName="temaPrincipal" maxlength="180" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Reutilizável</mat-label>
+      <select matNativeControl formControlName="reutilizavel">
+        <option value="false">Não</option>
+        <option value="true">Sim</option>
+      </select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Criado com IA</mat-label>
+      <select matNativeControl formControlName="criadoComAuxilioIA">
+        <option value="false">Não</option>
+        <option value="true">Sim</option>
+      </select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Descrição inicial *</mat-label>
+      <textarea matInput rows="4" formControlName="descricaoInicial"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Objetivo geral</mat-label>
+      <textarea matInput rows="3" formControlName="objetivoGeral"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Observação do professor</mat-label>
+      <textarea matInput rows="3" formControlName="observacaoProfessor"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Conteúdo final aprovado</mat-label>
+      <textarea matInput rows="3" formControlName="conteudoFinalAprovado"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">Cancelar</button>
+  <button
+    mat-raised-button
+    color="primary"
+    type="button"
+    [disabled]="allocations.length === 0"
+    (click)="save()"
+  >
+    Salvar
+  </button>
+</mat-dialog-actions>

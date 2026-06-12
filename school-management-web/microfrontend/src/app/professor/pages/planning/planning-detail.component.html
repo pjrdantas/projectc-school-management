@@ -1,0 +1,162 @@
+<div class="page-container">
+  <mat-card class="federated-card">
+    <mat-card-content>
+      <div class="header-row">
+        <div>
+          <h1>Detalhe do planejamento</h1>
+          <p *ngIf="planning() as data">{{ data.turmaNome }} - {{ data.disciplinaNome }}</p>
+        </div>
+        <button mat-stroked-button type="button" (click)="back()">
+          <mat-icon fontIcon="arrow_back"></mat-icon>
+          Voltar
+        </button>
+      </div>
+
+      <mat-progress-bar *ngIf="isLoading()" mode="indeterminate"></mat-progress-bar>
+
+      <section class="detail-grid" *ngIf="planning() as data">
+        <div class="info-panel span-2">
+          <span>Título</span>
+          <strong>{{ data.titulo }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Tema principal</span>
+          <strong>{{ data.temaPrincipal }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Status</span>
+          <strong>{{ statusLabel(data.status, data.statusDescricao) }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Professor</span>
+          <strong>{{ data.professorNome }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Período</span>
+          <strong>{{ data.periodoAvaliativoNome || 'Não informado' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Turma</span>
+          <strong>{{ data.turmaNome }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Disciplina</span>
+          <strong>{{ data.disciplinaNome }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Reutilizável</span>
+          <strong>{{ data.reutilizavel ? 'Sim' : 'Não' }}</strong>
+        </div>
+        <div class="info-panel">
+          <span>Criado com IA</span>
+          <strong>{{ data.criadoComAuxilioIA ? 'Sim' : 'Não' }}</strong>
+        </div>
+        <div class="info-panel span-2">
+          <span>Descrição inicial</span>
+          <strong>{{ data.descricaoInicial }}</strong>
+        </div>
+        <div class="info-panel span-2">
+          <span>Objetivo geral</span>
+          <strong>{{ data.objetivoGeral || 'Não informado' }}</strong>
+        </div>
+        <div class="info-panel span-2">
+          <span>Observação do professor</span>
+          <strong>{{ data.observacaoProfessor || 'Não informada' }}</strong>
+        </div>
+        <div class="info-panel span-2">
+          <span>Conteúdo final aprovado</span>
+          <strong>{{ data.conteudoFinalAprovado || 'Não informado' }}</strong>
+        </div>
+      </section>
+
+      <section class="status-section" *ngIf="planning()">
+        <div class="section-header">
+          <div>
+            <h2>Status do planejamento</h2>
+            <p>Fluxo operacional de análise e aprovação.</p>
+          </div>
+        </div>
+
+        <form class="status-form" [formGroup]="statusForm" (ngSubmit)="saveStatus()">
+          <mat-form-field appearance="outline">
+            <mat-label>Status</mat-label>
+            <select matNativeControl formControlName="status">
+              <option *ngFor="let option of statusOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </mat-form-field>
+
+          <button mat-raised-button color="primary" type="submit" [disabled]="isSavingStatus()">
+            Atualizar
+          </button>
+        </form>
+      </section>
+
+      <section class="planned-section" *ngIf="planning() as data">
+        <div class="section-header">
+          <div>
+            <h2>Aulas previstas</h2>
+            <p>{{ data.aulasPrevistas.length }} aula(s) planejada(s)</p>
+          </div>
+          <button mat-stroked-button type="button" (click)="openLessonDialog()">
+            <mat-icon fontIcon="add"></mat-icon>
+            Adicionar aula
+          </button>
+        </div>
+
+        <div class="planned-list" *ngIf="data.aulasPrevistas.length > 0; else noLessonsTpl">
+          <article class="planned-item" *ngFor="let lesson of data.aulasPrevistas">
+            <div class="planned-number">{{ lesson.numeroAula }}</div>
+            <div class="planned-main">
+              <strong>{{ lesson.temaAula }}</strong>
+              <span>{{ lesson.objetivoAula || 'Objetivo não informado' }}</span>
+              <span>{{ lesson.conteudoPrevisto || 'Conteúdo não informado' }}</span>
+            </div>
+            <div class="planned-meta">
+              <span>{{ lesson.metodologia || 'Sem metodologia' }}</span>
+              <span>{{ lesson.recursos || 'Sem recursos' }}</span>
+            </div>
+          </article>
+        </div>
+
+        <ng-template #noLessonsTpl>
+          <p class="empty-state">Nenhuma aula prevista cadastrada.</p>
+        </ng-template>
+      </section>
+
+      <section class="planned-section" *ngIf="planning() as data">
+        <div class="section-header">
+          <div>
+            <h2>Avaliações previstas</h2>
+            <p>{{ data.avaliacoesPrevistas.length }} avaliação(ões) planejada(s)</p>
+          </div>
+          <button mat-stroked-button type="button" (click)="openAssessmentDialog()">
+            <mat-icon fontIcon="add"></mat-icon>
+            Adicionar avaliação
+          </button>
+        </div>
+
+        <div class="planned-list" *ngIf="data.avaliacoesPrevistas.length > 0; else noAssessmentsTpl">
+          <article class="planned-item" *ngFor="let assessment of data.avaliacoesPrevistas">
+            <div class="planned-main">
+              <strong>{{ assessment.titulo }}</strong>
+              <span>{{ assessment.descricao || 'Descrição não informada' }}</span>
+              <span>{{ assessment.conteudoCobrado || 'Conteúdo não informado' }}</span>
+            </div>
+            <div class="planned-meta">
+              <span>{{ assessmentTypeLabel(assessment.tipoAvaliacao) }}</span>
+              <span>{{ assessment.dataPrevista ? (assessment.dataPrevista | date: 'dd/MM/yyyy') : 'Sem data' }}</span>
+              <span>Peso {{ assessment.peso }}</span>
+              <span>{{ assessment.valorMaximo || 0 }} pts</span>
+            </div>
+          </article>
+        </div>
+
+        <ng-template #noAssessmentsTpl>
+          <p class="empty-state">Nenhuma avaliação prevista cadastrada.</p>
+        </ng-template>
+      </section>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,22 @@
+.dialog-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  min-width: min(680px, 78vw);
+  padding-top: 4px;
+}
+
+.span-2 {
+  grid-column: 1 / -1;
+}
+
+textarea {
+  resize: vertical;
+}
+
+@media (max-width: 640px) {
+  .dialog-grid {
+    grid-template-columns: 1fr;
+    min-width: 0;
+  }
+}
