@@ -18,6 +18,7 @@ import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaJpaReposit
 import br.com.escola.catalogo.domain.exception.DisciplinaNaoEncontradaException;
 import br.com.escola.catalogo.domain.exception.TurmaDisciplinaJaCadastradaException;
 import br.com.escola.catalogo.domain.exception.TurmaNaoEncontradaException;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 
 @Service
 public class TurmaDisciplinaService {
@@ -25,14 +26,17 @@ public class TurmaDisciplinaService {
     private final TurmaJpaRepository turmaJpaRepository;
     private final DisciplinaJpaRepository disciplinaJpaRepository;
     private final TurmaDisciplinaJpaRepository turmaDisciplinaJpaRepository;
+    private final EscolaContextoPort escolaContextoPort;
 
     public TurmaDisciplinaService(
             TurmaJpaRepository turmaJpaRepository,
             DisciplinaJpaRepository disciplinaJpaRepository,
-            TurmaDisciplinaJpaRepository turmaDisciplinaJpaRepository) {
+            TurmaDisciplinaJpaRepository turmaDisciplinaJpaRepository,
+            EscolaContextoPort escolaContextoPort) {
         this.turmaJpaRepository = turmaJpaRepository;
         this.disciplinaJpaRepository = disciplinaJpaRepository;
         this.turmaDisciplinaJpaRepository = turmaDisciplinaJpaRepository;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Transactional
@@ -61,14 +65,16 @@ public class TurmaDisciplinaService {
 
     @Transactional(readOnly = true)
     public List<TurmaDisciplinaResponse> listarPorTurma(UUID turmaId) {
-        if (!turmaJpaRepository.existsByIdAndEscola_Id(
-                turmaId,
-                br.com.escola.institucional.application.service.EscolaTenantService.ESCOLA_PADRAO_ID)) {
+        if (!turmaJpaRepository.existsByIdAndEscola_Id(turmaId, resolverEscolaPadraoId())) {
             throw new TurmaNaoEncontradaException(turmaId);
         }
         return turmaDisciplinaJpaRepository.findByTurmaId(turmaId).stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    private UUID resolverEscolaPadraoId() {
+        return escolaContextoPort.obterContextoPadrao().escolaId();
     }
 
     private TurmaDisciplinaResponse toResponse(TurmaDisciplinaEntity entity) {
