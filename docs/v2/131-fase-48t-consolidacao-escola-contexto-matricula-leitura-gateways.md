@@ -48,6 +48,10 @@ Esta fase e documental e de verificacao de consistencia. Ela nao cria BFF, micro
 
 Os usos de `EscolaContextoPort` em matricula leitura e gateways auxiliares estao consolidados e documentados, preservando comportamento externo e mantendo os fluxos transacionais fora do escopo.
 
+## Estado apos Fase 48U
+
+A Fase 48U diagnosticou os usos remanescentes de `EscolaTenantService` e selecionou `CatalogoAcademicoInternalService` como proximo candidato seguro, sem alterar fluxos transacionais, seguranca ou persistencia de catalogo.
+
 ## Proxima fase sugerida
 
 Fase 48U - diagnostico dos usos remanescentes de `EscolaTenantService` e escolha do proximo candidato seguro.
@@ -58,3 +62,7 @@ Objetivo sugerido:
 - Separar fluxos de leitura e validacao defensiva de fluxos transacionais, persistencia e seguranca.
 - Escolher um unico candidato de baixo risco para a proxima aplicacao pontual.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 48U
+
+Fase 48V - uso pontual de `EscolaContextoPort` em `CatalogoAcademicoInternalService`.

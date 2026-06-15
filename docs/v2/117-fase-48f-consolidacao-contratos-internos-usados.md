@@ -175,15 +175,15 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - Diagnostico dos usos remanescentes de EscolaTenantService
+### Candidato 1 - CatalogoAcademicoInternalService
 
 Possivel uso:
 
-- Mapear usos remanescentes por dominio, risco e tipo de fluxo antes de escolher novo ponto de aplicacao.
+- Usar `EscolaContextoPort` em `CatalogoAcademicoInternalService`, preservando `CatalogoAcademicoPort` e `EstruturaTurmaPort`.
 
 Risco:
 
-- Baixo. A etapa deve ser documental e de verificacao, sem alteracao funcional.
+- Baixo. O uso direto de `EscolaTenantService` esta concentrado no fallback de escola padrao em um service interno de leitura e validacao.
 
 Validacao esperada:
 
@@ -224,6 +224,10 @@ A Fase 48S aplicou `EscolaContextoPort` nos gateways auxiliares de consulta de m
 ## Estado apos Fase 48T
 
 A Fase 48T consolidou os usos de `EscolaContextoPort` em matricula leitura e gateways auxiliares. `MatriculaFluxoService` e `MatriculaPersistenceGateway` permanecem fora do escopo por serem transacionais. O proximo passo seguro e diagnosticar os usos remanescentes de `EscolaTenantService` por dominio e risco.
+
+## Estado apos Fase 48U
+
+A Fase 48U diagnosticou os usos remanescentes de `EscolaTenantService` por dominio, risco e tipo de fluxo. O proximo candidato seguro escolhido foi `CatalogoAcademicoInternalService`, por ser um service interno de leitura e validacao com `escolaId` explicito nos contratos.
 
 ## Criterios de conclusao da Fase 48F
 
