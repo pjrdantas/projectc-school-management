@@ -12,6 +12,7 @@ import br.com.escola.avaliacao.adapter.out.persistence.entity.TipoAvaliacaoEntit
 import br.com.escola.avaliacao.adapter.out.persistence.repository.PeriodoAvaliativoJpaRepository;
 import br.com.escola.avaliacao.adapter.out.persistence.repository.TipoAvaliacaoJpaRepository;
 import br.com.escola.avaliacao.domain.exception.TipoAvaliacaoNaoEncontradoException;
+import br.com.escola.catalogo.application.port.internal.EstruturaTurmaPort;
 import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.planejamento.adapter.in.web.dto.PlanejamentoBimestralAulaRequest;
 import br.com.escola.planejamento.adapter.in.web.dto.PlanejamentoBimestralAulaResponse;
@@ -50,6 +51,7 @@ public class PlanejamentoBimestralService {
     private final StatusPlanejamentoJpaRepository statusPlanejamentoJpaRepository;
     private final TipoAvaliacaoJpaRepository tipoAvaliacaoJpaRepository;
     private final EscolaTenantService escolaTenantService;
+    private final EstruturaTurmaPort estruturaTurmaPort;
 
     public PlanejamentoBimestralService(
             PlanejamentoBimestralJpaRepository planejamentoBimestralJpaRepository,
@@ -59,7 +61,8 @@ public class PlanejamentoBimestralService {
             PeriodoAvaliativoJpaRepository periodoAvaliativoJpaRepository,
             StatusPlanejamentoJpaRepository statusPlanejamentoJpaRepository,
             TipoAvaliacaoJpaRepository tipoAvaliacaoJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaTenantService escolaTenantService,
+            EstruturaTurmaPort estruturaTurmaPort) {
         this.planejamentoBimestralJpaRepository = planejamentoBimestralJpaRepository;
         this.planejamentoBimestralAulaJpaRepository = planejamentoBimestralAulaJpaRepository;
         this.planejamentoBimestralAvaliacaoJpaRepository = planejamentoBimestralAvaliacaoJpaRepository;
@@ -68,6 +71,7 @@ public class PlanejamentoBimestralService {
         this.statusPlanejamentoJpaRepository = statusPlanejamentoJpaRepository;
         this.tipoAvaliacaoJpaRepository = tipoAvaliacaoJpaRepository;
         this.escolaTenantService = escolaTenantService;
+        this.estruturaTurmaPort = estruturaTurmaPort;
     }
 
     @Transactional
@@ -203,8 +207,19 @@ public class PlanejamentoBimestralService {
     }
 
     private ProfessorTurmaDisciplinaEntity findAlocacao(UUID id) {
-        return professorTurmaDisciplinaJpaRepository.findByIdAndTurmaDisciplina_Turma_Escola_Id(id, escolaId())
+        ProfessorTurmaDisciplinaEntity alocacao = professorTurmaDisciplinaJpaRepository.findByIdAndTurmaDisciplina_Turma_Escola_Id(id, escolaId())
                 .orElseThrow(ProfessorTurmaDisciplinaNaoEncontradaException::new);
+        validarEstruturaTurmaDisciplina(alocacao);
+        return alocacao;
+    }
+
+    private void validarEstruturaTurmaDisciplina(ProfessorTurmaDisciplinaEntity alocacao) {
+        UUID escolaId = escolaId();
+        UUID turmaId = alocacao.getTurmaDisciplina().getTurma().getId();
+        UUID disciplinaId = alocacao.getTurmaDisciplina().getDisciplina().getId();
+        if (!estruturaTurmaPort.turmaPossuiDisciplina(escolaId, turmaId, disciplinaId)) {
+            throw new ProfessorTurmaDisciplinaNaoEncontradaException();
+        }
     }
 
     private PeriodoAvaliativoEntity findPeriodoAvaliativo(UUID id) {
