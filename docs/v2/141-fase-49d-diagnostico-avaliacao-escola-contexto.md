@@ -73,6 +73,10 @@ Motivos:
 
 A Fase 49E aplicou `EscolaContextoPort` em `AvaliacaoService`, mantendo `EstruturaTurmaPort`, o metodo privado `escolaId()`, as regras de avaliacao e nota e os contratos HTTP inalterados.
 
+## Estado apos Fase 49F
+
+A Fase 49F consolidou `AvaliacaoService` como consumidor de `EscolaContextoPort` e `EstruturaTurmaPort`, encerrando o ciclo pontual de planejamento, diario de aula e avaliacoes antes do proximo diagnostico de usos remanescentes.
+
 ## Proxima fase sugerida
 
 Fase 49E - uso pontual de `EscolaContextoPort` em `AvaliacaoService`.
@@ -88,3 +92,7 @@ Objetivo sugerido:
 ## Proxima fase sugerida apos 49E
 
 Fase 49F - consolidacao de `EscolaContextoPort` em avaliacoes.
+
+## Proxima fase sugerida apos 49F
+
+Fase 49G - diagnostico atualizado dos usos remanescentes de `EscolaTenantService`.

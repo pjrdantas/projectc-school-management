@@ -32,6 +32,10 @@ Esta fase nao cria BFF, microservico, fila, banco adicional, novo componente fro
 
 `AvaliacaoService` passa a consumir a fronteira interna de contexto escolar sem alterar comportamento externo, mantendo `EstruturaTurmaPort` como contrato interno de validacao de turma-disciplina.
 
+## Estado apos Fase 49F
+
+A Fase 49F consolidou o uso de `EscolaContextoPort` em `AvaliacaoService`, confirmando que o service nao depende mais diretamente de `EscolaTenantService` e que os contratos HTTP de avaliacoes e notas permanecem inalterados.
+
 ## Proxima fase sugerida
 
 Fase 49F - consolidacao de `EscolaContextoPort` em avaliacoes.
@@ -42,3 +46,7 @@ Objetivo sugerido:
 - Confirmar que `AvaliacaoService` nao depende mais diretamente de `EscolaTenantService`.
 - Reavaliar os usos remanescentes de `EscolaTenantService` antes de qualquer nova aplicacao pontual.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 49F
+
+Fase 49G - diagnostico atualizado dos usos remanescentes de `EscolaTenantService`.

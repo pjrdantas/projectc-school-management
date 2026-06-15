@@ -183,15 +183,15 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - AvaliacaoService
+### Candidato 1 - Diagnostico atualizado de usos remanescentes
 
 Possivel uso:
 
-- Usar `EscolaContextoPort` em `AvaliacaoService`, preservando `EstruturaTurmaPort`, lancamento de notas e consistencia entre turma da avaliacao e turma da matricula.
+- Reclassificar os usos remanescentes de `EscolaTenantService` apos as aplicacoes pontuais em catalogo interno, dashboards, matricula leitura, planejamento, diario de aula e avaliacoes.
 
 Risco:
 
-- Medio a alto. O fluxo cruza avaliacao, notas, matricula, valor maximo e consistencia de turma, mas o diagnostico da Fase 49D confirmou que a resolucao de escola esta concentrada em um metodo privado.
+- Medio. Os usos remanescentes incluem gateways, fluxos transacionais, historico, IA, pessoa, professor e seguranca. A proxima fase deve diagnosticar antes de escolher um unico candidato.
 
 Validacao esperada:
 
@@ -276,6 +276,10 @@ A Fase 49D diagnosticou `AvaliacaoService` e confirmou que o uso direto de `Esco
 ## Estado apos Fase 49E
 
 A Fase 49E aplicou `EscolaContextoPort` em `AvaliacaoService`, preservando `EstruturaTurmaPort`, o metodo privado `escolaId()` e os contratos HTTP de avaliacoes e notas.
+
+## Estado apos Fase 49F
+
+A Fase 49F consolidou `AvaliacaoService` como consumidor de `EscolaContextoPort` e `EstruturaTurmaPort`. O proximo passo seguro passa a ser um diagnostico atualizado dos usos remanescentes de `EscolaTenantService`, antes de qualquer nova aplicacao pontual.
 
 ## Criterios de conclusao da Fase 48F
 
