@@ -177,15 +177,15 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - Consolidacao dos contratos internos de catalogo
+### Candidato 1 - Diagnostico dos consumidores de EstruturaTurmaPort
 
 Possivel uso:
 
-- Consolidar o uso de `EscolaContextoPort` em `CatalogoAcademicoInternalService` e reavaliar os proximos candidatos fora de catalogo interno.
+- Mapear `PlanejamentoBimestralService`, `DiarioAulaService` e `AvaliacaoService`, que ja usam `EstruturaTurmaPort` mas ainda resolvem escola diretamente.
 
 Risco:
 
-- Baixo. A etapa deve ser documental e de verificacao de consistencia.
+- Baixo. A etapa deve ser documental e de verificacao, sem alteracao funcional.
 
 Validacao esperada:
 
@@ -234,6 +234,10 @@ A Fase 48U diagnosticou os usos remanescentes de `EscolaTenantService` por domin
 ## Estado apos Fase 48V
 
 A Fase 48V aplicou `EscolaContextoPort` em `CatalogoAcademicoInternalService`, preservando `CatalogoAcademicoPort`, `EstruturaTurmaPort` e o fallback de escola padrao quando `escolaId` nao e informado.
+
+## Estado apos Fase 48W
+
+A Fase 48W consolidou os contratos internos de catalogo apos a aplicacao de `EscolaContextoPort` em `CatalogoAcademicoInternalService`. A proxima etapa segura e diagnosticar os consumidores de `EstruturaTurmaPort` que ainda usam `EscolaTenantService` em fluxos de escrita.
 
 ## Criterios de conclusao da Fase 48F
 

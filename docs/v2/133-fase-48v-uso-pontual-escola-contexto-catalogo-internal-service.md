@@ -31,6 +31,10 @@ Esta fase nao cria BFF, microservico, fila, banco adicional, novo componente fro
 
 `CatalogoAcademicoInternalService` passa a consumir a fronteira interna de contexto escolar sem alterar os contratos internos de catalogo, os contratos HTTP ou o comportamento externo.
 
+## Estado apos Fase 48W
+
+A Fase 48W consolidou a matriz documental dos contratos internos de catalogo, confirmando que `CatalogoAcademicoInternalService` usa `EscolaContextoPort` e preserva `CatalogoAcademicoPort` e `EstruturaTurmaPort`.
+
 ## Proxima fase sugerida
 
 Fase 48W - consolidacao de `EscolaContextoPort` nos contratos internos de catalogo.
@@ -41,3 +45,7 @@ Objetivo sugerido:
 - Confirmar que `CatalogoAcademicoInternalService` nao depende mais diretamente de `EscolaTenantService`.
 - Reavaliar os proximos candidatos fora de catalogo interno sem tocar persistencia ou seguranca.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 48W
+
+Fase 48X - diagnostico dos consumidores de `EstruturaTurmaPort` que ainda usam `EscolaTenantService`.
