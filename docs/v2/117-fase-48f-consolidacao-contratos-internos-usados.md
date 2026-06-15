@@ -40,6 +40,7 @@ Uso atual:
 - `PeriodoLetivoConsultaPersistenceGateway`
 - `TurmaConsultaPersistenceGateway`
 - `CatalogoAcademicoInternalService`
+- `PlanejamentoBimestralService`
 
 Limites atuais:
 
@@ -129,6 +130,7 @@ Limites atuais:
 | `EscolaContextoPort` | `EscolaTenantService` | `PeriodoLetivoConsultaPersistenceGateway` | Resolver contexto escolar padrao para validacao de periodo letivo em matricula |
 | `EscolaContextoPort` | `EscolaTenantService` | `TurmaConsultaPersistenceGateway` | Resolver contexto escolar padrao para consultas auxiliares de turma em matricula |
 | `EscolaContextoPort` | `EscolaTenantService` | `CatalogoAcademicoInternalService` | Resolver contexto escolar padrao para contratos internos de catalogo |
+| `EscolaContextoPort` | `EscolaTenantService` | `PlanejamentoBimestralService` | Resolver contexto escolar padrao para planejamento bimestral |
 | `CatalogoAcademicoPort` | `CatalogoAcademicoInternalService` | `DashboardAcademicoService` | Listar turmas por escola |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `PlanejamentoBimestralService` | Validar turma-disciplina da alocacao antes de criar ou atualizar planejamento |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `DiarioAulaService` | Validar turma-disciplina da alocacao antes de criar aula |
@@ -177,15 +179,15 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - PlanejamentoBimestralService
+### Candidato 1 - Consolidacao do planejamento bimestral com EscolaContextoPort
 
 Possivel uso:
 
-- Usar `EscolaContextoPort` em `PlanejamentoBimestralService`, preservando `EstruturaTurmaPort` e o comportamento do metodo privado `escolaId()`.
+- Consolidar o uso de `EscolaContextoPort` em `PlanejamentoBimestralService` e reavaliar `DiarioAulaService` e `AvaliacaoService`.
 
 Risco:
 
-- Medio. O service escreve planejamento bimestral, mas e menos sensivel que diario de aula e avaliacoes com notas.
+- Baixo. A etapa deve ser documental e de verificacao de consistencia.
 
 Validacao esperada:
 
@@ -242,6 +244,10 @@ A Fase 48W consolidou os contratos internos de catalogo apos a aplicacao de `Esc
 ## Estado apos Fase 48X
 
 A Fase 48X diagnosticou `PlanejamentoBimestralService`, `DiarioAulaService` e `AvaliacaoService`. O proximo candidato seguro escolhido foi `PlanejamentoBimestralService`, mantendo diario de aula e avaliacoes para fases posteriores por envolverem frequencia, matricula e notas.
+
+## Estado apos Fase 48Y
+
+A Fase 48Y aplicou `EscolaContextoPort` em `PlanejamentoBimestralService`, preservando `EstruturaTurmaPort`, o metodo privado `escolaId()` e os contratos HTTP de planejamento bimestral.
 
 ## Criterios de conclusao da Fase 48F
 

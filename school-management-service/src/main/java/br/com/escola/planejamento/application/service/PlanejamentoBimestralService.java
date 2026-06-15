@@ -13,7 +13,7 @@ import br.com.escola.avaliacao.adapter.out.persistence.repository.PeriodoAvaliat
 import br.com.escola.avaliacao.adapter.out.persistence.repository.TipoAvaliacaoJpaRepository;
 import br.com.escola.avaliacao.domain.exception.TipoAvaliacaoNaoEncontradoException;
 import br.com.escola.catalogo.application.port.internal.EstruturaTurmaPort;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.planejamento.adapter.in.web.dto.PlanejamentoBimestralAulaRequest;
 import br.com.escola.planejamento.adapter.in.web.dto.PlanejamentoBimestralAulaResponse;
 import br.com.escola.planejamento.adapter.in.web.dto.PlanejamentoBimestralAvaliacaoRequest;
@@ -50,7 +50,7 @@ public class PlanejamentoBimestralService {
     private final PeriodoAvaliativoJpaRepository periodoAvaliativoJpaRepository;
     private final StatusPlanejamentoJpaRepository statusPlanejamentoJpaRepository;
     private final TipoAvaliacaoJpaRepository tipoAvaliacaoJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
     private final EstruturaTurmaPort estruturaTurmaPort;
 
     public PlanejamentoBimestralService(
@@ -61,7 +61,7 @@ public class PlanejamentoBimestralService {
             PeriodoAvaliativoJpaRepository periodoAvaliativoJpaRepository,
             StatusPlanejamentoJpaRepository statusPlanejamentoJpaRepository,
             TipoAvaliacaoJpaRepository tipoAvaliacaoJpaRepository,
-            EscolaTenantService escolaTenantService,
+            EscolaContextoPort escolaContextoPort,
             EstruturaTurmaPort estruturaTurmaPort) {
         this.planejamentoBimestralJpaRepository = planejamentoBimestralJpaRepository;
         this.planejamentoBimestralAulaJpaRepository = planejamentoBimestralAulaJpaRepository;
@@ -70,7 +70,7 @@ public class PlanejamentoBimestralService {
         this.periodoAvaliativoJpaRepository = periodoAvaliativoJpaRepository;
         this.statusPlanejamentoJpaRepository = statusPlanejamentoJpaRepository;
         this.tipoAvaliacaoJpaRepository = tipoAvaliacaoJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
         this.estruturaTurmaPort = estruturaTurmaPort;
     }
 
@@ -276,7 +276,7 @@ public class PlanejamentoBimestralService {
     }
 
     private UUID escolaId() {
-        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        return escolaContextoPort.obterContextoPadrao().escolaId();
     }
 
     private PlanejamentoBimestralAulaResponse toAulaResponse(PlanejamentoBimestralAulaEntity entity) {

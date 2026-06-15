@@ -72,6 +72,10 @@ Motivos:
 
 Os consumidores de `EstruturaTurmaPort` que ainda usam `EscolaTenantService` foram classificados por risco. O proximo candidato seguro e `PlanejamentoBimestralService`.
 
+## Estado apos Fase 48Y
+
+A Fase 48Y aplicou `EscolaContextoPort` em `PlanejamentoBimestralService`, mantendo `DiarioAulaService` e `AvaliacaoService` fora do escopo por envolverem frequencia, matricula e notas.
+
 ## Proxima fase sugerida
 
 Fase 48Y - uso pontual de `EscolaContextoPort` em `PlanejamentoBimestralService`.
@@ -82,3 +86,7 @@ Objetivo sugerido:
 - Preservar o comportamento do metodo privado `escolaId()`.
 - Preservar controllers, DTOs e contratos HTTP.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 48Y
+
+Fase 48Z - consolidacao de `EscolaContextoPort` em planejamento bimestral.
