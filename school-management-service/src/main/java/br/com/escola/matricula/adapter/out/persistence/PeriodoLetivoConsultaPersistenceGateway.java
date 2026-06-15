@@ -6,24 +6,24 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import br.com.escola.catalogo.adapter.out.persistence.repository.PeriodoLetivoJpaRepository;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.matricula.application.port.out.PeriodoLetivoConsultaGateway;
 
 @Component
 public class PeriodoLetivoConsultaPersistenceGateway implements PeriodoLetivoConsultaGateway {
 
     private final PeriodoLetivoJpaRepository periodoLetivoJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     public PeriodoLetivoConsultaPersistenceGateway(
             PeriodoLetivoJpaRepository periodoLetivoJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaContextoPort escolaContextoPort) {
         this.periodoLetivoJpaRepository = periodoLetivoJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Override
     public boolean existsById(@NonNull UUID id) {
-        return periodoLetivoJpaRepository.existsByIdAndEscola_Id(id, escolaTenantService.obterOuCriarEscolaPadrao().getId());
+        return periodoLetivoJpaRepository.existsByIdAndEscola_Id(id, escolaContextoPort.obterContextoPadrao().escolaId());
     }
 }

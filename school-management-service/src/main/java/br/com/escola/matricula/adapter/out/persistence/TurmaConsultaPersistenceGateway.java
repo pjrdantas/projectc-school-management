@@ -9,20 +9,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaJpaRepository;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.matricula.application.port.out.TurmaConsultaGateway;
 
 @Component
 public class TurmaConsultaPersistenceGateway implements TurmaConsultaGateway {
 
     private final TurmaJpaRepository turmaJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     public TurmaConsultaPersistenceGateway(
             TurmaJpaRepository turmaJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaContextoPort escolaContextoPort) {
         this.turmaJpaRepository = turmaJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Override
@@ -55,6 +55,6 @@ public class TurmaConsultaPersistenceGateway implements TurmaConsultaGateway {
     }
 
     private UUID escolaId() {
-        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        return escolaContextoPort.obterContextoPadrao().escolaId();
     }
 }

@@ -7,23 +7,23 @@ import org.springframework.stereotype.Component;
 
 import br.com.escola.matricula.application.port.out.AlunoConsultaGateway;
 import br.com.escola.aluno.adapter.out.persistence.repository.AlunoJpaRepository;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 
 @Component
 public class AlunoConsultaPersistenceGateway implements AlunoConsultaGateway {
 
     private final AlunoJpaRepository alunoJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     public AlunoConsultaPersistenceGateway(
             AlunoJpaRepository alunoJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaContextoPort escolaContextoPort) {
         this.alunoJpaRepository = alunoJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Override
     public boolean existsById(@NonNull UUID id) {
-        return alunoJpaRepository.existsByIdAndPessoa_Escola_Id(id, escolaTenantService.obterOuCriarEscolaPadrao().getId());
+        return alunoJpaRepository.existsByIdAndPessoa_Escola_Id(id, escolaContextoPort.obterContextoPadrao().escolaId());
     }
 }

@@ -36,6 +36,9 @@ Uso atual:
 - `DashboardProfessorService`
 - `DashboardIndicadorSnapshotService`
 - `MatriculaAcademicoResumoService`
+- `AlunoConsultaPersistenceGateway`
+- `PeriodoLetivoConsultaPersistenceGateway`
+- `TurmaConsultaPersistenceGateway`
 
 Limites atuais:
 
@@ -121,6 +124,9 @@ Limites atuais:
 | `EscolaContextoPort` | `EscolaTenantService` | `DashboardProfessorService` | Resolver contexto escolar padrao para agregacao operacional do professor |
 | `EscolaContextoPort` | `EscolaTenantService` | `DashboardIndicadorSnapshotService` | Resolver contexto escolar padrao para listagem, historico e persistencia de snapshots |
 | `EscolaContextoPort` | `EscolaTenantService` | `MatriculaAcademicoResumoService` | Resolver contexto escolar padrao para consulta academica de matricula |
+| `EscolaContextoPort` | `EscolaTenantService` | `AlunoConsultaPersistenceGateway` | Resolver contexto escolar padrao para validacao de aluno em matricula |
+| `EscolaContextoPort` | `EscolaTenantService` | `PeriodoLetivoConsultaPersistenceGateway` | Resolver contexto escolar padrao para validacao de periodo letivo em matricula |
+| `EscolaContextoPort` | `EscolaTenantService` | `TurmaConsultaPersistenceGateway` | Resolver contexto escolar padrao para consultas auxiliares de turma em matricula |
 | `CatalogoAcademicoPort` | `CatalogoAcademicoInternalService` | `DashboardAcademicoService` | Listar turmas por escola |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `PlanejamentoBimestralService` | Validar turma-disciplina da alocacao antes de criar ou atualizar planejamento |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `DiarioAulaService` | Validar turma-disciplina da alocacao antes de criar aula |
@@ -169,19 +175,18 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - Gateways de consulta auxiliares de matricula
+### Candidato 1 - Diagnostico dos usos remanescentes de EscolaTenantService
 
 Possivel uso:
 
-- Usar `EscolaContextoPort` em `AlunoConsultaPersistenceGateway`, `PeriodoLetivoConsultaPersistenceGateway` e `TurmaConsultaPersistenceGateway`.
+- Mapear usos remanescentes por dominio, risco e tipo de fluxo antes de escolher novo ponto de aplicacao.
 
 Risco:
 
-- Baixo a medio. Os gateways sao de consulta e validacao por escola, mas sao usados por fluxo transacional de matricula.
+- Baixo. A etapa deve ser documental e de verificacao, sem alteracao funcional.
 
 Validacao esperada:
 
-- Teste especifico de `MatriculaControllerIntegrationTest`.
 - `.\mvnw.cmd test`.
 
 ## Estado apos Fase 48I
@@ -211,6 +216,14 @@ A Fase 48Q aplicou `EscolaContextoPort` em `MatriculaAcademicoResumoService`, pr
 ## Estado apos Fase 48R
 
 A Fase 48R consolidou o uso de `EscolaContextoPort` no resumo academico da matricula e mapeou os proximos candidatos de leitura em matricula. Os gateways auxiliares de consulta de aluno, periodo letivo e turma sao os proximos pontos seguros antes de tocar services transacionais de matricula.
+
+## Estado apos Fase 48S
+
+A Fase 48S aplicou `EscolaContextoPort` nos gateways auxiliares de consulta de matricula, preservando as interfaces de gateway e o comportamento externo. A proxima fase deve consolidar esses usos antes de avaliar novos candidatos fora de matricula.
+
+## Estado apos Fase 48T
+
+A Fase 48T consolidou os usos de `EscolaContextoPort` em matricula leitura e gateways auxiliares. `MatriculaFluxoService` e `MatriculaPersistenceGateway` permanecem fora do escopo por serem transacionais. O proximo passo seguro e diagnosticar os usos remanescentes de `EscolaTenantService` por dominio e risco.
 
 ## Criterios de conclusao da Fase 48F
 

@@ -56,6 +56,14 @@ Motivo:
 
 O uso de `EscolaContextoPort` no resumo academico da matricula esta consolidado e o proximo passo seguro foi identificado sem ampliar o escopo para refatoracao transacional.
 
+## Estado apos Fase 48S
+
+A Fase 48S aplicou `EscolaContextoPort` nos gateways auxiliares de consulta de matricula: aluno, periodo letivo e turma. As interfaces de gateway foram preservadas e os services transacionais de matricula continuaram fora do escopo.
+
+## Estado apos Fase 48T
+
+A Fase 48T consolidou os usos de `EscolaContextoPort` em matricula leitura e gateways auxiliares, mantendo fora do escopo os fluxos transacionais de matricula e apontando o proximo passo para diagnostico dos usos remanescentes de `EscolaTenantService`.
+
 ## Proxima fase sugerida
 
 Fase 48S - uso pontual de `EscolaContextoPort` nos gateways auxiliares de consulta de matricula.
@@ -68,3 +76,7 @@ Objetivo sugerido:
 - Preservar interfaces de gateway e comportamento externo.
 - Validar com `.\mvnw.cmd "-Dtest=MatriculaControllerIntegrationTest" test`.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 48S
+
+Fase 48T - consolidacao dos usos de `EscolaContextoPort` em matricula leitura e gateways auxiliares.
