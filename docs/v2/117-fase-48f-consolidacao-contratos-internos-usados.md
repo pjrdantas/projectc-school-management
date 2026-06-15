@@ -177,15 +177,15 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - Diagnostico dos consumidores de EstruturaTurmaPort
+### Candidato 1 - PlanejamentoBimestralService
 
 Possivel uso:
 
-- Mapear `PlanejamentoBimestralService`, `DiarioAulaService` e `AvaliacaoService`, que ja usam `EstruturaTurmaPort` mas ainda resolvem escola diretamente.
+- Usar `EscolaContextoPort` em `PlanejamentoBimestralService`, preservando `EstruturaTurmaPort` e o comportamento do metodo privado `escolaId()`.
 
 Risco:
 
-- Baixo. A etapa deve ser documental e de verificacao, sem alteracao funcional.
+- Medio. O service escreve planejamento bimestral, mas e menos sensivel que diario de aula e avaliacoes com notas.
 
 Validacao esperada:
 
@@ -238,6 +238,10 @@ A Fase 48V aplicou `EscolaContextoPort` em `CatalogoAcademicoInternalService`, p
 ## Estado apos Fase 48W
 
 A Fase 48W consolidou os contratos internos de catalogo apos a aplicacao de `EscolaContextoPort` em `CatalogoAcademicoInternalService`. A proxima etapa segura e diagnosticar os consumidores de `EstruturaTurmaPort` que ainda usam `EscolaTenantService` em fluxos de escrita.
+
+## Estado apos Fase 48X
+
+A Fase 48X diagnosticou `PlanejamentoBimestralService`, `DiarioAulaService` e `AvaliacaoService`. O proximo candidato seguro escolhido foi `PlanejamentoBimestralService`, mantendo diario de aula e avaliacoes para fases posteriores por envolverem frequencia, matricula e notas.
 
 ## Criterios de conclusao da Fase 48F
 

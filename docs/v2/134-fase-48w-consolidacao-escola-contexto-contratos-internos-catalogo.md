@@ -49,6 +49,10 @@ Esta fase e documental e de verificacao. Ela nao cria BFF, microservico, fila, b
 
 Os contratos internos de catalogo estao documentados com `CatalogoAcademicoInternalService` consumindo `EscolaContextoPort` para resolver contexto escolar padrao, mantendo `CatalogoAcademicoPort` e `EstruturaTurmaPort` estaveis.
 
+## Estado apos Fase 48X
+
+A Fase 48X diagnosticou os consumidores de `EstruturaTurmaPort` que ainda usam `EscolaTenantService` e selecionou `PlanejamentoBimestralService` como proximo candidato seguro.
+
 ## Proxima fase sugerida
 
 Fase 48X - diagnostico dos consumidores de `EstruturaTurmaPort` que ainda usam `EscolaTenantService`.
@@ -59,3 +63,7 @@ Objetivo sugerido:
 - Separar o uso de `EstruturaTurmaPort` do uso direto de `EscolaTenantService` em fluxos de escrita.
 - Escolher um unico candidato seguro para eventual aplicacao pontual.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 48X
+
+Fase 48Y - uso pontual de `EscolaContextoPort` em `PlanejamentoBimestralService`.
