@@ -48,6 +48,10 @@ Esta fase e documental e de verificacao. Ela nao cria BFF, microservico, fila, b
 
 O diario de aula esta documentado como consumidor de `EscolaContextoPort` e `EstruturaTurmaPort`, preservando comportamento externo e contratos HTTP.
 
+## Estado apos Fase 49D
+
+A Fase 49D diagnosticou `AvaliacaoService` antes de qualquer troca, confirmando que a proxima fase pode aplicar `EscolaContextoPort` de forma pontual se preservar notas, matricula, valor maximo e consistencia de turma.
+
 ## Proxima fase sugerida
 
 Fase 49D - diagnostico pontual de `AvaliacaoService` antes de aplicar `EscolaContextoPort`.
@@ -59,3 +63,7 @@ Objetivo sugerido:
 - Confirmar impactos sobre matricula, consistencia de turma e validacao de nota antes de qualquer troca.
 - Escolher se `AvaliacaoService` pode ser migrado em uma fase pontual ou se precisa ser dividido.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 49D
+
+Fase 49E - uso pontual de `EscolaContextoPort` em `AvaliacaoService`.

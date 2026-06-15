@@ -185,11 +185,11 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 Possivel uso:
 
-- Diagnosticar `AvaliacaoService` antes de aplicar `EscolaContextoPort`, preservando `EstruturaTurmaPort`, lancamento de notas e consistencia entre turma da avaliacao e turma da matricula.
+- Usar `EscolaContextoPort` em `AvaliacaoService`, preservando `EstruturaTurmaPort`, lancamento de notas e consistencia entre turma da avaliacao e turma da matricula.
 
 Risco:
 
-- Medio a alto. O fluxo cruza avaliacao, notas, matricula, valor maximo e consistencia de turma, portanto exige diagnostico proprio antes de qualquer troca.
+- Medio a alto. O fluxo cruza avaliacao, notas, matricula, valor maximo e consistencia de turma, mas o diagnostico da Fase 49D confirmou que a resolucao de escola esta concentrada em um metodo privado.
 
 Validacao esperada:
 
@@ -266,6 +266,10 @@ A Fase 49B aplicou `EscolaContextoPort` em `DiarioAulaService`, preservando `Est
 ## Estado apos Fase 49C
 
 A Fase 49C consolidou `DiarioAulaService` como consumidor de `EscolaContextoPort` e `EstruturaTurmaPort`. O proximo passo seguro passa a ser diagnosticar `AvaliacaoService` antes de qualquer aplicacao pontual, por envolver notas, matricula e consistencia de turma.
+
+## Estado apos Fase 49D
+
+A Fase 49D diagnosticou `AvaliacaoService` e confirmou que o uso direto de `EscolaTenantService` esta concentrado no metodo privado `escolaId()`. O proximo candidato seguro e a aplicacao pontual de `EscolaContextoPort` nesse service, preservando notas, matricula e consistencia de turma.
 
 ## Criterios de conclusao da Fase 48F
 
