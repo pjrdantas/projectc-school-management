@@ -37,7 +37,7 @@ import br.com.escola.ia.domain.exception.ConteudoIAPublicacaoInvalidaException;
 import br.com.escola.ia.domain.exception.ConteudoIAStatusNaoEncontradoException;
 import br.com.escola.ia.domain.exception.ConteudoIATipoNaoEncontradoException;
 import br.com.escola.ia.domain.exception.ConteudoIAVersaoNaoEncontradaException;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.planejamento.adapter.out.persistence.entity.PlanejamentoBimestralEntity;
 import br.com.escola.planejamento.adapter.out.persistence.repository.PlanejamentoBimestralJpaRepository;
 import br.com.escola.planejamento.domain.exception.PlanejamentoBimestralNaoEncontradoException;
@@ -59,7 +59,7 @@ public class PlanejamentoIAService {
     private final TipoConteudoIAJpaRepository tipoConteudoIAJpaRepository;
     private final StatusConteudoIAJpaRepository statusConteudoIAJpaRepository;
     private final GeradorConteudoPedagogicoGateway geradorConteudoPedagogicoGateway;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     public PlanejamentoIAService(
             PlanejamentoBimestralJpaRepository planejamentoBimestralJpaRepository,
@@ -70,7 +70,7 @@ public class PlanejamentoIAService {
             TipoConteudoIAJpaRepository tipoConteudoIAJpaRepository,
             StatusConteudoIAJpaRepository statusConteudoIAJpaRepository,
             GeradorConteudoPedagogicoGateway geradorConteudoPedagogicoGateway,
-            EscolaTenantService escolaTenantService) {
+            EscolaContextoPort escolaContextoPort) {
         this.planejamentoBimestralJpaRepository = planejamentoBimestralJpaRepository;
         this.interacaoJpaRepository = interacaoJpaRepository;
         this.conteudoGeradoJpaRepository = conteudoGeradoJpaRepository;
@@ -79,7 +79,7 @@ public class PlanejamentoIAService {
         this.tipoConteudoIAJpaRepository = tipoConteudoIAJpaRepository;
         this.statusConteudoIAJpaRepository = statusConteudoIAJpaRepository;
         this.geradorConteudoPedagogicoGateway = geradorConteudoPedagogicoGateway;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Transactional
@@ -396,7 +396,7 @@ public class PlanejamentoIAService {
     }
 
     private UUID escolaId() {
-        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        return escolaContextoPort.obterContextoPadrao().escolaId();
     }
 
     private UUID escolaId(PlanejamentoBimestralEntity planejamento) {
