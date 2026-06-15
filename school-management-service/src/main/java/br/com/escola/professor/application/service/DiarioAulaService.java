@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.escola.catalogo.application.port.internal.EstruturaTurmaPort;
 import br.com.escola.frequencia.adapter.out.persistence.entity.FrequenciaAlunoEntity;
 import br.com.escola.frequencia.adapter.out.persistence.entity.FrequenciaProfessorEntity;
 import br.com.escola.frequencia.adapter.out.persistence.entity.SituacaoFrequenciaEntity;
@@ -43,6 +44,7 @@ public class DiarioAulaService {
     private final SituacaoFrequenciaJpaRepository situacaoFrequenciaJpaRepository;
     private final MatriculaJpaRepository matriculaJpaRepository;
     private final EscolaTenantService escolaTenantService;
+    private final EstruturaTurmaPort estruturaTurmaPort;
 
     public DiarioAulaService(
             AulaJpaRepository aulaJpaRepository,
@@ -51,7 +53,8 @@ public class DiarioAulaService {
             FrequenciaAlunoJpaRepository frequenciaAlunoJpaRepository,
             SituacaoFrequenciaJpaRepository situacaoFrequenciaJpaRepository,
             MatriculaJpaRepository matriculaJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaTenantService escolaTenantService,
+            EstruturaTurmaPort estruturaTurmaPort) {
         this.aulaJpaRepository = aulaJpaRepository;
         this.professorTurmaDisciplinaJpaRepository = professorTurmaDisciplinaJpaRepository;
         this.frequenciaProfessorJpaRepository = frequenciaProfessorJpaRepository;
@@ -59,6 +62,7 @@ public class DiarioAulaService {
         this.situacaoFrequenciaJpaRepository = situacaoFrequenciaJpaRepository;
         this.matriculaJpaRepository = matriculaJpaRepository;
         this.escolaTenantService = escolaTenantService;
+        this.estruturaTurmaPort = estruturaTurmaPort;
     }
 
     @Transactional
@@ -66,6 +70,7 @@ public class DiarioAulaService {
         ProfessorTurmaDisciplinaEntity alocacao = professorTurmaDisciplinaJpaRepository
                 .findByIdAndTurmaDisciplina_Turma_Escola_Id(request.professorTurmaDisciplinaId(), escolaId())
                 .orElseThrow(ProfessorTurmaDisciplinaNaoEncontradaException::new);
+        validarEstruturaTurmaDisciplina(alocacao);
 
         AulaEntity aula = AulaEntity.builder()
                 .professorTurmaDisciplina(alocacao)
@@ -198,6 +203,15 @@ public class DiarioAulaService {
     private AulaEntity findAula(UUID id) {
         return aulaJpaRepository.findByIdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(id, escolaId())
                 .orElseThrow(AulaNaoEncontradaException::new);
+    }
+
+    private void validarEstruturaTurmaDisciplina(ProfessorTurmaDisciplinaEntity alocacao) {
+        UUID escolaId = escolaId();
+        UUID turmaId = alocacao.getTurmaDisciplina().getTurma().getId();
+        UUID disciplinaId = alocacao.getTurmaDisciplina().getDisciplina().getId();
+        if (!estruturaTurmaPort.turmaPossuiDisciplina(escolaId, turmaId, disciplinaId)) {
+            throw new ProfessorTurmaDisciplinaNaoEncontradaException();
+        }
     }
 
     private AulaResponse toAulaResponse(AulaEntity entity) {

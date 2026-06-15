@@ -1,0 +1,222 @@
+# Fase 48F - Consolidacao dos contratos internos usados
+
+## Objetivo
+
+Consolidar o estado atual dos contratos internos criados nas Fases 48C, 48D e 48E, deixando claro onde eles ja sao usados, quais limites ainda existem e quando sera necessario criar BFFs, servicos separados ou novos componentes runtime.
+
+Esta fase e documental. Ela nao cria BFF, microservico, fila, banco adicional, novo componente frontend ou nova rota HTTP.
+
+## Contratos internos existentes
+
+### `EscolaContextoPort`
+
+Pacote:
+
+- `br.com.escola.institucional.application.port`
+
+DTO principal:
+
+- `EscolaContexto`
+
+Implementacao atual:
+
+- `EscolaTenantService`
+
+Responsabilidade atual:
+
+- Resolver contexto da escola padrao.
+- Resolver contexto de escola a partir de usuario.
+- Validar se um usuario pode acessar uma escola.
+
+Uso atual:
+
+- `DashboardAcademicoService`
+
+Limites atuais:
+
+- Ainda nao ha troca dinamica de escola ativa.
+- Ainda nao ha usuario com multiplas escolas.
+- O contexto de perfis e permissoes e preparado no DTO, mas ainda nao e o eixo de autorizacao dos fluxos de dominio.
+
+### `CatalogoAcademicoPort`
+
+Pacote:
+
+- `br.com.escola.catalogo.application.port.internal`
+
+DTOs principais:
+
+- `PeriodoLetivoResumo`
+- `SerieResumo`
+- `TurnoResumo`
+- `DisciplinaResumo`
+- `TurmaResumo`
+
+Implementacao atual:
+
+- `CatalogoAcademicoInternalService`
+
+Responsabilidade atual:
+
+- Listar e validar catalogos academicos por escola.
+- Expor visoes internas de leitura sem vazar entidades JPA.
+- Manter a escola como parametro explicito.
+
+Uso atual:
+
+- `DashboardAcademicoService`
+
+Limites atuais:
+
+- Ainda nao substitui use cases de criacao e edicao de catalogos.
+- Ainda nao e usado pelos fluxos de matricula, aula, avaliacao ou planejamento para todas as validacoes.
+- Ainda nao possui cache. Cache so deve ser discutido quando houver necessidade concreta.
+
+### `EstruturaTurmaPort`
+
+Pacote:
+
+- `br.com.escola.catalogo.application.port.internal`
+
+DTOs principais:
+
+- `TurmaResumo`
+- `TurmaDisciplinaResumo`
+
+Implementacao atual:
+
+- `CatalogoAcademicoInternalService`
+
+Responsabilidade atual:
+
+- Obter turma por escola.
+- Listar disciplinas de turma.
+- Validar se turma possui disciplina.
+- Validar se turma pertence a periodo letivo.
+
+Uso atual:
+
+- `PlanejamentoBimestralService`
+
+Limites atuais:
+
+- Ainda nao e usado por diario de aula.
+- Ainda nao e usado por avaliacoes.
+- Ainda nao substitui validacoes diretas de repositories nos fluxos transacionais.
+
+## Matriz de uso atual
+
+| Contrato interno | Implementacao | Consumidor atual | Tipo de uso |
+| --- | --- | --- | --- |
+| `EscolaContextoPort` | `EscolaTenantService` | `DashboardAcademicoService` | Resolver escola padrao para agregacao |
+| `CatalogoAcademicoPort` | `CatalogoAcademicoInternalService` | `DashboardAcademicoService` | Listar turmas por escola |
+| `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `PlanejamentoBimestralService` | Validar turma-disciplina da alocacao |
+
+## Decisoes consolidadas
+
+- Os contratos internos continuam dentro do monolito.
+- Os contratos internos devem ser usados primeiro em pontos de baixo risco.
+- O uso inicial deve priorizar leitura, agregacao e validacao defensiva.
+- Nenhum contrato interno deve expor entidades JPA.
+- O parametro `escolaId` deve permanecer explicito nos contratos internos.
+- O comportamento HTTP publico deve ser preservado quando um fluxo passar a usar uma porta interna.
+
+## Onde ainda nao mexer
+
+Ainda nao e recomendado refatorar em massa:
+
+- matriculas;
+- documentos;
+- historico/boletins;
+- diario de aula;
+- avaliacoes/notas;
+- IA pedagogica;
+- dashboards alem do academico.
+
+Motivo:
+
+- Esses fluxos tem acoplamentos transacionais e queries especificas.
+- O ganho de trocar tudo agora nao compensa o risco.
+- As portas internas ainda estao em amadurecimento.
+
+## Quando sera necessario criar novos componentes
+
+Ainda nao e necessario criar BFF, microservico ou componente runtime separado.
+
+Sera necessario avisar e planejar criacao de novo componente quando pelo menos uma destas condicoes estiver presente:
+
+- Um BFF tiver contrato de experiencia fechado e precisar compor mais de um dominio para reduzir chamadas do frontend.
+- Um dominio tiver contrato interno estavel e for consumido por varios fluxos.
+- Houver necessidade real de deploy independente.
+- Houver necessidade real de escala separada.
+- Houver isolamento operacional ou de dados que justifique o custo.
+- Houver processamento assincrono concreto que justifique fila.
+- Houver uma fase explicita de extracao aprovada.
+
+## Proximos candidatos seguros de uso interno
+
+### Candidato 1 - Diario de aula
+
+Possivel uso:
+
+- Usar `EstruturaTurmaPort` para validar turma-disciplina antes de criar aula.
+
+Risco:
+
+- Baixo a medio. O fluxo e transacional, mas a validacao e similar ao planejamento.
+
+Validacao esperada:
+
+- Teste especifico de `AulaControllerIntegrationTest`.
+- `.\mvnw.cmd test`.
+
+### Candidato 2 - Avaliacoes
+
+Possivel uso:
+
+- Usar `EstruturaTurmaPort` para validar turma-disciplina antes de criar avaliacao.
+
+Risco:
+
+- Baixo a medio. Deve preservar a consistencia com notas e matriculas.
+
+Validacao esperada:
+
+- Teste especifico de `AvaliacaoControllerIntegrationTest`.
+- `.\mvnw.cmd test`.
+
+### Candidato 3 - Dashboard secretaria
+
+Possivel uso:
+
+- Usar `EscolaContextoPort` para resolver contexto escolar.
+
+Risco:
+
+- Baixo. O fluxo e majoritariamente leitura/agregacao.
+
+Validacao esperada:
+
+- Teste especifico de `DashboardSecretariaControllerIntegrationTest`.
+- `.\mvnw.cmd test`.
+
+## Proxima fase sugerida
+
+Fase 48G - uso pontual de `EstruturaTurmaPort` no diario de aula.
+
+Objetivo sugerido:
+
+- Aplicar a mesma estrategia da Fase 48E em `DiarioAulaService`.
+- Validar que a alocacao usada para criar aula continua coerente com a estrutura academica.
+- Manter tudo no monolito.
+- Nao criar BFF real.
+- Validar backend com `.\mvnw.cmd "-Dtest=AulaControllerIntegrationTest" test` e `.\mvnw.cmd test`.
+
+## Criterios de conclusao da Fase 48F
+
+- Contratos internos existentes listados.
+- Implementacoes atuais identificadas.
+- Consumidores atuais identificados.
+- Limites e lacunas documentados.
+- Criterios para criar novos componentes explicitados.
+- Proximo candidato seguro indicado.
