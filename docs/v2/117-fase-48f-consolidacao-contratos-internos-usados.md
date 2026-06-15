@@ -39,6 +39,7 @@ Uso atual:
 - `AlunoConsultaPersistenceGateway`
 - `PeriodoLetivoConsultaPersistenceGateway`
 - `TurmaConsultaPersistenceGateway`
+- `CatalogoAcademicoInternalService`
 
 Limites atuais:
 
@@ -127,6 +128,7 @@ Limites atuais:
 | `EscolaContextoPort` | `EscolaTenantService` | `AlunoConsultaPersistenceGateway` | Resolver contexto escolar padrao para validacao de aluno em matricula |
 | `EscolaContextoPort` | `EscolaTenantService` | `PeriodoLetivoConsultaPersistenceGateway` | Resolver contexto escolar padrao para validacao de periodo letivo em matricula |
 | `EscolaContextoPort` | `EscolaTenantService` | `TurmaConsultaPersistenceGateway` | Resolver contexto escolar padrao para consultas auxiliares de turma em matricula |
+| `EscolaContextoPort` | `EscolaTenantService` | `CatalogoAcademicoInternalService` | Resolver contexto escolar padrao para contratos internos de catalogo |
 | `CatalogoAcademicoPort` | `CatalogoAcademicoInternalService` | `DashboardAcademicoService` | Listar turmas por escola |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `PlanejamentoBimestralService` | Validar turma-disciplina da alocacao antes de criar ou atualizar planejamento |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `DiarioAulaService` | Validar turma-disciplina da alocacao antes de criar aula |
@@ -175,15 +177,15 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - CatalogoAcademicoInternalService
+### Candidato 1 - Consolidacao dos contratos internos de catalogo
 
 Possivel uso:
 
-- Usar `EscolaContextoPort` em `CatalogoAcademicoInternalService`, preservando `CatalogoAcademicoPort` e `EstruturaTurmaPort`.
+- Consolidar o uso de `EscolaContextoPort` em `CatalogoAcademicoInternalService` e reavaliar os proximos candidatos fora de catalogo interno.
 
 Risco:
 
-- Baixo. O uso direto de `EscolaTenantService` esta concentrado no fallback de escola padrao em um service interno de leitura e validacao.
+- Baixo. A etapa deve ser documental e de verificacao de consistencia.
 
 Validacao esperada:
 
@@ -228,6 +230,10 @@ A Fase 48T consolidou os usos de `EscolaContextoPort` em matricula leitura e gat
 ## Estado apos Fase 48U
 
 A Fase 48U diagnosticou os usos remanescentes de `EscolaTenantService` por dominio, risco e tipo de fluxo. O proximo candidato seguro escolhido foi `CatalogoAcademicoInternalService`, por ser um service interno de leitura e validacao com `escolaId` explicito nos contratos.
+
+## Estado apos Fase 48V
+
+A Fase 48V aplicou `EscolaContextoPort` em `CatalogoAcademicoInternalService`, preservando `CatalogoAcademicoPort`, `EstruturaTurmaPort` e o fallback de escola padrao quando `escolaId` nao e informado.
 
 ## Criterios de conclusao da Fase 48F
 

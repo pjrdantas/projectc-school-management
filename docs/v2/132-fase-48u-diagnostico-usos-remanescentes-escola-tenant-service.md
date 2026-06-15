@@ -88,6 +88,10 @@ Motivos:
 
 Os usos remanescentes de `EscolaTenantService` foram classificados por dominio e risco. O proximo candidato seguro e `CatalogoAcademicoInternalService`, sem ampliar escopo para persistencia, seguranca ou fluxos transacionais.
 
+## Estado apos Fase 48V
+
+A Fase 48V aplicou `EscolaContextoPort` em `CatalogoAcademicoInternalService`, preservando os contratos internos de catalogo e mantendo fora do escopo os gateways de persistencia, seguranca e fluxos transacionais.
+
 ## Proxima fase sugerida
 
 Fase 48V - uso pontual de `EscolaContextoPort` em `CatalogoAcademicoInternalService`.
@@ -98,3 +102,7 @@ Objetivo sugerido:
 - Preservar `CatalogoAcademicoPort` e `EstruturaTurmaPort`.
 - Preservar comportamento de `resolverEscolaId(UUID escolaId)`.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 48V
+
+Fase 48W - consolidacao de `EscolaContextoPort` nos contratos internos de catalogo.

@@ -27,7 +27,7 @@ import br.com.escola.catalogo.application.dto.internal.TurmaResumo;
 import br.com.escola.catalogo.application.dto.internal.TurnoResumo;
 import br.com.escola.catalogo.application.port.internal.CatalogoAcademicoPort;
 import br.com.escola.catalogo.application.port.internal.EstruturaTurmaPort;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 
 @Service
 public class CatalogoAcademicoInternalService implements CatalogoAcademicoPort, EstruturaTurmaPort {
@@ -38,7 +38,7 @@ public class CatalogoAcademicoInternalService implements CatalogoAcademicoPort, 
     private final DisciplinaJpaRepository disciplinaJpaRepository;
     private final TurmaJpaRepository turmaJpaRepository;
     private final TurmaDisciplinaJpaRepository turmaDisciplinaJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     public CatalogoAcademicoInternalService(
             PeriodoLetivoJpaRepository periodoLetivoJpaRepository,
@@ -47,14 +47,14 @@ public class CatalogoAcademicoInternalService implements CatalogoAcademicoPort, 
             DisciplinaJpaRepository disciplinaJpaRepository,
             TurmaJpaRepository turmaJpaRepository,
             TurmaDisciplinaJpaRepository turmaDisciplinaJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaContextoPort escolaContextoPort) {
         this.periodoLetivoJpaRepository = periodoLetivoJpaRepository;
         this.serieJpaRepository = serieJpaRepository;
         this.turnoJpaRepository = turnoJpaRepository;
         this.disciplinaJpaRepository = disciplinaJpaRepository;
         this.turmaJpaRepository = turmaJpaRepository;
         this.turmaDisciplinaJpaRepository = turmaDisciplinaJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Override
@@ -185,7 +185,7 @@ public class CatalogoAcademicoInternalService implements CatalogoAcademicoPort, 
     }
 
     private UUID resolverEscolaId(UUID escolaId) {
-        return escolaId == null ? escolaTenantService.obterOuCriarEscolaPadrao().getId() : escolaId;
+        return escolaId == null ? escolaContextoPort.obterContextoPadrao().escolaId() : escolaId;
     }
 
     private PeriodoLetivoResumo toPeriodoLetivoResumo(PeriodoLetivoEntity entity) {
