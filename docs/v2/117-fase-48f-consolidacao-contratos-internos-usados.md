@@ -35,6 +35,7 @@ Uso atual:
 - `DashboardDiretorService`
 - `DashboardProfessorService`
 - `DashboardIndicadorSnapshotService`
+- `MatriculaAcademicoResumoService`
 
 Limites atuais:
 
@@ -119,6 +120,7 @@ Limites atuais:
 | `EscolaContextoPort` | `EscolaTenantService` | `DashboardDiretorService` | Resolver contexto escolar padrao para agregacao executiva do diretor |
 | `EscolaContextoPort` | `EscolaTenantService` | `DashboardProfessorService` | Resolver contexto escolar padrao para agregacao operacional do professor |
 | `EscolaContextoPort` | `EscolaTenantService` | `DashboardIndicadorSnapshotService` | Resolver contexto escolar padrao para listagem, historico e persistencia de snapshots |
+| `EscolaContextoPort` | `EscolaTenantService` | `MatriculaAcademicoResumoService` | Resolver contexto escolar padrao para consulta academica de matricula |
 | `CatalogoAcademicoPort` | `CatalogoAcademicoInternalService` | `DashboardAcademicoService` | Listar turmas por escola |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `PlanejamentoBimestralService` | Validar turma-disciplina da alocacao antes de criar ou atualizar planejamento |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `DiarioAulaService` | Validar turma-disciplina da alocacao antes de criar aula |
@@ -167,15 +169,15 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - Matricula academico resumo
+### Candidato 1 - Matricula academico e consultas auxiliares
 
 Possivel uso:
 
-- Usar `EscolaContextoPort` para resolver contexto escolar em `MatriculaAcademicoResumoService`.
+- Consolidar o uso de `EscolaContextoPort` em fluxos de leitura de matricula e consultas auxiliares antes de tocar fluxos transacionais.
 
 Risco:
 
-- Baixo a medio. O fluxo e de leitura, mas compoe frequencias e notas da matricula.
+- Baixo a medio. Ha adapters de consulta com filtros simples por escola, mas alguns gateways de matricula tambem participam de criacao e atualizacao.
 
 Validacao esperada:
 
@@ -201,6 +203,10 @@ A Fase 48O aplicou `EscolaContextoPort` em `DashboardIndicadorSnapshotService`, 
 ## Estado apos Fase 48P
 
 A Fase 48P consolidou a matriz de consumidores de `EscolaContextoPort` na area de dashboards e snapshots, confirmando que os services de dashboard nao dependem mais diretamente de `EscolaTenantService`. O proximo candidato seguro passa a ser um fluxo de leitura fora de dashboards: `MatriculaAcademicoResumoService`.
+
+## Estado apos Fase 48Q
+
+A Fase 48Q aplicou `EscolaContextoPort` em `MatriculaAcademicoResumoService`, preservando o contrato HTTP do resumo academico da matricula e os filtros por matricula e escola. A evolucao fora de dashboards deve continuar por consultas de leitura antes de fluxos transacionais.
 
 ## Criterios de conclusao da Fase 48F
 

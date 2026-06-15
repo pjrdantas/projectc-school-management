@@ -19,7 +19,7 @@ import br.com.escola.matricula.adapter.in.web.dto.MatriculaAcademicoResumoRespon
 import br.com.escola.matricula.adapter.out.persistence.entity.MatriculaEntity;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
 import br.com.escola.matricula.domain.exception.MatriculaNaoEncontradaException;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 
 @Service
 public class MatriculaAcademicoResumoService {
@@ -29,22 +29,22 @@ public class MatriculaAcademicoResumoService {
     private final MatriculaJpaRepository matriculaJpaRepository;
     private final FrequenciaAlunoJpaRepository frequenciaAlunoJpaRepository;
     private final NotaAlunoJpaRepository notaAlunoJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     public MatriculaAcademicoResumoService(
             MatriculaJpaRepository matriculaJpaRepository,
             FrequenciaAlunoJpaRepository frequenciaAlunoJpaRepository,
             NotaAlunoJpaRepository notaAlunoJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaContextoPort escolaContextoPort) {
         this.matriculaJpaRepository = matriculaJpaRepository;
         this.frequenciaAlunoJpaRepository = frequenciaAlunoJpaRepository;
         this.notaAlunoJpaRepository = notaAlunoJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Transactional(readOnly = true)
     public MatriculaAcademicoResumoResponse consultar(UUID matriculaId) {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = escolaContextoPort.obterContextoPadrao().escolaId();
         MatriculaEntity matricula = matriculaJpaRepository
                 .findByIdAndTurma_Escola_Id(matriculaId, escolaId)
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaId));

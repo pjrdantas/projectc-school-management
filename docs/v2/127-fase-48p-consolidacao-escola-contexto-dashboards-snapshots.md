@@ -47,6 +47,10 @@ Esta fase e documental e de verificacao de consistencia. Ela nao cria BFF, micro
 
 Os usos de `EscolaContextoPort` em dashboards e snapshots estao consolidados e documentados. A evolucao multi-escola segue incremental dentro do monolito.
 
+## Estado apos Fase 48Q
+
+A Fase 48Q aplicou `EscolaContextoPort` em `MatriculaAcademicoResumoService`, abrindo o uso da porta fora da area de dashboards em um fluxo de leitura controlado.
+
 ## Proxima fase sugerida
 
 Fase 48Q - uso pontual de `EscolaContextoPort` no resumo academico da matricula.
@@ -58,3 +62,7 @@ Objetivo sugerido:
 - Manter os filtros por matricula e escola com o mesmo comportamento atual.
 - Validar com `.\mvnw.cmd "-Dtest=MatriculaAcademicoControllerIntegrationTest" test`.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 48Q
+
+Fase 48R - consolidacao do uso de `EscolaContextoPort` em resumo academico da matricula e mapeamento de proximos fluxos de leitura.
