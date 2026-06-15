@@ -7,6 +7,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -245,7 +246,9 @@ public class PlanejamentoIAService {
             UUID disciplinaId,
             String tipoConteudo,
             String tema) {
-        String tipoNormalizado = tipoConteudo == null || tipoConteudo.isBlank() ? null : tipoConteudo.toUpperCase();
+        String tipoNormalizado = tipoConteudo == null || tipoConteudo.isBlank()
+                ? null
+                : tipoConteudo.trim().toUpperCase(Locale.ROOT);
         String temaNormalizado = tema == null || tema.isBlank() ? null : tema.trim();
         var conteudos = temaNormalizado == null
                 ? bibliotecaJpaRepository.filtrar(professorId, disciplinaId, tipoNormalizado, escolaId())

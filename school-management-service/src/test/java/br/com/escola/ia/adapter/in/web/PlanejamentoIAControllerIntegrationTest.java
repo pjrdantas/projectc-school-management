@@ -173,6 +173,23 @@ class PlanejamentoIAControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].origem").value("PLANEJAMENTO_IA"))
                 .andExpect(jsonPath("$[0].conteudo").value(conteudoEditado));
 
+        mockMvc.perform(get("/api/biblioteca-conteudos-pedagogicos")
+                        .param("professorId", contexto.professorId().toString())
+                        .param("disciplinaId", contexto.disciplinaId().toString())
+                        .param("tipoConteudo", " plano_bimestral ")
+                        .param("tema", " ecossistemas "))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$[0].tipoConteudo").value("PLANO_BIMESTRAL"))
+                .andExpect(jsonPath("$[0].conteudo").value(conteudoEditado));
+
+        mockMvc.perform(get("/api/biblioteca-conteudos-pedagogicos")
+                        .param("disciplinaId", UUID.randomUUID().toString())
+                        .param("tipoConteudo", "PLANO_BIMESTRAL")
+                        .param("tema", "Ecossistemas"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(0)));
+
         mockMvc.perform(get("/api/biblioteca-conteudos-pedagogicos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)))
