@@ -12,8 +12,8 @@ import br.com.escola.avaliacao.adapter.out.persistence.repository.NotaAlunoJpaRe
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorTurmaResponse;
 import br.com.escola.frequencia.adapter.out.persistence.repository.FrequenciaProfessorJpaRepository;
-import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.dto.EscolaContexto;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.planejamento.adapter.out.persistence.entity.PlanejamentoBimestralEntity;
 import br.com.escola.planejamento.adapter.out.persistence.repository.PlanejamentoBimestralJpaRepository;
 import br.com.escola.professor.adapter.out.persistence.entity.ProfessorTurmaDisciplinaEntity;
@@ -32,7 +32,7 @@ public class DashboardProfessorService {
     private final AvaliacaoJpaRepository avaliacaoJpaRepository;
     private final NotaAlunoJpaRepository notaAlunoJpaRepository;
     private final PlanejamentoBimestralJpaRepository planejamentoBimestralJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     public DashboardProfessorService(
             ProfessorJpaRepository professorJpaRepository,
@@ -42,7 +42,7 @@ public class DashboardProfessorService {
             AvaliacaoJpaRepository avaliacaoJpaRepository,
             NotaAlunoJpaRepository notaAlunoJpaRepository,
             PlanejamentoBimestralJpaRepository planejamentoBimestralJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaContextoPort escolaContextoPort) {
         this.professorJpaRepository = professorJpaRepository;
         this.professorTurmaDisciplinaJpaRepository = professorTurmaDisciplinaJpaRepository;
         this.aulaJpaRepository = aulaJpaRepository;
@@ -50,13 +50,13 @@ public class DashboardProfessorService {
         this.avaliacaoJpaRepository = avaliacaoJpaRepository;
         this.notaAlunoJpaRepository = notaAlunoJpaRepository;
         this.planejamentoBimestralJpaRepository = planejamentoBimestralJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Transactional(readOnly = true)
     public DashboardProfessorResponse consultar(UUID professorId) {
-        EscolaEntity escola = escolaTenantService.obterOuCriarEscolaPadrao();
-        UUID escolaId = escola.getId();
+        EscolaContexto contexto = escolaContextoPort.obterContextoPadrao();
+        UUID escolaId = contexto.escolaId();
         if (!professorJpaRepository.existsByIdAndPessoa_Escola_Id(professorId, escolaId)) {
             throw new ProfessorNaoEncontradoException();
         }
@@ -70,8 +70,8 @@ public class DashboardProfessorService {
                 .toList();
 
         return new DashboardProfessorResponse(
-                escola.getId(),
-                escola.getNome(),
+                contexto.escolaId(),
+                contexto.escolaNome(),
                 professorId,
                 contarTurmasDistintas(alocacoesAtivas),
                 alocacoesAtivas.size(),

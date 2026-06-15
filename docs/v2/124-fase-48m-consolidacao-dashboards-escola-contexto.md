@@ -56,7 +56,11 @@ Os tres dashboards seguem o mesmo desenho:
 
 Os usos de `EscolaContextoPort` nos dashboards academico, secretaria e diretor estao consolidados e documentados. A fronteira interna de contexto escolar permanece pronta para novos usos pontuais sem alterar o desenho runtime atual.
 
-## Proxima fase sugerida
+## Estado apos Fase 48N
+
+A Fase 48N aplicou `EscolaContextoPort` em `DashboardProfessorService`, mantendo o mesmo padrao dos dashboards academico, secretaria e diretor. `DashboardIndicadorSnapshotService` continua como uso direto remanescente de `EscolaTenantService` na area de dashboards.
+
+## Proxima fase sugerida apos 48M
 
 Fase 48N - uso pontual de `EscolaContextoPort` no dashboard professor.
 
@@ -67,3 +71,7 @@ Objetivo sugerido:
 - Manter os filtros por professor e escola com o mesmo comportamento atual.
 - Validar com `.\mvnw.cmd "-Dtest=DashboardProfessorControllerIntegrationTest" test`.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 48N
+
+Fase 48O - uso pontual de `EscolaContextoPort` nos snapshots de indicadores de dashboard.
