@@ -18,7 +18,7 @@ import br.com.escola.catalogo.application.port.out.SerieGateway;
 import br.com.escola.catalogo.domain.exception.SerieNaoEncontradaException;
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.adapter.out.persistence.repository.EscolaJpaRepository;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 
 @Component
 @Transactional
@@ -27,28 +27,28 @@ public class SeriePersistenceGateway implements SerieGateway {
     private final SerieJpaRepository serieJpaRepository;
     private final NivelEnsinoJpaRepository nivelEnsinoJpaRepository;
     private final EscolaJpaRepository escolaJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     public SeriePersistenceGateway(
             SerieJpaRepository serieJpaRepository,
             NivelEnsinoJpaRepository nivelEnsinoJpaRepository,
             EscolaJpaRepository escolaJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaContextoPort escolaContextoPort) {
         this.serieJpaRepository = serieJpaRepository;
         this.nivelEnsinoJpaRepository = nivelEnsinoJpaRepository;
         this.escolaJpaRepository = escolaJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Override
     public Optional<SerieOutput> findById(UUID id) {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = resolverEscolaPadraoId();
         return serieJpaRepository.findByIdAndEscola_Id(id, escolaId).map(this::toOutput);
     }
 
     @Override
     public boolean existsById(UUID id) {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = resolverEscolaPadraoId();
         return serieJpaRepository.existsByIdAndEscola_Id(id, escolaId);
     }
 
@@ -78,7 +78,7 @@ public class SeriePersistenceGateway implements SerieGateway {
 
     @Override
     public List<SerieOutput> findAll() {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = resolverEscolaPadraoId();
         return serieJpaRepository.findAllByEscola_Id(escolaId).stream().map(this::toOutput).toList();
     }
 
@@ -95,10 +95,14 @@ public class SeriePersistenceGateway implements SerieGateway {
 
     private EscolaEntity resolverEscola(UUID escolaId) {
         if (escolaId == null) {
-            return escolaTenantService.obterOuCriarEscolaPadrao();
+            escolaId = resolverEscolaPadraoId();
         }
         return escolaJpaRepository.findById(escolaId)
                 .orElseThrow(() -> new IllegalArgumentException("Escola não encontrada."));
+    }
+
+    private UUID resolverEscolaPadraoId() {
+        return escolaContextoPort.obterContextoPadrao().escolaId();
     }
 
     private br.com.escola.catalogo.adapter.out.persistence.entity.NivelEnsinoEntity resolveNivelEnsino(String codigo) {

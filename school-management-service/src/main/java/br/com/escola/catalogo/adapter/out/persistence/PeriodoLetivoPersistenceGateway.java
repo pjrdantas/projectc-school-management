@@ -17,7 +17,7 @@ import br.com.escola.catalogo.application.dto.PeriodoLetivoOutput;
 import br.com.escola.catalogo.application.port.out.PeriodoLetivoGateway;
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.adapter.out.persistence.repository.EscolaJpaRepository;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 
 @Component
 @Transactional
@@ -25,26 +25,26 @@ public class PeriodoLetivoPersistenceGateway implements PeriodoLetivoGateway {
 
     private final PeriodoLetivoJpaRepository periodoLetivoJpaRepository;
     private final EscolaJpaRepository escolaJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     public PeriodoLetivoPersistenceGateway(
             PeriodoLetivoJpaRepository periodoLetivoJpaRepository,
             EscolaJpaRepository escolaJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaContextoPort escolaContextoPort) {
         this.periodoLetivoJpaRepository = periodoLetivoJpaRepository;
         this.escolaJpaRepository = escolaJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Override
     public Optional<PeriodoLetivoOutput> findById(@NonNull UUID id) {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = resolverEscolaPadraoId();
         return periodoLetivoJpaRepository.findByIdAndEscola_Id(id, escolaId).map(this::toOutput);
     }
 
     @Override
     public boolean existsById(@NonNull UUID id) {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = resolverEscolaPadraoId();
         return periodoLetivoJpaRepository.existsByIdAndEscola_Id(id, escolaId);
     }
 
@@ -64,7 +64,7 @@ public class PeriodoLetivoPersistenceGateway implements PeriodoLetivoGateway {
 
     @Override
     public List<PeriodoLetivoOutput> findAll() {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = resolverEscolaPadraoId();
         return periodoLetivoJpaRepository.findAllByEscola_Id(escolaId).stream().map(this::toOutput).toList();
     }
 
@@ -83,10 +83,14 @@ public class PeriodoLetivoPersistenceGateway implements PeriodoLetivoGateway {
 
     private EscolaEntity resolverEscola(UUID escolaId) {
         if (escolaId == null) {
-            return escolaTenantService.obterOuCriarEscolaPadrao();
+            escolaId = resolverEscolaPadraoId();
         }
         return escolaJpaRepository.findById(escolaId)
                 .orElseThrow(() -> new IllegalArgumentException("Escola não encontrada."));
+    }
+
+    private UUID resolverEscolaPadraoId() {
+        return escolaContextoPort.obterContextoPadrao().escolaId();
     }
 
     private Integer resolveAno(PeriodoLetivoInput input) {

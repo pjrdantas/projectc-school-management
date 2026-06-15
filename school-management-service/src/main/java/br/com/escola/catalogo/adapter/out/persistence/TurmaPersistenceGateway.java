@@ -24,7 +24,7 @@ import br.com.escola.catalogo.domain.exception.SerieNaoEncontradaException;
 import br.com.escola.catalogo.domain.exception.TurmaNaoEncontradaException;
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.adapter.out.persistence.repository.EscolaJpaRepository;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 
 @Component
 public class TurmaPersistenceGateway implements TurmaGateway {
@@ -34,7 +34,7 @@ public class TurmaPersistenceGateway implements TurmaGateway {
     private final SerieJpaRepository serieJpaRepository;
     private final TurnoJpaRepository turnoJpaRepository;
     private final EscolaJpaRepository escolaJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     public TurmaPersistenceGateway(
             TurmaJpaRepository turmaJpaRepository,
@@ -42,26 +42,26 @@ public class TurmaPersistenceGateway implements TurmaGateway {
             SerieJpaRepository serieJpaRepository,
             TurnoJpaRepository turnoJpaRepository,
             EscolaJpaRepository escolaJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaContextoPort escolaContextoPort) {
         this.turmaJpaRepository = turmaJpaRepository;
         this.periodoLetivoJpaRepository = periodoLetivoJpaRepository;
         this.serieJpaRepository = serieJpaRepository;
         this.turnoJpaRepository = turnoJpaRepository;
         this.escolaJpaRepository = escolaJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<TurmaOutput> findById(@NonNull UUID id) {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = resolverEscolaPadraoId();
         return turmaJpaRepository.findByIdAndEscola_Id(id, escolaId).map(this::toOutput);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<TurmaOutput> findByCodigoAndPeriodoLetivoId(String codigo, UUID periodoLetivoId) {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = resolverEscolaPadraoId();
         return turmaJpaRepository.findByCodigoAndPeriodoLetivo_IdAndEscola_Id(codigo, periodoLetivoId, escolaId)
                 .map(this::toOutput);
     }
@@ -113,7 +113,7 @@ public class TurmaPersistenceGateway implements TurmaGateway {
     @Override
     @Transactional(readOnly = true)
     public List<TurmaOutput> findAll() {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = resolverEscolaPadraoId();
         return turmaJpaRepository.findAllByEscola_Id(escolaId).stream().map(this::toOutput).toList();
     }
 
@@ -135,10 +135,14 @@ public class TurmaPersistenceGateway implements TurmaGateway {
 
     private EscolaEntity resolverEscola(UUID escolaId) {
         if (escolaId == null) {
-            return escolaTenantService.obterOuCriarEscolaPadrao();
+            escolaId = resolverEscolaPadraoId();
         }
         return escolaJpaRepository.findById(escolaId)
                 .orElseThrow(() -> new IllegalArgumentException("Escola não encontrada."));
+    }
+
+    private UUID resolverEscolaPadraoId() {
+        return escolaContextoPort.obterContextoPadrao().escolaId();
     }
 
     private br.com.escola.catalogo.adapter.out.persistence.entity.TurnoEntity resolveTurno(String codigo) {
