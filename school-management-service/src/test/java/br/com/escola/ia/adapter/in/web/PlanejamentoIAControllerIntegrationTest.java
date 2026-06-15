@@ -175,7 +175,17 @@ class PlanejamentoIAControllerIntegrationTest {
 
         mockMvc.perform(get("/api/biblioteca-conteudos-pedagogicos"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)))
                 .andExpect(jsonPath("$[0].escolaId").value(ESCOLA_PADRAO_ID))
+                .andExpect(jsonPath("$[0].conteudo").value(conteudoEditado));
+
+        mockMvc.perform(post("/api/ia/conteudos/{id}/publicar-biblioteca", conteudoId))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.conteudo").value(conteudoEditado));
+
+        mockMvc.perform(get("/api/biblioteca-conteudos-pedagogicos"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)))
                 .andExpect(jsonPath("$[0].conteudo").value(conteudoEditado));
     }
 

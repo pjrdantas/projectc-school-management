@@ -267,6 +267,21 @@ public class PlanejamentoIAService {
 
         PlanejamentoBimestralEntity planejamento = conteudo.getPlanejamentoBimestral();
         ProfessorTurmaDisciplinaEntity alocacao = planejamento.getProfessorTurmaDisciplina();
+        return bibliotecaJpaRepository.findFirstPublicadoEquivalente(
+                        alocacao.getProfessor().getId(),
+                        alocacao.getTurmaDisciplina().getDisciplina().getId(),
+                        conteudo.getTipoConteudoIA().getId(),
+                        conteudo.getTitulo(),
+                        planejamento.getTemaPrincipal(),
+                        conteudo.getConteudo(),
+                        ORIGEM_PLANEJAMENTO_IA)
+                .orElseGet(() -> salvarBiblioteca(conteudo, planejamento, alocacao));
+    }
+
+    private BibliotecaConteudoPedagogicoEntity salvarBiblioteca(
+            PlanejamentoIAConteudoGeradoEntity conteudo,
+            PlanejamentoBimestralEntity planejamento,
+            ProfessorTurmaDisciplinaEntity alocacao) {
         return bibliotecaJpaRepository.save(BibliotecaConteudoPedagogicoEntity.builder()
                 .professor(alocacao.getProfessor())
                 .disciplina(alocacao.getTurmaDisciplina().getDisciplina())

@@ -1,6 +1,7 @@
 package br.com.escola.ia.adapter.out.persistence.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,6 +13,31 @@ import br.com.escola.ia.adapter.out.persistence.entity.BibliotecaConteudoPedagog
 public interface BibliotecaConteudoPedagogicoJpaRepository extends JpaRepository<BibliotecaConteudoPedagogicoEntity, UUID> {
 
     List<BibliotecaConteudoPedagogicoEntity> findByProfessorId(UUID professorId);
+
+    @Query("""
+            SELECT conteudo
+            FROM BibliotecaConteudoPedagogicoEntity conteudo
+            LEFT JOIN conteudo.professor professor
+            LEFT JOIN conteudo.disciplina disciplina
+            LEFT JOIN conteudo.tipoConteudoIA tipo
+            WHERE conteudo.ativo = true
+              AND professor.id = :professorId
+              AND disciplina.id = :disciplinaId
+              AND tipo.id = :tipoConteudoIAId
+              AND conteudo.titulo = :titulo
+              AND ((:tema IS NULL AND conteudo.tema IS NULL) OR conteudo.tema = :tema)
+              AND conteudo.conteudo = :conteudoTexto
+              AND conteudo.origem = :origem
+            ORDER BY conteudo.createdAt DESC
+            """)
+    Optional<BibliotecaConteudoPedagogicoEntity> findFirstPublicadoEquivalente(
+            @Param("professorId") UUID professorId,
+            @Param("disciplinaId") UUID disciplinaId,
+            @Param("tipoConteudoIAId") UUID tipoConteudoIAId,
+            @Param("titulo") String titulo,
+            @Param("tema") String tema,
+            @Param("conteudoTexto") String conteudoTexto,
+            @Param("origem") String origem);
 
     @Query("""
             SELECT conteudo
