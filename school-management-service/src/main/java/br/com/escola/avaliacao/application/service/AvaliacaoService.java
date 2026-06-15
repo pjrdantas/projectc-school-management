@@ -23,13 +23,14 @@ import br.com.escola.avaliacao.domain.exception.AvaliacaoNaoEncontradaException;
 import br.com.escola.avaliacao.domain.exception.AvaliacaoNotaDuplicadaException;
 import br.com.escola.avaliacao.domain.exception.AvaliacaoNotaInvalidaException;
 import br.com.escola.avaliacao.domain.exception.TipoAvaliacaoNaoEncontradoException;
+import br.com.escola.catalogo.application.port.internal.EstruturaTurmaPort;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.matricula.adapter.out.persistence.entity.MatriculaEntity;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
 import br.com.escola.professor.adapter.out.persistence.entity.ProfessorTurmaDisciplinaEntity;
 import br.com.escola.professor.adapter.out.persistence.repository.ProfessorTurmaDisciplinaJpaRepository;
 import br.com.escola.professor.domain.exception.AulaNaoEncontradaException;
 import br.com.escola.professor.domain.exception.ProfessorTurmaDisciplinaNaoEncontradaException;
-import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Service
 public class AvaliacaoService {
@@ -40,6 +41,7 @@ public class AvaliacaoService {
     private final ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository;
     private final MatriculaJpaRepository matriculaJpaRepository;
     private final EscolaTenantService escolaTenantService;
+    private final EstruturaTurmaPort estruturaTurmaPort;
 
     public AvaliacaoService(
             AvaliacaoJpaRepository avaliacaoJpaRepository,
@@ -47,13 +49,15 @@ public class AvaliacaoService {
             TipoAvaliacaoJpaRepository tipoAvaliacaoJpaRepository,
             ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository,
             MatriculaJpaRepository matriculaJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaTenantService escolaTenantService,
+            EstruturaTurmaPort estruturaTurmaPort) {
         this.avaliacaoJpaRepository = avaliacaoJpaRepository;
         this.notaAlunoJpaRepository = notaAlunoJpaRepository;
         this.tipoAvaliacaoJpaRepository = tipoAvaliacaoJpaRepository;
         this.professorTurmaDisciplinaJpaRepository = professorTurmaDisciplinaJpaRepository;
         this.matriculaJpaRepository = matriculaJpaRepository;
         this.escolaTenantService = escolaTenantService;
+        this.estruturaTurmaPort = estruturaTurmaPort;
     }
 
     @Transactional
@@ -61,6 +65,7 @@ public class AvaliacaoService {
         ProfessorTurmaDisciplinaEntity alocacao = professorTurmaDisciplinaJpaRepository
                 .findByIdAndTurmaDisciplina_Turma_Escola_Id(request.professorTurmaDisciplinaId(), escolaId())
                 .orElseThrow(ProfessorTurmaDisciplinaNaoEncontradaException::new);
+        validarEstruturaTurmaDisciplina(alocacao);
         TipoAvaliacaoEntity tipo = tipoAvaliacaoJpaRepository.findByCodigo(request.tipoAvaliacao().toUpperCase())
                 .orElseThrow(TipoAvaliacaoNaoEncontradoException::new);
 
@@ -171,6 +176,15 @@ public class AvaliacaoService {
     private AvaliacaoEntity findAvaliacao(UUID id) {
         return avaliacaoJpaRepository.findByIdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(id, escolaId())
                 .orElseThrow(AvaliacaoNaoEncontradaException::new);
+    }
+
+    private void validarEstruturaTurmaDisciplina(ProfessorTurmaDisciplinaEntity alocacao) {
+        UUID escolaId = escolaId();
+        UUID turmaId = alocacao.getTurmaDisciplina().getTurma().getId();
+        UUID disciplinaId = alocacao.getTurmaDisciplina().getDisciplina().getId();
+        if (!estruturaTurmaPort.turmaPossuiDisciplina(escolaId, turmaId, disciplinaId)) {
+            throw new ProfessorTurmaDisciplinaNaoEncontradaException();
+        }
     }
 
     private AvaliacaoResponse toAvaliacaoResponse(AvaliacaoEntity entity) {
