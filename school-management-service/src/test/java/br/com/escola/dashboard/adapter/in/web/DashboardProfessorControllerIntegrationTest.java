@@ -74,6 +74,8 @@ class DashboardProfessorControllerIntegrationTest {
 
         mockMvc.perform(get("/api/dashboard/professores/{professorId}", professorId))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.escolaId").value("00000000-0000-0000-0000-000000000047"))
+                .andExpect(jsonPath("$.escolaNome").value("Escola padrão"))
                 .andExpect(jsonPath("$.professorId").value(professorId.toString()))
                 .andExpect(jsonPath("$.turmasVinculadas").value(greaterThanOrEqualTo(1)))
                 .andExpect(jsonPath("$.alocacoesAtivas").value(greaterThanOrEqualTo(1)))

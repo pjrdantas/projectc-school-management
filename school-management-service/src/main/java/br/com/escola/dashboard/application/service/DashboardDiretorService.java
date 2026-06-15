@@ -15,6 +15,7 @@ import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaJpaReposit
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardAcademicoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardDiretorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardSecretariaResponse;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
 import br.com.escola.matricula.domain.MatriculaStatus;
@@ -66,11 +67,14 @@ public class DashboardDiretorService {
 
     @Transactional(readOnly = true)
     public DashboardDiretorResponse consultar() {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        EscolaEntity escola = escolaTenantService.obterOuCriarEscolaPadrao();
+        UUID escolaId = escola.getId();
         DashboardAcademicoResponse academico = dashboardAcademicoService.consultar();
         DashboardSecretariaResponse secretaria = dashboardSecretariaService.consultar();
 
         return new DashboardDiretorResponse(
+                escola.getId(),
+                escola.getNome(),
                 academico.totalMatriculas(),
                 contarMatriculasPendentes(secretaria),
                 academico.matriculasConcluidas(),

@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 public record DashboardProfessorResponse(
+        UUID escolaId,
+        String escolaNome,
         UUID professorId,
         long turmasVinculadas,
         long alocacoesAtivas,

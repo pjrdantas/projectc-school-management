@@ -101,6 +101,8 @@ class DashboardDiretorControllerIntegrationTest {
 
         mockMvc.perform(get("/api/dashboard/diretor"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.escolaId").value("00000000-0000-0000-0000-000000000047"))
+                .andExpect(jsonPath("$.escolaNome").value("Escola padrão"))
                 .andExpect(jsonPath("$.totalMatriculas").value(greaterThanOrEqualTo(2)))
                 .andExpect(jsonPath("$.matriculasPendentes").value(greaterThanOrEqualTo(1)))
                 .andExpect(jsonPath("$.matriculasEfetivadas").value(greaterThanOrEqualTo(1)))

@@ -14,6 +14,7 @@ import br.com.escola.dashboard.adapter.in.web.dto.DashboardMatriculaStatusRespon
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardTurmaVagaResponse;
 import br.com.escola.historico.adapter.out.persistence.repository.BoletimJpaRepository;
 import br.com.escola.historico.adapter.out.persistence.repository.HistoricoEscolarJpaRepository;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
 import br.com.escola.matricula.domain.MatriculaStatus;
@@ -47,10 +48,13 @@ public class DashboardAcademicoService {
 
     @Transactional(readOnly = true)
     public DashboardAcademicoResponse consultar() {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        EscolaEntity escola = escolaTenantService.obterOuCriarEscolaPadrao();
+        UUID escolaId = escola.getId();
         long matriculasConcluidas = countMatriculasPorStatus(escolaId, MatriculaStatus.CONCLUIDA);
 
         return new DashboardAcademicoResponse(
+                escola.getId(),
+                escola.getNome(),
                 matriculaJpaRepository.countByTurma_Escola_Id(escolaId),
                 countMatriculasPorStatus(escolaId, MatriculaStatus.AGUARDANDO_DOCUMENTOS),
                 matriculasConcluidas,

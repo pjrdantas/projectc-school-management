@@ -104,7 +104,7 @@ class DashboardFrontendServiceTest {
     void deveMontarPacoteDoProfessorSemConfiguracaoQuandoUsuarioNaoInformado() {
         UUID professorId = UUID.randomUUID();
         DashboardProfessorResponse resumo = new DashboardProfessorResponse(
-                professorId, 1, 1, 1, 1, 0, 1, 0, 1, 0, List.of());
+                UUID.randomUUID(), "Escola teste", professorId, 1, 1, 1, 1, 0, 1, 0, 1, 0, List.of());
 
         when(dashboardProfessorService.consultar(professorId)).thenReturn(resumo);
         when(dashboardAlertaService.consultar("PROFESSOR", professorId)).thenReturn(List.of());
@@ -135,6 +135,7 @@ class DashboardFrontendServiceTest {
 
     private DashboardDiretorResponse diretorResponse() {
         return new DashboardDiretorResponse(
+                UUID.randomUUID(), "Escola teste",
                 10, 1, 2, 3, 1, 20, 1, 3, 1, 4, 5, 6, 1, 2, 1, 0, 0, 1, List.of(), List.of());
     }
 }

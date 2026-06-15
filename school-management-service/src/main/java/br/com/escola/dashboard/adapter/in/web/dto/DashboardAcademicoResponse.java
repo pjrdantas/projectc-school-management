@@ -1,8 +1,11 @@
 package br.com.escola.dashboard.adapter.in.web.dto;
 
 import java.util.List;
+import java.util.UUID;
 
 public record DashboardAcademicoResponse(
+        UUID escolaId,
+        String escolaNome,
         long totalMatriculas,
         long matriculasAguardandoDocumentos,
         long matriculasConcluidas,

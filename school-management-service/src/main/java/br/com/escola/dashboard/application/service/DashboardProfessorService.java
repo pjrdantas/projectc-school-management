@@ -12,6 +12,7 @@ import br.com.escola.avaliacao.adapter.out.persistence.repository.NotaAlunoJpaRe
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorTurmaResponse;
 import br.com.escola.frequencia.adapter.out.persistence.repository.FrequenciaProfessorJpaRepository;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.planejamento.adapter.out.persistence.entity.PlanejamentoBimestralEntity;
 import br.com.escola.planejamento.adapter.out.persistence.repository.PlanejamentoBimestralJpaRepository;
@@ -54,7 +55,8 @@ public class DashboardProfessorService {
 
     @Transactional(readOnly = true)
     public DashboardProfessorResponse consultar(UUID professorId) {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        EscolaEntity escola = escolaTenantService.obterOuCriarEscolaPadrao();
+        UUID escolaId = escola.getId();
         if (!professorJpaRepository.existsByIdAndPessoa_Escola_Id(professorId, escolaId)) {
             throw new ProfessorNaoEncontradoException();
         }
@@ -68,6 +70,8 @@ public class DashboardProfessorService {
                 .toList();
 
         return new DashboardProfessorResponse(
+                escola.getId(),
+                escola.getNome(),
                 professorId,
                 contarTurmasDistintas(alocacoesAtivas),
                 alocacoesAtivas.size(),

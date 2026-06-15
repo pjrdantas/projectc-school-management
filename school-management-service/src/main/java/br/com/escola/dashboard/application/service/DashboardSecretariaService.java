@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.escola.aluno.adapter.out.persistence.repository.SolicitacaoExclusaoAlunoJpaRepository;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardAcademicoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardSecretariaResponse;
+import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
 import br.com.escola.matricula.domain.MatriculaStatus;
@@ -37,10 +38,13 @@ public class DashboardSecretariaService {
 
     @Transactional(readOnly = true)
     public DashboardSecretariaResponse consultar() {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        EscolaEntity escola = escolaTenantService.obterOuCriarEscolaPadrao();
+        UUID escolaId = escola.getId();
         DashboardAcademicoResponse academico = dashboardAcademicoService.consultar();
 
         return new DashboardSecretariaResponse(
+                escola.getId(),
+                escola.getNome(),
                 academico.totalMatriculas(),
                 countMatriculasPorStatus(escolaId, MatriculaStatus.SOLICITADA),
                 countMatriculasPorStatus(escolaId, MatriculaStatus.EM_ANDAMENTO),

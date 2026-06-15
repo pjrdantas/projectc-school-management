@@ -37,6 +37,8 @@ class DashboardAlertaServiceTest {
     @Test
     void deveRetornarAlertasDoDiretorOrdenadosPorSeveridade() {
         when(dashboardDiretorService.consultar()).thenReturn(new DashboardDiretorResponse(
+                UUID.randomUUID(),
+                "Escola teste",
                 10,
                 2,
                 3,
@@ -80,6 +82,8 @@ class DashboardAlertaServiceTest {
     void deveRetornarAlertasDoProfessorComProfessorId() {
         UUID professorId = UUID.randomUUID();
         when(dashboardProfessorService.consultar(professorId)).thenReturn(new DashboardProfessorResponse(
+                UUID.randomUUID(),
+                "Escola teste",
                 professorId,
                 1,
                 1,
@@ -103,6 +107,8 @@ class DashboardAlertaServiceTest {
     @Test
     void deveRespeitarLimitePadrao() {
         when(dashboardSecretariaService.consultar()).thenReturn(new DashboardSecretariaResponse(
+                UUID.randomUUID(),
+                "Escola teste",
                 10,
                 1,
                 1,
@@ -125,6 +131,8 @@ class DashboardAlertaServiceTest {
     @Test
     void deveRetornarAlertaAcademicoQuandoExistirReprovacao() {
         when(dashboardAcademicoService.consultar()).thenReturn(new DashboardAcademicoResponse(
+                UUID.randomUUID(),
+                "Escola teste",
                 10,
                 0,
                 5,
