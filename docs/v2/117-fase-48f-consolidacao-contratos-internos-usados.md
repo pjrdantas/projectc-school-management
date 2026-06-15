@@ -169,19 +169,19 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - Matricula academico e consultas auxiliares
+### Candidato 1 - Gateways de consulta auxiliares de matricula
 
 Possivel uso:
 
-- Consolidar o uso de `EscolaContextoPort` em fluxos de leitura de matricula e consultas auxiliares antes de tocar fluxos transacionais.
+- Usar `EscolaContextoPort` em `AlunoConsultaPersistenceGateway`, `PeriodoLetivoConsultaPersistenceGateway` e `TurmaConsultaPersistenceGateway`.
 
 Risco:
 
-- Baixo a medio. Ha adapters de consulta com filtros simples por escola, mas alguns gateways de matricula tambem participam de criacao e atualizacao.
+- Baixo a medio. Os gateways sao de consulta e validacao por escola, mas sao usados por fluxo transacional de matricula.
 
 Validacao esperada:
 
-- Teste especifico de `MatriculaAcademicoControllerIntegrationTest`.
+- Teste especifico de `MatriculaControllerIntegrationTest`.
 - `.\mvnw.cmd test`.
 
 ## Estado apos Fase 48I
@@ -207,6 +207,10 @@ A Fase 48P consolidou a matriz de consumidores de `EscolaContextoPort` na area d
 ## Estado apos Fase 48Q
 
 A Fase 48Q aplicou `EscolaContextoPort` em `MatriculaAcademicoResumoService`, preservando o contrato HTTP do resumo academico da matricula e os filtros por matricula e escola. A evolucao fora de dashboards deve continuar por consultas de leitura antes de fluxos transacionais.
+
+## Estado apos Fase 48R
+
+A Fase 48R consolidou o uso de `EscolaContextoPort` no resumo academico da matricula e mapeou os proximos candidatos de leitura em matricula. Os gateways auxiliares de consulta de aluno, periodo letivo e turma sao os proximos pontos seguros antes de tocar services transacionais de matricula.
 
 ## Criterios de conclusao da Fase 48F
 

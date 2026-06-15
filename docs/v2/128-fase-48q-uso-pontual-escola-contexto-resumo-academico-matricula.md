@@ -32,6 +32,10 @@ Esta fase nao cria BFF, microservico, fila, banco adicional, novo componente fro
 
 O resumo academico da matricula passa a consumir a fronteira interna de contexto escolar sem alterar comportamento externo.
 
+## Estado apos Fase 48R
+
+A Fase 48R consolidou o consumo de `EscolaContextoPort` no resumo academico da matricula e mapeou os proximos candidatos de baixo risco em matricula: gateways auxiliares de consulta de aluno, periodo letivo e turma.
+
 ## Proxima fase sugerida
 
 Fase 48R - consolidacao do uso de `EscolaContextoPort` em resumo academico da matricula e mapeamento de proximos fluxos de leitura.
@@ -42,3 +46,7 @@ Objetivo sugerido:
 - Confirmar que o fluxo de resumo academico permanece isolado de refatoracoes transacionais de matricula.
 - Mapear proximos candidatos de leitura antes de tocar criacao, edicao ou alteracao de status de matricula.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 48R
+
+Fase 48S - uso pontual de `EscolaContextoPort` nos gateways auxiliares de consulta de matricula.
