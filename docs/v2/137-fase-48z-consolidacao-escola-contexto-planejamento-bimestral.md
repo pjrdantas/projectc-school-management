@@ -45,6 +45,10 @@ Esta fase e documental e de verificacao. Ela nao cria BFF, microservico, fila, b
 
 O planejamento bimestral esta documentado como consumidor de `EscolaContextoPort` e `EstruturaTurmaPort`, preservando comportamento externo e contratos HTTP.
 
+## Estado apos Fase 49A
+
+A Fase 49A diagnosticou `DiarioAulaService` antes de qualquer troca, confirmando que a proxima fase pode aplicar `EscolaContextoPort` de forma pontual se preservar aula, frequencia professor, frequencia aluno e consistencia de matricula.
+
 ## Proxima fase sugerida
 
 Fase 49A - diagnostico pontual de `DiarioAulaService` antes de aplicar `EscolaContextoPort`.
@@ -56,3 +60,7 @@ Objetivo sugerido:
 - Confirmar impactos sobre matricula e frequencia antes de qualquer troca.
 - Escolher se `DiarioAulaService` pode ser migrado em uma fase pontual ou se precisa ser dividido.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 49A
+
+Fase 49B - uso pontual de `EscolaContextoPort` em `DiarioAulaService`.
