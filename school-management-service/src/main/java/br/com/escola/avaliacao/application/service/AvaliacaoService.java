@@ -24,7 +24,7 @@ import br.com.escola.avaliacao.domain.exception.AvaliacaoNotaDuplicadaException;
 import br.com.escola.avaliacao.domain.exception.AvaliacaoNotaInvalidaException;
 import br.com.escola.avaliacao.domain.exception.TipoAvaliacaoNaoEncontradoException;
 import br.com.escola.catalogo.application.port.internal.EstruturaTurmaPort;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.matricula.adapter.out.persistence.entity.MatriculaEntity;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
 import br.com.escola.professor.adapter.out.persistence.entity.ProfessorTurmaDisciplinaEntity;
@@ -40,7 +40,7 @@ public class AvaliacaoService {
     private final TipoAvaliacaoJpaRepository tipoAvaliacaoJpaRepository;
     private final ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository;
     private final MatriculaJpaRepository matriculaJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
     private final EstruturaTurmaPort estruturaTurmaPort;
 
     public AvaliacaoService(
@@ -49,14 +49,14 @@ public class AvaliacaoService {
             TipoAvaliacaoJpaRepository tipoAvaliacaoJpaRepository,
             ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository,
             MatriculaJpaRepository matriculaJpaRepository,
-            EscolaTenantService escolaTenantService,
+            EscolaContextoPort escolaContextoPort,
             EstruturaTurmaPort estruturaTurmaPort) {
         this.avaliacaoJpaRepository = avaliacaoJpaRepository;
         this.notaAlunoJpaRepository = notaAlunoJpaRepository;
         this.tipoAvaliacaoJpaRepository = tipoAvaliacaoJpaRepository;
         this.professorTurmaDisciplinaJpaRepository = professorTurmaDisciplinaJpaRepository;
         this.matriculaJpaRepository = matriculaJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
         this.estruturaTurmaPort = estruturaTurmaPort;
     }
 
@@ -226,6 +226,6 @@ public class AvaliacaoService {
     }
 
     private UUID escolaId() {
-        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        return escolaContextoPort.obterContextoPadrao().escolaId();
     }
 }

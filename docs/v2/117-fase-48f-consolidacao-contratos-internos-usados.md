@@ -42,6 +42,7 @@ Uso atual:
 - `CatalogoAcademicoInternalService`
 - `PlanejamentoBimestralService`
 - `DiarioAulaService`
+- `AvaliacaoService`
 
 Limites atuais:
 
@@ -133,6 +134,7 @@ Limites atuais:
 | `EscolaContextoPort` | `EscolaTenantService` | `CatalogoAcademicoInternalService` | Resolver contexto escolar padrao para contratos internos de catalogo |
 | `EscolaContextoPort` | `EscolaTenantService` | `PlanejamentoBimestralService` | Resolver contexto escolar padrao para planejamento bimestral |
 | `EscolaContextoPort` | `EscolaTenantService` | `DiarioAulaService` | Resolver contexto escolar padrao para diario de aula e frequencias |
+| `EscolaContextoPort` | `EscolaTenantService` | `AvaliacaoService` | Resolver contexto escolar padrao para avaliacoes e notas |
 | `CatalogoAcademicoPort` | `CatalogoAcademicoInternalService` | `DashboardAcademicoService` | Listar turmas por escola |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `PlanejamentoBimestralService` | Validar turma-disciplina da alocacao antes de criar ou atualizar planejamento |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `DiarioAulaService` | Validar turma-disciplina da alocacao antes de criar aula |
@@ -270,6 +272,10 @@ A Fase 49C consolidou `DiarioAulaService` como consumidor de `EscolaContextoPort
 ## Estado apos Fase 49D
 
 A Fase 49D diagnosticou `AvaliacaoService` e confirmou que o uso direto de `EscolaTenantService` esta concentrado no metodo privado `escolaId()`. O proximo candidato seguro e a aplicacao pontual de `EscolaContextoPort` nesse service, preservando notas, matricula e consistencia de turma.
+
+## Estado apos Fase 49E
+
+A Fase 49E aplicou `EscolaContextoPort` em `AvaliacaoService`, preservando `EstruturaTurmaPort`, o metodo privado `escolaId()` e os contratos HTTP de avaliacoes e notas.
 
 ## Criterios de conclusao da Fase 48F
 

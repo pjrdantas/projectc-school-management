@@ -69,6 +69,10 @@ Motivos:
 
 `AvaliacaoService` foi diagnosticado como candidato viavel para uma troca pontual para `EscolaContextoPort`, desde que a proxima fase mantenha escopo restrito ao ponto de resolucao de escola padrao e preserve as regras de nota, matricula e turma.
 
+## Estado apos Fase 49E
+
+A Fase 49E aplicou `EscolaContextoPort` em `AvaliacaoService`, mantendo `EstruturaTurmaPort`, o metodo privado `escolaId()`, as regras de avaliacao e nota e os contratos HTTP inalterados.
+
 ## Proxima fase sugerida
 
 Fase 49E - uso pontual de `EscolaContextoPort` em `AvaliacaoService`.
@@ -80,3 +84,7 @@ Objetivo sugerido:
 - Preservar regras de avaliacao, nota, duplicidade, valor maximo e consistencia de matricula.
 - Validar com `.\mvnw.cmd "-Dtest=AvaliacaoControllerIntegrationTest" test`.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 49E
+
+Fase 49F - consolidacao de `EscolaContextoPort` em avaliacoes.
