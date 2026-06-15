@@ -14,7 +14,7 @@ import br.com.escola.catalogo.application.mapper.DisciplinaMapper;
 import br.com.escola.catalogo.domain.exception.DisciplinaNaoEncontradaException;
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.adapter.out.persistence.repository.EscolaJpaRepository;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 
 @Service
 public class DisciplinaService {
@@ -22,17 +22,17 @@ public class DisciplinaService {
     private final DisciplinaJpaRepository disciplinaJpaRepository;
     private final DisciplinaMapper disciplinaMapper;
     private final EscolaJpaRepository escolaJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     public DisciplinaService(
             DisciplinaJpaRepository disciplinaJpaRepository,
             DisciplinaMapper disciplinaMapper,
             EscolaJpaRepository escolaJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaContextoPort escolaContextoPort) {
         this.disciplinaJpaRepository = disciplinaJpaRepository;
         this.disciplinaMapper = disciplinaMapper;
         this.escolaJpaRepository = escolaJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Transactional
@@ -54,7 +54,7 @@ public class DisciplinaService {
 
     @Transactional
     public void excluir(UUID id) {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = resolverEscolaPadraoId();
         if (!disciplinaJpaRepository.existsByIdAndEscola_Id(id, escolaId)) {
             throw new DisciplinaNaoEncontradaException(id);
         }
@@ -63,7 +63,7 @@ public class DisciplinaService {
 
     @Transactional(readOnly = true)
     public DisciplinaResponse buscarPorId(UUID id) {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = resolverEscolaPadraoId();
         return disciplinaJpaRepository.findByIdAndEscola_Id(id, escolaId)
                 .map(disciplinaMapper::toResponse)
                 .orElseThrow(() -> new DisciplinaNaoEncontradaException(id));
@@ -71,7 +71,7 @@ public class DisciplinaService {
 
     @Transactional(readOnly = true)
     public List<DisciplinaResponse> listar() {
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = resolverEscolaPadraoId();
         return disciplinaJpaRepository.findAllByEscola_Id(escolaId).stream()
                 .map(disciplinaMapper::toResponse)
                 .toList();
@@ -79,9 +79,13 @@ public class DisciplinaService {
 
     private EscolaEntity resolverEscola(UUID escolaId) {
         if (escolaId == null) {
-            return escolaTenantService.obterOuCriarEscolaPadrao();
+            escolaId = resolverEscolaPadraoId();
         }
         return escolaJpaRepository.findById(escolaId)
                 .orElseThrow(() -> new IllegalArgumentException("Escola não encontrada."));
+    }
+
+    private UUID resolverEscolaPadraoId() {
+        return escolaContextoPort.obterContextoPadrao().escolaId();
     }
 }
