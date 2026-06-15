@@ -15,8 +15,8 @@ import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaJpaReposit
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardAcademicoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardDiretorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardSecretariaResponse;
-import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.dto.EscolaContexto;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
 import br.com.escola.matricula.domain.MatriculaStatus;
 import br.com.escola.professor.adapter.out.persistence.entity.ProfessorTurmaDisciplinaEntity;
@@ -40,7 +40,7 @@ public class DashboardDiretorService {
     private final AulaJpaRepository aulaJpaRepository;
     private final AvaliacaoJpaRepository avaliacaoJpaRepository;
     private final NotaAlunoJpaRepository notaAlunoJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     public DashboardDiretorService(
             DashboardAcademicoService dashboardAcademicoService,
@@ -52,7 +52,7 @@ public class DashboardDiretorService {
             AulaJpaRepository aulaJpaRepository,
             AvaliacaoJpaRepository avaliacaoJpaRepository,
             NotaAlunoJpaRepository notaAlunoJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaContextoPort escolaContextoPort) {
         this.dashboardAcademicoService = dashboardAcademicoService;
         this.dashboardSecretariaService = dashboardSecretariaService;
         this.alunoJpaRepository = alunoJpaRepository;
@@ -62,19 +62,19 @@ public class DashboardDiretorService {
         this.aulaJpaRepository = aulaJpaRepository;
         this.avaliacaoJpaRepository = avaliacaoJpaRepository;
         this.notaAlunoJpaRepository = notaAlunoJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Transactional(readOnly = true)
     public DashboardDiretorResponse consultar() {
-        EscolaEntity escola = escolaTenantService.obterOuCriarEscolaPadrao();
-        UUID escolaId = escola.getId();
+        EscolaContexto contexto = escolaContextoPort.obterContextoPadrao();
+        UUID escolaId = contexto.escolaId();
         DashboardAcademicoResponse academico = dashboardAcademicoService.consultar();
         DashboardSecretariaResponse secretaria = dashboardSecretariaService.consultar();
 
         return new DashboardDiretorResponse(
-                escola.getId(),
-                escola.getNome(),
+                contexto.escolaId(),
+                contexto.escolaNome(),
                 academico.totalMatriculas(),
                 contarMatriculasPendentes(secretaria),
                 academico.matriculasConcluidas(),
