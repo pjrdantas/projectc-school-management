@@ -31,6 +31,10 @@ Esta fase nao cria BFF, microservico, fila, banco adicional, novo componente fro
 
 `PlanejamentoBimestralService` passa a consumir a fronteira interna de contexto escolar sem alterar comportamento externo, mantendo `EstruturaTurmaPort` como contrato interno de validacao de turma-disciplina.
 
+## Estado apos Fase 48Z
+
+A Fase 48Z consolidou o uso de `EscolaContextoPort` em `PlanejamentoBimestralService`, confirmando que o service nao depende mais diretamente de `EscolaTenantService` e que `DiarioAulaService` e `AvaliacaoService` seguem fora do escopo.
+
 ## Proxima fase sugerida
 
 Fase 48Z - consolidacao de `EscolaContextoPort` em planejamento bimestral.
@@ -41,3 +45,7 @@ Objetivo sugerido:
 - Confirmar que `PlanejamentoBimestralService` nao depende mais diretamente de `EscolaTenantService`.
 - Reavaliar `DiarioAulaService` e `AvaliacaoService` antes de qualquer aplicacao pontual.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 48Z
+
+Fase 49A - diagnostico pontual de `DiarioAulaService` antes de aplicar `EscolaContextoPort`.

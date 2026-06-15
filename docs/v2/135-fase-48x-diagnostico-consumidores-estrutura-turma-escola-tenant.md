@@ -76,6 +76,10 @@ Os consumidores de `EstruturaTurmaPort` que ainda usam `EscolaTenantService` for
 
 A Fase 48Y aplicou `EscolaContextoPort` em `PlanejamentoBimestralService`, mantendo `DiarioAulaService` e `AvaliacaoService` fora do escopo por envolverem frequencia, matricula e notas.
 
+## Estado apos Fase 48Z
+
+A Fase 48Z consolidou o planejamento bimestral como consumidor de `EscolaContextoPort`. O proximo passo seguro passa a ser diagnosticar `DiarioAulaService` antes de qualquer mudanca, por envolver aula, frequencia e matricula.
+
 ## Proxima fase sugerida
 
 Fase 48Y - uso pontual de `EscolaContextoPort` em `PlanejamentoBimestralService`.

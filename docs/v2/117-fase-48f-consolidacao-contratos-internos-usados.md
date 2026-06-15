@@ -179,15 +179,15 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - Consolidacao do planejamento bimestral com EscolaContextoPort
+### Candidato 1 - Diagnostico pontual de DiarioAulaService
 
 Possivel uso:
 
-- Consolidar o uso de `EscolaContextoPort` em `PlanejamentoBimestralService` e reavaliar `DiarioAulaService` e `AvaliacaoService`.
+- Mapear usos de escola em aulas e frequencias antes de qualquer aplicacao de `EscolaContextoPort`.
 
 Risco:
 
-- Baixo. A etapa deve ser documental e de verificacao de consistencia.
+- Medio. O fluxo cruza aula, frequencia professor, frequencia aluno e matricula.
 
 Validacao esperada:
 
@@ -248,6 +248,10 @@ A Fase 48X diagnosticou `PlanejamentoBimestralService`, `DiarioAulaService` e `A
 ## Estado apos Fase 48Y
 
 A Fase 48Y aplicou `EscolaContextoPort` em `PlanejamentoBimestralService`, preservando `EstruturaTurmaPort`, o metodo privado `escolaId()` e os contratos HTTP de planejamento bimestral.
+
+## Estado apos Fase 48Z
+
+A Fase 48Z consolidou o uso de `EscolaContextoPort` em planejamento bimestral. `DiarioAulaService` e `AvaliacaoService` permanecem como consumidores de `EstruturaTurmaPort` que ainda usam `EscolaTenantService`, mas exigem diagnostico proprio por envolverem frequencia, matricula e notas.
 
 ## Criterios de conclusao da Fase 48F
 
