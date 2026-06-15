@@ -34,13 +34,14 @@ Uso atual:
 - `DashboardSecretariaService`
 - `DashboardDiretorService`
 - `DashboardProfessorService`
+- `DashboardIndicadorSnapshotService`
 
 Limites atuais:
 
 - Ainda nao ha troca dinamica de escola ativa.
 - Ainda nao ha usuario com multiplas escolas.
 - O contexto de perfis e permissoes e preparado no DTO, mas ainda nao e o eixo de autorizacao dos fluxos de dominio.
-- Ainda nao foi aplicado aos snapshots que possuem contexto escolar direto ou indireto.
+- Ainda ha fluxos fora da area de dashboards que usam a entidade de escola diretamente por necessidade transacional.
 
 ### `CatalogoAcademicoPort`
 
@@ -117,6 +118,7 @@ Limites atuais:
 | `EscolaContextoPort` | `EscolaTenantService` | `DashboardSecretariaService` | Resolver contexto escolar padrao para agregacao operacional da secretaria |
 | `EscolaContextoPort` | `EscolaTenantService` | `DashboardDiretorService` | Resolver contexto escolar padrao para agregacao executiva do diretor |
 | `EscolaContextoPort` | `EscolaTenantService` | `DashboardProfessorService` | Resolver contexto escolar padrao para agregacao operacional do professor |
+| `EscolaContextoPort` | `EscolaTenantService` | `DashboardIndicadorSnapshotService` | Resolver contexto escolar padrao para listagem, historico e persistencia de snapshots |
 | `CatalogoAcademicoPort` | `CatalogoAcademicoInternalService` | `DashboardAcademicoService` | Listar turmas por escola |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `PlanejamentoBimestralService` | Validar turma-disciplina da alocacao antes de criar ou atualizar planejamento |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `DiarioAulaService` | Validar turma-disciplina da alocacao antes de criar aula |
@@ -165,19 +167,19 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - Snapshots de indicadores de dashboard
+### Candidato 1 - Matricula academico resumo
 
 Possivel uso:
 
-- Usar `EscolaContextoPort` para resolver contexto escolar.
+- Usar `EscolaContextoPort` para resolver contexto escolar em `MatriculaAcademicoResumoService`.
 
 Risco:
 
-- Medio. O fluxo possui leitura, escrita e historico de snapshots por publico, indicador e data.
+- Baixo a medio. O fluxo e de leitura, mas compoe frequencias e notas da matricula.
 
 Validacao esperada:
 
-- Testes especificos de `DashboardIndicadorSnapshotControllerIntegrationTest` e `DashboardSnapshotAgendamentoSchedulerTest`.
+- Teste especifico de `MatriculaAcademicoControllerIntegrationTest`.
 - `.\mvnw.cmd test`.
 
 ## Estado apos Fase 48I
@@ -191,6 +193,14 @@ A Fase 48M consolidou os usos de `EscolaContextoPort` nos dashboards academico, 
 ## Estado apos Fase 48N
 
 A Fase 48N aplicou `EscolaContextoPort` em `DashboardProfessorService`, mantendo o contrato HTTP do dashboard professor e os filtros por professor e escola. Os snapshots de indicadores passam a ser o proximo candidato de consolidacao, ainda dentro do monolito.
+
+## Estado apos Fase 48O
+
+A Fase 48O aplicou `EscolaContextoPort` em `DashboardIndicadorSnapshotService`, mantendo listagem, historico, criacao, atualizacao e exclusao de snapshots sem alterar contratos HTTP. A area de dashboards fica pronta para uma consolidacao documental especifica antes de novos usos fora desse dominio.
+
+## Estado apos Fase 48P
+
+A Fase 48P consolidou a matriz de consumidores de `EscolaContextoPort` na area de dashboards e snapshots, confirmando que os services de dashboard nao dependem mais diretamente de `EscolaTenantService`. O proximo candidato seguro passa a ser um fluxo de leitura fora de dashboards: `MatriculaAcademicoResumoService`.
 
 ## Criterios de conclusao da Fase 48F
 

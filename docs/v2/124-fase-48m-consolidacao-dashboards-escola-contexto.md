@@ -60,6 +60,10 @@ Os usos de `EscolaContextoPort` nos dashboards academico, secretaria e diretor e
 
 A Fase 48N aplicou `EscolaContextoPort` em `DashboardProfessorService`, mantendo o mesmo padrao dos dashboards academico, secretaria e diretor. `DashboardIndicadorSnapshotService` continua como uso direto remanescente de `EscolaTenantService` na area de dashboards.
 
+## Estado apos Fase 48O
+
+A Fase 48O aplicou `EscolaContextoPort` em `DashboardIndicadorSnapshotService`. Os dashboards academico, secretaria, diretor, professor e os snapshots de indicadores agora resolvem contexto escolar pela porta interna.
+
 ## Proxima fase sugerida apos 48M
 
 Fase 48N - uso pontual de `EscolaContextoPort` no dashboard professor.
@@ -75,3 +79,7 @@ Objetivo sugerido:
 ## Proxima fase sugerida apos 48N
 
 Fase 48O - uso pontual de `EscolaContextoPort` nos snapshots de indicadores de dashboard.
+
+## Proxima fase sugerida apos 48O
+
+Fase 48P - consolidacao dos usos de `EscolaContextoPort` em dashboards e snapshots.

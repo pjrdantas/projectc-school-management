@@ -26,28 +26,33 @@ import br.com.escola.dashboard.adapter.out.persistence.entity.PublicoDashboardEn
 import br.com.escola.dashboard.adapter.out.persistence.repository.DashboardIndicadorSnapshotJpaRepository;
 import br.com.escola.dashboard.adapter.out.persistence.repository.PublicoDashboardJpaRepository;
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.adapter.out.persistence.repository.EscolaJpaRepository;
+import br.com.escola.institucional.application.dto.EscolaContexto;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 
 @Service
 public class DashboardIndicadorSnapshotService {
 
     private final DashboardIndicadorSnapshotJpaRepository dashboardIndicadorSnapshotJpaRepository;
     private final PublicoDashboardJpaRepository publicoDashboardJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaJpaRepository escolaJpaRepository;
+    private final EscolaContextoPort escolaContextoPort;
 
     public DashboardIndicadorSnapshotService(
             DashboardIndicadorSnapshotJpaRepository dashboardIndicadorSnapshotJpaRepository,
             PublicoDashboardJpaRepository publicoDashboardJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaJpaRepository escolaJpaRepository,
+            EscolaContextoPort escolaContextoPort) {
         this.dashboardIndicadorSnapshotJpaRepository = dashboardIndicadorSnapshotJpaRepository;
         this.publicoDashboardJpaRepository = publicoDashboardJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaJpaRepository = escolaJpaRepository;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Transactional(readOnly = true)
     public List<DashboardIndicadorSnapshotResponse> listar(UUID publicoDashboardId, LocalDate referenciaData) {
         buscarPublico(publicoDashboardId);
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = escolaContextoPort.obterContextoPadrao().escolaId();
         List<DashboardIndicadorSnapshotEntity> snapshots = referenciaData == null
                 ? dashboardIndicadorSnapshotJpaRepository
                         .findByPublicoDashboardIdAndEscola_IdOrderByReferenciaDataDescCodigoIndicadorAsc(publicoDashboardId, escolaId)
@@ -82,7 +87,7 @@ public class DashboardIndicadorSnapshotService {
         PublicoDashboardEntity publico = publicoDashboardJpaRepository.findByCodigo(normalizarCodigo(publicoCodigo))
                 .orElseThrow(() -> notFound("Público de dashboard não encontrado para o código " + publicoCodigo));
         String codigoFiltro = normalizarCodigoFiltro(codigoIndicador, professorId);
-        UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        UUID escolaId = escolaContextoPort.obterContextoPadrao().escolaId();
 
         List<DashboardIndicadorSnapshotEntity> snapshots = dashboardIndicadorSnapshotJpaRepository
                 .findByPublicoDashboardIdAndEscola_IdOrderByReferenciaDataDescCodigoIndicadorAsc(publico.getId(), escolaId)
@@ -109,7 +114,8 @@ public class DashboardIndicadorSnapshotService {
     @Transactional
     public DashboardIndicadorSnapshotResponse salvar(DashboardIndicadorSnapshotRequest request) {
         PublicoDashboardEntity publico = buscarPublico(request.publicoDashboardId());
-        EscolaEntity escola = escolaTenantService.obterOuCriarEscolaPadrao();
+        EscolaContexto contexto = escolaContextoPort.obterContextoPadrao();
+        EscolaEntity escola = escolaJpaRepository.getReferenceById(contexto.escolaId());
         String codigoIndicador = normalizarCodigo(request.codigoIndicador());
 
         DashboardIndicadorSnapshotEntity entity = dashboardIndicadorSnapshotJpaRepository
