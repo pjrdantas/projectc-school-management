@@ -181,15 +181,15 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - DiarioAulaService
+### Candidato 1 - AvaliacaoService
 
 Possivel uso:
 
-- Usar `EscolaContextoPort` em `DiarioAulaService`, preservando `EstruturaTurmaPort` e o comportamento do metodo privado `escolaId()`.
+- Diagnosticar `AvaliacaoService` antes de aplicar `EscolaContextoPort`, preservando `EstruturaTurmaPort`, lancamento de notas e consistencia entre turma da avaliacao e turma da matricula.
 
 Risco:
 
-- Medio. O fluxo cruza aula, frequencia professor, frequencia aluno e matricula, mas a resolucao de escola esta concentrada em um metodo privado.
+- Medio a alto. O fluxo cruza avaliacao, notas, matricula, valor maximo e consistencia de turma, portanto exige diagnostico proprio antes de qualquer troca.
 
 Validacao esperada:
 
@@ -262,6 +262,10 @@ A Fase 49A diagnosticou `DiarioAulaService` e confirmou que o uso direto de `Esc
 ## Estado apos Fase 49B
 
 A Fase 49B aplicou `EscolaContextoPort` em `DiarioAulaService`, preservando `EstruturaTurmaPort`, o metodo privado `escolaId()` e os contratos HTTP de diario de aula e frequencias.
+
+## Estado apos Fase 49C
+
+A Fase 49C consolidou `DiarioAulaService` como consumidor de `EscolaContextoPort` e `EstruturaTurmaPort`. O proximo passo seguro passa a ser diagnosticar `AvaliacaoService` antes de qualquer aplicacao pontual, por envolver notas, matricula e consistencia de turma.
 
 ## Criterios de conclusao da Fase 48F
 

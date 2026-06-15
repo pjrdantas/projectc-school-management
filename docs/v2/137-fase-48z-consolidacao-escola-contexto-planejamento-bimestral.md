@@ -22,11 +22,11 @@ Esta fase e documental e de verificacao. Ela nao cria BFF, microservico, fila, b
 - As regras de planejamento, aulas previstas, avaliacoes previstas e status permanecem inalteradas.
 - `DiarioAulaService` e `AvaliacaoService` continuam fora do escopo.
 
-## Limites atuais
+## Limites identificados na fase
 
-- `DiarioAulaService` ainda usa `EscolaTenantService` diretamente em fluxo de aula, frequencia professor e frequencia aluno.
+- `DiarioAulaService` ainda usava `EscolaTenantService` diretamente em fluxo de aula, frequencia professor e frequencia aluno.
 - `AvaliacaoService` ainda usa `EscolaTenantService` diretamente em fluxo de avaliacao, notas e matricula.
-- Os dois fluxos restantes usam `EstruturaTurmaPort`, mas possuem maior impacto operacional que planejamento bimestral.
+- Os dois fluxos restantes usavam `EstruturaTurmaPort`, mas possuiam maior impacto operacional que planejamento bimestral.
 - Fluxos de seguranca, autenticacao, usuarios e perfis continuam fora do escopo.
 
 ## Decisoes
@@ -53,6 +53,10 @@ A Fase 49A diagnosticou `DiarioAulaService` antes de qualquer troca, confirmando
 
 A Fase 49B aplicou `EscolaContextoPort` em `DiarioAulaService`, mantendo o monolito como componente runtime unico e preservando `AvaliacaoService` fora do escopo.
 
+## Estado apos Fase 49C
+
+A Fase 49C consolidou `DiarioAulaService` como consumidor de `EscolaContextoPort`. O proximo passo seguro passa a ser diagnosticar `AvaliacaoService` antes de qualquer alteracao em avaliacoes e notas.
+
 ## Proxima fase sugerida
 
 Fase 49A - diagnostico pontual de `DiarioAulaService` antes de aplicar `EscolaContextoPort`.
@@ -72,3 +76,7 @@ Fase 49B - uso pontual de `EscolaContextoPort` em `DiarioAulaService`.
 ## Proxima fase sugerida apos 49B
 
 Fase 49C - consolidacao de `EscolaContextoPort` em diario de aula.
+
+## Proxima fase sugerida apos 49C
+
+Fase 49D - diagnostico pontual de `AvaliacaoService` antes de aplicar `EscolaContextoPort`.

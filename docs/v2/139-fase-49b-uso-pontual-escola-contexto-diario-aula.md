@@ -32,6 +32,10 @@ Esta fase nao cria BFF, microservico, fila, banco adicional, novo componente fro
 
 `DiarioAulaService` passa a consumir a fronteira interna de contexto escolar sem alterar comportamento externo, mantendo `EstruturaTurmaPort` como contrato interno de validacao de turma-disciplina.
 
+## Estado apos Fase 49C
+
+A Fase 49C consolidou o uso de `EscolaContextoPort` em `DiarioAulaService`, confirmando que o service nao depende mais diretamente de `EscolaTenantService` e que `AvaliacaoService` segue fora do escopo.
+
 ## Proxima fase sugerida
 
 Fase 49C - consolidacao de `EscolaContextoPort` em diario de aula.
@@ -42,3 +46,7 @@ Objetivo sugerido:
 - Confirmar que `DiarioAulaService` nao depende mais diretamente de `EscolaTenantService`.
 - Reavaliar `AvaliacaoService` antes de qualquer aplicacao pontual.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 49C
+
+Fase 49D - diagnostico pontual de `AvaliacaoService` antes de aplicar `EscolaContextoPort`.
