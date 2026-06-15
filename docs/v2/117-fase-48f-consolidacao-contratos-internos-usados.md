@@ -32,13 +32,14 @@ Uso atual:
 
 - `DashboardAcademicoService`
 - `DashboardSecretariaService`
+- `DashboardDiretorService`
 
 Limites atuais:
 
 - Ainda nao ha troca dinamica de escola ativa.
 - Ainda nao ha usuario com multiplas escolas.
 - O contexto de perfis e permissoes e preparado no DTO, mas ainda nao e o eixo de autorizacao dos fluxos de dominio.
-- Ainda nao foi aplicado aos demais dashboards que possuem contexto escolar direto.
+- Ainda nao foi aplicado ao dashboard professor e aos snapshots que possuem contexto escolar direto ou indireto.
 
 ### `CatalogoAcademicoPort`
 
@@ -113,6 +114,7 @@ Limites atuais:
 | --- | --- | --- | --- |
 | `EscolaContextoPort` | `EscolaTenantService` | `DashboardAcademicoService` | Resolver contexto escolar padrao para agregacao academica |
 | `EscolaContextoPort` | `EscolaTenantService` | `DashboardSecretariaService` | Resolver contexto escolar padrao para agregacao operacional da secretaria |
+| `EscolaContextoPort` | `EscolaTenantService` | `DashboardDiretorService` | Resolver contexto escolar padrao para agregacao executiva do diretor |
 | `CatalogoAcademicoPort` | `CatalogoAcademicoInternalService` | `DashboardAcademicoService` | Listar turmas por escola |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `PlanejamentoBimestralService` | Validar turma-disciplina da alocacao antes de criar ou atualizar planejamento |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `DiarioAulaService` | Validar turma-disciplina da alocacao antes de criar aula |
@@ -137,7 +139,7 @@ Ainda nao e recomendado refatorar em massa:
 - diario de aula;
 - avaliacoes/notas;
 - IA pedagogica;
-- dashboards alem do academico.
+- dashboards transacionais ou com filtros especificos ainda nao analisados.
 
 Motivo:
 
@@ -161,7 +163,7 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - Dashboard diretor
+### Candidato 1 - Dashboard professor
 
 Possivel uso:
 
@@ -169,16 +171,20 @@ Possivel uso:
 
 Risco:
 
-- Baixo a medio. O fluxo compoe outros dashboards e ainda usa repositorios especificos.
+- Baixo a medio. O fluxo e de leitura, mas filtra alocacoes por professor e ainda usa repositories especificos.
 
 Validacao esperada:
 
-- Teste especifico de `DashboardDiretorControllerIntegrationTest`.
+- Teste especifico de `DashboardProfessorControllerIntegrationTest`.
 - `.\mvnw.cmd test`.
 
 ## Estado apos Fase 48I
 
 A Fase 48I consolidou os usos pontuais de `EstruturaTurmaPort` em planejamento bimestral, diario de aula e avaliacoes. A porta continua dentro do monolito e ainda nao exige BFF, microservico ou novo componente runtime.
+
+## Estado apos Fase 48M
+
+A Fase 48M consolidou os usos de `EscolaContextoPort` nos dashboards academico, secretaria e diretor. O proximo candidato seguro passa a ser o dashboard professor, ainda sem justificar BFF, microservico ou novo componente runtime.
 
 ## Criterios de conclusao da Fase 48F
 
