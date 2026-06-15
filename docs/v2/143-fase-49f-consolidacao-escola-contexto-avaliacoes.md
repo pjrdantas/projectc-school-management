@@ -54,6 +54,10 @@ Ainda ha usos diretos de `EscolaTenantService` em outros dominios:
 
 Avaliacoes e notas estao documentadas como consumidoras de `EscolaContextoPort` e `EstruturaTurmaPort`, preservando comportamento externo e contratos HTTP.
 
+## Estado apos Fase 49G
+
+A Fase 49G reclassificou os usos remanescentes de `EscolaTenantService` e escolheu `DisciplinaService` como proximo candidato para diagnostico pontual, mantendo fluxos transacionais e de seguranca fora do escopo.
+
 ## Proxima fase sugerida
 
 Fase 49G - diagnostico atualizado dos usos remanescentes de `EscolaTenantService`.
@@ -65,3 +69,7 @@ Objetivo sugerido:
 - Escolher um unico candidato seguro para a proxima aplicacao pontual de `EscolaContextoPort`.
 - Manter BFF, microservicos, Kafka, MongoDB, Redis e novos componentes frontend fora do escopo ate haver necessidade concreta.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 49G
+
+Fase 49H - diagnostico pontual de `DisciplinaService` antes de aplicar `EscolaContextoPort`.

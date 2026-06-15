@@ -183,15 +183,15 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - Diagnostico atualizado de usos remanescentes
+### Candidato 1 - DisciplinaService
 
 Possivel uso:
 
-- Reclassificar os usos remanescentes de `EscolaTenantService` apos as aplicacoes pontuais em catalogo interno, dashboards, matricula leitura, planejamento, diario de aula e avaliacoes.
+- Diagnosticar `DisciplinaService` antes de aplicar `EscolaContextoPort`, preservando criacao, atualizacao, exclusao, busca, listagem e o comportamento de `resolverEscola(UUID escolaId)`.
 
 Risco:
 
-- Medio. Os usos remanescentes incluem gateways, fluxos transacionais, historico, IA, pessoa, professor e seguranca. A proxima fase deve diagnosticar antes de escolher um unico candidato.
+- Medio. O fluxo e de catalogo e possui escopo menor que aluno, responsavel, documento, matricula e seguranca, mas ainda envolve escrita e exclusao.
 
 Validacao esperada:
 
@@ -280,6 +280,10 @@ A Fase 49E aplicou `EscolaContextoPort` em `AvaliacaoService`, preservando `Estr
 ## Estado apos Fase 49F
 
 A Fase 49F consolidou `AvaliacaoService` como consumidor de `EscolaContextoPort` e `EstruturaTurmaPort`. O proximo passo seguro passa a ser um diagnostico atualizado dos usos remanescentes de `EscolaTenantService`, antes de qualquer nova aplicacao pontual.
+
+## Estado apos Fase 49G
+
+A Fase 49G reclassificou os usos remanescentes de `EscolaTenantService` e escolheu `DisciplinaService` como proximo candidato para diagnostico pontual. Fluxos de matricula, seguranca, documentos, pessoa, historico e IA continuam fora do escopo imediato.
 
 ## Criterios de conclusao da Fase 48F
 
