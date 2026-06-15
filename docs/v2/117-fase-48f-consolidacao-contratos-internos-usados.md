@@ -97,12 +97,13 @@ Responsabilidade atual:
 Uso atual:
 
 - `PlanejamentoBimestralService`
+- `DiarioAulaService`
+- `AvaliacaoService`
 
 Limites atuais:
 
-- Ainda nao e usado por diario de aula.
-- Ainda nao e usado por avaliacoes.
 - Ainda nao substitui validacoes diretas de repositories nos fluxos transacionais.
+- Ainda nao e usado por todos os fluxos que manipulam turma-disciplina.
 
 ## Matriz de uso atual
 
@@ -110,7 +111,9 @@ Limites atuais:
 | --- | --- | --- | --- |
 | `EscolaContextoPort` | `EscolaTenantService` | `DashboardAcademicoService` | Resolver escola padrao para agregacao |
 | `CatalogoAcademicoPort` | `CatalogoAcademicoInternalService` | `DashboardAcademicoService` | Listar turmas por escola |
-| `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `PlanejamentoBimestralService` | Validar turma-disciplina da alocacao |
+| `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `PlanejamentoBimestralService` | Validar turma-disciplina da alocacao antes de criar ou atualizar planejamento |
+| `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `DiarioAulaService` | Validar turma-disciplina da alocacao antes de criar aula |
+| `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `AvaliacaoService` | Validar turma-disciplina da alocacao antes de criar avaliacao |
 
 ## Decisoes consolidadas
 
@@ -155,37 +158,7 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - Diario de aula
-
-Possivel uso:
-
-- Usar `EstruturaTurmaPort` para validar turma-disciplina antes de criar aula.
-
-Risco:
-
-- Baixo a medio. O fluxo e transacional, mas a validacao e similar ao planejamento.
-
-Validacao esperada:
-
-- Teste especifico de `AulaControllerIntegrationTest`.
-- `.\mvnw.cmd test`.
-
-### Candidato 2 - Avaliacoes
-
-Possivel uso:
-
-- Usar `EstruturaTurmaPort` para validar turma-disciplina antes de criar avaliacao.
-
-Risco:
-
-- Baixo a medio. Deve preservar a consistencia com notas e matriculas.
-
-Validacao esperada:
-
-- Teste especifico de `AvaliacaoControllerIntegrationTest`.
-- `.\mvnw.cmd test`.
-
-### Candidato 3 - Dashboard secretaria
+### Candidato 1 - Dashboard secretaria
 
 Possivel uso:
 
@@ -200,17 +173,9 @@ Validacao esperada:
 - Teste especifico de `DashboardSecretariaControllerIntegrationTest`.
 - `.\mvnw.cmd test`.
 
-## Proxima fase sugerida
+## Estado apos Fase 48I
 
-Fase 48G - uso pontual de `EstruturaTurmaPort` no diario de aula.
-
-Objetivo sugerido:
-
-- Aplicar a mesma estrategia da Fase 48E em `DiarioAulaService`.
-- Validar que a alocacao usada para criar aula continua coerente com a estrutura academica.
-- Manter tudo no monolito.
-- Nao criar BFF real.
-- Validar backend com `.\mvnw.cmd "-Dtest=AulaControllerIntegrationTest" test` e `.\mvnw.cmd test`.
+A Fase 48I consolidou os usos pontuais de `EstruturaTurmaPort` em planejamento bimestral, diario de aula e avaliacoes. A porta continua dentro do monolito e ainda nao exige BFF, microservico ou novo componente runtime.
 
 ## Criterios de conclusao da Fase 48F
 
