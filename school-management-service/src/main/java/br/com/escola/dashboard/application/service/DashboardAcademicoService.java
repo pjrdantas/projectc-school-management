@@ -7,15 +7,15 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.escola.catalogo.adapter.out.persistence.entity.TurmaEntity;
-import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaJpaRepository;
+import br.com.escola.catalogo.application.dto.internal.TurmaResumo;
+import br.com.escola.catalogo.application.port.internal.CatalogoAcademicoPort;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardAcademicoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardMatriculaStatusResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardTurmaVagaResponse;
 import br.com.escola.historico.adapter.out.persistence.repository.BoletimJpaRepository;
 import br.com.escola.historico.adapter.out.persistence.repository.HistoricoEscolarJpaRepository;
-import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.dto.EscolaContexto;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
 import br.com.escola.matricula.domain.MatriculaStatus;
 
@@ -28,33 +28,33 @@ public class DashboardAcademicoService {
             MatriculaStatus.TRANSFERIDO.name());
 
     private final MatriculaJpaRepository matriculaJpaRepository;
-    private final TurmaJpaRepository turmaJpaRepository;
+    private final CatalogoAcademicoPort catalogoAcademicoPort;
     private final BoletimJpaRepository boletimJpaRepository;
     private final HistoricoEscolarJpaRepository historicoEscolarJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     public DashboardAcademicoService(
             MatriculaJpaRepository matriculaJpaRepository,
-            TurmaJpaRepository turmaJpaRepository,
+            CatalogoAcademicoPort catalogoAcademicoPort,
             BoletimJpaRepository boletimJpaRepository,
             HistoricoEscolarJpaRepository historicoEscolarJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaContextoPort escolaContextoPort) {
         this.matriculaJpaRepository = matriculaJpaRepository;
-        this.turmaJpaRepository = turmaJpaRepository;
+        this.catalogoAcademicoPort = catalogoAcademicoPort;
         this.boletimJpaRepository = boletimJpaRepository;
         this.historicoEscolarJpaRepository = historicoEscolarJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Transactional(readOnly = true)
     public DashboardAcademicoResponse consultar() {
-        EscolaEntity escola = escolaTenantService.obterOuCriarEscolaPadrao();
-        UUID escolaId = escola.getId();
+        EscolaContexto contexto = escolaContextoPort.obterContextoPadrao();
+        UUID escolaId = contexto.escolaId();
         long matriculasConcluidas = countMatriculasPorStatus(escolaId, MatriculaStatus.CONCLUIDA);
 
         return new DashboardAcademicoResponse(
-                escola.getId(),
-                escola.getNome(),
+                contexto.escolaId(),
+                contexto.escolaNome(),
                 matriculaJpaRepository.countByTurma_Escola_Id(escolaId),
                 countMatriculasPorStatus(escolaId, MatriculaStatus.AGUARDANDO_DOCUMENTOS),
                 matriculasConcluidas,
@@ -81,23 +81,23 @@ public class DashboardAcademicoService {
     }
 
     private List<DashboardTurmaVagaResponse> consultarTurmasComVagas(UUID escolaId) {
-        return turmaJpaRepository.findAllByEscola_Id(escolaId).stream()
-                .filter(turma -> !Boolean.FALSE.equals(turma.getAtivo()))
+        return catalogoAcademicoPort.listarTurmas(escolaId).stream()
+                .filter(TurmaResumo::ativo)
                 .map(this::toTurmaVagaResponse)
                 .filter(turma -> turma.vagasDisponiveis() > 0)
                 .sorted(Comparator.comparing(DashboardTurmaVagaResponse::turmaNome))
                 .toList();
     }
 
-    private DashboardTurmaVagaResponse toTurmaVagaResponse(TurmaEntity turma) {
-        int capacidade = turma.getCapacidade() == null ? 0 : turma.getCapacidade();
+    private DashboardTurmaVagaResponse toTurmaVagaResponse(TurmaResumo turma) {
+        int capacidade = turma.capacidade() == null ? 0 : turma.capacidade();
         long vagasOcupadas = matriculaJpaRepository.countByTurma_IdAndTurma_Escola_IdAndStatus_CodigoNotIn(
-                turma.getId(),
-                turma.getEscola().getId(),
+                turma.id(),
+                turma.escolaId(),
                 STATUS_NAO_OCUPAM_VAGA);
         return new DashboardTurmaVagaResponse(
-                turma.getId(),
-                turma.getNome(),
+                turma.id(),
+                turma.nome(),
                 capacidade,
                 vagasOcupadas,
                 capacidade - vagasOcupadas);

@@ -228,6 +228,8 @@ public class CatalogoAcademicoInternalService implements CatalogoAcademicoPort, 
                 entity.getPeriodoLetivo().getNome(),
                 entity.getSerie().getId(),
                 entity.getSerie().getNome(),
+                entity.getEscola().getId(),
+                entity.getEscola().getNome(),
                 entity.getTurno(),
                 !Boolean.FALSE.equals(entity.getAtivo()));
     }

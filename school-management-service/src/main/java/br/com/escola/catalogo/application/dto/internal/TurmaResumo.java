@@ -11,6 +11,8 @@ public record TurmaResumo(
         String periodoLetivoNome,
         UUID serieId,
         String serieNome,
+        UUID escolaId,
+        String escolaNome,
         String turno,
         boolean ativo
 ) {
