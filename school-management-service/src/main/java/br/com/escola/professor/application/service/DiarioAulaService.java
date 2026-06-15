@@ -32,7 +32,7 @@ import br.com.escola.professor.domain.exception.AulaMatriculaTurmaInconsistenteE
 import br.com.escola.professor.domain.exception.AulaNaoEncontradaException;
 import br.com.escola.professor.domain.exception.SituacaoFrequenciaNaoEncontradaException;
 import br.com.escola.professor.domain.exception.ProfessorTurmaDisciplinaNaoEncontradaException;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 
 @Service
 public class DiarioAulaService {
@@ -43,7 +43,7 @@ public class DiarioAulaService {
     private final FrequenciaAlunoJpaRepository frequenciaAlunoJpaRepository;
     private final SituacaoFrequenciaJpaRepository situacaoFrequenciaJpaRepository;
     private final MatriculaJpaRepository matriculaJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
     private final EstruturaTurmaPort estruturaTurmaPort;
 
     public DiarioAulaService(
@@ -53,7 +53,7 @@ public class DiarioAulaService {
             FrequenciaAlunoJpaRepository frequenciaAlunoJpaRepository,
             SituacaoFrequenciaJpaRepository situacaoFrequenciaJpaRepository,
             MatriculaJpaRepository matriculaJpaRepository,
-            EscolaTenantService escolaTenantService,
+            EscolaContextoPort escolaContextoPort,
             EstruturaTurmaPort estruturaTurmaPort) {
         this.aulaJpaRepository = aulaJpaRepository;
         this.professorTurmaDisciplinaJpaRepository = professorTurmaDisciplinaJpaRepository;
@@ -61,7 +61,7 @@ public class DiarioAulaService {
         this.frequenciaAlunoJpaRepository = frequenciaAlunoJpaRepository;
         this.situacaoFrequenciaJpaRepository = situacaoFrequenciaJpaRepository;
         this.matriculaJpaRepository = matriculaJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
         this.estruturaTurmaPort = estruturaTurmaPort;
     }
 
@@ -264,6 +264,6 @@ public class DiarioAulaService {
     }
 
     private UUID escolaId() {
-        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        return escolaContextoPort.obterContextoPadrao().escolaId();
     }
 }

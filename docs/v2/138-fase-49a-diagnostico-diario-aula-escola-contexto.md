@@ -65,6 +65,10 @@ Motivos:
 
 `DiarioAulaService` foi diagnosticado como candidato viavel para uma troca pontual para `EscolaContextoPort`, desde que a proxima fase mantenha escopo restrito ao ponto de resolucao de escola padrao.
 
+## Estado apos Fase 49B
+
+A Fase 49B aplicou `EscolaContextoPort` em `DiarioAulaService`, mantendo `EstruturaTurmaPort`, o metodo privado `escolaId()`, as regras de aula e frequencia e os contratos HTTP inalterados.
+
 ## Proxima fase sugerida
 
 Fase 49B - uso pontual de `EscolaContextoPort` em `DiarioAulaService`.
@@ -76,3 +80,7 @@ Objetivo sugerido:
 - Preservar regras de aula, frequencia professor, frequencia aluno e consistencia de matricula.
 - Validar com `.\mvnw.cmd "-Dtest=AulaControllerIntegrationTest" test`.
 - Validar backend completo com `.\mvnw.cmd test`.
+
+## Proxima fase sugerida apos 49B
+
+Fase 49C - consolidacao de `EscolaContextoPort` em diario de aula.

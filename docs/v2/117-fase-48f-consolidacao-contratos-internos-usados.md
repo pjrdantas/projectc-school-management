@@ -41,6 +41,7 @@ Uso atual:
 - `TurmaConsultaPersistenceGateway`
 - `CatalogoAcademicoInternalService`
 - `PlanejamentoBimestralService`
+- `DiarioAulaService`
 
 Limites atuais:
 
@@ -131,6 +132,7 @@ Limites atuais:
 | `EscolaContextoPort` | `EscolaTenantService` | `TurmaConsultaPersistenceGateway` | Resolver contexto escolar padrao para consultas auxiliares de turma em matricula |
 | `EscolaContextoPort` | `EscolaTenantService` | `CatalogoAcademicoInternalService` | Resolver contexto escolar padrao para contratos internos de catalogo |
 | `EscolaContextoPort` | `EscolaTenantService` | `PlanejamentoBimestralService` | Resolver contexto escolar padrao para planejamento bimestral |
+| `EscolaContextoPort` | `EscolaTenantService` | `DiarioAulaService` | Resolver contexto escolar padrao para diario de aula e frequencias |
 | `CatalogoAcademicoPort` | `CatalogoAcademicoInternalService` | `DashboardAcademicoService` | Listar turmas por escola |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `PlanejamentoBimestralService` | Validar turma-disciplina da alocacao antes de criar ou atualizar planejamento |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `DiarioAulaService` | Validar turma-disciplina da alocacao antes de criar aula |
@@ -256,6 +258,10 @@ A Fase 48Z consolidou o uso de `EscolaContextoPort` em planejamento bimestral. `
 ## Estado apos Fase 49A
 
 A Fase 49A diagnosticou `DiarioAulaService` e confirmou que o uso direto de `EscolaTenantService` esta concentrado no metodo privado `escolaId()`. O proximo candidato seguro e a aplicacao pontual de `EscolaContextoPort` nesse service, mantendo `AvaliacaoService` fora do escopo.
+
+## Estado apos Fase 49B
+
+A Fase 49B aplicou `EscolaContextoPort` em `DiarioAulaService`, preservando `EstruturaTurmaPort`, o metodo privado `escolaId()` e os contratos HTTP de diario de aula e frequencias.
 
 ## Criterios de conclusao da Fase 48F
 

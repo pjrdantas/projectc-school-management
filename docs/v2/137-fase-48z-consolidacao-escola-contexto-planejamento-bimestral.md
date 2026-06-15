@@ -49,6 +49,10 @@ O planejamento bimestral esta documentado como consumidor de `EscolaContextoPort
 
 A Fase 49A diagnosticou `DiarioAulaService` antes de qualquer troca, confirmando que a proxima fase pode aplicar `EscolaContextoPort` de forma pontual se preservar aula, frequencia professor, frequencia aluno e consistencia de matricula.
 
+## Estado apos Fase 49B
+
+A Fase 49B aplicou `EscolaContextoPort` em `DiarioAulaService`, mantendo o monolito como componente runtime unico e preservando `AvaliacaoService` fora do escopo.
+
 ## Proxima fase sugerida
 
 Fase 49A - diagnostico pontual de `DiarioAulaService` antes de aplicar `EscolaContextoPort`.
@@ -64,3 +68,7 @@ Objetivo sugerido:
 ## Proxima fase sugerida apos 49A
 
 Fase 49B - uso pontual de `EscolaContextoPort` em `DiarioAulaService`.
+
+## Proxima fase sugerida apos 49B
+
+Fase 49C - consolidacao de `EscolaContextoPort` em diario de aula.
