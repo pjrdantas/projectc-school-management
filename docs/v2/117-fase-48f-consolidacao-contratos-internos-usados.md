@@ -31,12 +31,14 @@ Responsabilidade atual:
 Uso atual:
 
 - `DashboardAcademicoService`
+- `DashboardSecretariaService`
 
 Limites atuais:
 
 - Ainda nao ha troca dinamica de escola ativa.
 - Ainda nao ha usuario com multiplas escolas.
 - O contexto de perfis e permissoes e preparado no DTO, mas ainda nao e o eixo de autorizacao dos fluxos de dominio.
+- Ainda nao foi aplicado aos demais dashboards que possuem contexto escolar direto.
 
 ### `CatalogoAcademicoPort`
 
@@ -109,7 +111,8 @@ Limites atuais:
 
 | Contrato interno | Implementacao | Consumidor atual | Tipo de uso |
 | --- | --- | --- | --- |
-| `EscolaContextoPort` | `EscolaTenantService` | `DashboardAcademicoService` | Resolver escola padrao para agregacao |
+| `EscolaContextoPort` | `EscolaTenantService` | `DashboardAcademicoService` | Resolver contexto escolar padrao para agregacao academica |
+| `EscolaContextoPort` | `EscolaTenantService` | `DashboardSecretariaService` | Resolver contexto escolar padrao para agregacao operacional da secretaria |
 | `CatalogoAcademicoPort` | `CatalogoAcademicoInternalService` | `DashboardAcademicoService` | Listar turmas por escola |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `PlanejamentoBimestralService` | Validar turma-disciplina da alocacao antes de criar ou atualizar planejamento |
 | `EstruturaTurmaPort` | `CatalogoAcademicoInternalService` | `DiarioAulaService` | Validar turma-disciplina da alocacao antes de criar aula |
@@ -158,7 +161,7 @@ Sera necessario avisar e planejar criacao de novo componente quando pelo menos u
 
 ## Proximos candidatos seguros de uso interno
 
-### Candidato 1 - Dashboard secretaria
+### Candidato 1 - Dashboard diretor
 
 Possivel uso:
 
@@ -166,11 +169,11 @@ Possivel uso:
 
 Risco:
 
-- Baixo. O fluxo e majoritariamente leitura/agregacao.
+- Baixo a medio. O fluxo compoe outros dashboards e ainda usa repositorios especificos.
 
 Validacao esperada:
 
-- Teste especifico de `DashboardSecretariaControllerIntegrationTest`.
+- Teste especifico de `DashboardDiretorControllerIntegrationTest`.
 - `.\mvnw.cmd test`.
 
 ## Estado apos Fase 48I
