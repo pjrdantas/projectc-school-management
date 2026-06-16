@@ -94,7 +94,7 @@ class PlanejamentoIAControllerIntegrationTest {
         String gerarRequest = """
                 {
                   "promptProfessor": "Gerar proposta com sequência didática e atividades práticas.",
-                  "tipoConteudo": "PLANO_BIMESTRAL",
+                  "tipoConteudo": " plano_bimestral ",
                   "titulo": "Sequência sobre ecossistemas",
                   "reutilizavel": true
                 }

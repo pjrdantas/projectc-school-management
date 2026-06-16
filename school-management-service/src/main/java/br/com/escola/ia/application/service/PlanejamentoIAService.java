@@ -332,7 +332,7 @@ public class PlanejamentoIAService {
     }
 
     private TipoConteudoIAEntity findTipoConteudo(String codigo) {
-        return tipoConteudoIAJpaRepository.findByCodigo(codigo.toUpperCase())
+        return tipoConteudoIAJpaRepository.findByCodigo(codigo.trim().toUpperCase(Locale.ROOT))
                 .orElseThrow(ConteudoIATipoNaoEncontradoException::new);
     }
 
