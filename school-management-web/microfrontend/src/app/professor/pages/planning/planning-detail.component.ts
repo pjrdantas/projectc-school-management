@@ -21,8 +21,8 @@ import {
   PlanningAiContentVersion,
   PlanningAiInteraction,
   PlanningAiVersionInput,
-} from '../../models/planning.model';
-import { PlanningService } from '../../services/planning.service';
+} from '../../models';
+import { PlanningService } from '../../services';
 import {
   PlanningAiVersionDialogComponent,
   PlanningAiVersionDialogData,

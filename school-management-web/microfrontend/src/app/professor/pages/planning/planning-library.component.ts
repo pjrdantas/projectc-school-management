@@ -9,8 +9,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { getApiErrorMessage } from '../../../core/http/api-error';
-import { PedagogicalContentLibraryItem } from '../../models/planning.model';
-import { PlanningService } from '../../services/planning.service';
+import { PedagogicalContentLibraryItem } from '../../models';
+import { PlanningService } from '../../services';
 
 @Component({
   selector: 'app-planning-library',

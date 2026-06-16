@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { PlanningAiVersionInput } from '../../models/planning.model';
+import { PlanningAiVersionInput } from '../../models';
 
 export interface PlanningAiVersionDialogData {
   conteudoAtual?: string | null;

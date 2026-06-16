@@ -14,10 +14,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { forkJoin, map } from 'rxjs';
 import { getApiErrorMessage } from '../../../core/http/api-error';
-import { BimonthlyPlanning, BimonthlyPlanningInput } from '../../models/planning.model';
-import { ProfessorAllocation } from '../../models/teacher.model';
-import { PlanningService } from '../../services/planning.service';
-import { TeachersService } from '../../services/teachers.service';
+import { BimonthlyPlanning, BimonthlyPlanningInput, ProfessorAllocation } from '../../models';
+import { PlanningService, TeachersService } from '../../services';
 import { PlanningDialogComponent, PlanningDialogData } from './planning-dialog.component';
 
 interface PlanningFilters {

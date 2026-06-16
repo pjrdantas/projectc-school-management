@@ -18,7 +18,7 @@ import {
   PlanningAiGenerateInput,
   PlanningAiInteraction,
   PlanningAiVersionInput,
-} from '../models/planning.model';
+} from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class PlanningService {

@@ -5,8 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { BimonthlyPlanning, BimonthlyPlanningInput } from '../../models/planning.model';
-import { ProfessorAllocation } from '../../models/teacher.model';
+import { BimonthlyPlanning, BimonthlyPlanningInput, ProfessorAllocation } from '../../models';
 
 export interface PlanningDialogData {
   allocations: ProfessorAllocation[];

@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { BimonthlyPlanningAssessmentInput } from '../../models/planning.model';
+import { BimonthlyPlanningAssessmentInput } from '../../models';
 
 @Component({
   selector: 'app-planning-assessment-dialog',

@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { BimonthlyPlanningLessonInput } from '../../models/planning.model';
+import { BimonthlyPlanningLessonInput } from '../../models';
 
 @Component({
   selector: 'app-planning-lesson-dialog',
