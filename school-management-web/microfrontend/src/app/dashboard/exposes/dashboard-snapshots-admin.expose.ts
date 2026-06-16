@@ -1,1 +1,1 @@
-export { DashboardSnapshotsAdminComponent } from '../pages/snapshots/dashboard-snapshots-admin.component';
+export { DashboardSnapshotsAdminComponent } from '../dashboard-domain';

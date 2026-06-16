@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { DASHBOARD_INTERNAL_ROUTES } from './dashboard/dashboard-domain';
 
 export const routes: Routes = [
   {
@@ -6,13 +7,7 @@ export const routes: Routes = [
     pathMatch: 'full',
     redirectTo: 'dashboard',
   },
-  {
-    path: 'dashboard',
-    loadComponent: () =>
-      import('./dashboard/pages/academic-operational-dashboard.component').then(
-        m => m.AcademicOperationalDashboardComponent,
-      ),
-  },
+  ...DASHBOARD_INTERNAL_ROUTES,
   {
     path: 'academic/periods',
     loadComponent: () =>
@@ -172,20 +167,6 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./professor/pages/planning/planning-library.component').then(
         m => m.PlanningLibraryComponent,
-      ),
-  },
-  {
-    path: 'dashboard/config',
-    loadComponent: () =>
-      import('./dashboard/pages/config/dashboard-config-admin.component').then(
-        m => m.DashboardConfigAdminComponent,
-      ),
-  },
-  {
-    path: 'dashboard/snapshots',
-    loadComponent: () =>
-      import('./dashboard/pages/snapshots/dashboard-snapshots-admin.component').then(
-        m => m.DashboardSnapshotsAdminComponent,
       ),
   },
 ];

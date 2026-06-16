@@ -1,1 +1,1 @@
-export { AcademicOperationalDashboardComponent } from '../pages/academic-operational-dashboard.component';
+export { AcademicOperationalDashboardComponent } from '../dashboard-domain';

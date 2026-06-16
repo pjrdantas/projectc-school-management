@@ -1,1 +1,1 @@
-export { DashboardConfigAdminComponent } from '../pages/config/dashboard-config-admin.component';
+export { DashboardConfigAdminComponent } from '../dashboard-domain';
