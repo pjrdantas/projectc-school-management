@@ -34,6 +34,7 @@ import br.com.escola.ia.adapter.out.persistence.repository.StatusConteudoIAJpaRe
 import br.com.escola.ia.adapter.out.persistence.repository.TipoConteudoIAJpaRepository;
 import br.com.escola.ia.application.gateway.GeradorConteudoPedagogicoGateway;
 import br.com.escola.ia.domain.exception.ConteudoIANaoEncontradoException;
+import br.com.escola.ia.domain.exception.ConteudoIAInativoException;
 import br.com.escola.ia.domain.exception.ConteudoIAPublicacaoInvalidaException;
 import br.com.escola.ia.domain.exception.ConteudoIAStatusNaoEncontradoException;
 import br.com.escola.ia.domain.exception.ConteudoIATipoNaoEncontradoException;
@@ -173,6 +174,7 @@ public class PlanejamentoIAService {
     @Transactional
     public ConteudoIAVersaoResponse criarVersao(UUID conteudoId, CriarVersaoConteudoIARequest request) {
         PlanejamentoIAConteudoGeradoEntity conteudo = findConteudo(conteudoId);
+        validarConteudoAtivo(conteudo);
         int proximaVersao = conteudoVersaoJpaRepository
                 .findFirstByPlanejamentoIAConteudoGerado_IdAndPlanejamentoIAConteudoGerado_PlanejamentoBimestral_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdOrderByNumeroVersaoDesc(
                         conteudoId,
@@ -214,6 +216,7 @@ public class PlanejamentoIAService {
     @Transactional
     public ConteudoIAResponse aprovarVersao(UUID conteudoId, AprovarVersaoConteudoIARequest request) {
         PlanejamentoIAConteudoGeradoEntity conteudo = findConteudo(conteudoId);
+        validarConteudoAtivo(conteudo);
         PlanejamentoIAConteudoVersaoEntity versao = conteudoVersaoJpaRepository
                 .findByPlanejamentoIAConteudoGerado_IdAndPlanejamentoIAConteudoGerado_PlanejamentoBimestral_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdAndNumeroVersao(
                         conteudoId,
@@ -264,6 +267,7 @@ public class PlanejamentoIAService {
     }
 
     private BibliotecaConteudoPedagogicoEntity publicarBiblioteca(PlanejamentoIAConteudoGeradoEntity conteudo) {
+        validarConteudoAtivo(conteudo);
         if (!Boolean.TRUE.equals(conteudo.getAprovadoPeloProfessor())) {
             throw new ConteudoIAPublicacaoInvalidaException();
         }
@@ -319,6 +323,12 @@ public class PlanejamentoIAService {
                         conteudoId,
                         escolaId())
                 .orElseThrow(ConteudoIANaoEncontradoException::new);
+    }
+
+    private void validarConteudoAtivo(PlanejamentoIAConteudoGeradoEntity conteudo) {
+        if (!Boolean.TRUE.equals(conteudo.getAtivo())) {
+            throw new ConteudoIAInativoException();
+        }
     }
 
     private TipoConteudoIAEntity findTipoConteudo(String codigo) {

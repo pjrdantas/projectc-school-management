@@ -64,6 +64,7 @@ import br.com.escola.avaliacao.domain.exception.TipoAvaliacaoNaoEncontradoExcept
 import br.com.escola.historico.domain.exception.BoletimFechadoNaoEncontradoException;
 import br.com.escola.historico.domain.exception.BoletimFechamentoDuplicadoException;
 import br.com.escola.historico.domain.exception.HistoricoEscolarDuplicadoException;
+import br.com.escola.ia.domain.exception.ConteudoIAInativoException;
 import br.com.escola.ia.domain.exception.ConteudoIANaoEncontradoException;
 import br.com.escola.ia.domain.exception.ConteudoIAPublicacaoInvalidaException;
 import br.com.escola.ia.domain.exception.ConteudoIAStatusNaoEncontradoException;
@@ -467,6 +468,13 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
     @ExceptionHandler(ConteudoIAPublicacaoInvalidaException.class)
     public ResponseEntity<ApiErrorResponse> handleConteudoIAPublicacaoInvalida(
             ConteudoIAPublicacaoInvalidaException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ConteudoIAInativoException.class)
+    public ResponseEntity<ApiErrorResponse> handleConteudoIAInativo(
+            ConteudoIAInativoException ex,
             HttpServletRequest request) {
         return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
     }

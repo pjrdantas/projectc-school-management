@@ -234,6 +234,63 @@ class PlanejamentoIAControllerIntegrationTest {
                 .andExpect(jsonPath("$.error").value("BUSINESS_RULE_VIOLATION"));
     }
 
+    @Test
+    @WithMockUser
+    void deveBloquearVersionamentoAprovacaoEPublicacaoDeConteudoInativo() throws Exception {
+        UUID planejamentoId = criarPlanejamento(criarContextoPlanejamento());
+        String gerarRequest = """
+                {
+                  "promptProfessor": "Gerar proposta que sera inativada.",
+                  "tipoConteudo": "PLANO_BIMESTRAL",
+                  "titulo": "Conteúdo inativo",
+                  "reutilizavel": true
+                }
+                """;
+
+        String gerarResponse = mockMvc.perform(post("/api/planejamentos-bimestrais/{id}/ia/conteudos", planejamentoId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gerarRequest))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        UUID conteudoId = UUID.fromString(objectMapper.readTree(gerarResponse).get("id").asText());
+        jdbcTemplate.update("""
+                UPDATE planejamento_ia_conteudo_gerado
+                SET ativo = false
+                WHERE id_planejamento_ia_conteudo_gerado = ?
+                """, conteudoId);
+
+        String versaoRequest = """
+                {
+                  "conteudo": "Tentativa de versionar conteúdo inativo.",
+                  "motivoAlteracao": "Validar bloqueio."
+                }
+                """;
+        mockMvc.perform(post("/api/ia/conteudos/{id}/versoes", conteudoId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(versaoRequest))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BUSINESS_RULE_VIOLATION"));
+
+        String aprovarRequest = """
+                {
+                  "numeroVersao": 1,
+                  "publicarBiblioteca": true
+                }
+                """;
+        mockMvc.perform(patch("/api/ia/conteudos/{id}/aprovar-versao", conteudoId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(aprovarRequest))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BUSINESS_RULE_VIOLATION"));
+
+        mockMvc.perform(post("/api/ia/conteudos/{id}/publicar-biblioteca", conteudoId))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BUSINESS_RULE_VIOLATION"));
+    }
+
     private ContextoPlanejamento criarContextoPlanejamento() throws Exception {
         UUID periodoLetivoId = criarPeriodo("PLAN46C-2046.1", "2046-02-01", "2046-06-30");
         UUID periodoAvaliativoId = criarPeriodoAvaliativo(periodoLetivoId);
