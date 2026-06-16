@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { CATALOG_INTERNAL_ROUTES } from './catalogo/catalog-domain';
 import { DASHBOARD_INTERNAL_ROUTES } from './dashboard/dashboard-domain';
+import { STUDENT_INTERNAL_ROUTES } from './aluno/student-domain';
 import { PLANNING_INTERNAL_ROUTES } from './professor/planning-domain';
 import { PROFESSOR_INTERNAL_ROUTES } from './professor/professor-domain';
 import { TEACHING_INTERNAL_ROUTES } from './professor/teaching-domain';
@@ -15,34 +16,7 @@ export const routes: Routes = [
   ...DASHBOARD_INTERNAL_ROUTES,
   ...CATALOG_INTERNAL_ROUTES,
   ...RESPONSIBLE_INTERNAL_ROUTES,
-  {
-    path: 'students',
-    loadComponent: () =>
-      import('./aluno/pages/list/students-list.component').then(
-        m => m.StudentsListComponent,
-      ),
-  },
-  {
-    path: 'students/new',
-    loadComponent: () =>
-      import('./aluno/pages/new/students-new.component').then(
-        m => m.StudentsNewComponent,
-      ),
-  },
-  {
-    path: 'students/:id',
-    loadComponent: () =>
-      import('./aluno/pages/detail/students-detail.component').then(
-        m => m.StudentsDetailComponent,
-      ),
-  },
-  {
-    path: 'students/:id/edit',
-    loadComponent: () =>
-      import('./aluno/pages/new/students-new.component').then(
-        m => m.StudentsNewComponent,
-      ),
-  },
+  ...STUDENT_INTERNAL_ROUTES,
   {
     path: 'enrollment',
     loadComponent: () =>

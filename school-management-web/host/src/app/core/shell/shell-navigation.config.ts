@@ -151,6 +151,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './AlunoList',
     exportName: 'StudentsListComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-alunos',
+      routeRole: 'operational',
+      shellNavigation: 'business-menu',
+    },
   },
   {
     path: 'students/new',
@@ -158,6 +164,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './AlunoNew',
     exportName: 'StudentsNewComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-alunos',
+      routeRole: 'operational',
+      shellNavigation: 'contextual',
+    },
   },
   {
     path: 'students/:id',
@@ -165,13 +177,25 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './AlunoDetail',
     exportName: 'StudentsDetailComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-alunos',
+      routeRole: 'operational',
+      shellNavigation: 'contextual',
+    },
   },
   {
     path: 'students/:id/edit',
     domain: 'alunos',
     runtimeRemoteName: 'mfe1',
-    exposedModule: './AlunoNew',
+    exposedModule: './AlunoEdit',
     exportName: 'StudentsNewComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-alunos',
+      routeRole: 'operational',
+      shellNavigation: 'contextual',
+    },
   },
   {
     path: 'responsibles',
@@ -522,6 +546,36 @@ export function flattenShellMenuGroups(groups: ShellMenuGroup[]): ShellMenuItem[
 }
 
 export const SHELL_EXTRACTION_CANDIDATES: ShellExtractionCandidateManifestItem[] = [
+  {
+    domain: 'alunos',
+    label: 'Alunos',
+    currentPlacement: 'microfrontend',
+    targetRemoteName: 'mfe-alunos',
+    runtimeRemoteNames: ['mfe1'],
+    expectedExposedModules: [
+      './AlunoList',
+      './AlunoNew',
+      './AlunoDetail',
+      './AlunoEdit',
+    ],
+    routePaths: [
+      'students',
+      'students/new',
+      'students/:id',
+      'students/:id/edit',
+    ],
+    operationalRoutePaths: [
+      'students',
+      'students/new',
+      'students/:id',
+      'students/:id/edit',
+    ],
+    administrativeRoutePaths: [],
+    landingRoutes: [],
+    businessMenuRoutes: ['/students'],
+    accessMenuRoutes: [],
+    contextualRoutes: ['students/new', 'students/:id', 'students/:id/edit'],
+  },
   {
     domain: 'responsaveis',
     label: 'Responsaveis',
