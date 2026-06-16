@@ -5,8 +5,9 @@
     "ng": "ng",
     "start": "ng serve",
     "validate:dashboard-contract": "node ./scripts/validate-dashboard-domain-contract.mjs",
-    "validate": "npm run validate:dashboard-contract",
-    "prebuild": "npm run validate:dashboard-contract",
+    "validate:planning-contract": "node ./scripts/validate-planning-domain-contract.mjs",
+    "validate": "npm run validate:dashboard-contract && npm run validate:planning-contract",
+    "prebuild": "npm run validate",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
