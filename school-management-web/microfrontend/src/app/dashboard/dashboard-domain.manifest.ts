@@ -3,6 +3,10 @@ import { Route } from '@angular/router';
 
 type DashboardRoutePath = 'dashboard' | 'dashboard/config' | 'dashboard/snapshots';
 type DashboardExposedModule = './Dashboard' | './DashboardConfigAdmin' | './DashboardSnapshotsAdmin';
+type DashboardExposeFilePath =
+  | './src/app/dashboard/exposes/dashboard-operational.expose.ts'
+  | './src/app/dashboard/exposes/dashboard-config-admin.expose.ts'
+  | './src/app/dashboard/exposes/dashboard-snapshots-admin.expose.ts';
 type DashboardExportName =
   | 'AcademicOperationalDashboardComponent'
   | 'DashboardConfigAdminComponent'
@@ -15,6 +19,7 @@ export interface DashboardDomainManifestItem {
   key: DashboardManifestKey;
   path: DashboardRoutePath;
   exposedModule: DashboardExposedModule;
+  exposeFilePath: DashboardExposeFilePath;
   exportName: DashboardExportName;
   routeRole: DashboardRouteRole;
   shellNavigation: DashboardShellNavigation;
@@ -28,6 +33,7 @@ export const DASHBOARD_DOMAIN_MANIFEST: readonly DashboardDomainManifestItem[] =
     key: 'operational',
     path: 'dashboard',
     exposedModule: './Dashboard',
+    exposeFilePath: './src/app/dashboard/exposes/dashboard-operational.expose.ts',
     exportName: 'AcademicOperationalDashboardComponent',
     routeRole: 'operational',
     shellNavigation: 'landing',
@@ -40,6 +46,7 @@ export const DASHBOARD_DOMAIN_MANIFEST: readonly DashboardDomainManifestItem[] =
     key: 'config-admin',
     path: 'dashboard/config',
     exposedModule: './DashboardConfigAdmin',
+    exposeFilePath: './src/app/dashboard/exposes/dashboard-config-admin.expose.ts',
     exportName: 'DashboardConfigAdminComponent',
     routeRole: 'administrative',
     shellNavigation: 'access-menu',
@@ -52,6 +59,7 @@ export const DASHBOARD_DOMAIN_MANIFEST: readonly DashboardDomainManifestItem[] =
     key: 'snapshots-admin',
     path: 'dashboard/snapshots',
     exposedModule: './DashboardSnapshotsAdmin',
+    exposeFilePath: './src/app/dashboard/exposes/dashboard-snapshots-admin.expose.ts',
     exportName: 'DashboardSnapshotsAdminComponent',
     routeRole: 'administrative',
     shellNavigation: 'access-menu',
