@@ -50,6 +50,16 @@ export interface ShellDomainInventoryItem extends ShellDomainCatalogItem {
   menuItems: ShellMenuItem[];
 }
 
+export interface ShellExtractionCandidateManifestItem {
+  domain: ShellDomain;
+  label: string;
+  currentPlacement: 'host' | 'microfrontend' | 'shared';
+  targetRemoteName: string;
+  runtimeRemoteNames: string[];
+  routePaths: string[];
+  menuRoutes: string[];
+}
+
 export const SHELL_DOMAIN_CATALOG: Record<ShellDomain, ShellDomainCatalogItem> = {
   dashboard: {
     domain: 'dashboard',
@@ -388,6 +398,18 @@ export const SHELL_ACCESS_MENU_GROUPS: ShellMenuGroup[] = [
 export function flattenShellMenuGroups(groups: ShellMenuGroup[]): ShellMenuItem[] {
   return groups.flatMap(group => group.items);
 }
+
+export const SHELL_EXTRACTION_CANDIDATES: ShellExtractionCandidateManifestItem[] = [
+  {
+    domain: 'dashboard',
+    label: 'Dashboard',
+    currentPlacement: 'microfrontend',
+    targetRemoteName: 'mfe-dashboard',
+    runtimeRemoteNames: ['mfe1'],
+    routePaths: ['dashboard', 'dashboard/config', 'dashboard/snapshots'],
+    menuRoutes: ['/dashboard/config', '/dashboard/snapshots'],
+  },
+];
 
 export const SHELL_DOMAIN_INVENTORY: ShellDomainInventoryItem[] = Object.values(
   SHELL_DOMAIN_CATALOG,

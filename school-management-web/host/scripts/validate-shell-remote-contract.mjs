@@ -23,6 +23,7 @@ const businessMenu = readArrayObjects(shellSource, 'SHELL_BUSINESS_MENU');
 const accessMenu = readArrayObjects(shellSource, 'SHELL_ACCESS_MENU');
 const businessMenuGroups = readArrayObjects(shellSource, 'SHELL_BUSINESS_MENU_GROUPS');
 const accessMenuGroups = readArrayObjects(shellSource, 'SHELL_ACCESS_MENU_GROUPS');
+const extractionCandidates = readArrayObjects(shellSource, 'SHELL_EXTRACTION_CANDIDATES');
 const domainCatalog = readObjectMap(shellSource, 'SHELL_DOMAIN_CATALOG');
 const exposes = readExposes(federationSource);
 
@@ -32,6 +33,12 @@ const errors = [
   ...validateMenus([...businessMenu, ...accessMenu], remoteRoutes),
   ...validateMenuGroups('SHELL_BUSINESS_MENU_GROUPS', businessMenuGroups, businessMenu),
   ...validateMenuGroups('SHELL_ACCESS_MENU_GROUPS', accessMenuGroups, accessMenu),
+  ...validateExtractionCandidates(
+    extractionCandidates,
+    domainCatalog,
+    remoteRoutes,
+    [...businessMenu, ...accessMenu],
+  ),
 ];
 
 if (errors.length > 0) {
@@ -43,7 +50,7 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Contrato shell/microfrontend valido: ${remoteRoutes.length} rotas federadas, ${exposes.size} exposes e ${businessMenu.length + accessMenu.length} itens de menu conferidos.`,
+  `Contrato shell/microfrontend valido: ${remoteRoutes.length} rotas federadas, ${exposes.size} exposes, ${businessMenu.length + accessMenu.length} itens de menu e ${extractionCandidates.length} candidatos de extracao conferidos.`,
 );
 
 function parseSource(filePath, scriptKind) {
@@ -347,6 +354,117 @@ function validateExtractionPlan(route, dashboardCandidateRoutes, errors) {
   }
 }
 
+function validateExtractionCandidates(candidates, domainCatalog, routes, menuItems) {
+  const errors = [];
+  const seenDomains = new Set();
+  const candidateRoutes = routes.filter(route => route.extractionPlan?.candidate === true);
+  const candidateDomains = new Set(candidateRoutes.map(route => route.domain));
+  const candidateRoutesByDomain = groupBy(candidateRoutes, route => route.domain);
+
+  for (const candidate of candidates) {
+    requireString(candidate, 'domain', `manifesto de extracao ${JSON.stringify(candidate)}`, errors);
+    requireString(candidate, 'label', `manifesto de extracao ${candidate.domain}`, errors);
+    requireString(
+      candidate,
+      'currentPlacement',
+      `manifesto de extracao ${candidate.domain}`,
+      errors,
+    );
+    requireString(
+      candidate,
+      'targetRemoteName',
+      `manifesto de extracao ${candidate.domain}`,
+      errors,
+    );
+    requireStringArray(
+      candidate,
+      'runtimeRemoteNames',
+      `manifesto de extracao ${candidate.domain}`,
+      errors,
+    );
+    requireStringArray(candidate, 'routePaths', `manifesto de extracao ${candidate.domain}`, errors);
+    requireStringArray(candidate, 'menuRoutes', `manifesto de extracao ${candidate.domain}`, errors);
+
+    if (seenDomains.has(candidate.domain)) {
+      errors.push(`manifesto de extracao duplicado para o dominio ${candidate.domain}.`);
+      continue;
+    }
+
+    seenDomains.add(candidate.domain);
+
+    const catalogItem = domainCatalog.get(candidate.domain);
+
+    if (!catalogItem) {
+      errors.push(`manifesto de extracao usa dominio nao catalogado: ${candidate.domain}`);
+      continue;
+    }
+
+    if (!candidateDomains.has(candidate.domain)) {
+      errors.push(
+        `manifesto de extracao do dominio ${candidate.domain} nao possui rotas com extractionPlan candidato.`,
+      );
+      continue;
+    }
+
+    if (candidate.label !== catalogItem.label) {
+      errors.push(
+        `manifesto de extracao do dominio ${candidate.domain} deve usar o label ${catalogItem.label}.`,
+      );
+    }
+
+    if (candidate.currentPlacement !== catalogItem.currentPlacement) {
+      errors.push(
+        `manifesto de extracao do dominio ${candidate.domain} deve usar currentPlacement ${catalogItem.currentPlacement}.`,
+      );
+    }
+
+    if (candidate.targetRemoteName !== catalogItem.futureRemoteName) {
+      errors.push(
+        `manifesto de extracao do dominio ${candidate.domain} deve apontar targetRemoteName para ${catalogItem.futureRemoteName}.`,
+      );
+    }
+
+    const domainRoutes = candidateRoutesByDomain.get(candidate.domain) ?? [];
+    const expectedRoutePaths = domainRoutes.map(route => route.path);
+    const expectedRuntimeRemoteNames = [...new Set(domainRoutes.map(route => route.runtimeRemoteName))];
+    const expectedMenuRoutes = menuItems
+      .filter(item => item.domain === candidate.domain)
+      .map(item => item.route);
+
+    validateOrderedArray(
+      candidate.routePaths,
+      expectedRoutePaths,
+      `manifesto de extracao do dominio ${candidate.domain}`,
+      'routePaths',
+      errors,
+    );
+    validateOrderedArray(
+      candidate.runtimeRemoteNames,
+      expectedRuntimeRemoteNames,
+      `manifesto de extracao do dominio ${candidate.domain}`,
+      'runtimeRemoteNames',
+      errors,
+    );
+    validateOrderedArray(
+      candidate.menuRoutes,
+      expectedMenuRoutes,
+      `manifesto de extracao do dominio ${candidate.domain}`,
+      'menuRoutes',
+      errors,
+    );
+  }
+
+  for (const candidateDomain of candidateDomains) {
+    if (!seenDomains.has(candidateDomain)) {
+      errors.push(
+        `dominio ${candidateDomain} possui rotas candidatas a extracao, mas nao esta no manifesto de extracao.`,
+      );
+    }
+  }
+
+  return errors;
+}
+
 function validateMenus(menuItems, routes) {
   const errors = [];
   const routesByPath = new Map(routes.map((route) => [route.path, route]));
@@ -386,8 +504,52 @@ function requireBoolean(record, property, context, errors) {
   }
 }
 
+function requireStringArray(record, property, context, errors) {
+  if (
+    !Array.isArray(record[property]) ||
+    record[property].some(item => typeof item !== 'string' || item.trim() === '')
+  ) {
+    errors.push(`${context} deve informar ${property} com array de strings.`);
+  }
+}
+
 function isRecord(value) {
   return typeof value === 'object' && value !== null;
+}
+
+function groupBy(items, keySelector) {
+  const result = new Map();
+
+  for (const item of items) {
+    const key = keySelector(item);
+    const group = result.get(key);
+
+    if (group) {
+      group.push(item);
+      continue;
+    }
+
+    result.set(key, [item]);
+  }
+
+  return result;
+}
+
+function validateOrderedArray(actual, expected, context, property, errors) {
+  if (actual.length !== expected.length) {
+    errors.push(
+      `${context} deve manter ${property} com ${expected.length} item(ns); encontrado ${actual.length}.`,
+    );
+    return;
+  }
+
+  for (const [index, expectedValue] of expected.entries()) {
+    if (actual[index] !== expectedValue) {
+      errors.push(
+        `${context} altera ${property} na posicao ${index + 1}: esperado ${expectedValue}, encontrado ${actual[index] ?? 'vazio'}.`,
+      );
+    }
+  }
 }
 
 function normalizeMenuRoute(route) {
