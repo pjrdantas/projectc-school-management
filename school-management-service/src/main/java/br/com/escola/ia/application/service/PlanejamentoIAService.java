@@ -249,9 +249,7 @@ public class PlanejamentoIAService {
             UUID disciplinaId,
             String tipoConteudo,
             String tema) {
-        String tipoNormalizado = tipoConteudo == null || tipoConteudo.isBlank()
-                ? null
-                : tipoConteudo.trim().toUpperCase(Locale.ROOT);
+        String tipoNormalizado = normalizarTipoConteudoExistente(tipoConteudo);
         String temaNormalizado = tema == null || tema.isBlank() ? null : tema.trim();
         var conteudos = temaNormalizado == null
                 ? bibliotecaJpaRepository.filtrar(professorId, disciplinaId, tipoNormalizado, escolaId())
@@ -335,6 +333,13 @@ public class PlanejamentoIAService {
         String codigoNormalizado = codigo.trim().toUpperCase(Locale.ROOT);
         return tipoConteudoIAJpaRepository.findByCodigo(codigoNormalizado)
                 .orElseThrow(() -> new ConteudoIATipoNaoEncontradoException(codigoNormalizado));
+    }
+
+    private String normalizarTipoConteudoExistente(String codigo) {
+        if (codigo == null || codigo.isBlank()) {
+            return null;
+        }
+        return findTipoConteudo(codigo).getCodigo();
     }
 
     private StatusConteudoIAEntity findStatusConteudo(String codigo) {

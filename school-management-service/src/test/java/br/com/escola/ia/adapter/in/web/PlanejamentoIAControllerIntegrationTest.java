@@ -237,6 +237,47 @@ class PlanejamentoIAControllerIntegrationTest {
 
     @Test
     @WithMockUser
+    void deveBloquearFiltroBibliotecaComTipoConteudoInexistente() throws Exception {
+        UUID planejamentoId = criarPlanejamento(criarContextoPlanejamento());
+        String gerarRequest = """
+                {
+                  "promptProfessor": "Gerar conteúdo para biblioteca.",
+                  "tipoConteudo": "PLANO_BIMESTRAL",
+                  "titulo": "Conteúdo publicado",
+                  "reutilizavel": true
+                }
+                """;
+
+        String gerarResponse = mockMvc.perform(post("/api/planejamentos-bimestrais/{id}/ia/conteudos", planejamentoId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gerarRequest))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        UUID conteudoId = UUID.fromString(objectMapper.readTree(gerarResponse).get("id").asText());
+        String aprovarRequest = """
+                {
+                  "numeroVersao": 1,
+                  "publicarBiblioteca": true
+                }
+                """;
+
+        mockMvc.perform(patch("/api/ia/conteudos/{id}/aprovar-versao", conteudoId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(aprovarRequest))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/biblioteca-conteudos-pedagogicos")
+                        .param("tipoConteudo", " roteiro_aula "))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("Tipo de conteúdo de IA não encontrado: ROTEIRO_AULA."));
+    }
+
+    @Test
+    @WithMockUser
     void deveValidarEntradasInvalidasDeIAAntesDeExecutarFluxo() throws Exception {
         String gerarRequestInvalido = """
                 {
