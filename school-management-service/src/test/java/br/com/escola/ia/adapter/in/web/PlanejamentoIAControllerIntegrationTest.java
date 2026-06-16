@@ -236,6 +236,45 @@ class PlanejamentoIAControllerIntegrationTest {
 
     @Test
     @WithMockUser
+    void deveValidarEntradasInvalidasDeIAAntesDeExecutarFluxo() throws Exception {
+        String gerarRequestInvalido = """
+                {
+                  "promptProfessor": "   ",
+                  "tipoConteudo": "%s",
+                  "titulo": "%s",
+                  "reutilizavel": true
+                }
+                """.formatted("A".repeat(61), "T".repeat(181));
+
+        mockMvc.perform(post("/api/planejamentos-bimestrais/{id}/ia/conteudos", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gerarRequestInvalido))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.fields[*].field", org.hamcrest.Matchers.hasItems(
+                        "promptProfessor",
+                        "tipoConteudo",
+                        "titulo")));
+
+        String versaoRequestInvalido = """
+                {
+                  "conteudo": "   ",
+                  "motivoAlteracao": "%s"
+                }
+                """.formatted("M".repeat(2001));
+
+        mockMvc.perform(post("/api/ia/conteudos/{id}/versoes", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(versaoRequestInvalido))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.fields[*].field", org.hamcrest.Matchers.hasItems(
+                        "conteudo",
+                        "motivoAlteracao")));
+    }
+
+    @Test
+    @WithMockUser
     void deveBloquearVersionamentoAprovacaoEPublicacaoDeConteudoInativo() throws Exception {
         UUID planejamentoId = criarPlanejamento(criarContextoPlanejamento());
         String gerarRequest = """
