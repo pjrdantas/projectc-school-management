@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { CATALOG_INTERNAL_ROUTES } from './catalogo/catalog-domain';
 import { DASHBOARD_INTERNAL_ROUTES } from './dashboard/dashboard-domain';
 import { PLANNING_INTERNAL_ROUTES } from './professor/planning-domain';
 import { PROFESSOR_INTERNAL_ROUTES } from './professor/professor-domain';
@@ -11,34 +12,7 @@ export const routes: Routes = [
     redirectTo: 'dashboard',
   },
   ...DASHBOARD_INTERNAL_ROUTES,
-  {
-    path: 'academic/periods',
-    loadComponent: () =>
-      import('./catalogo/pages/periods/academic-periods.component').then(
-        m => m.AcademicPeriodsComponent,
-      ),
-  },
-  {
-    path: 'academic/series',
-    loadComponent: () =>
-      import('./catalogo/pages/series/academic-series.component').then(
-        m => m.AcademicSeriesComponent,
-      ),
-  },
-  {
-    path: 'academic/shifts',
-    loadComponent: () =>
-      import('./catalogo/pages/shifts/academic-shifts.component').then(
-        m => m.AcademicShiftsComponent,
-      ),
-  },
-  {
-    path: 'academic/classes',
-    loadComponent: () =>
-      import('./catalogo/pages/classes/academic-classes.component').then(
-        m => m.AcademicClassesComponent,
-      ),
-  },
+  ...CATALOG_INTERNAL_ROUTES,
   {
     path: 'responsibles',
     loadComponent: () =>
@@ -100,13 +74,6 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./matricula/pages/new/enrollment-new.component').then(
         m => m.EnrollmentNewComponent,
-      ),
-  },
-  {
-    path: 'academic/disciplines',
-    loadComponent: () =>
-      import('./historico/pages/disciplines/disciplines.component').then(
-        m => m.DisciplinesComponent,
       ),
   },
   ...PROFESSOR_INTERNAL_ROUTES,

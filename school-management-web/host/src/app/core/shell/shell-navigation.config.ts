@@ -207,6 +207,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './CatalogoPeriods',
     exportName: 'AcademicPeriodsComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-catalogo-academico',
+      routeRole: 'operational',
+      shellNavigation: 'business-menu',
+    },
   },
   {
     path: 'academic/series',
@@ -214,6 +220,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './CatalogoSeries',
     exportName: 'AcademicSeriesComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-catalogo-academico',
+      routeRole: 'operational',
+      shellNavigation: 'business-menu',
+    },
   },
   {
     path: 'academic/shifts',
@@ -221,6 +233,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './CatalogoShifts',
     exportName: 'AcademicShiftsComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-catalogo-academico',
+      routeRole: 'operational',
+      shellNavigation: 'business-menu',
+    },
   },
   {
     path: 'academic/classes',
@@ -228,6 +246,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './CatalogoClasses',
     exportName: 'AcademicClassesComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-catalogo-academico',
+      routeRole: 'operational',
+      shellNavigation: 'business-menu',
+    },
   },
   {
     path: 'academic/disciplines',
@@ -235,6 +259,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './HistoricoDisciplines',
     exportName: 'DisciplinesComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-catalogo-academico',
+      routeRole: 'operational',
+      shellNavigation: 'business-menu',
+    },
   },
   {
     path: 'teachers',
@@ -468,6 +498,45 @@ export function flattenShellMenuGroups(groups: ShellMenuGroup[]): ShellMenuItem[
 }
 
 export const SHELL_EXTRACTION_CANDIDATES: ShellExtractionCandidateManifestItem[] = [
+  {
+    domain: 'catalogo-academico',
+    label: 'Catalogo academico',
+    currentPlacement: 'microfrontend',
+    targetRemoteName: 'mfe-catalogo-academico',
+    runtimeRemoteNames: ['mfe1'],
+    expectedExposedModules: [
+      './CatalogoPeriods',
+      './CatalogoSeries',
+      './CatalogoShifts',
+      './CatalogoClasses',
+      './HistoricoDisciplines',
+    ],
+    routePaths: [
+      'academic/periods',
+      'academic/series',
+      'academic/shifts',
+      'academic/classes',
+      'academic/disciplines',
+    ],
+    operationalRoutePaths: [
+      'academic/periods',
+      'academic/series',
+      'academic/shifts',
+      'academic/classes',
+      'academic/disciplines',
+    ],
+    administrativeRoutePaths: [],
+    landingRoutes: [],
+    businessMenuRoutes: [
+      '/academic/periods',
+      '/academic/series',
+      '/academic/shifts',
+      '/academic/classes',
+      '/academic/disciplines',
+    ],
+    accessMenuRoutes: [],
+    contextualRoutes: [],
+  },
   {
     domain: 'dashboard',
     label: 'Dashboard',

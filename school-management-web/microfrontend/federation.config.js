@@ -6,10 +6,10 @@ module.exports = withNativeFederation({
 
   exposes: {
     './Dashboard': './src/app/dashboard/exposes/dashboard-operational.expose.ts',
-    './CatalogoPeriods': './src/app/catalogo/pages/periods/academic-periods.component.ts',
-    './CatalogoSeries': './src/app/catalogo/pages/series/academic-series.component.ts',
-    './CatalogoShifts': './src/app/catalogo/pages/shifts/academic-shifts.component.ts',
-    './CatalogoClasses': './src/app/catalogo/pages/classes/academic-classes.component.ts',
+    './CatalogoPeriods': './src/app/catalogo/exposes/catalog-periods.expose.ts',
+    './CatalogoSeries': './src/app/catalogo/exposes/catalog-series.expose.ts',
+    './CatalogoShifts': './src/app/catalogo/exposes/catalog-shifts.expose.ts',
+    './CatalogoClasses': './src/app/catalogo/exposes/catalog-classes.expose.ts',
     './ResponsavelList': './src/app/responsavel/pages/list/responsibles-list.component.ts',
     './ResponsavelNew': './src/app/responsavel/pages/new/responsibles-new.component.ts',
     './ResponsavelDetail': './src/app/responsavel/pages/detail/responsibles-detail.component.ts',
@@ -17,7 +17,7 @@ module.exports = withNativeFederation({
     './AlunoNew': './src/app/aluno/pages/new/students-new.component.ts',
     './AlunoDetail': './src/app/aluno/pages/detail/students-detail.component.ts',
     './Matricula': './src/app/matricula/pages/new/enrollment-new.component.ts',
-    './HistoricoDisciplines': './src/app/historico/pages/disciplines/disciplines.component.ts',
+    './HistoricoDisciplines': './src/app/catalogo/exposes/catalog-disciplines.expose.ts',
     './ProfessorList': './src/app/professor/exposes/professor-list.expose.ts',
     './ProfessorDetail': './src/app/professor/exposes/professor-detail.expose.ts',
     './LessonList': './src/app/professor/exposes/lesson-list.expose.ts',
