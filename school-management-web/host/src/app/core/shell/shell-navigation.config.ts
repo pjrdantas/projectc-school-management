@@ -20,6 +20,8 @@ export interface ShellDomainCatalogItem {
 export interface ShellRouteExtractionPlan {
   candidate: boolean;
   targetRemoteName: string;
+  routeRole: 'operational' | 'administrative';
+  shellNavigation: 'landing' | 'business-menu' | 'access-menu';
 }
 
 export interface ShellRemoteRoute {
@@ -57,7 +59,11 @@ export interface ShellExtractionCandidateManifestItem {
   targetRemoteName: string;
   runtimeRemoteNames: string[];
   routePaths: string[];
-  menuRoutes: string[];
+  operationalRoutePaths: string[];
+  administrativeRoutePaths: string[];
+  landingRoutes: string[];
+  businessMenuRoutes: string[];
+  accessMenuRoutes: string[];
 }
 
 export const SHELL_DOMAIN_CATALOG: Record<ShellDomain, ShellDomainCatalogItem> = {
@@ -133,6 +139,8 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     extractionPlan: {
       candidate: true,
       targetRemoteName: 'mfe-dashboard',
+      routeRole: 'operational',
+      shellNavigation: 'landing',
     },
   },
   {
@@ -298,6 +306,8 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     extractionPlan: {
       candidate: true,
       targetRemoteName: 'mfe-dashboard',
+      routeRole: 'administrative',
+      shellNavigation: 'access-menu',
     },
   },
   {
@@ -309,6 +319,8 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     extractionPlan: {
       candidate: true,
       targetRemoteName: 'mfe-dashboard',
+      routeRole: 'administrative',
+      shellNavigation: 'access-menu',
     },
   },
   {
@@ -407,7 +419,11 @@ export const SHELL_EXTRACTION_CANDIDATES: ShellExtractionCandidateManifestItem[]
     targetRemoteName: 'mfe-dashboard',
     runtimeRemoteNames: ['mfe1'],
     routePaths: ['dashboard', 'dashboard/config', 'dashboard/snapshots'],
-    menuRoutes: ['/dashboard/config', '/dashboard/snapshots'],
+    operationalRoutePaths: ['dashboard'],
+    administrativeRoutePaths: ['dashboard/config', 'dashboard/snapshots'],
+    landingRoutes: ['dashboard'],
+    businessMenuRoutes: [],
+    accessMenuRoutes: ['/dashboard/config', '/dashboard/snapshots'],
   },
 ];
 

@@ -338,6 +338,8 @@ function validateExtractionPlan(route, dashboardCandidateRoutes, errors) {
 
   requireBoolean(extractionPlan, 'candidate', `extractionPlan da rota ${route.path}`, errors);
   requireString(extractionPlan, 'targetRemoteName', `extractionPlan da rota ${route.path}`, errors);
+  requireString(extractionPlan, 'routeRole', `extractionPlan da rota ${route.path}`, errors);
+  requireString(extractionPlan, 'shellNavigation', `extractionPlan da rota ${route.path}`, errors);
 
   if (route.domain !== 'dashboard') {
     errors.push(`rota ${route.path} candidata a extracao deve pertencer ao dominio dashboard.`);
@@ -351,6 +353,26 @@ function validateExtractionPlan(route, dashboardCandidateRoutes, errors) {
     errors.push(
       `rota ${route.path} deve apontar extractionPlan.targetRemoteName para mfe-dashboard.`,
     );
+  }
+
+  if (route.path === 'dashboard') {
+    if (extractionPlan.routeRole !== 'operational') {
+      errors.push(`rota ${route.path} deve marcar extractionPlan.routeRole como operational.`);
+    }
+
+    if (extractionPlan.shellNavigation !== 'landing') {
+      errors.push(`rota ${route.path} deve marcar extractionPlan.shellNavigation como landing.`);
+    }
+  }
+
+  if (route.path === 'dashboard/config' || route.path === 'dashboard/snapshots') {
+    if (extractionPlan.routeRole !== 'administrative') {
+      errors.push(`rota ${route.path} deve marcar extractionPlan.routeRole como administrative.`);
+    }
+
+    if (extractionPlan.shellNavigation !== 'access-menu') {
+      errors.push(`rota ${route.path} deve marcar extractionPlan.shellNavigation como access-menu.`);
+    }
   }
 }
 
@@ -383,7 +405,36 @@ function validateExtractionCandidates(candidates, domainCatalog, routes, menuIte
       errors,
     );
     requireStringArray(candidate, 'routePaths', `manifesto de extracao ${candidate.domain}`, errors);
-    requireStringArray(candidate, 'menuRoutes', `manifesto de extracao ${candidate.domain}`, errors);
+    requireStringArray(
+      candidate,
+      'operationalRoutePaths',
+      `manifesto de extracao ${candidate.domain}`,
+      errors,
+    );
+    requireStringArray(
+      candidate,
+      'administrativeRoutePaths',
+      `manifesto de extracao ${candidate.domain}`,
+      errors,
+    );
+    requireStringArray(
+      candidate,
+      'landingRoutes',
+      `manifesto de extracao ${candidate.domain}`,
+      errors,
+    );
+    requireStringArray(
+      candidate,
+      'businessMenuRoutes',
+      `manifesto de extracao ${candidate.domain}`,
+      errors,
+    );
+    requireStringArray(
+      candidate,
+      'accessMenuRoutes',
+      `manifesto de extracao ${candidate.domain}`,
+      errors,
+    );
 
     if (seenDomains.has(candidate.domain)) {
       errors.push(`manifesto de extracao duplicado para o dominio ${candidate.domain}.`);
@@ -427,9 +478,29 @@ function validateExtractionCandidates(candidates, domainCatalog, routes, menuIte
     const domainRoutes = candidateRoutesByDomain.get(candidate.domain) ?? [];
     const expectedRoutePaths = domainRoutes.map(route => route.path);
     const expectedRuntimeRemoteNames = [...new Set(domainRoutes.map(route => route.runtimeRemoteName))];
-    const expectedMenuRoutes = menuItems
+    const expectedOperationalRoutePaths = domainRoutes
+      .filter(route => route.extractionPlan?.routeRole === 'operational')
+      .map(route => route.path);
+    const expectedAdministrativeRoutePaths = domainRoutes
+      .filter(route => route.extractionPlan?.routeRole === 'administrative')
+      .map(route => route.path);
+    const expectedLandingRoutes = domainRoutes
+      .filter(route => route.extractionPlan?.shellNavigation === 'landing')
+      .map(route => route.path);
+    const expectedBusinessMenuRoutes = menuItems
       .filter(item => item.domain === candidate.domain)
-      .map(item => item.route);
+      .map(item => item.route)
+      .filter(route => {
+        const remoteRoute = domainRoutes.find(item => normalizeMenuRoute(route) === item.path);
+        return remoteRoute?.extractionPlan?.shellNavigation === 'business-menu';
+      });
+    const expectedAccessMenuRoutes = menuItems
+      .filter(item => item.domain === candidate.domain)
+      .map(item => item.route)
+      .filter(route => {
+        const remoteRoute = domainRoutes.find(item => normalizeMenuRoute(route) === item.path);
+        return remoteRoute?.extractionPlan?.shellNavigation === 'access-menu';
+      });
 
     validateOrderedArray(
       candidate.routePaths,
@@ -446,10 +517,38 @@ function validateExtractionCandidates(candidates, domainCatalog, routes, menuIte
       errors,
     );
     validateOrderedArray(
-      candidate.menuRoutes,
-      expectedMenuRoutes,
+      candidate.operationalRoutePaths,
+      expectedOperationalRoutePaths,
       `manifesto de extracao do dominio ${candidate.domain}`,
-      'menuRoutes',
+      'operationalRoutePaths',
+      errors,
+    );
+    validateOrderedArray(
+      candidate.administrativeRoutePaths,
+      expectedAdministrativeRoutePaths,
+      `manifesto de extracao do dominio ${candidate.domain}`,
+      'administrativeRoutePaths',
+      errors,
+    );
+    validateOrderedArray(
+      candidate.landingRoutes,
+      expectedLandingRoutes,
+      `manifesto de extracao do dominio ${candidate.domain}`,
+      'landingRoutes',
+      errors,
+    );
+    validateOrderedArray(
+      candidate.businessMenuRoutes,
+      expectedBusinessMenuRoutes,
+      `manifesto de extracao do dominio ${candidate.domain}`,
+      'businessMenuRoutes',
+      errors,
+    );
+    validateOrderedArray(
+      candidate.accessMenuRoutes,
+      expectedAccessMenuRoutes,
+      `manifesto de extracao do dominio ${candidate.domain}`,
+      'accessMenuRoutes',
       errors,
     );
   }
