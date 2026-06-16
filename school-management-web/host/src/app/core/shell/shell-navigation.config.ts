@@ -179,6 +179,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './ResponsavelList',
     exportName: 'ResponsiblesListComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-responsaveis',
+      routeRole: 'operational',
+      shellNavigation: 'business-menu',
+    },
   },
   {
     path: 'responsibles/new',
@@ -186,6 +192,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './ResponsavelNew',
     exportName: 'ResponsiblesNewComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-responsaveis',
+      routeRole: 'operational',
+      shellNavigation: 'contextual',
+    },
   },
   {
     path: 'responsibles/:id',
@@ -193,13 +205,25 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './ResponsavelDetail',
     exportName: 'ResponsiblesDetailComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-responsaveis',
+      routeRole: 'operational',
+      shellNavigation: 'contextual',
+    },
   },
   {
     path: 'responsibles/:id/edit',
     domain: 'responsaveis',
     runtimeRemoteName: 'mfe1',
-    exposedModule: './ResponsavelNew',
+    exposedModule: './ResponsavelEdit',
     exportName: 'ResponsiblesNewComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-responsaveis',
+      routeRole: 'operational',
+      shellNavigation: 'contextual',
+    },
   },
   {
     path: 'academic/periods',
@@ -498,6 +522,40 @@ export function flattenShellMenuGroups(groups: ShellMenuGroup[]): ShellMenuItem[
 }
 
 export const SHELL_EXTRACTION_CANDIDATES: ShellExtractionCandidateManifestItem[] = [
+  {
+    domain: 'responsaveis',
+    label: 'Responsaveis',
+    currentPlacement: 'microfrontend',
+    targetRemoteName: 'mfe-responsaveis',
+    runtimeRemoteNames: ['mfe1'],
+    expectedExposedModules: [
+      './ResponsavelList',
+      './ResponsavelNew',
+      './ResponsavelDetail',
+      './ResponsavelEdit',
+    ],
+    routePaths: [
+      'responsibles',
+      'responsibles/new',
+      'responsibles/:id',
+      'responsibles/:id/edit',
+    ],
+    operationalRoutePaths: [
+      'responsibles',
+      'responsibles/new',
+      'responsibles/:id',
+      'responsibles/:id/edit',
+    ],
+    administrativeRoutePaths: [],
+    landingRoutes: [],
+    businessMenuRoutes: ['/responsibles'],
+    accessMenuRoutes: [],
+    contextualRoutes: [
+      'responsibles/new',
+      'responsibles/:id',
+      'responsibles/:id/edit',
+    ],
+  },
   {
     domain: 'catalogo-academico',
     label: 'Catalogo academico',

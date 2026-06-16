@@ -4,6 +4,7 @@ import { DASHBOARD_INTERNAL_ROUTES } from './dashboard/dashboard-domain';
 import { PLANNING_INTERNAL_ROUTES } from './professor/planning-domain';
 import { PROFESSOR_INTERNAL_ROUTES } from './professor/professor-domain';
 import { TEACHING_INTERNAL_ROUTES } from './professor/teaching-domain';
+import { RESPONSIBLE_INTERNAL_ROUTES } from './responsavel/responsible-domain';
 
 export const routes: Routes = [
   {
@@ -13,34 +14,7 @@ export const routes: Routes = [
   },
   ...DASHBOARD_INTERNAL_ROUTES,
   ...CATALOG_INTERNAL_ROUTES,
-  {
-    path: 'responsibles',
-    loadComponent: () =>
-      import('./responsavel/pages/list/responsibles-list.component').then(
-        m => m.ResponsiblesListComponent,
-      ),
-  },
-  {
-    path: 'responsibles/new',
-    loadComponent: () =>
-      import('./responsavel/pages/new/responsibles-new.component').then(
-        m => m.ResponsiblesNewComponent,
-      ),
-  },
-  {
-    path: 'responsibles/:id',
-    loadComponent: () =>
-      import('./responsavel/pages/detail/responsibles-detail.component').then(
-        m => m.ResponsiblesDetailComponent,
-      ),
-  },
-  {
-    path: 'responsibles/:id/edit',
-    loadComponent: () =>
-      import('./responsavel/pages/new/responsibles-new.component').then(
-        m => m.ResponsiblesNewComponent,
-      ),
-  },
+  ...RESPONSIBLE_INTERNAL_ROUTES,
   {
     path: 'students',
     loadComponent: () =>
