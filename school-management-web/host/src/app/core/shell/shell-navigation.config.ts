@@ -17,11 +17,18 @@ export interface ShellDomainCatalogItem {
   currentPlacement: 'host' | 'microfrontend' | 'shared';
 }
 
+export interface ShellRouteExtractionPlan {
+  candidate: boolean;
+  targetRemoteName: string;
+}
+
 export interface ShellRemoteRoute {
   path: string;
   domain: ShellDomain;
+  runtimeRemoteName: 'mfe1';
   exposedModule: string;
   exportName: string;
+  extractionPlan?: ShellRouteExtractionPlan;
 }
 
 export interface ShellMenuItem {
@@ -110,156 +117,194 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
   {
     path: 'dashboard',
     domain: 'dashboard',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './Dashboard',
     exportName: 'AcademicOperationalDashboardComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-dashboard',
+    },
   },
   {
     path: 'students',
     domain: 'alunos',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './AlunoList',
     exportName: 'StudentsListComponent',
   },
   {
     path: 'students/new',
     domain: 'alunos',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './AlunoNew',
     exportName: 'StudentsNewComponent',
   },
   {
     path: 'students/:id',
     domain: 'alunos',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './AlunoDetail',
     exportName: 'StudentsDetailComponent',
   },
   {
     path: 'students/:id/edit',
     domain: 'alunos',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './AlunoNew',
     exportName: 'StudentsNewComponent',
   },
   {
     path: 'responsibles',
     domain: 'responsaveis',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './ResponsavelList',
     exportName: 'ResponsiblesListComponent',
   },
   {
     path: 'responsibles/new',
     domain: 'responsaveis',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './ResponsavelNew',
     exportName: 'ResponsiblesNewComponent',
   },
   {
     path: 'responsibles/:id',
     domain: 'responsaveis',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './ResponsavelDetail',
     exportName: 'ResponsiblesDetailComponent',
   },
   {
     path: 'responsibles/:id/edit',
     domain: 'responsaveis',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './ResponsavelNew',
     exportName: 'ResponsiblesNewComponent',
   },
   {
     path: 'academic/periods',
     domain: 'catalogo-academico',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './CatalogoPeriods',
     exportName: 'AcademicPeriodsComponent',
   },
   {
     path: 'academic/series',
     domain: 'catalogo-academico',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './CatalogoSeries',
     exportName: 'AcademicSeriesComponent',
   },
   {
     path: 'academic/shifts',
     domain: 'catalogo-academico',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './CatalogoShifts',
     exportName: 'AcademicShiftsComponent',
   },
   {
     path: 'academic/classes',
     domain: 'catalogo-academico',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './CatalogoClasses',
     exportName: 'AcademicClassesComponent',
   },
   {
     path: 'academic/disciplines',
     domain: 'catalogo-academico',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './HistoricoDisciplines',
     exportName: 'DisciplinesComponent',
   },
   {
     path: 'teachers',
     domain: 'professores',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './ProfessorList',
     exportName: 'TeachersListComponent',
   },
   {
     path: 'teachers/:id',
     domain: 'professores',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './ProfessorDetail',
     exportName: 'TeacherDetailComponent',
   },
   {
     path: 'lessons',
     domain: 'aulas-avaliacoes',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './LessonList',
     exportName: 'LessonsListComponent',
   },
   {
     path: 'lessons/:id',
     domain: 'aulas-avaliacoes',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './LessonDetail',
     exportName: 'LessonDetailComponent',
   },
   {
     path: 'assessments',
     domain: 'aulas-avaliacoes',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './AssessmentList',
     exportName: 'AssessmentsListComponent',
   },
   {
     path: 'assessments/:id',
     domain: 'aulas-avaliacoes',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './AssessmentDetail',
     exportName: 'AssessmentDetailComponent',
   },
   {
     path: 'planning',
     domain: 'planejamento-ia',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './PlanningList',
     exportName: 'PlanningListComponent',
   },
   {
     path: 'planning/:id',
     domain: 'planejamento-ia',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './PlanningDetail',
     exportName: 'PlanningDetailComponent',
   },
   {
     path: 'planning-library',
     domain: 'planejamento-ia',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './PlanningLibrary',
     exportName: 'PlanningLibraryComponent',
   },
   {
     path: 'dashboard/config',
     domain: 'dashboard',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './DashboardConfigAdmin',
     exportName: 'DashboardConfigAdminComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-dashboard',
+    },
   },
   {
     path: 'dashboard/snapshots',
     domain: 'dashboard',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './DashboardSnapshotsAdmin',
     exportName: 'DashboardSnapshotsAdminComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-dashboard',
+    },
   },
   {
     path: 'enrollment',
     domain: 'matriculas',
+    runtimeRemoteName: 'mfe1',
     exposedModule: './Matricula',
     exportName: 'EnrollmentNewComponent',
   },
