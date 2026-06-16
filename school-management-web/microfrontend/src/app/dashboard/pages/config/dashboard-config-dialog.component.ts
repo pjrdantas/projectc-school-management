@@ -9,7 +9,7 @@ import {
   DashboardConfiguracao,
   DashboardConfiguracaoInput,
   DashboardPublico,
-} from '../../models/dashboard-config.model';
+} from '../../models';
 
 export interface DashboardConfigDialogData {
   dashboard?: DashboardConfiguracao;

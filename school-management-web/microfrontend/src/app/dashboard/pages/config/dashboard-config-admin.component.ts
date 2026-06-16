@@ -11,17 +11,15 @@ import { getApiErrorMessage } from '../../../core/http/api-error';
 import {
   DashboardConfiguracao,
   DashboardConfiguracaoInput,
+  DASHBOARD_WIDGET_CATALOG,
+  DashboardPublicoCodigo,
   DashboardPublico,
   DashboardPublicoInput,
   DashboardWidget,
-  DashboardWidgetInput,
-} from '../../models/dashboard-config.model';
-import { DashboardPublicoCodigo } from '../../models/dashboard.model';
-import {
-  DASHBOARD_WIDGET_CATALOG,
   DashboardWidgetCatalogItem,
-} from '../../models/dashboard-widget-catalog';
-import { DashboardConfigService } from '../../services/dashboard-config.service';
+  DashboardWidgetInput,
+} from '../../models';
+import { DashboardConfigService } from '../../services';
 import {
   DashboardConfigDialogComponent,
   DashboardConfigDialogData,

@@ -13,8 +13,8 @@ import {
   DashboardPublicoCodigo,
   DashboardResumo,
   DashboardUsuarioConfiguracao,
-} from '../models/dashboard.model';
-import { DashboardService } from '../services/dashboard.service';
+} from '../models';
+import { DashboardService } from '../services';
 
 interface DashboardMetric {
   label: string;

@@ -11,14 +11,13 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { getApiErrorMessage } from '../../../core/http/api-error';
 import { Professor } from '../../../professor/models/teacher.model';
 import { TeachersService } from '../../../professor/services/teachers.service';
-import { DashboardPublico } from '../../models/dashboard-config.model';
 import {
   DashboardIndicadorHistorico,
   DashboardIndicadorHistoricoPonto,
   DashboardIndicadorSnapshot,
-} from '../../models/dashboard-snapshot.model';
-import { DashboardConfigService } from '../../services/dashboard-config.service';
-import { DashboardSnapshotService } from '../../services/dashboard-snapshot.service';
+  DashboardPublico,
+} from '../../models';
+import { DashboardConfigService, DashboardSnapshotService } from '../../services';
 
 @Component({
   selector: 'app-dashboard-snapshots-admin',

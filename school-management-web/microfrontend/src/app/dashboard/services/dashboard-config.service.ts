@@ -9,7 +9,7 @@ import {
   DashboardPublicoInput,
   DashboardWidget,
   DashboardWidgetInput,
-} from '../models/dashboard-config.model';
+} from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardConfigService {

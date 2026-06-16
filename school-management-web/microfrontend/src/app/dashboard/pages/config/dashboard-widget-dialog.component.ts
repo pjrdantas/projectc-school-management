@@ -5,12 +5,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { DashboardWidget, DashboardWidgetInput } from '../../models/dashboard-config.model';
-import { DashboardPublicoCodigo } from '../../models/dashboard.model';
 import {
   DASHBOARD_WIDGET_CATALOG,
+  DashboardPublicoCodigo,
+  DashboardWidget,
   DashboardWidgetCatalogItem,
-} from '../../models/dashboard-widget-catalog';
+  DashboardWidgetInput,
+} from '../../models';
 
 export interface DashboardWidgetDialogData {
   widget?: DashboardWidget;

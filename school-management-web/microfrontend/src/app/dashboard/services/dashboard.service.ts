@@ -7,7 +7,7 @@ import {
   DashboardPublicoCodigo,
   DashboardUsuarioConfiguracao,
   DashboardUsuarioConfiguracaoInput,
-} from '../models/dashboard.model';
+} from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {

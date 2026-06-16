@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { DashboardPublico, DashboardPublicoInput } from '../../models/dashboard-config.model';
+import { DashboardPublico, DashboardPublicoInput } from '../../models';
 
 export interface DashboardPublicoDialogData {
   publico?: DashboardPublico;

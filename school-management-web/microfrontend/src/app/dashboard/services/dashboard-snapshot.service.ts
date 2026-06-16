@@ -5,7 +5,7 @@ import { ShellContextService } from '../../core/shell/shell-context.service';
 import {
   DashboardIndicadorHistorico,
   DashboardIndicadorSnapshot,
-} from '../models/dashboard-snapshot.model';
+} from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardSnapshotService {
