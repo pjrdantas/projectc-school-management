@@ -5,7 +5,7 @@ module.exports = withNativeFederation({
   name: 'microfrontend',
 
   exposes: {
-    './Dashboard': './src/app/dashboard/pages/academic-operational-dashboard.component.ts',
+    './Dashboard': './src/app/dashboard/exposes/dashboard-operational.expose.ts',
     './CatalogoPeriods': './src/app/catalogo/pages/periods/academic-periods.component.ts',
     './CatalogoSeries': './src/app/catalogo/pages/series/academic-series.component.ts',
     './CatalogoShifts': './src/app/catalogo/pages/shifts/academic-shifts.component.ts',
@@ -27,8 +27,8 @@ module.exports = withNativeFederation({
     './PlanningList': './src/app/professor/pages/planning/planning-list.component.ts',
     './PlanningDetail': './src/app/professor/pages/planning/planning-detail.component.ts',
     './PlanningLibrary': './src/app/professor/pages/planning/planning-library.component.ts',
-    './DashboardConfigAdmin': './src/app/dashboard/pages/config/dashboard-config-admin.component.ts',
-    './DashboardSnapshotsAdmin': './src/app/dashboard/pages/snapshots/dashboard-snapshots-admin.component.ts',
+    './DashboardConfigAdmin': './src/app/dashboard/exposes/dashboard-config-admin.expose.ts',
+    './DashboardSnapshotsAdmin': './src/app/dashboard/exposes/dashboard-snapshots-admin.expose.ts',
   },
 
  shared: {
