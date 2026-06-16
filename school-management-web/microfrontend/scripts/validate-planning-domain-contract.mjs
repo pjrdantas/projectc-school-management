@@ -12,17 +12,40 @@ const manifestPath = path.join(
   'planning-domain.manifest.ts',
 );
 const federationPath = path.join(microfrontendRoot, 'federation.config.js');
+const shellNavigationPath = path.join(
+  microfrontendRoot,
+  '..',
+  'host',
+  'src',
+  'app',
+  'core',
+  'shell',
+  'shell-navigation.config.ts',
+);
 
 const manifestSource = parseSource(manifestPath, ts.ScriptKind.TS);
 const federationSource = parseSource(federationPath, ts.ScriptKind.JS);
+const shellSource = parseSource(shellNavigationPath, ts.ScriptKind.TS);
 
 const manifestItems = readArrayObjects(manifestSource, 'PLANNING_DOMAIN_MANIFEST');
 const exposes = readExposes(federationSource);
+const shellPlanningRoutes = readArrayObjects(shellSource, 'SHELL_REMOTE_ROUTES').filter(
+  route => route.domain === 'planejamento-ia',
+);
+const shellPlanningCandidates = readArrayObjects(
+  shellSource,
+  'SHELL_EXTRACTION_CANDIDATES',
+).filter(candidate => candidate.domain === 'planejamento-ia');
 
 const errors = [
   ...validateManifestShape(manifestItems),
   ...validateFederation(manifestItems, exposes),
   ...validateExposeFiles(manifestItems),
+  ...validateShellContract(
+    manifestItems,
+    shellPlanningRoutes,
+    shellPlanningCandidates,
+  ),
 ];
 
 if (errors.length > 0) {
@@ -34,7 +57,7 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Contrato interno de planning/IA valido: ${manifestItems.length} entradas conferidas entre manifesto, exposes e federation.config.js.`,
+  `Contrato interno de planning/IA valido: ${manifestItems.length} entradas conferidas entre manifesto, exposes, federation.config.js e shell do host.`,
 );
 
 function parseSource(filePath, scriptKind) {
@@ -316,6 +339,190 @@ function validateExposeFiles(manifestItems) {
   return errors;
 }
 
+function validateShellContract(
+  manifestItems,
+  shellPlanningRoutes,
+  shellPlanningCandidates,
+) {
+  return [
+    ...validateShellRoutes(manifestItems, shellPlanningRoutes),
+    ...validateShellExtractionCandidate(
+      manifestItems,
+      shellPlanningRoutes,
+      shellPlanningCandidates,
+    ),
+  ];
+}
+
+function validateShellRoutes(manifestItems, shellPlanningRoutes) {
+  const errors = [];
+
+  if (shellPlanningRoutes.length !== manifestItems.length) {
+    errors.push(
+      `shell do host deve expor ${manifestItems.length} rotas de planejamento/IA, encontradas ${shellPlanningRoutes.length}.`,
+    );
+  }
+
+  for (const item of manifestItems) {
+    const shellRoute = shellPlanningRoutes.find(route => route.path === item.path);
+
+    if (!shellRoute) {
+      errors.push(`shell do host nao declarou a rota ${item.path} para planejamento/IA.`);
+      continue;
+    }
+
+    if (shellRoute.domain !== item.domain) {
+      errors.push(
+        `rota ${item.path} do shell deve usar domain ${item.domain}, encontrado ${shellRoute.domain}.`,
+      );
+    }
+
+    if (shellRoute.exposedModule !== item.exposedModule) {
+      errors.push(
+        `rota ${item.path} do shell deve usar exposedModule ${item.exposedModule}, encontrado ${shellRoute.exposedModule}.`,
+      );
+    }
+
+    if (shellRoute.exportName !== item.exportName) {
+      errors.push(
+        `rota ${item.path} do shell deve usar exportName ${item.exportName}, encontrado ${shellRoute.exportName}.`,
+      );
+    }
+
+    if (shellRoute.runtimeRemoteName !== 'mfe1') {
+      errors.push(
+        `rota ${item.path} do shell deve permanecer no runtimeRemoteName mfe1, encontrado ${shellRoute.runtimeRemoteName}.`,
+      );
+    }
+
+    const extractionPlan = shellRoute.extractionPlan;
+    if (!extractionPlan || typeof extractionPlan !== 'object') {
+      errors.push(`rota ${item.path} do shell deve declarar extractionPlan.`);
+      continue;
+    }
+
+    if (extractionPlan.candidate !== item.extractionCandidate) {
+      errors.push(
+        `rota ${item.path} do shell deve usar extractionPlan.candidate=${item.extractionCandidate}, encontrado ${extractionPlan.candidate}.`,
+      );
+    }
+
+    if (extractionPlan.targetRemoteName !== item.futureRemoteName) {
+      errors.push(
+        `rota ${item.path} do shell deve usar extractionPlan.targetRemoteName=${item.futureRemoteName}, encontrado ${extractionPlan.targetRemoteName}.`,
+      );
+    }
+
+    if (extractionPlan.routeRole !== item.routeRole) {
+      errors.push(
+        `rota ${item.path} do shell deve usar extractionPlan.routeRole=${item.routeRole}, encontrado ${extractionPlan.routeRole}.`,
+      );
+    }
+
+    if (extractionPlan.shellNavigation !== item.shellNavigation) {
+      errors.push(
+        `rota ${item.path} do shell deve usar extractionPlan.shellNavigation=${item.shellNavigation}, encontrado ${extractionPlan.shellNavigation}.`,
+      );
+    }
+  }
+
+  return errors;
+}
+
+function validateShellExtractionCandidate(
+  manifestItems,
+  shellPlanningRoutes,
+  shellPlanningCandidates,
+) {
+  const errors = [];
+
+  if (shellPlanningCandidates.length !== 1) {
+    errors.push(
+      `shell do host deve declarar um unico candidato de extracao para planejamento/IA, encontrados ${shellPlanningCandidates.length}.`,
+    );
+    return errors;
+  }
+
+  const [candidate] = shellPlanningCandidates;
+  const manifestPaths = manifestItems.map(item => item.path);
+  const manifestExposedModules = manifestItems.map(item => item.exposedModule);
+  const operationalRoutePaths = manifestItems
+    .filter(item => item.routeRole === 'operational')
+    .map(item => item.path);
+  const administrativeRoutePaths = manifestItems
+    .filter(item => item.routeRole === 'administrative')
+    .map(item => item.path);
+  const landingRoutes = manifestItems
+    .filter(item => item.shellNavigation === 'landing')
+    .map(item => item.path);
+  const businessMenuRoutes = manifestItems
+    .filter(item => item.shellNavigation === 'business-menu')
+    .map(item => toShellMenuRoute(item.path));
+  const accessMenuRoutes = manifestItems
+    .filter(item => item.shellNavigation === 'access-menu')
+    .map(item => toShellMenuRoute(item.path));
+  const contextualRoutes = manifestItems
+    .filter(item => item.shellNavigation === 'contextual')
+    .map(item => item.path);
+  const runtimeRemoteNames = [
+    ...new Set(shellPlanningRoutes.map(route => route.runtimeRemoteName)),
+  ];
+
+  if (candidate.currentPlacement !== 'microfrontend') {
+    errors.push(
+      `candidato planejamento/IA do shell deve manter currentPlacement=microfrontend, encontrado ${candidate.currentPlacement}.`,
+    );
+  }
+
+  if (candidate.targetRemoteName !== manifestItems[0]?.futureRemoteName) {
+    errors.push(
+      `candidato planejamento/IA do shell deve usar targetRemoteName=${manifestItems[0]?.futureRemoteName}, encontrado ${candidate.targetRemoteName}.`,
+    );
+  }
+
+  errors.push(
+    ...compareStringArrays(
+      candidate.runtimeRemoteNames,
+      runtimeRemoteNames,
+      'candidate.runtimeRemoteNames',
+    ),
+    ...compareStringArrays(
+      candidate.expectedExposedModules,
+      manifestExposedModules,
+      'candidate.expectedExposedModules',
+    ),
+    ...compareStringArrays(candidate.routePaths, manifestPaths, 'candidate.routePaths'),
+    ...compareStringArrays(
+      candidate.operationalRoutePaths,
+      operationalRoutePaths,
+      'candidate.operationalRoutePaths',
+    ),
+    ...compareStringArrays(
+      candidate.administrativeRoutePaths,
+      administrativeRoutePaths,
+      'candidate.administrativeRoutePaths',
+    ),
+    ...compareStringArrays(candidate.landingRoutes, landingRoutes, 'candidate.landingRoutes'),
+    ...compareStringArrays(
+      candidate.businessMenuRoutes,
+      businessMenuRoutes,
+      'candidate.businessMenuRoutes',
+    ),
+    ...compareStringArrays(
+      candidate.accessMenuRoutes,
+      accessMenuRoutes,
+      'candidate.accessMenuRoutes',
+    ),
+    ...compareStringArrays(
+      candidate.contextualRoutes,
+      contextualRoutes,
+      'candidate.contextualRoutes',
+    ),
+  );
+
+  return errors;
+}
+
 function readExposeExport(sourceFile) {
   let result = null;
 
@@ -345,6 +552,34 @@ function readExposeExport(sourceFile) {
 
 function toSystemPath(relativePath) {
   return relativePath.replaceAll('/', path.sep).replace(/^\.\//, '');
+}
+
+function toShellMenuRoute(routePath) {
+  return `/${routePath.split('/:')[0]}`;
+}
+
+function compareStringArrays(actual, expected, context) {
+  if (!Array.isArray(actual)) {
+    return [`${context} deve ser um array no shell do host.`];
+  }
+
+  if (actual.length !== expected.length) {
+    return [
+      `${context} deve conter ${expected.length} itens no shell do host, encontrados ${actual.length}.`,
+    ];
+  }
+
+  const errors = [];
+
+  for (let index = 0; index < expected.length; index += 1) {
+    if (actual[index] !== expected[index]) {
+      errors.push(
+        `${context}[${index}] deve ser ${expected[index]} no shell do host, encontrado ${actual[index]}.`,
+      );
+    }
+  }
+
+  return errors;
 }
 
 function requireString(object, propertyName, context, errors) {
