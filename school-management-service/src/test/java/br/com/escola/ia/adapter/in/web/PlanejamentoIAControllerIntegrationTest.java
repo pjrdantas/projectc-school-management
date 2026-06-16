@@ -1,5 +1,6 @@
 package br.com.escola.ia.adapter.in.web;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -271,6 +272,41 @@ class PlanejamentoIAControllerIntegrationTest {
                 .andExpect(jsonPath("$.fields[*].field", org.hamcrest.Matchers.hasItems(
                         "conteudo",
                         "motivoAlteracao")));
+    }
+
+    @Test
+    @WithMockUser
+    void deveBloquearGeracaoComTipoConteudoInexistenteSemPersistirIA() throws Exception {
+        UUID planejamentoId = criarPlanejamento(criarContextoPlanejamento());
+        String gerarRequest = """
+                {
+                  "promptProfessor": "Gerar proposta inicial.",
+                  "tipoConteudo": " roteiro_aula ",
+                  "titulo": "Tipo inexistente",
+                  "reutilizavel": true
+                }
+                """;
+
+        mockMvc.perform(post("/api/planejamentos-bimestrais/{id}/ia/conteudos", planejamentoId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gerarRequest))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("Tipo de conteúdo de IA não encontrado: ROTEIRO_AULA."));
+
+        Integer interacoes = jdbcTemplate.queryForObject("""
+                SELECT COUNT(*)
+                FROM planejamento_ia_interacao
+                WHERE id_planejamento_bimestral = ?
+                """, Integer.class, planejamentoId);
+        Integer conteudos = jdbcTemplate.queryForObject("""
+                SELECT COUNT(*)
+                FROM planejamento_ia_conteudo_gerado
+                WHERE id_planejamento_bimestral = ?
+                """, Integer.class, planejamentoId);
+
+        assertEquals(0, interacoes);
+        assertEquals(0, conteudos);
     }
 
     @Test

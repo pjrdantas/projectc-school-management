@@ -332,8 +332,9 @@ public class PlanejamentoIAService {
     }
 
     private TipoConteudoIAEntity findTipoConteudo(String codigo) {
-        return tipoConteudoIAJpaRepository.findByCodigo(codigo.trim().toUpperCase(Locale.ROOT))
-                .orElseThrow(ConteudoIATipoNaoEncontradoException::new);
+        String codigoNormalizado = codigo.trim().toUpperCase(Locale.ROOT);
+        return tipoConteudoIAJpaRepository.findByCodigo(codigoNormalizado)
+                .orElseThrow(() -> new ConteudoIATipoNaoEncontradoException(codigoNormalizado));
     }
 
     private StatusConteudoIAEntity findStatusConteudo(String codigo) {
