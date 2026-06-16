@@ -242,6 +242,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './ProfessorList',
     exportName: 'TeachersListComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-professores',
+      routeRole: 'operational',
+      shellNavigation: 'business-menu',
+    },
   },
   {
     path: 'teachers/:id',
@@ -249,6 +255,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './ProfessorDetail',
     exportName: 'TeacherDetailComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-professores',
+      routeRole: 'operational',
+      shellNavigation: 'contextual',
+    },
   },
   {
     path: 'lessons',
@@ -450,6 +462,21 @@ export const SHELL_EXTRACTION_CANDIDATES: ShellExtractionCandidateManifestItem[]
     businessMenuRoutes: [],
     accessMenuRoutes: ['/dashboard/config', '/dashboard/snapshots'],
     contextualRoutes: [],
+  },
+  {
+    domain: 'professores',
+    label: 'Professores',
+    currentPlacement: 'microfrontend',
+    targetRemoteName: 'mfe-professores',
+    runtimeRemoteNames: ['mfe1'],
+    expectedExposedModules: ['./ProfessorList', './ProfessorDetail'],
+    routePaths: ['teachers', 'teachers/:id'],
+    operationalRoutePaths: ['teachers', 'teachers/:id'],
+    administrativeRoutePaths: [],
+    landingRoutes: [],
+    businessMenuRoutes: ['/teachers'],
+    accessMenuRoutes: [],
+    contextualRoutes: ['teachers/:id'],
   },
   {
     domain: 'planejamento-ia',

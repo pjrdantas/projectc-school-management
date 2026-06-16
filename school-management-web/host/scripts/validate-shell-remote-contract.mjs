@@ -281,6 +281,8 @@ function validateRemoteRoutes(routes, exposesSet) {
     ['dashboard', { domain: 'dashboard', targetRemoteName: 'mfe-dashboard', routeRole: 'operational', shellNavigation: 'landing' }],
     ['dashboard/config', { domain: 'dashboard', targetRemoteName: 'mfe-dashboard', routeRole: 'administrative', shellNavigation: 'access-menu' }],
     ['dashboard/snapshots', { domain: 'dashboard', targetRemoteName: 'mfe-dashboard', routeRole: 'administrative', shellNavigation: 'access-menu' }],
+    ['teachers', { domain: 'professores', targetRemoteName: 'mfe-professores', routeRole: 'operational', shellNavigation: 'business-menu' }],
+    ['teachers/:id', { domain: 'professores', targetRemoteName: 'mfe-professores', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['planning', { domain: 'planejamento-ia', targetRemoteName: 'mfe-planejamento-ia', routeRole: 'operational', shellNavigation: 'business-menu' }],
     ['planning/:id', { domain: 'planejamento-ia', targetRemoteName: 'mfe-planejamento-ia', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['planning-library', { domain: 'planejamento-ia', targetRemoteName: 'mfe-planejamento-ia', routeRole: 'operational', shellNavigation: 'business-menu' }],
