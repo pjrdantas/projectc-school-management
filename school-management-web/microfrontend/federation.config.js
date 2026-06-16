@@ -18,7 +18,7 @@ module.exports = withNativeFederation({
     './AlunoNew': './src/app/aluno/exposes/student-new.expose.ts',
     './AlunoDetail': './src/app/aluno/exposes/student-detail.expose.ts',
     './AlunoEdit': './src/app/aluno/exposes/student-edit.expose.ts',
-    './Matricula': './src/app/matricula/pages/new/enrollment-new.component.ts',
+    './Matricula': './src/app/matricula/exposes/enrollment.expose.ts',
     './HistoricoDisciplines': './src/app/catalogo/exposes/catalog-disciplines.expose.ts',
     './ProfessorList': './src/app/professor/exposes/professor-list.expose.ts',
     './ProfessorDetail': './src/app/professor/exposes/professor-detail.expose.ts',

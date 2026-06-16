@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { CATALOG_INTERNAL_ROUTES } from './catalogo/catalog-domain';
 import { DASHBOARD_INTERNAL_ROUTES } from './dashboard/dashboard-domain';
 import { STUDENT_INTERNAL_ROUTES } from './aluno/student-domain';
+import { ENROLLMENT_INTERNAL_ROUTES } from './matricula/enrollment-domain';
 import { PLANNING_INTERNAL_ROUTES } from './professor/planning-domain';
 import { PROFESSOR_INTERNAL_ROUTES } from './professor/professor-domain';
 import { TEACHING_INTERNAL_ROUTES } from './professor/teaching-domain';
@@ -17,13 +18,7 @@ export const routes: Routes = [
   ...CATALOG_INTERNAL_ROUTES,
   ...RESPONSIBLE_INTERNAL_ROUTES,
   ...STUDENT_INTERNAL_ROUTES,
-  {
-    path: 'enrollment',
-    loadComponent: () =>
-      import('./matricula/pages/new/enrollment-new.component').then(
-        m => m.EnrollmentNewComponent,
-      ),
-  },
+  ...ENROLLMENT_INTERNAL_ROUTES,
   ...PROFESSOR_INTERNAL_ROUTES,
   ...TEACHING_INTERNAL_ROUTES,
   ...PLANNING_INTERNAL_ROUTES,

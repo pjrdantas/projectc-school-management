@@ -463,6 +463,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './Matricula',
     exportName: 'EnrollmentNewComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-matriculas',
+      routeRole: 'operational',
+      shellNavigation: 'business-menu',
+    },
   },
 ];
 
@@ -546,6 +552,21 @@ export function flattenShellMenuGroups(groups: ShellMenuGroup[]): ShellMenuItem[
 }
 
 export const SHELL_EXTRACTION_CANDIDATES: ShellExtractionCandidateManifestItem[] = [
+  {
+    domain: 'matriculas',
+    label: 'Matriculas',
+    currentPlacement: 'microfrontend',
+    targetRemoteName: 'mfe-matriculas',
+    runtimeRemoteNames: ['mfe1'],
+    expectedExposedModules: ['./Matricula'],
+    routePaths: ['enrollment'],
+    operationalRoutePaths: ['enrollment'],
+    administrativeRoutePaths: [],
+    landingRoutes: [],
+    businessMenuRoutes: ['/enrollment'],
+    accessMenuRoutes: [],
+    contextualRoutes: [],
+  },
   {
     domain: 'alunos',
     label: 'Alunos',

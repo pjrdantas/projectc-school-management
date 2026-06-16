@@ -285,6 +285,7 @@ function validateRemoteRoutes(routes, exposesSet) {
     ['students/new', { domain: 'alunos', targetRemoteName: 'mfe-alunos', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['students/:id', { domain: 'alunos', targetRemoteName: 'mfe-alunos', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['students/:id/edit', { domain: 'alunos', targetRemoteName: 'mfe-alunos', routeRole: 'operational', shellNavigation: 'contextual' }],
+    ['enrollment', { domain: 'matriculas', targetRemoteName: 'mfe-matriculas', routeRole: 'operational', shellNavigation: 'business-menu' }],
     ['responsibles', { domain: 'responsaveis', targetRemoteName: 'mfe-responsaveis', routeRole: 'operational', shellNavigation: 'business-menu' }],
     ['responsibles/new', { domain: 'responsaveis', targetRemoteName: 'mfe-responsaveis', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['responsibles/:id', { domain: 'responsaveis', targetRemoteName: 'mfe-responsaveis', routeRole: 'operational', shellNavigation: 'contextual' }],
