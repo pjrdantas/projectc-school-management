@@ -12,17 +12,40 @@ const manifestPath = path.join(
   'dashboard-domain.manifest.ts',
 );
 const federationPath = path.join(microfrontendRoot, 'federation.config.js');
+const shellNavigationPath = path.join(
+  microfrontendRoot,
+  '..',
+  'host',
+  'src',
+  'app',
+  'core',
+  'shell',
+  'shell-navigation.config.ts',
+);
 
 const manifestSource = parseSource(manifestPath, ts.ScriptKind.TS);
 const federationSource = parseSource(federationPath, ts.ScriptKind.JS);
+const shellSource = parseSource(shellNavigationPath, ts.ScriptKind.TS);
 
 const manifestItems = readArrayObjects(manifestSource, 'DASHBOARD_DOMAIN_MANIFEST');
 const exposes = readExposes(federationSource);
+const shellDashboardRoutes = readArrayObjects(shellSource, 'SHELL_REMOTE_ROUTES').filter(
+  route => route.domain === 'dashboard',
+);
+const shellDashboardCandidates = readArrayObjects(
+  shellSource,
+  'SHELL_EXTRACTION_CANDIDATES',
+).filter(candidate => candidate.domain === 'dashboard');
 
 const errors = [
   ...validateManifestShape(manifestItems),
   ...validateFederation(manifestItems, exposes),
   ...validateExposeFiles(manifestItems),
+  ...validateShellContract(
+    manifestItems,
+    shellDashboardRoutes,
+    shellDashboardCandidates,
+  ),
 ];
 
 if (errors.length > 0) {
@@ -34,7 +57,7 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Contrato interno do dashboard valido: ${manifestItems.length} entradas conferidas entre manifesto, exposes e federation.config.js.`,
+  `Contrato interno do dashboard valido: ${manifestItems.length} entradas conferidas entre manifesto, exposes, federation.config.js e shell do host.`,
 );
 
 function parseSource(filePath, scriptKind) {
@@ -244,6 +267,176 @@ function validateExposeFiles(manifestItems) {
   return errors;
 }
 
+function validateShellContract(
+  manifestItems,
+  shellDashboardRoutes,
+  shellDashboardCandidates,
+) {
+  return [
+    ...validateShellRoutes(manifestItems, shellDashboardRoutes),
+    ...validateShellExtractionCandidate(
+      manifestItems,
+      shellDashboardRoutes,
+      shellDashboardCandidates,
+    ),
+  ];
+}
+
+function validateShellRoutes(manifestItems, shellDashboardRoutes) {
+  const errors = [];
+
+  if (shellDashboardRoutes.length !== manifestItems.length) {
+    errors.push(
+      `shell do host deve expor ${manifestItems.length} rotas de dashboard, encontradas ${shellDashboardRoutes.length}.`,
+    );
+  }
+
+  for (const item of manifestItems) {
+    const shellRoute = shellDashboardRoutes.find(route => route.path === item.path);
+
+    if (!shellRoute) {
+      errors.push(`shell do host nao declarou a rota ${item.path} para dashboard.`);
+      continue;
+    }
+
+    if (shellRoute.domain !== 'dashboard') {
+      errors.push(
+        `rota ${item.path} do shell deve usar domain dashboard, encontrado ${shellRoute.domain}.`,
+      );
+    }
+
+    if (shellRoute.exposedModule !== item.exposedModule) {
+      errors.push(
+        `rota ${item.path} do shell deve usar exposedModule ${item.exposedModule}, encontrado ${shellRoute.exposedModule}.`,
+      );
+    }
+
+    if (shellRoute.exportName !== item.exportName) {
+      errors.push(
+        `rota ${item.path} do shell deve usar exportName ${item.exportName}, encontrado ${shellRoute.exportName}.`,
+      );
+    }
+
+    if (shellRoute.runtimeRemoteName !== 'mfe1') {
+      errors.push(
+        `rota ${item.path} do shell deve permanecer no runtimeRemoteName mfe1, encontrado ${shellRoute.runtimeRemoteName}.`,
+      );
+    }
+
+    const extractionPlan = shellRoute.extractionPlan;
+    if (!extractionPlan || typeof extractionPlan !== 'object') {
+      errors.push(`rota ${item.path} do shell deve declarar extractionPlan.`);
+      continue;
+    }
+
+    if (extractionPlan.candidate !== true) {
+      errors.push(
+        `rota ${item.path} do shell deve usar extractionPlan.candidate=true, encontrado ${extractionPlan.candidate}.`,
+      );
+    }
+
+    if (extractionPlan.targetRemoteName !== 'mfe-dashboard') {
+      errors.push(
+        `rota ${item.path} do shell deve usar extractionPlan.targetRemoteName=mfe-dashboard, encontrado ${extractionPlan.targetRemoteName}.`,
+      );
+    }
+
+    if (extractionPlan.routeRole !== item.routeRole) {
+      errors.push(
+        `rota ${item.path} do shell deve usar extractionPlan.routeRole=${item.routeRole}, encontrado ${extractionPlan.routeRole}.`,
+      );
+    }
+
+    if (extractionPlan.shellNavigation !== item.shellNavigation) {
+      errors.push(
+        `rota ${item.path} do shell deve usar extractionPlan.shellNavigation=${item.shellNavigation}, encontrado ${extractionPlan.shellNavigation}.`,
+      );
+    }
+  }
+
+  return errors;
+}
+
+function validateShellExtractionCandidate(
+  manifestItems,
+  shellDashboardRoutes,
+  shellDashboardCandidates,
+) {
+  const errors = [];
+
+  if (shellDashboardCandidates.length !== 1) {
+    errors.push(
+      `shell do host deve declarar um unico candidato de extracao para dashboard, encontrados ${shellDashboardCandidates.length}.`,
+    );
+    return errors;
+  }
+
+  const [candidate] = shellDashboardCandidates;
+  const manifestPaths = manifestItems.map(item => item.path);
+  const manifestExposedModules = manifestItems.map(item => item.exposedModule);
+  const operationalRoutePaths = manifestItems
+    .filter(item => item.routeRole === 'operational')
+    .map(item => item.path);
+  const administrativeRoutePaths = manifestItems
+    .filter(item => item.routeRole === 'administrative')
+    .map(item => item.path);
+  const landingRoutes = manifestItems
+    .filter(item => item.shellNavigation === 'landing')
+    .map(item => item.path);
+  const accessMenuRoutes = manifestItems
+    .filter(item => item.shellNavigation === 'access-menu')
+    .map(item => toShellMenuRoute(item.path));
+  const runtimeRemoteNames = [
+    ...new Set(shellDashboardRoutes.map(route => route.runtimeRemoteName)),
+  ];
+
+  if (candidate.currentPlacement !== 'microfrontend') {
+    errors.push(
+      `candidato dashboard do shell deve manter currentPlacement=microfrontend, encontrado ${candidate.currentPlacement}.`,
+    );
+  }
+
+  if (candidate.targetRemoteName !== 'mfe-dashboard') {
+    errors.push(
+      `candidato dashboard do shell deve usar targetRemoteName=mfe-dashboard, encontrado ${candidate.targetRemoteName}.`,
+    );
+  }
+
+  errors.push(
+    ...compareStringArrays(
+      candidate.runtimeRemoteNames,
+      runtimeRemoteNames,
+      'candidate.runtimeRemoteNames',
+    ),
+    ...compareStringArrays(
+      candidate.expectedExposedModules,
+      manifestExposedModules,
+      'candidate.expectedExposedModules',
+    ),
+    ...compareStringArrays(candidate.routePaths, manifestPaths, 'candidate.routePaths'),
+    ...compareStringArrays(
+      candidate.operationalRoutePaths,
+      operationalRoutePaths,
+      'candidate.operationalRoutePaths',
+    ),
+    ...compareStringArrays(
+      candidate.administrativeRoutePaths,
+      administrativeRoutePaths,
+      'candidate.administrativeRoutePaths',
+    ),
+    ...compareStringArrays(candidate.landingRoutes, landingRoutes, 'candidate.landingRoutes'),
+    ...compareStringArrays(candidate.businessMenuRoutes, [], 'candidate.businessMenuRoutes'),
+    ...compareStringArrays(
+      candidate.accessMenuRoutes,
+      accessMenuRoutes,
+      'candidate.accessMenuRoutes',
+    ),
+    ...compareStringArrays(candidate.contextualRoutes, [], 'candidate.contextualRoutes'),
+  );
+
+  return errors;
+}
+
 function readExposeExport(sourceFile) {
   let result = null;
 
@@ -273,6 +466,34 @@ function readExposeExport(sourceFile) {
 
 function toSystemPath(relativePath) {
   return relativePath.replaceAll('/', path.sep).replace(/^\.\//, '');
+}
+
+function toShellMenuRoute(routePath) {
+  return `/${routePath}`;
+}
+
+function compareStringArrays(actual, expected, context) {
+  if (!Array.isArray(actual)) {
+    return [`${context} deve ser um array no shell do host.`];
+  }
+
+  if (actual.length !== expected.length) {
+    return [
+      `${context} deve conter ${expected.length} itens no shell do host, encontrados ${actual.length}.`,
+    ];
+  }
+
+  const errors = [];
+
+  for (let index = 0; index < expected.length; index += 1) {
+    if (actual[index] !== expected[index]) {
+      errors.push(
+        `${context}[${index}] deve ser ${expected[index]} no shell do host, encontrado ${actual[index]}.`,
+      );
+    }
+  }
+
+  return errors;
 }
 
 function requireString(object, propertyName, context, errors) {
