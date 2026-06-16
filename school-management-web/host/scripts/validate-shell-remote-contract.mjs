@@ -277,10 +277,13 @@ function validateRemoteRoutes(routes, exposesSet) {
   const errors = [];
   const routeExposes = new Set();
   const routePaths = new Set();
-  const dashboardCandidateRoutes = new Set([
-    'dashboard',
-    'dashboard/config',
-    'dashboard/snapshots',
+  const extractionExpectations = new Map([
+    ['dashboard', { domain: 'dashboard', targetRemoteName: 'mfe-dashboard', routeRole: 'operational', shellNavigation: 'landing' }],
+    ['dashboard/config', { domain: 'dashboard', targetRemoteName: 'mfe-dashboard', routeRole: 'administrative', shellNavigation: 'access-menu' }],
+    ['dashboard/snapshots', { domain: 'dashboard', targetRemoteName: 'mfe-dashboard', routeRole: 'administrative', shellNavigation: 'access-menu' }],
+    ['planning', { domain: 'planejamento-ia', targetRemoteName: 'mfe-planejamento-ia', routeRole: 'operational', shellNavigation: 'business-menu' }],
+    ['planning/:id', { domain: 'planejamento-ia', targetRemoteName: 'mfe-planejamento-ia', routeRole: 'operational', shellNavigation: 'contextual' }],
+    ['planning-library', { domain: 'planejamento-ia', targetRemoteName: 'mfe-planejamento-ia', routeRole: 'operational', shellNavigation: 'business-menu' }],
   ]);
 
   for (const route of routes) {
@@ -307,7 +310,7 @@ function validateRemoteRoutes(routes, exposesSet) {
       errors.push(`rota ${route.path} aponta para exposedModule inexistente: ${route.exposedModule}`);
     }
 
-    validateExtractionPlan(route, dashboardCandidateRoutes, errors);
+    validateExtractionPlan(route, extractionExpectations, errors);
   }
 
   for (const exposedModule of exposesSet) {
@@ -319,11 +322,11 @@ function validateRemoteRoutes(routes, exposesSet) {
   return errors;
 }
 
-function validateExtractionPlan(route, dashboardCandidateRoutes, errors) {
+function validateExtractionPlan(route, extractionExpectations, errors) {
   const extractionPlan = route.extractionPlan;
-  const shouldBeDashboardCandidate = dashboardCandidateRoutes.has(route.path);
+  const expected = extractionExpectations.get(route.path);
 
-  if (!shouldBeDashboardCandidate) {
+  if (!expected) {
     if (extractionPlan !== undefined) {
       errors.push(`rota ${route.path} nao deve declarar extractionPlan nesta fase.`);
     }
@@ -341,38 +344,26 @@ function validateExtractionPlan(route, dashboardCandidateRoutes, errors) {
   requireString(extractionPlan, 'routeRole', `extractionPlan da rota ${route.path}`, errors);
   requireString(extractionPlan, 'shellNavigation', `extractionPlan da rota ${route.path}`, errors);
 
-  if (route.domain !== 'dashboard') {
-    errors.push(`rota ${route.path} candidata a extracao deve pertencer ao dominio dashboard.`);
+  if (route.domain !== expected.domain) {
+    errors.push(`rota ${route.path} candidata a extracao deve pertencer ao dominio ${expected.domain}.`);
   }
 
   if (extractionPlan.candidate !== true) {
     errors.push(`rota ${route.path} deve marcar extractionPlan.candidate como true.`);
   }
 
-  if (extractionPlan.targetRemoteName !== 'mfe-dashboard') {
+  if (extractionPlan.targetRemoteName !== expected.targetRemoteName) {
     errors.push(
-      `rota ${route.path} deve apontar extractionPlan.targetRemoteName para mfe-dashboard.`,
+      `rota ${route.path} deve apontar extractionPlan.targetRemoteName para ${expected.targetRemoteName}.`,
     );
   }
 
-  if (route.path === 'dashboard') {
-    if (extractionPlan.routeRole !== 'operational') {
-      errors.push(`rota ${route.path} deve marcar extractionPlan.routeRole como operational.`);
-    }
-
-    if (extractionPlan.shellNavigation !== 'landing') {
-      errors.push(`rota ${route.path} deve marcar extractionPlan.shellNavigation como landing.`);
-    }
+  if (extractionPlan.routeRole !== expected.routeRole) {
+    errors.push(`rota ${route.path} deve marcar extractionPlan.routeRole como ${expected.routeRole}.`);
   }
 
-  if (route.path === 'dashboard/config' || route.path === 'dashboard/snapshots') {
-    if (extractionPlan.routeRole !== 'administrative') {
-      errors.push(`rota ${route.path} deve marcar extractionPlan.routeRole como administrative.`);
-    }
-
-    if (extractionPlan.shellNavigation !== 'access-menu') {
-      errors.push(`rota ${route.path} deve marcar extractionPlan.shellNavigation como access-menu.`);
-    }
+  if (extractionPlan.shellNavigation !== expected.shellNavigation) {
+    errors.push(`rota ${route.path} deve marcar extractionPlan.shellNavigation como ${expected.shellNavigation}.`);
   }
 }
 
@@ -438,6 +429,12 @@ function validateExtractionCandidates(candidates, domainCatalog, routes, menuIte
     requireStringArray(
       candidate,
       'accessMenuRoutes',
+      `manifesto de extracao ${candidate.domain}`,
+      errors,
+    );
+    requireStringArray(
+      candidate,
+      'contextualRoutes',
       `manifesto de extracao ${candidate.domain}`,
       errors,
     );
@@ -508,6 +505,9 @@ function validateExtractionCandidates(candidates, domainCatalog, routes, menuIte
         const remoteRoute = domainRoutes.find(item => normalizeMenuRoute(route) === item.path);
         return remoteRoute?.extractionPlan?.shellNavigation === 'access-menu';
       });
+    const expectedContextualRoutes = domainRoutes
+      .filter(route => route.extractionPlan?.shellNavigation === 'contextual')
+      .map(route => route.path);
 
     validateOrderedArray(
       candidate.expectedExposedModules,
@@ -563,6 +563,13 @@ function validateExtractionCandidates(candidates, domainCatalog, routes, menuIte
       expectedAccessMenuRoutes,
       `manifesto de extracao do dominio ${candidate.domain}`,
       'accessMenuRoutes',
+      errors,
+    );
+    validateOrderedArray(
+      candidate.contextualRoutes,
+      expectedContextualRoutes,
+      `manifesto de extracao do dominio ${candidate.domain}`,
+      'contextualRoutes',
       errors,
     );
   }

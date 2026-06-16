@@ -21,7 +21,7 @@ export interface ShellRouteExtractionPlan {
   candidate: boolean;
   targetRemoteName: string;
   routeRole: 'operational' | 'administrative';
-  shellNavigation: 'landing' | 'business-menu' | 'access-menu';
+  shellNavigation: 'landing' | 'business-menu' | 'access-menu' | 'contextual';
 }
 
 export interface ShellRemoteRoute {
@@ -65,6 +65,7 @@ export interface ShellExtractionCandidateManifestItem {
   landingRoutes: string[];
   businessMenuRoutes: string[];
   accessMenuRoutes: string[];
+  contextualRoutes: string[];
 }
 
 export const SHELL_DOMAIN_CATALOG: Record<ShellDomain, ShellDomainCatalogItem> = {
@@ -283,6 +284,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './PlanningList',
     exportName: 'PlanningListComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-planejamento-ia',
+      routeRole: 'operational',
+      shellNavigation: 'business-menu',
+    },
   },
   {
     path: 'planning/:id',
@@ -290,6 +297,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './PlanningDetail',
     exportName: 'PlanningDetailComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-planejamento-ia',
+      routeRole: 'operational',
+      shellNavigation: 'contextual',
+    },
   },
   {
     path: 'planning-library',
@@ -297,6 +310,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './PlanningLibrary',
     exportName: 'PlanningLibraryComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-planejamento-ia',
+      routeRole: 'operational',
+      shellNavigation: 'business-menu',
+    },
   },
   {
     path: 'dashboard/config',
@@ -430,6 +449,26 @@ export const SHELL_EXTRACTION_CANDIDATES: ShellExtractionCandidateManifestItem[]
     landingRoutes: ['dashboard'],
     businessMenuRoutes: [],
     accessMenuRoutes: ['/dashboard/config', '/dashboard/snapshots'],
+    contextualRoutes: [],
+  },
+  {
+    domain: 'planejamento-ia',
+    label: 'Planejamento e IA',
+    currentPlacement: 'microfrontend',
+    targetRemoteName: 'mfe-planejamento-ia',
+    runtimeRemoteNames: ['mfe1'],
+    expectedExposedModules: [
+      './PlanningList',
+      './PlanningDetail',
+      './PlanningLibrary',
+    ],
+    routePaths: ['planning', 'planning/:id', 'planning-library'],
+    operationalRoutePaths: ['planning', 'planning/:id', 'planning-library'],
+    administrativeRoutePaths: [],
+    landingRoutes: [],
+    businessMenuRoutes: ['/planning', '/planning-library'],
+    accessMenuRoutes: [],
+    contextualRoutes: ['planning/:id'],
   },
 ];
 
