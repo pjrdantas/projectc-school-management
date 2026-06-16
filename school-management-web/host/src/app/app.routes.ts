@@ -3,13 +3,18 @@ import { loadRemoteModule } from '@angular-architects/native-federation';
 import { authGuard } from './seguranca/guards/auth.guard';
 import { SHELL_REMOTE_ROUTES } from './core/shell/shell-navigation.config';
 
-function loadMfeComponent(exposedModule: string, exportName: string) {
-  return loadRemoteModule('mfe1', exposedModule).then(m => m[exportName]);
+function loadMfeComponent(
+  remoteName: string,
+  exposedModule: string,
+  exportName: string,
+) {
+  return loadRemoteModule(remoteName, exposedModule).then(m => m[exportName]);
 }
 
 const remoteRoutes: Routes = SHELL_REMOTE_ROUTES.map(route => ({
   path: route.path,
-  loadComponent: () => loadMfeComponent(route.exposedModule, route.exportName),
+  loadComponent: () =>
+    loadMfeComponent(route.runtimeRemoteName, route.exposedModule, route.exportName),
 }));
 
 export const routes: Routes = [

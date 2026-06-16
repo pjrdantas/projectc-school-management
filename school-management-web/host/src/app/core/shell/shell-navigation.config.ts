@@ -25,7 +25,7 @@ export interface ShellRouteExtractionPlan {
 export interface ShellRemoteRoute {
   path: string;
   domain: ShellDomain;
-  runtimeRemoteName: 'mfe1';
+  runtimeRemoteName: string;
   exposedModule: string;
   exportName: string;
   extractionPlan?: ShellRouteExtractionPlan;

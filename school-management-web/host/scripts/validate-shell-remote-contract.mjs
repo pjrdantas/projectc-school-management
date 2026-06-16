@@ -176,6 +176,14 @@ function getLiteralValue(node) {
     return node.text;
   }
 
+  if (node.kind === ts.SyntaxKind.TrueKeyword) {
+    return true;
+  }
+
+  if (node.kind === ts.SyntaxKind.FalseKeyword) {
+    return false;
+  }
+
   if (ts.isPropertyAccessExpression(node)) {
     return node.getText();
   }
@@ -186,6 +194,10 @@ function getLiteralValue(node) {
 
   if (ts.isArrayLiteralExpression(node)) {
     return node.elements.map(getLiteralValue);
+  }
+
+  if (ts.isObjectLiteralExpression(node)) {
+    return readObjectLiteral(node);
   }
 
   return node.getText();
@@ -258,10 +270,16 @@ function validateRemoteRoutes(routes, exposesSet) {
   const errors = [];
   const routeExposes = new Set();
   const routePaths = new Set();
+  const dashboardCandidateRoutes = new Set([
+    'dashboard',
+    'dashboard/config',
+    'dashboard/snapshots',
+  ]);
 
   for (const route of routes) {
     requireString(route, 'path', `rota federada ${JSON.stringify(route)}`, errors);
     requireString(route, 'domain', `rota federada ${route.path}`, errors);
+    requireString(route, 'runtimeRemoteName', `rota federada ${route.path}`, errors);
     requireString(route, 'exposedModule', `rota federada ${route.path}`, errors);
     requireString(route, 'exportName', `rota federada ${route.path}`, errors);
 
@@ -272,9 +290,17 @@ function validateRemoteRoutes(routes, exposesSet) {
     routePaths.add(route.path);
     routeExposes.add(route.exposedModule);
 
+    if (route.runtimeRemoteName !== 'mfe1') {
+      errors.push(
+        `rota ${route.path} deve continuar carregando o remote atual mfe1 nesta fase, encontrado ${route.runtimeRemoteName}`,
+      );
+    }
+
     if (!exposesSet.has(route.exposedModule)) {
       errors.push(`rota ${route.path} aponta para exposedModule inexistente: ${route.exposedModule}`);
     }
+
+    validateExtractionPlan(route, dashboardCandidateRoutes, errors);
   }
 
   for (const exposedModule of exposesSet) {
@@ -284,6 +310,41 @@ function validateRemoteRoutes(routes, exposesSet) {
   }
 
   return errors;
+}
+
+function validateExtractionPlan(route, dashboardCandidateRoutes, errors) {
+  const extractionPlan = route.extractionPlan;
+  const shouldBeDashboardCandidate = dashboardCandidateRoutes.has(route.path);
+
+  if (!shouldBeDashboardCandidate) {
+    if (extractionPlan !== undefined) {
+      errors.push(`rota ${route.path} nao deve declarar extractionPlan nesta fase.`);
+    }
+
+    return;
+  }
+
+  if (!isRecord(extractionPlan)) {
+    errors.push(`rota ${route.path} deve declarar extractionPlan como objeto literal.`);
+    return;
+  }
+
+  requireBoolean(extractionPlan, 'candidate', `extractionPlan da rota ${route.path}`, errors);
+  requireString(extractionPlan, 'targetRemoteName', `extractionPlan da rota ${route.path}`, errors);
+
+  if (route.domain !== 'dashboard') {
+    errors.push(`rota ${route.path} candidata a extracao deve pertencer ao dominio dashboard.`);
+  }
+
+  if (extractionPlan.candidate !== true) {
+    errors.push(`rota ${route.path} deve marcar extractionPlan.candidate como true.`);
+  }
+
+  if (extractionPlan.targetRemoteName !== 'mfe-dashboard') {
+    errors.push(
+      `rota ${route.path} deve apontar extractionPlan.targetRemoteName para mfe-dashboard.`,
+    );
+  }
 }
 
 function validateMenus(menuItems, routes) {
@@ -317,6 +378,16 @@ function requireString(record, property, context, errors) {
   if (typeof record[property] !== 'string' || record[property].trim() === '') {
     errors.push(`${context} deve informar ${property}.`);
   }
+}
+
+function requireBoolean(record, property, context, errors) {
+  if (typeof record[property] !== 'boolean') {
+    errors.push(`${context} deve informar ${property} booleano.`);
+  }
+}
+
+function isRecord(value) {
+  return typeof value === 'object' && value !== null;
 }
 
 function normalizeMenuRoute(route) {
