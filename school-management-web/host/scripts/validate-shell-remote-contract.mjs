@@ -404,6 +404,12 @@ function validateExtractionCandidates(candidates, domainCatalog, routes, menuIte
       `manifesto de extracao ${candidate.domain}`,
       errors,
     );
+    requireStringArray(
+      candidate,
+      'expectedExposedModules',
+      `manifesto de extracao ${candidate.domain}`,
+      errors,
+    );
     requireStringArray(candidate, 'routePaths', `manifesto de extracao ${candidate.domain}`, errors);
     requireStringArray(
       candidate,
@@ -476,6 +482,7 @@ function validateExtractionCandidates(candidates, domainCatalog, routes, menuIte
     }
 
     const domainRoutes = candidateRoutesByDomain.get(candidate.domain) ?? [];
+    const expectedExposedModules = domainRoutes.map(route => route.exposedModule);
     const expectedRoutePaths = domainRoutes.map(route => route.path);
     const expectedRuntimeRemoteNames = [...new Set(domainRoutes.map(route => route.runtimeRemoteName))];
     const expectedOperationalRoutePaths = domainRoutes
@@ -502,6 +509,13 @@ function validateExtractionCandidates(candidates, domainCatalog, routes, menuIte
         return remoteRoute?.extractionPlan?.shellNavigation === 'access-menu';
       });
 
+    validateOrderedArray(
+      candidate.expectedExposedModules,
+      expectedExposedModules,
+      `manifesto de extracao do dominio ${candidate.domain}`,
+      'expectedExposedModules',
+      errors,
+    );
     validateOrderedArray(
       candidate.routePaths,
       expectedRoutePaths,

@@ -58,6 +58,7 @@ export interface ShellExtractionCandidateManifestItem {
   currentPlacement: 'host' | 'microfrontend' | 'shared';
   targetRemoteName: string;
   runtimeRemoteNames: string[];
+  expectedExposedModules: string[];
   routePaths: string[];
   operationalRoutePaths: string[];
   administrativeRoutePaths: string[];
@@ -418,6 +419,11 @@ export const SHELL_EXTRACTION_CANDIDATES: ShellExtractionCandidateManifestItem[]
     currentPlacement: 'microfrontend',
     targetRemoteName: 'mfe-dashboard',
     runtimeRemoteNames: ['mfe1'],
+    expectedExposedModules: [
+      './Dashboard',
+      './DashboardConfigAdmin',
+      './DashboardSnapshotsAdmin',
+    ],
     routePaths: ['dashboard', 'dashboard/config', 'dashboard/snapshots'],
     operationalRoutePaths: ['dashboard'],
     administrativeRoutePaths: ['dashboard/config', 'dashboard/snapshots'],
