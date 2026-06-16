@@ -4,7 +4,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "prebuild": "npm run validate",
     "build": "ng build",
+    "validate": "npm run validate:shell-contract",
     "validate:shell-contract": "node scripts/validate-shell-remote-contract.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
