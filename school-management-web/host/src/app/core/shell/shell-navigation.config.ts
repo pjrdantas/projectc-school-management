@@ -268,6 +268,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './LessonList',
     exportName: 'LessonsListComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-aulas-avaliacoes',
+      routeRole: 'operational',
+      shellNavigation: 'business-menu',
+    },
   },
   {
     path: 'lessons/:id',
@@ -275,6 +281,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './LessonDetail',
     exportName: 'LessonDetailComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-aulas-avaliacoes',
+      routeRole: 'operational',
+      shellNavigation: 'contextual',
+    },
   },
   {
     path: 'assessments',
@@ -282,6 +294,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './AssessmentList',
     exportName: 'AssessmentsListComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-aulas-avaliacoes',
+      routeRole: 'operational',
+      shellNavigation: 'business-menu',
+    },
   },
   {
     path: 'assessments/:id',
@@ -289,6 +307,12 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
     runtimeRemoteName: 'mfe1',
     exposedModule: './AssessmentDetail',
     exportName: 'AssessmentDetailComponent',
+    extractionPlan: {
+      candidate: true,
+      targetRemoteName: 'mfe-aulas-avaliacoes',
+      routeRole: 'operational',
+      shellNavigation: 'contextual',
+    },
   },
   {
     path: 'planning',
@@ -477,6 +501,26 @@ export const SHELL_EXTRACTION_CANDIDATES: ShellExtractionCandidateManifestItem[]
     businessMenuRoutes: ['/teachers'],
     accessMenuRoutes: [],
     contextualRoutes: ['teachers/:id'],
+  },
+  {
+    domain: 'aulas-avaliacoes',
+    label: 'Aulas e avaliacoes',
+    currentPlacement: 'microfrontend',
+    targetRemoteName: 'mfe-aulas-avaliacoes',
+    runtimeRemoteNames: ['mfe1'],
+    expectedExposedModules: [
+      './LessonList',
+      './LessonDetail',
+      './AssessmentList',
+      './AssessmentDetail',
+    ],
+    routePaths: ['lessons', 'lessons/:id', 'assessments', 'assessments/:id'],
+    operationalRoutePaths: ['lessons', 'lessons/:id', 'assessments', 'assessments/:id'],
+    administrativeRoutePaths: [],
+    landingRoutes: [],
+    businessMenuRoutes: ['/lessons', '/assessments'],
+    accessMenuRoutes: [],
+    contextualRoutes: ['lessons/:id', 'assessments/:id'],
   },
   {
     domain: 'planejamento-ia',

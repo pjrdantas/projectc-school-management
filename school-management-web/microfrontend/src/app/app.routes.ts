@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { DASHBOARD_INTERNAL_ROUTES } from './dashboard/dashboard-domain';
 import { PLANNING_INTERNAL_ROUTES } from './professor/planning-domain';
 import { PROFESSOR_INTERNAL_ROUTES } from './professor/professor-domain';
+import { TEACHING_INTERNAL_ROUTES } from './professor/teaching-domain';
 
 export const routes: Routes = [
   {
@@ -109,33 +110,6 @@ export const routes: Routes = [
       ),
   },
   ...PROFESSOR_INTERNAL_ROUTES,
-  {
-    path: 'lessons',
-    loadComponent: () =>
-      import('./professor/pages/lessons/lessons-list.component').then(
-        m => m.LessonsListComponent,
-      ),
-  },
-  {
-    path: 'lessons/:id',
-    loadComponent: () =>
-      import('./professor/pages/lessons/lesson-detail.component').then(
-        m => m.LessonDetailComponent,
-      ),
-  },
-  {
-    path: 'assessments',
-    loadComponent: () =>
-      import('./professor/pages/assessments/assessments-list.component').then(
-        m => m.AssessmentsListComponent,
-      ),
-  },
-  {
-    path: 'assessments/:id',
-    loadComponent: () =>
-      import('./professor/pages/assessments/assessment-detail.component').then(
-        m => m.AssessmentDetailComponent,
-      ),
-  },
+  ...TEACHING_INTERNAL_ROUTES,
   ...PLANNING_INTERNAL_ROUTES,
 ];
