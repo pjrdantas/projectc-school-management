@@ -168,21 +168,95 @@ function getLiteralValue(node) {
 function validateManifestShape(manifestItems) {
   const errors = [];
   const keys = new Set();
+  const domains = new Set();
+  const futureRemoteNames = new Set();
   const paths = new Set();
   const exposedModules = new Set();
   const exposeFilePaths = new Set();
 
   for (const item of manifestItems) {
     requireString(item, 'key', 'item do manifesto planning/IA', errors);
+    requireString(item, 'domain', `manifesto planning/IA ${item.key ?? '<sem-chave>'}`, errors);
+    requireString(item, 'futureRemoteName', `manifesto planning/IA ${item.key ?? '<sem-chave>'}`, errors);
     requireString(item, 'path', `manifesto planning/IA ${item.key ?? '<sem-chave>'}`, errors);
     requireString(item, 'exposedModule', `manifesto planning/IA ${item.key ?? '<sem-chave>'}`, errors);
     requireString(item, 'exposeFilePath', `manifesto planning/IA ${item.key ?? '<sem-chave>'}`, errors);
     requireString(item, 'exportName', `manifesto planning/IA ${item.key ?? '<sem-chave>'}`, errors);
+    requireString(item, 'routeKind', `manifesto planning/IA ${item.key ?? '<sem-chave>'}`, errors);
+    requireString(item, 'routeRole', `manifesto planning/IA ${item.key ?? '<sem-chave>'}`, errors);
+    requireString(item, 'shellNavigation', `manifesto planning/IA ${item.key ?? '<sem-chave>'}`, errors);
+    requireBoolean(item, 'extractionCandidate', `manifesto planning/IA ${item.key ?? '<sem-chave>'}`, errors);
 
     ensureUnique(keys, item.key, 'key', errors);
+    domains.add(item.domain);
+    futureRemoteNames.add(item.futureRemoteName);
     ensureUnique(paths, item.path, 'path', errors);
     ensureUnique(exposedModules, item.exposedModule, 'exposedModule', errors);
     ensureUnique(exposeFilePaths, item.exposeFilePath, 'exposeFilePath', errors);
+  }
+
+  if (domains.size > 1) {
+    errors.push('manifesto planning/IA deve manter um unico dominio interno.');
+  }
+
+  if (!domains.has('planejamento-ia')) {
+    errors.push('manifesto planning/IA deve usar o dominio planejamento-ia.');
+  }
+
+  if (futureRemoteNames.size > 1) {
+    errors.push('manifesto planning/IA deve manter um unico futureRemoteName.');
+  }
+
+  if (!futureRemoteNames.has('mfe-planejamento-ia')) {
+    errors.push('manifesto planning/IA deve usar futureRemoteName mfe-planejamento-ia.');
+  }
+
+  errors.push(...validateRouteClassification(manifestItems));
+
+  return errors;
+}
+
+function validateRouteClassification(manifestItems) {
+  const errors = [];
+
+  for (const item of manifestItems) {
+    if (item.extractionCandidate !== true) {
+      errors.push(`rota ${item.path} deve permanecer marcada como extractionCandidate=true.`);
+    }
+
+    if (item.routeRole !== 'operational') {
+      errors.push(`rota ${item.path} deve marcar routeRole como operational.`);
+    }
+
+    if (item.path === 'planning') {
+      if (item.routeKind !== 'list') {
+        errors.push(`rota ${item.path} deve marcar routeKind como list.`);
+      }
+
+      if (item.shellNavigation !== 'business-menu') {
+        errors.push(`rota ${item.path} deve marcar shellNavigation como business-menu.`);
+      }
+    }
+
+    if (item.path === 'planning/:id') {
+      if (item.routeKind !== 'detail') {
+        errors.push(`rota ${item.path} deve marcar routeKind como detail.`);
+      }
+
+      if (item.shellNavigation !== 'contextual') {
+        errors.push(`rota ${item.path} deve marcar shellNavigation como contextual.`);
+      }
+    }
+
+    if (item.path === 'planning-library') {
+      if (item.routeKind !== 'library') {
+        errors.push(`rota ${item.path} deve marcar routeKind como library.`);
+      }
+
+      if (item.shellNavigation !== 'business-menu') {
+        errors.push(`rota ${item.path} deve marcar shellNavigation como business-menu.`);
+      }
+    }
   }
 
   return errors;
@@ -276,6 +350,12 @@ function toSystemPath(relativePath) {
 function requireString(object, propertyName, context, errors) {
   if (typeof object[propertyName] !== 'string' || object[propertyName].trim() === '') {
     errors.push(`${context} deve definir ${propertyName} como string nao vazia.`);
+  }
+}
+
+function requireBoolean(object, propertyName, context, errors) {
+  if (typeof object[propertyName] !== 'boolean') {
+    errors.push(`${context} deve definir ${propertyName} como boolean.`);
   }
 }
 
