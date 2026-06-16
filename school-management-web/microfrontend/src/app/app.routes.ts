@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { DASHBOARD_INTERNAL_ROUTES } from './dashboard/dashboard-domain';
+import { PLANNING_INTERNAL_ROUTES } from './professor/planning-domain';
 
 export const routes: Routes = [
   {
@@ -148,25 +149,5 @@ export const routes: Routes = [
         m => m.AssessmentDetailComponent,
       ),
   },
-  {
-    path: 'planning',
-    loadComponent: () =>
-      import('./professor/pages/planning/planning-list.component').then(
-        m => m.PlanningListComponent,
-      ),
-  },
-  {
-    path: 'planning/:id',
-    loadComponent: () =>
-      import('./professor/pages/planning/planning-detail.component').then(
-        m => m.PlanningDetailComponent,
-      ),
-  },
-  {
-    path: 'planning-library',
-    loadComponent: () =>
-      import('./professor/pages/planning/planning-library.component').then(
-        m => m.PlanningLibraryComponent,
-      ),
-  },
+  ...PLANNING_INTERNAL_ROUTES,
 ];
