@@ -21,9 +21,11 @@ const federationSource = parseSource(remoteFederationPath, ts.ScriptKind.JS);
 const remoteRoutes = readArrayObjects(shellSource, 'SHELL_REMOTE_ROUTES');
 const businessMenu = readArrayObjects(shellSource, 'SHELL_BUSINESS_MENU');
 const accessMenu = readArrayObjects(shellSource, 'SHELL_ACCESS_MENU');
+const domainCatalog = readObjectMap(shellSource, 'SHELL_DOMAIN_CATALOG');
 const exposes = readExposes(federationSource);
 
 const errors = [
+  ...validateDomainCatalog(domainCatalog, remoteRoutes, [...businessMenu, ...accessMenu]),
   ...validateRemoteRoutes(remoteRoutes, exposes),
   ...validateMenus([...businessMenu, ...accessMenu], remoteRoutes),
 ];
@@ -47,17 +49,40 @@ function parseSource(filePath, scriptKind) {
 
 function readArrayObjects(sourceFile, variableName) {
   const declaration = findVariableDeclaration(sourceFile, variableName);
-  if (!declaration || !ts.isArrayLiteralExpression(declaration.initializer)) {
+  const initializer = unwrapExpression(declaration?.initializer);
+
+  if (!declaration || !ts.isArrayLiteralExpression(initializer)) {
     throw new Error(`Nao foi possivel localizar o array ${variableName}.`);
   }
 
-  return declaration.initializer.elements.map((element) => {
+  return initializer.elements.map((element) => {
     if (!ts.isObjectLiteralExpression(element)) {
       throw new Error(`${variableName} deve conter apenas objetos literais.`);
     }
 
     return readObjectLiteral(element);
   });
+}
+
+function readObjectMap(sourceFile, variableName) {
+  const declaration = findVariableDeclaration(sourceFile, variableName);
+  const initializer = unwrapExpression(declaration?.initializer);
+
+  if (!declaration || !ts.isObjectLiteralExpression(initializer)) {
+    throw new Error(`Nao foi possivel localizar o objeto ${variableName}.`);
+  }
+
+  const result = new Map();
+
+  for (const property of initializer.properties) {
+    if (!ts.isPropertyAssignment(property) || !ts.isObjectLiteralExpression(property.initializer)) {
+      throw new Error(`${variableName} deve conter apenas objetos literais.`);
+    }
+
+    result.set(getPropertyName(property.name), readObjectLiteral(property.initializer));
+  }
+
+  return result;
 }
 
 function findVariableDeclaration(sourceFile, variableName) {
@@ -76,6 +101,16 @@ function findVariableDeclaration(sourceFile, variableName) {
 
     ts.forEachChild(node, visit);
   }
+}
+
+function unwrapExpression(node) {
+  if (!node) return node;
+
+  if (ts.isAsExpression(node) || ts.isSatisfiesExpression(node)) {
+    return unwrapExpression(node.expression);
+  }
+
+  return node;
 }
 
 function readObjectLiteral(objectLiteral) {
@@ -142,6 +177,35 @@ function getLiteralValue(node) {
   }
 
   return node.getText();
+}
+
+function validateDomainCatalog(domainCatalog, routes, menuItems) {
+  const errors = [];
+
+  for (const [key, item] of domainCatalog.entries()) {
+    requireString(item, 'domain', `dominio catalogado ${key}`, errors);
+    requireString(item, 'label', `dominio catalogado ${key}`, errors);
+    requireString(item, 'futureRemoteName', `dominio catalogado ${key}`, errors);
+    requireString(item, 'currentPlacement', `dominio catalogado ${key}`, errors);
+
+    if (item.domain !== key) {
+      errors.push(`dominio catalogado ${key} declara domain diferente: ${item.domain}`);
+    }
+  }
+
+  for (const route of routes) {
+    if (!domainCatalog.has(route.domain)) {
+      errors.push(`rota ${route.path} usa dominio nao catalogado: ${route.domain}`);
+    }
+  }
+
+  for (const item of menuItems) {
+    if (!domainCatalog.has(item.domain)) {
+      errors.push(`item de menu ${item.label} usa dominio nao catalogado: ${item.domain}`);
+    }
+  }
+
+  return errors;
 }
 
 function validateRemoteRoutes(routes, exposesSet) {

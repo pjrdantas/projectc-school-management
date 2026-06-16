@@ -10,6 +10,13 @@ export type ShellDomain =
   | 'documentos'
   | 'administracao';
 
+export interface ShellDomainCatalogItem {
+  domain: ShellDomain;
+  label: string;
+  futureRemoteName: string;
+  currentPlacement: 'host' | 'microfrontend' | 'shared';
+}
+
 export interface ShellRemoteRoute {
   path: string;
   domain: ShellDomain;
@@ -24,6 +31,74 @@ export interface ShellMenuItem {
   domain: ShellDomain;
   perfis?: string[];
 }
+
+export interface ShellDomainInventoryItem extends ShellDomainCatalogItem {
+  remoteRoutes: ShellRemoteRoute[];
+  menuItems: ShellMenuItem[];
+}
+
+export const SHELL_DOMAIN_CATALOG: Record<ShellDomain, ShellDomainCatalogItem> = {
+  dashboard: {
+    domain: 'dashboard',
+    label: 'Dashboard',
+    futureRemoteName: 'mfe-dashboard',
+    currentPlacement: 'microfrontend',
+  },
+  alunos: {
+    domain: 'alunos',
+    label: 'Alunos',
+    futureRemoteName: 'mfe-alunos',
+    currentPlacement: 'microfrontend',
+  },
+  responsaveis: {
+    domain: 'responsaveis',
+    label: 'Responsaveis',
+    futureRemoteName: 'mfe-responsaveis',
+    currentPlacement: 'microfrontend',
+  },
+  matriculas: {
+    domain: 'matriculas',
+    label: 'Matriculas',
+    futureRemoteName: 'mfe-matriculas',
+    currentPlacement: 'microfrontend',
+  },
+  'catalogo-academico': {
+    domain: 'catalogo-academico',
+    label: 'Catalogo academico',
+    futureRemoteName: 'mfe-catalogo-academico',
+    currentPlacement: 'microfrontend',
+  },
+  professores: {
+    domain: 'professores',
+    label: 'Professores',
+    futureRemoteName: 'mfe-professores',
+    currentPlacement: 'microfrontend',
+  },
+  'aulas-avaliacoes': {
+    domain: 'aulas-avaliacoes',
+    label: 'Aulas e avaliacoes',
+    futureRemoteName: 'mfe-aulas-avaliacoes',
+    currentPlacement: 'microfrontend',
+  },
+  'planejamento-ia': {
+    domain: 'planejamento-ia',
+    label: 'Planejamento e IA',
+    futureRemoteName: 'mfe-planejamento-ia',
+    currentPlacement: 'microfrontend',
+  },
+  documentos: {
+    domain: 'documentos',
+    label: 'Documentos',
+    futureRemoteName: 'mfe-documentos',
+    currentPlacement: 'shared',
+  },
+  administracao: {
+    domain: 'administracao',
+    label: 'Administracao',
+    futureRemoteName: 'mfe-admin',
+    currentPlacement: 'host',
+  },
+};
 
 export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
   {
@@ -207,3 +282,13 @@ export const SHELL_ACCESS_MENU: ShellMenuItem[] = [
   { label: 'Dashboards', icon: 'dashboard_customize', route: '/dashboard/config', domain: 'dashboard', perfis: ['ADMIN'] },
   { label: 'Snapshots', icon: 'timeline', route: '/dashboard/snapshots', domain: 'dashboard', perfis: ['ADMIN'] },
 ];
+
+export const SHELL_DOMAIN_INVENTORY: ShellDomainInventoryItem[] = Object.values(
+  SHELL_DOMAIN_CATALOG,
+).map(domain => ({
+  ...domain,
+  remoteRoutes: SHELL_REMOTE_ROUTES.filter(route => route.domain === domain.domain),
+  menuItems: [...SHELL_BUSINESS_MENU, ...SHELL_ACCESS_MENU].filter(
+    item => item.domain === domain.domain,
+  ),
+}));
