@@ -21,6 +21,8 @@ const federationSource = parseSource(remoteFederationPath, ts.ScriptKind.JS);
 const remoteRoutes = readArrayObjects(shellSource, 'SHELL_REMOTE_ROUTES');
 const businessMenu = readArrayObjects(shellSource, 'SHELL_BUSINESS_MENU');
 const accessMenu = readArrayObjects(shellSource, 'SHELL_ACCESS_MENU');
+const businessMenuGroups = readArrayObjects(shellSource, 'SHELL_BUSINESS_MENU_GROUPS');
+const accessMenuGroups = readArrayObjects(shellSource, 'SHELL_ACCESS_MENU_GROUPS');
 const domainCatalog = readObjectMap(shellSource, 'SHELL_DOMAIN_CATALOG');
 const exposes = readExposes(federationSource);
 
@@ -28,6 +30,8 @@ const errors = [
   ...validateDomainCatalog(domainCatalog, remoteRoutes, [...businessMenu, ...accessMenu]),
   ...validateRemoteRoutes(remoteRoutes, exposes),
   ...validateMenus([...businessMenu, ...accessMenu], remoteRoutes),
+  ...validateMenuGroups('SHELL_BUSINESS_MENU_GROUPS', businessMenuGroups, businessMenu),
+  ...validateMenuGroups('SHELL_ACCESS_MENU_GROUPS', accessMenuGroups, accessMenu),
 ];
 
 if (errors.length > 0) {
@@ -172,6 +176,14 @@ function getLiteralValue(node) {
     return node.text;
   }
 
+  if (ts.isPropertyAccessExpression(node)) {
+    return node.getText();
+  }
+
+  if (ts.isCallExpression(node)) {
+    return node.getText();
+  }
+
   if (ts.isArrayLiteralExpression(node)) {
     return node.elements.map(getLiteralValue);
   }
@@ -202,6 +214,40 @@ function validateDomainCatalog(domainCatalog, routes, menuItems) {
   for (const item of menuItems) {
     if (!domainCatalog.has(item.domain)) {
       errors.push(`item de menu ${item.label} usa dominio nao catalogado: ${item.domain}`);
+    }
+  }
+
+  return errors;
+}
+
+function validateMenuGroups(groupName, groups, expectedMenuItems) {
+  const errors = [];
+  const groupedRoutes = [];
+
+  for (const group of groups) {
+    requireString(group, 'domain', `${groupName} ${JSON.stringify(group)}`, errors);
+    requireString(group, 'label', `${groupName} ${group.domain}`, errors);
+
+    if (typeof group.items !== 'string' || !group.items.includes(`item.domain === '${group.domain}'`)) {
+      errors.push(`${groupName} do dominio ${group.domain} deve filtrar itens pelo proprio dominio.`);
+    }
+
+    groupedRoutes.push(
+      ...expectedMenuItems.filter(item => item.domain === group.domain).map(item => item.route),
+    );
+  }
+
+  const expectedRoutes = expectedMenuItems.map(item => item.route);
+
+  if (groupedRoutes.length !== expectedRoutes.length) {
+    errors.push(`${groupName} nao cobre a mesma quantidade de itens do menu plano.`);
+  }
+
+  for (const [index, route] of expectedRoutes.entries()) {
+    if (groupedRoutes[index] !== route) {
+      errors.push(
+        `${groupName} altera a ordem do menu plano na posicao ${index + 1}: esperado ${route}, encontrado ${groupedRoutes[index] ?? 'vazio'}`,
+      );
     }
   }
 

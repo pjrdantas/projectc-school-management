@@ -19,9 +19,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subject, finalize, takeUntil } from 'rxjs';
 import { AuthStateService, UsuarioAuth } from '../../../core/auth/auth-state.service';
 import {
-  SHELL_ACCESS_MENU,
-  SHELL_BUSINESS_MENU,
+  SHELL_ACCESS_MENU_GROUPS,
+  SHELL_BUSINESS_MENU_GROUPS,
   ShellMenuItem,
+  flattenShellMenuGroups,
 } from '../../../core/shell/shell-navigation.config';
 import { AuthApiService } from '../../../seguranca/services/auth-api.service';
 
@@ -114,8 +115,12 @@ export class Menu implements OnInit, OnDestroy {
   }
 
   private atualizarItensMenu(): void {
-    this.businessMenuItems = this.filtrarMenuPorPerfil(SHELL_BUSINESS_MENU);
-    this.accessMenuItems = this.filtrarMenuPorPerfil(SHELL_ACCESS_MENU);
+    this.businessMenuItems = this.filtrarMenuPorPerfil(
+      flattenShellMenuGroups(SHELL_BUSINESS_MENU_GROUPS),
+    );
+    this.accessMenuItems = this.filtrarMenuPorPerfil(
+      flattenShellMenuGroups(SHELL_ACCESS_MENU_GROUPS),
+    );
     this.showAccessMenu = this.accessMenuItems.length > 0;
   }
 

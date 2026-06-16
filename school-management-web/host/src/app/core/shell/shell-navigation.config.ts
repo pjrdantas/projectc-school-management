@@ -32,6 +32,12 @@ export interface ShellMenuItem {
   perfis?: string[];
 }
 
+export interface ShellMenuGroup {
+  domain: ShellDomain;
+  label: string;
+  items: ShellMenuItem[];
+}
+
 export interface ShellDomainInventoryItem extends ShellDomainCatalogItem {
   remoteRoutes: ShellRemoteRoute[];
   menuItems: ShellMenuItem[];
@@ -282,6 +288,61 @@ export const SHELL_ACCESS_MENU: ShellMenuItem[] = [
   { label: 'Dashboards', icon: 'dashboard_customize', route: '/dashboard/config', domain: 'dashboard', perfis: ['ADMIN'] },
   { label: 'Snapshots', icon: 'timeline', route: '/dashboard/snapshots', domain: 'dashboard', perfis: ['ADMIN'] },
 ];
+
+export const SHELL_BUSINESS_MENU_GROUPS: ShellMenuGroup[] = [
+  {
+    domain: 'alunos',
+    label: SHELL_DOMAIN_CATALOG.alunos.label,
+    items: SHELL_BUSINESS_MENU.filter(item => item.domain === 'alunos'),
+  },
+  {
+    domain: 'responsaveis',
+    label: SHELL_DOMAIN_CATALOG.responsaveis.label,
+    items: SHELL_BUSINESS_MENU.filter(item => item.domain === 'responsaveis'),
+  },
+  {
+    domain: 'catalogo-academico',
+    label: SHELL_DOMAIN_CATALOG['catalogo-academico'].label,
+    items: SHELL_BUSINESS_MENU.filter(item => item.domain === 'catalogo-academico'),
+  },
+  {
+    domain: 'professores',
+    label: SHELL_DOMAIN_CATALOG.professores.label,
+    items: SHELL_BUSINESS_MENU.filter(item => item.domain === 'professores'),
+  },
+  {
+    domain: 'aulas-avaliacoes',
+    label: SHELL_DOMAIN_CATALOG['aulas-avaliacoes'].label,
+    items: SHELL_BUSINESS_MENU.filter(item => item.domain === 'aulas-avaliacoes'),
+  },
+  {
+    domain: 'planejamento-ia',
+    label: SHELL_DOMAIN_CATALOG['planejamento-ia'].label,
+    items: SHELL_BUSINESS_MENU.filter(item => item.domain === 'planejamento-ia'),
+  },
+  {
+    domain: 'matriculas',
+    label: SHELL_DOMAIN_CATALOG.matriculas.label,
+    items: SHELL_BUSINESS_MENU.filter(item => item.domain === 'matriculas'),
+  },
+];
+
+export const SHELL_ACCESS_MENU_GROUPS: ShellMenuGroup[] = [
+  {
+    domain: 'administracao',
+    label: SHELL_DOMAIN_CATALOG.administracao.label,
+    items: SHELL_ACCESS_MENU.filter(item => item.domain === 'administracao'),
+  },
+  {
+    domain: 'dashboard',
+    label: SHELL_DOMAIN_CATALOG.dashboard.label,
+    items: SHELL_ACCESS_MENU.filter(item => item.domain === 'dashboard'),
+  },
+];
+
+export function flattenShellMenuGroups(groups: ShellMenuGroup[]): ShellMenuItem[] {
+  return groups.flatMap(group => group.items);
+}
 
 export const SHELL_DOMAIN_INVENTORY: ShellDomainInventoryItem[] = Object.values(
   SHELL_DOMAIN_CATALOG,
