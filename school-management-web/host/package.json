@@ -7,8 +7,9 @@
     "prebuild": "npm run validate",
     "build": "ng build",
     "report:extraction-readiness": "node scripts/report-shell-extraction-readiness.mjs",
-    "validate": "npm run validate:shell-contract && npm run validate:future-remotes",
+    "validate": "npm run validate:shell-contract && npm run validate:future-remotes && npm run validate:route-cutovers",
     "validate:future-remotes": "node scripts/validate-shell-future-remotes.mjs",
+    "validate:route-cutovers": "node scripts/validate-shell-route-cutovers.mjs",
     "validate:shell-contract": "node scripts/validate-shell-remote-contract.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
