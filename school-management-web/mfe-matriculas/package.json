@@ -1,15 +1,13 @@
 {
-  "name": "host",
+  "name": "mfe-matriculas",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "validate:contract": "node ./scripts/validate-mfe-matriculas-contract.mjs",
+    "validate": "npm run validate:contract",
     "prebuild": "npm run validate",
     "build": "ng build",
-    "report:extraction-readiness": "node scripts/report-shell-extraction-readiness.mjs",
-    "validate": "npm run validate:shell-contract && npm run validate:future-remotes",
-    "validate:future-remotes": "node scripts/validate-shell-future-remotes.mjs",
-    "validate:shell-contract": "node scripts/validate-shell-remote-contract.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

@@ -1,0 +1,255 @@
+<div class="page-container">
+  <section class="page-header">
+    <div>
+      <h1>Secretaria</h1>
+      <p>Operação de matrículas</p>
+    </div>
+    <button mat-stroked-button type="button" (click)="refreshEnrollments()" [disabled]="isLoading()">
+      <mat-icon fontIcon="refresh"></mat-icon>
+      Atualizar
+    </button>
+  </section>
+
+  <section class="summary-grid">
+    <div class="summary-item">
+      <span class="summary-value">{{ enrollments().length }}</span>
+      <span class="summary-label">Matrículas listadas</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-value">{{ activeEnrollments() }}</span>
+      <span class="summary-label">Ativas</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-value">{{ distinctStudents() }}</span>
+      <span class="summary-label">Alunos distintos</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-value">{{ distinctClasses() }}</span>
+      <span class="summary-label">Turmas</span>
+    </div>
+  </section>
+
+  <section class="duplicate-warning" *ngIf="studentsWithMultipleActiveEnrollments().length">
+    <mat-icon fontIcon="warning"></mat-icon>
+    <div>
+      <strong>Há alunos com mais de uma matrícula ativa no período atual.</strong>
+      <span>
+        Isso indica dados duplicados já existentes. Alunos:
+        <ng-container *ngFor="let item of studentsWithMultipleActiveEnrollments(); let last = last">
+          {{ nomeAluno(item.alunoId) }} ({{ item.count }})<span *ngIf="!last">, </span>
+        </ng-container>
+      </span>
+    </div>
+  </section>
+
+  <section class="workspace-grid">
+    <mat-card class="tool-panel">
+      <mat-card-content>
+      <h2>Nova matrícula</h2>
+        <div class="current-period" [class.current-period-warning]="!currentPeriod()">
+          <mat-icon fontIcon="event_available"></mat-icon>
+          <div>
+            <strong>Período da matrícula</strong>
+            <span>{{ currentPeriodLabel() }}</span>
+          </div>
+        </div>
+        <form class="form-grid" [formGroup]="form" (ngSubmit)="onCreate()">
+          <div class="student-picker">
+            <mat-form-field appearance="outline">
+              <mat-label>Aluno</mat-label>
+              <input
+                matInput
+                formControlName="alunoNome"
+                [matAutocomplete]="autoAluno"
+                (input)="onAlunoInput($any($event.target).value)"
+              />
+              <mat-autocomplete #autoAluno="matAutocomplete">
+                <mat-option
+                  *ngFor="let aluno of filteredStudents()"
+                  [value]="aluno.nomeCompleto"
+                  (onSelectionChange)="selectAluno(aluno.id, aluno.nomeCompleto)"
+                >
+                  {{ aluno.nomeCompleto }}
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+            <button mat-stroked-button type="button" (click)="goToStudentRegistration()">
+              <mat-icon fontIcon="person_add"></mat-icon>
+              Novo aluno
+            </button>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Turma</mat-label>
+            <select matNativeControl formControlName="turmaId" [disabled]="!selectedAlunoId()">
+              <option value="">Selecione</option>
+              <option
+                *ngFor="let turma of currentClasses()"
+                [value]="turma.id"
+                [disabled]="isClassFull(turma.id)"
+              >
+                {{ turma.nome }} - {{ availableSlots(turma.id) }} vaga(s)
+              </option>
+            </select>
+          </mat-form-field>
+
+          <div class="actions">
+            <button mat-raised-button color="primary" type="submit" [disabled]="isCreating() || !currentPeriod()">
+              <mat-icon fontIcon="how_to_reg"></mat-icon>
+              Criar matrícula
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="tool-panel">
+      <mat-card-content>
+        <h2>Filtros</h2>
+        <form class="form-grid" [formGroup]="filterForm" (ngSubmit)="applyFilters()">
+          <mat-form-field appearance="outline">
+            <mat-label>Aluno</mat-label>
+            <input
+              matInput
+              formControlName="alunoNome"
+              [matAutocomplete]="autoFiltroAluno"
+              (input)="onFilterAlunoInput($any($event.target).value)"
+            />
+            <mat-autocomplete #autoFiltroAluno="matAutocomplete">
+              <mat-option
+                *ngFor="let aluno of filteredFilterStudents()"
+                [value]="aluno.nomeCompleto"
+                (onSelectionChange)="selectFilterAluno(aluno.id, aluno.nomeCompleto)"
+              >
+                {{ aluno.nomeCompleto }}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Turma</mat-label>
+            <select matNativeControl formControlName="turmaId">
+              <option value="">Todas</option>
+              <option *ngFor="let turma of currentClasses()" [value]="turma.id">
+                {{ turma.nome }}
+              </option>
+            </select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Status</mat-label>
+            <select matNativeControl formControlName="status">
+              <option value="">Todos</option>
+              <option *ngFor="let status of statusOptions()" [value]="status.codigo">
+                {{ status.descricao || status.codigo }}
+              </option>
+            </select>
+          </mat-form-field>
+
+          <div class="actions split-actions">
+            <button mat-raised-button color="primary" type="submit">
+              <mat-icon fontIcon="filter_alt"></mat-icon>
+              Filtrar
+            </button>
+            <button mat-stroked-button type="button" (click)="clearFilters()">Limpar</button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <mat-card class="results-panel">
+    <mat-card-content>
+      <div class="results-header">
+        <div>
+          <h2>Consulta operacional</h2>
+          <p>{{ totalEnrollments() }} resultado(s)</p>
+        </div>
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Buscar na lista</mat-label>
+          <input
+            matInput
+            [value]="searchTerm()"
+            (input)="onSearchTermChange($any($event.target).value)"
+            [disabled]="!hasConsulted()"
+            autocomplete="off"
+          />
+          <button
+            *ngIf="searchTerm()"
+            mat-icon-button
+            matSuffix
+            type="button"
+            aria-label="Limpar busca"
+            (click)="clearSearch()"
+          >
+            <mat-icon fontIcon="close"></mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+
+      <mat-progress-bar *ngIf="isLoading()" mode="indeterminate"></mat-progress-bar>
+
+      <div class="list" *ngIf="!isLoading() && hasConsulted() && totalEnrollments() > 0">
+        <article class="list-item" *ngFor="let enrollment of pagedEnrollments()">
+          <div class="enrollment-main">
+            <strong>{{ nomeAluno(enrollment.alunoId) }}</strong>
+            <span>{{ nomeTurma(enrollment.turmaId) }} · {{ nomePeriodo(enrollment.periodoLetivoId) }}</span>
+            <small>Matriculado em: {{ formatDate(enrollment.createdAt) }}</small>
+          </div>
+          <div class="enrollment-meta">
+            <mat-form-field appearance="outline" class="status-field">
+              <mat-label>Status</mat-label>
+              <select
+                matNativeControl
+                [value]="enrollment.status"
+                [disabled]="updatingEnrollmentStatusId() === enrollment.id"
+                (change)="changeStatus(enrollment, $any($event.target).value)"
+              >
+                <option
+                  *ngFor="let status of statusOptions()"
+                  [value]="status.codigo"
+                  [selected]="status.codigo === enrollment.status"
+                >
+                  {{ status.descricao || status.codigo }}
+                </option>
+              </select>
+            </mat-form-field>
+            <button
+              mat-icon-button
+              color="warn"
+              type="button"
+              aria-label="Excluir matrícula"
+              title="Excluir matrícula"
+              (click)="deleteEnrollment(enrollment)"
+              [disabled]="deletingEnrollmentId() === enrollment.id"
+            >
+              <mat-icon fontIcon="delete"></mat-icon>
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <div class="empty-state" *ngIf="!isLoading() && !hasConsulted()">
+        <mat-icon fontIcon="filter_alt"></mat-icon>
+        <strong>Use os filtros para consultar matrículas</strong>
+        <span>Sem filtros selecionados, o botão Filtrar mostra todas as matrículas do período atual.</span>
+      </div>
+
+      <div class="empty-state" *ngIf="!isLoading() && hasConsulted() && totalEnrollments() === 0">
+        <mat-icon fontIcon="manage_search"></mat-icon>
+        <strong>Nenhuma matrícula encontrada</strong>
+        <span>Ajuste os filtros ou crie uma nova matrícula.</span>
+      </div>
+
+      <mat-paginator
+        *ngIf="!isLoading() && hasConsulted() && totalEnrollments() > pageSize()"
+        [length]="totalEnrollments()"
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="pageSizeOptions"
+        showFirstLastButtons
+        (page)="onPageChange($event)"
+      ></mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>
