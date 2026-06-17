@@ -11,9 +11,9 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 import { Student } from '../../../aluno/models/student.model';
 import { StudentsService } from '../../../aluno/services/students.service';
+import { Enrollment } from '../../../compartilhado/enrollment/enrollment.model';
+import { EnrollmentService } from '../../../compartilhado/enrollment/enrollment.service';
 import { getApiErrorMessage } from '../../../core/http/api-error';
-import { Enrollment } from '../../../matricula/models/enrollment.model';
-import { EnrollmentService } from '../../../matricula/services/enrollment.service';
 import { Assessment, StudentGrade } from '../../models/assessment.model';
 import { AssessmentsService } from '../../services/assessments.service';
 

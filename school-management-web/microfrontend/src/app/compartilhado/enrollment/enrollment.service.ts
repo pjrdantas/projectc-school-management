@@ -7,7 +7,7 @@ import {
   EnrollmentCatalogItem,
   EnrollmentFilter,
   EnrollmentInput,
-} from '../models/enrollment.model';
+} from './enrollment.model';
 
 @Injectable({ providedIn: 'root' })
 export class EnrollmentService {

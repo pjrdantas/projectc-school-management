@@ -38,7 +38,7 @@ export const ENROLLMENT_DOMAIN_MANIFEST: readonly EnrollmentDomainManifestItem[]
     routeKind: 'create',
     routeRole: 'operational',
     shellNavigation: 'business-menu',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/new/enrollment-new.component').then(m => m.EnrollmentNewComponent),
   },

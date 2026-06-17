@@ -235,8 +235,8 @@ function validateManifestShape(manifestItems) {
     errors.push(`rota ${item.path} deve marcar shellNavigation como business-menu.`);
   }
 
-  if (item.extractionCandidate !== true) {
-    errors.push(`rota ${item.path} deve permanecer marcada como extractionCandidate=true.`);
+  if (item.extractionCandidate !== false) {
+    errors.push(`rota ${item.path} deve marcar extractionCandidate=false no remote dedicado.`);
   }
 
   return errors;
@@ -340,40 +340,15 @@ function validateShellRoutes(manifestItems, shellEnrollmentRoutes) {
     );
   }
 
-  if (shellRoute.runtimeRemoteName !== 'mfe1') {
+  if (shellRoute.runtimeRemoteName !== 'mfe-matriculas') {
     errors.push(
-      `rota ${item.path} do shell deve permanecer no runtimeRemoteName mfe1, encontrado ${shellRoute.runtimeRemoteName}.`,
+      `rota ${item.path} do shell deve usar runtimeRemoteName mfe-matriculas, encontrado ${shellRoute.runtimeRemoteName}.`,
     );
   }
 
   const extractionPlan = shellRoute.extractionPlan;
-  if (!extractionPlan || typeof extractionPlan !== 'object') {
-    errors.push(`rota ${item.path} do shell deve declarar extractionPlan.`);
-    return errors;
-  }
-
-  if (extractionPlan.candidate !== item.extractionCandidate) {
-    errors.push(
-      `rota ${item.path} do shell deve usar extractionPlan.candidate=${item.extractionCandidate}, encontrado ${extractionPlan.candidate}.`,
-    );
-  }
-
-  if (extractionPlan.targetRemoteName !== item.futureRemoteName) {
-    errors.push(
-      `rota ${item.path} do shell deve usar extractionPlan.targetRemoteName=${item.futureRemoteName}, encontrado ${extractionPlan.targetRemoteName}.`,
-    );
-  }
-
-  if (extractionPlan.routeRole !== item.routeRole) {
-    errors.push(
-      `rota ${item.path} do shell deve usar extractionPlan.routeRole=${item.routeRole}, encontrado ${extractionPlan.routeRole}.`,
-    );
-  }
-
-  if (extractionPlan.shellNavigation !== item.shellNavigation) {
-    errors.push(
-      `rota ${item.path} do shell deve usar extractionPlan.shellNavigation=${item.shellNavigation}, encontrado ${extractionPlan.shellNavigation}.`,
-    );
+  if (extractionPlan !== undefined) {
+    errors.push(`rota ${item.path} do shell nao deve mais declarar extractionPlan apos o cutover.`);
   }
 
   return errors;
@@ -387,38 +362,11 @@ function validateShellExtractionCandidate(
   const errors = [];
   const [item] = manifestItems;
 
-  if (shellEnrollmentCandidates.length !== 1) {
+  if (shellEnrollmentCandidates.length !== 0) {
     errors.push(
-      `shell do host deve declarar um unico candidato de extracao para matriculas, encontrados ${shellEnrollmentCandidates.length}.`,
-    );
-    return errors;
-  }
-
-  const [candidate] = shellEnrollmentCandidates;
-
-  if (candidate.currentPlacement !== 'microfrontend') {
-    errors.push(
-      `candidato matriculas do shell deve manter currentPlacement=microfrontend, encontrado ${candidate.currentPlacement}.`,
+      `shell do host nao deve mais declarar candidato de extracao para matriculas, encontrados ${shellEnrollmentCandidates.length}.`,
     );
   }
-
-  if (candidate.targetRemoteName !== item.futureRemoteName) {
-    errors.push(
-      `candidato matriculas do shell deve usar targetRemoteName=${item.futureRemoteName}, encontrado ${candidate.targetRemoteName}.`,
-    );
-  }
-
-  errors.push(
-    ...compareStringArrays(candidate.runtimeRemoteNames, ['mfe1'], 'candidate.runtimeRemoteNames'),
-    ...compareStringArrays(candidate.expectedExposedModules, [item.exposedModule], 'candidate.expectedExposedModules'),
-    ...compareStringArrays(candidate.routePaths, [item.path], 'candidate.routePaths'),
-    ...compareStringArrays(candidate.operationalRoutePaths, [item.path], 'candidate.operationalRoutePaths'),
-    ...compareStringArrays(candidate.administrativeRoutePaths, [], 'candidate.administrativeRoutePaths'),
-    ...compareStringArrays(candidate.landingRoutes, [], 'candidate.landingRoutes'),
-    ...compareStringArrays(candidate.businessMenuRoutes, ['/enrollment'], 'candidate.businessMenuRoutes'),
-    ...compareStringArrays(candidate.accessMenuRoutes, [], 'candidate.accessMenuRoutes'),
-    ...compareStringArrays(candidate.contextualRoutes, [], 'candidate.contextualRoutes'),
-  );
 
   return errors;
 }

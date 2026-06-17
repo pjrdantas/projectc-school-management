@@ -13,10 +13,15 @@ const shellNavigationPath = path.join(
   'shell',
   'shell-navigation.config.ts',
 );
-const remoteFederationPath = path.join(workspaceRoot, 'microfrontend', 'federation.config.js');
+const activeManifestPath = path.join(hostRoot, 'public', 'federation.manifest.json');
+const activeRemoteProjectRoots = new Map([
+  ['mfe1', path.join(workspaceRoot, 'microfrontend')],
+  ['mfe-matriculas', path.join(workspaceRoot, 'mfe-matriculas')],
+]);
 
 const shellSource = parseSource(shellNavigationPath, ts.ScriptKind.TS);
-const federationSource = parseSource(remoteFederationPath, ts.ScriptKind.JS);
+const activeManifest = JSON.parse(fs.readFileSync(activeManifestPath, 'utf8'));
+const remoteExposes = readActiveRemoteExposes(activeManifest);
 
 const remoteRoutes = readArrayObjects(shellSource, 'SHELL_REMOTE_ROUTES');
 const businessMenu = readArrayObjects(shellSource, 'SHELL_BUSINESS_MENU');
@@ -25,11 +30,11 @@ const businessMenuGroups = readArrayObjects(shellSource, 'SHELL_BUSINESS_MENU_GR
 const accessMenuGroups = readArrayObjects(shellSource, 'SHELL_ACCESS_MENU_GROUPS');
 const extractionCandidates = readArrayObjects(shellSource, 'SHELL_EXTRACTION_CANDIDATES');
 const domainCatalog = readObjectMap(shellSource, 'SHELL_DOMAIN_CATALOG');
-const exposes = readExposes(federationSource);
+const exposeCount = [...remoteExposes.values()].reduce((count, exposes) => count + exposes.size, 0);
 
 const errors = [
   ...validateDomainCatalog(domainCatalog, remoteRoutes, [...businessMenu, ...accessMenu]),
-  ...validateRemoteRoutes(remoteRoutes, exposes),
+  ...validateRemoteRoutes(remoteRoutes, remoteExposes),
   ...validateMenus([...businessMenu, ...accessMenu], remoteRoutes),
   ...validateMenuGroups('SHELL_BUSINESS_MENU_GROUPS', businessMenuGroups, businessMenu),
   ...validateMenuGroups('SHELL_ACCESS_MENU_GROUPS', accessMenuGroups, accessMenu),
@@ -50,7 +55,7 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Contrato shell/microfrontend valido: ${remoteRoutes.length} rotas federadas, ${exposes.size} exposes, ${businessMenu.length + accessMenu.length} itens de menu e ${extractionCandidates.length} candidatos de extracao conferidos.`,
+  `Contrato shell/microfrontend valido: ${remoteRoutes.length} rotas federadas, ${exposeCount} exposes ativos, ${businessMenu.length + accessMenu.length} itens de menu e ${extractionCandidates.length} candidatos de extracao conferidos.`,
 );
 
 function parseSource(filePath, scriptKind) {
@@ -170,6 +175,29 @@ function readExposes(sourceFile) {
   }
 }
 
+function readActiveRemoteExposes(activeManifest) {
+  const result = new Map();
+
+  for (const remoteName of Object.keys(activeManifest)) {
+    const remoteRoot = activeRemoteProjectRoots.get(remoteName);
+
+    if (!remoteRoot) {
+      throw new Error(`Nao foi possivel localizar o projeto local do remote ${remoteName}.`);
+    }
+
+    const federationPath = path.join(remoteRoot, 'federation.config.js');
+
+    if (!fs.existsSync(federationPath)) {
+      throw new Error(`Nao foi possivel localizar federation.config.js para o remote ${remoteName}.`);
+    }
+
+    const federationSource = parseSource(federationPath, ts.ScriptKind.JS);
+    result.set(remoteName, readExposes(federationSource));
+  }
+
+  return result;
+}
+
 function getPropertyName(name) {
   if (ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name)) {
     return name.text;
@@ -273,9 +301,9 @@ function validateMenuGroups(groupName, groups, expectedMenuItems) {
   return errors;
 }
 
-function validateRemoteRoutes(routes, exposesSet) {
+function validateRemoteRoutes(routes, remoteExposes) {
   const errors = [];
-  const routeExposes = new Set();
+  const routeExposesByRemote = new Map();
   const routePaths = new Set();
   const extractionExpectations = new Map([
     ['dashboard', { domain: 'dashboard', targetRemoteName: 'mfe-dashboard', routeRole: 'operational', shellNavigation: 'landing' }],
@@ -285,7 +313,6 @@ function validateRemoteRoutes(routes, exposesSet) {
     ['students/new', { domain: 'alunos', targetRemoteName: 'mfe-alunos', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['students/:id', { domain: 'alunos', targetRemoteName: 'mfe-alunos', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['students/:id/edit', { domain: 'alunos', targetRemoteName: 'mfe-alunos', routeRole: 'operational', shellNavigation: 'contextual' }],
-    ['enrollment', { domain: 'matriculas', targetRemoteName: 'mfe-matriculas', routeRole: 'operational', shellNavigation: 'business-menu' }],
     ['responsibles', { domain: 'responsaveis', targetRemoteName: 'mfe-responsaveis', routeRole: 'operational', shellNavigation: 'business-menu' }],
     ['responsibles/new', { domain: 'responsaveis', targetRemoteName: 'mfe-responsaveis', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['responsibles/:id', { domain: 'responsaveis', targetRemoteName: 'mfe-responsaveis', routeRole: 'operational', shellNavigation: 'contextual' }],
@@ -318,24 +345,36 @@ function validateRemoteRoutes(routes, exposesSet) {
     }
 
     routePaths.add(route.path);
-    routeExposes.add(route.exposedModule);
+    if (!routeExposesByRemote.has(route.runtimeRemoteName)) {
+      routeExposesByRemote.set(route.runtimeRemoteName, new Set());
+    }
+    routeExposesByRemote.get(route.runtimeRemoteName).add(route.exposedModule);
 
-    if (route.runtimeRemoteName !== 'mfe1') {
+    const remoteExposeSet = remoteExposes.get(route.runtimeRemoteName);
+
+    if (!remoteExposeSet) {
       errors.push(
-        `rota ${route.path} deve continuar carregando o remote atual mfe1 nesta fase, encontrado ${route.runtimeRemoteName}`,
+        `rota ${route.path} aponta para runtimeRemoteName nao declarado no manifesto ativo: ${route.runtimeRemoteName}`,
       );
+      continue;
     }
 
-    if (!exposesSet.has(route.exposedModule)) {
-      errors.push(`rota ${route.path} aponta para exposedModule inexistente: ${route.exposedModule}`);
+    if (!remoteExposeSet.has(route.exposedModule)) {
+      errors.push(
+        `rota ${route.path} aponta para exposedModule inexistente em ${route.runtimeRemoteName}: ${route.exposedModule}`,
+      );
     }
 
     validateExtractionPlan(route, extractionExpectations, errors);
   }
 
-  for (const exposedModule of exposesSet) {
-    if (!routeExposes.has(exposedModule)) {
-      errors.push(`exposedModule sem rota federada no shell: ${exposedModule}`);
+  for (const [remoteName, exposesSet] of remoteExposes.entries()) {
+    const routedExposes = routeExposesByRemote.get(remoteName) ?? new Set();
+
+    for (const exposedModule of exposesSet) {
+      if (!routedExposes.has(exposedModule)) {
+        errors.push(`exposedModule sem rota federada no shell em ${remoteName}: ${exposedModule}`);
+      }
     }
   }
 

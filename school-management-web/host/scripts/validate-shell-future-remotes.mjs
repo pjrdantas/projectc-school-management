@@ -145,10 +145,6 @@ function validateStandbyManifestShape(standbyManifest) {
     return errors;
   }
 
-  if (Object.keys(standbyManifest).length === 0) {
-    errors.push('federation.standby.manifest.json deve declarar pelo menos 1 remote em espera.');
-  }
-
   for (const [remoteName, remoteEntryUrl] of Object.entries(standbyManifest)) {
     if (!remoteName.startsWith('mfe-')) {
       errors.push(`remote em espera deve usar prefixo mfe-: ${remoteName}.`);
