@@ -41,7 +41,7 @@ export const PLANNING_DOMAIN_MANIFEST: readonly PlanningDomainManifestItem[] = [
     routeKind: 'list',
     routeRole: 'operational',
     shellNavigation: 'business-menu',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/planning/planning-list.component').then(
         m => m.PlanningListComponent,
@@ -58,7 +58,7 @@ export const PLANNING_DOMAIN_MANIFEST: readonly PlanningDomainManifestItem[] = [
     routeKind: 'detail',
     routeRole: 'operational',
     shellNavigation: 'contextual',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/planning/planning-detail.component').then(
         m => m.PlanningDetailComponent,
@@ -75,7 +75,7 @@ export const PLANNING_DOMAIN_MANIFEST: readonly PlanningDomainManifestItem[] = [
     routeKind: 'library',
     routeRole: 'operational',
     shellNavigation: 'business-menu',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/planning/planning-library.component').then(
         m => m.PlanningLibraryComponent,

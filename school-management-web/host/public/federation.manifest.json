@@ -2,5 +2,6 @@
 	"mfe1": "http://localhost:4201/remoteEntry.json",
 	"mfe-matriculas": "http://localhost:4202/remoteEntry.json",
 	"mfe-catalogo-academico": "http://localhost:4203/remoteEntry.json",
-	"mfe-dashboard": "http://localhost:4204/remoteEntry.json"
+	"mfe-dashboard": "http://localhost:4204/remoteEntry.json",
+	"mfe-planejamento-ia": "http://localhost:4205/remoteEntry.json"
 }

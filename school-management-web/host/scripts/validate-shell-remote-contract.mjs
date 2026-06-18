@@ -19,6 +19,7 @@ const activeRemoteProjectRoots = new Map([
   ['mfe-matriculas', path.join(workspaceRoot, 'mfe-matriculas')],
   ['mfe-catalogo-academico', path.join(workspaceRoot, 'mfe-catalogo-academico')],
   ['mfe-dashboard', path.join(workspaceRoot, 'mfe-dashboard')],
+  ['mfe-planejamento-ia', path.join(workspaceRoot, 'mfe-planejamento-ia')],
 ]);
 
 const shellSource = parseSource(shellNavigationPath, ts.ScriptKind.TS);
@@ -322,9 +323,6 @@ function validateRemoteRoutes(routes, remoteExposes) {
     ['lessons/:id', { domain: 'aulas-avaliacoes', targetRemoteName: 'mfe-aulas-avaliacoes', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['assessments', { domain: 'aulas-avaliacoes', targetRemoteName: 'mfe-aulas-avaliacoes', routeRole: 'operational', shellNavigation: 'business-menu' }],
     ['assessments/:id', { domain: 'aulas-avaliacoes', targetRemoteName: 'mfe-aulas-avaliacoes', routeRole: 'operational', shellNavigation: 'contextual' }],
-    ['planning', { domain: 'planejamento-ia', targetRemoteName: 'mfe-planejamento-ia', routeRole: 'operational', shellNavigation: 'business-menu' }],
-    ['planning/:id', { domain: 'planejamento-ia', targetRemoteName: 'mfe-planejamento-ia', routeRole: 'operational', shellNavigation: 'contextual' }],
-    ['planning-library', { domain: 'planejamento-ia', targetRemoteName: 'mfe-planejamento-ia', routeRole: 'operational', shellNavigation: 'business-menu' }],
   ]);
 
   for (const route of routes) {
