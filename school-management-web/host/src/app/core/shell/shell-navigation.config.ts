@@ -142,54 +142,30 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
   {
     path: 'students',
     domain: 'alunos',
-    runtimeRemoteName: 'mfe1',
+    runtimeRemoteName: 'mfe-alunos',
     exposedModule: './AlunoList',
     exportName: 'StudentsListComponent',
-    extractionPlan: {
-      candidate: true,
-      targetRemoteName: 'mfe-alunos',
-      routeRole: 'operational',
-      shellNavigation: 'business-menu',
-    },
   },
   {
     path: 'students/new',
     domain: 'alunos',
-    runtimeRemoteName: 'mfe1',
+    runtimeRemoteName: 'mfe-alunos',
     exposedModule: './AlunoNew',
     exportName: 'StudentsNewComponent',
-    extractionPlan: {
-      candidate: true,
-      targetRemoteName: 'mfe-alunos',
-      routeRole: 'operational',
-      shellNavigation: 'contextual',
-    },
   },
   {
     path: 'students/:id',
     domain: 'alunos',
-    runtimeRemoteName: 'mfe1',
+    runtimeRemoteName: 'mfe-alunos',
     exposedModule: './AlunoDetail',
     exportName: 'StudentsDetailComponent',
-    extractionPlan: {
-      candidate: true,
-      targetRemoteName: 'mfe-alunos',
-      routeRole: 'operational',
-      shellNavigation: 'contextual',
-    },
   },
   {
     path: 'students/:id/edit',
     domain: 'alunos',
-    runtimeRemoteName: 'mfe1',
+    runtimeRemoteName: 'mfe-alunos',
     exposedModule: './AlunoEdit',
     exportName: 'StudentsNewComponent',
-    extractionPlan: {
-      candidate: true,
-      targetRemoteName: 'mfe-alunos',
-      routeRole: 'operational',
-      shellNavigation: 'contextual',
-    },
   },
   {
     path: 'responsibles',
@@ -419,38 +395,7 @@ export function flattenShellMenuGroups(groups: ShellMenuGroup[]): ShellMenuItem[
   return groups.flatMap(group => group.items);
 }
 
-export const SHELL_EXTRACTION_CANDIDATES: ShellExtractionCandidateManifestItem[] = [
-  {
-    domain: 'alunos',
-    label: 'Alunos',
-    currentPlacement: 'microfrontend',
-    targetRemoteName: 'mfe-alunos',
-    runtimeRemoteNames: ['mfe1'],
-    expectedExposedModules: [
-      './AlunoList',
-      './AlunoNew',
-      './AlunoDetail',
-      './AlunoEdit',
-    ],
-    routePaths: [
-      'students',
-      'students/new',
-      'students/:id',
-      'students/:id/edit',
-    ],
-    operationalRoutePaths: [
-      'students',
-      'students/new',
-      'students/:id',
-      'students/:id/edit',
-    ],
-    administrativeRoutePaths: [],
-    landingRoutes: [],
-    businessMenuRoutes: ['/students'],
-    accessMenuRoutes: [],
-    contextualRoutes: ['students/new', 'students/:id', 'students/:id/edit'],
-  },
-];
+export const SHELL_EXTRACTION_CANDIDATES: ShellExtractionCandidateManifestItem[] = [];
 
 export const SHELL_DOMAIN_INVENTORY: ShellDomainInventoryItem[] = Object.values(
   SHELL_DOMAIN_CATALOG,

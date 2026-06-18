@@ -2,9 +2,14 @@ const { withNativeFederation, shareAll } =
   require('@angular-architects/native-federation/config');
 
 module.exports = withNativeFederation({
-  name: 'microfrontend',
+  name: 'mfe-alunos',
 
-  exposes: {},
+  exposes: {
+    './AlunoList': './src/app/aluno/exposes/student-list.expose.ts',
+    './AlunoNew': './src/app/aluno/exposes/student-new.expose.ts',
+    './AlunoDetail': './src/app/aluno/exposes/student-detail.expose.ts',
+    './AlunoEdit': './src/app/aluno/exposes/student-edit.expose.ts',
+  },
 
  shared: {
   ...shareAll({

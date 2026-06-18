@@ -23,6 +23,7 @@ const activeRemoteProjectRoots = new Map([
   ['mfe-professores', path.join(workspaceRoot, 'mfe-professores')],
   ['mfe-aulas-avaliacoes', path.join(workspaceRoot, 'mfe-aulas-avaliacoes')],
   ['mfe-responsaveis', path.join(workspaceRoot, 'mfe-responsaveis')],
+  ['mfe-alunos', path.join(workspaceRoot, 'mfe-alunos')],
 ]);
 
 const shellSource = parseSource(shellNavigationPath, ts.ScriptKind.TS);
@@ -312,10 +313,6 @@ function validateRemoteRoutes(routes, remoteExposes) {
   const routeExposesByRemote = new Map();
   const routePaths = new Set();
   const extractionExpectations = new Map([
-    ['students', { domain: 'alunos', targetRemoteName: 'mfe-alunos', routeRole: 'operational', shellNavigation: 'business-menu' }],
-    ['students/new', { domain: 'alunos', targetRemoteName: 'mfe-alunos', routeRole: 'operational', shellNavigation: 'contextual' }],
-    ['students/:id', { domain: 'alunos', targetRemoteName: 'mfe-alunos', routeRole: 'operational', shellNavigation: 'contextual' }],
-    ['students/:id/edit', { domain: 'alunos', targetRemoteName: 'mfe-alunos', routeRole: 'operational', shellNavigation: 'contextual' }],
   ]);
 
   for (const route of routes) {

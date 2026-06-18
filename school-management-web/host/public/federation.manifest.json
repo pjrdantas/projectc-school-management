@@ -1,10 +1,10 @@
 {
-	"mfe1": "http://localhost:4201/remoteEntry.json",
 	"mfe-matriculas": "http://localhost:4202/remoteEntry.json",
 	"mfe-catalogo-academico": "http://localhost:4203/remoteEntry.json",
 	"mfe-dashboard": "http://localhost:4204/remoteEntry.json",
 	"mfe-planejamento-ia": "http://localhost:4205/remoteEntry.json",
 	"mfe-professores": "http://localhost:4206/remoteEntry.json",
 	"mfe-aulas-avaliacoes": "http://localhost:4207/remoteEntry.json",
-	"mfe-responsaveis": "http://localhost:4208/remoteEntry.json"
+	"mfe-responsaveis": "http://localhost:4208/remoteEntry.json",
+	"mfe-alunos": "http://localhost:4209/remoteEntry.json"
 }

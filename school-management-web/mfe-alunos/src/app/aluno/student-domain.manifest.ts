@@ -45,7 +45,7 @@ export const STUDENT_DOMAIN_MANIFEST: readonly StudentDomainManifestItem[] = [
     routeKind: 'list',
     routeRole: 'operational',
     shellNavigation: 'business-menu',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/list/students-list.component').then(m => m.StudentsListComponent),
   },
@@ -60,7 +60,7 @@ export const STUDENT_DOMAIN_MANIFEST: readonly StudentDomainManifestItem[] = [
     routeKind: 'create',
     routeRole: 'operational',
     shellNavigation: 'contextual',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/new/students-new.component').then(m => m.StudentsNewComponent),
   },
@@ -75,7 +75,7 @@ export const STUDENT_DOMAIN_MANIFEST: readonly StudentDomainManifestItem[] = [
     routeKind: 'detail',
     routeRole: 'operational',
     shellNavigation: 'contextual',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/detail/students-detail.component').then(m => m.StudentsDetailComponent),
   },
@@ -90,7 +90,7 @@ export const STUDENT_DOMAIN_MANIFEST: readonly StudentDomainManifestItem[] = [
     routeKind: 'edit',
     routeRole: 'operational',
     shellNavigation: 'contextual',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/new/students-new.component').then(m => m.StudentsNewComponent),
   },
