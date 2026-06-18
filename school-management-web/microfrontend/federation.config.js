@@ -6,10 +6,6 @@ module.exports = withNativeFederation({
 
   exposes: {
     './Dashboard': './src/app/dashboard/exposes/dashboard-operational.expose.ts',
-    './CatalogoPeriods': './src/app/catalogo/exposes/catalog-periods.expose.ts',
-    './CatalogoSeries': './src/app/catalogo/exposes/catalog-series.expose.ts',
-    './CatalogoShifts': './src/app/catalogo/exposes/catalog-shifts.expose.ts',
-    './CatalogoClasses': './src/app/catalogo/exposes/catalog-classes.expose.ts',
     './ResponsavelList': './src/app/responsavel/exposes/responsible-list.expose.ts',
     './ResponsavelNew': './src/app/responsavel/exposes/responsible-new.expose.ts',
     './ResponsavelDetail': './src/app/responsavel/exposes/responsible-detail.expose.ts',
@@ -18,7 +14,6 @@ module.exports = withNativeFederation({
     './AlunoNew': './src/app/aluno/exposes/student-new.expose.ts',
     './AlunoDetail': './src/app/aluno/exposes/student-detail.expose.ts',
     './AlunoEdit': './src/app/aluno/exposes/student-edit.expose.ts',
-    './HistoricoDisciplines': './src/app/catalogo/exposes/catalog-disciplines.expose.ts',
     './ProfessorList': './src/app/professor/exposes/professor-list.expose.ts',
     './ProfessorDetail': './src/app/professor/exposes/professor-detail.expose.ts',
     './LessonList': './src/app/professor/exposes/lesson-list.expose.ts',

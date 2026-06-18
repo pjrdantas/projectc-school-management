@@ -17,6 +17,7 @@ const activeManifestPath = path.join(hostRoot, 'public', 'federation.manifest.js
 const activeRemoteProjectRoots = new Map([
   ['mfe1', path.join(workspaceRoot, 'microfrontend')],
   ['mfe-matriculas', path.join(workspaceRoot, 'mfe-matriculas')],
+  ['mfe-catalogo-academico', path.join(workspaceRoot, 'mfe-catalogo-academico')],
 ]);
 
 const shellSource = parseSource(shellNavigationPath, ts.ScriptKind.TS);
@@ -317,11 +318,6 @@ function validateRemoteRoutes(routes, remoteExposes) {
     ['responsibles/new', { domain: 'responsaveis', targetRemoteName: 'mfe-responsaveis', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['responsibles/:id', { domain: 'responsaveis', targetRemoteName: 'mfe-responsaveis', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['responsibles/:id/edit', { domain: 'responsaveis', targetRemoteName: 'mfe-responsaveis', routeRole: 'operational', shellNavigation: 'contextual' }],
-    ['academic/periods', { domain: 'catalogo-academico', targetRemoteName: 'mfe-catalogo-academico', routeRole: 'operational', shellNavigation: 'business-menu' }],
-    ['academic/series', { domain: 'catalogo-academico', targetRemoteName: 'mfe-catalogo-academico', routeRole: 'operational', shellNavigation: 'business-menu' }],
-    ['academic/shifts', { domain: 'catalogo-academico', targetRemoteName: 'mfe-catalogo-academico', routeRole: 'operational', shellNavigation: 'business-menu' }],
-    ['academic/classes', { domain: 'catalogo-academico', targetRemoteName: 'mfe-catalogo-academico', routeRole: 'operational', shellNavigation: 'business-menu' }],
-    ['academic/disciplines', { domain: 'catalogo-academico', targetRemoteName: 'mfe-catalogo-academico', routeRole: 'operational', shellNavigation: 'business-menu' }],
     ['teachers', { domain: 'professores', targetRemoteName: 'mfe-professores', routeRole: 'operational', shellNavigation: 'business-menu' }],
     ['teachers/:id', { domain: 'professores', targetRemoteName: 'mfe-professores', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['lessons', { domain: 'aulas-avaliacoes', targetRemoteName: 'mfe-aulas-avaliacoes', routeRole: 'operational', shellNavigation: 'business-menu' }],

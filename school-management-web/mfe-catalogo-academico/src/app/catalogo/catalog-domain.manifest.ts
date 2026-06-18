@@ -63,7 +63,7 @@ export const CATALOG_DOMAIN_MANIFEST: readonly CatalogDomainManifestItem[] = [
     routeKind: 'list',
     routeRole: 'operational',
     shellNavigation: 'business-menu',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/periods/academic-periods.component').then(
         m => m.AcademicPeriodsComponent,
@@ -80,7 +80,7 @@ export const CATALOG_DOMAIN_MANIFEST: readonly CatalogDomainManifestItem[] = [
     routeKind: 'list',
     routeRole: 'operational',
     shellNavigation: 'business-menu',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/series/academic-series.component').then(
         m => m.AcademicSeriesComponent,
@@ -97,7 +97,7 @@ export const CATALOG_DOMAIN_MANIFEST: readonly CatalogDomainManifestItem[] = [
     routeKind: 'list',
     routeRole: 'operational',
     shellNavigation: 'business-menu',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/shifts/academic-shifts.component').then(
         m => m.AcademicShiftsComponent,
@@ -114,7 +114,7 @@ export const CATALOG_DOMAIN_MANIFEST: readonly CatalogDomainManifestItem[] = [
     routeKind: 'list',
     routeRole: 'operational',
     shellNavigation: 'business-menu',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/classes/academic-classes.component').then(
         m => m.AcademicClassesComponent,
@@ -131,7 +131,7 @@ export const CATALOG_DOMAIN_MANIFEST: readonly CatalogDomainManifestItem[] = [
     routeKind: 'list',
     routeRole: 'operational',
     shellNavigation: 'business-menu',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('../historico/pages/disciplines/disciplines.component').then(
         m => m.DisciplinesComponent,

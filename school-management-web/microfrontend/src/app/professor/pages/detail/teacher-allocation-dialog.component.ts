@@ -6,8 +6,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { AcademicClass, AcademicClassDiscipline } from '../../../catalogo/models/academic.model';
-import { AcademicService } from '../../../catalogo/services/academic.service';
+import { AcademicClass, AcademicClassDiscipline } from '../../../compartilhado/academic/academic.model';
+import { AcademicService } from '../../../compartilhado/academic/academic.service';
 import { ProfessorAllocation, ProfessorAllocationInput } from '../../models/teacher.model';
 import { TeachersService } from '../../services/teachers.service';
 
