@@ -11,8 +11,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Student } from '../../models/student.model';
 import { StudentsService } from '../../services/students.service';
-import { Responsible } from '../../../responsavel/models/responsible.model';
-import { ResponsiblesService } from '../../../responsavel/services/responsibles.service';
+import { Responsible } from '../../../compartilhado/responsible/responsible.model';
+import { ResponsiblesService } from '../../../compartilhado/responsible/responsibles.service';
 import { StudentRecordsPanelComponent } from '../../../historico/components/student-records-panel.component';
 
 @Component({

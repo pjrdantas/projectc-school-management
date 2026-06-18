@@ -57,7 +57,7 @@ export const RESPONSIBLE_DOMAIN_MANIFEST: readonly ResponsibleDomainManifestItem
     routeKind: 'list',
     routeRole: 'operational',
     shellNavigation: 'business-menu',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/list/responsibles-list.component').then(
         m => m.ResponsiblesListComponent,
@@ -74,7 +74,7 @@ export const RESPONSIBLE_DOMAIN_MANIFEST: readonly ResponsibleDomainManifestItem
     routeKind: 'create',
     routeRole: 'operational',
     shellNavigation: 'contextual',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/new/responsibles-new.component').then(
         m => m.ResponsiblesNewComponent,
@@ -91,7 +91,7 @@ export const RESPONSIBLE_DOMAIN_MANIFEST: readonly ResponsibleDomainManifestItem
     routeKind: 'detail',
     routeRole: 'operational',
     shellNavigation: 'contextual',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/detail/responsibles-detail.component').then(
         m => m.ResponsiblesDetailComponent,
@@ -108,7 +108,7 @@ export const RESPONSIBLE_DOMAIN_MANIFEST: readonly ResponsibleDomainManifestItem
     routeKind: 'edit',
     routeRole: 'operational',
     shellNavigation: 'contextual',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/new/responsibles-new.component').then(
         m => m.ResponsiblesNewComponent,

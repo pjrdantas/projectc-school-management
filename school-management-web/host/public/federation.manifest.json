@@ -5,5 +5,6 @@
 	"mfe-dashboard": "http://localhost:4204/remoteEntry.json",
 	"mfe-planejamento-ia": "http://localhost:4205/remoteEntry.json",
 	"mfe-professores": "http://localhost:4206/remoteEntry.json",
-	"mfe-aulas-avaliacoes": "http://localhost:4207/remoteEntry.json"
+	"mfe-aulas-avaliacoes": "http://localhost:4207/remoteEntry.json",
+	"mfe-responsaveis": "http://localhost:4208/remoteEntry.json"
 }
