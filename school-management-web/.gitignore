@@ -12,3 +12,6 @@ yarn-error.log*
 
 # Ambiente
 .env
+
+# MFE remotos novos
+mfe-*/package-lock.json
