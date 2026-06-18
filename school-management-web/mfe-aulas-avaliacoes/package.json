@@ -1,12 +1,11 @@
 {
-  "name": "microfrontend",
+  "name": "mfe-aulas-avaliacoes",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "validate:responsible-contract": "node ./scripts/validate-responsible-domain-contract.mjs",
-    "validate:student-contract": "node ./scripts/validate-student-domain-contract.mjs",
-    "validate": "npm run validate:responsible-contract && npm run validate:student-contract",
+    "validate:contract": "node ./scripts/validate-mfe-aulas-avaliacoes-contract.mjs",
+    "validate": "npm run validate:contract",
     "prebuild": "npm run validate",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",

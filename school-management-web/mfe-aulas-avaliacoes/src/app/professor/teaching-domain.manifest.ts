@@ -58,7 +58,7 @@ export const TEACHING_DOMAIN_MANIFEST: readonly TeachingDomainManifestItem[] = [
     routeKind: 'list',
     routeRole: 'operational',
     shellNavigation: 'business-menu',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/lessons/lessons-list.component').then(
         m => m.LessonsListComponent,
@@ -75,7 +75,7 @@ export const TEACHING_DOMAIN_MANIFEST: readonly TeachingDomainManifestItem[] = [
     routeKind: 'detail',
     routeRole: 'operational',
     shellNavigation: 'contextual',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/lessons/lesson-detail.component').then(
         m => m.LessonDetailComponent,
@@ -92,7 +92,7 @@ export const TEACHING_DOMAIN_MANIFEST: readonly TeachingDomainManifestItem[] = [
     routeKind: 'list',
     routeRole: 'operational',
     shellNavigation: 'business-menu',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/assessments/assessments-list.component').then(
         m => m.AssessmentsListComponent,
@@ -109,7 +109,7 @@ export const TEACHING_DOMAIN_MANIFEST: readonly TeachingDomainManifestItem[] = [
     routeKind: 'detail',
     routeRole: 'operational',
     shellNavigation: 'contextual',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/assessments/assessment-detail.component').then(
         m => m.AssessmentDetailComponent,

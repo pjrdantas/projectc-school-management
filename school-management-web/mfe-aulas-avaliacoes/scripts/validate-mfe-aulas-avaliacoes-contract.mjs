@@ -41,15 +41,11 @@ const errors = [
   ...validateManifestShape(manifestItems),
   ...validateFederation(manifestItems, exposes),
   ...validateExposeFiles(manifestItems),
-  ...validateShellContract(
-    manifestItems,
-    shellTeachingRoutes,
-    shellTeachingCandidates,
-  ),
+  ...validateShellContract(manifestItems, shellTeachingRoutes, shellTeachingCandidates),
 ];
 
 if (errors.length > 0) {
-  console.error('Contrato interno do dominio aulas/avaliacoes invalido:');
+  console.error('Contrato do mfe-aulas-avaliacoes invalido:');
   for (const error of errors) {
     console.error(`- ${error}`);
   }
@@ -57,7 +53,7 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Contrato interno de aulas/avaliacoes valido: ${manifestItems.length} entradas conferidas entre manifesto, exposes, federation.config.js e shell do host.`,
+  `Contrato do mfe-aulas-avaliacoes valido: ${manifestItems.length} entradas conferidas entre manifesto, exposes locais, federation.config.js e shell do host.`,
 );
 
 function parseSource(filePath, scriptKind) {
@@ -284,41 +280,24 @@ function validateManifestShape(manifestItems) {
     errors.push('manifesto aulas/avaliacoes deve usar futureRemoteName mfe-aulas-avaliacoes.');
   }
 
-  errors.push(...validateRouteClassification(manifestItems));
-
-  return errors;
-}
-
-function validateRouteClassification(manifestItems) {
-  const errors = [];
-
   for (const item of manifestItems) {
-    if (item.extractionCandidate !== true) {
-      errors.push(`rota ${item.path} deve permanecer marcada como extractionCandidate=true.`);
+    if (item.extractionCandidate !== false) {
+      errors.push(`rota ${item.path} deve marcar extractionCandidate=false no remote dedicado.`);
     }
 
     if (item.routeRole !== 'operational') {
       errors.push(`rota ${item.path} deve marcar routeRole como operational.`);
     }
 
-    if (item.path === 'lessons' || item.path === 'assessments') {
-      if (item.routeKind !== 'list') {
-        errors.push(`rota ${item.path} deve marcar routeKind como list.`);
-      }
-
-      if (item.shellNavigation !== 'business-menu') {
-        errors.push(`rota ${item.path} deve marcar shellNavigation como business-menu.`);
-      }
+    if ((item.path === 'lessons' || item.path === 'assessments') && item.routeKind !== 'list') {
+      errors.push(`rota ${item.path} deve marcar routeKind como list.`);
     }
 
-    if (item.path === 'lessons/:id' || item.path === 'assessments/:id') {
-      if (item.routeKind !== 'detail') {
-        errors.push(`rota ${item.path} deve marcar routeKind como detail.`);
-      }
-
-      if (item.shellNavigation !== 'contextual') {
-        errors.push(`rota ${item.path} deve marcar shellNavigation como contextual.`);
-      }
+    if (
+      (item.path === 'lessons/:id' || item.path === 'assessments/:id') &&
+      item.routeKind !== 'detail'
+    ) {
+      errors.push(`rota ${item.path} deve marcar routeKind como detail.`);
     }
   }
 
@@ -330,8 +309,9 @@ function validateFederation(manifestItems, exposes) {
 
   for (const item of manifestItems) {
     const federationExposePath = exposes.get(item.exposedModule);
+
     if (!federationExposePath) {
-      errors.push(`federation.config.js nao expõe o modulo ${item.exposedModule}.`);
+      errors.push(`federation.config.js nao expoe o modulo ${item.exposedModule}.`);
       continue;
     }
 
@@ -350,6 +330,7 @@ function validateExposeFiles(manifestItems) {
 
   for (const item of manifestItems) {
     const exposeFilePath = path.join(microfrontendRoot, toSystemPath(item.exposeFilePath));
+
     if (!fs.existsSync(exposeFilePath)) {
       errors.push(`arquivo de expose ausente para ${item.exposedModule}: ${item.exposeFilePath}.`);
       continue;
@@ -379,18 +360,10 @@ function validateExposeFiles(manifestItems) {
   return errors;
 }
 
-function validateShellContract(
-  manifestItems,
-  shellTeachingRoutes,
-  shellTeachingCandidates,
-) {
+function validateShellContract(manifestItems, shellTeachingRoutes, shellTeachingCandidates) {
   return [
     ...validateShellRoutes(manifestItems, shellTeachingRoutes),
-    ...validateShellExtractionCandidate(
-      manifestItems,
-      shellTeachingRoutes,
-      shellTeachingCandidates,
-    ),
+    ...validateShellExtractionCandidate(shellTeachingCandidates),
   ];
 }
 
@@ -429,136 +402,28 @@ function validateShellRoutes(manifestItems, shellTeachingRoutes) {
       );
     }
 
-    if (shellRoute.runtimeRemoteName !== 'mfe1') {
+    if (shellRoute.runtimeRemoteName !== 'mfe-aulas-avaliacoes') {
       errors.push(
-        `rota ${item.path} do shell deve permanecer no runtimeRemoteName mfe1, encontrado ${shellRoute.runtimeRemoteName}.`,
+        `rota ${item.path} do shell deve usar runtimeRemoteName mfe-aulas-avaliacoes, encontrado ${shellRoute.runtimeRemoteName}.`,
       );
     }
 
-    const extractionPlan = shellRoute.extractionPlan;
-    if (!extractionPlan || typeof extractionPlan !== 'object') {
-      errors.push(`rota ${item.path} do shell deve declarar extractionPlan.`);
-      continue;
-    }
-
-    if (extractionPlan.candidate !== item.extractionCandidate) {
-      errors.push(
-        `rota ${item.path} do shell deve usar extractionPlan.candidate=${item.extractionCandidate}, encontrado ${extractionPlan.candidate}.`,
-      );
-    }
-
-    if (extractionPlan.targetRemoteName !== item.futureRemoteName) {
-      errors.push(
-        `rota ${item.path} do shell deve usar extractionPlan.targetRemoteName=${item.futureRemoteName}, encontrado ${extractionPlan.targetRemoteName}.`,
-      );
-    }
-
-    if (extractionPlan.routeRole !== item.routeRole) {
-      errors.push(
-        `rota ${item.path} do shell deve usar extractionPlan.routeRole=${item.routeRole}, encontrado ${extractionPlan.routeRole}.`,
-      );
-    }
-
-    if (extractionPlan.shellNavigation !== item.shellNavigation) {
-      errors.push(
-        `rota ${item.path} do shell deve usar extractionPlan.shellNavigation=${item.shellNavigation}, encontrado ${extractionPlan.shellNavigation}.`,
-      );
+    if (shellRoute.extractionPlan !== undefined) {
+      errors.push(`rota ${item.path} do shell nao deve mais declarar extractionPlan apos o cutover.`);
     }
   }
 
   return errors;
 }
 
-function validateShellExtractionCandidate(
-  manifestItems,
-  shellTeachingRoutes,
-  shellTeachingCandidates,
-) {
+function validateShellExtractionCandidate(shellTeachingCandidates) {
   const errors = [];
 
-  if (shellTeachingCandidates.length !== 1) {
+  if (shellTeachingCandidates.length !== 0) {
     errors.push(
-      `shell do host deve declarar um unico candidato de extracao para aulas/avaliacoes, encontrados ${shellTeachingCandidates.length}.`,
-    );
-    return errors;
-  }
-
-  const [candidate] = shellTeachingCandidates;
-  const manifestPaths = manifestItems.map(item => item.path);
-  const manifestExposedModules = manifestItems.map(item => item.exposedModule);
-  const operationalRoutePaths = manifestItems
-    .filter(item => item.routeRole === 'operational')
-    .map(item => item.path);
-  const administrativeRoutePaths = manifestItems
-    .filter(item => item.routeRole === 'administrative')
-    .map(item => item.path);
-  const landingRoutes = manifestItems
-    .filter(item => item.shellNavigation === 'landing')
-    .map(item => item.path);
-  const businessMenuRoutes = manifestItems
-    .filter(item => item.shellNavigation === 'business-menu')
-    .map(item => toShellMenuRoute(item.path));
-  const accessMenuRoutes = manifestItems
-    .filter(item => item.shellNavigation === 'access-menu')
-    .map(item => toShellMenuRoute(item.path));
-  const contextualRoutes = manifestItems
-    .filter(item => item.shellNavigation === 'contextual')
-    .map(item => item.path);
-  const runtimeRemoteNames = [
-    ...new Set(shellTeachingRoutes.map(route => route.runtimeRemoteName)),
-  ];
-
-  if (candidate.currentPlacement !== 'microfrontend') {
-    errors.push(
-      `candidato aulas/avaliacoes do shell deve manter currentPlacement=microfrontend, encontrado ${candidate.currentPlacement}.`,
+      `shell do host nao deve mais declarar candidato de extracao para aulas/avaliacoes, encontrados ${shellTeachingCandidates.length}.`,
     );
   }
-
-  if (candidate.targetRemoteName !== manifestItems[0]?.futureRemoteName) {
-    errors.push(
-      `candidato aulas/avaliacoes do shell deve usar targetRemoteName=${manifestItems[0]?.futureRemoteName}, encontrado ${candidate.targetRemoteName}.`,
-    );
-  }
-
-  errors.push(
-    ...compareStringArrays(
-      candidate.runtimeRemoteNames,
-      runtimeRemoteNames,
-      'candidate.runtimeRemoteNames',
-    ),
-    ...compareStringArrays(
-      candidate.expectedExposedModules,
-      manifestExposedModules,
-      'candidate.expectedExposedModules',
-    ),
-    ...compareStringArrays(candidate.routePaths, manifestPaths, 'candidate.routePaths'),
-    ...compareStringArrays(
-      candidate.operationalRoutePaths,
-      operationalRoutePaths,
-      'candidate.operationalRoutePaths',
-    ),
-    ...compareStringArrays(
-      candidate.administrativeRoutePaths,
-      administrativeRoutePaths,
-      'candidate.administrativeRoutePaths',
-    ),
-    ...compareStringArrays(candidate.landingRoutes, landingRoutes, 'candidate.landingRoutes'),
-    ...compareStringArrays(
-      candidate.businessMenuRoutes,
-      businessMenuRoutes,
-      'candidate.businessMenuRoutes',
-    ),
-    ...compareStringArrays(
-      candidate.accessMenuRoutes,
-      accessMenuRoutes,
-      'candidate.accessMenuRoutes',
-    ),
-    ...compareStringArrays(
-      candidate.contextualRoutes,
-      contextualRoutes,
-      'candidate.contextualRoutes',
-    ),
-  );
 
   return errors;
 }
@@ -576,6 +441,7 @@ function readExposeExport(sourceFile) {
     }
 
     const [firstElement] = statement.exportClause.elements;
+
     if (!firstElement) {
       continue;
     }
@@ -592,34 +458,6 @@ function readExposeExport(sourceFile) {
 
 function toSystemPath(relativePath) {
   return relativePath.replaceAll('/', path.sep).replace(/^\.\//, '');
-}
-
-function toShellMenuRoute(routePath) {
-  return `/${routePath.split('/:')[0]}`;
-}
-
-function compareStringArrays(actual, expected, context) {
-  if (!Array.isArray(actual)) {
-    return [`${context} deve ser um array no shell do host.`];
-  }
-
-  if (actual.length !== expected.length) {
-    return [
-      `${context} deve conter ${expected.length} itens no shell do host, encontrados ${actual.length}.`,
-    ];
-  }
-
-  const errors = [];
-
-  for (let index = 0; index < expected.length; index += 1) {
-    if (actual[index] !== expected[index]) {
-      errors.push(
-        `${context}[${index}] deve ser ${expected[index]} no shell do host, encontrado ${actual[index]}.`,
-      );
-    }
-  }
-
-  return errors;
 }
 
 function requireString(object, propertyName, context, errors) {

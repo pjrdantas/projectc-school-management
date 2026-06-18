@@ -13,10 +13,6 @@ module.exports = withNativeFederation({
     './AlunoNew': './src/app/aluno/exposes/student-new.expose.ts',
     './AlunoDetail': './src/app/aluno/exposes/student-detail.expose.ts',
     './AlunoEdit': './src/app/aluno/exposes/student-edit.expose.ts',
-    './LessonList': './src/app/professor/exposes/lesson-list.expose.ts',
-    './LessonDetail': './src/app/professor/exposes/lesson-detail.expose.ts',
-    './AssessmentList': './src/app/professor/exposes/assessment-list.expose.ts',
-    './AssessmentDetail': './src/app/professor/exposes/assessment-detail.expose.ts',
   },
 
  shared: {
