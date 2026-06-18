@@ -40,7 +40,7 @@ export const PROFESSOR_DOMAIN_MANIFEST: readonly ProfessorDomainManifestItem[] =
     routeKind: 'list',
     routeRole: 'operational',
     shellNavigation: 'business-menu',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/list/teachers-list.component').then(
         m => m.TeachersListComponent,
@@ -57,7 +57,7 @@ export const PROFESSOR_DOMAIN_MANIFEST: readonly ProfessorDomainManifestItem[] =
     routeKind: 'detail',
     routeRole: 'operational',
     shellNavigation: 'contextual',
-    extractionCandidate: true,
+    extractionCandidate: false,
     loadComponent: () =>
       import('./pages/detail/teacher-detail.component').then(
         m => m.TeacherDetailComponent,

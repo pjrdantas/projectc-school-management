@@ -20,6 +20,7 @@ const activeRemoteProjectRoots = new Map([
   ['mfe-catalogo-academico', path.join(workspaceRoot, 'mfe-catalogo-academico')],
   ['mfe-dashboard', path.join(workspaceRoot, 'mfe-dashboard')],
   ['mfe-planejamento-ia', path.join(workspaceRoot, 'mfe-planejamento-ia')],
+  ['mfe-professores', path.join(workspaceRoot, 'mfe-professores')],
 ]);
 
 const shellSource = parseSource(shellNavigationPath, ts.ScriptKind.TS);
@@ -317,8 +318,6 @@ function validateRemoteRoutes(routes, remoteExposes) {
     ['responsibles/new', { domain: 'responsaveis', targetRemoteName: 'mfe-responsaveis', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['responsibles/:id', { domain: 'responsaveis', targetRemoteName: 'mfe-responsaveis', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['responsibles/:id/edit', { domain: 'responsaveis', targetRemoteName: 'mfe-responsaveis', routeRole: 'operational', shellNavigation: 'contextual' }],
-    ['teachers', { domain: 'professores', targetRemoteName: 'mfe-professores', routeRole: 'operational', shellNavigation: 'business-menu' }],
-    ['teachers/:id', { domain: 'professores', targetRemoteName: 'mfe-professores', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['lessons', { domain: 'aulas-avaliacoes', targetRemoteName: 'mfe-aulas-avaliacoes', routeRole: 'operational', shellNavigation: 'business-menu' }],
     ['lessons/:id', { domain: 'aulas-avaliacoes', targetRemoteName: 'mfe-aulas-avaliacoes', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['assessments', { domain: 'aulas-avaliacoes', targetRemoteName: 'mfe-aulas-avaliacoes', routeRole: 'operational', shellNavigation: 'business-menu' }],
