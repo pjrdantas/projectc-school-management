@@ -135,15 +135,9 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
   {
     path: 'dashboard',
     domain: 'dashboard',
-    runtimeRemoteName: 'mfe1',
+    runtimeRemoteName: 'mfe-dashboard',
     exposedModule: './Dashboard',
     exportName: 'AcademicOperationalDashboardComponent',
-    extractionPlan: {
-      candidate: true,
-      targetRemoteName: 'mfe-dashboard',
-      routeRole: 'operational',
-      shellNavigation: 'landing',
-    },
   },
   {
     path: 'students',
@@ -404,28 +398,16 @@ export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
   {
     path: 'dashboard/config',
     domain: 'dashboard',
-    runtimeRemoteName: 'mfe1',
+    runtimeRemoteName: 'mfe-dashboard',
     exposedModule: './DashboardConfigAdmin',
     exportName: 'DashboardConfigAdminComponent',
-    extractionPlan: {
-      candidate: true,
-      targetRemoteName: 'mfe-dashboard',
-      routeRole: 'administrative',
-      shellNavigation: 'access-menu',
-    },
   },
   {
     path: 'dashboard/snapshots',
     domain: 'dashboard',
-    runtimeRemoteName: 'mfe1',
+    runtimeRemoteName: 'mfe-dashboard',
     exposedModule: './DashboardSnapshotsAdmin',
     exportName: 'DashboardSnapshotsAdminComponent',
-    extractionPlan: {
-      candidate: true,
-      targetRemoteName: 'mfe-dashboard',
-      routeRole: 'administrative',
-      shellNavigation: 'access-menu',
-    },
   },
   {
     path: 'enrollment',
@@ -579,25 +561,6 @@ export const SHELL_EXTRACTION_CANDIDATES: ShellExtractionCandidateManifestItem[]
       'responsibles/:id',
       'responsibles/:id/edit',
     ],
-  },
-  {
-    domain: 'dashboard',
-    label: 'Dashboard',
-    currentPlacement: 'microfrontend',
-    targetRemoteName: 'mfe-dashboard',
-    runtimeRemoteNames: ['mfe1'],
-    expectedExposedModules: [
-      './Dashboard',
-      './DashboardConfigAdmin',
-      './DashboardSnapshotsAdmin',
-    ],
-    routePaths: ['dashboard', 'dashboard/config', 'dashboard/snapshots'],
-    operationalRoutePaths: ['dashboard'],
-    administrativeRoutePaths: ['dashboard/config', 'dashboard/snapshots'],
-    landingRoutes: ['dashboard'],
-    businessMenuRoutes: [],
-    accessMenuRoutes: ['/dashboard/config', '/dashboard/snapshots'],
-    contextualRoutes: [],
   },
   {
     domain: 'professores',

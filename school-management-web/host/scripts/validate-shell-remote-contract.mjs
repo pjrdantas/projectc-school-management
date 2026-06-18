@@ -18,6 +18,7 @@ const activeRemoteProjectRoots = new Map([
   ['mfe1', path.join(workspaceRoot, 'microfrontend')],
   ['mfe-matriculas', path.join(workspaceRoot, 'mfe-matriculas')],
   ['mfe-catalogo-academico', path.join(workspaceRoot, 'mfe-catalogo-academico')],
+  ['mfe-dashboard', path.join(workspaceRoot, 'mfe-dashboard')],
 ]);
 
 const shellSource = parseSource(shellNavigationPath, ts.ScriptKind.TS);
@@ -307,9 +308,6 @@ function validateRemoteRoutes(routes, remoteExposes) {
   const routeExposesByRemote = new Map();
   const routePaths = new Set();
   const extractionExpectations = new Map([
-    ['dashboard', { domain: 'dashboard', targetRemoteName: 'mfe-dashboard', routeRole: 'operational', shellNavigation: 'landing' }],
-    ['dashboard/config', { domain: 'dashboard', targetRemoteName: 'mfe-dashboard', routeRole: 'administrative', shellNavigation: 'access-menu' }],
-    ['dashboard/snapshots', { domain: 'dashboard', targetRemoteName: 'mfe-dashboard', routeRole: 'administrative', shellNavigation: 'access-menu' }],
     ['students', { domain: 'alunos', targetRemoteName: 'mfe-alunos', routeRole: 'operational', shellNavigation: 'business-menu' }],
     ['students/new', { domain: 'alunos', targetRemoteName: 'mfe-alunos', routeRole: 'operational', shellNavigation: 'contextual' }],
     ['students/:id', { domain: 'alunos', targetRemoteName: 'mfe-alunos', routeRole: 'operational', shellNavigation: 'contextual' }],

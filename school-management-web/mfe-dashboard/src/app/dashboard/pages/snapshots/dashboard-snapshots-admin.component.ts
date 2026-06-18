@@ -9,8 +9,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { getApiErrorMessage } from '../../../core/http/api-error';
-import { Professor } from '../../../professor/models/teacher.model';
-import { TeachersService } from '../../../professor/services/teachers.service';
+import { Professor } from '../../../compartilhado/professor/teacher.model';
+import { TeachersService } from '../../../compartilhado/professor/teachers.service';
 import {
   DashboardIndicadorHistorico,
   DashboardIndicadorHistoricoPonto,

@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { DASHBOARD_INTERNAL_ROUTES } from './dashboard/dashboard-domain';
 import { STUDENT_INTERNAL_ROUTES } from './aluno/student-domain';
 import { PLANNING_INTERNAL_ROUTES } from './professor/planning-domain';
 import { PROFESSOR_INTERNAL_ROUTES } from './professor/professor-domain';
@@ -10,9 +9,8 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'dashboard',
+    redirectTo: 'students',
   },
-  ...DASHBOARD_INTERNAL_ROUTES,
   ...RESPONSIBLE_INTERNAL_ROUTES,
   ...STUDENT_INTERNAL_ROUTES,
   ...PROFESSOR_INTERNAL_ROUTES,

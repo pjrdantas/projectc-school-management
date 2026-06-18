@@ -49,7 +49,7 @@ const errors = [
 ];
 
 if (errors.length > 0) {
-  console.error('Contrato interno do dominio dashboard invalido:');
+  console.error('Contrato do mfe-dashboard invalido:');
   for (const error of errors) {
     console.error(`- ${error}`);
   }
@@ -57,7 +57,7 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Contrato interno do dashboard valido: ${manifestItems.length} entradas conferidas entre manifesto, exposes, federation.config.js e shell do host.`,
+  `Contrato do mfe-dashboard valido: ${manifestItems.length} entradas conferidas entre manifesto, exposes locais, federation.config.js e shell do host.`,
 );
 
 function parseSource(filePath, scriptKind) {
@@ -274,11 +274,7 @@ function validateShellContract(
 ) {
   return [
     ...validateShellRoutes(manifestItems, shellDashboardRoutes),
-    ...validateShellExtractionCandidate(
-      manifestItems,
-      shellDashboardRoutes,
-      shellDashboardCandidates,
-    ),
+    ...validateShellExtractionCandidate(shellDashboardCandidates),
   ];
 }
 
@@ -317,40 +313,15 @@ function validateShellRoutes(manifestItems, shellDashboardRoutes) {
       );
     }
 
-    if (shellRoute.runtimeRemoteName !== 'mfe1') {
+    if (shellRoute.runtimeRemoteName !== 'mfe-dashboard') {
       errors.push(
-        `rota ${item.path} do shell deve permanecer no runtimeRemoteName mfe1, encontrado ${shellRoute.runtimeRemoteName}.`,
+        `rota ${item.path} do shell deve usar runtimeRemoteName mfe-dashboard, encontrado ${shellRoute.runtimeRemoteName}.`,
       );
     }
 
     const extractionPlan = shellRoute.extractionPlan;
-    if (!extractionPlan || typeof extractionPlan !== 'object') {
-      errors.push(`rota ${item.path} do shell deve declarar extractionPlan.`);
-      continue;
-    }
-
-    if (extractionPlan.candidate !== true) {
-      errors.push(
-        `rota ${item.path} do shell deve usar extractionPlan.candidate=true, encontrado ${extractionPlan.candidate}.`,
-      );
-    }
-
-    if (extractionPlan.targetRemoteName !== 'mfe-dashboard') {
-      errors.push(
-        `rota ${item.path} do shell deve usar extractionPlan.targetRemoteName=mfe-dashboard, encontrado ${extractionPlan.targetRemoteName}.`,
-      );
-    }
-
-    if (extractionPlan.routeRole !== item.routeRole) {
-      errors.push(
-        `rota ${item.path} do shell deve usar extractionPlan.routeRole=${item.routeRole}, encontrado ${extractionPlan.routeRole}.`,
-      );
-    }
-
-    if (extractionPlan.shellNavigation !== item.shellNavigation) {
-      errors.push(
-        `rota ${item.path} do shell deve usar extractionPlan.shellNavigation=${item.shellNavigation}, encontrado ${extractionPlan.shellNavigation}.`,
-      );
+    if (extractionPlan !== undefined) {
+      errors.push(`rota ${item.path} do shell nao deve mais declarar extractionPlan apos o cutover.`);
     }
   }
 
@@ -358,81 +329,15 @@ function validateShellRoutes(manifestItems, shellDashboardRoutes) {
 }
 
 function validateShellExtractionCandidate(
-  manifestItems,
-  shellDashboardRoutes,
   shellDashboardCandidates,
 ) {
   const errors = [];
 
-  if (shellDashboardCandidates.length !== 1) {
+  if (shellDashboardCandidates.length !== 0) {
     errors.push(
-      `shell do host deve declarar um unico candidato de extracao para dashboard, encontrados ${shellDashboardCandidates.length}.`,
-    );
-    return errors;
-  }
-
-  const [candidate] = shellDashboardCandidates;
-  const manifestPaths = manifestItems.map(item => item.path);
-  const manifestExposedModules = manifestItems.map(item => item.exposedModule);
-  const operationalRoutePaths = manifestItems
-    .filter(item => item.routeRole === 'operational')
-    .map(item => item.path);
-  const administrativeRoutePaths = manifestItems
-    .filter(item => item.routeRole === 'administrative')
-    .map(item => item.path);
-  const landingRoutes = manifestItems
-    .filter(item => item.shellNavigation === 'landing')
-    .map(item => item.path);
-  const accessMenuRoutes = manifestItems
-    .filter(item => item.shellNavigation === 'access-menu')
-    .map(item => toShellMenuRoute(item.path));
-  const runtimeRemoteNames = [
-    ...new Set(shellDashboardRoutes.map(route => route.runtimeRemoteName)),
-  ];
-
-  if (candidate.currentPlacement !== 'microfrontend') {
-    errors.push(
-      `candidato dashboard do shell deve manter currentPlacement=microfrontend, encontrado ${candidate.currentPlacement}.`,
+      `shell do host nao deve mais declarar candidato de extracao para dashboard, encontrados ${shellDashboardCandidates.length}.`,
     );
   }
-
-  if (candidate.targetRemoteName !== 'mfe-dashboard') {
-    errors.push(
-      `candidato dashboard do shell deve usar targetRemoteName=mfe-dashboard, encontrado ${candidate.targetRemoteName}.`,
-    );
-  }
-
-  errors.push(
-    ...compareStringArrays(
-      candidate.runtimeRemoteNames,
-      runtimeRemoteNames,
-      'candidate.runtimeRemoteNames',
-    ),
-    ...compareStringArrays(
-      candidate.expectedExposedModules,
-      manifestExposedModules,
-      'candidate.expectedExposedModules',
-    ),
-    ...compareStringArrays(candidate.routePaths, manifestPaths, 'candidate.routePaths'),
-    ...compareStringArrays(
-      candidate.operationalRoutePaths,
-      operationalRoutePaths,
-      'candidate.operationalRoutePaths',
-    ),
-    ...compareStringArrays(
-      candidate.administrativeRoutePaths,
-      administrativeRoutePaths,
-      'candidate.administrativeRoutePaths',
-    ),
-    ...compareStringArrays(candidate.landingRoutes, landingRoutes, 'candidate.landingRoutes'),
-    ...compareStringArrays(candidate.businessMenuRoutes, [], 'candidate.businessMenuRoutes'),
-    ...compareStringArrays(
-      candidate.accessMenuRoutes,
-      accessMenuRoutes,
-      'candidate.accessMenuRoutes',
-    ),
-    ...compareStringArrays(candidate.contextualRoutes, [], 'candidate.contextualRoutes'),
-  );
 
   return errors;
 }
@@ -466,34 +371,6 @@ function readExposeExport(sourceFile) {
 
 function toSystemPath(relativePath) {
   return relativePath.replaceAll('/', path.sep).replace(/^\.\//, '');
-}
-
-function toShellMenuRoute(routePath) {
-  return `/${routePath}`;
-}
-
-function compareStringArrays(actual, expected, context) {
-  if (!Array.isArray(actual)) {
-    return [`${context} deve ser um array no shell do host.`];
-  }
-
-  if (actual.length !== expected.length) {
-    return [
-      `${context} deve conter ${expected.length} itens no shell do host, encontrados ${actual.length}.`,
-    ];
-  }
-
-  const errors = [];
-
-  for (let index = 0; index < expected.length; index += 1) {
-    if (actual[index] !== expected[index]) {
-      errors.push(
-        `${context}[${index}] deve ser ${expected[index]} no shell do host, encontrado ${actual[index]}.`,
-      );
-    }
-  }
-
-  return errors;
 }
 
 function requireString(object, propertyName, context, errors) {

@@ -5,7 +5,6 @@ module.exports = withNativeFederation({
   name: 'microfrontend',
 
   exposes: {
-    './Dashboard': './src/app/dashboard/exposes/dashboard-operational.expose.ts',
     './ResponsavelList': './src/app/responsavel/exposes/responsible-list.expose.ts',
     './ResponsavelNew': './src/app/responsavel/exposes/responsible-new.expose.ts',
     './ResponsavelDetail': './src/app/responsavel/exposes/responsible-detail.expose.ts',
@@ -23,8 +22,6 @@ module.exports = withNativeFederation({
     './PlanningList': './src/app/professor/exposes/planning-list.expose.ts',
     './PlanningDetail': './src/app/professor/exposes/planning-detail.expose.ts',
     './PlanningLibrary': './src/app/professor/exposes/planning-library.expose.ts',
-    './DashboardConfigAdmin': './src/app/dashboard/exposes/dashboard-config-admin.expose.ts',
-    './DashboardSnapshotsAdmin': './src/app/dashboard/exposes/dashboard-snapshots-admin.expose.ts',
   },
 
  shared: {

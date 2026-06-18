@@ -1,15 +1,11 @@
 {
-  "name": "microfrontend",
+  "name": "mfe-dashboard",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "validate:responsible-contract": "node ./scripts/validate-responsible-domain-contract.mjs",
-    "validate:student-contract": "node ./scripts/validate-student-domain-contract.mjs",
-    "validate:professor-contract": "node ./scripts/validate-professor-domain-contract.mjs",
-    "validate:teaching-contract": "node ./scripts/validate-teaching-domain-contract.mjs",
-    "validate:planning-contract": "node ./scripts/validate-planning-domain-contract.mjs",
-    "validate": "npm run validate:responsible-contract && npm run validate:student-contract && npm run validate:professor-contract && npm run validate:teaching-contract && npm run validate:planning-contract",
+    "validate:contract": "node ./scripts/validate-mfe-dashboard-contract.mjs",
+    "validate": "npm run validate:contract",
     "prebuild": "npm run validate",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
