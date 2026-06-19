@@ -114,6 +114,18 @@ Para encerrar e limpar tambem os logs/PIDs locais:
 powershell -ExecutionPolicy Bypass -File .\scripts\stop-all-frontends.ps1 -ClearLogs
 ```
 
+Para consultar o status operacional:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\status-all-frontends.ps1
+```
+
+Para consultar com caminhos de logs e diretorios:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\status-all-frontends.ps1 -Detailed
+```
+
 ```bash
 cd mfe-dashboard
 npm install
