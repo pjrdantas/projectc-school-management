@@ -48,11 +48,6 @@ export const routes: Routes = [
         pathMatch: 'full',
         redirectTo: 'dashboard',
       },
-      {
-        path: 'home',
-        pathMatch: 'full',
-        redirectTo: 'dashboard',
-      },
       ...remoteRoutes,
       {
         path: 'auth/users',
