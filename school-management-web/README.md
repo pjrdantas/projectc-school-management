@@ -102,6 +102,18 @@ Se algum projeto estiver sem `node_modules`, use:
 powershell -ExecutionPolicy Bypass -File .\scripts\start-all-frontends.ps1 -InstallMissing
 ```
 
+Para encerrar tudo que foi iniciado pelo launcher:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\stop-all-frontends.ps1
+```
+
+Para encerrar e limpar tambem os logs/PIDs locais:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\stop-all-frontends.ps1 -ClearLogs
+```
+
 ```bash
 cd mfe-dashboard
 npm install
