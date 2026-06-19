@@ -10,33 +10,27 @@ O host e a casca principal do frontend. A direcao arquitetural vigente e manter 
 - home/menu;
 - guards e estado de sessao;
 - usuarios, perfis e permissoes;
-- integracao com o microfrontend remoto.
+- integracao com os remotos federados de dominio.
 
-As telas escolares existentes devem ser migradas gradualmente para o microfrontend, preservando contratos REST, autorizacao e rotas publicas ate que cada fase seja validada.
+As funcionalidades escolares ja foram destacadas para remotos federados por dominio, preservando contratos REST, autorizacao e rotas publicas.
 
 Estado atual da migracao:
 
-- `academic/periods`, `academic/series`, `academic/shifts` e `academic/classes` sao carregadas pelo microfrontend remoto.
-- `responsibles`, `responsibles/new`, `responsibles/:id` e `responsibles/:id/edit` sao carregadas pelo microfrontend remoto.
-- `students`, `students/new`, `students/:id` e `students/:id/edit` sao carregadas pelo microfrontend remoto.
-- `enrollment` e carregada pelo microfrontend remoto.
-- `academic/disciplines` e carregada pelo microfrontend remoto.
+- `academic/periods`, `academic/series`, `academic/shifts`, `academic/classes` e `academic/disciplines` sao carregadas por `mfe-catalogo-academico`.
+- `responsibles`, `responsibles/new`, `responsibles/:id` e `responsibles/:id/edit` sao carregadas por `mfe-responsaveis`.
+- `students`, `students/new`, `students/:id` e `students/:id/edit` sao carregadas por `mfe-alunos`.
+- `enrollment` e carregada por `mfe-matriculas`.
+- `dashboard`, `dashboard/config` e `dashboard/snapshots` sao carregadas por `mfe-dashboard`.
+- `planning`, `planning/:id` e `planning-library` sao carregadas por `mfe-planejamento-ia`.
+- `teachers` e `teachers/:id` sao carregadas por `mfe-professores`.
+- `lessons`, `lessons/:id`, `assessments` e `assessments/:id` sao carregadas por `mfe-aulas-avaliacoes`.
 - Os pacotes escolares locais de catalogo, aluno, responsavel, matricula, documento e historico foram removidos do host apos migracao das rotas ativas.
 
-Exposes consumidos pelo host:
+Manifesto ativo de remotos:
 
-- `CatalogoPeriods`;
-- `CatalogoSeries`;
-- `CatalogoShifts`;
-- `CatalogoClasses`;
-- `ResponsavelList`;
-- `ResponsavelNew`;
-- `ResponsavelDetail`;
-- `AlunoList`;
-- `AlunoNew`;
-- `AlunoDetail`;
-- `Matricula`;
-- `HistoricoDisciplines`.
+```text
+public/federation.manifest.json
+```
 
 ## Backend e base oficial
 
@@ -66,11 +60,24 @@ Documento de referencia:
 
 ## Desenvolvimento local
 
-Para validar o fluxo federado completo, suba primeiro `../microfrontend` e depois o host.
+Para validar o fluxo federado completo, suba primeiro os remotos necessarios e depois o host.
 
 ```bash
 npm install
 npm start
+```
+
+Ports atuais esperados pelo manifesto:
+
+```text
+4202 -> mfe-matriculas
+4203 -> mfe-catalogo-academico
+4204 -> mfe-dashboard
+4205 -> mfe-planejamento-ia
+4206 -> mfe-professores
+4207 -> mfe-aulas-avaliacoes
+4208 -> mfe-responsaveis
+4209 -> mfe-alunos
 ```
 
 A aplicacao fica disponivel em:
@@ -95,6 +102,7 @@ npm run build
 - As rotas federadas estaticas usam o helper unico `loadMfeComponent` em `src/app/app.routes.ts`.
 - O contrato declarativo de rotas/menu fica em `src/app/core/shell/shell-navigation.config.ts`.
 - O carregamento dinamico antigo por `AplicativosService` foi removido; o MVP usa o contrato declarativo do shell.
+- O remoto legado `../microfrontend` foi removido do workspace.
 - Nao recriar registro dinamico de remotos sem necessidade funcional validada; novas rotas devem entrar primeiro no contrato declarativo.
 - Dados de negocio devem vir do backend; nao usar seeds locais como fonte funcional.
 - Documentos/scripts antigos ficam em `../../docs/historico` apenas para consulta.

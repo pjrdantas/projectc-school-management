@@ -215,6 +215,6 @@ function compareCandidates(left, right) {
 function buildRecommendationReason(candidate) {
   return [
     `Motivo: ${candidate.domain} tem a menor superficie contratual no shell atual, com ${candidate.routePaths.length} rota(s), ${candidate.expectedExposedModules.length} expose(s), ${candidate.contextualRoutes.length} rota(s) contextual(is) e ${candidate.administrativeRoutePaths.length} rota(s) administrativa(s).`,
-    'Isso reduz o risco do primeiro corte quando a criacao do novo microfrontend for autorizada.',
+    'Isso reduz o risco do primeiro corte quando a criacao de um novo remoto federado for autorizada.',
   ].join(' ');
 }

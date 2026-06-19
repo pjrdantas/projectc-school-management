@@ -64,7 +64,7 @@ Documentos e scripts que descrevem modelagens anteriores foram organizados em `d
 
 ### Frontend
 
-O frontend `school-management-web` esta organizado em host e microfrontend federado.
+O frontend `school-management-web` esta organizado em um `host` e remotos federados por dominio.
 
 O `host` concentra:
 
@@ -78,14 +78,16 @@ O `host` concentra:
 - permissoes;
 - rotas federadas estaticas.
 
-O `microfrontend` concentra as funcionalidades escolares de negocio:
+Os remotos atuais cobrem:
 
-- alunos;
-- responsaveis;
-- catalogo academico;
-- matriculas;
-- documentos;
-- historico/disciplinas.
+- `mfe-alunos`: alunos;
+- `mfe-responsaveis`: responsaveis;
+- `mfe-catalogo-academico`: catalogo academico e disciplinas;
+- `mfe-matriculas`: matriculas;
+- `mfe-professores`: professores;
+- `mfe-aulas-avaliacoes`: aulas e avaliacoes;
+- `mfe-planejamento-ia`: planejamento, IA e biblioteca pedagogica;
+- `mfe-dashboard`: dashboards e snapshots administrativos.
 
 As rotas federadas e menus do MVP sao definidos no contrato declarativo:
 
@@ -93,7 +95,7 @@ As rotas federadas e menus do MVP sao definidos no contrato declarativo:
 school-management-web/host/src/app/core/shell/shell-navigation.config.ts
 ```
 
-O host publica API base, token, usuario, perfis e permissoes para o microfrontend por `school-management.shell.context.v1`. O refresh token permanece interno ao host.
+O host publica API base, token, usuario, perfis e permissoes para os remotos por `school-management.shell.context.v1`. O refresh token permanece interno ao host.
 
 ## Proxima evolucao recomendada
 
@@ -112,12 +114,10 @@ Atualizar continuamente:
 
 O MVP atual foi considerado aceito pelo cliente dentro dos parametros desejados. A proxima evolucao funcional deve focar:
 
-1. aulas e planejamento de aulas;
-2. professores e relacao professor/turma/disciplina;
-3. alunos em contexto de aula;
-4. notas e acompanhamento de evolucao;
-5. comportamento de alunos e professores;
-6. dashboards de aulas, matriculas e evolucao dos alunos.
+1. consolidacao do frontend federado por dominio, mantendo o host como shell;
+2. evolucao incremental de multi-escola no backend e nos contratos internos;
+3. ajustes pontuais de UX, contratos e integracao quando surgirem lacunas reais;
+4. preparacao arquitetural para fases futuras de BFFs e servicos, sem criar novos runtimes agora.
 
 Historico, documentos e transferencia nao sao o proximo epico; fazem parte do ciclo funcional ja desenvolvido ate aqui.
 
@@ -135,7 +135,7 @@ Prioridade sugerida:
 
 - garantir `mvnw test` verde no backend;
 - garantir `npm run build` no host;
-- garantir `npm run build` no microfrontend;
+- garantir `npm run build` no remoto afetado;
 - revisar Swagger/OpenAPI quando endpoints mudarem;
 - evoluir `API_BASE_URL` centralizado para configuracao por ambiente quando houver necessidade de empacotamento/deploy;
 - documentar variaveis de ambiente/configuracao do frontend.
@@ -155,7 +155,7 @@ Nao devem ser usados como referencia ativa:
 ## Prompt sugerido para continuidade
 
 ```text
-Contexto: o projeto projectc-school-management ja possui backend Spring Boot, frontend Angular host/microfrontend, autenticacao JWT, CRUDs principais e base oficial documentada em docs/v2/scriptdb.sql.
+Contexto: o projeto projectc-school-management ja possui backend Spring Boot, frontend Angular com host e remotos federados por dominio, autenticacao JWT, CRUDs principais e base oficial documentada em docs/v2/scriptdb.sql.
 
 Objetivo: evoluir o produto a partir do MVP aceito pelo cliente.
 

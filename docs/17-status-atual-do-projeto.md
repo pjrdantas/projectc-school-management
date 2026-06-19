@@ -16,7 +16,14 @@ projectc-school-management/
   school-management-service/
   school-management-web/
     host/
-    microfrontend/
+    mfe-matriculas/
+    mfe-catalogo-academico/
+    mfe-dashboard/
+    mfe-planejamento-ia/
+    mfe-professores/
+    mfe-aulas-avaliacoes/
+    mfe-responsaveis/
+    mfe-alunos/
 ```
 
 ## Backend
@@ -198,7 +205,14 @@ Stack:
 ### Aplicacoes
 
 - `host`: shell principal, responsavel por login, sessao, menu, guards, usuarios, perfis, permissoes e roteamento federado.
-- `microfrontend`: remoto federado, responsavel pelas funcionalidades escolares de negocio.
+- `mfe-matriculas`: remoto do dominio de matriculas.
+- `mfe-catalogo-academico`: remoto do dominio de catalogo academico e disciplinas/historico operacional.
+- `mfe-dashboard`: remoto do dominio de dashboards e snapshots administrativos.
+- `mfe-planejamento-ia`: remoto do dominio de planejamento bimestral, IA e biblioteca pedagogica.
+- `mfe-professores`: remoto do dominio de professores.
+- `mfe-aulas-avaliacoes`: remoto do dominio de aulas e avaliacoes.
+- `mfe-responsaveis`: remoto do dominio de responsaveis.
+- `mfe-alunos`: remoto do dominio de alunos.
 
 O host publica o contexto de shell em:
 
@@ -217,6 +231,9 @@ school-management-web/host/src/app/core/shell/shell-navigation.config.ts
 
 - `/login`
 - `/home`
+- `/dashboard`
+- `/dashboard/config`
+- `/dashboard/snapshots`
 - `/students`
 - `/students/new`
 - `/students/:id`
@@ -230,6 +247,15 @@ school-management-web/host/src/app/core/shell/shell-navigation.config.ts
 - `/academic/shifts`
 - `/academic/classes`
 - `/academic/disciplines`
+- `/teachers`
+- `/teachers/:id`
+- `/lessons`
+- `/lessons/:id`
+- `/assessments`
+- `/assessments/:id`
+- `/planning`
+- `/planning/:id`
+- `/planning-library`
 - `/enrollment`
 - `/auth/users`
 - `/auth/profiles`
@@ -242,7 +268,7 @@ O host consome a URL base centralizada em `school-management-web/host/src/app/co
 - autenticacao;
 - usuarios/perfis/permissoes.
 
-O microfrontend recebe a API base pelo contrato de shell e consome o backend para:
+Os remotos recebem a API base pelo contrato de shell e consomem o backend para:
 
 - alunos;
 - responsaveis;
@@ -251,6 +277,12 @@ O microfrontend recebe a API base pelo contrato de shell e consome o backend par
 - documentos;
 - historico;
 - disciplinas.
+- professores;
+- aulas;
+- avaliacoes/notas;
+- planejamento bimestral;
+- IA e biblioteca pedagogica;
+- dashboards e snapshots administrativos.
 
 Ainda existe uso de `localStorage` para sessao/autenticacao. Dados de negocio como alunos e responsaveis usam o backend como fonte oficial, com cache apenas em memoria durante a sessao.
 
@@ -265,7 +297,7 @@ Ainda existe uso de `localStorage` para sessao/autenticacao. Dados de negocio co
 - O fluxo de matricula/status/cancelamento em uso esta aceito pelo cliente dentro dos parametros esperados para o MVP atual.
 - Historico, documentos e transferencia pertencem ao escopo ja trabalhado neste ciclo; nao devem ser tratados como proximo epico.
 - A matriz completa de permissoes por funcionalidade fica planejada para o final do projeto, apos estabilizacao das funcionalidades finais.
-- A rota marcador `/microfrontend`, o expose `./Component` e o carregamento dinamico antigo por `AplicativosService` foram removidos; o MVP usa o contrato declarativo do shell.
+- A rota marcador `/microfrontend`, o expose `./Component`, o remoto legado `microfrontend` e o carregamento dinamico antigo por `AplicativosService` foram removidos; o MVP usa o contrato declarativo do shell com remotos `mfe-*`.
 
 ## Testes existentes
 
@@ -280,15 +312,15 @@ O backend possui testes de integracao para:
 
 ## Proximas prioridades recomendadas
 
-1. Evoluir configuracao da URL da API para ambiente quando houver necessidade de empacotamento/deploy fora do ambiente local.
-2. Planejar o proximo epico funcional: aulas, professores, alunos, notas, comportamento e dashboards operacionais/academicos.
-3. Atualizar Swagger/OpenAPI e exemplos de teste sempre que o contrato mudar.
-4. Manter este documento sincronizado a cada marco funcional.
-5. Validar `npm run build` no host e no microfrontend quando houver alteracao no frontend federado.
+1. Preservar o host como shell de seguranca e administracao tecnica, evitando recolocar telas de negocio nele.
+2. Continuar a evolucao incremental por dominio e por remoto, sem iniciar BFF, microservico ou novo runtime sem fase explicita.
+3. Evoluir o backend multi-escola e contratos internos de forma pontual, mantendo `develop` como fonte da verdade.
+4. Atualizar Swagger/OpenAPI, exemplos de teste e esta fotografia sempre que o contrato real mudar.
+5. Validar `npm run build` no host e no remoto afetado quando houver alteracao no frontend federado.
 
 ## Decisoes de produto atualizadas
 
 - Nao existe pendencia de decisao sobre matricula/status/cancelamento para o MVP atual; o comportamento implementado e testado pelo cliente esta aceito.
 - Historico, documentos e transferencia nao sao o proximo epico; fazem parte do ciclo funcional ja desenvolvido ate aqui.
 - Permissoes granulares por rota, tela e endpoint serao tratadas no final do projeto para evitar retrabalho recorrente a cada nova funcionalidade.
-- O proximo epico deve concentrar a evolucao do produto em aulas, professores, alunos, notas, evolucao dos alunos, comportamento e dashboards.
+- A proxima frente principal apos esta baseline deixa de ser a extracao inicial do frontend e passa a ser consolidacao incremental: multi-escola, contratos internos e evolucao arquitetural sem abrir BFFs ou microservicos nesta etapa.

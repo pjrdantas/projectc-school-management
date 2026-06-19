@@ -14,7 +14,7 @@ export interface ShellDomainCatalogItem {
   domain: ShellDomain;
   label: string;
   futureRemoteName: string;
-  currentPlacement: 'host' | 'microfrontend' | 'shared';
+  currentPlacement: 'host' | 'remote' | 'shared';
 }
 
 export interface ShellRouteExtractionPlan {
@@ -55,7 +55,7 @@ export interface ShellDomainInventoryItem extends ShellDomainCatalogItem {
 export interface ShellExtractionCandidateManifestItem {
   domain: ShellDomain;
   label: string;
-  currentPlacement: 'host' | 'microfrontend' | 'shared';
+  currentPlacement: 'host' | 'remote' | 'shared';
   targetRemoteName: string;
   runtimeRemoteNames: string[];
   expectedExposedModules: string[];
@@ -73,49 +73,49 @@ export const SHELL_DOMAIN_CATALOG: Record<ShellDomain, ShellDomainCatalogItem> =
     domain: 'dashboard',
     label: 'Dashboard',
     futureRemoteName: 'mfe-dashboard',
-    currentPlacement: 'microfrontend',
+    currentPlacement: 'remote',
   },
   alunos: {
     domain: 'alunos',
     label: 'Alunos',
     futureRemoteName: 'mfe-alunos',
-    currentPlacement: 'microfrontend',
+    currentPlacement: 'remote',
   },
   responsaveis: {
     domain: 'responsaveis',
     label: 'Responsaveis',
     futureRemoteName: 'mfe-responsaveis',
-    currentPlacement: 'microfrontend',
+    currentPlacement: 'remote',
   },
   matriculas: {
     domain: 'matriculas',
     label: 'Matriculas',
     futureRemoteName: 'mfe-matriculas',
-    currentPlacement: 'microfrontend',
+    currentPlacement: 'remote',
   },
   'catalogo-academico': {
     domain: 'catalogo-academico',
     label: 'Catalogo academico',
     futureRemoteName: 'mfe-catalogo-academico',
-    currentPlacement: 'microfrontend',
+    currentPlacement: 'remote',
   },
   professores: {
     domain: 'professores',
     label: 'Professores',
     futureRemoteName: 'mfe-professores',
-    currentPlacement: 'microfrontend',
+    currentPlacement: 'remote',
   },
   'aulas-avaliacoes': {
     domain: 'aulas-avaliacoes',
     label: 'Aulas e avaliacoes',
     futureRemoteName: 'mfe-aulas-avaliacoes',
-    currentPlacement: 'microfrontend',
+    currentPlacement: 'remote',
   },
   'planejamento-ia': {
     domain: 'planejamento-ia',
     label: 'Planejamento e IA',
     futureRemoteName: 'mfe-planejamento-ia',
-    currentPlacement: 'microfrontend',
+    currentPlacement: 'remote',
   },
   documentos: {
     domain: 'documentos',

@@ -15,7 +15,6 @@ const shellNavigationPath = path.join(
 );
 const activeManifestPath = path.join(hostRoot, 'public', 'federation.manifest.json');
 const activeRemoteProjectRoots = new Map([
-  ['mfe1', path.join(workspaceRoot, 'microfrontend')],
   ['mfe-matriculas', path.join(workspaceRoot, 'mfe-matriculas')],
   ['mfe-catalogo-academico', path.join(workspaceRoot, 'mfe-catalogo-academico')],
   ['mfe-dashboard', path.join(workspaceRoot, 'mfe-dashboard')],
@@ -54,7 +53,7 @@ const errors = [
 ];
 
 if (errors.length > 0) {
-  console.error('Contrato shell/microfrontend invalido:');
+  console.error('Contrato shell/remotos invalido:');
   for (const error of errors) {
     console.error(`- ${error}`);
   }
@@ -62,7 +61,7 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Contrato shell/microfrontend valido: ${remoteRoutes.length} rotas federadas, ${exposeCount} exposes ativos, ${businessMenu.length + accessMenu.length} itens de menu e ${extractionCandidates.length} candidatos de extracao conferidos.`,
+  `Contrato shell/remotos valido: ${remoteRoutes.length} rotas federadas, ${exposeCount} exposes ativos, ${businessMenu.length + accessMenu.length} itens de menu e ${extractionCandidates.length} candidatos de extracao conferidos.`,
 );
 
 function parseSource(filePath, scriptKind) {

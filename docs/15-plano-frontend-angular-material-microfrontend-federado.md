@@ -1,6 +1,6 @@
 # Plano Frontend Angular 20 + Angular Material + Microfrontend Federado
 
-> Nota de status: este documento registra o plano inicial. O estado atual do repositorio usa um `host` e um `microfrontend` unico para funcionalidades escolares de negocio, com rotas/menu federados definidos em `school-management-web/host/src/app/core/shell/shell-navigation.config.ts`. Para a fotografia atual, use `docs/17-status-atual-do-projeto.md` e `docs/v2/74-fase-43k-consolidacao-documentacao-arquitetura-federada.md`.
+> Nota de status: este documento registra o plano inicial. O estado atual do repositorio usa um `host` e remotos federados por dominio, com rotas/menu definidos em `school-management-web/host/src/app/core/shell/shell-navigation.config.ts` e manifesto ativo em `school-management-web/host/public/federation.manifest.json`. Para a fotografia atual, use `docs/17-status-atual-do-projeto.md`.
 
 ## Objetivo
 

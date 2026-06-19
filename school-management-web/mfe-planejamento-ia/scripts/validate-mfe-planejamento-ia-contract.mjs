@@ -3,17 +3,17 @@ import path from 'node:path';
 import process from 'node:process';
 import ts from 'typescript';
 
-const microfrontendRoot = process.cwd();
+const remoteRoot = process.cwd();
 const manifestPath = path.join(
-  microfrontendRoot,
+  remoteRoot,
   'src',
   'app',
   'professor',
   'planning-domain.manifest.ts',
 );
-const federationPath = path.join(microfrontendRoot, 'federation.config.js');
+const federationPath = path.join(remoteRoot, 'federation.config.js');
 const shellNavigationPath = path.join(
-  microfrontendRoot,
+  remoteRoot,
   '..',
   'host',
   'src',
@@ -320,7 +320,7 @@ function validateExposeFiles(manifestItems) {
   const errors = [];
 
   for (const item of manifestItems) {
-    const exposeFilePath = path.join(microfrontendRoot, toSystemPath(item.exposeFilePath));
+    const exposeFilePath = path.join(remoteRoot, toSystemPath(item.exposeFilePath));
 
     if (!fs.existsSync(exposeFilePath)) {
       errors.push(`arquivo de expose ausente para ${item.exposedModule}: ${item.exposeFilePath}.`);
