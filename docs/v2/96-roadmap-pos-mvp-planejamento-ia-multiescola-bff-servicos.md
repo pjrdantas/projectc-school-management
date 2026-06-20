@@ -1,484 +1,478 @@
-# Roadmap pos-MVP - planejamento, IA, multi-escola, BFF e servicos
-
-## Objetivo
-
-Organizar as proximas etapas de codificacao em blocos pequenos, executaveis em
-chats separados, sem iniciar revisoes amplas antes da conclusao funcional.
-
-O sistema atual atende o cenario de uma escola. O objetivo futuro e evoluir para
-atender varias escolas, com separacao arquitetural por BFF, servicos e
-microfrontends federados por dominio. Essa evolucao deve ser planejada, mas nao
-deve bloquear a entrega das proximas funcionalidades.
-
-## Estado atual considerado
-
-- Branch `develop` igualada com `Master`.
-- Host Angular permanece como shell de autenticacao, sessao, menu e rotas
-  federadas.
-- Microfrontend academico atual concentra varias funcionalidades escolares.
-- Backend atual ainda e uma aplicacao unica, com dominios internos organizados.
-- Fluxos principais ja implementados/validados:
-  - catalogos academicos;
-  - alunos;
-  - responsaveis;
-  - matriculas;
-  - transferencias;
-  - documentos;
-  - historico escolar;
-  - professores;
-  - aulas;
-  - avaliacoes/notas;
-  - dashboards e snapshots.
-- Ainda nao e momento de revisao ampla de permissoes, seguranca granular ou
-  refatoracao estrutural. Revisoes devem ser pontuais e iniciadas quando houver
-  demanda explicita.
-
-## Diretriz de trabalho
-
-- Fazer uma fase por vez.
-- Cada fase deve ter escopo funcional claro.
-- Evitar misturar codificacao funcional com refatoracao arquitetural grande.
-- Backend tocado: validar com `.\mvnw.cmd test` em
-  `school-management-service`.
-- Frontend tocado: validar com `npm run build` no microfrontend afetado.
-- Host tocado: validar build do host.
-- Ao final de cada fase:
-  - documentar o que foi feito;
-  - indicar backend, frontend ou ambos;
-  - informar comandos de validacao;
-  - indicar a proxima fase.
-
-## Bloco 46 - Planejamento pedagogico e IA
-
-Este e o proximo bloco funcional recomendado. Ele completa a etapa original de
-planejamento bimestral e prepara a futura assistencia por IA.
-
-### Fase 46A - Backend de planejamento bimestral
-
-Objetivo:
-
-- Criar API funcional para planejamento bimestral.
-
-Escopo:
-
-- Criar DTOs de request/response.
-- Criar service de planejamento bimestral.
-- Criar controller REST.
-- Listar planejamentos por professor, turma, disciplina e periodo.
-- Criar planejamento bimestral.
-- Atualizar planejamento bimestral.
-- Adicionar aulas previstas.
-- Adicionar avaliacoes previstas.
-- Alterar status do planejamento:
-  - rascunho;
-  - em analise;
-  - aprovado;
-  - reprovado.
-- Criar testes de integracao.
-
-Fora do escopo:
-
-- Chamada real de IA.
-- Frontend.
-- BFF.
-- Separacao em servicos.
-- Permissoes granulares por perfil.
-
-Validacao:
-
-- `.\mvnw.cmd test` em `school-management-service`.
-
-Proxima fase:
-
-- Fase 46B - Frontend de planejamento bimestral.
-
-### Fase 46B - Frontend de planejamento bimestral
-
-Objetivo:
-
-- Criar tela operacional de planejamento bimestral no microfrontend atual.
-
-Escopo:
-
-- Criar rota federada para planejamento.
-- Criar item de menu.
-- Criar lista com filtros.
-- Criar cadastro/edicao em tela ou modal.
-- Criar detalhe do planejamento.
-- Exibir aulas previstas.
-- Exibir avaliacoes previstas.
-- Permitir alterar status.
-- Usar selects nativos quando combo em modal apresentar problema.
-
-Fora do escopo:
-
-- IA.
-- Separacao em microfrontend proprio.
-- Regras finais de acesso por professor logado.
-
-Validacao:
-
-- `npm run build` no microfrontend.
-- Build do host se houver alteracao de menu/rota federada.
-
-Proxima fase:
-
-- Fase 46C - Backend de IA e biblioteca pedagogica.
-
-### Fase 46C - Backend de IA e conteudo pedagogico
-
-Objetivo:
-
-- Criar o backend funcional para registrar sugestoes de IA, versoes e biblioteca
-  de conteudo pedagogico.
-
-Escopo:
-
-- Criar DTOs, services e controllers para:
-  - interacao de IA;
-  - conteudo gerado;
-  - versoes de conteudo;
-  - aprovacao de versao;
-  - biblioteca de conteudo pedagogico.
-- Registrar prompt enviado e resposta recebida.
-- Salvar conteudo gerado vinculado ao planejamento bimestral.
-- Versionar conteudo.
-- Aprovar uma versao.
-- Publicar versao aprovada na biblioteca pedagogica.
-- Permitir reuso de conteudo aprovado sem nova chamada de IA.
-
-Decisao tecnica inicial:
-
-- Nao acoplar ainda a um provedor externo obrigatorio.
-- Implementar contrato interno para geracao.
-- Permitir modo inicial simulado/controlado para testes locais.
-- Deixar ponto de extensao para provedor real depois.
-
-Fora do escopo:
-
-- Integracao real obrigatoria com provedor de IA.
-- Kafka.
-- MongoDB.
-- Redis.
-- BFF.
-
-Validacao:
-
-- `.\mvnw.cmd test` em `school-management-service`.
-
-Proxima fase:
-
-- Fase 46D - Frontend de IA e biblioteca.
-
-### Fase 46D - Frontend de IA e biblioteca
-
-Objetivo:
-
-- Criar a interface para professor/direcao trabalharem com sugestoes, versoes e
-  conteudos aprovados.
-
-Escopo:
-
-- Tela ou secao dentro do planejamento bimestral para:
-  - solicitar sugestao;
-  - visualizar conteudo gerado;
-  - comparar versoes;
-  - aprovar uma versao;
-  - reaproveitar conteudo da biblioteca.
-- Tela de biblioteca pedagogica.
-- Busca por tema, disciplina, serie e tipo de conteudo.
-
-Fora do escopo:
-
-- Microfrontend separado.
-- Regras finais de isolamento por professor.
-
-Validacao:
-
-- `npm run build` no microfrontend.
-
-Proxima fase:
-
-- Fase 47 - Preparacao multi-escola.
-
-## Bloco 47 - Preparacao multi-escola
-
-O sistema atual esta preparado para uma escola. Antes de separar servicos ou
-criar BFF definitivo, o modelo precisa reconhecer escola/tenant como fronteira
-funcional.
-
-### Fase 47A - Diagnostico multi-escola
-
-Objetivo:
-
-- Mapear quais entidades precisam ser escopadas por escola.
-
-Escopo:
-
-- Levantar tabelas que devem carregar `escola_id` ou equivalente.
-- Separar entidades globais e entidades por escola.
-
-Entidades provavelmente globais:
-
-- perfis tecnicos padrao;
-- permissoes tecnicas;
-- tipos/catalogos nacionais quando aplicavel.
-
-Entidades provavelmente por escola:
-
-- alunos;
-- responsaveis;
-- professores;
-- funcionarios;
-- periodos letivos;
-- series;
-- turmas;
-- disciplinas, se customizadas por escola;
-- matriculas;
-- aulas;
-- frequencias;
-- avaliacoes;
-- boletins;
-- documentos;
-- historicos;
-- dashboards/configuracoes;
-- planejamentos;
-- biblioteca pedagogica, conforme politica.
-
-Entrega:
-
-- Documento de diagnostico.
-- Sem migration ainda.
-
-### Fase 47B - Modelo base de escola/tenant
-
-Objetivo:
-
-- Introduzir a entidade escola/tenant e o vinculo minimo necessario.
-
-Escopo:
-
-- Definir entidade `Escola`.
-- Definir relacao entre usuario e escola.
-- Definir escola ativa no contexto da sessao.
-- Definir estrategia para dados existentes de escola unica.
-
-Fora do escopo:
-
-- Isolamento completo.
-- BFF.
-- Separacao de banco por escola.
-
-Validacao:
-
-- `.\mvnw.cmd test`.
-
-### Fase 47C - Aplicacao gradual do escopo por escola
-
-Objetivo:
-
-- Aplicar o filtro de escola nas principais consultas e criacoes.
-
-Ordem sugerida:
-
-1. Catalogos academicos.
-2. Pessoas, alunos e responsaveis.
-3. Professores e funcionarios.
-4. Matriculas.
-5. Aulas, frequencia e avaliacoes.
-6. Planejamento e IA.
-7. Dashboards.
-
-Observacao:
-
-- Esta fase deve ser dividida em subfases menores. Nao executar tudo de uma vez.
-
-## Bloco 48 - BFF e separacao de servicos
-
-Este bloco deve vir depois de estabilizar funcionalidades e multi-escola basico.
-
-### Fase 48A - Desenho dos BFFs
-
-Objetivo:
-
-- Definir BFFs por experiencia de uso, nao por tabela.
-
-Possiveis BFFs:
-
-- BFF Admin/Shell.
-- BFF Secretaria.
-- BFF Professor.
-- BFF Diretor.
-- BFF Responsavel/Aluno, se houver portal externo.
-
-Responsabilidades:
-
-- Compor dados de multiplos servicos.
-- Adaptar respostas para frontend.
-- Reduzir acoplamento do frontend com servicos internos.
-- Aplicar contexto de usuario, escola e perfil.
-
-Fora do escopo:
-
-- Criar microservicos imediatamente.
-
-### Fase 48B - Separacao inicial de servicos
-
-Objetivo:
-
-- Definir fronteiras de servicos antes de extrair codigo.
-
-Possiveis servicos:
-
-- identidade/acesso;
-- pessoas;
-- academico/catalogos;
-- matriculas/documentos;
-- pedagogico/professores/aulas/avaliacoes;
-- planejamento/IA;
-- dashboards/analytics;
-- notificacoes.
-
-Regra:
-
-- Extrair um servico somente quando o contrato estiver estavel o suficiente.
-
-## Bloco 49 - Microfrontends federados por dominio
-
-O microfrontend academico atual deve ser quebrado futuramente.
-
-### Fase 49A - Plano de federacao por dominio
-
-Objetivo:
-
-- Definir os remotos finais sem quebrar a operacao atual.
-
-Possiveis remotos:
-
-- `mfe-dashboard`;
-- `mfe-alunos`;
-- `mfe-responsaveis`;
-- `mfe-matriculas`;
-- `mfe-catalogo-academico`;
-- `mfe-professores`;
-- `mfe-aulas-avaliacoes`;
-- `mfe-planejamento-ia`;
-- `mfe-documentos`;
-- `mfe-admin`.
-
-Regra:
-
-- Separar por dominio funcional e ciclo de evolucao.
-- Manter o host como shell.
-- Evitar duplicar autenticacao.
-
-### Fase 49B - Extracao piloto
-
-Objetivo:
-
-- Extrair um dominio pequeno primeiro.
-
-Candidato recomendado:
-
-- Dashboard, por ter fronteira mais clara e menos edicao transacional.
-
-Validacao:
-
-- Build do remoto extraido.
-- Build do host.
-- Navegacao local.
-
-## Bloco 50 - Kafka, MongoDB e Redis
-
-Estas tecnologias devem entrar por necessidade concreta, nao por antecipacao.
-
-### Kafka
-
-Usar quando houver eventos entre servicos ou processamento assincrono relevante.
-
-Candidatos:
-
-- matricula criada;
-- documento enviado;
-- transferencia solicitada;
-- aula realizada;
-- avaliacao publicada;
-- nota lancada;
-- planejamento aprovado;
-- conteudo IA aprovado;
-- snapshot de dashboard solicitado.
-
-Possiveis topicos:
-
-- `school.enrollment.created`;
-- `school.document.uploaded`;
-- `school.transfer.requested`;
-- `school.lesson.completed`;
-- `school.assessment.published`;
-- `school.grade.recorded`;
-- `school.planning.approved`;
-- `school.ai-content.approved`;
-- `school.dashboard.snapshot.requested`.
-
-### MongoDB
-
-Usar para documentos flexiveis, historicos ricos ou conteudo sem schema rigido.
-
-Candidatos:
-
-- respostas completas de IA;
-- versoes de conteudo pedagogico;
-- logs de interacao com IA;
-- snapshots historicos detalhados de dashboard;
-- auditoria rica de alteracoes.
-
-Regra:
-
-- Dados transacionais oficiais continuam em PostgreSQL.
-- MongoDB entra para conteudo flexivel e consulta documental.
-
-### Redis
-
-Usar para cache, sessao curta, locks e processamento rapido.
-
-Candidatos:
-
-- cache de dashboards;
-- cache de catalogos;
-- cache de contexto usuario/escola/perfil;
-- rate limit de chamadas IA;
-- lock de geracao de snapshot;
-- fila curta/temporaria quando Kafka for excessivo.
-
-Regra:
-
-- Redis nao deve virar fonte oficial de dados.
-
-## Ordem recomendada para proximos chats
-
-1. Chat 1: Fase 46A - Backend de planejamento bimestral.
-2. Chat 2: Fase 46B - Frontend de planejamento bimestral.
-3. Chat 3: Fase 46C - Backend de IA e biblioteca pedagogica.
-4. Chat 4: Fase 46D - Frontend de IA e biblioteca.
-5. Chat 5: Fase 47A - Diagnostico multi-escola.
-6. Chat 6: Fase 47B - Modelo base de escola/tenant.
-7. Chat 7+: Fase 47C em subfases por dominio.
-8. Depois: BFF, servicos, microfrontends separados e tecnologias de suporte.
-
-## Primeiro prompt sugerido para o proximo chat
+# Roadmap pos-MVP - BFF, servicos por dominio e plataforma distribuida
+
+## Objetivo arquitetural
+
+Evoluir o backend atual para uma arquitetura distribuida orientada a dominios,
+sem interromper o sistema existente. A arquitetura-alvo inclui:
+
+- BFF orquestrador como unica fachada dos frontends;
+- servicos Spring Boot implantaveis separadamente por dominio;
+- PostgreSQL como fonte oficial dos dados transacionais;
+- Kafka para integracao assincrona por eventos;
+- MongoDB para conteudo flexivel, historico rico e projecoes documentais;
+- Redis para cache, contexto curto, idempotencia, locks e rate limiting;
+- isolamento por escola em APIs, eventos, persistencia e observabilidade;
+- migracao incremental pelo padrao strangler, mantendo o monolito operacional.
+
+Kafka, MongoDB e Redis fazem parte da arquitetura-alvo. Isso nao significa que
+todo servico deva usar as tres tecnologias. Cada uso precisa ter propriedade,
+consistencia, retencao e comportamento de falha definidos.
+
+## Diagnostico da baseline em 19 de junho de 2026
+
+### Runtime e infraestrutura
+
+- Existe um unico runtime Spring Boot: `school-management-service`.
+- Java 21 e Spring Boot 3.5.14.
+- Uma unica conexao PostgreSQL para `gestao_escolar`.
+- JPA, Flyway e 73 entidades/tabelas mapeadas no mesmo runtime.
+- 43 controllers e 171 operacoes HTTP declaradas.
+- Nao existem dependencias de Kafka, MongoDB ou Redis no `pom.xml` atual.
+- Os unicos processamentos agendados locais sao limpeza de sessoes e geracao de
+  snapshots de dashboard.
+- A unica chamada HTTP externa identificada e o ViaCEP por `RestClient`.
+- Arquivos de documentos sao armazenados localmente por uma porta de storage.
+- O frontend chama diretamente o monolito e propaga apenas o bearer token.
+- O token atual e opaco, persistido por hash em `sessao_autenticacao`; ele nao e
+  um JWT autocontido apesar da nomenclatura residual de configuracao.
+
+### Modulos internos encontrados
+
+O monolito ja possui agrupamentos uteis, mas eles nao sao bounded contexts
+isolados. Existem imports diretos, relacionamentos JPA e consultas cruzadas
+entre `aluno`, `avaliacao`, `catalogo`, `dashboard`, `documento`, `frequencia`,
+`historico`, `ia`, `institucional`, `matricula`, `planejamento`, `professor`,
+`responsavel`, `rh`, `seguranca` e `transferencia`.
+
+Os acoplamentos mais relevantes para a extracao sao:
+
+- dashboard consulta quase todos os dominios transacionais diretamente;
+- matricula depende de aluno, catalogo, documento, frequencia, avaliacao e
+  historico;
+- professor/aula depende de catalogo, pessoa, RH, matricula, frequencia,
+  planejamento e seguranca;
+- planejamento e avaliacao compartilham entidades de professor/turma;
+- IA referencia planejamento, professor, catalogo, seguranca e escola;
+- handlers compartilhados conhecem excecoes de quase todos os modulos;
+- entidades JPA possuem relacionamentos entre pacotes que futuramente serao
+  servicos diferentes.
+
+Consequencia: mover pacotes para novos executaveis nao e suficiente. Antes de
+cada extracao, relacionamentos JPA externos devem virar IDs de referencia e
+portas HTTP/eventos com contratos explicitos.
+
+## Principios obrigatorios
+
+1. Dependencias apontam para dentro: `interfaces/infra -> application -> domain`.
+2. `domain` nao depende de Spring, JPA, Kafka, MongoDB, Redis ou HTTP.
+3. `application` orquestra casos de uso e declara portas de entrada e saida.
+4. `infra` implementa persistencia, mensageria, cache, clientes e seguranca.
+5. `interfaces` adapta REST, validacao e tratamento de erros.
+6. Entidade de dominio nao e entidade JPA nem DTO REST.
+7. Nenhum servico consulta o banco de outro servico.
+8. Nenhum servico compartilha entidades JPA ou repositorios Spring Data.
+9. Referencias externas ao agregado sao IDs, nunca relacionamentos ORM remotos.
+10. Eventos de integracao sao imutaveis, versionados e diferentes dos eventos
+    internos de dominio.
+11. Publicacao Kafka transacional usa outbox; consumidores sao idempotentes.
+12. Nao usar transacao distribuida. Fluxos longos usam saga/orquestracao e
+    compensacao explicita.
+13. Toda API e evento carrega `correlationId`, `usuarioId` e `escolaId` quando
+    aplicavel.
+14. O BFF nao acessa bancos nem concentra regra de dominio.
+15. Redis e cache descartavel, nunca fonte oficial.
+16. MongoDB nao substitui PostgreSQL em invariantes transacionais.
+17. Contratos externos sao versionados e retrocompativeis durante a migracao.
+
+## Estrutura DDD obrigatoria por servico
 
 ```text
-Projeto: C:\Projeto\git\projectc-school-management
-Branch: develop
-
-Leia docs/v2/96-roadmap-pos-mvp-planejamento-ia-multiescola-bff-servicos.md
-e inicie a Fase 46A - Backend de planejamento bimestral.
-
-Regras:
-- Considere develop como fonte da verdade.
-- Nao faca revisao ampla de permissoes.
-- Nao inicie BFF, Kafka, MongoDB, Redis ou separacao de microservicos agora.
-- Implemente somente o backend funcional de planejamento bimestral.
-- Se tocar backend, valide com .\mvnw.cmd test em school-management-service.
-- Ao final, documente a fase e indique a proxima.
+<nome-do-servico>/
+|-- pom.xml
+`-- src/
+    |-- main/
+    |   |-- java/br/com/escola/<servico>/
+    |   |   |-- domain/
+    |   |   |   |-- model/
+    |   |   |   |-- valueobject/
+    |   |   |   |-- aggregate/
+    |   |   |   |-- service/
+    |   |   |   |-- event/
+    |   |   |   `-- repository/
+    |   |   |-- application/
+    |   |   |   |-- usecase/
+    |   |   |   |-- service/
+    |   |   |   |-- dto/
+    |   |   |   |-- mapper/
+    |   |   |   `-- port/
+    |   |   |       |-- in/
+    |   |   |       `-- out/
+    |   |   |-- infra/
+    |   |   |   |-- config/
+    |   |   |   |-- database/
+    |   |   |   |-- repository/
+    |   |   |   |-- messaging/
+    |   |   |   |-- webclient/
+    |   |   |   |-- cache/
+    |   |   |   |-- observability/
+    |   |   |   `-- security/
+    |   |   `-- interfaces/
+    |   |       |-- rest/
+    |   |       |-- request/
+    |   |       |-- response/
+    |   |       |-- exception/
+    |   |       `-- advice/
+    |   `-- resources/
+    |       |-- application.yml
+    |       |-- logback-spring.xml
+    |       `-- db/migration/
+    `-- test/
+        |-- java/
+        `-- resources/
 ```
+
+O BFF segue as mesmas direcoes de dependencia, mas seu dominio e de composicao
+de experiencias, nao uma copia dos dominios escolares.
+
+## Topologia alvo e propriedade de dados
+
+### `school-management-bff`
+
+Responsavel por autenticar a requisicao, resolver e propagar contexto, compor
+respostas, executar orquestracoes curtas e aplicar timeout, retry seletivo,
+circuit breaker e rate limit. Nao possui tabelas de negocio.
+
+Durante o strangler, ele roteia endpoints ainda nao extraidos para o monolito e
+endpoints migrados para os novos servicos sem alterar imediatamente os
+frontends.
+
+### `identity-access-service`
+
+Responsabilidades: autenticacao, usuarios, perfis, permissoes, tokens e sessoes.
+
+Tabelas de propriedade:
+
+- `usuario`, `perfil`, `permissao`;
+- `usuario_perfil`, `perfil_permissao`;
+- `sessao_autenticacao`.
+
+### `institutional-tenant-service`
+
+Responsabilidades: escolas, vinculos usuario-escola, escola ativa e autorizacao
+de acesso ao tenant. A tabela atual `escola` inicia este contexto; o vinculo
+usuario-escola precisa deixar de ser uma relacao implicita de uma unica escola.
+
+Tabelas de propriedade:
+
+- `escola`;
+- futura `usuario_escola`, com migracao explicita a partir do modelo atual.
+
+### `academic-catalog-service`
+
+Responsabilidades: estrutura academica reutilizada pelos demais dominios.
+
+Tabelas de propriedade:
+
+- `nivel_ensino`, `periodo_letivo`, `periodo_avaliativo`;
+- `serie`, `turno`, `turma`;
+- `disciplina`, `turma_disciplina`.
+
+### `people-service`
+
+Responsabilidades: cadastro base de pessoas e seus papeis institucionais. Nao
+possui matriculas, aulas ou autenticacao.
+
+Tabelas de propriedade:
+
+- `pessoa`, `tipo_pessoa`, `pessoa_tipo_pessoa`;
+- `endereco`, `tipo_endereco`, `pessoa_endereco`;
+- `pessoa_documento`, `tipo_documento`;
+- `aluno`, `status_aluno`, `responsavel`, `parentesco`, `aluno_responsavel`;
+- `professor`, `funcionario`, `cargo`.
+
+`professor.usuarioId` e uma referencia externa ao identity service; nao deve
+permanecer como relacionamento JPA entre bancos.
+
+### `enrollment-document-service`
+
+Responsabilidades: matricula, etapas, documentos administrativos, transferencia
+e ciclo administrativo do aluno.
+
+Tabelas de propriedade:
+
+- `matricula`, `tipo_matricula`, `status_matricula`;
+- `matricula_etapa`, `etapa_matricula_modelo`, `status_etapa_matricula`;
+- `matricula_documento_entregue`, `matricula_documento_exigido`;
+- `documento`;
+- `transferencia_aluno`, `tipo_transferencia`, `status_transferencia`;
+- `aluno_historico_evento`, `tipo_evento_aluno`;
+- `solicitacao_exclusao_aluno`.
+
+O binario do documento deve migrar do filesystem local para storage de objetos;
+PostgreSQL mantem metadados e a referencia do objeto.
+
+### `pedagogical-service`
+
+Responsabilidades: alocacao docente, diario de aula, frequencia, avaliacao,
+notas, boletim e historico academico oficial.
+
+Tabelas de propriedade:
+
+- `professor_turma_disciplina`;
+- `aula`, `frequencia_aluno`, `frequencia_professor`, `situacao_frequencia`;
+- `avaliacao`, `tipo_avaliacao`, `nota_aluno`;
+- `historico_escolar`, `historico_escolar_item`.
+
+### `planning-ai-service`
+
+Responsabilidades: planejamento docente, geracao de IA, versoes, aprovacao e
+biblioteca pedagogica.
+
+Tabelas PostgreSQL de propriedade:
+
+- `planejamento_bimestral`, `planejamento_bimestral_aula`;
+- `planejamento_bimestral_avaliacao`, `status_planejamento`;
+- `planejamento_aula`, `planejamento_professor`;
+- `planejamento_ia_interacao`, `planejamento_ia_conteudo_gerado`;
+- `planejamento_ia_conteudo_versao`, `biblioteca_conteudo_pedagogico`;
+- `tipo_conteudo_ia`, `status_conteudo_ia`.
+
+MongoDB armazena prompts e respostas completos, payloads de provedores, conteudo
+flexivel e trilha rica de versoes. PostgreSQL mantem identidade, status,
+aprovacao, autoria e referencias transacionais.
+
+### `dashboard-query-service`
+
+Responsabilidades: modelos de leitura, indicadores, configuracoes, alertas e
+snapshots. Nao consulta bancos transacionais de outros servicos.
+
+Tabelas PostgreSQL de propriedade:
+
+- `publico_dashboard`, `dashboard`, `dashboard_widget`;
+- `dashboard_usuario_configuracao`, `dashboard_indicador_snapshot`.
+
+MongoDB pode manter snapshots historicos detalhados e projecoes por publico.
+Redis armazena respostas agregadas de curta duracao. As projecoes sao
+alimentadas por eventos Kafka.
+
+## Mapa das APIs atuais para os servicos-alvo
+
+O BFF preserva inicialmente as URLs publicas existentes. A tabela define o
+proprietario futuro de todas as familias REST encontradas no monolito.
+
+| APIs atuais | Proprietario alvo | Observacao de migracao |
+| --- | --- | --- |
+| `/api/auth`, `/api/usuarios`, `/api/perfis`, `/api/permissoes` | identity-access | BFF continua sendo a fachada externa |
+| `/api/periodos-letivos`, `/api/series`, `/api/turnos`, `/api/turmas`, `/api/disciplinas`, `/api/catalogos/academicos` | academic-catalog | primeiro corte pelo strangler |
+| `/api/alunos`, `/api/responsaveis`, `/api/alunos/{id}/responsaveis`, `/api/pessoas/catalogos`, consultas cadastrais | people | exclusao coordenada com enrollment |
+| CRUD de `/api/professores` | people | alocacoes nao pertencem ao people service |
+| alocacoes de professor e `/api/turmas/{id}/professores` | pedagogical | referencia professor e turma somente por ID |
+| `/api/matriculas`, seus catalogos, etapas e documentos | enrollment-document | validacoes externas por portas |
+| `/api/documentos`, `/api/documentos-alunos` | enrollment-document | binario migra para object storage |
+| `/api/transferencias`, `/api/escolas-origem` | enrollment-document | fluxo longo modelado como saga |
+| `/api/aulas`, `/api/avaliacoes`, notas e frequencias | pedagogical | eventos alimentam dashboard |
+| `/api/matriculas/{id}/boletim`, `/api/historicos-escolares` | pedagogical | registro academico oficial |
+| `/api/planejamentos-bimestrais`, `/api/planejamentos-ia` | planning-ai | MongoDB para payload flexivel, nao para status oficial |
+| todas as familias `/api/dashboard/**` | dashboard-query | substituir fan-out ao vivo por projecoes |
+| consulta de CEP | people | adapter externo com timeout/circuit breaker |
+
+Controllers que hoje misturam responsabilidades devem ser divididos por caso de
+uso no servico proprietario. Compatibilidade de URL fica no BFF, nao em um
+modulo compartilhado entre servicos.
+
+## Contratos sincronos internos iniciais
+
+Os endpoints internos usam `/internal/v1`, autenticacao service-to-service e
+nao sao expostos diretamente aos frontends.
+
+| Consumidor | Provedor | Contrato minimo |
+| --- | --- | --- |
+| BFF | identity | validar sessao e obter identidade/permissoes |
+| BFF | institutional | resolver escola ativa e validar acesso |
+| enrollment | people | validar aluno/responsavel por escola |
+| enrollment | academic-catalog | validar turma, periodo e disponibilidade |
+| pedagogical | people | validar professor/aluno ativos |
+| pedagogical | academic-catalog | consultar turma-disciplina e periodo |
+| planning-ai | pedagogical | validar alocacao docente |
+| planning-ai | academic-catalog | consultar metadados academicos |
+
+Consultas que toleram consistencia eventual devem preferir projecoes locais
+alimentadas por Kafka. Chamadas HTTP ficam reservadas para validacoes que exigem
+resposta imediata.
+
+## Orquestracoes do BFF
+
+| Experiencia | Composicao |
+| --- | --- |
+| login/sessao | identity + institutional |
+| contexto do shell | identity + institutional + configuracao de dashboard |
+| ficha do aluno | people + enrollment + pedagogical + documentos |
+| matricula | people + academic-catalog + enrollment |
+| diario/avaliacao | pedagogical + academic-catalog + people |
+| planejamento com IA | planning-ai + pedagogical + academic-catalog |
+| dashboard | dashboard-query, sem fan-out transacional em tempo real |
+
+Orquestracao de escrita com varias etapas nao fica escondida em controller. Ela
+deve ser um caso de uso de aplicacao com estados, idempotencia e compensacoes.
+
+## Catalogo inicial de eventos Kafka
+
+Padrao de topico: `school.<dominio>.<evento>.v1`. Envelope obrigatorio:
+`eventId`, `eventType`, `eventVersion`, `occurredAt`, `correlationId`,
+`causationId`, `usuarioId`, `escolaId` e `payload`.
+
+| Produtor | Eventos iniciais | Consumidores principais |
+| --- | --- | --- |
+| identity | `user-created`, `user-access-changed`, `session-revoked` | institutional, BFF/cache |
+| institutional | `school-created`, `user-school-linked`, `active-school-changed` | todos os contextos |
+| academic-catalog | `term-changed`, `class-changed`, `subject-changed`, `class-subject-changed` | enrollment, pedagogical, planning, dashboard |
+| people | `student-changed`, `responsible-changed`, `teacher-changed` | enrollment, pedagogical, dashboard |
+| enrollment | `enrollment-created`, `enrollment-status-changed`, `document-received`, `transfer-completed` | pedagogical, dashboard |
+| pedagogical | `lesson-completed`, `attendance-recorded`, `assessment-published`, `grade-recorded`, `record-closed` | planning, dashboard |
+| planning-ai | `planning-status-changed`, `ai-content-approved`, `library-content-published` | dashboard |
+
+Cada servico produtor possui `outbox_event` no proprio PostgreSQL. Cada
+consumidor possui controle de inbox/idempotencia. Falhas usam retry com backoff
+e DLT; reprocessamento deve ser operacionalmente rastreavel.
+
+## Uso concreto de Redis
+
+- BFF: rate limit, idempotencia de comandos e cache curto de composicoes;
+- identity/institutional: cache curto de sessao, permissoes e escola ativa;
+- academic-catalog: cache de catalogos por escola com invalidacao por evento;
+- planning-ai: lock de geracao e rate limit por usuario/escola/provedor;
+- dashboard-query: cache de indicadores e snapshots recentes.
+
+Chaves incluem ambiente, servico, escola e versao. Todo cache possui TTL e
+estrategia para indisponibilidade do Redis; falha de cache nao pode corromper o
+dado oficial.
+
+## Observabilidade, seguranca e resiliencia
+
+- OpenTelemetry para traces, metricas e propagacao W3C Trace Context;
+- logs JSON com `traceId`, `correlationId`, `usuarioId`, `escolaId` e servico;
+- Actuator com health, readiness, liveness e metricas Prometheus;
+- timeouts obrigatorios em toda chamada remota;
+- retry apenas para operacoes idempotentes e falhas transitorias;
+- circuit breaker e bulkhead nos clientes do BFF e servicos;
+- autenticacao externa no BFF e credencial service-to-service internamente;
+- `escolaId` validado a partir do contexto autenticado, nunca confiado apenas
+  porque veio em body ou query string;
+- segredos somente por variaveis/secret store, sem defaults reais versionados.
+
+## Estrategia de migracao incremental
+
+### Fase 51A - Diagnostico e arquitetura-alvo
+
+Estado: concluida por este documento.
+
+Entregas:
+
+- inventario do monolito e seus acoplamentos;
+- mapa de servicos e propriedade das 73 tabelas;
+- contratos sincronos, eventos e responsabilidades de dados;
+- uso de Kafka, MongoDB e Redis;
+- estrategia strangler e dominio piloto.
+
+### Fase 51B - Fundacao da plataforma distribuida
+
+Criar sem migrar regra de negocio:
+
+- parent Maven multi-modulo ou estrutura equivalente de build;
+- template DDD verificavel por testes de arquitetura;
+- Docker Compose local com PostgreSQL, Kafka, MongoDB e Redis;
+- convencoes de configuracao, erros, contexto e observabilidade;
+- contratos de envelope Kafka, outbox e idempotencia;
+- pipeline de testes unitarios, integracao e Testcontainers.
+
+Nao criar todos os servicos vazios. Criar apenas os modulos de fundacao usados
+pelo BFF e pelo primeiro servico piloto.
+
+### Fase 51C - BFF inicial e contexto distribuido
+
+- criar `school-management-bff`;
+- manter URLs externas atuais por proxy/roteamento strangler;
+- centralizar validacao da sessao e propagacao de contexto;
+- propagar `Authorization`, `correlationId`, `usuarioId` e `escolaId`;
+- configurar timeout, circuit breaker, logs e metricas;
+- manter todas as rotas inicialmente apontando para o monolito;
+- validar que os frontends operam sem mudanca funcional.
+
+### Fase 51D - Piloto `academic-catalog-service`
+
+O catalogo academico e o piloto recomendado porque possui fronteira funcional
+clara, APIs existentes, testes de integracao e escopo de escola ja iniciado.
+
+Sequencia:
+
+1. caracterizar os contratos REST atuais;
+2. criar o servico com a estrutura DDD obrigatoria;
+3. separar dominio de entidades JPA e DTOs;
+4. criar PostgreSQL/migrations de propriedade do servico;
+5. aplicar tenant em todos os agregados e consultas;
+6. implementar outbox e eventos de catalogo no Kafka;
+7. implementar cache Redis de leituras de catalogo;
+8. migrar dados com reconciliacao e contagens verificaveis;
+9. rotear `/api/periodos-letivos`, `/api/series`, `/api/turnos`, `/api/turmas`,
+   `/api/disciplinas` e vinculos pelo BFF;
+10. manter rollback por rota para o monolito durante estabilizacao;
+11. remover escrita do monolito somente depois da reconciliacao.
+
+MongoDB nao participa deste piloto porque o catalogo nao possui dado documental
+que justifique sua utilizacao.
+
+### Fase 52 - Identidade e tenant
+
+Extrair `identity-access-service` e `institutional-tenant-service`, implementar
+vinculo usuario-escola e tornar o contexto autenticado a autoridade de tenant.
+
+### Fase 53 - Pessoas
+
+Extrair `people-service`, remover relacionamentos JPA com seguranca e publicar
+eventos de aluno, responsavel e professor.
+
+### Fase 54 - Matricula e documentos
+
+Extrair `enrollment-document-service`, introduzir storage de objetos e saga de
+matricula/rematricula/transferencia.
+
+### Fase 55 - Pedagogico
+
+Extrair `pedagogical-service` com alocacao, aula, frequencia, avaliacao, notas,
+boletim e historico.
+
+### Fase 56 - Planejamento e IA
+
+Extrair `planning-ai-service`, ativar MongoDB para payloads flexiveis, Kafka para
+publicacao e Redis para locks/rate limit.
+
+### Fase 57 - Dashboard orientado a eventos
+
+Extrair `dashboard-query-service`, substituir consultas cruzadas por projecoes
+Kafka, usar MongoDB para historico detalhado e Redis para respostas recentes.
+
+### Fase 58 - Desativacao do monolito
+
+Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
+e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
+
+## Criterios de aceite por extracao
+
+- arquitetura DDD validada automaticamente;
+- nenhuma dependencia de entidade/repositorio de outro servico;
+- contrato OpenAPI e eventos versionados;
+- tenant testado com pelo menos duas escolas;
+- testes unitarios, integracao e contrato aprovados;
+- migration e reconciliacao de dados reproduziveis;
+- outbox/inbox, retry e DLT validados quando houver Kafka;
+- comportamento com Redis/Mongo/Kafka indisponiveis definido e testado;
+- logs, metricas, traces e health checks disponiveis;
+- BFF com rollback de rota documentado;
+- monolito continua operacional ate o corte definitivo.
+
+## Proxima fase pratica
+
+Iniciar a Fase 51B, limitada a fundacao executavel para dois componentes:
+`school-management-bff` e `academic-catalog-service`. A fase deve definir o
+parent Maven, o template DDD, o Docker Compose e os contratos transversais, mas
+nao deve ainda mover tabelas nem alterar rotas do frontend.

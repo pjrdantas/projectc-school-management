@@ -15,11 +15,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 ## Estado atual consolidado
 
 - O sistema continua como monolito runtime.
-- Ainda nao foi criado BFF, microservico, Kafka, MongoDB, Redis ou novo componente frontend para esta etapa.
+- Ainda nao foi criado BFF, microservico, Kafka, MongoDB ou Redis no runtime.
+- A arquitetura-alvo foi redefinida para incluir BFF orquestrador, servicos por
+  dominio, Kafka, MongoDB e Redis. O plano executavel e o mapa de propriedade de
+  dados estao em `96-roadmap-pos-mvp-planejamento-ia-multiescola-bff-servicos.md`.
 - `EscolaContextoPort` ja foi aplicado em dashboards, snapshots, consultas auxiliares de matricula, catalogo interno, planejamento bimestral, diario de aula e avaliacoes.
 - `EstruturaTurmaPort` esta consolidado em planejamento bimestral, diario de aula e avaliacoes.
 - Os usos remanescentes de `EscolaTenantService` exigem diagnostico pontual antes de novas trocas, principalmente em persistencia, matricula, documentos, historico, IA, pessoa, professor e seguranca.
-- A proxima fase sugerida no historico era diagnosticar `DisciplinaService` antes de aplicar `EscolaContextoPort`.
+- O diagnostico de `DisciplinaService` confirmou que a troca para
+  `EscolaContextoPort` ja estava aplicada no `develop`; os riscos remanescentes
+  sao de autoridade do tenant nos contratos de escrita.
+- A proxima fase passa a ser a Fase 51B: fundacao executavel para o BFF e o
+  servico piloto de catalogo academico, sem migracao de dados nesta etapa.
 
 ## Historico resumido
 
