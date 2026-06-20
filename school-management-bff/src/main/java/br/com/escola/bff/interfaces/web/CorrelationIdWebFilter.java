@@ -12,21 +12,20 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 
 import br.com.escola.bff.application.context.RequestContext;
+import br.com.escola.bff.application.context.TrustedHeaders;
 import reactor.core.publisher.Mono;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorrelationIdWebFilter implements WebFilter {
 
-    public static final String CORRELATION_ID_HEADER = "X-Correlation-Id";
-
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String correlationId = correlationId(exchange.getRequest());
         ServerHttpRequest request = exchange.getRequest().mutate()
-                .headers(headers -> headers.set(CORRELATION_ID_HEADER, correlationId))
+                .headers(headers -> headers.set(TrustedHeaders.CORRELATION_ID, correlationId))
                 .build();
-        exchange.getResponse().getHeaders().set(CORRELATION_ID_HEADER, correlationId);
+        exchange.getResponse().getHeaders().set(TrustedHeaders.CORRELATION_ID, correlationId);
 
         RequestContext context = new RequestContext(correlationId, null, null);
         return chain.filter(exchange.mutate().request(request).build())
@@ -34,7 +33,7 @@ public class CorrelationIdWebFilter implements WebFilter {
     }
 
     private String correlationId(ServerHttpRequest request) {
-        String received = request.getHeaders().getFirst(CORRELATION_ID_HEADER);
+        String received = request.getHeaders().getFirst(TrustedHeaders.CORRELATION_ID);
         return StringUtils.hasText(received) ? received.trim() : UUID.randomUUID().toString();
     }
 }

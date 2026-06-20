@@ -28,8 +28,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A Fase 51B criou o parent Maven, `school-management-bff`,
   `academic-catalog-service`, contratos transversais, Compose e testes de
   arquitetura/Testcontainers, sem migrar dados ou rotas.
-- A proxima fase passa a ser a Fase 51C: uma rota piloto pelo BFF para o
-  monolito, com propagacao de contexto, resiliencia e rollback.
+- A Fase 51C criou a rota piloto read-only `GET /api/disciplinas` no BFF para o
+  monolito, com contrato proprio, propagacao explicita do bearer/correlation ID,
+  descarte de headers de tenant forjados, timeout, circuit breaker, metricas e
+  rollback por feature flag. O frontend continua direto no monolito.
+- A proxima fase passa a ser a primeira subfase da 51D: dominio, migrations e
+  isolamento por duas escolas no `academic-catalog-service`, ainda sem cutover.
 
 ## Historico resumido
 

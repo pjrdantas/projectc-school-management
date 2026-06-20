@@ -135,6 +135,26 @@ O WSL nao faz parte do contrato da aplicacao. Ele pode ser uma dependencia do
 Docker Desktop no Windows, mas falhas locais de WSL nao bloqueiam o build
 unitario nem a evolucao do codigo.
 
+Rota piloto do BFF, mantendo o monolito em `http://localhost:8080`:
+
+```powershell
+.\school-management-service\mvnw.cmd -f pom.xml -pl school-management-bff spring-boot:run
+```
+
+```http
+GET http://localhost:8081/api/disciplinas
+Authorization: Bearer <access-token-opaco>
+X-Correlation-Id: <correlation-id-opcional>
+```
+
+Rollback da rota piloto, sem alterar codigo:
+
+```powershell
+$env:DISCIPLINAS_PROXY_ENABLED='false'
+```
+
+O frontend continua apontando para o monolito durante esta fase.
+
 ## Frontend
 
 Local: `school-management-web/host`

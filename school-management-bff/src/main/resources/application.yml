@@ -9,6 +9,22 @@ spring:
 server:
   port: ${SERVER_PORT:8081}
 
+clients:
+  monolith:
+    base-url: ${MONOLITH_BASE_URL:http://localhost:8080}
+    connect-timeout: ${MONOLITH_CONNECT_TIMEOUT:2s}
+    response-timeout: ${MONOLITH_RESPONSE_TIMEOUT:3s}
+
+features:
+  disciplinas-proxy-enabled: ${DISCIPLINAS_PROXY_ENABLED:true}
+
+resilience:
+  monolith:
+    failure-rate-threshold: ${MONOLITH_CB_FAILURE_RATE:50}
+    minimum-number-of-calls: ${MONOLITH_CB_MIN_CALLS:5}
+    sliding-window-size: ${MONOLITH_CB_WINDOW_SIZE:10}
+    open-state-duration: ${MONOLITH_CB_OPEN_DURATION:30s}
+
 management:
   endpoints:
     web:
@@ -22,4 +38,3 @@ management:
   tracing:
     sampling:
       probability: ${TRACING_SAMPLING_PROBABILITY:1.0}
-

@@ -416,6 +416,8 @@ Validacao local:
 
 ### Fase 51C - BFF inicial e contexto distribuido
 
+Estado: concluida para a rota piloto de leitura de disciplinas.
+
 - criar `school-management-bff`;
 - manter URLs externas atuais por proxy/roteamento strangler;
 - centralizar validacao da sessao e propagacao de contexto;
@@ -423,6 +425,29 @@ Validacao local:
 - configurar timeout, circuit breaker, logs e metricas;
 - manter todas as rotas inicialmente apontando para o monolito;
 - validar que os frontends operam sem mudanca funcional.
+
+Entregue:
+
+- `GET /api/disciplinas` no BFF preservando o contrato atual;
+- porta e caso de uso na camada de aplicacao, com WebClient apenas em `infra`;
+- propagacao explicita de `Authorization` e `X-Correlation-Id`;
+- descarte de headers de usuario/escola fornecidos pelo cliente;
+- timeout de conexao/resposta configuravel;
+- circuit breaker Resilience4j configuravel e exposto em metricas Micrometer;
+- erros `401`, rejeicoes downstream e indisponibilidade padronizados;
+- feature flag `DISCIPLINAS_PROXY_ENABLED` para rollback imediato;
+- testes unitarios, de arquitetura, contrato, timeout e fluxo HTTP completo com
+  monolito simulado, sem Docker/WSL;
+- nenhum frontend, tabela ou endpoint de escrita alterado.
+
+Decisao de seguranca:
+
+- enquanto identity/tenant ainda pertencem ao monolito, o BFF nao confia em
+  `X-Usuario-Id` ou `X-Escola-Id` enviados externamente;
+- o token opaco e repassado ao monolito, que continua sendo a autoridade da
+  sessao e do contexto escolar nesta fase;
+- identidade e tenant so serao propagados como headers internos depois de
+  validacao criptografica ou introspeccao confiavel na fase de identidade.
 
 ### Fase 51D - Piloto `academic-catalog-service`
 
@@ -498,8 +523,8 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Iniciar a Fase 51C - BFF inicial e contexto distribuido. Primeiro caracterizar
-as rotas atuais e criar o proxy strangler para o monolito com uma unica rota de
-prova, incluindo timeout, circuit breaker, propagacao segura de contexto e
-rollback. Nao migrar tabelas nem apontar o frontend ao BFF antes de os testes de
-contrato e integracao dessa rota passarem.
+Iniciar a Fase 51D em uma primeira subfase limitada ao dominio e persistencia do
+`academic-catalog-service`: modelar periodo, serie, turno, turma, disciplina e
+turma-disciplina sem dependencias do monolito; criar migrations para banco vazio
+e testes com duas escolas. Ainda nao copiar dados, trocar a rota do BFF nem
+habilitar escrita no novo servico nessa subfase.

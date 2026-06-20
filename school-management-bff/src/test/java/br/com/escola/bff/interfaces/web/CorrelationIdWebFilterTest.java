@@ -12,6 +12,8 @@ import reactor.test.StepVerifier;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 
+import br.com.escola.bff.application.context.TrustedHeaders;
+
 class CorrelationIdWebFilterTest {
 
     private final WebFilter filter = new CorrelationIdWebFilter();
@@ -20,13 +22,13 @@ class CorrelationIdWebFilterTest {
     void devePreservarCorrelationIdRecebido() {
         MockServerWebExchange exchange = MockServerWebExchange.from(
                 MockServerHttpRequest.get("/actuator/health")
-                        .header(CorrelationIdWebFilter.CORRELATION_ID_HEADER, "corr-123"));
+                        .header(TrustedHeaders.CORRELATION_ID, "corr-123"));
         WebFilterChain chain = ignored -> Mono.empty();
 
         StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
         assertThat(exchange.getResponse().getHeaders()
-                .getFirst(CorrelationIdWebFilter.CORRELATION_ID_HEADER)).isEqualTo("corr-123");
+                .getFirst(TrustedHeaders.CORRELATION_ID)).isEqualTo("corr-123");
     }
 
     @Test
@@ -37,6 +39,6 @@ class CorrelationIdWebFilterTest {
         StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
 
         assertThat(exchange.getResponse().getHeaders()
-                .getFirst(CorrelationIdWebFilter.CORRELATION_ID_HEADER)).isNotBlank();
+                .getFirst(TrustedHeaders.CORRELATION_ID)).isNotBlank();
     }
 }
