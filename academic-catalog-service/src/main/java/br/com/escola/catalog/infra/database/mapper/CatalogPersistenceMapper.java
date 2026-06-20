@@ -3,6 +3,7 @@ package br.com.escola.catalog.infra.database.mapper;
 import java.time.LocalDateTime;
 
 import br.com.escola.catalog.domain.model.Disciplina;
+import br.com.escola.catalog.domain.model.NivelEnsino;
 import br.com.escola.catalog.domain.model.PeriodoLetivo;
 import br.com.escola.catalog.domain.model.Serie;
 import br.com.escola.catalog.domain.model.Turma;
@@ -10,6 +11,7 @@ import br.com.escola.catalog.domain.model.TurmaDisciplina;
 import br.com.escola.catalog.domain.model.Turno;
 import br.com.escola.catalog.domain.valueobject.EscolaId;
 import br.com.escola.catalog.infra.database.entity.DisciplinaJpaEntity;
+import br.com.escola.catalog.infra.database.entity.NivelEnsinoJpaEntity;
 import br.com.escola.catalog.infra.database.entity.PeriodoLetivoJpaEntity;
 import br.com.escola.catalog.infra.database.entity.SerieJpaEntity;
 import br.com.escola.catalog.infra.database.entity.TurmaDisciplinaJpaEntity;
@@ -19,6 +21,10 @@ import br.com.escola.catalog.infra.database.entity.TurnoJpaEntity;
 public final class CatalogPersistenceMapper {
 
     private CatalogPersistenceMapper() {
+    }
+
+    public static NivelEnsino toDomain(NivelEnsinoJpaEntity entity) {
+        return new NivelEnsino(entity.getId(), entity.getCodigo(), entity.getDescricao());
     }
 
     public static PeriodoLetivoJpaEntity toEntity(PeriodoLetivo domain) {
@@ -91,4 +97,3 @@ public final class CatalogPersistenceMapper {
                 entity.getDisciplinaId(), entity.getCargaHoraria(), entity.getCreatedAt());
     }
 }
-

@@ -11,12 +11,14 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.catalog.domain.model.Disciplina;
+import br.com.escola.catalog.domain.model.NivelEnsino;
 import br.com.escola.catalog.domain.model.PeriodoLetivo;
 import br.com.escola.catalog.domain.model.Serie;
 import br.com.escola.catalog.domain.model.Turma;
 import br.com.escola.catalog.domain.model.TurmaDisciplina;
 import br.com.escola.catalog.domain.model.Turno;
 import br.com.escola.catalog.domain.repository.DisciplinaRepository;
+import br.com.escola.catalog.domain.repository.NivelEnsinoRepository;
 import br.com.escola.catalog.domain.repository.PeriodoLetivoRepository;
 import br.com.escola.catalog.domain.repository.SerieRepository;
 import br.com.escola.catalog.domain.repository.TurmaDisciplinaRepository;
@@ -25,6 +27,7 @@ import br.com.escola.catalog.domain.repository.TurnoRepository;
 import br.com.escola.catalog.domain.valueobject.EscolaId;
 import br.com.escola.catalog.infra.database.mapper.CatalogPersistenceMapper;
 import br.com.escola.catalog.infra.database.repository.DisciplinaJpaRepository;
+import br.com.escola.catalog.infra.database.repository.NivelEnsinoJpaRepository;
 import br.com.escola.catalog.infra.database.repository.PeriodoLetivoJpaRepository;
 import br.com.escola.catalog.infra.database.repository.SerieJpaRepository;
 import br.com.escola.catalog.infra.database.repository.TurmaDisciplinaJpaRepository;
@@ -34,6 +37,7 @@ import br.com.escola.catalog.infra.database.repository.TurnoJpaRepository;
 @Repository
 @Transactional
 public class CatalogPersistenceAdapter implements
+        NivelEnsinoRepository,
         PeriodoLetivoRepository,
         SerieRepository,
         TurnoRepository,
@@ -41,6 +45,7 @@ public class CatalogPersistenceAdapter implements
         TurmaRepository,
         TurmaDisciplinaRepository {
 
+    private final NivelEnsinoJpaRepository nivelEnsinoRepository;
     private final PeriodoLetivoJpaRepository periodoRepository;
     private final SerieJpaRepository serieRepository;
     private final TurnoJpaRepository turnoRepository;
@@ -49,18 +54,33 @@ public class CatalogPersistenceAdapter implements
     private final TurmaDisciplinaJpaRepository turmaDisciplinaRepository;
 
     public CatalogPersistenceAdapter(
+            NivelEnsinoJpaRepository nivelEnsinoRepository,
             PeriodoLetivoJpaRepository periodoRepository,
             SerieJpaRepository serieRepository,
             TurnoJpaRepository turnoRepository,
             DisciplinaJpaRepository disciplinaRepository,
             TurmaJpaRepository turmaRepository,
             TurmaDisciplinaJpaRepository turmaDisciplinaRepository) {
+        this.nivelEnsinoRepository = nivelEnsinoRepository;
         this.periodoRepository = periodoRepository;
         this.serieRepository = serieRepository;
         this.turnoRepository = turnoRepository;
         this.disciplinaRepository = disciplinaRepository;
         this.turmaRepository = turmaRepository;
         this.turmaDisciplinaRepository = turmaDisciplinaRepository;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<NivelEnsino> buscarPorId(UUID id) {
+        return nivelEnsinoRepository.findById(id).map(CatalogPersistenceMapper::toDomain);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<NivelEnsino> listarNiveisEnsino() {
+        return nivelEnsinoRepository.findAllByOrderByCodigoAsc().stream()
+                .map(CatalogPersistenceMapper::toDomain).toList();
     }
 
     @Override
@@ -102,6 +122,12 @@ public class CatalogPersistenceAdapter implements
     @Override
     public Turno salvar(Turno turno) {
         return toDomain(turnoRepository.save(toEntity(turno)));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Turno> buscarTurnoPorId(UUID id) {
+        return turnoRepository.findById(id).map(CatalogPersistenceMapper::toDomain);
     }
 
     @Override

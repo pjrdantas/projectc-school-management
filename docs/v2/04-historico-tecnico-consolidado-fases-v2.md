@@ -41,9 +41,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `academic-catalog-service`. Migrations para banco vazio, portas de repositorio,
   adaptadores JPA e chaves compostas garantem isolamento entre duas escolas, sem
   duplicar a entidade escola e sem cutover.
-- A proxima subfase da 51D deve implementar casos de uso e contratos REST
-  internos de leitura delimitados por escola, ainda sem copia de dados, mudanca
-  de rota do BFF ou escrita no novo servico.
+- A segunda subfase da Fase 51D criou casos de uso e contratos REST internos de
+  leitura em `/internal/v1` para todo o catalogo piloto. Token service-to-service
+  e contexto obrigatorio de usuario/escola protegem as rotas; DTOs proprios e
+  testes Testcontainers com duas escolas preservam o isolamento sem acoplar o
+  servico aos contratos do monolito.
+- A proxima subfase da 51D deve implementar comandos com tenant, idempotencia e
+  outbox persistida atomicamente, ainda sem publicacao Kafka, copia de dados ou
+  mudanca de rota no BFF.
 
 ## Historico resumido
 

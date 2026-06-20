@@ -454,7 +454,7 @@ Decisao de seguranca:
 O catalogo academico e o piloto recomendado porque possui fronteira funcional
 clara, APIs existentes, testes de integracao e escopo de escola ja iniciado.
 
-Estado: primeira subfase de dominio e persistencia concluida, sem cutover.
+Estado: segunda subfase de consultas internas concluida, sem cutover.
 
 Entregue nesta subfase:
 
@@ -469,8 +469,21 @@ Entregue nesta subfase:
   escolas diferentes;
 - testes unitarios, de arquitetura e de integracao PostgreSQL com duas escolas.
 
-Continuam fora desta subfase: APIs funcionais do novo servico, publicacao Kafka,
-cache Redis, copia de dados, roteamento do BFF e escrita fora do monolito.
+Entregue na segunda subfase:
+
+- caso de uso de consultas separado dos adapters REST e JPA;
+- endpoints `GET /internal/v1` para niveis de ensino, turnos, periodos letivos,
+  series, turmas, disciplinas e disciplinas da turma;
+- autenticacao service-to-service por token configurado exclusivamente por
+  `CATALOG_INTERNAL_API_TOKEN`, sem segredo versionado;
+- contexto obrigatorio com `X-Correlation-Id`, `X-Usuario-Id` e `X-Escola-Id`;
+- respostas internas proprias, sem depender de DTOs ou nomes de escola do
+  monolito;
+- erros no contrato HTTP v1 e testes REST/PostgreSQL comprovando que uma escola
+  nao consulta recursos da outra.
+
+Continuam fora desta subfase: escrita no novo servico, publicacao Kafka, cache
+Redis, copia de dados e roteamento do BFF.
 
 Sequencia:
 
@@ -541,9 +554,9 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Continuar a Fase 51D com uma segunda subfase limitada aos casos de uso e aos
-contratos REST internos de leitura do `academic-catalog-service`. Caracterizar a
-paridade dos contratos atuais, implementar consultas sempre delimitadas por
-escola e testar autorizacao de contexto sem rotear o BFF, copiar dados ou
-habilitar escrita no novo servico. Kafka/outbox operacional e Redis permanecem
-para subfases posteriores, depois que o contrato funcional estiver estabilizado.
+Continuar a Fase 51D com uma terceira subfase limitada aos comandos do
+`academic-catalog-service` e a persistencia transacional da outbox. Implementar
+escritas com tenant obrigatorio, idempotencia e eventos versionados gravados na
+mesma transacao do agregado, ainda sem publicar no Kafka, copiar dados ou mudar
+rotas no BFF. O publisher Kafka e a invalidacao de cache Redis entram somente
+depois que atomicidade e contratos dos comandos estiverem testados.

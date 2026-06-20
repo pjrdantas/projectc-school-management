@@ -41,3 +41,6 @@ management:
     sampling:
       probability: ${TRACING_SAMPLING_PROBABILITY:1.0}
 
+catalog:
+  internal-api:
+    token: ${CATALOG_INTERNAL_API_TOKEN:}

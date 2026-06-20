@@ -131,6 +131,11 @@ Infraestrutura local:
 docker compose -f platform/compose.yaml up -d
 ```
 
+As consultas do catalogo piloto ficam somente em `/internal/v1/**`. Para iniciar
+o servico, defina `CATALOG_INTERNAL_API_TOKEN`; as chamadas internas tambem
+exigem `X-Correlation-Id`, `X-Usuario-Id` e `X-Escola-Id`. Nenhum token real e
+versionado no repositorio.
+
 O WSL nao faz parte do contrato da aplicacao. Ele pode ser uma dependencia do
 Docker Desktop no Windows, mas falhas locais de WSL nao bloqueiam o build
 unitario nem a evolucao do codigo.
