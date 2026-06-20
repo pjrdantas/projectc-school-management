@@ -14,8 +14,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 
 ## Estado atual consolidado
 
-- O sistema continua como monolito runtime.
-- Ainda nao foi criado BFF, microservico, Kafka, MongoDB ou Redis no runtime.
+- O monolito continua como runtime funcional e fonte dos dados em producao; o
+  BFF e o primeiro servico de catalogo existem como fundacao do strangler, ainda
+  sem cutover do frontend ou das escritas.
+- PostgreSQL, Kafka, MongoDB e Redis possuem fundacao local no Compose. Nesta
+  etapa, somente o PostgreSQL do catalogo recebeu modelo e migrations proprias;
+  Kafka, MongoDB e Redis ainda nao participam do fluxo funcional.
 - A arquitetura-alvo foi redefinida para incluir BFF orquestrador, servicos por
   dominio, Kafka, MongoDB e Redis. O plano executavel e o mapa de propriedade de
   dados estao em `96-roadmap-pos-mvp-planejamento-ia-multiescola-bff-servicos.md`.
@@ -32,8 +36,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   monolito, com contrato proprio, propagacao explicita do bearer/correlation ID,
   descarte de headers de tenant forjados, timeout, circuit breaker, metricas e
   rollback por feature flag. O frontend continua direto no monolito.
-- A proxima fase passa a ser a primeira subfase da 51D: dominio, migrations e
-  isolamento por duas escolas no `academic-catalog-service`, ainda sem cutover.
+- A primeira subfase da Fase 51D criou o dominio e a persistencia independentes
+  de periodo letivo, serie, turno, turma, disciplina e turma-disciplina no
+  `academic-catalog-service`. Migrations para banco vazio, portas de repositorio,
+  adaptadores JPA e chaves compostas garantem isolamento entre duas escolas, sem
+  duplicar a entidade escola e sem cutover.
+- A proxima subfase da 51D deve implementar casos de uso e contratos REST
+  internos de leitura delimitados por escola, ainda sem copia de dados, mudanca
+  de rota do BFF ou escrita no novo servico.
 
 ## Historico resumido
 

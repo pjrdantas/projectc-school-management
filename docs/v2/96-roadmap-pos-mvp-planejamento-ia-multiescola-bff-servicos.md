@@ -454,6 +454,24 @@ Decisao de seguranca:
 O catalogo academico e o piloto recomendado porque possui fronteira funcional
 clara, APIs existentes, testes de integracao e escopo de escola ja iniciado.
 
+Estado: primeira subfase de dominio e persistencia concluida, sem cutover.
+
+Entregue nesta subfase:
+
+- modelo de dominio independente para periodo letivo, serie, turno, turma,
+  disciplina e turma-disciplina;
+- portas de repositorio no dominio e adaptadores JPA na infraestrutura;
+- migrations proprias para banco PostgreSQL vazio, incluindo os catalogos
+  globais de nivel de ensino e turno;
+- `id_escola` obrigatorio nos agregados escolares, sem duplicar a entidade
+  escola neste servico;
+- chaves estrangeiras compostas que impedem relacionamentos entre dados de
+  escolas diferentes;
+- testes unitarios, de arquitetura e de integracao PostgreSQL com duas escolas.
+
+Continuam fora desta subfase: APIs funcionais do novo servico, publicacao Kafka,
+cache Redis, copia de dados, roteamento do BFF e escrita fora do monolito.
+
 Sequencia:
 
 1. caracterizar os contratos REST atuais;
@@ -523,8 +541,9 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Iniciar a Fase 51D em uma primeira subfase limitada ao dominio e persistencia do
-`academic-catalog-service`: modelar periodo, serie, turno, turma, disciplina e
-turma-disciplina sem dependencias do monolito; criar migrations para banco vazio
-e testes com duas escolas. Ainda nao copiar dados, trocar a rota do BFF nem
-habilitar escrita no novo servico nessa subfase.
+Continuar a Fase 51D com uma segunda subfase limitada aos casos de uso e aos
+contratos REST internos de leitura do `academic-catalog-service`. Caracterizar a
+paridade dos contratos atuais, implementar consultas sempre delimitadas por
+escola e testar autorizacao de contexto sem rotear o BFF, copiar dados ou
+habilitar escrita no novo servico. Kafka/outbox operacional e Redis permanecem
+para subfases posteriores, depois que o contrato funcional estiver estabilizado.
