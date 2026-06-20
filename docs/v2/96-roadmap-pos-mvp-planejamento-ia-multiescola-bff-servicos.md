@@ -376,6 +376,8 @@ Entregas:
 
 ### Fase 51B - Fundacao da plataforma distribuida
 
+Estado: implementacao concluida.
+
 Criar sem migrar regra de negocio:
 
 - parent Maven multi-modulo ou estrutura equivalente de build;
@@ -387,6 +389,30 @@ Criar sem migrar regra de negocio:
 
 Nao criar todos os servicos vazios. Criar apenas os modulos de fundacao usados
 pelo BFF e pelo primeiro servico piloto.
+
+Entregue:
+
+- parent Maven agregando apenas BFF e catalogo, sem acoplar o build do monolito;
+- `school-management-bff` e `academic-catalog-service` executaveis em Java 21 e
+  Spring Boot 3.5.14;
+- quatro camadas DDD e regras ArchUnit impedindo dependencias para fora;
+- contexto reativo inicial com `X-Correlation-Id` no BFF;
+- portas de outbox e idempotencia no catalogo, sem publicar evento fora de uma
+  transacao de negocio;
+- contratos JSON Schema para contexto, erro HTTP e envelope Kafka;
+- Compose com PostgreSQL, Kafka em KRaft, MongoDB e Redis;
+- profile Maven `integration` com Testcontainers PostgreSQL;
+- Actuator, Prometheus e bridge OpenTelemetry nos dois runtimes.
+
+Validacao local:
+
+- build agregado e 7 testes de unidade/arquitetura aprovados;
+- 99 testes do monolito aprovados;
+- Compose e contratos JSON validados estaticamente;
+- manifests das quatro imagens validados no registry;
+- Testcontainers nao executado nesta maquina porque o servico do Docker Desktop
+  estava desabilitado. O profile permanece explicito para CI ou engine OCI
+  funcional e nao bloqueia o build padrao.
 
 ### Fase 51C - BFF inicial e contexto distribuido
 
@@ -472,7 +498,8 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Iniciar a Fase 51B, limitada a fundacao executavel para dois componentes:
-`school-management-bff` e `academic-catalog-service`. A fase deve definir o
-parent Maven, o template DDD, o Docker Compose e os contratos transversais, mas
-nao deve ainda mover tabelas nem alterar rotas do frontend.
+Iniciar a Fase 51C - BFF inicial e contexto distribuido. Primeiro caracterizar
+as rotas atuais e criar o proxy strangler para o monolito com uma unica rota de
+prova, incluindo timeout, circuit breaker, propagacao segura de contexto e
+rollback. Nao migrar tabelas nem apontar o frontend ao BFF antes de os testes de
+contrato e integracao dessa rota passarem.

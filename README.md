@@ -101,6 +101,40 @@ POST http://localhost:8080/api/auth/login
 }
 ```
 
+## Plataforma distribuida
+
+A fundacao da arquitetura distribuida e agregada pelo `pom.xml` da raiz e
+mantem o monolito com build independente.
+
+Modulos iniciais:
+
+- `school-management-bff`: fachada reativa e contexto de requisicao;
+- `academic-catalog-service`: servico piloto estruturado em DDD;
+- `platform`: Compose, contratos HTTP/eventos e bootstrap dos bancos locais.
+
+Build unitario da plataforma, sem Docker ou WSL:
+
+```powershell
+.\school-management-service\mvnw.cmd -f pom.xml verify
+```
+
+Validacao de integracao com Testcontainers, somente quando houver um engine
+Docker/OCI funcional:
+
+```powershell
+.\school-management-service\mvnw.cmd -f pom.xml -Pintegration verify
+```
+
+Infraestrutura local:
+
+```powershell
+docker compose -f platform/compose.yaml up -d
+```
+
+O WSL nao faz parte do contrato da aplicacao. Ele pode ser uma dependencia do
+Docker Desktop no Windows, mas falhas locais de WSL nao bloqueiam o build
+unitario nem a evolucao do codigo.
+
 ## Frontend
 
 Local: `school-management-web/host`

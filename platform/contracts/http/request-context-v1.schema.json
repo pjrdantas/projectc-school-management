@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://school-management.local/contracts/request-context-v1.schema.json",
+  "title": "Internal Request Context v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["correlationId", "usuarioId", "escolaId"],
+  "properties": {
+    "correlationId": { "type": "string", "minLength": 1 },
+    "usuarioId": { "type": "string", "format": "uuid" },
+    "escolaId": { "type": "string", "format": "uuid" }
+  }
+}

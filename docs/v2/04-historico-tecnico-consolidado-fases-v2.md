@@ -25,8 +25,11 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - O diagnostico de `DisciplinaService` confirmou que a troca para
   `EscolaContextoPort` ja estava aplicada no `develop`; os riscos remanescentes
   sao de autoridade do tenant nos contratos de escrita.
-- A proxima fase passa a ser a Fase 51B: fundacao executavel para o BFF e o
-  servico piloto de catalogo academico, sem migracao de dados nesta etapa.
+- A Fase 51B criou o parent Maven, `school-management-bff`,
+  `academic-catalog-service`, contratos transversais, Compose e testes de
+  arquitetura/Testcontainers, sem migrar dados ou rotas.
+- A proxima fase passa a ser a Fase 51C: uma rota piloto pelo BFF para o
+  monolito, com propagacao de contexto, resiliencia e rollback.
 
 ## Historico resumido
 
