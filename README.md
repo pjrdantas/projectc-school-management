@@ -150,6 +150,16 @@ snapshot. Falhas de leitura, escrita ou invalidacao no Redis operam em modo
 fail-open, mantendo o PostgreSQL como fonte oficial. O cache permanece
 desabilitado por padrao antes do cutover.
 
+A migracao do catalogo e opt-in e executa em dry-run por padrao. Configure as
+credenciais de origem com `CATALOG_MIGRATION_SOURCE_URL`,
+`CATALOG_MIGRATION_SOURCE_USERNAME` e `CATALOG_MIGRATION_SOURCE_PASSWORD`, alem
+da conexao de destino normal do servico. Use `CATALOG_MIGRATION_ENABLED=true`;
+o relatorio sera escrito em `target/catalog-migration-report.json`. Somente
+depois de revisar um dry-run, use `CATALOG_MIGRATION_APPLY=true`. O apply e
+recusado quando a origem viola as referencias multi-escola do destino, e pode
+ser repetido sem duplicar registros. Nenhuma dessas flags e habilitada por
+padrao.
+
 O WSL nao faz parte do contrato da aplicacao. Ele pode ser uma dependencia do
 Docker Desktop no Windows, mas falhas locais de WSL nao bloqueiam o build
 unitario nem a evolucao do codigo.

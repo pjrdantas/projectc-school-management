@@ -61,9 +61,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   com chave versionada, TTL, invalidacao local e por eventos Kafka, metricas e
   comportamento fail-open comprovado com Testcontainers. PostgreSQL permanece
   como fonte oficial e a feature fica desabilitada por padrao.
-- A proxima subfase da 51D deve preparar e executar a migracao repetivel dos
-  dados do catalogo, com contagens por escola, reconciliacao e relatorio de
-  divergencias, ainda sem mudanca de rota no BFF.
+- A sexta subfase da Fase 51D implementou migracao opt-in e repetivel do banco
+  do monolito para o PostgreSQL do catalogo. O executor preserva IDs, valida
+  referencias multi-escola, opera em dry-run por padrao e produz relatorio JSON
+  com contagens por escola e IDs ausentes, inesperados ou divergentes. Dois
+  PostgreSQL Testcontainers comprovaram repeticao e reconciliacao sem cutover.
+- A proxima subfase da 51D deve rotear apenas leituras do BFF para o catalogo,
+  rota a rota e com rollback por feature flag, depois de uma migracao real
+  reconciliada. Escritas permanecem no monolito.
 
 ## Historico resumido
 

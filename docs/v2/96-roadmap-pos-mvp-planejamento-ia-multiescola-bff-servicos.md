@@ -454,7 +454,7 @@ Decisao de seguranca:
 O catalogo academico e o piloto recomendado porque possui fronteira funcional
 clara, APIs existentes, testes de integracao e escopo de escola ja iniciado.
 
-Estado: quinta subfase de cache Redis concluida, sem cutover.
+Estado: sexta subfase de migracao e reconciliacao concluida, sem cutover.
 
 Entregue nesta subfase:
 
@@ -540,6 +540,29 @@ Entregue na quinta subfase:
 Atualizacao, exclusao, copia de dados e roteamento do BFF continuam fora desta
 subfase.
 
+Entregue na sexta subfase:
+
+- executor opt-in com conexoes independentes para o PostgreSQL do monolito e do
+  catalogo, sem acesso cruzado permanente entre os servicos;
+- dry-run como modo padrao e apply somente por configuracao explicita;
+- snapshot de origem em transacao read-only `REPEATABLE READ`;
+- carga em ordem de dependencias com IDs preservados e upsert, permitindo
+  repeticao sem duplicar registros;
+- derivacao e validacao de `id_escola` de `turma_disciplina` a partir das duas
+  referencias do monolito;
+- bloqueio do apply quando a origem possui referencias ou campos obrigatorios
+  incompativeis com as restricoes multi-escola do destino;
+- reconciliacao de todos os campos por ID, com contagens por escola e listas de
+  IDs ausentes, inesperados e divergentes;
+- relatorio JSON escrito atomicamente e invalidacao dos snapshots Redis das
+  escolas migradas;
+- Testcontainers com dois PostgreSQL comprovando duas escolas, repeticao da
+  carga e deteccao de divergencia.
+
+Atualizacao, exclusao e roteamento do BFF continuam fora desta subfase. Nenhuma
+execucao contra dados reais e automatica: as features de migracao e apply ficam
+desabilitadas por padrao.
+
 Sequencia:
 
 1. caracterizar os contratos REST atuais;
@@ -609,7 +632,7 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Continuar a Fase 51D com uma sexta subfase limitada ao plano e ao executor de
-migracao dos dados do catalogo do monolito para o PostgreSQL proprio. Exigir
-execucao repetivel, contagens por escola, reconciliacao verificavel e relatorio
-de divergencias antes de qualquer cutover. Ainda nao mudar rotas no BFF.
+Continuar a Fase 51D com uma setima subfase limitada ao roteamento read-only do
+BFF para o `academic-catalog-service`, apenas depois de uma execucao real com
+relatorio reconciliado. Fazer o cutover rota a rota, com feature flag e rollback
+imediato para o monolito; manter escritas no monolito nesta etapa.
