@@ -81,8 +81,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `GET /api/disciplinas/{id}`, `GET /api/periodos-letivos` e
   `GET /api/periodos-letivos/{id}`, com validacao de metricas e fallback
   comprovado apos indisponibilidade deliberada do `academic-catalog-service`.
-- A proxima subfase da 51D deve continuar a ampliacao read-only para `series` e
-  depois `turmas`, mantendo escritas no monolito.
+- A decima subfase da Fase 51D ampliou o cutover read-only para
+  `GET /api/series`, `GET /api/series/{id}`, `GET /api/turmas` e
+  `GET /api/turmas/{id}`, com validacao operacional ponta a ponta, metricas e
+  fallback comprovado tambem nessas quatro rotas.
+- A proxima subfase da 51D deve concluir o bloco read-only do catalogo com
+  `GET /api/turmas/{turmaId}/disciplinas`, depois `GET /api/turnos` e por fim
+  os catalogos publicos, mantendo escritas no monolito.
 
 ## Historico resumido
 

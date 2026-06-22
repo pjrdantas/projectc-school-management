@@ -656,11 +656,12 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Continuar a Fase 51D com uma nona subfase operacional de ampliacao controlada:
-habilitar as proximas leituras simples no BFF, agora para
-`GET /api/disciplinas/{id}`, `GET /api/periodos-letivos` e
-`GET /api/periodos-letivos/{id}`, reaproveitando o mesmo relatorio real
-reconciliado, fallback imediato e metricas de estabilizacao.
+Continuar a Fase 51D com uma decima subfase operacional de ampliacao
+controlada: habilitar as proximas leituras restantes do catalogo no BFF,
+comecando por `GET /api/turmas/{turmaId}/disciplinas`, depois `GET /api/turnos`
+e por fim os catalogos publicos `GET /api/academico/catalogos/turnos` e
+`GET /api/academico/catalogos/niveis-ensino`, sempre reaproveitando o mesmo
+relatorio real reconciliado, fallback imediato e metricas de estabilizacao.
 
 Entregue na oitava subfase:
 
@@ -684,6 +685,18 @@ Entregue na nona subfase:
   mantendo o monolito como rollback imediato;
 - `platform/runtime/` tratado como artefato local e ignorado pelo Git.
 
-Proximo passo pratico: continuar a ampliacao read-only para `GET /api/series`
-e `GET /api/series/{id}`, depois `GET /api/turmas` e `GET /api/turmas/{id}`,
-mantendo o mesmo gate operacional antes de qualquer rota de escrita.
+Entregue na decima subfase:
+
+- ampliacao do cutover read-only para `GET /api/series`,
+  `GET /api/series/{id}`, `GET /api/turmas` e `GET /api/turmas/{id}`;
+- validacao operacional das quatro rotas ampliadas com resposta `200` via BFF,
+  trafego confirmado no `academic-catalog-service` e gate preservado pelo
+  mesmo relatorio reconciliado da migracao real;
+- fallback comprovado tambem nessas rotas apos parada deliberada do catalogo,
+  mantendo rollback imediato para o monolito sem alterar escritas.
+
+Proximo passo pratico: concluir o bloco read-only do catalogo com
+`GET /api/turmas/{turmaId}/disciplinas`, depois `GET /api/turnos` e por fim os
+catalogos publicos `GET /api/academico/catalogos/turnos` e
+`GET /api/academico/catalogos/niveis-ensino`, mantendo o mesmo gate
+operacional antes de qualquer rota de escrita.

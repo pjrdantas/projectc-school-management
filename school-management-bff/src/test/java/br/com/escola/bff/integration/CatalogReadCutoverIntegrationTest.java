@@ -40,6 +40,10 @@ class CatalogReadCutoverIntegrationTest {
         registry.add("features.catalog-read-cutover.enabled", () -> true);
         registry.add("features.catalog-read-cutover.report-path", () -> REPORT_PATH.toString());
         registry.add("features.catalog-read-cutover.routes.disciplinas", () -> true);
+        registry.add("features.catalog-read-cutover.routes.serie-by-id", () -> true);
+        registry.add("features.catalog-read-cutover.routes.series", () -> true);
+        registry.add("features.catalog-read-cutover.routes.turmas", () -> true);
+        registry.add("features.catalog-read-cutover.routes.turma-by-id", () -> true);
         registry.add("features.catalog-read-cutover.routes.turno-by-id", () -> true);
         registry.add("management.health.redis.enabled", () -> false);
     }
@@ -125,6 +129,158 @@ class CatalogReadCutoverIntegrationTest {
         assertThat(monolithFallback.getPath()).isEqualTo("/api/turnos/00000000-0000-0000-0000-000000000051");
         var catalogRequest = CATALOG.takeRequest();
         assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/turnos/00000000-0000-0000-0000-000000000051");
+    }
+
+    @Test
+    void deveRoteaSeriesParaCatalogoQuandoRelatorioEstiverReconciliado() throws Exception {
+        MONOLITH.enqueue(json("""
+                {
+                  "usuarioId":"00000000-0000-0000-0000-000000000201",
+                  "escolaId":"00000000-0000-0000-0000-000000000047",
+                  "escolaNome":"Escola padrao",
+                  "username":"admin"
+                }
+                """));
+        CATALOG.enqueue(json("""
+                [{
+                  "id":"00000000-0000-0000-0000-000000000061",
+                  "nome":"1 Ano",
+                  "nivelEnsinoId":"00000000-0000-0000-0000-000000000011",
+                  "nivelEnsinoNome":"Fundamental I",
+                  "escolaId":"00000000-0000-0000-0000-000000000047",
+                  "escolaNome":"Escola padrao",
+                  "createdAt":"2026-06-22T12:00:00"
+                }]
+                """));
+
+        client.get().uri("/api/series")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-series")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].nome").isEqualTo("1 Ano");
+
+        var contextRequest = MONOLITH.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+
+        var catalogRequest = CATALOG.takeRequest();
+        assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/series");
+        assertThat(catalogRequest.getHeader("X-Internal-Token")).isEqualTo("internal-token");
+    }
+
+    @Test
+    void deveRoteaSeriePorIdParaCatalogoQuandoRelatorioEstiverReconciliado() throws Exception {
+        MONOLITH.enqueue(json("""
+                {
+                  "usuarioId":"00000000-0000-0000-0000-000000000201",
+                  "escolaId":"00000000-0000-0000-0000-000000000047",
+                  "escolaNome":"Escola padrao",
+                  "username":"admin"
+                }
+                """));
+        CATALOG.enqueue(json("""
+                {
+                  "id":"00000000-0000-0000-0000-000000000061",
+                  "nome":"1 Ano",
+                  "nivelEnsinoId":"00000000-0000-0000-0000-000000000011",
+                  "nivelEnsinoNome":"Fundamental I",
+                  "escolaId":"00000000-0000-0000-0000-000000000047",
+                  "escolaNome":"Escola padrao",
+                  "createdAt":"2026-06-22T12:00:00"
+                }
+                """));
+
+        client.get().uri("/api/series/00000000-0000-0000-0000-000000000061")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-serie-id")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.nome").isEqualTo("1 Ano");
+
+        var contextRequest = MONOLITH.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+
+        var catalogRequest = CATALOG.takeRequest();
+        assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/series/00000000-0000-0000-0000-000000000061");
+    }
+
+    @Test
+    void deveRoteaTurmasParaCatalogoQuandoRelatorioEstiverReconciliado() throws Exception {
+        MONOLITH.enqueue(json("""
+                {
+                  "usuarioId":"00000000-0000-0000-0000-000000000201",
+                  "escolaId":"00000000-0000-0000-0000-000000000047",
+                  "escolaNome":"Escola padrao",
+                  "username":"admin"
+                }
+                """));
+        CATALOG.enqueue(json("""
+                [{
+                  "id":"00000000-0000-0000-0000-000000000071",
+                  "nome":"Turma A",
+                  "serieId":"00000000-0000-0000-0000-000000000061",
+                  "serieNome":"1 Ano",
+                  "turnoId":"00000000-0000-0000-0000-000000000051",
+                  "turnoNome":"Manha",
+                  "escolaId":"00000000-0000-0000-0000-000000000047",
+                  "escolaNome":"Escola padrao",
+                  "createdAt":"2026-06-22T12:00:00"
+                }]
+                """));
+
+        client.get().uri("/api/turmas")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-turmas")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].nome").isEqualTo("Turma A");
+
+        var contextRequest = MONOLITH.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+
+        var catalogRequest = CATALOG.takeRequest();
+        assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/turmas");
+    }
+
+    @Test
+    void deveFazerFallbackParaMonolitoEmTurmaPorIdQuandoCatalogoFalhar() throws Exception {
+        MONOLITH.enqueue(json("""
+                {
+                  "usuarioId":"00000000-0000-0000-0000-000000000201",
+                  "escolaId":"00000000-0000-0000-0000-000000000047",
+                  "escolaNome":"Escola padrao",
+                  "username":"admin"
+                }
+                """));
+        CATALOG.enqueue(new MockResponse().setResponseCode(503));
+        MONOLITH.enqueue(json("""
+                {
+                  "id":"00000000-0000-0000-0000-000000000071",
+                  "nome":"Turma A",
+                  "serieId":"00000000-0000-0000-0000-000000000061",
+                  "serieNome":"1 Ano",
+                  "turnoId":"00000000-0000-0000-0000-000000000051",
+                  "turnoNome":"Manha"
+                }
+                """));
+
+        client.get().uri("/api/turmas/00000000-0000-0000-0000-000000000071")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-turma-id-fallback")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.nome").isEqualTo("Turma A");
+
+        var contextRequest = MONOLITH.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        var monolithFallback = MONOLITH.takeRequest();
+        assertThat(monolithFallback.getPath()).isEqualTo("/api/turmas/00000000-0000-0000-0000-000000000071");
+        var catalogRequest = CATALOG.takeRequest();
+        assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/turmas/00000000-0000-0000-0000-000000000071");
     }
 
     private static MockWebServer startServer() {
