@@ -454,7 +454,7 @@ Decisao de seguranca:
 O catalogo academico e o piloto recomendado porque possui fronteira funcional
 clara, APIs existentes, testes de integracao e escopo de escola ja iniciado.
 
-Estado: segunda subfase de consultas internas concluida, sem cutover.
+Estado: terceira subfase de comandos e outbox transacional concluida, sem cutover.
 
 Entregue nesta subfase:
 
@@ -482,8 +482,24 @@ Entregue na segunda subfase:
 - erros no contrato HTTP v1 e testes REST/PostgreSQL comprovando que uma escola
   nao consulta recursos da outra.
 
-Continuam fora desta subfase: escrita no novo servico, publicacao Kafka, cache
-Redis, copia de dados e roteamento do BFF.
+Ao final da segunda subfase, permaneciam fora: escrita no novo servico,
+publicacao Kafka, cache Redis, copia de dados e roteamento do BFF.
+
+Entregue na terceira subfase:
+
+- comandos internos de criacao para periodo letivo, serie, disciplina, turma e
+  vinculo turma-disciplina;
+- `Idempotency-Key` obrigatoria, delimitada por escola e protegida contra reuso
+  com outro comando ou payload;
+- idempotencia oficial persistida no PostgreSQL com lock transacional por chave,
+  substituindo o `SETNX` Redis que nao poderia acompanhar rollback do agregado;
+- eventos `term-created`, `grade-created`, `subject-created`, `class-created` e
+  `class-subject-created` versionados e persistidos como `PENDENTE` na outbox;
+- agregado, registro de idempotencia e outbox confirmados na mesma transacao;
+- testes de rollback, replay, conflito de chave e referencia entre escolas.
+
+Atualizacao, exclusao, publisher Kafka, cache Redis, copia de dados e roteamento
+do BFF continuam fora desta subfase.
 
 Sequencia:
 
@@ -554,9 +570,7 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Continuar a Fase 51D com uma terceira subfase limitada aos comandos do
-`academic-catalog-service` e a persistencia transacional da outbox. Implementar
-escritas com tenant obrigatorio, idempotencia e eventos versionados gravados na
-mesma transacao do agregado, ainda sem publicar no Kafka, copiar dados ou mudar
-rotas no BFF. O publisher Kafka e a invalidacao de cache Redis entram somente
-depois que atomicidade e contratos dos comandos estiverem testados.
+Continuar a Fase 51D com uma quarta subfase limitada ao publisher da outbox para
+Kafka. Publicar os cinco eventos versionados, atualizar status/tentativas apenas
+depois do resultado do broker e implementar retry/DLT observaveis com testes
+Testcontainers. Ainda nao ativar cache Redis, copiar dados ou mudar rotas no BFF.

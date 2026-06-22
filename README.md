@@ -136,6 +136,10 @@ o servico, defina `CATALOG_INTERNAL_API_TOKEN`; as chamadas internas tambem
 exigem `X-Correlation-Id`, `X-Usuario-Id` e `X-Escola-Id`. Nenhum token real e
 versionado no repositorio.
 
+Os comandos `POST` internos tambem exigem `Idempotency-Key`. A chave, o recurso
+criado e o evento de outbox sao persistidos atomicamente no PostgreSQL; o Kafka
+ainda nao e acionado neste recorte.
+
 O WSL nao faz parte do contrato da aplicacao. Ele pode ser uma dependencia do
 Docker Desktop no Windows, mas falhas locais de WSL nao bloqueiam o build
 unitario nem a evolucao do codigo.

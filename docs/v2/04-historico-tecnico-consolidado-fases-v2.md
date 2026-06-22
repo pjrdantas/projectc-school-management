@@ -46,8 +46,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   e contexto obrigatorio de usuario/escola protegem as rotas; DTOs proprios e
   testes Testcontainers com duas escolas preservam o isolamento sem acoplar o
   servico aos contratos do monolito.
-- A proxima subfase da 51D deve implementar comandos com tenant, idempotencia e
-  outbox persistida atomicamente, ainda sem publicacao Kafka, copia de dados ou
+- A terceira subfase da Fase 51D criou comandos internos de criacao com tenant,
+  `Idempotency-Key` por escola e cinco eventos versionados. Agregado,
+  idempotencia PostgreSQL e outbox `PENDENTE` compartilham a mesma transacao;
+  conflitos e referencias entre escolas revertem todos os efeitos. O antigo
+  `SETNX` Redis deixou de ser usado como fonte oficial de idempotencia.
+- A proxima subfase da 51D deve publicar a outbox no Kafka com retry, DLT,
+  metricas e testes Testcontainers, ainda sem cache Redis, copia de dados ou
   mudanca de rota no BFF.
 
 ## Historico resumido

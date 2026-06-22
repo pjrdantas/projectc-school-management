@@ -3,6 +3,7 @@ package br.com.escola.catalog.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -20,6 +21,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -36,6 +38,9 @@ import br.com.escola.catalog.domain.repository.SerieRepository;
 import br.com.escola.catalog.domain.repository.TurmaDisciplinaRepository;
 import br.com.escola.catalog.domain.repository.TurmaRepository;
 import br.com.escola.catalog.domain.valueobject.EscolaId;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.MediaType;
 
 @Testcontainers
 @AutoConfigureMockMvc
@@ -81,6 +86,9 @@ class CatalogPersistenceIT {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @BeforeEach
     void cleanDatabase() {
         jdbcTemplate.update("DELETE FROM turma_disciplina");
@@ -89,6 +97,7 @@ class CatalogPersistenceIT {
         jdbcTemplate.update("DELETE FROM serie");
         jdbcTemplate.update("DELETE FROM periodo_letivo");
         jdbcTemplate.update("DELETE FROM outbox_event");
+        jdbcTemplate.update("DELETE FROM command_idempotency");
     }
 
     @Test
@@ -107,7 +116,7 @@ class CatalogPersistenceIT {
         assertThat(disciplinaRepository.listarDisciplinas(ESCOLA_B))
                 .extracting(Disciplina::id).containsExactly(disciplinaB.id());
         assertThat(disciplinaRepository.buscarDisciplinaPorId(disciplinaA.id(), ESCOLA_B)).isEmpty();
-        assertThat(flywayMigrationCount()).isEqualTo(2);
+        assertThat(flywayMigrationCount()).isEqualTo(3);
     }
 
     @Test
@@ -208,6 +217,111 @@ class CatalogPersistenceIT {
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 
+    @Test
+    void devePersistirComandosIdempotenciaEOutboxNaMesmaEstrutura() throws Exception {
+        JsonNode periodo = response(authenticatedPost(
+                "/internal/v1/periodos-letivos", ESCOLA_A, "periodo-2026",
+                """
+                {"nome":"2026","ano":2026,"dataInicio":"2026-02-01","dataFim":"2026-12-15"}
+                """).andExpect(status().isCreated()));
+        JsonNode serie = response(authenticatedPost(
+                "/internal/v1/series", ESCOLA_A, "serie-primeiro-ano",
+                """
+                {"nome":"1 ano","ordem":1,"nivelEnsinoId":"00000000-0000-0000-0000-000000000202"}
+                """).andExpect(status().isCreated()));
+        String disciplinaBody = """
+                {"nome":"Matematica comandos","cargaHoraria":80}
+                """;
+        JsonNode disciplina = response(authenticatedPost(
+                "/internal/v1/disciplinas", ESCOLA_A, "disciplina-matematica", disciplinaBody)
+                .andExpect(status().isCreated())
+                .andExpect(header().string(InternalHeaders.IDEMPOTENCY_REPLAYED, "false")));
+        JsonNode turma = response(authenticatedPost(
+                "/internal/v1/turmas", ESCOLA_A, "turma-a",
+                """
+                {"codigo":"A","nome":"Turma A","capacidade":30,
+                 "periodoLetivoId":"%s","serieId":"%s",
+                 "turnoId":"00000000-0000-0000-0000-000000000211"}
+                """.formatted(periodo.get("id").asText(), serie.get("id").asText()))
+                .andExpect(status().isCreated()));
+        response(authenticatedPost(
+                "/internal/v1/turmas/" + turma.get("id").asText() + "/disciplinas",
+                ESCOLA_A,
+                "vinculo-matematica",
+                """
+                {"disciplinaId":"%s","cargaHoraria":80}
+                """.formatted(disciplina.get("id").asText()))
+                .andExpect(status().isCreated()));
+
+        JsonNode replay = response(authenticatedPost(
+                "/internal/v1/disciplinas", ESCOLA_A, "disciplina-matematica", disciplinaBody)
+                .andExpect(status().isCreated())
+                .andExpect(header().string(InternalHeaders.IDEMPOTENCY_REPLAYED, "true")));
+
+        assertThat(replay.get("id").asText()).isEqualTo(disciplina.get("id").asText());
+        assertThat(count("outbox_event")).isEqualTo(5);
+        assertThat(count("command_idempotency")).isEqualTo(5);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT status FROM outbox_event WHERE event_type='subject-created'", String.class))
+                .isEqualTo("PENDENTE");
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT usuario_id FROM outbox_event WHERE event_type='subject-created'", UUID.class))
+                .isEqualTo(USUARIO_ID);
+    }
+
+    @Test
+    void deveRejeitarReusoDaChaveComOutroPayload() throws Exception {
+        authenticatedPost(
+                "/internal/v1/disciplinas", ESCOLA_A, "same-key",
+                "{\"nome\":\"Matematica\",\"cargaHoraria\":80}")
+                .andExpect(status().isCreated());
+
+        authenticatedPost(
+                "/internal/v1/disciplinas", ESCOLA_A, "same-key",
+                "{\"nome\":\"Geografia\",\"cargaHoraria\":40}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("IDEMPOTENCY_CONFLICT"));
+
+        assertThat(count("disciplina")).isEqualTo(1);
+        assertThat(count("outbox_event")).isEqualTo(1);
+        assertThat(count("command_idempotency")).isEqualTo(1);
+    }
+
+    @Test
+    void deveReverterIdempotenciaEOutboxQuandoAgregadoFalha() throws Exception {
+        String body = "{\"nome\":\"Duplicada\",\"cargaHoraria\":40}";
+        authenticatedPost("/internal/v1/disciplinas", ESCOLA_A, "duplicate-1", body)
+                .andExpect(status().isCreated());
+        authenticatedPost("/internal/v1/disciplinas", ESCOLA_A, "duplicate-2", body)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CATALOG_CONFLICT"));
+
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM command_idempotency WHERE idempotency_key='duplicate-2'", Integer.class))
+                .isZero();
+        assertThat(count("outbox_event")).isEqualTo(1);
+        assertThat(count("disciplina")).isEqualTo(1);
+    }
+
+    @Test
+    void deveRejeitarReferenciaDeOutraEscolaSemRegistrarComando() throws Exception {
+        CatalogFixture fixtureA = createFixture(ESCOLA_A, "COMMAND-CROSS");
+
+        authenticatedPost(
+                "/internal/v1/turmas", ESCOLA_B, "cross-school-command",
+                """
+                {"codigo":"X","nome":"Turma cruzada","capacidade":20,
+                 "periodoLetivoId":"%s","serieId":"%s",
+                 "turnoId":"00000000-0000-0000-0000-000000000211"}
+                """.formatted(fixtureA.periodo().id(), fixtureA.serie().id()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
+
+        assertThat(count("command_idempotency")).isZero();
+        assertThat(count("outbox_event")).isZero();
+        assertThat(count("turma")).isEqualTo(1);
+    }
+
     private CatalogFixture createFixture(EscolaId escolaId, String suffix) {
         LocalDateTime now = LocalDateTime.now();
         PeriodoLetivo periodo = periodoRepository.salvar(new PeriodoLetivo(
@@ -225,6 +339,31 @@ class CatalogPersistenceIT {
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM flyway_schema_history WHERE success", Integer.class);
         return count == null ? 0 : count;
+    }
+
+    private int count(String table) {
+        if (!java.util.Set.of(
+                "disciplina", "turma", "outbox_event", "command_idempotency").contains(table)) {
+            throw new IllegalArgumentException("Tabela de teste nao permitida: " + table);
+        }
+        Integer count = jdbcTemplate.queryForObject("SELECT count(*) FROM " + table, Integer.class);
+        return count == null ? 0 : count;
+    }
+
+    private ResultActions authenticatedPost(String path, EscolaId escolaId, String key, String body)
+            throws Exception {
+        return mockMvc.perform(post(path)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+                .header(InternalHeaders.INTERNAL_TOKEN, "test-internal-token")
+                .header(InternalHeaders.CORRELATION_ID, "corr-command-51d")
+                .header(InternalHeaders.USUARIO_ID, USUARIO_ID)
+                .header(InternalHeaders.ESCOLA_ID, escolaId.value())
+                .header(InternalHeaders.IDEMPOTENCY_KEY, key));
+    }
+
+    private JsonNode response(ResultActions actions) throws Exception {
+        return objectMapper.readTree(actions.andReturn().getResponse().getContentAsByteArray());
     }
 
     private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder authenticatedGet(

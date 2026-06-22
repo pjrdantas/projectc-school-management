@@ -1,9 +1,8 @@
 package br.com.escola.catalog.application.port.out;
 
-import br.com.escola.catalog.application.event.IntegrationEventEnvelope;
+import br.com.escola.catalog.application.event.OutboxEvent;
 
 public interface IntegrationEventOutboxPort {
 
-    void adicionar(IntegrationEventEnvelope event);
+    void adicionar(OutboxEvent event);
 }
-
