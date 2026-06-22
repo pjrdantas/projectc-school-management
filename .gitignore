@@ -4,4 +4,4 @@
 *.iml
 .env
 platform/data/
-
+platform/runtime/

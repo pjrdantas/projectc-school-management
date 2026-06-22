@@ -656,8 +656,34 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Continuar a Fase 51D com uma oitava subfase operacional de ativacao controlada:
-executar uma migracao real reconciliada, montar o relatorio no BFF e habilitar
-as flags rota a rota, comecando por `GET /api/disciplinas` e `GET /api/turnos`
-outras leituras simples. Manter escritas no monolito e registrar metricas,
-erros e rollback durante a estabilizacao.
+Continuar a Fase 51D com uma nona subfase operacional de ampliacao controlada:
+habilitar as proximas leituras simples no BFF, agora para
+`GET /api/disciplinas/{id}`, `GET /api/periodos-letivos` e
+`GET /api/periodos-letivos/{id}`, reaproveitando o mesmo relatorio real
+reconciliado, fallback imediato e metricas de estabilizacao.
+
+Entregue na oitava subfase:
+
+- execucao real da migracao do catalogo do monolito para o PostgreSQL proprio,
+  com relatorio reconciliado em arquivo absoluto montado localmente no BFF;
+- ajuste do migrador para substituir os seeds globais de `nivel_ensino` e
+  `turno` quando o destino ainda esta vazio de dados escolares, resolvendo o
+  primeiro bloqueio operacional real por colisao de IDs;
+- ativacao controlada no BFF para `GET /api/disciplinas` e
+  `GET /api/turnos/{id}`;
+- validacao ponta a ponta com token real do monolito, metricas HTTP e fallback
+  comprovado ao derrubar o `academic-catalog-service`, sem mudar escritas.
+
+Entregue na nona subfase:
+
+- ampliacao do cutover read-only para `GET /api/disciplinas/{id}`,
+  `GET /api/periodos-letivos` e `GET /api/periodos-letivos/{id}`;
+- validacao operacional das tres rotas ampliadas com resposta `200` via BFF e
+  trafego confirmado no `academic-catalog-service`;
+- fallback comprovado tambem nessas rotas apos parada deliberada do catalogo,
+  mantendo o monolito como rollback imediato;
+- `platform/runtime/` tratado como artefato local e ignorado pelo Git.
+
+Proximo passo pratico: continuar a ampliacao read-only para `GET /api/series`
+e `GET /api/series/{id}`, depois `GET /api/turmas` e `GET /api/turmas/{id}`,
+mantendo o mesmo gate operacional antes de qualquer rota de escrita.

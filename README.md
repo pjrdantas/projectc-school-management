@@ -202,6 +202,19 @@ Quando a rota esta habilitada para cutover, o BFF resolve `usuarioId` e
 contexto ao `academic-catalog-service` com `CATALOG_INTERNAL_API_TOKEN` e faz
 fallback automatico para o monolito em indisponibilidade do servico novo.
 
+Rotas ja validadas operacionalmente em cutover controlado:
+
+- `GET /api/disciplinas`
+- `GET /api/disciplinas/{id}`
+- `GET /api/turnos/{id}`
+- `GET /api/periodos-letivos`
+- `GET /api/periodos-letivos/{id}`
+
+Na migracao real, o `academic-catalog-service` agora aceita substituir os seeds
+globais de `nivel_ensino` e `turno` quando o destino ainda nao possui nenhum
+dado escolar. Isso evita bloqueio por colisao de IDs no primeiro carregamento
+real, sem flexibilizar colisoes de dados escolares ja migrados.
+
 Rollback do roteamento read-only, sem alterar codigo:
 
 ```powershell
