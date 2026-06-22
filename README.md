@@ -206,6 +206,8 @@ Rotas ja validadas operacionalmente em cutover controlado:
 
 - `GET /api/disciplinas`
 - `GET /api/disciplinas/{id}`
+- `GET /api/turmas/{turmaId}/disciplinas`
+- `GET /api/turnos`
 - `GET /api/turnos/{id}`
 - `GET /api/periodos-letivos`
 - `GET /api/periodos-letivos/{id}`
@@ -213,6 +215,8 @@ Rotas ja validadas operacionalmente em cutover controlado:
 - `GET /api/series/{id}`
 - `GET /api/turmas`
 - `GET /api/turmas/{id}`
+- `GET /api/academico/catalogos/turnos`
+- `GET /api/academico/catalogos/niveis-ensino`
 
 Na migracao real, o `academic-catalog-service` agora aceita substituir os seeds
 globais de `nivel_ensino` e `turno` quando o destino ainda nao possui nenhum

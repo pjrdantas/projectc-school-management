@@ -656,10 +656,10 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Continuar a Fase 51D com uma decima subfase operacional de ampliacao
-controlada: habilitar as proximas leituras restantes do catalogo no BFF,
-comecando por `GET /api/turmas/{turmaId}/disciplinas`, depois `GET /api/turnos`
-e por fim os catalogos publicos `GET /api/academico/catalogos/turnos` e
+Continuar a Fase 51D com uma decima-primeira subfase operacional de fechamento
+do bloco read-only do catalogo no BFF, partindo de `GET /api/turmas/{turmaId}/disciplinas`,
+depois `GET /api/turnos` e por fim os catalogos publicos
+`GET /api/academico/catalogos/turnos` e
 `GET /api/academico/catalogos/niveis-ensino`, sempre reaproveitando o mesmo
 relatorio real reconciliado, fallback imediato e metricas de estabilizacao.
 
@@ -695,8 +695,18 @@ Entregue na decima subfase:
 - fallback comprovado tambem nessas rotas apos parada deliberada do catalogo,
   mantendo rollback imediato para o monolito sem alterar escritas.
 
-Proximo passo pratico: concluir o bloco read-only do catalogo com
-`GET /api/turmas/{turmaId}/disciplinas`, depois `GET /api/turnos` e por fim os
-catalogos publicos `GET /api/academico/catalogos/turnos` e
-`GET /api/academico/catalogos/niveis-ensino`, mantendo o mesmo gate
-operacional antes de qualquer rota de escrita.
+Entregue na decima-primeira subfase:
+
+- ampliacao do cutover read-only para `GET /api/turmas/{turmaId}/disciplinas`,
+  `GET /api/turnos`, `GET /api/academico/catalogos/turnos` e
+  `GET /api/academico/catalogos/niveis-ensino`;
+- validacao operacional das quatro rotas restantes com resposta `200` via BFF,
+  trafego confirmado no `academic-catalog-service` e gate preservado pelo
+  mesmo relatorio reconciliado da migracao real;
+- fallback comprovado tambem nessas rotas apos parada deliberada do catalogo,
+  mantendo rollback imediato para o monolito sem alterar escritas.
+
+Proximo passo pratico: com o bloco read-only do catalogo inteiro estabilizado
+no BFF, a proxima fase de menor risco e consolidar observabilidade e
+operacao do cutover, revisando metricas por rota, fallback, circuit breaker e
+health checks, antes de qualquer inicio de escrita no `academic-catalog-service`.
