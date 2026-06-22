@@ -454,7 +454,7 @@ Decisao de seguranca:
 O catalogo academico e o piloto recomendado porque possui fronteira funcional
 clara, APIs existentes, testes de integracao e escopo de escola ja iniciado.
 
-Estado: terceira subfase de comandos e outbox transacional concluida, sem cutover.
+Estado: quarta subfase de publicacao Kafka concluida, sem cutover.
 
 Entregue nesta subfase:
 
@@ -500,6 +500,27 @@ Entregue na terceira subfase:
 
 Atualizacao, exclusao, publisher Kafka, cache Redis, copia de dados e roteamento
 do BFF continuam fora desta subfase.
+
+Entregue na quarta subfase:
+
+- publisher transacional da outbox com reivindicacao concorrente por
+  `FOR UPDATE SKIP LOCKED` e protecao contra atualizacao por worker obsoleto;
+- publicacao dos cinco envelopes versionados no topico
+  `school.catalog.events.v1`, preservando `correlationId`, `usuarioId` e
+  `escolaId`;
+- confirmacao de `PUBLICADO` e incremento de tentativas somente depois da
+  confirmacao do broker, com topico, particao e offset registrados;
+- retry com backoff exponencial, liberacao de locks expirados e envio para DLT
+  ao esgotar as tentativas;
+- metricas de itens reivindicados, publicados, reenfileirados e enviados para
+  DLT, alem da duracao de cada ciclo;
+- feature flag desabilitada por padrao, mantendo o monolito e as rotas atuais
+  sem cutover;
+- testes unitarios do fluxo de publicacao e testes Testcontainers com
+  PostgreSQL e Kafka para os caminhos de sucesso e DLT.
+
+Atualizacao, exclusao, cache Redis, copia de dados e roteamento do BFF continuam
+fora desta subfase.
 
 Sequencia:
 
@@ -570,7 +591,7 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Continuar a Fase 51D com uma quarta subfase limitada ao publisher da outbox para
-Kafka. Publicar os cinco eventos versionados, atualizar status/tentativas apenas
-depois do resultado do broker e implementar retry/DLT observaveis com testes
-Testcontainers. Ainda nao ativar cache Redis, copiar dados ou mudar rotas no BFF.
+Continuar a Fase 51D com uma quinta subfase limitada ao cache Redis das leituras
+do catalogo por escola. Definir chaves versionadas, TTL, invalidacao pelos
+eventos do catalogo e comportamento fail-open quando o Redis estiver
+indisponivel. Ainda nao copiar dados nem mudar rotas no BFF.

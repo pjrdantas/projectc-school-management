@@ -44,3 +44,16 @@ management:
 catalog:
   internal-api:
     token: ${CATALOG_INTERNAL_API_TOKEN:}
+  outbox:
+    publisher:
+      enabled: ${CATALOG_OUTBOX_PUBLISHER_ENABLED:false}
+      topic: ${CATALOG_EVENTS_TOPIC:school.catalog.events.v1}
+      dlt-topic: ${CATALOG_EVENTS_DLT_TOPIC:school.catalog.events.v1.DLT}
+      partitions: ${CATALOG_EVENTS_PARTITIONS:3}
+      batch-size: ${CATALOG_OUTBOX_BATCH_SIZE:50}
+      max-attempts: ${CATALOG_OUTBOX_MAX_ATTEMPTS:5}
+      fixed-delay: ${CATALOG_OUTBOX_FIXED_DELAY:PT2S}
+      lock-timeout: ${CATALOG_OUTBOX_LOCK_TIMEOUT:PT1M}
+      initial-backoff: ${CATALOG_OUTBOX_INITIAL_BACKOFF:PT5S}
+      max-backoff: ${CATALOG_OUTBOX_MAX_BACKOFF:PT5M}
+      send-timeout: ${CATALOG_OUTBOX_SEND_TIMEOUT:PT10S}

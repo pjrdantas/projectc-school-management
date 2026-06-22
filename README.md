@@ -138,7 +138,10 @@ versionado no repositorio.
 
 Os comandos `POST` internos tambem exigem `Idempotency-Key`. A chave, o recurso
 criado e o evento de outbox sao persistidos atomicamente no PostgreSQL; o Kafka
-ainda nao e acionado neste recorte.
+e publicado de forma assincrona quando `CATALOG_OUTBOX_PUBLISHER_ENABLED=true`.
+O topico principal padrao e `school.catalog.events.v1`, com retry exponencial e
+DLT em `school.catalog.events.v1.DLT`. O publisher permanece desabilitado por
+padrao para nao alterar o fluxo operacional antes do cutover.
 
 O WSL nao faz parte do contrato da aplicacao. Ele pode ser uma dependencia do
 Docker Desktop no Windows, mas falhas locais de WSL nao bloqueiam o build

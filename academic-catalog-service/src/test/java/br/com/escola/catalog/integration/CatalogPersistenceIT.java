@@ -116,7 +116,7 @@ class CatalogPersistenceIT {
         assertThat(disciplinaRepository.listarDisciplinas(ESCOLA_B))
                 .extracting(Disciplina::id).containsExactly(disciplinaB.id());
         assertThat(disciplinaRepository.buscarDisciplinaPorId(disciplinaA.id(), ESCOLA_B)).isEmpty();
-        assertThat(flywayMigrationCount()).isEqualTo(3);
+        assertThat(flywayMigrationCount()).isEqualTo(4);
     }
 
     @Test

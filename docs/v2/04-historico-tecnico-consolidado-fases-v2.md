@@ -17,9 +17,10 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - O monolito continua como runtime funcional e fonte dos dados em producao; o
   BFF e o primeiro servico de catalogo existem como fundacao do strangler, ainda
   sem cutover do frontend ou das escritas.
-- PostgreSQL, Kafka, MongoDB e Redis possuem fundacao local no Compose. Nesta
-  etapa, somente o PostgreSQL do catalogo recebeu modelo e migrations proprias;
-  Kafka, MongoDB e Redis ainda nao participam do fluxo funcional.
+- PostgreSQL, Kafka, MongoDB e Redis possuem fundacao local no Compose. O
+  PostgreSQL do catalogo possui modelo e migrations proprias, e o Kafka recebe
+  os eventos da outbox quando o publisher e habilitado; MongoDB e Redis ainda
+  nao participam do fluxo funcional.
 - A arquitetura-alvo foi redefinida para incluir BFF orquestrador, servicos por
   dominio, Kafka, MongoDB e Redis. O plano executavel e o mapa de propriedade de
   dados estao em `96-roadmap-pos-mvp-planejamento-ia-multiescola-bff-servicos.md`.
@@ -51,9 +52,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   idempotencia PostgreSQL e outbox `PENDENTE` compartilham a mesma transacao;
   conflitos e referencias entre escolas revertem todos os efeitos. O antigo
   `SETNX` Redis deixou de ser usado como fonte oficial de idempotencia.
-- A proxima subfase da 51D deve publicar a outbox no Kafka com retry, DLT,
-  metricas e testes Testcontainers, ainda sem cache Redis, copia de dados ou
-  mudanca de rota no BFF.
+- A quarta subfase da Fase 51D implementou o publisher da outbox no Kafka com
+  reivindicacao concorrente, confirmacao pelo broker antes da mudanca de estado,
+  retry exponencial, DLT, metricas e testes Testcontainers PostgreSQL/Kafka. A
+  ativacao permanece protegida por feature flag e sem cutover.
+- A proxima subfase da 51D deve implementar cache Redis das leituras por escola,
+  com TTL, chaves versionadas, invalidacao por evento e comportamento fail-open,
+  ainda sem copia de dados ou mudanca de rota no BFF.
 
 ## Historico resumido
 
