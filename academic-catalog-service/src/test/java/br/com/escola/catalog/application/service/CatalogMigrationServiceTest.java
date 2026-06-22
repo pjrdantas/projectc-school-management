@@ -71,6 +71,25 @@ class CatalogMigrationServiceTest {
         verify(targetPort, never()).aplicar(invalid);
     }
 
+    @Test
+    void devePermitirSubstituirSeedsGlobaisQuandoDestinoAindaNaoPossuiDadosEscolares() {
+        var source = validSnapshot();
+        var targetWithSeedIds = new CatalogMigrationSnapshot(
+                List.of(new CatalogMigrationSnapshot.NivelEnsinoRow(
+                        UUID.randomUUID(), "FUNDAMENTAL", "Fundamental")),
+                List.of(new CatalogMigrationSnapshot.TurnoRow(
+                        UUID.randomUUID(), "MANHA", "Manha")),
+                List.of(), List.of(), List.of(), List.of(), List.of());
+        when(sourcePort.carregarSnapshot()).thenReturn(source);
+        when(targetPort.carregarSnapshot()).thenReturn(targetWithSeedIds, source);
+
+        var report = service.executar(true);
+
+        assertThat(report.applied()).isTrue();
+        assertThat(report.targetIssues()).isEmpty();
+        verify(targetPort).aplicar(source);
+    }
+
     private CatalogMigrationSnapshot validSnapshot() {
         UUID nivel = UUID.randomUUID();
         UUID turno = UUID.randomUUID();

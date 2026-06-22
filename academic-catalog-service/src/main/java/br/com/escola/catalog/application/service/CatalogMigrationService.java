@@ -73,12 +73,15 @@ public class CatalogMigrationService {
             CatalogMigrationSnapshot source,
             CatalogMigrationSnapshot target) {
         List<String> issues = new ArrayList<>();
-        findCollisions("nivel_ensino", source.niveisEnsino(), target.niveisEnsino(),
-                CatalogMigrationSnapshot.NivelEnsinoRow::id,
-                CatalogMigrationSnapshot.NivelEnsinoRow::codigo, issues);
-        findCollisions("turno", source.turnos(), target.turnos(),
-                CatalogMigrationSnapshot.TurnoRow::id,
-                CatalogMigrationSnapshot.TurnoRow::codigo, issues);
+        boolean allowGlobalSeedReplacement = targetHasNoSchoolData(target);
+        if (!allowGlobalSeedReplacement) {
+            findCollisions("nivel_ensino", source.niveisEnsino(), target.niveisEnsino(),
+                    CatalogMigrationSnapshot.NivelEnsinoRow::id,
+                    CatalogMigrationSnapshot.NivelEnsinoRow::codigo, issues);
+            findCollisions("turno", source.turnos(), target.turnos(),
+                    CatalogMigrationSnapshot.TurnoRow::id,
+                    CatalogMigrationSnapshot.TurnoRow::codigo, issues);
+        }
         findCollisions("periodo_letivo", source.periodos(), target.periodos(),
                 CatalogMigrationSnapshot.PeriodoLetivoRow::id,
                 row -> row.escolaId() + "|" + row.nome(), issues);
@@ -157,6 +160,14 @@ public class CatalogMigrationService {
             }
         });
         return issues.stream().sorted().toList();
+    }
+
+    private boolean targetHasNoSchoolData(CatalogMigrationSnapshot target) {
+        return target.periodos().isEmpty()
+                && target.series().isEmpty()
+                && target.disciplinas().isEmpty()
+                && target.turmas().isEmpty()
+                && target.turmaDisciplinas().isEmpty();
     }
 
     private List<CatalogMigrationReport.TableReport> reconciliar(

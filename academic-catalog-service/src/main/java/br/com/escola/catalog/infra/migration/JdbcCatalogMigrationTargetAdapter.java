@@ -21,6 +21,7 @@ public class JdbcCatalogMigrationTargetAdapter implements CatalogMigrationTarget
     @Override
     @Transactional
     public void aplicar(CatalogMigrationSnapshot snapshot) {
+        replaceGlobalSeedsWhenTargetHasNoSchoolData();
         snapshot.niveisEnsino().forEach(row -> jdbc.update("""
                 INSERT INTO nivel_ensino (id_nivel_ensino, codigo, descricao)
                 VALUES (?, ?, ?)
@@ -82,6 +83,28 @@ public class JdbcCatalogMigrationTargetAdapter implements CatalogMigrationTarget
                     carga_horaria = EXCLUDED.carga_horaria, created_at = EXCLUDED.created_at
                 """, row.id(), row.escolaId(), row.turmaId(), row.disciplinaId(),
                 row.cargaHoraria(), row.createdAt()));
+    }
+
+    private void replaceGlobalSeedsWhenTargetHasNoSchoolData() {
+        Integer periodos = jdbc.queryForObject("SELECT count(*) FROM periodo_letivo", Integer.class);
+        Integer series = jdbc.queryForObject("SELECT count(*) FROM serie", Integer.class);
+        Integer disciplinas = jdbc.queryForObject("SELECT count(*) FROM disciplina", Integer.class);
+        Integer turmas = jdbc.queryForObject("SELECT count(*) FROM turma", Integer.class);
+        Integer turmaDisciplinas = jdbc.queryForObject("SELECT count(*) FROM turma_disciplina", Integer.class);
+        boolean noSchoolData = isZero(periodos)
+                && isZero(series)
+                && isZero(disciplinas)
+                && isZero(turmas)
+                && isZero(turmaDisciplinas);
+        if (!noSchoolData) {
+            return;
+        }
+        jdbc.update("DELETE FROM turno");
+        jdbc.update("DELETE FROM nivel_ensino");
+    }
+
+    private boolean isZero(Integer value) {
+        return value == null || value == 0;
     }
 
     @Override

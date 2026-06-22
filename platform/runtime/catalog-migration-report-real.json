@@ -1,0 +1,66 @@
+{
+  "startedAt" : "2026-06-22T20:58:01.617165900Z",
+  "finishedAt" : "2026-06-22T20:58:01.889526900Z",
+  "applyRequested" : true,
+  "applied" : true,
+  "reconciled" : true,
+  "sourceIssues" : [ ],
+  "targetIssues" : [ ],
+  "tables" : [ {
+    "table" : "nivel_ensino",
+    "escolaId" : null,
+    "sourceCount" : 4,
+    "targetCount" : 4,
+    "missingIds" : [ ],
+    "unexpectedIds" : [ ],
+    "divergentIds" : [ ]
+  }, {
+    "table" : "turno",
+    "escolaId" : null,
+    "sourceCount" : 5,
+    "targetCount" : 5,
+    "missingIds" : [ ],
+    "unexpectedIds" : [ ],
+    "divergentIds" : [ ]
+  }, {
+    "table" : "periodo_letivo",
+    "escolaId" : "00000000-0000-0000-0000-000000000047",
+    "sourceCount" : 6,
+    "targetCount" : 6,
+    "missingIds" : [ ],
+    "unexpectedIds" : [ ],
+    "divergentIds" : [ ]
+  }, {
+    "table" : "serie",
+    "escolaId" : "00000000-0000-0000-0000-000000000047",
+    "sourceCount" : 7,
+    "targetCount" : 7,
+    "missingIds" : [ ],
+    "unexpectedIds" : [ ],
+    "divergentIds" : [ ]
+  }, {
+    "table" : "disciplina",
+    "escolaId" : "00000000-0000-0000-0000-000000000047",
+    "sourceCount" : 14,
+    "targetCount" : 14,
+    "missingIds" : [ ],
+    "unexpectedIds" : [ ],
+    "divergentIds" : [ ]
+  }, {
+    "table" : "turma",
+    "escolaId" : "00000000-0000-0000-0000-000000000047",
+    "sourceCount" : 11,
+    "targetCount" : 11,
+    "missingIds" : [ ],
+    "unexpectedIds" : [ ],
+    "divergentIds" : [ ]
+  }, {
+    "table" : "turma_disciplina",
+    "escolaId" : "00000000-0000-0000-0000-000000000047",
+    "sourceCount" : 27,
+    "targetCount" : 27,
+    "missingIds" : [ ],
+    "unexpectedIds" : [ ],
+    "divergentIds" : [ ]
+  } ]
+}

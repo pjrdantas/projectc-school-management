@@ -1,0 +1,79 @@
+[INFO] Scanning for projects...
+Downloading from central: https://repo.maven.apache.org/maven2/org/jacoco/maven-metadata.xml
+Progress (1): 237 B                   Downloaded from central: https://repo.maven.apache.org/maven2/org/jacoco/maven-metadata.xml (237 B at 536 B/s)
+[INFO] 
+[INFO] --------------< br.com.escola:school-management-service >---------------
+[INFO] Building school-management-service 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.5.14:run (default-cli) > test-compile @ school-management-service >>>
+[INFO] 
+[INFO] --- jacoco:0.8.12:prepare-agent (default) @ school-management-service ---
+[INFO] argLine set to -javaagent:C:\\Users\\pjr_d\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.12\\org.jacoco.agent-0.8.12-runtime.jar=destfile=C:\\Projeto\\git\\projectc-school-management\\school-management-service\\target\\jacoco.exec
+[INFO] 
+[INFO] --- resources:3.4.0:resources (default-resources) @ school-management-service ---
+[INFO] Copying 8 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ school-management-service ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.4.0:testResources (default-testResources) @ school-management-service ---
+[INFO] Copying 2 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ school-management-service ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] <<< spring-boot:3.5.14:run (default-cli) < test-compile @ school-management-service <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.5.14:run (default-cli) @ school-management-service ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.14)
+
+2026-06-22T17:50:59.053-03:00  INFO 10900 --- [school-management-service] [           main] b.c.e.SchoolManagementServiceApplication : Starting SchoolManagementServiceApplication using Java 21.0.11 with PID 10900 (C:\Projeto\git\projectc-school-management\school-management-service\target\classes started by pjr_d in C:\Projeto\git\projectc-school-management\school-management-service)
+2026-06-22T17:50:59.053-03:00  INFO 10900 --- [school-management-service] [           main] b.c.e.SchoolManagementServiceApplication : No active profile set, falling back to 1 default profile: "local"
+2026-06-22T17:51:01.219-03:00  INFO 10900 --- [school-management-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-06-22T17:51:01.876-03:00  INFO 10900 --- [school-management-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 637 ms. Found 73 JPA repository interfaces.
+2026-06-22T17:51:02.895-03:00  INFO 10900 --- [school-management-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-06-22T17:51:02.910-03:00  INFO 10900 --- [school-management-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-06-22T17:51:02.925-03:00  INFO 10900 --- [school-management-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.54]
+2026-06-22T17:51:03.004-03:00  INFO 10900 --- [school-management-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-06-22T17:51:03.004-03:00  INFO 10900 --- [school-management-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3902 ms
+2026-06-22T17:51:03.623-03:00  INFO 10900 --- [school-management-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-06-22T17:51:03.930-03:00  INFO 10900 --- [school-management-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@38e46765
+2026-06-22T17:51:03.930-03:00  INFO 10900 --- [school-management-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-06-22T17:51:03.946-03:00  INFO 10900 --- [school-management-service] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/gestao_escolar (PostgreSQL 18.3)
+2026-06-22T17:51:04.069-03:00  INFO 10900 --- [school-management-service] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 7 migrations (execution time 00:00.049s)
+2026-06-22T17:51:04.100-03:00  INFO 10900 --- [school-management-service] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 5
+2026-06-22T17:51:04.126-03:00  INFO 10900 --- [school-management-service] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "6 - escopo escola dashboards"
+2026-06-22T17:51:04.251-03:00  INFO 10900 --- [school-management-service] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "public", now at version v6 (execution time 00:00.118s)
+2026-06-22T17:51:04.682-03:00  INFO 10900 --- [school-management-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-06-22T17:51:04.771-03:00  INFO 10900 --- [school-management-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.49.Final
+2026-06-22T17:51:04.836-03:00  INFO 10900 --- [school-management-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-06-22T17:51:05.376-03:00  INFO 10900 --- [school-management-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-06-22T17:51:05.486-03:00  INFO 10900 --- [school-management-service] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 18.3
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-06-22T17:51:07.518-03:00  INFO 10900 --- [school-management-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-06-22T17:51:07.518-03:00  INFO 10900 --- [school-management-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-06-22T17:51:07.999-03:00  INFO 10900 --- [school-management-service] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-06-22T17:51:12.598-03:00  INFO 10900 --- [school-management-service] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name jwtUserDetailsService
+2026-06-22T17:51:13.802-03:00  INFO 10900 --- [school-management-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-06-22T17:51:13.818-03:00  INFO 10900 --- [school-management-service] [           main] b.c.e.SchoolManagementServiceApplication : Started SchoolManagementServiceApplication in 15.6 seconds (process running for 16.173)
+2026-06-22T17:56:57.437-03:00  INFO 10900 --- [school-management-service] [nio-8080-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-06-22T17:56:57.437-03:00  INFO 10900 --- [school-management-service] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-06-22T17:56:57.437-03:00  INFO 10900 --- [school-management-service] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
