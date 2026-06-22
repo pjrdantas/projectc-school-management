@@ -25,6 +25,9 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A arquitetura-alvo foi redefinida para incluir BFF orquestrador, servicos por
   dominio, Kafka, MongoDB e Redis. O plano executavel e o mapa de propriedade de
   dados estao em `96-roadmap-pos-mvp-planejamento-ia-multiescola-bff-servicos.md`.
+- O roadmap arquitetural agora tambem documenta explicitamente a arvore final
+  do monorepo, a arvore de plataforma, o papel de cada pasta raiz e a
+  convencao estrutural obrigatoria de cada servico extraido.
 - `EscolaContextoPort` ja foi aplicado em dashboards, snapshots, consultas auxiliares de matricula, catalogo interno, planejamento bimestral, diario de aula e avaliacoes.
 - `EstruturaTurmaPort` esta consolidado em planejamento bimestral, diario de aula e avaliacoes.
 - Os usos remanescentes de `EscolaTenantService` exigem diagnostico pontual antes de novas trocas, principalmente em persistencia, matricula, documentos, historico, IA, pessoa, professor e seguranca.

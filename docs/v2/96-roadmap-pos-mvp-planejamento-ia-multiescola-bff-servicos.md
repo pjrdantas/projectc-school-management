@@ -134,6 +134,112 @@ portas HTTP/eventos com contratos explicitos.
 O BFF segue as mesmas direcoes de dependencia, mas seu dominio e de composicao
 de experiencias, nao uma copia dos dominios escolares.
 
+## Arvore-alvo do repositorio
+
+O estado final desejado e um monorepo backend com multiplos runtimes Spring
+Boot independentes, cada um com seu proprio `pom.xml`, `src/`, contrato e
+persistencia. O frontend continua separado e o monolito atual permanece durante
+o strangler ate que os fluxos sejam extraidos de forma segura.
+
+```text
+projectc-school-management/
+|-- pom.xml
+|-- README.md
+|-- docs/
+|   `-- v2/
+|-- scripts/
+|-- platform/
+|   |-- compose/
+|   |-- docker/
+|   |-- observability/
+|   `-- runtime/
+|-- school-management-bff/
+|   |-- pom.xml
+|   `-- src/
+|-- identity-access-service/
+|   |-- pom.xml
+|   `-- src/
+|-- institutional-tenant-service/
+|   |-- pom.xml
+|   `-- src/
+|-- academic-catalog-service/
+|   |-- pom.xml
+|   `-- src/
+|-- people-service/
+|   |-- pom.xml
+|   `-- src/
+|-- enrollment-document-service/
+|   |-- pom.xml
+|   `-- src/
+|-- pedagogical-service/
+|   |-- pom.xml
+|   `-- src/
+|-- planning-ai-service/
+|   |-- pom.xml
+|   `-- src/
+|-- dashboard-query-service/
+|   |-- pom.xml
+|   `-- src/
+|-- school-management-service/
+|   |-- pom.xml
+|   `-- src/
+`-- school-management-web/
+```
+
+### Papel de cada pasta raiz
+
+- `pom.xml`: parent Maven do monorepo, concentrando versoes, plugins e modulos.
+- `docs/v2`: fonte da verdade arquitetural e historica da migracao.
+- `scripts`: automacoes de suporte, sem conter regra de negocio.
+- `platform`: infraestrutura local e operacional do monorepo.
+- `school-management-bff`: fachada unica dos frontends e orquestrador curto.
+- `identity-access-service`: autenticacao, usuarios, perfis, permissoes e sessoes.
+- `institutional-tenant-service`: escolas, vinculos usuario-escola e tenant
+  ativo.
+- `academic-catalog-service`: catalogo academico reutilizavel.
+- `people-service`: pessoas e papeis institucionais base.
+- `enrollment-document-service`: matriculas, documentos e transferencia.
+- `pedagogical-service`: execucao academica oficial.
+- `planning-ai-service`: planejamento docente e IA.
+- `dashboard-query-service`: modelos de leitura, indicadores e snapshots.
+- `school-management-service`: monolito legado em esvaziamento progressivo.
+- `school-management-web`: frontend, sem ser o foco da evolucao atual.
+
+## Arvore-alvo de plataforma
+
+`platform/` existe para evitar espalhar detalhes operacionais por cada modulo.
+Ela nao concentra regra de negocio e nao substitui a configuracao interna dos
+servicos.
+
+```text
+platform/
+|-- compose/
+|   |-- docker-compose.yml
+|   `-- overrides/
+|-- docker/
+|   |-- bff/
+|   |-- academic-catalog/
+|   |-- kafka/
+|   |-- postgres/
+|   `-- redis/
+|-- observability/
+|   |-- prometheus/
+|   |-- grafana/
+|   `-- dashboards/
+`-- runtime/
+    |-- logs/
+    |-- reports/
+    `-- temp/
+```
+
+Uso esperado:
+
+- `compose/`: sobe dependencias e, quando necessario, runtimes locais.
+- `docker/`: Dockerfiles e assets de empacotamento por servico.
+- `observability/`: configuracoes de Prometheus, Grafana e dashboards.
+- `runtime/`: artefatos efemeros locais, como logs e relatorios de migracao;
+  nao faz parte do contrato de codigo de negocio.
+
 ## Topologia alvo e propriedade de dados
 
 ### `school-management-bff`
@@ -254,6 +360,72 @@ Tabelas PostgreSQL de propriedade:
 MongoDB pode manter snapshots historicos detalhados e projecoes por publico.
 Redis armazena respostas agregadas de curta duracao. As projecoes sao
 alimentadas por eventos Kafka.
+
+## Mapa final de runtimes
+
+| Pasta raiz | Runtime final | Responsabilidade principal | Banco oficial | Integracoes esperadas |
+| --- | --- | --- | --- | --- |
+| `school-management-bff` | sim | fachada, contexto, composicao e strangler | nenhum banco de negocio | HTTP interno, Redis opcional para concerns tecnicos |
+| `identity-access-service` | sim | identidade e acesso | PostgreSQL proprio | HTTP interno, Kafka |
+| `institutional-tenant-service` | sim | tenant e escola ativa | PostgreSQL proprio | HTTP interno, Kafka |
+| `academic-catalog-service` | sim | catalogo academico | PostgreSQL proprio | HTTP interno, Kafka, Redis |
+| `people-service` | sim | pessoa, aluno, responsavel, professor, funcionario | PostgreSQL proprio | HTTP interno, Kafka |
+| `enrollment-document-service` | sim | matricula, documentos e transferencia | PostgreSQL proprio | HTTP interno, Kafka, object storage |
+| `pedagogical-service` | sim | aula, frequencia, avaliacao, boletim e historico | PostgreSQL proprio | HTTP interno, Kafka, Redis opcional |
+| `planning-ai-service` | sim | planejamento docente e IA | PostgreSQL proprio | MongoDB, Kafka, provedores IA |
+| `dashboard-query-service` | sim | leitura agregada e snapshots | PostgreSQL proprio | Kafka, Redis, MongoDB opcional |
+| `school-management-service` | transitorio | monolito legado durante o strangler | `gestao_escolar` atual | atende BFF enquanto houver rotas nao extraidas |
+| `school-management-web` | fora do backend | frontend | n/a | consome o BFF quando o corte externo for concluido |
+
+## Convencao final para cada servico
+
+Toda nova extracao deve nascer diretamente na estrutura DDD padrao, sem criar
+pacotes temporarios do tipo `controller/service/repository` na raiz do modulo.
+O formato esperado e:
+
+```text
+<servico>/
+|-- pom.xml
+`-- src/
+    |-- main/
+    |   |-- java/br/com/escola/<servico>/
+    |   |   |-- domain/
+    |   |   |-- application/
+    |   |   |-- infra/
+    |   |   `-- interfaces/
+    |   `-- resources/
+    |       |-- application.yml
+    |       |-- logback-spring.xml
+    |       `-- db/migration/
+    `-- test/
+        |-- java/
+        `-- resources/
+```
+
+Regras de leitura dessa arvore:
+
+- `domain`: regra de negocio pura, sem Spring, HTTP, JPA, Kafka, Redis ou
+  MongoDB.
+- `application`: casos de uso, DTOs e portas.
+- `infra`: implementacoes tecnicas de banco, mensageria, cache, clientes e
+  seguranca.
+- `interfaces`: REST, requests, responses e tratamento de erro.
+- `resources/db/migration`: migrations locais do servico, nunca compartilhadas
+  entre servicos.
+
+## Estado final esperado do monolito
+
+`school-management-service` nao desaparece no inicio da migracao. O plano e:
+
+1. ele continua operacional enquanto o BFF faz strangler rota a rota;
+2. dominios extraidos deixam de escrever e ler diretamente por ele;
+3. restam apenas fluxos ainda nao migrados e, eventualmente, adaptadores de
+   compatibilidade temporarios;
+4. quando o esvaziamento for suficiente, o monolito pode ser aposentado ou
+   reduzido a um modulo residual estritamente necessario.
+
+Portanto, a arvore final do repositorio ainda pode conter o monolito por um
+tempo, mas ele deixa de ser o centro do sistema.
 
 ## Mapa das APIs atuais para os servicos-alvo
 
