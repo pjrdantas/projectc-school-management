@@ -11,6 +11,8 @@ import java.util.function.Supplier;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import br.com.escola.catalog.application.command.CommandResult;
 import br.com.escola.catalog.application.command.CreateDisciplinaCommand;
@@ -30,6 +32,7 @@ import br.com.escola.catalog.application.exception.CatalogResourceNotFoundExcept
 import br.com.escola.catalog.application.exception.IdempotencyConflictException;
 import br.com.escola.catalog.application.idempotency.CommandIdempotency;
 import br.com.escola.catalog.application.port.in.CatalogCommandUseCase;
+import br.com.escola.catalog.application.port.out.CatalogReadCachePort;
 import br.com.escola.catalog.application.port.out.IdempotencyPort;
 import br.com.escola.catalog.application.port.out.IntegrationEventOutboxPort;
 import br.com.escola.catalog.domain.model.Disciplina;
@@ -59,6 +62,7 @@ public class CatalogCommandService implements CatalogCommandUseCase {
     private final TurmaDisciplinaRepository turmaDisciplinaRepository;
     private final IdempotencyPort idempotencyPort;
     private final IntegrationEventOutboxPort outboxPort;
+    private final CatalogReadCachePort cachePort;
 
     public CatalogCommandService(
             NivelEnsinoRepository nivelEnsinoRepository,
@@ -69,7 +73,8 @@ public class CatalogCommandService implements CatalogCommandUseCase {
             TurmaRepository turmaRepository,
             TurmaDisciplinaRepository turmaDisciplinaRepository,
             IdempotencyPort idempotencyPort,
-            IntegrationEventOutboxPort outboxPort) {
+            IntegrationEventOutboxPort outboxPort,
+            CatalogReadCachePort cachePort) {
         this.nivelEnsinoRepository = nivelEnsinoRepository;
         this.periodoRepository = periodoRepository;
         this.serieRepository = serieRepository;
@@ -79,6 +84,7 @@ public class CatalogCommandService implements CatalogCommandUseCase {
         this.turmaDisciplinaRepository = turmaDisciplinaRepository;
         this.idempotencyPort = idempotencyPort;
         this.outboxPort = outboxPort;
+        this.cachePort = cachePort;
     }
 
     @Override
@@ -227,7 +233,21 @@ public class CatalogCommandService implements CatalogCommandUseCase {
         outboxPort.adicionar(created.event());
         idempotencyPort.salvar(new CommandIdempotency(
                 escolaId, validKey, fingerprint, resourceType, created.resourceId(), Instant.now()));
+        invalidarCacheAposCommit(context);
         return new CommandResult<>(created.response(), false);
+    }
+
+    private void invalidarCacheAposCommit(InternalRequestContext context) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            cachePort.invalidar(context.escolaId());
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                cachePort.invalidar(context.escolaId());
+            }
+        });
     }
 
     private <T> CreatedResource<T> created(

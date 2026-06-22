@@ -18,9 +18,10 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   BFF e o primeiro servico de catalogo existem como fundacao do strangler, ainda
   sem cutover do frontend ou das escritas.
 - PostgreSQL, Kafka, MongoDB e Redis possuem fundacao local no Compose. O
-  PostgreSQL do catalogo possui modelo e migrations proprias, e o Kafka recebe
-  os eventos da outbox quando o publisher e habilitado; MongoDB e Redis ainda
-  nao participam do fluxo funcional.
+  PostgreSQL do catalogo possui modelo e migrations proprias, o Kafka recebe os
+  eventos da outbox e o Redis pode armazenar snapshots descartaveis por escola
+  quando as respectivas features sao habilitadas; MongoDB ainda nao participa
+  do fluxo funcional.
 - A arquitetura-alvo foi redefinida para incluir BFF orquestrador, servicos por
   dominio, Kafka, MongoDB e Redis. O plano executavel e o mapa de propriedade de
   dados estao em `96-roadmap-pos-mvp-planejamento-ia-multiescola-bff-servicos.md`.
@@ -56,9 +57,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   reivindicacao concorrente, confirmacao pelo broker antes da mudanca de estado,
   retry exponencial, DLT, metricas e testes Testcontainers PostgreSQL/Kafka. A
   ativacao permanece protegida por feature flag e sem cutover.
-- A proxima subfase da 51D deve implementar cache Redis das leituras por escola,
-  com TTL, chaves versionadas, invalidacao por evento e comportamento fail-open,
-  ainda sem copia de dados ou mudanca de rota no BFF.
+- A quinta subfase da Fase 51D implementou cache Redis das leituras por escola,
+  com chave versionada, TTL, invalidacao local e por eventos Kafka, metricas e
+  comportamento fail-open comprovado com Testcontainers. PostgreSQL permanece
+  como fonte oficial e a feature fica desabilitada por padrao.
+- A proxima subfase da 51D deve preparar e executar a migracao repetivel dos
+  dados do catalogo, com contagens por escola, reconciliacao e relatorio de
+  divergencias, ainda sem mudanca de rota no BFF.
 
 ## Historico resumido
 

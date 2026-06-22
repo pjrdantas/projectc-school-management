@@ -454,7 +454,7 @@ Decisao de seguranca:
 O catalogo academico e o piloto recomendado porque possui fronteira funcional
 clara, APIs existentes, testes de integracao e escopo de escola ja iniciado.
 
-Estado: quarta subfase de publicacao Kafka concluida, sem cutover.
+Estado: quinta subfase de cache Redis concluida, sem cutover.
 
 Entregue nesta subfase:
 
@@ -521,6 +521,24 @@ Entregue na quarta subfase:
 
 Atualizacao, exclusao, cache Redis, copia de dados e roteamento do BFF continuam
 fora desta subfase.
+
+Entregue na quinta subfase:
+
+- snapshot descartavel das leituras do catalogo por escola, mantendo o
+  PostgreSQL como fonte oficial;
+- chave `ambiente:academic-catalog:escola:catalog-read:v1`, sem compartilhamento
+  de dados entre tenants e sem varredura por prefixo;
+- TTL configuravel e feature flag desabilitada por padrao antes do cutover;
+- invalidacao local depois de comandos novos e invalidacao entre instancias ao
+  consumir os cinco eventos versionados do catalogo no Kafka;
+- comportamento fail-open em leitura, escrita e invalidacao: falha no Redis
+  gera metrica/log e a consulta continua pelo PostgreSQL;
+- metricas de hit, miss, escrita, invalidacao e fail-open;
+- testes unitarios e Testcontainers validando cache hit/miss, eventos,
+  isolamento por escola, TTL e indisponibilidade real do Redis.
+
+Atualizacao, exclusao, copia de dados e roteamento do BFF continuam fora desta
+subfase.
 
 Sequencia:
 
@@ -591,7 +609,7 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Continuar a Fase 51D com uma quinta subfase limitada ao cache Redis das leituras
-do catalogo por escola. Definir chaves versionadas, TTL, invalidacao pelos
-eventos do catalogo e comportamento fail-open quando o Redis estiver
-indisponivel. Ainda nao copiar dados nem mudar rotas no BFF.
+Continuar a Fase 51D com uma sexta subfase limitada ao plano e ao executor de
+migracao dos dados do catalogo do monolito para o PostgreSQL proprio. Exigir
+execucao repetivel, contagens por escola, reconciliacao verificavel e relatorio
+de divergencias antes de qualquer cutover. Ainda nao mudar rotas no BFF.

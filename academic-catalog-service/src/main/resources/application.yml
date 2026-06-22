@@ -57,3 +57,10 @@ catalog:
       initial-backoff: ${CATALOG_OUTBOX_INITIAL_BACKOFF:PT5S}
       max-backoff: ${CATALOG_OUTBOX_MAX_BACKOFF:PT5M}
       send-timeout: ${CATALOG_OUTBOX_SEND_TIMEOUT:PT10S}
+  cache:
+    enabled: ${CATALOG_CACHE_ENABLED:false}
+    environment: ${DEPLOYMENT_ENVIRONMENT:local}
+    ttl: ${CATALOG_CACHE_TTL:PT5M}
+    kafka:
+      enabled: ${CATALOG_CACHE_KAFKA_ENABLED:true}
+      group-id: ${CATALOG_CACHE_KAFKA_GROUP_ID:academic-catalog-cache-v1}

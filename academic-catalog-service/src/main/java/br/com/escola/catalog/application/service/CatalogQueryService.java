@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import br.com.escola.catalog.application.cache.CatalogReadSnapshot;
 import br.com.escola.catalog.application.context.InternalRequestContext;
 import br.com.escola.catalog.application.dto.DisciplinaResponse;
 import br.com.escola.catalog.application.dto.NivelEnsinoResponse;
@@ -18,6 +19,7 @@ import br.com.escola.catalog.application.dto.TurmaResponse;
 import br.com.escola.catalog.application.dto.TurnoResponse;
 import br.com.escola.catalog.application.exception.CatalogResourceNotFoundException;
 import br.com.escola.catalog.application.port.in.CatalogQueryUseCase;
+import br.com.escola.catalog.application.port.out.CatalogReadCachePort;
 import br.com.escola.catalog.domain.model.Disciplina;
 import br.com.escola.catalog.domain.model.NivelEnsino;
 import br.com.escola.catalog.domain.model.PeriodoLetivo;
@@ -43,6 +45,8 @@ public class CatalogQueryService implements CatalogQueryUseCase {
     private final DisciplinaRepository disciplinaRepository;
     private final TurmaRepository turmaRepository;
     private final TurmaDisciplinaRepository turmaDisciplinaRepository;
+    private final CatalogReadCachePort cachePort;
+    private final CatalogCacheSettings cacheSettings;
 
     public CatalogQueryService(
             NivelEnsinoRepository nivelEnsinoRepository,
@@ -51,7 +55,9 @@ public class CatalogQueryService implements CatalogQueryUseCase {
             TurnoRepository turnoRepository,
             DisciplinaRepository disciplinaRepository,
             TurmaRepository turmaRepository,
-            TurmaDisciplinaRepository turmaDisciplinaRepository) {
+            TurmaDisciplinaRepository turmaDisciplinaRepository,
+            CatalogReadCachePort cachePort,
+            CatalogCacheSettings cacheSettings) {
         this.nivelEnsinoRepository = nivelEnsinoRepository;
         this.periodoRepository = periodoRepository;
         this.serieRepository = serieRepository;
@@ -59,105 +65,121 @@ public class CatalogQueryService implements CatalogQueryUseCase {
         this.disciplinaRepository = disciplinaRepository;
         this.turmaRepository = turmaRepository;
         this.turmaDisciplinaRepository = turmaDisciplinaRepository;
+        this.cachePort = cachePort;
+        this.cacheSettings = cacheSettings;
     }
 
     @Override
     public List<NivelEnsinoResponse> listarNiveisEnsino(InternalRequestContext context) {
-        requireContext(context);
-        return nivelEnsinoRepository.listarNiveisEnsino().stream().map(this::toResponse).toList();
+        return snapshot(context).niveisEnsino();
     }
 
     @Override
     public List<TurnoResponse> listarTurnos(InternalRequestContext context) {
-        requireContext(context);
-        return turnoRepository.listarTurnos().stream().map(this::toResponse).toList();
+        return snapshot(context).turnos();
     }
 
     @Override
     public TurnoResponse buscarTurno(UUID id, InternalRequestContext context) {
-        requireContext(context);
-        return turnoRepository.buscarTurnoPorId(id).map(this::toResponse)
+        return snapshot(context).turnos().stream().filter(item -> item.id().equals(id)).findFirst()
                 .orElseThrow(() -> notFound("Turno", id));
     }
 
     @Override
     public List<PeriodoLetivoResponse> listarPeriodos(InternalRequestContext context) {
-        return periodoRepository.listarPeriodos(requireContext(context).escolaId()).stream()
-                .map(this::toResponse).toList();
+        return snapshot(context).periodos();
     }
 
     @Override
     public PeriodoLetivoResponse buscarPeriodo(UUID id, InternalRequestContext context) {
-        return periodoRepository.buscarPeriodoPorId(id, requireContext(context).escolaId())
-                .map(this::toResponse).orElseThrow(() -> notFound("Periodo letivo", id));
+        return snapshot(context).periodos().stream().filter(item -> item.id().equals(id)).findFirst()
+                .orElseThrow(() -> notFound("Periodo letivo", id));
     }
 
     @Override
     public List<SerieResponse> listarSeries(InternalRequestContext context) {
-        InternalRequestContext required = requireContext(context);
-        Map<UUID, NivelEnsino> niveis = nivelEnsinoRepository.listarNiveisEnsino().stream()
-                .collect(Collectors.toMap(NivelEnsino::id, Function.identity()));
-        return serieRepository.listarSeries(required.escolaId()).stream()
-                .map(serie -> toResponse(serie, niveis.get(serie.nivelEnsinoId()))).toList();
+        return snapshot(context).series();
     }
 
     @Override
     public SerieResponse buscarSerie(UUID id, InternalRequestContext context) {
-        Serie serie = serieRepository.buscarSeriePorId(id, requireContext(context).escolaId())
+        return snapshot(context).series().stream().filter(item -> item.id().equals(id)).findFirst()
                 .orElseThrow(() -> notFound("Serie", id));
-        NivelEnsino nivel = nivelEnsinoRepository.buscarPorId(serie.nivelEnsinoId())
-                .orElseThrow(() -> notFound("Nivel de ensino", serie.nivelEnsinoId()));
-        return toResponse(serie, nivel);
     }
 
     @Override
     public List<TurmaResponse> listarTurmas(InternalRequestContext context) {
-        InternalRequestContext required = requireContext(context);
-        Map<UUID, Serie> series = serieRepository.listarSeries(required.escolaId()).stream()
-                .collect(Collectors.toMap(Serie::id, Function.identity()));
-        Map<UUID, Turno> turnos = turnoRepository.listarTurnos().stream()
-                .collect(Collectors.toMap(Turno::id, Function.identity()));
-        return turmaRepository.listarTurmas(required.escolaId()).stream()
-                .map(turma -> toResponse(turma, series.get(turma.serieId()), turnos.get(turma.turnoId())))
-                .toList();
+        return snapshot(context).turmas();
     }
 
     @Override
     public TurmaResponse buscarTurma(UUID id, InternalRequestContext context) {
-        InternalRequestContext required = requireContext(context);
-        Turma turma = turmaRepository.buscarTurmaPorId(id, required.escolaId())
+        return snapshot(context).turmas().stream().filter(item -> item.id().equals(id)).findFirst()
                 .orElseThrow(() -> notFound("Turma", id));
-        Serie serie = serieRepository.buscarSeriePorId(turma.serieId(), required.escolaId())
-                .orElseThrow(() -> notFound("Serie", turma.serieId()));
-        Turno turno = turnoRepository.buscarTurnoPorId(turma.turnoId())
-                .orElseThrow(() -> notFound("Turno", turma.turnoId()));
-        return toResponse(turma, serie, turno);
     }
 
     @Override
     public List<DisciplinaResponse> listarDisciplinas(InternalRequestContext context) {
-        return disciplinaRepository.listarDisciplinas(requireContext(context).escolaId()).stream()
-                .map(this::toResponse).toList();
+        return snapshot(context).disciplinas();
     }
 
     @Override
     public DisciplinaResponse buscarDisciplina(UUID id, InternalRequestContext context) {
-        return disciplinaRepository.buscarDisciplinaPorId(id, requireContext(context).escolaId())
-                .map(this::toResponse).orElseThrow(() -> notFound("Disciplina", id));
+        return snapshot(context).disciplinas().stream().filter(item -> item.id().equals(id)).findFirst()
+                .orElseThrow(() -> notFound("Disciplina", id));
     }
 
     @Override
     public List<TurmaDisciplinaResponse> listarDisciplinasDaTurma(
             UUID turmaId,
             InternalRequestContext context) {
+        CatalogReadSnapshot snapshot = snapshot(context);
+        if (snapshot.turmas().stream().noneMatch(item -> item.id().equals(turmaId))) {
+            throw notFound("Turma", turmaId);
+        }
+        return snapshot.turmaDisciplinas().stream()
+                .filter(item -> item.turmaId().equals(turmaId)).toList();
+    }
+
+    private CatalogReadSnapshot snapshot(InternalRequestContext context) {
         InternalRequestContext required = requireContext(context);
-        turmaRepository.buscarTurmaPorId(turmaId, required.escolaId())
-                .orElseThrow(() -> notFound("Turma", turmaId));
-        Map<UUID, Disciplina> disciplinas = disciplinaRepository.listarDisciplinas(required.escolaId()).stream()
+        return cachePort.buscar(required.escolaId()).orElseGet(() -> {
+            CatalogReadSnapshot loaded = carregarSnapshot(required);
+            cachePort.armazenar(required.escolaId(), loaded, cacheSettings.ttl());
+            return loaded;
+        });
+    }
+
+    private CatalogReadSnapshot carregarSnapshot(InternalRequestContext context) {
+        List<NivelEnsino> niveisDomain = nivelEnsinoRepository.listarNiveisEnsino();
+        Map<UUID, NivelEnsino> niveis = niveisDomain.stream()
+                .collect(Collectors.toMap(NivelEnsino::id, Function.identity()));
+        List<Turno> turnosDomain = turnoRepository.listarTurnos();
+        Map<UUID, Turno> turnos = turnosDomain.stream()
+                .collect(Collectors.toMap(Turno::id, Function.identity()));
+        List<Serie> seriesDomain = serieRepository.listarSeries(context.escolaId());
+        Map<UUID, Serie> series = seriesDomain.stream()
+                .collect(Collectors.toMap(Serie::id, Function.identity()));
+        List<Turma> turmasDomain = turmaRepository.listarTurmas(context.escolaId());
+        List<Disciplina> disciplinasDomain = disciplinaRepository.listarDisciplinas(context.escolaId());
+        Map<UUID, Disciplina> disciplinas = disciplinasDomain.stream()
                 .collect(Collectors.toMap(Disciplina::id, Function.identity()));
-        return turmaDisciplinaRepository.listarVinculosPorTurma(turmaId, required.escolaId()).stream()
+        List<TurmaDisciplinaResponse> vinculos = turmasDomain.stream()
+                .flatMap(turma -> turmaDisciplinaRepository
+                        .listarVinculosPorTurma(turma.id(), context.escolaId()).stream())
                 .map(vinculo -> toResponse(vinculo, disciplinas.get(vinculo.disciplinaId())))
                 .toList();
+
+        return new CatalogReadSnapshot(
+                niveisDomain.stream().map(this::toResponse).toList(),
+                turnosDomain.stream().map(this::toResponse).toList(),
+                periodoRepository.listarPeriodos(context.escolaId()).stream().map(this::toResponse).toList(),
+                seriesDomain.stream().map(serie -> toResponse(serie, niveis.get(serie.nivelEnsinoId()))).toList(),
+                turmasDomain.stream()
+                        .map(turma -> toResponse(turma, series.get(turma.serieId()), turnos.get(turma.turnoId())))
+                        .toList(),
+                disciplinasDomain.stream().map(this::toResponse).toList(),
+                vinculos);
     }
 
     private InternalRequestContext requireContext(InternalRequestContext context) {

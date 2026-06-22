@@ -143,6 +143,13 @@ O topico principal padrao e `school.catalog.events.v1`, com retry exponencial e
 DLT em `school.catalog.events.v1.DLT`. O publisher permanece desabilitado por
 padrao para nao alterar o fluxo operacional antes do cutover.
 
+As leituras podem usar um snapshot Redis isolado por escola quando
+`CATALOG_CACHE_ENABLED=true`. A chave inclui ambiente, servico, escola e versao;
+o TTL padrao e cinco minutos. Comandos novos e eventos Kafka invalidam o
+snapshot. Falhas de leitura, escrita ou invalidacao no Redis operam em modo
+fail-open, mantendo o PostgreSQL como fonte oficial. O cache permanece
+desabilitado por padrao antes do cutover.
+
 O WSL nao faz parte do contrato da aplicacao. Ele pode ser uma dependencia do
 Docker Desktop no Windows, mas falhas locais de WSL nao bloqueiam o build
 unitario nem a evolucao do codigo.
