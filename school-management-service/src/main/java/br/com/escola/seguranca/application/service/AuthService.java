@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.seguranca.adapter.in.web.dto.AuthContextResponse;
 import br.com.escola.seguranca.adapter.in.web.dto.AuthResponse;
 import br.com.escola.professor.adapter.out.persistence.repository.ProfessorJpaRepository;
 import br.com.escola.seguranca.adapter.out.persistence.entity.SessaoAutenticacaoEntity;
@@ -150,11 +151,21 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public UsuarioEntity validarAccessToken(String accessToken) {
-        SessaoAutenticacaoEntity sessao = sessaoRepository
-                .findByAccessTokenHashAndRevogadoFalseAndAccessExpiraEmAfter(hashToken(accessToken), LocalDateTime.now())
-                .orElseThrow(() -> new TokenInvalidoOuExpiradoException("Access token inválido ou expirado"));
+        return buscarSessaoPorAccessToken(accessToken).getUsuario();
+    }
 
-        return sessao.getUsuario();
+    @Transactional(readOnly = true)
+    public AuthContextResponse contextoAtual(String accessToken) {
+        SessaoAutenticacaoEntity sessao = buscarSessaoPorAccessToken(accessToken);
+        UsuarioEntity usuario = sessao.getUsuario();
+        EscolaEntity escolaAtiva = sessao.getEscola() == null
+                ? escolaTenantService.resolverEscolaAtiva(usuario)
+                : sessao.getEscola();
+        return new AuthContextResponse(
+                usuario.getId(),
+                escolaAtiva.getId(),
+                escolaAtiva.getNome(),
+                usuario.getUsername());
     }
 
     public List<String> buscarPermissoes(UUID idUsuario) {
@@ -166,6 +177,12 @@ public class AuthService {
                 .or(() -> professorRepository.findAtivoByPessoaEmailIgnoreCaseAndEscolaId(usuario.getEmail(), escolaId))
                 .map(professor -> professor.getId())
                 .orElse(null);
+    }
+
+    private SessaoAutenticacaoEntity buscarSessaoPorAccessToken(String accessToken) {
+        return sessaoRepository
+                .findByAccessTokenHashAndRevogadoFalseAndAccessExpiraEmAfter(hashToken(accessToken), LocalDateTime.now())
+                .orElseThrow(() -> new TokenInvalidoOuExpiradoException("Access token inválido ou expirado"));
     }
 
 

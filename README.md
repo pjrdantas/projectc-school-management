@@ -164,7 +164,8 @@ O WSL nao faz parte do contrato da aplicacao. Ele pode ser uma dependencia do
 Docker Desktop no Windows, mas falhas locais de WSL nao bloqueiam o build
 unitario nem a evolucao do codigo.
 
-Rota piloto do BFF, mantendo o monolito em `http://localhost:8080`:
+Roteamento read-only do BFF, mantendo o monolito em `http://localhost:8080` por
+padrao:
 
 ```powershell
 .\school-management-service\mvnw.cmd -f pom.xml -pl school-management-bff spring-boot:run
@@ -176,10 +177,35 @@ Authorization: Bearer <access-token-opaco>
 X-Correlation-Id: <correlation-id-opcional>
 ```
 
-Rollback da rota piloto, sem alterar codigo:
+Rotas externas cobertas pelo BFF nesta fase:
+
+- `GET /api/disciplinas` e `GET /api/disciplinas/{id}`
+- `GET /api/periodos-letivos` e `GET /api/periodos-letivos/{id}`
+- `GET /api/series` e `GET /api/series/{id}`
+- `GET /api/turnos` e `GET /api/turnos/{id}`
+- `GET /api/turmas` e `GET /api/turmas/{id}`
+- `GET /api/turmas/{turmaId}/disciplinas`
+- `GET /api/academico/catalogos/niveis-ensino`
+- `GET /api/academico/catalogos/turnos`
+
+O cutover para o `academic-catalog-service` continua desabilitado por padrao e
+so e considerado quando as tres condicoes abaixo forem verdadeiras:
+
+- `CATALOG_READ_CUTOVER_ENABLED=true`
+- `CATALOG_READ_CUTOVER_REPORT_PATH` apontando para um relatorio JSON real com
+  `applied=true`, `reconciled=true` e sem divergencias
+- a flag especifica da rota (`CATALOG_READ_ROUTE_DISCIPLINAS`,
+  `CATALOG_READ_ROUTE_TURNO_BY_ID`, etc.) ligada
+
+Quando a rota esta habilitada para cutover, o BFF resolve `usuarioId` e
+`escolaId` no monolito por `GET /api/auth/contexto-atual`, repassa esse
+contexto ao `academic-catalog-service` com `CATALOG_INTERNAL_API_TOKEN` e faz
+fallback automatico para o monolito em indisponibilidade do servico novo.
+
+Rollback do roteamento read-only, sem alterar codigo:
 
 ```powershell
-$env:DISCIPLINAS_PROXY_ENABLED='false'
+$env:CATALOG_READ_CUTOVER_ENABLED='false'
 ```
 
 O frontend continua apontando para o monolito durante esta fase.

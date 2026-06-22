@@ -37,8 +37,8 @@ public class BffExceptionHandler {
             ServerWebExchange exchange) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error(
                 HttpStatus.SERVICE_UNAVAILABLE,
-                "MONOLITH_UNAVAILABLE",
-                "O servico de catalogo esta temporariamente indisponivel",
+                "CATALOG_READ_UNAVAILABLE",
+                "A leitura de catalogo esta temporariamente indisponivel",
                 exchange));
     }
 

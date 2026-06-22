@@ -454,7 +454,8 @@ Decisao de seguranca:
 O catalogo academico e o piloto recomendado porque possui fronteira funcional
 clara, APIs existentes, testes de integracao e escopo de escola ja iniciado.
 
-Estado: sexta subfase de migracao e reconciliacao concluida, sem cutover.
+Estado: setima subfase de roteamento read-only do BFF concluida, com cutover
+desabilitado por padrao.
 
 Entregue nesta subfase:
 
@@ -563,6 +564,29 @@ Atualizacao, exclusao e roteamento do BFF continuam fora desta subfase. Nenhuma
 execucao contra dados reais e automatica: as features de migracao e apply ficam
 desabilitadas por padrao.
 
+Entregue na setima subfase:
+
+- BFF expandido de rota piloto unica para as leituras externas do catalogo:
+  periodos letivos, series, turnos, turmas, disciplinas, turma-disciplinas e
+  catalogos globais;
+- roteamento rota a rota para o `academic-catalog-service`, mantendo monolito
+  como destino padrao;
+- gate de cutover baseado em relatorio JSON reconciliado, com leitura local do
+  arquivo e recusa silenciosa ao servico novo quando o relatorio estiver
+  ausente, invalido ou divergente;
+- resolucao segura de `usuarioId` e `escolaId` no monolito por
+  `GET /api/auth/contexto-atual`, sem confiar em headers forjados pelo cliente;
+- propagacao service-to-service de `X-Correlation-Id`, `X-Usuario-Id`,
+  `X-Escola-Id` e `CATALOG_INTERNAL_API_TOKEN` apenas depois da resolucao do
+  contexto autenticado;
+- fallback automatico para o monolito quando o catalogo novo estiver
+  indisponivel, preservando rollback imediato tambem por feature flag;
+- testes unitarios, de arquitetura e de integracao HTTP do BFF, alem de teste
+  de integracao do novo endpoint de contexto no monolito.
+
+Escritas permanecem no monolito. O cutover real continua bloqueado ate existir
+execucao de migracao real reconciliada e arquivo de relatorio montado no BFF.
+
 Sequencia:
 
 1. caracterizar os contratos REST atuais;
@@ -632,7 +656,8 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Continuar a Fase 51D com uma setima subfase limitada ao roteamento read-only do
-BFF para o `academic-catalog-service`, apenas depois de uma execucao real com
-relatorio reconciliado. Fazer o cutover rota a rota, com feature flag e rollback
-imediato para o monolito; manter escritas no monolito nesta etapa.
+Continuar a Fase 51D com uma oitava subfase operacional de ativacao controlada:
+executar uma migracao real reconciliada, montar o relatorio no BFF e habilitar
+as flags rota a rota, comecando por `GET /api/disciplinas` e `GET /api/turnos`
+outras leituras simples. Manter escritas no monolito e registrar metricas,
+erros e rollback durante a estabilizacao.

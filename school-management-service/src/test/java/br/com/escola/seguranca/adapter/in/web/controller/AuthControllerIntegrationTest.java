@@ -1,5 +1,6 @@
 package br.com.escola.seguranca.adapter.in.web.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -15,6 +16,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -46,6 +51,9 @@ class AuthControllerIntegrationTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     void deveRetornarProfessorIdQuandoUsuarioEstiverVinculadoAoProfessor() throws Exception {
@@ -80,6 +88,38 @@ class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.escolaId").value("00000000-0000-0000-0000-000000000047"))
                 .andExpect(jsonPath("$.escolaNome").value("Escola padrão"))
                 .andExpect(jsonPath("$.username").value("professor44f"));
+    }
+
+    @Test
+    void deveResolverContextoAtualAPartirDoAccessToken() throws Exception {
+        UUID usuarioId = UUID.randomUUID();
+
+        jdbcTemplate.update("""
+                INSERT INTO usuario (id_usuario, username, nome, email, senha_hash, ativo, created_at)
+                VALUES (?, 'professor44fctx', 'Professor 44F Ctx', 'professor44f.ctx@example.com', ?, true, CURRENT_TIMESTAMP)
+                """, usuarioId, passwordEncoder.encode("senha123"));
+
+        MvcResult login = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "login": "professor44fctx",
+                                  "senha": "senha123"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonNode payload = objectMapper.readTree(login.getResponse().getContentAsString());
+        String accessToken = payload.get("accessToken").asText();
+
+        mockMvc.perform(get("/api/auth/contexto-atual")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.usuarioId").value(usuarioId.toString()))
+                .andExpect(jsonPath("$.escolaId").value("00000000-0000-0000-0000-000000000047"))
+                .andExpect(jsonPath("$.escolaNome").value("Escola padrão"))
+                .andExpect(jsonPath("$.username").value("professor44fctx"));
     }
 
     private String cpfAleatorio() {

@@ -27,7 +27,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
-@ConditionalOnProperty(name = "features.disciplinas-proxy-enabled", havingValue = "true")
+@ConditionalOnProperty(name = "features.catalog-read-proxy-enabled", havingValue = "true")
 public class BearerAuthenticationWebFilter implements WebFilter {
 
     private static final Set<String> UNTRUSTED_CONTEXT_HEADERS = Set.of(
@@ -41,7 +41,7 @@ public class BearerAuthenticationWebFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        if (!isPilotRoute(exchange)) {
+        if (!isProtectedCatalogReadRoute(exchange)) {
             return chain.filter(exchange);
         }
 
@@ -57,9 +57,24 @@ public class BearerAuthenticationWebFilter implements WebFilter {
         return chain.filter(exchange.mutate().request(sanitized).build());
     }
 
-    private boolean isPilotRoute(ServerWebExchange exchange) {
-        return HttpMethod.GET.equals(exchange.getRequest().getMethod())
-                && "/api/disciplinas".equals(exchange.getRequest().getPath().value());
+    private boolean isProtectedCatalogReadRoute(ServerWebExchange exchange) {
+        if (!HttpMethod.GET.equals(exchange.getRequest().getMethod())) {
+            return false;
+        }
+        String path = exchange.getRequest().getPath().value();
+        return "/api/disciplinas".equals(path)
+                || path.matches("^/api/disciplinas/[^/]+$")
+                || "/api/periodos-letivos".equals(path)
+                || path.matches("^/api/periodos-letivos/[^/]+$")
+                || "/api/series".equals(path)
+                || path.matches("^/api/series/[^/]+$")
+                || "/api/turnos".equals(path)
+                || path.matches("^/api/turnos/[^/]+$")
+                || "/api/turmas".equals(path)
+                || path.matches("^/api/turmas/[^/]+$")
+                || path.matches("^/api/turmas/[^/]+/disciplinas$")
+                || "/api/academico/catalogos/niveis-ensino".equals(path)
+                || "/api/academico/catalogos/turnos".equals(path);
     }
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {

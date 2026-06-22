@@ -66,9 +66,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   referencias multi-escola, opera em dry-run por padrao e produz relatorio JSON
   com contagens por escola e IDs ausentes, inesperados ou divergentes. Dois
   PostgreSQL Testcontainers comprovaram repeticao e reconciliacao sem cutover.
-- A proxima subfase da 51D deve rotear apenas leituras do BFF para o catalogo,
-  rota a rota e com rollback por feature flag, depois de uma migracao real
-  reconciliada. Escritas permanecem no monolito.
+- A setima subfase da Fase 51D expandiu o BFF para as leituras externas do
+  catalogo e introduziu cutover rota a rota para o `academic-catalog-service`,
+  sempre protegido por feature flag, gate de relatorio reconciliado e fallback
+  automatico para o monolito. Como identity/tenant ainda pertencem ao monolito,
+  o BFF passou a resolver `usuarioId` e `escolaId` pelo endpoint interno
+  `GET /api/auth/contexto-atual` antes de chamar o servico novo.
+- A proxima subfase da 51D deve ser operacional: executar a migracao real,
+  montar o relatorio reconciliado no BFF e habilitar as flags de leitura por
+  rota durante a estabilizacao. Escritas permanecem no monolito.
 
 ## Historico resumido
 

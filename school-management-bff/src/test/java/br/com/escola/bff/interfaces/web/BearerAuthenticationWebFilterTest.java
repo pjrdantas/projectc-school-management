@@ -23,9 +23,9 @@ class BearerAuthenticationWebFilterTest {
             new BearerAuthenticationWebFilter(new ObjectMapper().findAndRegisterModules());
 
     @Test
-    void deveRejeitarRotaPilotoSemBearerToken() {
+    void deveRejeitarRotaProtegidaSemBearerToken() {
         MockServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.get("/api/disciplinas")
+                MockServerHttpRequest.get("/api/turmas/00000000-0000-0000-0000-000000000001/disciplinas")
                         .header(TrustedHeaders.CORRELATION_ID, "corr-1"));
 
         StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
@@ -54,4 +54,3 @@ class BearerAuthenticationWebFilterTest {
                 .isEqualTo("Bearer opaque-token");
     }
 }
-

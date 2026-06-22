@@ -14,9 +14,33 @@ clients:
     base-url: ${MONOLITH_BASE_URL:http://localhost:8080}
     connect-timeout: ${MONOLITH_CONNECT_TIMEOUT:2s}
     response-timeout: ${MONOLITH_RESPONSE_TIMEOUT:3s}
+  catalog-service:
+    base-url: ${CATALOG_SERVICE_BASE_URL:http://localhost:8082}
+    connect-timeout: ${CATALOG_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${CATALOG_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${CATALOG_INTERNAL_API_TOKEN:}
 
 features:
   disciplinas-proxy-enabled: ${DISCIPLINAS_PROXY_ENABLED:true}
+  catalog-read-proxy-enabled: ${CATALOG_READ_PROXY_ENABLED:${DISCIPLINAS_PROXY_ENABLED:true}}
+  catalog-read-cutover:
+    enabled: ${CATALOG_READ_CUTOVER_ENABLED:false}
+    report-path: ${CATALOG_READ_CUTOVER_REPORT_PATH:}
+    fallback-to-monolith-on-error: ${CATALOG_READ_FALLBACK_TO_MONOLITH_ON_ERROR:true}
+    routes:
+      disciplinas: ${CATALOG_READ_ROUTE_DISCIPLINAS:false}
+      disciplina-by-id: ${CATALOG_READ_ROUTE_DISCIPLINA_BY_ID:false}
+      periodos-letivos: ${CATALOG_READ_ROUTE_PERIODOS_LETIVOS:false}
+      periodo-letivo-by-id: ${CATALOG_READ_ROUTE_PERIODO_LETIVO_BY_ID:false}
+      series: ${CATALOG_READ_ROUTE_SERIES:false}
+      serie-by-id: ${CATALOG_READ_ROUTE_SERIE_BY_ID:false}
+      turnos: ${CATALOG_READ_ROUTE_TURNOS:false}
+      turno-by-id: ${CATALOG_READ_ROUTE_TURNO_BY_ID:false}
+      turmas: ${CATALOG_READ_ROUTE_TURMAS:false}
+      turma-by-id: ${CATALOG_READ_ROUTE_TURMA_BY_ID:false}
+      turma-disciplinas: ${CATALOG_READ_ROUTE_TURMA_DISCIPLINAS:false}
+      catalogos-niveis-ensino: ${CATALOG_READ_ROUTE_CATALOGOS_NIVEIS_ENSINO:false}
+      catalogos-turnos: ${CATALOG_READ_ROUTE_CATALOGOS_TURNOS:false}
 
 resilience:
   monolith:
