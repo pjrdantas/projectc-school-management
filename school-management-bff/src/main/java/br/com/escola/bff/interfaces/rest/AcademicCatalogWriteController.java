@@ -18,18 +18,22 @@ import br.com.escola.bff.application.dto.DisciplinaCreateCommand;
 import br.com.escola.bff.application.dto.PeriodoLetivoCreateCommand;
 import br.com.escola.bff.application.dto.SerieCreateCommand;
 import br.com.escola.bff.application.dto.TurmaCreateCommand;
+import br.com.escola.bff.application.dto.TurmaDisciplinaLinkCommand;
 import br.com.escola.bff.application.usecase.CreateDisciplinaUseCase;
 import br.com.escola.bff.application.usecase.CreatePeriodoLetivoUseCase;
 import br.com.escola.bff.application.usecase.CreateSerieUseCase;
 import br.com.escola.bff.application.usecase.CreateTurmaUseCase;
+import br.com.escola.bff.application.usecase.LinkTurmaDisciplinaUseCase;
 import br.com.escola.bff.interfaces.request.DisciplinaRequest;
 import br.com.escola.bff.interfaces.request.PeriodoLetivoRequest;
 import br.com.escola.bff.interfaces.request.SerieRequest;
 import br.com.escola.bff.interfaces.request.TurmaRequest;
+import br.com.escola.bff.interfaces.request.TurmaDisciplinaRequest;
 import br.com.escola.bff.interfaces.response.DisciplinaResponse;
 import br.com.escola.bff.interfaces.response.PeriodoLetivoResponse;
 import br.com.escola.bff.interfaces.response.SerieResponse;
 import br.com.escola.bff.interfaces.response.TurmaResponse;
+import br.com.escola.bff.interfaces.response.TurmaDisciplinaResponse;
 import jakarta.validation.Valid;
 import reactor.core.publisher.Mono;
 
@@ -41,16 +45,19 @@ public class AcademicCatalogWriteController {
     private final CreateDisciplinaUseCase createDisciplinaUseCase;
     private final CreateSerieUseCase createSerieUseCase;
     private final CreateTurmaUseCase createTurmaUseCase;
+    private final LinkTurmaDisciplinaUseCase linkTurmaDisciplinaUseCase;
 
     public AcademicCatalogWriteController(
             CreatePeriodoLetivoUseCase createPeriodoLetivoUseCase,
             CreateDisciplinaUseCase createDisciplinaUseCase,
             CreateSerieUseCase createSerieUseCase,
-            CreateTurmaUseCase createTurmaUseCase) {
+            CreateTurmaUseCase createTurmaUseCase,
+            LinkTurmaDisciplinaUseCase linkTurmaDisciplinaUseCase) {
         this.createPeriodoLetivoUseCase = createPeriodoLetivoUseCase;
         this.createDisciplinaUseCase = createDisciplinaUseCase;
         this.createSerieUseCase = createSerieUseCase;
         this.createTurmaUseCase = createTurmaUseCase;
+        this.linkTurmaDisciplinaUseCase = linkTurmaDisciplinaUseCase;
     }
 
     @PostMapping("/api/periodos-letivos")
@@ -170,6 +177,32 @@ public class AcademicCatalogWriteController {
                         body.status(),
                         body.escolaId(),
                         body.escolaNome(),
+                        body.createdAt())));
+    }
+
+    @PostMapping("/api/turmas/{turmaId}/disciplinas")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<ResponseEntity<TurmaDisciplinaResponse>> vincularDisciplinaNaTurma(
+            @org.springframework.web.bind.annotation.PathVariable UUID turmaId,
+            @Valid @RequestBody TurmaDisciplinaRequest request,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId,
+            @RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey) {
+        String resolvedKey = idempotencyKey != null && !idempotencyKey.isBlank()
+                ? idempotencyKey
+                : UUID.randomUUID().toString();
+        return linkTurmaDisciplinaUseCase.executar(
+                        new CatalogWriteQuery(authorization, correlationId, resolvedKey),
+                        new TurmaDisciplinaLinkCommand(
+                                turmaId,
+                                request.disciplinaId(),
+                                request.cargaHoraria()))
+                .map(body -> ResponseEntity.status(HttpStatus.CREATED).body(new TurmaDisciplinaResponse(
+                        body.id(),
+                        body.turmaId(),
+                        body.disciplinaId(),
+                        body.disciplinaNome(),
+                        body.cargaHoraria(),
                         body.createdAt())));
     }
 }

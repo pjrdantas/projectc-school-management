@@ -9,6 +9,7 @@ import br.com.escola.bff.application.port.out.AcademicCatalogNivelEnsinoResolver
 import br.com.escola.bff.application.port.out.AcademicCatalogSerieWritePort;
 import br.com.escola.bff.application.port.out.AcademicCatalogReadPort;
 import br.com.escola.bff.application.port.out.AcademicCatalogTurnoResolverPort;
+import br.com.escola.bff.application.port.out.AcademicCatalogTurmaDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.AcademicCatalogTurmaWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.CatalogReadCutoverPolicyPort;
@@ -19,16 +20,19 @@ import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
 import br.com.escola.bff.application.port.out.MonolithDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.MonolithPeriodoLetivoWritePort;
 import br.com.escola.bff.application.port.out.MonolithSerieWritePort;
+import br.com.escola.bff.application.port.out.MonolithTurmaDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.MonolithTurmaWritePort;
 import br.com.escola.bff.application.service.CatalogReadRoutingService;
 import br.com.escola.bff.application.service.DisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.PeriodoLetivoWriteRoutingService;
 import br.com.escola.bff.application.service.SerieWriteRoutingService;
+import br.com.escola.bff.application.service.TurmaDisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.TurmaWriteRoutingService;
 import br.com.escola.bff.application.usecase.CreateDisciplinaUseCase;
 import br.com.escola.bff.application.usecase.CreatePeriodoLetivoUseCase;
 import br.com.escola.bff.application.usecase.CreateSerieUseCase;
 import br.com.escola.bff.application.usecase.CreateTurmaUseCase;
+import br.com.escola.bff.application.usecase.LinkTurmaDisciplinaUseCase;
 import br.com.escola.bff.application.usecase.RouteCatalogReadUseCase;
 
 @Configuration
@@ -108,6 +112,21 @@ public class BffUseCaseConfiguration {
                 monolithTurmaWritePort,
                 academicCatalogTurmaWritePort,
                 academicCatalogTurnoResolverPort,
+                authContextPort,
+                cutoverPolicyPort,
+                observabilityPort);
+    }
+
+    @Bean
+    LinkTurmaDisciplinaUseCase linkTurmaDisciplinaUseCase(
+            MonolithTurmaDisciplinaWritePort monolithTurmaDisciplinaWritePort,
+            AcademicCatalogTurmaDisciplinaWritePort academicCatalogTurmaDisciplinaWritePort,
+            AuthContextPort authContextPort,
+            CatalogWriteCutoverPolicyPort cutoverPolicyPort,
+            CatalogWriteObservabilityPort observabilityPort) {
+        return new TurmaDisciplinaWriteRoutingService(
+                monolithTurmaDisciplinaWritePort,
+                academicCatalogTurmaDisciplinaWritePort,
                 authContextPort,
                 cutoverPolicyPort,
                 observabilityPort);

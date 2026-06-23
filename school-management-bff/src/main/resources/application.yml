@@ -49,6 +49,7 @@ features:
       disciplinas: ${CATALOG_WRITE_ROUTE_DISCIPLINAS:false}
       series: ${CATALOG_WRITE_ROUTE_SERIES:false}
       turmas: ${CATALOG_WRITE_ROUTE_TURMAS:false}
+      turma-disciplinas: ${CATALOG_WRITE_ROUTE_TURMA_DISCIPLINAS:false}
 
 resilience:
   monolith:

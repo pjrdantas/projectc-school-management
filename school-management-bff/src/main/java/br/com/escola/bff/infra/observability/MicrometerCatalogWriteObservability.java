@@ -55,6 +55,7 @@ public class MicrometerCatalogWriteObservability implements CatalogWriteObservab
             case DISCIPLINAS -> "disciplinas";
             case SERIES -> "series";
             case TURMAS -> "turmas";
+            case TURMA_DISCIPLINAS -> "turma_disciplinas";
         };
     }
 }

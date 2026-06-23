@@ -968,6 +968,27 @@ Entregue na decima-sexta subfase:
   incompativel, e erro do catalogo sem retry cruzado de escrita.
 
 Proximo passo pratico: diagnosticar o contrato de
-`POST /api/turmas/{turmaId}/disciplinas` e, se ele for compativel sem adaptacao
-ampla, expandir a escrita controlada para esse vinculo preservando o mesmo
-padrao de gate, idempotencia, observabilidade e rollback por feature flag.
+`POST /api/professores` e dos vinculos iniciais de
+professor-turma-disciplina, para identificar o menor recorte de escrita do
+dominio academico que ainda nao dependa de refatoracao ampla e possa seguir o
+mesmo padrao de gate, idempotencia, observabilidade e rollback por feature
+flag.
+
+Entregue na decima-setima subfase:
+
+- diagnostico contratual de `POST /api/turmas/{turmaId}/disciplinas`,
+  confirmando compatibilidade direta entre o contrato externo atual do
+  monolito e o contrato interno do `academic-catalog-service` para o payload de
+  vinculo (`disciplinaId`, `cargaHoraria`);
+- expansao da escrita controlada do catalogo no BFF para
+  `POST /api/turmas/{turmaId}/disciplinas`, preservando o mesmo gate por
+  relatorio reconciliado, `Idempotency-Key`, metricas e health de write
+  cutover;
+- roteamento direto ao `academic-catalog-service` quando a feature flag da rota
+  estiver habilitada, sem necessidade de adaptacao ampla de request/response;
+- retorno direto ao monolito quando a flag da rota estiver desabilitada;
+- ausencia de fallback automatico para o monolito depois que a escrita tenta o
+  `academic-catalog-service`;
+- validacao automatizada cobrindo roteamento ao catalogo, retorno direto ao
+  monolito por flag desabilitada e erro do catalogo sem retry cruzado de
+  escrita.

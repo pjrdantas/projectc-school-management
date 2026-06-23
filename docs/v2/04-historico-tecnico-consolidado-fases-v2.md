@@ -131,10 +131,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   resolvivel e `status` ausente ou `ATIVA`; quando o turno nao resolve ou o
   status nao e compativel, o destino continua sendo diretamente o monolito, sem
   fallback automatico depois de uma tentativa de escrita no servico novo.
+- A decima-setima subfase da Fase 51D diagnosticou o contrato de
+  `POST /api/turmas/{turmaId}/disciplinas` e confirmou compatibilidade direta
+  entre monolito e `academic-catalog-service` para o payload externo
+  (`disciplinaId`, `cargaHoraria`) e para a resposta funcional do vinculo. Com
+  isso, o BFF expandiu a escrita controlada dessa rota sem adaptacao ampla de
+  contrato: `Idempotency-Key`, observabilidade, rollback por flag e ausencia de
+  fallback automatico para o monolito depois que a escrita tenta o servico
+  novo.
 - A proxima subfase da 51D deve diagnosticar o contrato de
-  `POST /api/turmas/{turmaId}/disciplinas` e, se ele for compativel sem
-  adaptacao ampla, expandir a escrita controlada para esse vinculo preservando
-  o mesmo padrao de gate, idempotencia, observabilidade, rollback por flag e
+  `POST /api/professores` e os vinculos iniciais de alocacao
+  professor-turma-disciplina, para identificar o menor recorte de escrita do
+  dominio academico que ainda nao dependa de refatoracao ampla e possa seguir o
+  mesmo padrao de gate, idempotencia, observabilidade, rollback por flag e
   validacao operacional ponta a ponta.
 
 ## Historico resumido

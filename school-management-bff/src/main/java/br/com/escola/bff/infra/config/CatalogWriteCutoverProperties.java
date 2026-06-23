@@ -16,6 +16,7 @@ public record CatalogWriteCutoverProperties(
             case DISCIPLINAS -> routes.disciplinas();
             case SERIES -> routes.series();
             case TURMAS -> routes.turmas();
+            case TURMA_DISCIPLINAS -> routes.turmaDisciplinas();
         };
     }
 
@@ -23,6 +24,7 @@ public record CatalogWriteCutoverProperties(
             boolean periodosLetivos,
             boolean disciplinas,
             boolean series,
-            boolean turmas
+            boolean turmas,
+            boolean turmaDisciplinas
     ) {}
 }
