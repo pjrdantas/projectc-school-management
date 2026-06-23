@@ -77,4 +77,16 @@ class BearerAuthenticationWebFilterTest {
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-disc-write");
     }
+
+    @Test
+    void deveProtegerPostDeSerieSemBearerToken() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("/api/series")
+                        .header(TrustedHeaders.CORRELATION_ID, "corr-serie-write"));
+
+        StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-serie-write");
+    }
 }

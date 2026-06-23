@@ -16,12 +16,16 @@ import br.com.escola.bff.application.context.TrustedHeaders;
 import br.com.escola.bff.application.dto.CatalogWriteQuery;
 import br.com.escola.bff.application.dto.DisciplinaCreateCommand;
 import br.com.escola.bff.application.dto.PeriodoLetivoCreateCommand;
+import br.com.escola.bff.application.dto.SerieCreateCommand;
 import br.com.escola.bff.application.usecase.CreateDisciplinaUseCase;
 import br.com.escola.bff.application.usecase.CreatePeriodoLetivoUseCase;
+import br.com.escola.bff.application.usecase.CreateSerieUseCase;
 import br.com.escola.bff.interfaces.request.DisciplinaRequest;
 import br.com.escola.bff.interfaces.request.PeriodoLetivoRequest;
+import br.com.escola.bff.interfaces.request.SerieRequest;
 import br.com.escola.bff.interfaces.response.DisciplinaResponse;
 import br.com.escola.bff.interfaces.response.PeriodoLetivoResponse;
+import br.com.escola.bff.interfaces.response.SerieResponse;
 import jakarta.validation.Valid;
 import reactor.core.publisher.Mono;
 
@@ -31,12 +35,15 @@ public class AcademicCatalogWriteController {
 
     private final CreatePeriodoLetivoUseCase createPeriodoLetivoUseCase;
     private final CreateDisciplinaUseCase createDisciplinaUseCase;
+    private final CreateSerieUseCase createSerieUseCase;
 
     public AcademicCatalogWriteController(
             CreatePeriodoLetivoUseCase createPeriodoLetivoUseCase,
-            CreateDisciplinaUseCase createDisciplinaUseCase) {
+            CreateDisciplinaUseCase createDisciplinaUseCase,
+            CreateSerieUseCase createSerieUseCase) {
         this.createPeriodoLetivoUseCase = createPeriodoLetivoUseCase;
         this.createDisciplinaUseCase = createDisciplinaUseCase;
+        this.createSerieUseCase = createSerieUseCase;
     }
 
     @PostMapping("/api/periodos-letivos")
@@ -91,6 +98,33 @@ public class AcademicCatalogWriteController {
                         body.nome(),
                         body.cargaHoraria(),
                         body.status(),
+                        body.escolaId(),
+                        body.escolaNome(),
+                        body.createdAt())));
+    }
+
+    @PostMapping("/api/series")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<ResponseEntity<SerieResponse>> criarSerie(
+            @Valid @RequestBody SerieRequest request,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId,
+            @RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey) {
+        String resolvedKey = idempotencyKey != null && !idempotencyKey.isBlank()
+                ? idempotencyKey
+                : UUID.randomUUID().toString();
+        return createSerieUseCase.executar(
+                        new CatalogWriteQuery(authorization, correlationId, resolvedKey),
+                        new SerieCreateCommand(
+                                request.nome(),
+                                request.ordem(),
+                                request.nivelEnsino(),
+                                request.escolaId()))
+                .map(body -> ResponseEntity.status(HttpStatus.CREATED).body(new SerieResponse(
+                        body.id(),
+                        body.nome(),
+                        body.ordem(),
+                        body.nivelEnsino(),
                         body.escolaId(),
                         body.escolaNome(),
                         body.createdAt())));

@@ -53,6 +53,7 @@ public class MicrometerCatalogWriteObservability implements CatalogWriteObservab
         return switch (decision.route()) {
             case PERIODOS_LETIVOS -> "periodos_letivos";
             case DISCIPLINAS -> "disciplinas";
+            case SERIES -> "series";
         };
     }
 }

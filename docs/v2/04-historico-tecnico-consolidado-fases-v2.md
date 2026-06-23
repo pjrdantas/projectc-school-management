@@ -112,10 +112,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   (`status` ausente ou `ATIVA`) e a manter o monolito como destino direto
   quando o payload pede `status` nao compativel, sem fallback automatico depois
   de uma tentativa de escrita no servico novo.
-- A proxima subfase da 51D deve diagnosticar e, se o contrato for compativel,
-  expandir a escrita controlada para `POST /api/series`, preservando o mesmo
-  padrao de gate, idempotencia, observabilidade, rollback por flag e validacao
-  operacional ponta a ponta antes de qualquer rota adicional.
+- A decima-quinta subfase da Fase 51D diagnosticou a incompatibilidade pontual
+  de contrato de `POST /api/series` (`nivelEnsino` textual no monolito versus
+  `nivelEnsinoId` UUID no servico novo) e expandiu a escrita controlada no BFF
+  com uma adaptacao minima e isolada: resolucao interna do nivel de ensino no
+  catalogo novo antes da escrita. O BFF passou a enviar ao
+  `academic-catalog-service` apenas payloads com `ordem` positiva e
+  `nivelEnsino` resolvivel; quando o nivel nao vem informado ou nao resolve no
+  catalogo novo, o destino continua sendo diretamente o monolito, sem fallback
+  automatico depois de uma tentativa de escrita no servico novo.
+- A proxima subfase da 51D deve diagnosticar o contrato de `POST /api/turmas`
+  e, se ele for compativel sem adaptacao ampla, expandir a escrita controlada
+  para essa rota preservando o mesmo padrao de gate, idempotencia,
+  observabilidade, rollback por flag e validacao operacional ponta a ponta.
 
 ## Historico resumido
 

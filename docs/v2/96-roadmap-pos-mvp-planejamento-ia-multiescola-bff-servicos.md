@@ -923,7 +923,28 @@ Entregue na decima-quarta subfase:
   monolito por flag desabilitada ou `status` nao compativel, e erro do catalogo
   sem retry cruzado de escrita.
 
-Proximo passo pratico: diagnosticar o contrato de `POST /api/series` e, se ele
+Entregue na decima-quinta subfase:
+
+- diagnostico contratual de `POST /api/series`, confirmando a diferenca entre o
+  contrato externo atual do monolito (`nivelEnsino` textual) e o contrato
+  interno do `academic-catalog-service` (`nivelEnsinoId` UUID);
+- adaptacao minima e isolada no BFF para resolver o `nivelEnsino` informado em
+  um `nivelEnsinoId` do catalogo novo antes de tentar a escrita;
+- expansao da escrita controlada do catalogo no BFF para `POST /api/series`,
+  mantendo o mesmo gate por relatorio reconciliado, `Idempotency-Key`,
+  metricas e health de write cutover;
+- roteamento direto ao `academic-catalog-service` apenas quando `ordem` e
+  `nivelEnsino` estiverem compativeis com o contrato novo;
+- destino direto ao monolito quando o `nivelEnsino` vier ausente ou nao puder
+  ser resolvido no catalogo novo, preservando o comportamento atual sem exigir
+  refatoracao ampla do contrato externo;
+- ausencia de fallback automatico para o monolito depois que a escrita tenta o
+  `academic-catalog-service`;
+- validacao automatizada cobrindo roteamento ao catalogo, retorno direto ao
+  monolito por flag desabilitada ou `nivelEnsino` nao resolvido, e erro do
+  catalogo sem retry cruzado de escrita.
+
+Proximo passo pratico: diagnosticar o contrato de `POST /api/turmas` e, se ele
 for compativel sem adaptacao ampla, expandir a escrita controlada para essa
 rota preservando o mesmo padrao de gate, idempotencia, observabilidade e
-rollback por feature flag antes de avaliar `POST /api/turmas`.
+rollback por feature flag.
