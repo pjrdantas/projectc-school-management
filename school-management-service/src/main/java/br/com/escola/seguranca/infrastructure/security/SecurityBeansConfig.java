@@ -55,11 +55,12 @@ public class SecurityBeansConfig {
                 .accessDeniedHandler((request, response, accessDeniedException) ->
                     writeSecurityError(response, request, HttpStatus.FORBIDDEN, "FORBIDDEN", "Acesso negado"))
             )
-            .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/v3/api-docs/**", "/v3/api-docs.yaml", "/swagger-ui/**",
                     "/swagger-ui.html", "/swagger-resources/**", "/webjars/**"
                 ).permitAll()
+                .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .anyRequest().authenticated()
             )

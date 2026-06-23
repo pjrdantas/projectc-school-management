@@ -1084,3 +1084,29 @@ Entregue na vigesima-segunda subfase:
 Proximo passo pratico: adicionar observabilidade operacional explicita para esse
 consumo interno de professores, com health/readiness dedicado ou diagnostico
 equivalente do cliente interno, antes de qualquer extracao fisica do dominio.
+
+Entregue na vigesima-terceira subfase:
+
+- exposicao do componente dedicado
+  `/actuator/health/professorInternalClient` no `school-management-service`,
+  sem mudar rotas externas de negocio nem abrir um novo runtime;
+- diagnostico do componente cobrindo configuracao resolvida do cliente interno
+  (`enabled`, `fallbackLocalOnError`, `baseUrlScheme`, `baseUrlHost`) e
+  agregando os sinais operacionais das metricas ja publicadas
+  (`professor.internal.client.requests` e
+  `professor.internal.client.fallbacks`);
+- liberacao anonima apenas de `/actuator/health/**` e `/actuator/info` para
+  verificacao operacional, mantendo o restante da API protegido;
+- validacao automatizada tanto da logica do `HealthIndicator` quanto da
+  exposicao real do actuator em ambiente Spring Boot com porta aleatoria, sem
+  remover o teste operacional autenticado do fluxo de professores via cliente
+  interno.
+
+Proxima subfase pratica e de menor risco:
+
+- usar a fronteira interna de professores ja observada para preparar a primeira
+  separacao fisica incremental do dominio, preferencialmente iniciando por
+  leitura shadow/read-only em runtime proprio e nao por escrita;
+- se a extracao fisica ainda nao estiver segura, introduzir antes um contrato
+  interno minimo de consulta/elegibilidade de funcionario para reduzir o
+  acoplamento atual entre professor e RH/pessoa sem ampliar o BFF.

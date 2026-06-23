@@ -182,10 +182,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   esse cenario com seguranca, a resolucao da `base-url` do
   `ProfessorInternalApiClient` passou a ser tardia, no momento da chamada,
   preservando a configuracao em runtime e em testes com `local.server.port`.
-- A proxima subfase da 51D deve adicionar observabilidade operacional explicita
-  para esse consumo interno de professores, com endpoint/health dedicado ou
-  diagnostico equivalente de readiness do cliente interno, antes de qualquer
-  tentativa de extracao fisica do dominio para outro runtime.
+- A vigesima-terceira subfase da Fase 51D adicionou observabilidade operacional
+  explicita para esse consumo interno de professores, ainda dentro do
+  `school-management-service` e sem extracao fisica do dominio. Foi criado um
+  `HealthIndicator` dedicado do cliente interno de professores, exposto pelo
+  actuator em `/actuator/health/professorInternalClient`, com diagnostico de
+  baixo risco baseado em configuracao resolvida (`enabled`,
+  `fallbackLocalOnError`, `baseUrlScheme`, `baseUrlHost`) e sinais operacionais
+  agregados das metricas ja existentes (`requestsTotal`, `fallbacksTotal`).
+  Tambem foi aberto acesso anonimo apenas para `/actuator/health/**` e
+  `/actuator/info`, permitindo verificacao operacional sem alterar rotas de
+  negocio. Testes dedicados cobriram tanto a logica pura do indicador quanto a
+  exposicao real do actuator, alem de preservar o teste operacional ponta a
+  ponta do cliente interno.
+- A proxima subfase da 51D deve usar essa fronteira interna ja observada para
+  preparar a primeira separacao fisica incremental do dominio de professores,
+  preferencialmente por leitura shadow/read-only; se isso ainda nao estiver
+  seguro, o menor recorte seguinte e introduzir antes um contrato interno minimo
+  de consulta/elegibilidade de funcionario para reduzir o acoplamento atual
+  entre professor e RH/pessoa sem abrir escrita nova no BFF.
 
 ## Historico resumido
 
