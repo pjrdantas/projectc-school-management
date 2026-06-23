@@ -3,6 +3,7 @@ package br.com.escola.bff.infra.cutover;
 import org.springframework.stereotype.Component;
 
 import br.com.escola.bff.application.port.out.CatalogReadCutoverPolicyPort;
+import br.com.escola.bff.application.service.CatalogReadCutoverDecision;
 import br.com.escola.bff.application.service.CatalogReadRoute;
 import br.com.escola.bff.infra.config.CatalogReadCutoverProperties;
 
@@ -20,10 +21,20 @@ public class CatalogReadCutoverDecider implements CatalogReadCutoverPolicyPort {
     }
 
     @Override
-    public boolean shouldUseCatalog(CatalogReadRoute route) {
-        return properties.enabled()
-                && properties.routeEnabled(route)
-                && reportGate.allowsCutover();
+    public CatalogReadCutoverDecision decision(CatalogReadRoute route) {
+        if (!properties.enabled()) {
+            return new CatalogReadCutoverDecision(route, false, "cutover_disabled");
+        }
+        if (!properties.routeEnabled(route)) {
+            return new CatalogReadCutoverDecision(route, false, "route_disabled");
+        }
+
+        CatalogMigrationReportGate.GateStatus gateStatus = reportGate.status();
+        if (!gateStatus.allowed()) {
+            return new CatalogReadCutoverDecision(route, false, gateStatus.reason());
+        }
+
+        return new CatalogReadCutoverDecision(route, true, "catalog_enabled");
     }
 
     @Override

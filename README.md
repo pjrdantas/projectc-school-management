@@ -202,6 +202,16 @@ Quando a rota esta habilitada para cutover, o BFF resolve `usuarioId` e
 contexto ao `academic-catalog-service` com `CATALOG_INTERNAL_API_TOKEN` e faz
 fallback automatico para o monolito em indisponibilidade do servico novo.
 
+Observabilidade operacional do cutover read-only:
+
+- health dedicado em `/actuator/health/catalogReadCutover`, com status do gate
+  do relatorio reconciliado;
+- metricas `bff.catalog.read.route.total` por rota, alvo, motivo e resultado;
+- metricas `bff.catalog.read.catalog.error.total` para falhas do catalogo novo;
+- metricas `bff.catalog.read.fallback.total` para fallback efetivo ao monolito;
+- metricas de circuit breaker do monolito expostas no Prometheus via
+  Resilience4j/Micrometer.
+
 Rotas ja validadas operacionalmente em cutover controlado:
 
 - `GET /api/disciplinas`

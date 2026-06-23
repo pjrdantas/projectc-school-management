@@ -828,12 +828,11 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Continuar a Fase 51D com uma decima-primeira subfase operacional de fechamento
-do bloco read-only do catalogo no BFF, partindo de `GET /api/turmas/{turmaId}/disciplinas`,
-depois `GET /api/turnos` e por fim os catalogos publicos
-`GET /api/academico/catalogos/turnos` e
-`GET /api/academico/catalogos/niveis-ensino`, sempre reaproveitando o mesmo
-relatorio real reconciliado, fallback imediato e metricas de estabilizacao.
+Continuar a Fase 51D com uma decima-segunda subfase operacional de
+observabilidade e estabilizacao do cutover read-only inteiro no BFF, medindo
+roteamento por rota, falhas do catalogo novo, fallbacks ao monolito e health
+do gate do relatorio reconciliado antes de qualquer inicio de escrita no
+`academic-catalog-service`.
 
 Entregue na oitava subfase:
 
@@ -878,7 +877,19 @@ Entregue na decima-primeira subfase:
 - fallback comprovado tambem nessas rotas apos parada deliberada do catalogo,
   mantendo rollback imediato para o monolito sem alterar escritas.
 
-Proximo passo pratico: com o bloco read-only do catalogo inteiro estabilizado
-no BFF, a proxima fase de menor risco e consolidar observabilidade e
-operacao do cutover, revisando metricas por rota, fallback, circuit breaker e
-health checks, antes de qualquer inicio de escrita no `academic-catalog-service`.
+Entregue na decima-segunda subfase:
+
+- decisao de cutover no BFF com motivo explicito por rota, em vez de booleano
+  opaco;
+- metricas `bff.catalog.read.route.total` por rota, alvo, motivo e resultado;
+- metricas `bff.catalog.read.catalog.error.total` para falhas do servico novo e
+  `bff.catalog.read.fallback.total` para fallback efetivo ao monolito;
+- health dedicado em `/actuator/health/catalogReadCutover`, expondo o estado do
+  gate do relatorio reconciliado;
+- validacao operacional das metricas novas e do health, incluindo falha real do
+  `academic-catalog-service` com fallback e incrementos coerentes no Prometheus.
+
+Proximo passo pratico: iniciar a primeira subfase de escrita controlada do
+catalogo via BFF e `academic-catalog-service`, rota por rota, com a mesma
+estrategia de feature flag, idempotencia, metricas e rollback imediato para o
+monolito.

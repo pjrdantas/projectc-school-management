@@ -93,9 +93,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `GET /api/academico/catalogos/turnos` e
   `GET /api/academico/catalogos/niveis-ensino`, com validacao operacional,
   metricas e fallback comprovado tambem nessas quatro rotas.
-- A proxima subfase da 51D deve consolidar observabilidade e operacao do
-  cutover read-only inteiro antes de qualquer inicio de escrita no
-  `academic-catalog-service`.
+- A decima-segunda subfase da Fase 51D consolidou observabilidade e operacao do
+  cutover read-only inteiro no BFF, com motivo explicito de roteamento,
+  metricas por rota/alvo/resultado, contador de falhas do catalogo novo,
+  contador de fallback e health dedicado para o gate do relatorio reconciliado.
+- A proxima subfase da 51D deve iniciar a primeira escrita controlada do
+  catalogo via BFF e `academic-catalog-service`, ainda rota por rota e com
+  rollback imediato para o monolito.
 
 ## Historico resumido
 

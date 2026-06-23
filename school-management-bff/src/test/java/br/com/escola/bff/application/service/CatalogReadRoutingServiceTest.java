@@ -13,6 +13,7 @@ import br.com.escola.bff.application.exception.DownstreamUnavailableException;
 import br.com.escola.bff.application.port.out.AcademicCatalogReadPort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.CatalogReadCutoverPolicyPort;
+import br.com.escola.bff.application.port.out.CatalogReadObservabilityPort;
 import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -25,8 +26,9 @@ class CatalogReadRoutingServiceTest {
         AcademicCatalogReadPort catalog = (path, query, context) -> Mono.just(ResponseEntity.ok("catalog"));
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(java.util.UUID.randomUUID(), java.util.UUID.randomUUID()));
         CatalogReadCutoverPolicyPort decider = new FixedDecider(false, true);
+        CatalogReadObservabilityPort observability = new NoOpObservability();
 
-        CatalogReadRoutingService service = new CatalogReadRoutingService(monolith, catalog, authContext, decider);
+        CatalogReadRoutingService service = new CatalogReadRoutingService(monolith, catalog, authContext, decider, observability);
 
         StepVerifier.create(service.executar(CatalogReadRoute.DISCIPLINAS, new CatalogReadQuery("Bearer token", "corr-1")))
                 .assertNext(response -> assertThat(response.getBody()).isEqualTo("monolith"))
@@ -44,8 +46,9 @@ class CatalogReadRoutingServiceTest {
                 Mono.error(new DownstreamUnavailableException("catalog indisponivel"));
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(java.util.UUID.randomUUID(), java.util.UUID.randomUUID()));
         CatalogReadCutoverPolicyPort decider = new FixedDecider(true, true);
+        CatalogReadObservabilityPort observability = new NoOpObservability();
 
-        CatalogReadRoutingService service = new CatalogReadRoutingService(monolith, catalog, authContext, decider);
+        CatalogReadRoutingService service = new CatalogReadRoutingService(monolith, catalog, authContext, decider, observability);
 
         StepVerifier.create(service.executar(CatalogReadRoute.DISCIPLINAS, new CatalogReadQuery("Bearer token", "corr-1")))
                 .assertNext(response -> assertThat(response.getBody()).isEqualTo("fallback"))
@@ -56,8 +59,17 @@ class CatalogReadRoutingServiceTest {
 
     private record FixedDecider(boolean useCatalog, boolean fallback) implements CatalogReadCutoverPolicyPort {
 
-        @Override public boolean shouldUseCatalog(CatalogReadRoute route) { return useCatalog; }
+        @Override public CatalogReadCutoverDecision decision(CatalogReadRoute route) {
+            return new CatalogReadCutoverDecision(route, useCatalog, useCatalog ? "catalog_enabled" : "cutover_disabled");
+        }
 
         @Override public boolean fallbackToMonolithOnError() { return fallback; }
+    }
+
+    private static final class NoOpObservability implements CatalogReadObservabilityPort {
+        @Override public void recordDirectMonolith(CatalogReadCutoverDecision decision) {}
+        @Override public void recordCatalogSuccess(CatalogReadCutoverDecision decision) {}
+        @Override public void recordCatalogFailure(CatalogReadCutoverDecision decision, Throwable error) {}
+        @Override public void recordFallbackToMonolith(CatalogReadCutoverDecision decision, Throwable error) {}
     }
 }
