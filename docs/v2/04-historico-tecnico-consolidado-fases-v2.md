@@ -173,10 +173,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   alocacao professor-turma-disciplina e listagem de alocacoes via cliente
   interno opcional, protegido por feature flag, com metricas Micrometer e
   fallback local simples para o `ProfessorService` em caso de falha HTTP.
-- A proxima subfase da 51D deve habilitar esse cliente em um teste operacional
-  controlado, com propriedade explicita de base URL e verificacao ponta a ponta
-  do fluxo autenticado, antes de qualquer tentativa de extracao fisica do
-  dominio de professores para outro runtime.
+- A vigesima-segunda subfase da Fase 51D habilitou esse cliente em um teste
+  operacional controlado dentro do proprio backend, usando porta aleatoria,
+  `base-url` explicita e autenticacao real por `Bearer` obtido via
+  `/api/auth/login`. O fluxo validou ponta a ponta as operacoes de criacao de
+  professor, consulta por id, alocacao professor-turma-disciplina e listagem de
+  alocacoes atraves do cliente HTTP interno, sem acionar fallback. Para suportar
+  esse cenario com seguranca, a resolucao da `base-url` do
+  `ProfessorInternalApiClient` passou a ser tardia, no momento da chamada,
+  preservando a configuracao em runtime e em testes com `local.server.port`.
+- A proxima subfase da 51D deve adicionar observabilidade operacional explicita
+  para esse consumo interno de professores, com endpoint/health dedicado ou
+  diagnostico equivalente de readiness do cliente interno, antes de qualquer
+  tentativa de extracao fisica do dominio para outro runtime.
 
 ## Historico resumido
 

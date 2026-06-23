@@ -1064,3 +1064,23 @@ Proximo passo pratico: habilitar esse cliente em um teste operacional
 controlado, com configuracao explicita da `base-url` e verificacao ponta a ponta
 do fluxo autenticado, antes de qualquer extracao fisica do dominio de
 professores.
+
+Entregue na vigesima-segunda subfase:
+
+- validacao operacional controlada do `ProfessorInternalApiClient` com
+  `professor.internal-client.enabled=true`, `fallback-local-on-error=false`,
+  `base-url` explicita e servidor de teste em porta aleatoria;
+- teste ponta a ponta com autenticacao real via `/api/auth/login`, propagacao do
+  bearer atual para o adaptador interno e execucao HTTP completa de
+  `POST /api/professores`, `GET /api/professores/{id}`,
+  `POST /api/professores/{id}/turmas-disciplinas` e
+  `GET /api/professores/{id}/turmas-disciplinas`;
+- comprovacao automatizada de uso do cliente interno sem fallback, com leitura
+  das metricas Micrometer de requisicoes e fallbacks dentro do teste;
+- endurecimento do `ProfessorInternalApiClient` para resolver a `base-url` em
+  tempo de uso, permitindo cenarios com `local.server.port` e mantendo a
+  configuracao externa do cliente.
+
+Proximo passo pratico: adicionar observabilidade operacional explicita para esse
+consumo interno de professores, com health/readiness dedicado ou diagnostico
+equivalente do cliente interno, antes de qualquer extracao fisica do dominio.

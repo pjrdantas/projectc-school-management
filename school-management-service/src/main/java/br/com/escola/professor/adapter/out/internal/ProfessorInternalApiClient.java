@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -31,17 +31,19 @@ public class ProfessorInternalApiClient implements ProfessorAcademicoPort {
     private static final String ESCOLA_HEADER = "X-Escola-Id";
     private static final String CORRELATION_HEADER = "X-Correlation-Id";
 
-    private final RestClient restClient;
+    private final RestClient.Builder restClientBuilder;
+    private final Environment environment;
 
     public ProfessorInternalApiClient(
             RestClient.Builder restClientBuilder,
-            @Value("${professor.internal-client.base-url:http://localhost:8080}") String baseUrl) {
-        this.restClient = restClientBuilder.baseUrl(baseUrl).build();
+            Environment environment) {
+        this.restClientBuilder = restClientBuilder;
+        this.environment = environment;
     }
 
     @Override
     public ProfessorResumo criarProfessor(UUID escolaId, CriarProfessorSolicitacao solicitacao) {
-        ProfessorInternalResponse response = restClient.post()
+        ProfessorInternalResponse response = restClient().post()
                 .uri("/internal/professores")
                 .headers(headers -> preencherHeaders(headers, escolaId))
                 .body(new ProfessorInternalRequest(
@@ -58,7 +60,7 @@ public class ProfessorInternalApiClient implements ProfessorAcademicoPort {
     @Override
     public Optional<ProfessorResumo> buscarProfessor(UUID escolaId, UUID professorId) {
         try {
-            ProfessorInternalResponse response = restClient.get()
+            ProfessorInternalResponse response = restClient().get()
                     .uri("/internal/professores/{id}", professorId)
                     .headers(headers -> preencherHeaders(headers, escolaId))
                     .retrieve()
@@ -82,7 +84,7 @@ public class ProfessorInternalApiClient implements ProfessorAcademicoPort {
             UUID escolaId,
             UUID professorId,
             AlocarProfessorTurmaDisciplinaSolicitacao solicitacao) {
-        ProfessorAlocacaoInternalResponse response = restClient.post()
+        ProfessorAlocacaoInternalResponse response = restClient().post()
                 .uri("/internal/professores/{id}/turmas-disciplinas", professorId)
                 .headers(headers -> preencherHeaders(headers, escolaId))
                 .body(new ProfessorAlocacaoInternalRequest(
@@ -98,7 +100,7 @@ public class ProfessorInternalApiClient implements ProfessorAcademicoPort {
 
     @Override
     public List<ProfessorAlocacaoResumo> listarAlocacoes(UUID escolaId, UUID professorId) {
-        List<ProfessorAlocacaoInternalResponse> response = restClient.get()
+        List<ProfessorAlocacaoInternalResponse> response = restClient().get()
                 .uri("/internal/professores/{id}/turmas-disciplinas", professorId)
                 .headers(headers -> preencherHeaders(headers, escolaId))
                 .retrieve()
@@ -138,6 +140,12 @@ public class ProfessorInternalApiClient implements ProfessorAcademicoPort {
             return servletRequestAttributes.getRequest();
         }
         return null;
+    }
+
+    private RestClient restClient() {
+        String baseUrl = environment.resolvePlaceholders(
+                environment.getProperty("professor.internal-client.base-url", "http://localhost:8080"));
+        return restClientBuilder.baseUrl(baseUrl).build();
     }
 
     private ProfessorResumo toProfessorResumo(ProfessorInternalResponse response) {
