@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +37,7 @@ import br.com.escola.rh.adapter.out.persistence.entity.FuncionarioEntity;
 import br.com.escola.rh.adapter.out.persistence.repository.FuncionarioJpaRepository;
 
 @Service
+@Primary
 public class ProfessorService implements ProfessorAcademicoPort {
 
     private final ProfessorJpaRepository professorJpaRepository;

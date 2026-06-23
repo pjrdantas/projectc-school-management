@@ -18,7 +18,7 @@ import br.com.escola.professor.adapter.in.web.dto.ProfessorAlocacaoResponse;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorFuncionarioElegivelResponse;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorRequest;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorResponse;
-import br.com.escola.professor.application.service.ProfessorService;
+import br.com.escola.professor.application.service.ProfessorFluxoOrquestradorService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 
@@ -26,35 +26,35 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/professores")
 public class ProfessorController {
 
-    private final ProfessorService professorService;
+    private final ProfessorFluxoOrquestradorService professorFluxoOrquestradorService;
 
-    public ProfessorController(ProfessorService professorService) {
-        this.professorService = professorService;
+    public ProfessorController(ProfessorFluxoOrquestradorService professorFluxoOrquestradorService) {
+        this.professorFluxoOrquestradorService = professorFluxoOrquestradorService;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Cria um professor a partir de um funcionário")
     public ProfessorResponse criar(@Valid @RequestBody ProfessorRequest request) {
-        return professorService.criar(request);
+        return professorFluxoOrquestradorService.criar(request);
     }
 
     @GetMapping
     @Operation(summary = "Lista professores")
     public List<ProfessorResponse> listar() {
-        return professorService.listar();
+        return professorFluxoOrquestradorService.listar();
     }
 
     @GetMapping("/funcionarios-elegiveis")
     @Operation(summary = "Lista funcionários elegíveis para cadastro de professor")
     public List<ProfessorFuncionarioElegivelResponse> listarFuncionariosElegiveis() {
-        return professorService.listarFuncionariosElegiveis();
+        return professorFluxoOrquestradorService.listarFuncionariosElegiveis();
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Busca professor por ID")
     public ProfessorResponse buscarPorId(@PathVariable @NonNull UUID id) {
-        return professorService.buscarPorId(id);
+        return professorFluxoOrquestradorService.buscarPorId(id);
     }
 
     @PostMapping("/{id}/turmas-disciplinas")
@@ -63,12 +63,12 @@ public class ProfessorController {
     public ProfessorAlocacaoResponse vincularTurmaDisciplina(
             @PathVariable @NonNull UUID id,
             @Valid @RequestBody ProfessorAlocacaoRequest request) {
-        return professorService.vincularTurmaDisciplina(id, request);
+        return professorFluxoOrquestradorService.vincularTurmaDisciplina(id, request);
     }
 
     @GetMapping("/{id}/turmas-disciplinas")
     @Operation(summary = "Lista vínculos de turma e disciplina do professor")
     public List<ProfessorAlocacaoResponse> listarAlocacoes(@PathVariable @NonNull UUID id) {
-        return professorService.listarAlocacoes(id);
+        return professorFluxoOrquestradorService.listarAlocacoes(id);
     }
 }

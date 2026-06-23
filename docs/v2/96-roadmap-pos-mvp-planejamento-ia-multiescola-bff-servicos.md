@@ -1040,3 +1040,27 @@ Proximo passo pratico: introduzir o cliente backend/backend desse adaptador
 interno e consumi-lo de forma controlada no fluxo de professores, primeiro sem
 mudar rotas externas do BFF, com metricas e rollback simples para preparar a
 extracao incremental do dominio.
+
+Entregue na vigesima-primeira subfase:
+
+- introducao do cliente backend/backend `ProfessorInternalApiClient`, consumindo
+  `POST /internal/professores`, `GET /internal/professores/{id}`,
+  `POST /internal/professores/{id}/turmas-disciplinas` e
+  `GET /internal/professores/{id}/turmas-disciplinas` com propagacao do bearer
+  atual e do escopo por `X-Escola-Id`;
+- criacao do `ProfessorFluxoOrquestradorService` para usar esse cliente interno
+  nas operacoes externas de criacao, consulta por id, alocacao e listagem de
+  alocacoes, preservando `ProfessorService` como implementacao local padrao da
+  porta interna;
+- protecao do consumo por feature flag
+  `professor.internal-client.enabled`, com `base-url` configuravel, fallback
+  local simples por `RestClientException` e metricas Micrometer para
+  requisicoes/fallbacks;
+- validacao automatizada com testes unitarios do orquestrador e suite completa
+  do backend verde, sem alterar rotas externas do BFF nem mover o dominio para
+  outro runtime.
+
+Proximo passo pratico: habilitar esse cliente em um teste operacional
+controlado, com configuracao explicita da `base-url` e verificacao ponta a ponta
+do fluxo autenticado, antes de qualquer extracao fisica do dominio de
+professores.

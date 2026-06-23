@@ -47,3 +47,9 @@ dashboard:
       cron: ${DASHBOARD_SNAPSHOTS_SCHEDULER_CRON:0 15 1 * * *}
       zone: ${DASHBOARD_SNAPSHOTS_SCHEDULER_ZONE:America/Sao_Paulo}
       publicos: ${DASHBOARD_SNAPSHOTS_SCHEDULER_PUBLICOS:ACADEMICO,SECRETARIA,DIRETOR}
+
+professor:
+  internal-client:
+    enabled: ${PROFESSOR_INTERNAL_CLIENT_ENABLED:false}
+    fallback-local-on-error: ${PROFESSOR_INTERNAL_CLIENT_FALLBACK_LOCAL_ON_ERROR:true}
+    base-url: ${PROFESSOR_INTERNAL_CLIENT_BASE_URL:http://localhost:8080}

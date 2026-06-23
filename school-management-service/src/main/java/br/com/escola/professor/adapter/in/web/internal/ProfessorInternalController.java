@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,7 +35,8 @@ public class ProfessorInternalController {
 
     private final ProfessorAcademicoPort professorAcademicoPort;
 
-    public ProfessorInternalController(ProfessorAcademicoPort professorAcademicoPort) {
+    public ProfessorInternalController(
+            @Qualifier("professorService") ProfessorAcademicoPort professorAcademicoPort) {
         this.professorAcademicoPort = professorAcademicoPort;
     }
 

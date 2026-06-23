@@ -166,11 +166,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   professor. O adaptador reutiliza a porta `ProfessorAcademicoPort`, preserva o
   monolito como implementacao unica nesta etapa e deixa o contrato
   backend/backend pronto para o proximo consumo incremental.
-- A proxima subfase da 51D deve introduzir o cliente backend/backend desse
-  adaptador interno e consumi-lo de forma controlada no fluxo de professores,
-  primeiro em modo read/write restrito e sem mudar rotas externas do BFF,
-  preparando metricas, rollback simples e futura extracao incremental do
-  dominio.
+- A vigesima-primeira subfase da Fase 51D introduziu o cliente
+  backend/backend desse adaptador interno e passou a consumi-lo de forma
+  controlada no fluxo externo de professores, ainda sem mudar rotas externas do
+  BFF. O `ProfessorController` passou a orquestrar criacao, consulta por id,
+  alocacao professor-turma-disciplina e listagem de alocacoes via cliente
+  interno opcional, protegido por feature flag, com metricas Micrometer e
+  fallback local simples para o `ProfessorService` em caso de falha HTTP.
+- A proxima subfase da 51D deve habilitar esse cliente em um teste operacional
+  controlado, com propriedade explicita de base URL e verificacao ponta a ponta
+  do fluxo autenticado, antes de qualquer tentativa de extracao fisica do
+  dominio de professores para outro runtime.
 
 ## Historico resumido
 
