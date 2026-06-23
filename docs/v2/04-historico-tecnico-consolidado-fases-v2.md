@@ -149,9 +149,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   professores ou alocacoes. Nesta etapa nao foi aplicada refatoracao ampla nem
   rota nova no BFF; o resultado foi o fechamento objetivo do ponto de bloqueio
   arquitetural e do proximo recorte minimo seguro.
+- A decima-nona subfase da Fase 51D definiu o contrato interno minimo do
+  dominio de professores dentro do monolito atual, sem alterar o contrato
+  externo nem abrir rota nova no BFF: foram introduzidos DTOs internos de
+  criacao e alocacao, a porta `ProfessorAcademicoPort` e a adaptacao minima do
+  `ProfessorService` para expor criacao de professor, consulta por id,
+  verificacao de existencia, alocacao professor-turma-disciplina e listagem de
+  alocacoes por escola. Isso cria a fronteira interna necessaria para uma
+  futura extracao incremental do dominio sem refatoracao ampla imediata.
 - A proxima subfase da 51D deve diagnosticar o contrato de
-  extracao do dominio de professores para um backend dedicado ou modulo interno
-  com contrato proprio, comecando por definicao dos contratos internos minimos
+  exposicao desse contrato interno por um adaptador dedicado de baixo risco
+  (por exemplo, controller interno autenticado apenas para backend/backend ou
+  modulo interno separado), comecando por criacao de professor e alocacao
+  professor-turma-disciplina antes de qualquer tentativa de cutover no BFF.
   de criacao de professor e alocacao professor-turma-disciplina antes de
   qualquer tentativa de cutover no BFF.
 

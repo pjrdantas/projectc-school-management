@@ -967,11 +967,10 @@ Entregue na decima-sexta subfase:
   monolito por flag desabilitada, `turno` nao resolvido ou `status`
   incompativel, e erro do catalogo sem retry cruzado de escrita.
 
-Proximo passo pratico: definir o contrato interno minimo do dominio de
-professores antes de qualquer cutover no BFF, com foco em `criar professor` e
-`alocar professor em turma-disciplina`, porque o `academic-catalog-service`
-nao cobre esse dominio e o contrato atual do monolito depende de RH/pessoas e
-de agregados academicos ja resolvidos.
+Proximo passo pratico: expor o contrato interno minimo do dominio de
+professores por um adaptador dedicado de baixo risco, comecando por `criar
+professor` e `alocar professor em turma-disciplina`, sem cutover no BFF ainda e
+sem acoplar esse passo ao `academic-catalog-service`.
 
 Entregue na decima-setima subfase:
 
@@ -1005,3 +1004,18 @@ Entregue na decima-oitava subfase:
   destino seguro para expandir o cutover do BFF nesta frente agora;
 - decisao de nao aplicar refatoracao ampla nem adicionar rota write no BFF sem
   antes definir um contrato interno proprio para o dominio de professores.
+
+Entregue na decima-nona subfase:
+
+- definicao do contrato interno minimo do dominio de professores no
+  `school-management-service`, com DTOs internos de criacao de professor,
+  consulta/resumo, alocacao professor-turma-disciplina e resumo de alocacao;
+- introducao da porta interna `ProfessorAcademicoPort`, delimitando a
+  interface backend/backend necessaria para futura extracao incremental do
+  dominio;
+- adaptacao minima do `ProfessorService` para implementar a nova porta interna
+  sem alterar os endpoints externos atuais de `POST /api/professores` e
+  `POST /api/professores/{id}/turmas-disciplinas`;
+- validacao automatizada do contrato interno cobrindo criacao de professor,
+  alocacao e bloqueio de duplicidade, mantendo a suite completa do backend
+  verde.
