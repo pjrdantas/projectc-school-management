@@ -46,6 +46,7 @@ features:
     enabled: ${CATALOG_WRITE_CUTOVER_ENABLED:false}
     routes:
       periodos-letivos: ${CATALOG_WRITE_ROUTE_PERIODOS_LETIVOS:false}
+      disciplinas: ${CATALOG_WRITE_ROUTE_DISCIPLINAS:false}
 
 resilience:
   monolith:

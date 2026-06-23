@@ -52,6 +52,7 @@ public class MicrometerCatalogWriteObservability implements CatalogWriteObservab
     private String routeTag(CatalogWriteCutoverDecision decision) {
         return switch (decision.route()) {
             case PERIODOS_LETIVOS -> "periodos_letivos";
+            case DISCIPLINAS -> "disciplinas";
         };
     }
 }

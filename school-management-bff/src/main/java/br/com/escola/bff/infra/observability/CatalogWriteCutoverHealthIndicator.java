@@ -38,6 +38,7 @@ public class CatalogWriteCutoverHealthIndicator implements HealthIndicator {
         return builder
                 .withDetail("cutoverEnabled", cutoverEnabled)
                 .withDetail("routePeriodosLetivosEnabled", properties.routes().periodosLetivos())
+                .withDetail("routeDisciplinasEnabled", properties.routes().disciplinas())
                 .withDetail("gateAllowed", gateStatus.allowed())
                 .withDetail("gateReason", gateStatus.reason())
                 .withDetail("internalTokenConfigured", internalTokenConfigured)

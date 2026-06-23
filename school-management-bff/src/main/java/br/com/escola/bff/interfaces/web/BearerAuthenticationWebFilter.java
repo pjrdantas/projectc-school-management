@@ -65,6 +65,9 @@ public class BearerAuthenticationWebFilter implements WebFilter {
         if (HttpMethod.POST.equals(method) && "/api/periodos-letivos".equals(path)) {
             return true;
         }
+        if (HttpMethod.POST.equals(method) && "/api/disciplinas".equals(path)) {
+            return true;
+        }
         if (!HttpMethod.GET.equals(method)) {
             return false;
         }

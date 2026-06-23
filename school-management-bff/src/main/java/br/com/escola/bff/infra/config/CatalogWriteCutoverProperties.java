@@ -13,10 +13,12 @@ public record CatalogWriteCutoverProperties(
     public boolean routeEnabled(CatalogWriteRoute route) {
         return switch (route) {
             case PERIODOS_LETIVOS -> routes.periodosLetivos();
+            case DISCIPLINAS -> routes.disciplinas();
         };
     }
 
     public record RouteFlags(
-            boolean periodosLetivos
+            boolean periodosLetivos,
+            boolean disciplinas
     ) {}
 }
