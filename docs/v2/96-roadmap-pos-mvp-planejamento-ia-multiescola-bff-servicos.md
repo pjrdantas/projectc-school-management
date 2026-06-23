@@ -967,12 +967,11 @@ Entregue na decima-sexta subfase:
   monolito por flag desabilitada, `turno` nao resolvido ou `status`
   incompativel, e erro do catalogo sem retry cruzado de escrita.
 
-Proximo passo pratico: diagnosticar o contrato de
-`POST /api/professores` e dos vinculos iniciais de
-professor-turma-disciplina, para identificar o menor recorte de escrita do
-dominio academico que ainda nao dependa de refatoracao ampla e possa seguir o
-mesmo padrao de gate, idempotencia, observabilidade e rollback por feature
-flag.
+Proximo passo pratico: definir o contrato interno minimo do dominio de
+professores antes de qualquer cutover no BFF, com foco em `criar professor` e
+`alocar professor em turma-disciplina`, porque o `academic-catalog-service`
+nao cobre esse dominio e o contrato atual do monolito depende de RH/pessoas e
+de agregados academicos ja resolvidos.
 
 Entregue na decima-setima subfase:
 
@@ -992,3 +991,17 @@ Entregue na decima-setima subfase:
 - validacao automatizada cobrindo roteamento ao catalogo, retorno direto ao
   monolito por flag desabilitada e erro do catalogo sem retry cruzado de
   escrita.
+
+Entregue na decima-oitava subfase:
+
+- diagnostico contratual de `POST /api/professores`, confirmando dependencia do
+  monolito em RH/pessoas via `funcionarioId`, consulta de funcionario por
+  escola e regras de elegibilidade/atividade antes da criacao do professor;
+- diagnostico contratual de `POST /api/professores/{id}/turmas-disciplinas`,
+  confirmando dependencia do agregado academico preexistente via
+  `turmaDisciplinaId` e das validacoes de duplicidade/alocacao por escola;
+- confirmacao de que o `academic-catalog-service` nao expoe endpoints, modelo
+  interno ou persistencia para professores e alocacoes, portanto nao existe
+  destino seguro para expandir o cutover do BFF nesta frente agora;
+- decisao de nao aplicar refatoracao ampla nem adicionar rota write no BFF sem
+  antes definir um contrato interno proprio para o dominio de professores.

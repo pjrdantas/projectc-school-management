@@ -139,12 +139,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   contrato: `Idempotency-Key`, observabilidade, rollback por flag e ausencia de
   fallback automatico para o monolito depois que a escrita tenta o servico
   novo.
+- A decima-oitava subfase da Fase 51D diagnosticou `POST /api/professores` e
+  `POST /api/professores/{id}/turmas-disciplinas` e concluiu que a troca para
+  cutover no BFF ainda nao e segura. O contrato do monolito depende do dominio
+  de RH e pessoas (`funcionarioId`, `pessoa`, `escola`, `ativo`) para criar
+  professor e do agregado academico ja montado (`turmaDisciplinaId`) para a
+  alocacao, enquanto o unico servico novo em operacao nesta frente,
+  `academic-catalog-service`, nao expoe endpoints nem modelo interno para
+  professores ou alocacoes. Nesta etapa nao foi aplicada refatoracao ampla nem
+  rota nova no BFF; o resultado foi o fechamento objetivo do ponto de bloqueio
+  arquitetural e do proximo recorte minimo seguro.
 - A proxima subfase da 51D deve diagnosticar o contrato de
-  `POST /api/professores` e os vinculos iniciais de alocacao
-  professor-turma-disciplina, para identificar o menor recorte de escrita do
-  dominio academico que ainda nao dependa de refatoracao ampla e possa seguir o
-  mesmo padrao de gate, idempotencia, observabilidade, rollback por flag e
-  validacao operacional ponta a ponta.
+  extracao do dominio de professores para um backend dedicado ou modulo interno
+  com contrato proprio, comecando por definicao dos contratos internos minimos
+  de criacao de professor e alocacao professor-turma-disciplina antes de
+  qualquer tentativa de cutover no BFF.
 
 ## Historico resumido
 
