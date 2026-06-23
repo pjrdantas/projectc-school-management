@@ -828,11 +828,11 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Continuar a Fase 51D com uma decima-segunda subfase operacional de
-observabilidade e estabilizacao do cutover read-only inteiro no BFF, medindo
-roteamento por rota, falhas do catalogo novo, fallbacks ao monolito e health
-do gate do relatorio reconciliado antes de qualquer inicio de escrita no
-`academic-catalog-service`.
+Continuar a Fase 51D com a expansao da escrita controlada do catalogo via BFF,
+rota por rota, com o mesmo gate de relatorio reconciliado, `Idempotency-Key`,
+metricas e health dedicados. O proximo corte de menor risco e
+`POST /api/disciplinas`, ainda sem fallback automatico para o monolito depois
+que a escrita tenta o `academic-catalog-service`.
 
 Entregue na oitava subfase:
 
@@ -889,7 +889,24 @@ Entregue na decima-segunda subfase:
 - validacao operacional das metricas novas e do health, incluindo falha real do
   `academic-catalog-service` com fallback e incrementos coerentes no Prometheus.
 
-Proximo passo pratico: iniciar a primeira subfase de escrita controlada do
-catalogo via BFF e `academic-catalog-service`, rota por rota, com a mesma
-estrategia de feature flag, idempotencia, metricas e rollback imediato para o
-monolito.
+Entregue na decima-terceira subfase:
+
+- primeira escrita controlada do catalogo no BFF em `POST /api/periodos-letivos`;
+- flag propria de write cutover por rota, separada do bloco read-only;
+- gate de escrita reaproveitando o mesmo relatorio reconciliado da migracao
+  real, antes de liberar qualquer envio ao `academic-catalog-service`;
+- resolucao de `usuarioId`, `escolaId` e `escolaNome` pelo contexto autenticado
+  do monolito, com rejeicao explicita quando o `escolaId` informado diverge do
+  tenant autenticado;
+- `Idempotency-Key` repassado pelo cliente quando presente ou gerado no BFF
+  quando ausente;
+- metricas `bff_catalog_write_route_total` e `bff_catalog_write_error_total`,
+  mais health dedicado em `/actuator/health/catalogWriteCutover`;
+- validacao automatizada cobrindo roteamento ao catalogo, retorno ao monolito
+  quando a flag de escrita esta desabilitada e ausencia de fallback automatico
+  ao monolito quando a tentativa de escrita no servico novo falha.
+
+Proximo passo pratico: expandir a escrita controlada para
+`POST /api/disciplinas`, preservando o mesmo padrao de gate, idempotencia,
+observabilidade e rollback por feature flag antes de avaliar `POST /api/series`
+ou `POST /api/turmas`.

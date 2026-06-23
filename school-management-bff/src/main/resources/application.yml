@@ -23,6 +23,7 @@ clients:
 features:
   disciplinas-proxy-enabled: ${DISCIPLINAS_PROXY_ENABLED:true}
   catalog-read-proxy-enabled: ${CATALOG_READ_PROXY_ENABLED:${DISCIPLINAS_PROXY_ENABLED:true}}
+  catalog-write-proxy-enabled: ${CATALOG_WRITE_PROXY_ENABLED:true}
   catalog-read-cutover:
     enabled: ${CATALOG_READ_CUTOVER_ENABLED:false}
     report-path: ${CATALOG_READ_CUTOVER_REPORT_PATH:}
@@ -41,6 +42,10 @@ features:
       turma-disciplinas: ${CATALOG_READ_ROUTE_TURMA_DISCIPLINAS:false}
       catalogos-niveis-ensino: ${CATALOG_READ_ROUTE_CATALOGOS_NIVEIS_ENSINO:false}
       catalogos-turnos: ${CATALOG_READ_ROUTE_CATALOGOS_TURNOS:false}
+  catalog-write-cutover:
+    enabled: ${CATALOG_WRITE_CUTOVER_ENABLED:false}
+    routes:
+      periodos-letivos: ${CATALOG_WRITE_ROUTE_PERIODOS_LETIVOS:false}
 
 resilience:
   monolith:

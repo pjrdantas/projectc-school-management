@@ -1,0 +1,21 @@
+package br.com.escola.bff.application.service;
+
+public enum CatalogWriteRoute {
+    PERIODOS_LETIVOS("/api/periodos-letivos", "/internal/v1/periodos-letivos");
+
+    private final String externalPath;
+    private final String internalPath;
+
+    CatalogWriteRoute(String externalPath, String internalPath) {
+        this.externalPath = externalPath;
+        this.internalPath = internalPath;
+    }
+
+    public String externalPath() {
+        return externalPath;
+    }
+
+    public String internalPath() {
+        return internalPath;
+    }
+}

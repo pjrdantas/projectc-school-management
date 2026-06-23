@@ -37,8 +37,19 @@ public class BffExceptionHandler {
             ServerWebExchange exchange) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error(
                 HttpStatus.SERVICE_UNAVAILABLE,
-                "CATALOG_READ_UNAVAILABLE",
-                "A leitura de catalogo esta temporariamente indisponivel",
+                "CATALOG_UNAVAILABLE",
+                "O servico de catalogo esta temporariamente indisponivel",
+                exchange));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    ResponseEntity<ApiErrorResponse> handleIllegalArgument(
+            IllegalArgumentException exception,
+            ServerWebExchange exchange) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error(
+                HttpStatus.BAD_REQUEST,
+                "INVALID_REQUEST",
+                exception.getMessage(),
                 exchange));
     }
 

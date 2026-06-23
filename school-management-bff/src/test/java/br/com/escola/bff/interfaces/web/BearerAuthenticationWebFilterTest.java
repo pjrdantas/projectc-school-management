@@ -53,4 +53,16 @@ class BearerAuthenticationWebFilterTest {
         assertThat(forwarded.get().getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
                 .isEqualTo("Bearer opaque-token");
     }
+
+    @Test
+    void deveProtegerPostDePeriodoLetivoSemBearerToken() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("/api/periodos-letivos")
+                        .header(TrustedHeaders.CORRELATION_ID, "corr-write"));
+
+        StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-write");
+    }
 }

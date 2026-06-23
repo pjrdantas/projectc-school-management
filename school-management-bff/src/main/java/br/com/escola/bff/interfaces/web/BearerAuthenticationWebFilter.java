@@ -27,7 +27,6 @@ import reactor.core.publisher.Mono;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
-@ConditionalOnProperty(name = "features.catalog-read-proxy-enabled", havingValue = "true")
 public class BearerAuthenticationWebFilter implements WebFilter {
 
     private static final Set<String> UNTRUSTED_CONTEXT_HEADERS = Set.of(
@@ -58,10 +57,17 @@ public class BearerAuthenticationWebFilter implements WebFilter {
     }
 
     private boolean isProtectedCatalogReadRoute(ServerWebExchange exchange) {
-        if (!HttpMethod.GET.equals(exchange.getRequest().getMethod())) {
+        HttpMethod method = exchange.getRequest().getMethod();
+        if (method == null) {
             return false;
         }
         String path = exchange.getRequest().getPath().value();
+        if (HttpMethod.POST.equals(method) && "/api/periodos-letivos".equals(path)) {
+            return true;
+        }
+        if (!HttpMethod.GET.equals(method)) {
+            return false;
+        }
         return "/api/disciplinas".equals(path)
                 || path.matches("^/api/disciplinas/[^/]+$")
                 || "/api/periodos-letivos".equals(path)

@@ -97,9 +97,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   cutover read-only inteiro no BFF, com motivo explicito de roteamento,
   metricas por rota/alvo/resultado, contador de falhas do catalogo novo,
   contador de fallback e health dedicado para o gate do relatorio reconciliado.
-- A proxima subfase da 51D deve iniciar a primeira escrita controlada do
-  catalogo via BFF e `academic-catalog-service`, ainda rota por rota e com
-  rollback imediato para o monolito.
+- A decima-terceira subfase da Fase 51D iniciou a primeira escrita controlada
+  do catalogo via BFF em `POST /api/periodos-letivos`, com feature flag
+  propria, gate pelo relatorio reconciliado, `Idempotency-Key` repassado ou
+  gerado no BFF, metricas de escrita, health dedicado e rejeicao de `escolaId`
+  divergente do contexto autenticado. O rollback continua sendo por flag; nao
+  ha fallback automatico para o monolito depois que a escrita tenta o servico
+  novo.
+- A proxima subfase da 51D deve expandir a escrita controlada para
+  `POST /api/disciplinas`, preservando o mesmo padrao de gate, idempotencia,
+  observabilidade, sem fallback automatico e com validacao operacional ponta a
+  ponta antes de qualquer rota adicional.
 
 ## Historico resumido
 
