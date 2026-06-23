@@ -89,4 +89,16 @@ class BearerAuthenticationWebFilterTest {
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-serie-write");
     }
+
+    @Test
+    void deveProtegerPostDeTurmaSemBearerToken() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("/api/turmas")
+                        .header(TrustedHeaders.CORRELATION_ID, "corr-turma-write"));
+
+        StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-turma-write");
+    }
 }

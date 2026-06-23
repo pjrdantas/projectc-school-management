@@ -17,15 +17,19 @@ import br.com.escola.bff.application.dto.CatalogWriteQuery;
 import br.com.escola.bff.application.dto.DisciplinaCreateCommand;
 import br.com.escola.bff.application.dto.PeriodoLetivoCreateCommand;
 import br.com.escola.bff.application.dto.SerieCreateCommand;
+import br.com.escola.bff.application.dto.TurmaCreateCommand;
 import br.com.escola.bff.application.usecase.CreateDisciplinaUseCase;
 import br.com.escola.bff.application.usecase.CreatePeriodoLetivoUseCase;
 import br.com.escola.bff.application.usecase.CreateSerieUseCase;
+import br.com.escola.bff.application.usecase.CreateTurmaUseCase;
 import br.com.escola.bff.interfaces.request.DisciplinaRequest;
 import br.com.escola.bff.interfaces.request.PeriodoLetivoRequest;
 import br.com.escola.bff.interfaces.request.SerieRequest;
+import br.com.escola.bff.interfaces.request.TurmaRequest;
 import br.com.escola.bff.interfaces.response.DisciplinaResponse;
 import br.com.escola.bff.interfaces.response.PeriodoLetivoResponse;
 import br.com.escola.bff.interfaces.response.SerieResponse;
+import br.com.escola.bff.interfaces.response.TurmaResponse;
 import jakarta.validation.Valid;
 import reactor.core.publisher.Mono;
 
@@ -36,14 +40,17 @@ public class AcademicCatalogWriteController {
     private final CreatePeriodoLetivoUseCase createPeriodoLetivoUseCase;
     private final CreateDisciplinaUseCase createDisciplinaUseCase;
     private final CreateSerieUseCase createSerieUseCase;
+    private final CreateTurmaUseCase createTurmaUseCase;
 
     public AcademicCatalogWriteController(
             CreatePeriodoLetivoUseCase createPeriodoLetivoUseCase,
             CreateDisciplinaUseCase createDisciplinaUseCase,
-            CreateSerieUseCase createSerieUseCase) {
+            CreateSerieUseCase createSerieUseCase,
+            CreateTurmaUseCase createTurmaUseCase) {
         this.createPeriodoLetivoUseCase = createPeriodoLetivoUseCase;
         this.createDisciplinaUseCase = createDisciplinaUseCase;
         this.createSerieUseCase = createSerieUseCase;
+        this.createTurmaUseCase = createTurmaUseCase;
     }
 
     @PostMapping("/api/periodos-letivos")
@@ -125,6 +132,42 @@ public class AcademicCatalogWriteController {
                         body.nome(),
                         body.ordem(),
                         body.nivelEnsino(),
+                        body.escolaId(),
+                        body.escolaNome(),
+                        body.createdAt())));
+    }
+
+    @PostMapping("/api/turmas")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<ResponseEntity<TurmaResponse>> criarTurma(
+            @Valid @RequestBody TurmaRequest request,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId,
+            @RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey) {
+        String resolvedKey = idempotencyKey != null && !idempotencyKey.isBlank()
+                ? idempotencyKey
+                : UUID.randomUUID().toString();
+        return createTurmaUseCase.executar(
+                        new CatalogWriteQuery(authorization, correlationId, resolvedKey),
+                        new TurmaCreateCommand(
+                                request.codigo(),
+                                request.nome(),
+                                request.capacidade(),
+                                request.periodoLetivoId(),
+                                request.serieId(),
+                                request.turno(),
+                                request.status(),
+                                request.escolaId()))
+                .map(body -> ResponseEntity.status(HttpStatus.CREATED).body(new TurmaResponse(
+                        body.id(),
+                        body.codigo(),
+                        body.nome(),
+                        body.capacidade(),
+                        body.periodoLetivoId(),
+                        body.serieId(),
+                        body.serieNome(),
+                        body.turno(),
+                        body.status(),
                         body.escolaId(),
                         body.escolaNome(),
                         body.createdAt())));

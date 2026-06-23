@@ -944,7 +944,30 @@ Entregue na decima-quinta subfase:
   monolito por flag desabilitada ou `nivelEnsino` nao resolvido, e erro do
   catalogo sem retry cruzado de escrita.
 
-Proximo passo pratico: diagnosticar o contrato de `POST /api/turmas` e, se ele
-for compativel sem adaptacao ampla, expandir a escrita controlada para essa
-rota preservando o mesmo padrao de gate, idempotencia, observabilidade e
-rollback por feature flag.
+Entregue na decima-sexta subfase:
+
+- diagnostico contratual de `POST /api/turmas`, confirmando a diferenca entre o
+  contrato externo atual do monolito (`turno` textual e `status` externo) e o
+  contrato interno do `academic-catalog-service` (`turnoId` UUID e `ativo`
+  interno);
+- adaptacao minima e isolada no BFF para resolver o `turno` informado em um
+  `turnoId` do catalogo novo antes de tentar a escrita;
+- expansao da escrita controlada do catalogo no BFF para `POST /api/turmas`,
+  mantendo o mesmo gate por relatorio reconciliado, `Idempotency-Key`,
+  metricas e health de write cutover;
+- roteamento direto ao `academic-catalog-service` apenas quando `capacidade`,
+  `periodoLetivoId`, `serieId`, `turno` e `status` estiverem compativeis com o
+  contrato novo;
+- destino direto ao monolito quando o `turno` vier ausente, nao puder ser
+  resolvido no catalogo novo ou o `status` nao for compativel, preservando o
+  comportamento atual sem exigir refatoracao ampla do contrato externo;
+- ausencia de fallback automatico para o monolito depois que a escrita tenta o
+  `academic-catalog-service`;
+- validacao automatizada cobrindo roteamento ao catalogo, retorno direto ao
+  monolito por flag desabilitada, `turno` nao resolvido ou `status`
+  incompativel, e erro do catalogo sem retry cruzado de escrita.
+
+Proximo passo pratico: diagnosticar o contrato de
+`POST /api/turmas/{turmaId}/disciplinas` e, se ele for compativel sem adaptacao
+ampla, expandir a escrita controlada para esse vinculo preservando o mesmo
+padrao de gate, idempotencia, observabilidade e rollback por feature flag.

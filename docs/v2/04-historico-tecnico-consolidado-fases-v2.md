@@ -121,10 +121,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `nivelEnsino` resolvivel; quando o nivel nao vem informado ou nao resolve no
   catalogo novo, o destino continua sendo diretamente o monolito, sem fallback
   automatico depois de uma tentativa de escrita no servico novo.
-- A proxima subfase da 51D deve diagnosticar o contrato de `POST /api/turmas`
-  e, se ele for compativel sem adaptacao ampla, expandir a escrita controlada
-  para essa rota preservando o mesmo padrao de gate, idempotencia,
-  observabilidade, rollback por flag e validacao operacional ponta a ponta.
+- A decima-sexta subfase da Fase 51D diagnosticou a incompatibilidade pontual
+  de contrato de `POST /api/turmas` (`turno` textual e `status` externo no
+  monolito versus `turnoId` UUID e `ativo` interno no servico novo) e expandiu
+  a escrita controlada no BFF com adaptacao minima e isolada: resolucao interna
+  do turno no catalogo novo antes da escrita e gate explicito para `status`
+  compativel. O BFF passou a enviar ao `academic-catalog-service` apenas
+  payloads com `capacidade` positiva, `periodoLetivoId`, `serieId`, `turno`
+  resolvivel e `status` ausente ou `ATIVA`; quando o turno nao resolve ou o
+  status nao e compativel, o destino continua sendo diretamente o monolito, sem
+  fallback automatico depois de uma tentativa de escrita no servico novo.
+- A proxima subfase da 51D deve diagnosticar o contrato de
+  `POST /api/turmas/{turmaId}/disciplinas` e, se ele for compativel sem
+  adaptacao ampla, expandir a escrita controlada para esse vinculo preservando
+  o mesmo padrao de gate, idempotencia, observabilidade, rollback por flag e
+  validacao operacional ponta a ponta.
 
 ## Historico resumido
 

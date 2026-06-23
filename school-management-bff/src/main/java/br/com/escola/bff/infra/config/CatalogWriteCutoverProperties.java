@@ -15,12 +15,14 @@ public record CatalogWriteCutoverProperties(
             case PERIODOS_LETIVOS -> routes.periodosLetivos();
             case DISCIPLINAS -> routes.disciplinas();
             case SERIES -> routes.series();
+            case TURMAS -> routes.turmas();
         };
     }
 
     public record RouteFlags(
             boolean periodosLetivos,
             boolean disciplinas,
-            boolean series
+            boolean series,
+            boolean turmas
     ) {}
 }

@@ -54,6 +54,7 @@ public class MicrometerCatalogWriteObservability implements CatalogWriteObservab
             case PERIODOS_LETIVOS -> "periodos_letivos";
             case DISCIPLINAS -> "disciplinas";
             case SERIES -> "series";
+            case TURMAS -> "turmas";
         };
     }
 }

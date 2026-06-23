@@ -18,7 +18,7 @@ class CatalogWriteCutoverHealthIndicatorTest {
     void deveFicarUpQuandoCutoverEscritaEstiverDesabilitado() throws Exception {
         CatalogWriteCutoverProperties properties = new CatalogWriteCutoverProperties(
                 false,
-                new CatalogWriteCutoverProperties.RouteFlags(false, false, false));
+                new CatalogWriteCutoverProperties.RouteFlags(false, false, false, false));
         CatalogServiceClientProperties clientProperties = new CatalogServiceClientProperties(
                 java.net.URI.create("http://localhost:8082"),
                 java.time.Duration.ofSeconds(2),
@@ -36,7 +36,7 @@ class CatalogWriteCutoverHealthIndicatorTest {
     void deveFicarDownQuandoCutoverEscritaEstiverHabilitadoSemRelatorioValido() {
         CatalogWriteCutoverProperties properties = new CatalogWriteCutoverProperties(
                 true,
-                new CatalogWriteCutoverProperties.RouteFlags(true, true, true));
+                new CatalogWriteCutoverProperties.RouteFlags(true, true, true, true));
         CatalogServiceClientProperties clientProperties = new CatalogServiceClientProperties(
                 java.net.URI.create("http://localhost:8082"),
                 java.time.Duration.ofSeconds(2),

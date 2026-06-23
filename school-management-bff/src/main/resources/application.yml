@@ -48,6 +48,7 @@ features:
       periodos-letivos: ${CATALOG_WRITE_ROUTE_PERIODOS_LETIVOS:false}
       disciplinas: ${CATALOG_WRITE_ROUTE_DISCIPLINAS:false}
       series: ${CATALOG_WRITE_ROUTE_SERIES:false}
+      turmas: ${CATALOG_WRITE_ROUTE_TURMAS:false}
 
 resilience:
   monolith:
