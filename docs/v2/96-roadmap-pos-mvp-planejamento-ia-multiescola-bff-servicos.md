@@ -906,7 +906,24 @@ Entregue na decima-terceira subfase:
   quando a flag de escrita esta desabilitada e ausencia de fallback automatico
   ao monolito quando a tentativa de escrita no servico novo falha.
 
-Proximo passo pratico: expandir a escrita controlada para
-`POST /api/disciplinas`, preservando o mesmo padrao de gate, idempotencia,
-observabilidade e rollback por feature flag antes de avaliar `POST /api/series`
-ou `POST /api/turmas`.
+Entregue na decima-quarta subfase:
+
+- expansao da escrita controlada do catalogo no BFF para `POST /api/disciplinas`;
+- reaproveitamento do mesmo gate por relatorio reconciliado, `Idempotency-Key`,
+  metricas e health de write cutover ja introduzidos na subfase anterior;
+- roteamento direto ao `academic-catalog-service` apenas para payload compativel
+  com o contrato novo de disciplina (`status` ausente ou `ATIVA`);
+- decisao explicita de manter o monolito como destino direto quando o payload
+  pede `status` nao compativel com o contrato atual do servico novo, evitando
+  degradar comportamento existente enquanto a escrita ainda esta em rollout
+  controlado;
+- ausencia de fallback automatico para o monolito depois que a escrita tenta o
+  `academic-catalog-service`;
+- validacao automatizada cobrindo roteamento ao catalogo, retorno direto ao
+  monolito por flag desabilitada ou `status` nao compativel, e erro do catalogo
+  sem retry cruzado de escrita.
+
+Proximo passo pratico: diagnosticar o contrato de `POST /api/series` e, se ele
+for compativel sem adaptacao ampla, expandir a escrita controlada para essa
+rota preservando o mesmo padrao de gate, idempotencia, observabilidade e
+rollback por feature flag antes de avaliar `POST /api/turmas`.

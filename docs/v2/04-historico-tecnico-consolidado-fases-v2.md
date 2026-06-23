@@ -104,10 +104,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   divergente do contexto autenticado. O rollback continua sendo por flag; nao
   ha fallback automatico para o monolito depois que a escrita tenta o servico
   novo.
-- A proxima subfase da 51D deve expandir a escrita controlada para
-  `POST /api/disciplinas`, preservando o mesmo padrao de gate, idempotencia,
-  observabilidade, sem fallback automatico e com validacao operacional ponta a
-  ponta antes de qualquer rota adicional.
+- A decima-quarta subfase da Fase 51D expandiu a escrita controlada do catalogo
+  via BFF para `POST /api/disciplinas`, mantendo feature flag propria por rota,
+  gate pelo relatorio reconciliado, `Idempotency-Key`, metricas e health
+  dedicados. Para reduzir risco, o BFF passou a enviar ao
+  `academic-catalog-service` apenas payload compativel com o contrato novo
+  (`status` ausente ou `ATIVA`) e a manter o monolito como destino direto
+  quando o payload pede `status` nao compativel, sem fallback automatico depois
+  de uma tentativa de escrita no servico novo.
+- A proxima subfase da 51D deve diagnosticar e, se o contrato for compativel,
+  expandir a escrita controlada para `POST /api/series`, preservando o mesmo
+  padrao de gate, idempotencia, observabilidade, rollback por flag e validacao
+  operacional ponta a ponta antes de qualquer rota adicional.
 
 ## Historico resumido
 
