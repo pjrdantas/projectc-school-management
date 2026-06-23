@@ -1019,3 +1019,24 @@ Entregue na decima-nona subfase:
 - validacao automatizada do contrato interno cobrindo criacao de professor,
   alocacao e bloqueio de duplicidade, mantendo a suite completa do backend
   verde.
+
+Entregue na vigesima subfase:
+
+- exposicao desse contrato interno de professores por um adaptador web
+  dedicado e de baixo risco no `school-management-service`, sem alterar os
+  endpoints externos atuais nem iniciar cutover no BFF;
+- criacao de endpoints internos autenticados e com escopo explicito por
+  `X-Escola-Id` para `POST /internal/professores`, `GET /internal/professores/{id}`,
+  `POST /internal/professores/{id}/turmas-disciplinas` e
+  `GET /internal/professores/{id}/turmas-disciplinas`;
+- reaproveitamento da porta `ProfessorAcademicoPort` como fronteira
+  backend/backend do dominio, preservando o monolito atual como implementacao
+  unica nesta etapa;
+- validacao automatizada do adaptador interno cobrindo criacao de professor,
+  consulta por id, alocacao professor-turma-disciplina e listagem de alocacoes
+  por escola, mantendo a suite completa do backend verde.
+
+Proximo passo pratico: introduzir o cliente backend/backend desse adaptador
+interno e consumi-lo de forma controlada no fluxo de professores, primeiro sem
+mudar rotas externas do BFF, com metricas e rollback simples para preparar a
+extracao incremental do dominio.

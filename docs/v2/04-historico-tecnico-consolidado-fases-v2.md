@@ -157,13 +157,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   verificacao de existencia, alocacao professor-turma-disciplina e listagem de
   alocacoes por escola. Isso cria a fronteira interna necessaria para uma
   futura extracao incremental do dominio sem refatoracao ampla imediata.
-- A proxima subfase da 51D deve diagnosticar o contrato de
-  exposicao desse contrato interno por um adaptador dedicado de baixo risco
-  (por exemplo, controller interno autenticado apenas para backend/backend ou
-  modulo interno separado), comecando por criacao de professor e alocacao
-  professor-turma-disciplina antes de qualquer tentativa de cutover no BFF.
-  de criacao de professor e alocacao professor-turma-disciplina antes de
-  qualquer tentativa de cutover no BFF.
+- A vigesima subfase da Fase 51D expôs esse contrato interno de professores por
+  um adaptador web dedicado e de baixo risco dentro do
+  `school-management-service`, sem alterar o contrato externo atual nem abrir
+  cutover no BFF. Foram adicionados endpoints internos autenticados com escopo
+  explicito por `X-Escola-Id` para criacao de professor, consulta por id,
+  criacao de alocacao professor-turma-disciplina e listagem de alocacoes do
+  professor. O adaptador reutiliza a porta `ProfessorAcademicoPort`, preserva o
+  monolito como implementacao unica nesta etapa e deixa o contrato
+  backend/backend pronto para o proximo consumo incremental.
+- A proxima subfase da 51D deve introduzir o cliente backend/backend desse
+  adaptador interno e consumi-lo de forma controlada no fluxo de professores,
+  primeiro em modo read/write restrito e sem mudar rotas externas do BFF,
+  preparando metricas, rollback simples e futura extracao incremental do
+  dominio.
 
 ## Historico resumido
 
