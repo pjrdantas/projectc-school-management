@@ -285,6 +285,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `academic-professor-service` ao `school-management-service` real em perfil
   controlado para observar os healths dos dois lados na mesma execucao, ainda
   sem cutover externo.
+- A trigesima primeira subfase da Fase 51D preparou exatamente esse passo
+  operacional sem ampliar a topologia do build: foi criado no
+  `school-management-service` um perfil de smoke `professor-shadow-operational`
+  sobre H2, com seed minimo de usuario, contexto escolar e professor, e foi
+  adicionado o script
+  `scripts/operational/professor-shadow-operational-smoke.ps1` para subir os
+  dois backends em portas controladas, autenticar no monolito, exercitar
+  leituras externas e shadow e consolidar, no mesmo relatorio, os healths
+  `/actuator/health/professorInternalClient` e
+  `/actuator/health/professorShadowMonolith`. O backend principal permaneceu
+  validado por teste, sem mover escrita alguma nem introduzir dependencias
+  externas novas.
+- A proxima subfase da 51D deve executar esse smoke operacional controlado para
+  gerar o primeiro relatorio real ponta a ponta e, se estavel, ampliar a
+  cobertura operacional para `listarFuncionariosElegiveis` e `listarPorTurma`,
+  ainda sem cutover externo.
 
 ## Historico resumido
 

@@ -1243,11 +1243,27 @@ Entregue na trigesima subfase:
 - preservacao integral do escopo: nenhuma escrita movida, nenhum contrato
   externo alterado, nenhum cutover no BFF e nenhum banco novo.
 
+Entregue na trigesima primeira subfase:
+
+- preparacao de um perfil controlado `professor-shadow-operational` no
+  `school-management-service`, usando H2 e seed minimo exclusivo de smoke para
+  disponibilizar autenticacao, contexto escolar e um professor real sem exigir
+  PostgreSQL externo;
+- criacao do script operacional
+  `scripts/operational/professor-shadow-operational-smoke.ps1`, responsavel por
+  subir `school-management-service` e `academic-professor-service` em portas
+  controladas, autenticar no monolito, executar leituras externas e shadow e
+  consolidar no mesmo relatorio os healths
+  `/actuator/health/professorInternalClient` e
+  `/actuator/health/professorShadowMonolith`;
+- preservacao do escopo: nenhuma escrita movida, nenhum contrato externo
+  alterado, nenhum cutover no BFF e nenhuma dependencia nova de infraestrutura.
+
 Proxima subfase pratica e de menor risco:
 
-- converter esse smoke controlado em um smoke operacional mais proximo do
-  ambiente real, conectando o `academic-professor-service` ao
-  `school-management-service` real em perfil controlado para observar os
-  healths dos dois lados na mesma execucao;
-- manter criacao e alocacao de professor no monolito ate que essa
-  observabilidade ponta a ponta esteja comprovada.
+- executar esse smoke operacional controlado com os dois runtimes locais para
+  gerar o primeiro relatorio real ponta a ponta, revisar logs e confirmar os
+  contadores de health dos dois lados;
+- se o relatorio real confirmar estabilidade, ampliar o smoke operacional para
+  cobrir `listarFuncionariosElegiveis` e `listarPorTurma`, ainda sem mover
+  escrita nem iniciar cutover externo.

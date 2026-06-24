@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:professorShadowOperational;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+    defer-datasource-initialization: true
+
+  flyway:
+    enabled: false
+
+  sql:
+    init:
+      mode: always
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+professor:
+  internal-client:
+    enabled: true
+    fallback-local-on-error: false
+    base-url: ${PROFESSOR_SHADOW_BASE_URL:http://localhost:18092}
