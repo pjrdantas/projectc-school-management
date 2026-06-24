@@ -207,11 +207,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   endpoints internos autenticados `GET /internal/funcionarios/{id}/professor` e
   `GET /internal/funcionarios/professor-elegiveis`, preparando uma futura
   separacao fisica incremental do dominio com contrato backend/backend explicito.
-- A proxima subfase da 51D deve usar as duas fronteiras internas agora
-  explicitadas (`ProfessorAcademicoPort` e `FuncionarioProfessorPort`) para
-  preparar a primeira separacao fisica incremental do dominio de professores,
-  preferencialmente iniciando por leitura shadow/read-only em runtime proprio,
-  sem mover escritas nem alterar rotas do BFF.
+- A vigesima-quinta subfase da Fase 51D preparou a primeira separacao fisica
+  incremental do dominio de professores em modo shadow/read-only, sem mover
+  escritas, sem alterar rotas do BFF e sem introduzir persistencia propria.
+  Foi criado o modulo `academic-professor-service` no monorepo, com estrutura
+  em camadas, actuator e API interna em `/internal/v1`. Esse runtime novo
+  consome por HTTP os contratos internos ja estabilizados no monolito atual:
+  `GET /internal/professores/{id}`,
+  `GET /internal/professores/{id}/turmas-disciplinas` e
+  `GET /internal/funcionarios/professor-elegiveis`. A protecao do novo runtime
+  foi mantida por token interno mais contexto obrigatorio de correlacao,
+  usuario e escola; o `Authorization` recebido e apenas propagado ao monolito
+  para a leitura shadow. Testes com `MockWebServer` validaram ponta a ponta o
+  roteamento interno, a propagacao de headers e o mapeamento de 404 sem iniciar
+  um novo runtime real nem acionar banco.
+- A proxima subfase da 51D deve expandir esse runtime shadow para as leituras
+  remanescentes mais seguras do dominio de professores, preferencialmente
+  `GET /api/professores` e `GET /api/turmas/{turmaId}/professores`, primeiro
+  como consumo observavel interno e sem cutover no BFF.
 
 ## Historico resumido
 

@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: academic-professor-service
+
+server:
+  port: 8092
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+professor:
+  shadow:
+    internal-api:
+      token: ${PROFESSOR_SHADOW_INTERNAL_API_TOKEN:professor-shadow-local-token}
+    monolith:
+      base-url: ${PROFESSOR_SHADOW_MONOLITH_BASE_URL:http://localhost:8080}
+      connect-timeout: ${PROFESSOR_SHADOW_MONOLITH_CONNECT_TIMEOUT:2s}
+      read-timeout: ${PROFESSOR_SHADOW_MONOLITH_READ_TIMEOUT:5s}

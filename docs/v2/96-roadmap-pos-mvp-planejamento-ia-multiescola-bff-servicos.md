@@ -1140,3 +1140,29 @@ Proxima subfase pratica e de menor risco:
 - manter a criacao e a alocacao de professor no monolito nesta etapa, usando o
   novo runtime apenas como consumidor observavel dos contratos internos, sem
   mudar rotas no BFF.
+
+Entregue na vigesima-quinta subfase:
+
+- criacao do modulo `academic-professor-service` no monorepo como primeiro
+  runtime proprio do dominio de professores em modo shadow/read-only;
+- exposicao da API interna do novo runtime em `/internal/v1`, protegida por
+  token interno e contexto obrigatorio (`X-Correlation-Id`, `X-Usuario-Id`,
+  `X-Escola-Id`), sem banco proprio e sem escrita;
+- consumo HTTP, a partir do runtime novo, dos contratos internos ja
+  estabilizados no monolito para leitura de professor por id, listagem de
+  alocacoes e listagem de funcionarios elegiveis;
+- manutencao do `Authorization` apenas como header propagado ao monolito para a
+  leitura shadow, sem alterar o contrato externo atual nem abrir cutover no
+  BFF;
+- validacao automatizada do runtime shadow com `MockWebServer`, cobrindo
+  roteamento interno, propagacao de headers, protecao por token interno e
+  mapeamento de 404 do monolito.
+
+Proxima subfase pratica e de menor risco:
+
+- expandir o runtime shadow de professores para as leituras remanescentes mais
+  seguras do dominio, preferencialmente `GET /api/professores` e
+  `GET /api/turmas/{turmaId}/professores`, ainda como consumo observavel interno
+  e sem cutover no BFF;
+- manter criacao e alocacao de professor no monolito ate que o bloco read-only
+  completo esteja observado e comprovado.
