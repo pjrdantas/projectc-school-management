@@ -99,13 +99,17 @@ class ProfessorInternalClientOperationalIntegrationTest {
         UUID turmaDisciplinaId = vincularDisciplina(accessToken, turmaId, disciplinaId, 80);
 
         double criarAntes = contador("criar", "internal", "success");
+        double listarProfessoresAntes = contador("listar", "internal", "success");
         double buscarAntes = contador("buscarPorId", "internal", "success");
         double alocarAntes = contador("vincularTurmaDisciplina", "internal", "success");
         double listarAntes = contador("listarAlocacoes", "internal", "success");
+        double listarPorTurmaAntes = contador("listarPorTurma", "internal", "success");
         double fallbackAntes = contadorFallback("criar", "RestClientException")
+                + contadorFallback("listar", "RestClientException")
                 + contadorFallback("buscarPorId", "RestClientException")
                 + contadorFallback("vincularTurmaDisciplina", "RestClientException")
-                + contadorFallback("listarAlocacoes", "RestClientException");
+                + contadorFallback("listarAlocacoes", "RestClientException")
+                + contadorFallback("listarPorTurma", "RestClientException");
 
         RestClient client = RestClient.builder()
                 .baseUrl("http://localhost:" + port)
@@ -129,6 +133,14 @@ class ProfessorInternalClientOperationalIntegrationTest {
         JsonNode professorJson = objectMapper.readTree(professorResponse);
         UUID professorId = UUID.fromString(professorJson.get("id").asText());
         assertThat(professorJson.get("nomeCompleto").asText()).isEqualTo("Professor Internal Client Fluxo");
+
+        String professoresResponse = client.get()
+                .uri("/api/professores")
+                .retrieve()
+                .body(String.class);
+        JsonNode professoresJson = objectMapper.readTree(professoresResponse);
+        assertThat(professoresJson).hasSize(1);
+        assertThat(professoresJson.get(0).get("id").asText()).isEqualTo(professorId.toString());
 
         String professorConsulta = client.get()
                 .uri("/api/professores/{id}", professorId)
@@ -161,14 +173,27 @@ class ProfessorInternalClientOperationalIntegrationTest {
         assertThat(listaJson).hasSize(1);
         assertThat(listaJson.get(0).get("professorId").asText()).isEqualTo(professorId.toString());
 
+        String turmaProfessoresResponse = client.get()
+                .uri("/api/turmas/{turmaId}/professores", turmaId)
+                .retrieve()
+                .body(String.class);
+        JsonNode turmaProfessoresJson = objectMapper.readTree(turmaProfessoresResponse);
+        assertThat(turmaProfessoresJson).hasSize(1);
+        assertThat(turmaProfessoresJson.get(0).get("professorId").asText()).isEqualTo(professorId.toString());
+        assertThat(turmaProfessoresJson.get(0).get("turmaId").asText()).isEqualTo(turmaId.toString());
+
         assertThat(contador("criar", "internal", "success") - criarAntes).isEqualTo(1.0d);
+        assertThat(contador("listar", "internal", "success") - listarProfessoresAntes).isEqualTo(1.0d);
         assertThat(contador("buscarPorId", "internal", "success") - buscarAntes).isEqualTo(1.0d);
         assertThat(contador("vincularTurmaDisciplina", "internal", "success") - alocarAntes).isEqualTo(1.0d);
         assertThat(contador("listarAlocacoes", "internal", "success") - listarAntes).isEqualTo(1.0d);
+        assertThat(contador("listarPorTurma", "internal", "success") - listarPorTurmaAntes).isEqualTo(1.0d);
         double fallbackDepois = contadorFallback("criar", "RestClientException")
+                + contadorFallback("listar", "RestClientException")
                 + contadorFallback("buscarPorId", "RestClientException")
                 + contadorFallback("vincularTurmaDisciplina", "RestClientException")
-                + contadorFallback("listarAlocacoes", "RestClientException");
+                + contadorFallback("listarAlocacoes", "RestClientException")
+                + contadorFallback("listarPorTurma", "RestClientException");
         assertThat(fallbackDepois - fallbackAntes).isEqualTo(0.0d);
     }
 

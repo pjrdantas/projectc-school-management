@@ -61,7 +61,12 @@ public class ProfessorFluxoOrquestradorService {
     }
 
     public List<ProfessorResponse> listar() {
-        return professorService.listar();
+        return executarComClienteInterno(
+                "listar",
+                () -> professorInternalApiClient.listarProfessores(escolaPadraoId()).stream()
+                        .map(this::toProfessorResponse)
+                        .toList(),
+                professorService::listar);
     }
 
     public List<ProfessorFuncionarioElegivelResponse> listarFuncionariosElegiveis() {
@@ -98,6 +103,15 @@ public class ProfessorFluxoOrquestradorService {
                         .map(this::toAlocacaoResponse)
                         .toList(),
                 () -> professorService.listarAlocacoes(professorId));
+    }
+
+    public List<ProfessorAlocacaoResponse> listarPorTurma(UUID turmaId) {
+        return executarComClienteInterno(
+                "listarPorTurma",
+                () -> professorInternalApiClient.listarProfessoresPorTurma(escolaPadraoId(), turmaId).stream()
+                        .map(this::toAlocacaoResponse)
+                        .toList(),
+                () -> professorService.listarPorTurma(turmaId));
     }
 
     private <T> T executarComClienteInterno(String operacao, Supplier<T> remoto, Supplier<T> local) {

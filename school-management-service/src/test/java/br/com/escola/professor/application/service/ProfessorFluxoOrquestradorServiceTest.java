@@ -77,6 +77,25 @@ class ProfessorFluxoOrquestradorServiceTest {
     }
 
     @Test
+    void deveUsarClienteInternoParaListagemQuandoFeatureHabilitada() {
+        ProfessorFluxoOrquestradorService service = novoService(true, true);
+        when(professorInternalApiClient.listarProfessores(ESCOLA_ID))
+                .thenReturn(List.of(professorResumo(UUID.randomUUID())));
+
+        List<ProfessorResponse> response = service.listar();
+
+        assertThat(response).hasSize(1);
+        verify(professorInternalApiClient).listarProfessores(ESCOLA_ID);
+        verify(professorService, never()).listar();
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listar")
+                .tag("destino", "internal")
+                .tag("resultado", "success")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
     void deveFazerFallbackParaServicoLocalQuandoClienteInternoFalha() {
         UUID professorId = UUID.randomUUID();
         ProfessorFluxoOrquestradorService service = novoService(true, true);
@@ -103,6 +122,38 @@ class ProfessorFluxoOrquestradorServiceTest {
                 .count()).isEqualTo(1.0d);
         assertThat(meterRegistry.get("professor.internal.client.fallbacks")
                 .tag("operacao", "listarAlocacoes")
+                .tag("causa", "RestClientException")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void deveFazerFallbackParaServicoLocalQuandoListarPorTurmaFalhaNoClienteInterno() {
+        UUID turmaId = UUID.randomUUID();
+        ProfessorFluxoOrquestradorService service = novoService(true, true);
+        when(professorInternalApiClient.listarProfessoresPorTurma(ESCOLA_ID, turmaId))
+                .thenThrow(new RestClientException("falha interna"));
+        when(professorService.listarPorTurma(turmaId))
+                .thenReturn(List.of(alocacaoResponse(UUID.randomUUID())));
+
+        List<ProfessorAlocacaoResponse> response = service.listarPorTurma(turmaId);
+
+        assertThat(response).hasSize(1);
+        verify(professorService).listarPorTurma(turmaId);
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listarPorTurma")
+                .tag("destino", "internal")
+                .tag("resultado", "error")
+                .counter()
+                .count()).isEqualTo(1.0d);
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listarPorTurma")
+                .tag("destino", "local")
+                .tag("resultado", "fallback")
+                .counter()
+                .count()).isEqualTo(1.0d);
+        assertThat(meterRegistry.get("professor.internal.client.fallbacks")
+                .tag("operacao", "listarPorTurma")
                 .tag("causa", "RestClientException")
                 .counter()
                 .count()).isEqualTo(1.0d);

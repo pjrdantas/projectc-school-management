@@ -1176,10 +1176,28 @@ Entregue na vigesima-sexta subfase:
 - preservacao integral do escopo: nenhuma escrita movida, nenhum banco novo,
   nenhuma alteracao de rota externa no BFF e nenhum cutover para frontend.
 
+Entregue na vigesima-setima subfase:
+
+- extensao do `ProfessorFluxoOrquestradorService` para aplicar o cliente
+  interno observavel tambem nas leituras `GET /api/professores` e
+  `GET /api/turmas/{turmaId}/professores`, mantendo a mesma feature flag,
+  metricas por operacao e fallback local imediato ja usados em criacao,
+  consulta por id e listagem de alocacoes;
+- alinhamento do `TurmaProfessorController` ao mesmo orquestrador, evitando
+  caminho local paralelo e preservando observabilidade consistente nas duas
+  rotas read-only alvo;
+- ampliacao dos testes unitarios do orquestrador para cobrir sucesso remoto em
+  listagem geral e fallback em listagem por turma;
+- ampliacao do teste operacional autenticado do backend para comprovar, em
+  runtime, o consumo observavel das duas leituras shadow e o incremento das
+  metricas correspondentes sem acionar fallback;
+- preservacao integral do escopo: nenhuma escrita movida, nenhuma alteracao de
+  contrato externo, nenhum cutover no BFF e nenhum banco novo.
+
 Proxima subfase pratica e de menor risco:
 
-- consumir essas duas leituras shadow (`professores` e `professores por turma`)
-  de forma observavel no backend atual, com feature flag, metricas e fallback
-  local imediato, ainda sem redirecionar o BFF;
-- manter criacao e alocacao de professor no monolito ate que esse bloco
-  read-only expandido esteja observado e comprovado em runtime.
+- consolidar esse bloco read-only observavel com diagnostico operacional
+  dedicado, ampliando health/metricas para distinguir explicitamente as
+  leituras shadow de professores por rota antes de qualquer cutover externo;
+- manter criacao e alocacao de professor no monolito ate que a observabilidade
+  desse bloco esteja fechada e comprovada.

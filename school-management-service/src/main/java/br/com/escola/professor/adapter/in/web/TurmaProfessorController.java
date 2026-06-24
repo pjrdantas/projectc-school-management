@@ -10,22 +10,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.professor.adapter.in.web.dto.ProfessorAlocacaoResponse;
-import br.com.escola.professor.application.service.ProfessorService;
+import br.com.escola.professor.application.service.ProfessorFluxoOrquestradorService;
 import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
 @RequestMapping("/api/turmas/{turmaId}/professores")
 public class TurmaProfessorController {
 
-    private final ProfessorService professorService;
+    private final ProfessorFluxoOrquestradorService professorFluxoOrquestradorService;
 
-    public TurmaProfessorController(ProfessorService professorService) {
-        this.professorService = professorService;
+    public TurmaProfessorController(ProfessorFluxoOrquestradorService professorFluxoOrquestradorService) {
+        this.professorFluxoOrquestradorService = professorFluxoOrquestradorService;
     }
 
     @GetMapping
     @Operation(summary = "Lista professores vinculados a uma turma")
     public List<ProfessorAlocacaoResponse> listarPorTurma(@PathVariable @NonNull UUID turmaId) {
-        return professorService.listarPorTurma(turmaId);
+        return professorFluxoOrquestradorService.listarPorTurma(turmaId);
     }
 }

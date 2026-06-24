@@ -233,9 +233,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   como leituras shadow/read-only observaveis. Testes integrados no monolito e
   no runtime shadow validaram os novos contratos ponta a ponta, incluindo
   propagacao de contexto e mapeamento de respostas, sem abrir cutover no BFF.
-- A proxima subfase da 51D deve consumir essas duas leituras shadow de forma
-  observavel dentro do backend atual, com feature flag, metricas e fallback
-  local imediato, ainda sem redirecionar o BFF nem mover escritas de professor.
+- A vigesima-setima subfase da Fase 51D passou a consumir essas duas leituras
+  shadow de forma observavel dentro do backend atual, ainda sem redirecionar o
+  BFF nem mover escritas de professor. O `ProfessorFluxoOrquestradorService`
+  passou a aplicar a mesma feature flag, as mesmas metricas por operacao e o
+  mesmo fallback local imediato tambem para `GET /api/professores` e
+  `GET /api/turmas/{turmaId}/professores`, reaproveitando o cliente interno ja
+  estabilizado. O `TurmaProfessorController` deixou de chamar o servico local
+  diretamente para usar o mesmo orquestrador e manter a observabilidade
+  consistente nas duas rotas read-only alvo. Testes unitarios, integracoes web
+  e fluxo operacional autenticado validaram as novas leituras com consumo do
+  cliente interno, incremento de metricas e ausencia de fallback indevido.
+- A proxima subfase da 51D deve consolidar esse bloco read-only observavel com
+  diagnostico operacional dedicado, ampliando health/metricas para distinguir
+  explicitamente as leituras shadow de professores por rota antes de qualquer
+  cutover externo.
 
 ## Historico resumido
 
