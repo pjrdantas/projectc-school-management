@@ -257,10 +257,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   e de endpoint validaram a nova visao detalhada no
   `/actuator/health/professorInternalClient`, enquanto os testes operacionais
   preservaram o consumo observavel do cliente interno.
-- A proxima subfase da 51D deve aplicar esse mesmo padrao de diagnostico
-  explicito ao runtime shadow `academic-professor-service`, expondo health
-  proprio das leituras `/internal/v1` com contadores por rota e sinais claros
-  de dependencia do monolito antes de qualquer conversa sobre cutover externo.
+- A vigesima-nona subfase da Fase 51D aplicou esse mesmo padrao de diagnostico
+  explicito ao runtime shadow `academic-professor-service`, ainda sem cutover
+  externo. O cliente `MonolithProfessorReadClient` passou a registrar metricas
+  por operacao e resultado ao consumir o monolito, distinguindo sucesso,
+  `not_found` e erro nas leituras shadow. Foi criado um `HealthIndicator`
+  dedicado para o runtime shadow, expondo em
+  `/actuator/health/professorShadowMonolith` um mapa por rota `/internal/v1`
+  com a rota correspondente do monolito, contadores por resultado e sinais
+  explicitos da dependencia remota, incluindo base URL e timeouts configurados.
+  Testes unitarios, teste de endpoint do actuator e os testes ja existentes do
+  controller shadow validaram a nova observabilidade sem alterar o contrato
+  funcional das leituras.
+- A proxima subfase da 51D deve usar essa observabilidade fechada dos dois
+  lados para executar um smoke operacional controlado entre o monolito e o
+  `academic-professor-service`, comprovando em runtime real os sinais de
+  sucesso, erro e indisponibilidade do monolito antes de discutir qualquer
+  cutover externo.
 
 ## Historico resumido
 

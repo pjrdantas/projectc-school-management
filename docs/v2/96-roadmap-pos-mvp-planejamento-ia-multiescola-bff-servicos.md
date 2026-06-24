@@ -1213,10 +1213,28 @@ Entregue na vigesima-oitava subfase:
 - preservacao integral do escopo: nenhuma escrita movida, nenhum contrato
   externo alterado, nenhum cutover no BFF e nenhum banco novo.
 
+Entregue na vigesima-nona subfase:
+
+- instrumentacao do `MonolithProfessorReadClient` no
+  `academic-professor-service` com metricas por operacao e resultado, cobrindo
+  sucesso, `not_found` e erro ao consumir o monolito;
+- criacao do `HealthIndicator` dedicado `professorShadowMonolith`, expondo no
+  actuator do runtime shadow um mapa por rota `/internal/v1` com a rota
+  correspondente do monolito, contadores por resultado e total de falhas por
+  operacao;
+- exposicao explicita dos sinais de dependencia remota no health do shadow,
+  incluindo base URL, host, porta e timeouts do cliente do monolito;
+- validacao automatizada por teste unitario do indicador, teste de endpoint do
+  actuator do runtime shadow e preservacao dos testes de integracao ja
+  existentes das leituras shadow;
+- preservacao integral do escopo: nenhuma escrita movida, nenhum contrato
+  externo alterado, nenhum cutover no BFF e nenhum banco novo.
+
 Proxima subfase pratica e de menor risco:
 
-- aplicar esse mesmo padrao de diagnostico explicito ao runtime shadow
-  `academic-professor-service`, expondo health proprio das leituras `/internal/v1`
-  com contadores por rota e sinais claros da dependencia do monolito;
-- manter criacao e alocacao de professor no monolito ate que a observabilidade
-  dos dois lados do shadow esteja fechada e comprovada.
+- executar um smoke operacional controlado entre o monolito e o
+  `academic-professor-service`, comprovando em runtime real os sinais de
+  sucesso, erro e indisponibilidade do monolito nos healths e metricas dos
+  dois lados;
+- manter criacao e alocacao de professor no monolito ate que essa
+  observabilidade ponta a ponta esteja comprovada.

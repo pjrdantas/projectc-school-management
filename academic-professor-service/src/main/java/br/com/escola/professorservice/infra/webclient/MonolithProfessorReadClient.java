@@ -18,14 +18,17 @@ import br.com.escola.professorservice.application.dto.ProfessorAlocacaoResponse;
 import br.com.escola.professorservice.application.dto.ProfessorResumoResponse;
 import br.com.escola.professorservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.professorservice.application.port.out.ProfessorReadPort;
+import io.micrometer.core.instrument.MeterRegistry;
 
 @Component
 public class MonolithProfessorReadClient implements ProfessorReadPort {
 
     private final RestClient restClient;
+    private final MeterRegistry meterRegistry;
 
-    public MonolithProfessorReadClient(RestClient monolithProfessorRestClient) {
+    public MonolithProfessorReadClient(RestClient monolithProfessorRestClient, MeterRegistry meterRegistry) {
         this.restClient = monolithProfessorRestClient;
+        this.meterRegistry = meterRegistry;
     }
 
     @Override
@@ -37,8 +40,13 @@ public class MonolithProfessorReadClient implements ProfessorReadPort {
                     .retrieve()
                     .body(new ParameterizedTypeReference<List<ProfessorResumoResponse>>() {
                     });
+            registrarRequisicao("listar", "success");
             return response == null ? List.of() : response;
+        } catch (RestClientResponseException exception) {
+            registrarErro("listar", exception);
+            throw exception;
         } catch (ResourceAccessException exception) {
+            registrarErro("listar", exception);
             throw new DownstreamUnavailableException("Monolito indisponivel para leitura shadow de professores", exception);
         }
     }
@@ -54,13 +62,17 @@ public class MonolithProfessorReadClient implements ProfessorReadPort {
                     .headers(headers -> enrichHeaders(headers, authorization, context))
                     .retrieve()
                     .body(ProfessorResumoResponse.class);
+            registrarRequisicao("buscarPorId", "success");
             return Optional.ofNullable(response);
         } catch (RestClientResponseException exception) {
             if (exception.getStatusCode().value() == 404) {
+                registrarRequisicao("buscarPorId", "not_found");
                 return Optional.empty();
             }
+            registrarErro("buscarPorId", exception);
             throw exception;
         } catch (ResourceAccessException exception) {
+            registrarErro("buscarPorId", exception);
             throw new DownstreamUnavailableException("Monolito indisponivel para leitura shadow de professor", exception);
         }
     }
@@ -77,8 +89,13 @@ public class MonolithProfessorReadClient implements ProfessorReadPort {
                     .retrieve()
                     .body(new ParameterizedTypeReference<List<ProfessorAlocacaoResponse>>() {
                     });
+            registrarRequisicao("listarAlocacoes", "success");
             return response == null ? List.of() : response;
+        } catch (RestClientResponseException exception) {
+            registrarErro("listarAlocacoes", exception);
+            throw exception;
         } catch (ResourceAccessException exception) {
+            registrarErro("listarAlocacoes", exception);
             throw new DownstreamUnavailableException("Monolito indisponivel para leitura shadow de alocacoes", exception);
         }
     }
@@ -95,8 +112,13 @@ public class MonolithProfessorReadClient implements ProfessorReadPort {
                     .retrieve()
                     .body(new ParameterizedTypeReference<List<ProfessorAlocacaoResponse>>() {
                     });
+            registrarRequisicao("listarPorTurma", "success");
             return response == null ? List.of() : response;
+        } catch (RestClientResponseException exception) {
+            registrarErro("listarPorTurma", exception);
+            throw exception;
         } catch (ResourceAccessException exception) {
+            registrarErro("listarPorTurma", exception);
             throw new DownstreamUnavailableException("Monolito indisponivel para leitura shadow por turma", exception);
         }
     }
@@ -112,8 +134,13 @@ public class MonolithProfessorReadClient implements ProfessorReadPort {
                     .retrieve()
                     .body(new ParameterizedTypeReference<List<FuncionarioElegivelResponse>>() {
                     });
+            registrarRequisicao("listarFuncionariosElegiveis", "success");
             return response == null ? List.of() : response;
+        } catch (RestClientResponseException exception) {
+            registrarErro("listarFuncionariosElegiveis", exception);
+            throw exception;
         } catch (ResourceAccessException exception) {
+            registrarErro("listarFuncionariosElegiveis", exception);
             throw new DownstreamUnavailableException("Monolito indisponivel para leitura shadow de funcionarios", exception);
         }
     }
@@ -123,5 +150,23 @@ public class MonolithProfessorReadClient implements ProfessorReadPort {
         headers.set(InternalHeaders.CORRELATION_ID, context.correlationId());
         headers.set(InternalHeaders.USUARIO_ID, context.usuarioId().toString());
         headers.set(InternalHeaders.ESCOLA_ID, context.escolaId().toString());
+    }
+
+    private void registrarRequisicao(String operacao, String resultado) {
+        meterRegistry.counter(
+                "professor.shadow.monolith.requests",
+                "operacao", operacao,
+                "destino", "monolith",
+                "resultado", resultado)
+                .increment();
+    }
+
+    private void registrarErro(String operacao, Exception exception) {
+        registrarRequisicao(operacao, "error");
+        meterRegistry.counter(
+                "professor.shadow.monolith.failures",
+                "operacao", operacao,
+                "causa", exception.getClass().getSimpleName())
+                .increment();
     }
 }
