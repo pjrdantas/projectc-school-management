@@ -36,6 +36,20 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
                 "operacao", "criar",
                 "destino", "internal",
                 "resultado", "success").increment();
+        meterRegistry.counter(
+                "professor.internal.client.requests",
+                "operacao", "listar",
+                "destino", "internal",
+                "resultado", "success").increment(2.0d);
+        meterRegistry.counter(
+                "professor.internal.client.requests",
+                "operacao", "listarPorTurma",
+                "destino", "local",
+                "resultado", "fallback").increment();
+        meterRegistry.counter(
+                "professor.internal.client.fallbacks",
+                "operacao", "listarPorTurma",
+                "causa", "RestClientException").increment();
 
         RestClient client = RestClient.builder()
                 .baseUrl("http://localhost:" + port)
@@ -56,8 +70,21 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
                 .containsEntry("fallbackLocalOnError", false)
                 .containsEntry("baseUrlScheme", "http")
                 .containsEntry("baseUrlHost", "localhost")
-                .containsEntry("requestsTotal", 1.0d)
-                .containsEntry("fallbacksTotal", 0.0d);
+                .containsEntry("requestsTotal", 4.0d)
+                .containsEntry("fallbacksTotal", 1.0d);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> shadowReadRoutes = (Map<String, Object>) details.get("shadowReadRoutes");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> listar = (Map<String, Object>) shadowReadRoutes.get("listar");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> listarPorTurma = (Map<String, Object>) shadowReadRoutes.get("listarPorTurma");
+        assertThat(listar)
+                .containsEntry("externalRoute", "GET /api/professores")
+                .containsEntry("internalSuccessTotal", 2.0d);
+        assertThat(listarPorTurma)
+                .containsEntry("externalRoute", "GET /api/turmas/{turmaId}/professores")
+                .containsEntry("localFallbackTotal", 1.0d)
+                .containsEntry("fallbacksTotal", 1.0d);
 
         Map<?, ?> readiness = client.get()
                 .uri("/actuator/health")

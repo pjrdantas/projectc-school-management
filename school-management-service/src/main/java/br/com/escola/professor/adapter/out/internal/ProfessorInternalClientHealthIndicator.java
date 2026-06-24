@@ -1,6 +1,7 @@
 package br.com.escola.professor.adapter.out.internal;
 
 import java.net.URI;
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -19,6 +20,17 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
 
     private static final String DEFAULT_BASE_URL = "http://localhost:8080";
     private static final String INTERNAL_ENDPOINT_PREFIX = "/internal/professores";
+    private static final List<RouteMetricDescriptor> SHADOW_READ_ROUTES = List.of(
+            new RouteMetricDescriptor("listar", "GET /api/professores", "GET /internal/professores"),
+            new RouteMetricDescriptor("buscarPorId", "GET /api/professores/{id}", "GET /internal/professores/{id}"),
+            new RouteMetricDescriptor(
+                    "listarAlocacoes",
+                    "GET /api/professores/{id}/turmas-disciplinas",
+                    "GET /internal/professores/{id}/turmas-disciplinas"),
+            new RouteMetricDescriptor(
+                    "listarPorTurma",
+                    "GET /api/turmas/{turmaId}/professores",
+                    "GET /internal/professores/turmas/{turmaId}"));
 
     private final Environment environment;
     private final MeterRegistry meterRegistry;
@@ -43,6 +55,7 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
         details.put("internalEndpointPrefix", INTERNAL_ENDPOINT_PREFIX);
         details.put("requestsTotal", totalContador("professor.internal.client.requests"));
         details.put("fallbacksTotal", totalContador("professor.internal.client.fallbacks"));
+        details.put("shadowReadRoutes", diagnosticoRotasShadow());
 
         if (!enabled) {
             details.put("mode", "disabled");
@@ -89,6 +102,45 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
                 .sum();
     }
 
+    private Map<String, Object> diagnosticoRotasShadow() {
+        Map<String, Object> rotas = new LinkedHashMap<>();
+        for (RouteMetricDescriptor descriptor : SHADOW_READ_ROUTES) {
+            Map<String, Object> detalhe = new LinkedHashMap<>();
+            detalhe.put("externalRoute", descriptor.externalRoute());
+            detalhe.put("internalRoute", descriptor.internalRoute());
+            detalhe.put("internalSuccessTotal", totalRequests(descriptor.operation(), "internal", "success"));
+            detalhe.put("internalErrorTotal", totalRequests(descriptor.operation(), "internal", "error"));
+            detalhe.put("localFallbackTotal", totalRequests(descriptor.operation(), "local", "fallback"));
+            detalhe.put("featureDisabledLocalTotal", totalRequests(descriptor.operation(), "local", "feature_disabled"));
+            detalhe.put("fallbacksTotal", totalFallbacks(descriptor.operation()));
+            rotas.put(descriptor.operation(), detalhe);
+        }
+        return rotas;
+    }
+
+    private double totalRequests(String operation, String destino, String resultado) {
+        return meterRegistry.getMeters().stream()
+                .filter(meter -> "professor.internal.client.requests".equals(meter.getId().getName()))
+                .filter(meter -> tagEquals(meter, "operacao", operation))
+                .filter(meter -> tagEquals(meter, "destino", destino))
+                .filter(meter -> tagEquals(meter, "resultado", resultado))
+                .mapToDouble(this::valorContador)
+                .sum();
+    }
+
+    private double totalFallbacks(String operation) {
+        return meterRegistry.getMeters().stream()
+                .filter(meter -> "professor.internal.client.fallbacks".equals(meter.getId().getName()))
+                .filter(meter -> tagEquals(meter, "operacao", operation))
+                .mapToDouble(this::valorContador)
+                .sum();
+    }
+
+    private boolean tagEquals(Meter meter, String tagName, String expectedValue) {
+        String actual = meter.getId().getTag(tagName);
+        return expectedValue.equals(actual);
+    }
+
     private double valorContador(Meter meter) {
         for (Measurement measurement : meter.measure()) {
             if (measurement.getStatistic() == Statistic.COUNT) {
@@ -96,5 +148,8 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
             }
         }
         return 0.0d;
+    }
+
+    private record RouteMetricDescriptor(String operation, String externalRoute, String internalRoute) {
     }
 }

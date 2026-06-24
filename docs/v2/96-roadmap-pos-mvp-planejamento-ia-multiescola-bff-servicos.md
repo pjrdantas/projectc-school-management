@@ -1194,10 +1194,29 @@ Entregue na vigesima-setima subfase:
 - preservacao integral do escopo: nenhuma escrita movida, nenhuma alteracao de
   contrato externo, nenhum cutover no BFF e nenhum banco novo.
 
+Entregue na vigesima-oitava subfase:
+
+- ampliacao do `ProfessorInternalClientHealthIndicator` para expor diagnostico
+  operacional explicito das rotas shadow de leitura de professores no backend
+  atual;
+- publicacao, no health dedicado `professorInternalClient`, de um mapa por
+  operacao contendo rota externa, rota interna correspondente e contadores
+  separados de sucesso interno, erro interno, fallback local, execucao local
+  por feature desabilitada e total de fallbacks;
+- cobertura explicita das leituras `GET /api/professores`,
+  `GET /api/professores/{id}`,
+  `GET /api/professores/{id}/turmas-disciplinas` e
+  `GET /api/turmas/{turmaId}/professores`, sem alterar o comportamento
+  funcional dessas rotas;
+- validacao automatizada por teste unitario do indicador, teste de endpoint do
+  actuator e preservacao do teste operacional autenticado do cliente interno;
+- preservacao integral do escopo: nenhuma escrita movida, nenhum contrato
+  externo alterado, nenhum cutover no BFF e nenhum banco novo.
+
 Proxima subfase pratica e de menor risco:
 
-- consolidar esse bloco read-only observavel com diagnostico operacional
-  dedicado, ampliando health/metricas para distinguir explicitamente as
-  leituras shadow de professores por rota antes de qualquer cutover externo;
+- aplicar esse mesmo padrao de diagnostico explicito ao runtime shadow
+  `academic-professor-service`, expondo health proprio das leituras `/internal/v1`
+  com contadores por rota e sinais claros da dependencia do monolito;
 - manter criacao e alocacao de professor no monolito ate que a observabilidade
-  desse bloco esteja fechada e comprovada.
+  dos dois lados do shadow esteja fechada e comprovada.

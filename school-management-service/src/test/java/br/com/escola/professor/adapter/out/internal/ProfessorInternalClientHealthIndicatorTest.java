@@ -2,6 +2,8 @@ package br.com.escola.professor.adapter.out.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.mock.env.MockEnvironment;
@@ -27,6 +29,9 @@ class ProfessorInternalClientHealthIndicatorTest {
                 .containsEntry("enabled", false)
                 .containsEntry("mode", "disabled")
                 .containsEntry("fallbackLocalOnError", true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> shadowReadRoutes = (Map<String, Object>) health.getDetails().get("shadowReadRoutes");
+        assertThat(shadowReadRoutes).containsKeys("listar", "buscarPorId", "listarAlocacoes", "listarPorTurma");
     }
 
     @Test
@@ -42,8 +47,20 @@ class ProfessorInternalClientHealthIndicatorTest {
                 .tag("resultado", "success")
                 .register(meterRegistry)
                 .increment(2.0d);
+        Counter.builder("professor.internal.client.requests")
+                .tag("operacao", "listar")
+                .tag("destino", "internal")
+                .tag("resultado", "success")
+                .register(meterRegistry)
+                .increment(3.0d);
+        Counter.builder("professor.internal.client.requests")
+                .tag("operacao", "listarPorTurma")
+                .tag("destino", "local")
+                .tag("resultado", "fallback")
+                .register(meterRegistry)
+                .increment();
         Counter.builder("professor.internal.client.fallbacks")
-                .tag("operacao", "buscarPorId")
+                .tag("operacao", "listarPorTurma")
                 .tag("causa", "RestClientException")
                 .register(meterRegistry)
                 .increment();
@@ -59,7 +76,22 @@ class ProfessorInternalClientHealthIndicatorTest {
                 .containsEntry("fallbackLocalOnError", false)
                 .containsEntry("baseUrlScheme", "http")
                 .containsEntry("baseUrlHost", "localhost")
-                .containsEntry("requestsTotal", 2.0d)
+                .containsEntry("requestsTotal", 6.0d)
+                .containsEntry("fallbacksTotal", 1.0d);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> shadowReadRoutes = (Map<String, Object>) health.getDetails().get("shadowReadRoutes");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> listar = (Map<String, Object>) shadowReadRoutes.get("listar");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> listarPorTurma = (Map<String, Object>) shadowReadRoutes.get("listarPorTurma");
+        assertThat(listar)
+                .containsEntry("externalRoute", "GET /api/professores")
+                .containsEntry("internalRoute", "GET /internal/professores")
+                .containsEntry("internalSuccessTotal", 3.0d);
+        assertThat(listarPorTurma)
+                .containsEntry("externalRoute", "GET /api/turmas/{turmaId}/professores")
+                .containsEntry("internalRoute", "GET /internal/professores/turmas/{turmaId}")
+                .containsEntry("localFallbackTotal", 1.0d)
                 .containsEntry("fallbacksTotal", 1.0d);
     }
 

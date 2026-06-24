@@ -244,10 +244,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   consistente nas duas rotas read-only alvo. Testes unitarios, integracoes web
   e fluxo operacional autenticado validaram as novas leituras com consumo do
   cliente interno, incremento de metricas e ausencia de fallback indevido.
-- A proxima subfase da 51D deve consolidar esse bloco read-only observavel com
-  diagnostico operacional dedicado, ampliando health/metricas para distinguir
-  explicitamente as leituras shadow de professores por rota antes de qualquer
-  cutover externo.
+- A vigesima-oitava subfase da Fase 51D consolidou esse bloco read-only
+  observavel com diagnostico operacional dedicado, ainda sem cutover externo.
+  O `HealthIndicator` dedicado do cliente interno de professores passou a
+  expor um mapa explicito das rotas shadow de leitura por operacao, incluindo
+  rota externa, rota interna correspondente e contadores separados de sucesso
+  interno, erro interno, fallback local, feature desabilitada e total de
+  fallbacks. Com isso, `GET /api/professores`,
+  `GET /api/professores/{id}`, `GET /api/professores/{id}/turmas-disciplinas`
+  e `GET /api/turmas/{turmaId}/professores` ficaram distinguiveis
+  operacionalmente no actuator sem alterar o fluxo funcional. Testes unitarios
+  e de endpoint validaram a nova visao detalhada no
+  `/actuator/health/professorInternalClient`, enquanto os testes operacionais
+  preservaram o consumo observavel do cliente interno.
+- A proxima subfase da 51D deve aplicar esse mesmo padrao de diagnostico
+  explicito ao runtime shadow `academic-professor-service`, expondo health
+  proprio das leituras `/internal/v1` com contadores por rota e sinais claros
+  de dependencia do monolito antes de qualquer conversa sobre cutover externo.
 
 ## Historico resumido
 
