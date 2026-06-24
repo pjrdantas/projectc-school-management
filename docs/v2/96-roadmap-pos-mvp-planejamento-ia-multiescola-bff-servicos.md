@@ -1343,3 +1343,33 @@ Proxima subfase pratica e de menor risco:
 - manter criacao, alocacao e qualquer escrita ainda no monolito ate que esse
   passo de escrita shadow esteja comprovado com risco controlado e sem ampliar
   escopo para persistencia propria ou BFF.
+
+Entregue na trigesima quinta subfase:
+
+- implementacao do menor passo de escrita shadow de professores com risco
+  controlado: `POST /internal/v1/professores` no
+  `academic-professor-service`, atuando apenas como proxy do contrato interno
+  `POST /internal/professores` do monolito, sem banco proprio e sem BFF;
+- preservacao do contexto obrigatorio e da seguranca interna
+  (`Authorization`, `X-Correlation-Id`, `X-Usuario-Id`, `X-Escola-Id` e
+  `X-Internal-Token`) tambem para essa primeira escrita shadow;
+- ampliacao dos healths dedicados `professorShadowMonolith` e
+  `professorInternalClient` para incluir a operacao `criar` no diagnostico por
+  rota e nos contadores operacionais;
+- ampliacao do smoke operacional real em
+  `scripts/operational/professor-shadow-operational-smoke.ps1` para executar
+  `POST /api/professores`, validar a consulta do professor criado pelo runtime
+  shadow e comprovar no `report.json` healths em `UP`, contador de `criar` nos
+  dois lados e ausencia de fallback no backend principal;
+- preservacao do escopo: nenhuma persistencia propria no runtime shadow,
+  nenhuma mudanca de rotas no BFF e nenhuma alteracao de contrato externo para
+  frontend.
+
+Proxima subfase pratica e de menor risco:
+
+- aplicar o mesmo padrao minimo ao segundo write interno de professores:
+  `POST /api/professores/{id}/turmas-disciplinas`, com proxy shadow sem
+  persistencia propria, observabilidade dedicada e smoke operacional
+  controlado;
+- manter criacao, alocacao e qualquer escrita ainda fora do BFF ate esse bloco
+  backend/backend estar comprovado ponta a ponta com risco controlado.

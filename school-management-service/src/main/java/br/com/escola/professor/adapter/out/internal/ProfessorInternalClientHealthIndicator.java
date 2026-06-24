@@ -21,6 +21,7 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
     private static final String DEFAULT_BASE_URL = "http://localhost:8080";
     private static final String INTERNAL_ENDPOINT_PREFIX = "/internal/professores";
     private static final List<RouteMetricDescriptor> SHADOW_READ_ROUTES = List.of(
+            new RouteMetricDescriptor("criar", "POST /api/professores", "POST /internal/professores"),
             new RouteMetricDescriptor("listar", "GET /api/professores", "GET /internal/professores"),
             new RouteMetricDescriptor("buscarPorId", "GET /api/professores/{id}", "GET /internal/professores/{id}"),
             new RouteMetricDescriptor(

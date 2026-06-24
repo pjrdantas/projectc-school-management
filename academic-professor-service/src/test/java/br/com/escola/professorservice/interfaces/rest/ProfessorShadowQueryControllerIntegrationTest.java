@@ -2,6 +2,7 @@ package br.com.escola.professorservice.interfaces.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -46,6 +47,55 @@ class ProfessorShadowQueryControllerIntegrationTest {
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("professor.shadow.internal-api.token", () -> "shadow-token");
         registry.add("professor.shadow.monolith.base-url", () -> mockWebServer.url("/").toString());
+    }
+
+    @Test
+    void deveCriarProfessorNoRuntimeShadow() throws Exception {
+        UUID professorId = UUID.randomUUID();
+        UUID funcionarioId = UUID.randomUUID();
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setResponseCode(201)
+                .setBody("""
+                        {
+                          "id": "%s",
+                          "pessoaId": "%s",
+                          "nomeCompleto": "Professor Shadow Write",
+                          "escolaId": "00000000-0000-0000-0000-000000000047",
+                          "escolaNome": "Escola Padrao",
+                          "registroProfissional": "RP-WRITE",
+                          "formacao": "Licenciatura",
+                          "ativo": true,
+                          "createdAt": "2026-06-23T10:15:30",
+                          "updatedAt": "2026-06-23T10:15:30"
+                        }
+                        """.formatted(professorId, UUID.randomUUID())));
+
+        mockMvc.perform(post("/internal/v1/professores")
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "funcionarioId": "%s",
+                                  "registroProfissional": "RP-WRITE",
+                                  "formacao": "Licenciatura",
+                                  "ativo": true
+                                }
+                                """.formatted(funcionarioId))
+                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Correlation-Id", "corr-shadow-write")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer shadow-user-token"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(professorId.toString()))
+                .andExpect(jsonPath("$.nomeCompleto").value("Professor Shadow Write"));
+
+        RecordedRequest recorded = mockWebServer.takeRequest();
+        assertThat(recorded.getMethod()).isEqualTo("POST");
+        assertThat(recorded.getPath()).isEqualTo("/internal/professores");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer shadow-user-token");
+        assertThat(recorded.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
+        assertThat(recorded.getBody().readUtf8()).contains(funcionarioId.toString());
     }
 
     @Test

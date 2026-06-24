@@ -258,6 +258,18 @@ mvn spring-boot:run
     if (@($professoresPorTurmaShadow).Count -lt 1) {
         throw "O shadow nao retornou professores por turma no smoke operacional."
     }
+    $funcionarioElegivelId = @($funcionariosElegiveisMonolith)[0].funcionarioId
+    $professorCriadoMonolith = Invoke-Json -Method Post -Url "http://localhost:$resolvedMonolithPort/api/professores" -Headers $authHeaders -Body @{
+        funcionarioId = $funcionarioElegivelId
+        registroProfissional = "RP-SHADOW-WRITE"
+        formacao = "Licenciatura em Matematica"
+        ativo = $true
+    } -ExpectedStatus 201
+    $professorCriadoId = $professorCriadoMonolith.id
+    if ([string]::IsNullOrWhiteSpace($professorCriadoId)) {
+        throw "A criacao de professor via shadow nao retornou id no smoke operacional."
+    }
+    $professorCriadoShadow = Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores/$professorCriadoId" -Headers $shadowHeaders
     $notFoundId = [guid]::NewGuid()
     Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores/$notFoundId" -Headers $shadowHeaders -ExpectedStatus 404 | Out-Null
 
@@ -282,6 +294,9 @@ mvn spring-boot:run
             turmaId = $turmaId
             monolithProfessorNome = $professorMonolith.nomeCompleto
             shadowProfessorNome = $professorShadow.nomeCompleto
+            createdProfessorId = $professorCriadoId
+            createdProfessorNome = $professorCriadoMonolith.nomeCompleto
+            createdProfessorShadowNome = $professorCriadoShadow.nomeCompleto
             monolithAlocacaoCount = @($alocacoesMonolith).Count
             shadowAlocacaoCount = @($alocacoesShadow).Count
             monolithEligibleCount = @($funcionariosElegiveisMonolith).Count
@@ -289,7 +304,7 @@ mvn spring-boot:run
             monolithTurmaProfessorCount = @($professoresPorTurmaMonolith).Count
             shadowTurmaProfessorCount = @($professoresPorTurmaShadow).Count
             turmaDisciplinaId = @($alocacoesMonolith)[0].turmaDisciplinaId
-            elegivelFuncionarioId = @($funcionariosElegiveisMonolith)[0].funcionarioId
+            elegivelFuncionarioId = $funcionarioElegivelId
             shadowNotFoundId = $notFoundId
         }
         health = @{

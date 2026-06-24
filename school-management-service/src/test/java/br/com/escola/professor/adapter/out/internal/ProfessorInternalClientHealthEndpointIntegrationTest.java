@@ -75,9 +75,14 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> shadowReadRoutes = (Map<String, Object>) details.get("shadowReadRoutes");
         @SuppressWarnings("unchecked")
+        Map<String, Object> criar = (Map<String, Object>) shadowReadRoutes.get("criar");
+        @SuppressWarnings("unchecked")
         Map<String, Object> listar = (Map<String, Object>) shadowReadRoutes.get("listar");
         @SuppressWarnings("unchecked")
         Map<String, Object> listarPorTurma = (Map<String, Object>) shadowReadRoutes.get("listarPorTurma");
+        assertThat(criar)
+                .containsEntry("externalRoute", "POST /api/professores")
+                .containsEntry("internalSuccessTotal", 1.0d);
         assertThat(listar)
                 .containsEntry("externalRoute", "GET /api/professores")
                 .containsEntry("internalSuccessTotal", 2.0d);

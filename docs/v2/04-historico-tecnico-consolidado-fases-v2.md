@@ -355,6 +355,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   operacional minimo de `POST /api/professores`, definicao do seed/contrato de
   escrita observavel e prova de health/metricas sem cutover externo nem
   persistencia propria no runtime shadow.
+- A trigesima-quinta subfase da Fase 51D executou exatamente esse menor passo
+  de escrita shadow com risco controlado em `POST /api/professores`, ainda sem
+  BFF, sem persistencia propria e sem cutover externo. O
+  `academic-professor-service` passou a expor `POST /internal/v1/professores`
+  como proxy do contrato interno `POST /internal/professores` do monolito,
+  reaproveitando o mesmo contexto obrigatorio (`Authorization`,
+  `X-Correlation-Id`, `X-Usuario-Id`, `X-Escola-Id`) e a mesma protecao por
+  token interno. Os health indicators dedicados passaram a incluir a operacao
+  `criar` nos contadores e no diagnostico por rota, e o smoke operacional real
+  foi expandido para criar um professor via `POST /api/professores`, validar a
+  leitura do professor criado pelo runtime shadow e confirmar contadores de
+  escrita sem fallback. O resultado foi um `report.json` real com `criar`
+  contabilizado nos dois lados, healths em `UP` e nenhum contrato externo novo
+  alem do backend/backend shadow.
+- A proxima subfase da 51D deve aplicar esse mesmo padrao minimo a
+  `POST /api/professores/{id}/turmas-disciplinas`, mantendo o escopo estrito:
+  proxy shadow sem persistencia propria, observabilidade dedicada, smoke
+  operacional controlado e sem qualquer cutover no BFF.
 
 ## Historico resumido
 

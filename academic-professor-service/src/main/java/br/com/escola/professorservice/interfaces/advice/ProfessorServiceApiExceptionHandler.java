@@ -54,7 +54,7 @@ public class ProfessorServiceApiExceptionHandler {
                 ? HttpStatus.BAD_GATEWAY
                 : HttpStatus.SERVICE_UNAVAILABLE;
         String code = exception.getStatusCode().is4xxClientError() ? "DOWNSTREAM_REJECTED" : "DOWNSTREAM_UNAVAILABLE";
-        return response(status, code, "Monolito rejeitou a leitura shadow de professor", request);
+        return response(status, code, "Monolito rejeitou a operacao shadow de professor", request);
     }
 
     private ResponseEntity<ApiErrorResponse> response(
