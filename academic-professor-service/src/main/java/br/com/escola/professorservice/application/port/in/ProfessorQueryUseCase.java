@@ -10,9 +10,13 @@ import br.com.escola.professorservice.application.dto.ProfessorResumoResponse;
 
 public interface ProfessorQueryUseCase {
 
+    List<ProfessorResumoResponse> listarProfessores(String authorization, InternalRequestContext context);
+
     ProfessorResumoResponse buscarProfessorPorId(String authorization, InternalRequestContext context, UUID professorId);
 
     List<ProfessorAlocacaoResponse> listarAlocacoes(String authorization, InternalRequestContext context, UUID professorId);
+
+    List<ProfessorAlocacaoResponse> listarProfessoresPorTurma(String authorization, InternalRequestContext context, UUID turmaId);
 
     List<FuncionarioElegivelResponse> listarFuncionariosElegiveis(String authorization, InternalRequestContext context);
 }

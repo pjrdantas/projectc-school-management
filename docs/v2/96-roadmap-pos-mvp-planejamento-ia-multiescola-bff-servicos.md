@@ -1158,11 +1158,28 @@ Entregue na vigesima-quinta subfase:
   roteamento interno, propagacao de headers, protecao por token interno e
   mapeamento de 404 do monolito.
 
+Entregue na vigesima-sexta subfase:
+
+- expansao do contrato interno do monolito com `GET /internal/professores` e
+  `GET /internal/professores/turmas/{turmaId}`, reaproveitando a fronteira
+  `ProfessorAcademicoPort` para separar leitura geral e leitura por turma sem
+  refatoracao ampla;
+- adaptacao do `ProfessorService` e do cliente interno do proprio monolito para
+  suportar essas leituras como parte do contrato backend/backend ja estabilizado;
+- expansao do `academic-professor-service` com `GET /internal/v1/professores`
+  e `GET /internal/v1/turmas/{turmaId}/professores`, mantendo o runtime novo
+  apenas como consumidor shadow/read-only dos contratos internos do monolito;
+- validacao automatizada dos dois lados: teste de integracao do adaptador
+  interno no `school-management-service` e teste com `MockWebServer` no
+  `academic-professor-service`, cobrindo roteamento, headers e respostas das
+  novas leituras;
+- preservacao integral do escopo: nenhuma escrita movida, nenhum banco novo,
+  nenhuma alteracao de rota externa no BFF e nenhum cutover para frontend.
+
 Proxima subfase pratica e de menor risco:
 
-- expandir o runtime shadow de professores para as leituras remanescentes mais
-  seguras do dominio, preferencialmente `GET /api/professores` e
-  `GET /api/turmas/{turmaId}/professores`, ainda como consumo observavel interno
-  e sem cutover no BFF;
-- manter criacao e alocacao de professor no monolito ate que o bloco read-only
-  completo esteja observado e comprovado.
+- consumir essas duas leituras shadow (`professores` e `professores por turma`)
+  de forma observavel no backend atual, com feature flag, metricas e fallback
+  local imediato, ainda sem redirecionar o BFF;
+- manter criacao e alocacao de professor no monolito ate que esse bloco
+  read-only expandido esteja observado e comprovado em runtime.

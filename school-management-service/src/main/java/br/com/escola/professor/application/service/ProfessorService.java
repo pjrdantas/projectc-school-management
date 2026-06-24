@@ -78,7 +78,7 @@ public class ProfessorService implements ProfessorAcademicoPort {
 
     @Transactional(readOnly = true)
     public List<ProfessorResponse> listar() {
-        return professorJpaRepository.findAllByPessoa_Escola_Id(escolaPadraoId()).stream()
+        return listarProfessores(null).stream()
                 .map(this::toProfessorResponse)
                 .toList();
     }
@@ -119,11 +119,28 @@ public class ProfessorService implements ProfessorAcademicoPort {
 
     @Transactional(readOnly = true)
     public List<ProfessorAlocacaoResponse> listarPorTurma(UUID turmaId) {
-        if (!turmaJpaRepository.existsByIdAndEscola_Id(turmaId, escolaPadraoId())) {
+        return listarProfessoresPorTurma(null, turmaId).stream()
+                .map(this::toAlocacaoResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProfessorResumo> listarProfessores(UUID escolaId) {
+        return professorJpaRepository.findAllByPessoa_Escola_Id(resolverEscolaId(escolaId)).stream()
+                .map(this::toProfessorResumo)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProfessorAlocacaoResumo> listarProfessoresPorTurma(UUID escolaId, UUID turmaId) {
+        UUID escolaResolvidaId = resolverEscolaId(escolaId);
+        if (!turmaJpaRepository.existsByIdAndEscola_Id(turmaId, escolaResolvidaId)) {
             throw new TurmaNaoEncontradaException(turmaId);
         }
         return professorTurmaDisciplinaJpaRepository.findByTurmaDisciplinaTurmaId(turmaId).stream()
-                .map(this::toAlocacaoResponse)
+                .map(this::toAlocacaoResumo)
                 .toList();
     }
 

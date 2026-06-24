@@ -29,6 +29,21 @@ public class MonolithProfessorReadClient implements ProfessorReadPort {
     }
 
     @Override
+    public List<ProfessorResumoResponse> listarProfessores(String authorization, InternalRequestContext context) {
+        try {
+            List<ProfessorResumoResponse> response = restClient.get()
+                    .uri("/internal/professores")
+                    .headers(headers -> enrichHeaders(headers, authorization, context))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<ProfessorResumoResponse>>() {
+                    });
+            return response == null ? List.of() : response;
+        } catch (ResourceAccessException exception) {
+            throw new DownstreamUnavailableException("Monolito indisponivel para leitura shadow de professores", exception);
+        }
+    }
+
+    @Override
     public Optional<ProfessorResumoResponse> buscarProfessorPorId(
             String authorization,
             InternalRequestContext context,
@@ -65,6 +80,24 @@ public class MonolithProfessorReadClient implements ProfessorReadPort {
             return response == null ? List.of() : response;
         } catch (ResourceAccessException exception) {
             throw new DownstreamUnavailableException("Monolito indisponivel para leitura shadow de alocacoes", exception);
+        }
+    }
+
+    @Override
+    public List<ProfessorAlocacaoResponse> listarProfessoresPorTurma(
+            String authorization,
+            InternalRequestContext context,
+            UUID turmaId) {
+        try {
+            List<ProfessorAlocacaoResponse> response = restClient.get()
+                    .uri("/internal/professores/turmas/{turmaId}", turmaId)
+                    .headers(headers -> enrichHeaders(headers, authorization, context))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<ProfessorAlocacaoResponse>>() {
+                    });
+            return response == null ? List.of() : response;
+        } catch (ResourceAccessException exception) {
+            throw new DownstreamUnavailableException("Monolito indisponivel para leitura shadow por turma", exception);
         }
     }
 

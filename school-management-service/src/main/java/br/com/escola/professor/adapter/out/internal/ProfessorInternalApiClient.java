@@ -58,6 +58,24 @@ public class ProfessorInternalApiClient implements ProfessorAcademicoPort {
     }
 
     @Override
+    public List<ProfessorResumo> listarProfessores(UUID escolaId) {
+        List<ProfessorInternalResponse> response = restClient().get()
+                .uri("/internal/professores")
+                .headers(headers -> preencherHeaders(headers, escolaId))
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<ProfessorInternalResponse>>() {
+                });
+
+        if (response == null) {
+            return List.of();
+        }
+
+        return response.stream()
+                .map(this::toProfessorResumo)
+                .toList();
+    }
+
+    @Override
     public Optional<ProfessorResumo> buscarProfessor(UUID escolaId, UUID professorId) {
         try {
             ProfessorInternalResponse response = restClient().get()
@@ -102,6 +120,24 @@ public class ProfessorInternalApiClient implements ProfessorAcademicoPort {
     public List<ProfessorAlocacaoResumo> listarAlocacoes(UUID escolaId, UUID professorId) {
         List<ProfessorAlocacaoInternalResponse> response = restClient().get()
                 .uri("/internal/professores/{id}/turmas-disciplinas", professorId)
+                .headers(headers -> preencherHeaders(headers, escolaId))
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<ProfessorAlocacaoInternalResponse>>() {
+                });
+
+        if (response == null) {
+            return List.of();
+        }
+
+        return response.stream()
+                .map(this::toAlocacaoResumo)
+                .toList();
+    }
+
+    @Override
+    public List<ProfessorAlocacaoResumo> listarProfessoresPorTurma(UUID escolaId, UUID turmaId) {
+        List<ProfessorAlocacaoInternalResponse> response = restClient().get()
+                .uri("/internal/professores/turmas/{turmaId}", turmaId)
                 .headers(headers -> preencherHeaders(headers, escolaId))
                 .retrieve()
                 .body(new ParameterizedTypeReference<List<ProfessorAlocacaoInternalResponse>>() {

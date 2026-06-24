@@ -221,10 +221,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   para a leitura shadow. Testes com `MockWebServer` validaram ponta a ponta o
   roteamento interno, a propagacao de headers e o mapeamento de 404 sem iniciar
   um novo runtime real nem acionar banco.
-- A proxima subfase da 51D deve expandir esse runtime shadow para as leituras
-  remanescentes mais seguras do dominio de professores, preferencialmente
-  `GET /api/professores` e `GET /api/turmas/{turmaId}/professores`, primeiro
-  como consumo observavel interno e sem cutover no BFF.
+- A vigesima-sexta subfase da Fase 51D expandiu esse runtime shadow para as
+  leituras remanescentes mais seguras do dominio de professores, ainda sem
+  mover escritas, sem alterar rotas do BFF e sem introduzir persistencia
+  propria. O contrato interno do monolito passou a expor `GET /internal/professores`
+  e `GET /internal/professores/turmas/{turmaId}`, reaproveitando a porta
+  `ProfessorAcademicoPort` para separar listagem geral e listagem por turma do
+  restante do fluxo de professor. Em paralelo, o
+  `academic-professor-service` passou a consumir esses contratos e a expor
+  `GET /internal/v1/professores` e `GET /internal/v1/turmas/{turmaId}/professores`
+  como leituras shadow/read-only observaveis. Testes integrados no monolito e
+  no runtime shadow validaram os novos contratos ponta a ponta, incluindo
+  propagacao de contexto e mapeamento de respostas, sem abrir cutover no BFF.
+- A proxima subfase da 51D deve consumir essas duas leituras shadow de forma
+  observavel dentro do backend atual, com feature flag, metricas e fallback
+  local imediato, ainda sem redirecionar o BFF nem mover escritas de professor.
 
 ## Historico resumido
 

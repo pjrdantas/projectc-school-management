@@ -13,6 +13,8 @@ public interface ProfessorAcademicoPort {
 
     ProfessorResumo criarProfessor(UUID escolaId, CriarProfessorSolicitacao solicitacao);
 
+    List<ProfessorResumo> listarProfessores(UUID escolaId);
+
     Optional<ProfessorResumo> buscarProfessor(UUID escolaId, UUID professorId);
 
     boolean existeProfessor(UUID escolaId, UUID professorId);
@@ -23,4 +25,6 @@ public interface ProfessorAcademicoPort {
             AlocarProfessorTurmaDisciplinaSolicitacao solicitacao);
 
     List<ProfessorAlocacaoResumo> listarAlocacoes(UUID escolaId, UUID professorId);
+
+    List<ProfessorAlocacaoResumo> listarProfessoresPorTurma(UUID escolaId, UUID turmaId);
 }

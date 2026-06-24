@@ -55,6 +55,15 @@ public class ProfessorInternalController {
                         request.ativo())));
     }
 
+    @GetMapping
+    @Operation(summary = "Lista professores para uso interno entre backends")
+    public List<ProfessorInternalResponse> listar(
+            @RequestHeader(ESCOLA_HEADER) UUID escolaId) {
+        return professorAcademicoPort.listarProfessores(escolaId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Busca professor por id para uso interno entre backends")
     public ProfessorInternalResponse buscarPorId(
@@ -88,6 +97,16 @@ public class ProfessorInternalController {
             @RequestHeader(ESCOLA_HEADER) UUID escolaId,
             @PathVariable @NonNull UUID id) {
         return professorAcademicoPort.listarAlocacoes(escolaId, id).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @GetMapping("/turmas/{turmaId}")
+    @Operation(summary = "Lista professores por turma para uso interno entre backends")
+    public List<ProfessorAlocacaoInternalResponse> listarPorTurma(
+            @RequestHeader(ESCOLA_HEADER) UUID escolaId,
+            @PathVariable @NonNull UUID turmaId) {
+        return professorAcademicoPort.listarProfessoresPorTurma(escolaId, turmaId).stream()
                 .map(this::toResponse)
                 .toList();
     }

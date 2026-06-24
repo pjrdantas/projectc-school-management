@@ -119,6 +119,18 @@ class ProfessorInternalControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].professorId").value(professorId.toString()))
                 .andExpect(jsonPath("$[0].disciplinaNome").value("Professor Internal Controller Matematica"));
+
+        mockMvc.perform(get("/internal/professores")
+                        .header("X-Escola-Id", ESCOLA_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(professorId.toString()))
+                .andExpect(jsonPath("$[0].nomeCompleto").value("Professor Internal Controller Fluxo"));
+
+        mockMvc.perform(get("/internal/professores/turmas/{turmaId}", turmaId)
+                        .header("X-Escola-Id", ESCOLA_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].professorId").value(professorId.toString()))
+                .andExpect(jsonPath("$[0].turmaId").value(turmaId.toString()));
     }
 
     @Test

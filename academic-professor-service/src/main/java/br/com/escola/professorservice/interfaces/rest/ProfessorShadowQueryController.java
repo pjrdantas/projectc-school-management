@@ -29,6 +29,13 @@ public class ProfessorShadowQueryController {
         this.professorQueryUseCase = professorQueryUseCase;
     }
 
+    @GetMapping("/professores")
+    public List<ProfessorResumoResponse> listarProfessores(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
+        return professorQueryUseCase.listarProfessores(authorization, context);
+    }
+
     @GetMapping("/professores/{id}")
     public ProfessorResumoResponse buscarProfessorPorId(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
@@ -43,6 +50,14 @@ public class ProfessorShadowQueryController {
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
             @PathVariable @NonNull UUID id) {
         return professorQueryUseCase.listarAlocacoes(authorization, context, id);
+    }
+
+    @GetMapping("/turmas/{turmaId}/professores")
+    public List<ProfessorAlocacaoResponse> listarProfessoresPorTurma(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID turmaId) {
+        return professorQueryUseCase.listarProfessoresPorTurma(authorization, context, turmaId);
     }
 
     @GetMapping("/professores/funcionarios-elegiveis")
