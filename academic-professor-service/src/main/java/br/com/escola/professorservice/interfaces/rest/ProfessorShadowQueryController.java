@@ -20,7 +20,7 @@ import br.com.escola.professorservice.application.dto.ProfessorResumoResponse;
 import br.com.escola.professorservice.application.port.in.ProfessorQueryUseCase;
 
 @RestController
-@RequestMapping("/internal/v1")
+@RequestMapping({ "/internal/v1", "/internal" })
 public class ProfessorShadowQueryController {
 
     private final ProfessorQueryUseCase professorQueryUseCase;
@@ -52,7 +52,7 @@ public class ProfessorShadowQueryController {
         return professorQueryUseCase.listarAlocacoes(authorization, context, id);
     }
 
-    @GetMapping("/turmas/{turmaId}/professores")
+    @GetMapping({ "/turmas/{turmaId}/professores", "/professores/turmas/{turmaId}" })
     public List<ProfessorAlocacaoResponse> listarProfessoresPorTurma(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,

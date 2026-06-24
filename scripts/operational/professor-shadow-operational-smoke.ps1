@@ -7,6 +7,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+Add-Type -AssemblyName System.Net.Http
+
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Split-Path -Parent (Split-Path -Parent $scriptDir)
 $artifactsDir = Join-Path $repoRoot "target\professor-shadow-operational-smoke"
@@ -36,6 +38,52 @@ function Start-BackgroundPowerShell {
         -RedirectStandardError $StderrPath `
         -PassThru `
         -WindowStyle Hidden
+}
+
+function Test-PortAvailable {
+    param(
+        [int]$Port
+    )
+
+    $listener = $null
+    try {
+        $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $Port)
+        $listener.Start()
+        return $true
+    } catch {
+        return $false
+    } finally {
+        if ($listener -ne $null) {
+            $listener.Stop()
+        }
+    }
+}
+
+function Get-FreePort {
+    $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)
+    $listener.Start()
+    try {
+        return $listener.LocalEndpoint.Port
+    } finally {
+        $listener.Stop()
+    }
+}
+
+function Resolve-Port {
+    param(
+        [int]$PreferredPort,
+        [int[]]$ReservedPorts = @()
+    )
+
+    if ($PreferredPort -gt 0 -and $ReservedPorts -notcontains $PreferredPort -and (Test-PortAvailable -Port $PreferredPort)) {
+        return $PreferredPort
+    }
+
+    do {
+        $candidate = Get-FreePort
+    } while ($ReservedPorts -contains $candidate)
+
+    return $candidate
 }
 
 function Wait-Healthy {
@@ -69,34 +117,33 @@ function Invoke-Json {
         [int]$ExpectedStatus = 200
     )
 
-    $params = @{
-        Uri = $Url
-        Method = $Method
-        Headers = $Headers
-        TimeoutSec = 20
-    }
-
-    if ($null -ne $Body) {
-        $params["ContentType"] = "application/json"
-        $params["Body"] = ($Body | ConvertTo-Json -Depth 10)
-    }
+    $httpClient = [System.Net.Http.HttpClient]::new()
+    $httpClient.Timeout = [TimeSpan]::FromSeconds(20)
 
     try {
-        $response = Invoke-WebRequest @params
-    } catch {
-        $exceptionResponse = $_.Exception.Response
-        if ($null -eq $exceptionResponse) {
-            throw
+        foreach ($key in $Headers.Keys) {
+            [void]$httpClient.DefaultRequestHeaders.TryAddWithoutValidation($key, [string]$Headers[$key])
         }
 
-        $reader = New-Object System.IO.StreamReader($exceptionResponse.GetResponseStream())
-        $content = $reader.ReadToEnd()
-        $reader.Dispose()
+        $request = [System.Net.Http.HttpRequestMessage]::new(
+            [System.Net.Http.HttpMethod]::new($Method),
+            $Url)
+
+        if ($null -ne $Body) {
+            $jsonBody = $Body | ConvertTo-Json -Depth 10
+            $request.Content = [System.Net.Http.StringContent]::new($jsonBody, [System.Text.Encoding]::UTF8, "application/json")
+        }
+
+        $httpResponse = $httpClient.SendAsync($request).GetAwaiter().GetResult()
+        $content = $httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()
 
         $response = [pscustomobject]@{
-            StatusCode = [int]$exceptionResponse.StatusCode
+            StatusCode = [int]$httpResponse.StatusCode
             Content = $content
         }
+    }
+    finally {
+        $httpClient.Dispose()
     }
     if ($response.StatusCode -ne $ExpectedStatus) {
         throw "Resposta inesperada em ${Url}: esperado $ExpectedStatus, obtido $($response.StatusCode). Corpo: $($response.Content)"
@@ -111,32 +158,44 @@ function Invoke-Json {
 
 $monolithProcess = $null
 $shadowProcess = $null
+$resolvedMonolithPort = Resolve-Port -PreferredPort $MonolithPort
+$resolvedShadowPort = Resolve-Port -PreferredPort $ShadowPort -ReservedPorts @($resolvedMonolithPort)
 
 try {
     $monolithCommand = @"
 Set-Location '$repoRoot\school-management-service'
-`$env:SERVER_PORT = '$MonolithPort'
-`$env:PROFESSOR_SHADOW_BASE_URL = 'http://localhost:$ShadowPort'
+`$env:SERVER_PORT = '$resolvedMonolithPort'
+`$env:SPRING_PROFILES_ACTIVE = 'professor-shadow-operational'
+`$env:SPRING_DATASOURCE_URL = 'jdbc:h2:mem:professorShadowOperational;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE'
+`$env:SPRING_DATASOURCE_DRIVER_CLASS_NAME = 'org.h2.Driver'
+`$env:SPRING_DATASOURCE_USERNAME = 'sa'
+`$env:SPRING_DATASOURCE_PASSWORD = ''
+`$env:SPRING_JPA_HIBERNATE_DDL_AUTO = 'create-drop'
+`$env:SPRING_FLYWAY_ENABLED = 'false'
+`$env:SPRING_SQL_INIT_MODE = 'always'
+`$env:MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS = 'always'
+`$env:PROFESSOR_SHADOW_BASE_URL = 'http://localhost:$resolvedShadowPort'
+`$env:PROFESSOR_INTERNAL_CLIENT_INTERNAL_TOKEN = '$InternalToken'
 .\mvnw.cmd spring-boot:run '-Dspring-boot.run.useTestClasspath=true' '-Dspring-boot.run.profiles=professor-shadow-operational'
 "@
 
     $shadowCommand = @"
 Set-Location '$repoRoot'
-`$env:SERVER_PORT = '$ShadowPort'
+`$env:SERVER_PORT = '$resolvedShadowPort'
 `$env:MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS = 'always'
 `$env:PROFESSOR_SHADOW_INTERNAL_API_TOKEN = '$InternalToken'
-`$env:PROFESSOR_SHADOW_MONOLITH_BASE_URL = 'http://localhost:$MonolithPort'
+`$env:PROFESSOR_SHADOW_MONOLITH_BASE_URL = 'http://localhost:$resolvedMonolithPort'
 Set-Location '$repoRoot\academic-professor-service'
 mvn spring-boot:run
 "@
 
     $monolithProcess = Start-BackgroundPowerShell -Command $monolithCommand -StdoutPath $monolithStdout -StderrPath $monolithStderr
-    Wait-Healthy -Url "http://localhost:$MonolithPort/actuator/health" | Out-Null
+    Wait-Healthy -Url "http://localhost:$resolvedMonolithPort/actuator/health" | Out-Null
 
     $shadowProcess = Start-BackgroundPowerShell -Command $shadowCommand -StdoutPath $shadowStdout -StderrPath $shadowStderr
-    Wait-Healthy -Url "http://localhost:$ShadowPort/actuator/health" | Out-Null
+    Wait-Healthy -Url "http://localhost:$resolvedShadowPort/actuator/health" | Out-Null
 
-    $login = Invoke-Json -Method Post -Url "http://localhost:$MonolithPort/api/auth/login" -Body @{
+    $login = Invoke-Json -Method Post -Url "http://localhost:$resolvedMonolithPort/api/auth/login" -Body @{
         login = "professor-shadow-smoke"
         senha = "senha123"
     }
@@ -148,19 +207,21 @@ mvn spring-boot:run
 
     $authHeaders = @{
         Authorization = "Bearer $accessToken"
+        "X-Correlation-Id" = "professor-shadow-operational-smoke"
     }
 
-    $contexto = Invoke-Json -Method Get -Url "http://localhost:$MonolithPort/api/auth/contexto-atual" -Headers $authHeaders
+    $contexto = Invoke-Json -Method Get -Url "http://localhost:$resolvedMonolithPort/api/auth/contexto-atual" -Headers $authHeaders
     $escolaId = $contexto.escolaId
     $usuarioId = $contexto.usuarioId
+    $authHeaders["X-Usuario-Id"] = "$usuarioId"
 
-    $professoresMonolith = Invoke-Json -Method Get -Url "http://localhost:$MonolithPort/api/professores" -Headers $authHeaders
+    $professoresMonolith = Invoke-Json -Method Get -Url "http://localhost:$resolvedMonolithPort/api/professores" -Headers $authHeaders
     if (@($professoresMonolith).Count -lt 1) {
         throw "O monolito nao retornou professores no smoke operacional."
     }
 
     $professorId = @($professoresMonolith)[0].id
-    $professorMonolith = Invoke-Json -Method Get -Url "http://localhost:$MonolithPort/api/professores/$professorId" -Headers $authHeaders
+    $professorMonolith = Invoke-Json -Method Get -Url "http://localhost:$resolvedMonolithPort/api/professores/$professorId" -Headers $authHeaders
 
     $shadowHeaders = @{
         Authorization = "Bearer $accessToken"
@@ -170,19 +231,19 @@ mvn spring-boot:run
         "X-Escola-Id" = "$escolaId"
     }
 
-    $professoresShadow = Invoke-Json -Method Get -Url "http://localhost:$ShadowPort/internal/v1/professores" -Headers $shadowHeaders
-    $professorShadow = Invoke-Json -Method Get -Url "http://localhost:$ShadowPort/internal/v1/professores/$professorId" -Headers $shadowHeaders
+    $professoresShadow = Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores" -Headers $shadowHeaders
+    $professorShadow = Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores/$professorId" -Headers $shadowHeaders
     $notFoundId = [guid]::NewGuid()
-    Invoke-Json -Method Get -Url "http://localhost:$ShadowPort/internal/v1/professores/$notFoundId" -Headers $shadowHeaders -ExpectedStatus 404 | Out-Null
+    Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores/$notFoundId" -Headers $shadowHeaders -ExpectedStatus 404 | Out-Null
 
-    $monolithHealth = Invoke-Json -Method Get -Url "http://localhost:$MonolithPort/actuator/health/professorInternalClient"
-    $shadowHealth = Invoke-Json -Method Get -Url "http://localhost:$ShadowPort/actuator/health/professorShadowMonolith"
+    $monolithHealth = Invoke-Json -Method Get -Url "http://localhost:$resolvedMonolithPort/actuator/health/professorInternalClient"
+    $shadowHealth = Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/actuator/health/professorShadowMonolith"
 
     $report = [ordered]@{
         generatedAt = (Get-Date).ToString("o")
         ports = @{
-            schoolManagementService = $MonolithPort
-            academicProfessorService = $ShadowPort
+            schoolManagementService = $resolvedMonolithPort
+            academicProfessorService = $resolvedShadowPort
         }
         seededUser = @{
             username = "professor-shadow-smoke"

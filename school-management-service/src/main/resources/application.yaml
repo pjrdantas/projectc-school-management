@@ -53,3 +53,4 @@ professor:
     enabled: ${PROFESSOR_INTERNAL_CLIENT_ENABLED:false}
     fallback-local-on-error: ${PROFESSOR_INTERNAL_CLIENT_FALLBACK_LOCAL_ON_ERROR:true}
     base-url: ${PROFESSOR_INTERNAL_CLIENT_BASE_URL:http://localhost:8080}
+    internal-token: ${PROFESSOR_INTERNAL_CLIENT_INTERNAL_TOKEN:}

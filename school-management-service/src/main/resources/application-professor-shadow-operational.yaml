@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:professorShadowOperational;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.h2.Driver}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:create-drop}
+    open-in-view: false
+    defer-datasource-initialization: true
+
+  flyway:
+    enabled: ${SPRING_FLYWAY_ENABLED:false}
+
+  sql:
+    init:
+      mode: ${SPRING_SQL_INIT_MODE:always}
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+professor:
+  internal-client:
+    enabled: true
+    fallback-local-on-error: false
+    base-url: ${PROFESSOR_SHADOW_BASE_URL:http://localhost:18092}

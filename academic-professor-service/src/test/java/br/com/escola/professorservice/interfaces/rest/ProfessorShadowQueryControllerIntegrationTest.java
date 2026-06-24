@@ -180,6 +180,98 @@ class ProfessorShadowQueryControllerIntegrationTest {
     }
 
     @Test
+    void deveResponderRotasInternasCompativeisComOMonolitoAtual() throws Exception {
+        UUID professorId = UUID.randomUUID();
+        UUID turmaId = UUID.randomUUID();
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [
+                          {
+                            "id": "%s",
+                            "pessoaId": "%s",
+                            "nomeCompleto": "Professor Compat",
+                            "escolaId": "00000000-0000-0000-0000-000000000047",
+                            "escolaNome": "Escola Padrao",
+                            "registroProfissional": "RP-COMPAT",
+                            "formacao": "Licenciatura",
+                            "ativo": true,
+                            "createdAt": "2026-06-23T10:15:30",
+                            "updatedAt": "2026-06-23T10:15:30"
+                          }
+                        ]
+                        """.formatted(UUID.randomUUID(), UUID.randomUUID())));
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "id": "%s",
+                          "pessoaId": "%s",
+                          "nomeCompleto": "Professor Compat",
+                          "escolaId": "00000000-0000-0000-0000-000000000047",
+                          "escolaNome": "Escola Padrao",
+                          "registroProfissional": "RP-COMPAT",
+                          "formacao": "Licenciatura",
+                          "ativo": true,
+                          "createdAt": "2026-06-23T10:15:30",
+                          "updatedAt": "2026-06-23T10:15:30"
+                        }
+                        """.formatted(professorId, UUID.randomUUID())));
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [
+                          {
+                            "id": "%s",
+                            "professorId": "%s",
+                            "professorNome": "Professor Compat",
+                            "turmaDisciplinaId": "%s",
+                            "turmaId": "%s",
+                            "turmaNome": "2A",
+                            "disciplinaId": "%s",
+                            "disciplinaNome": "Geografia",
+                            "dataInicio": "2026-02-01",
+                            "dataFim": null,
+                            "ativo": true,
+                            "createdAt": "2026-06-23T10:15:30"
+                          }
+                        ]
+                        """.formatted(
+                        UUID.randomUUID(),
+                        professorId,
+                        UUID.randomUUID(),
+                        turmaId,
+                        UUID.randomUUID())));
+
+        mockMvc.perform(get("/internal/professores")
+                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Correlation-Id", "corr-shadow-compat-list")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer shadow-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nomeCompleto").value("Professor Compat"));
+
+        mockMvc.perform(get("/internal/professores/{id}", professorId)
+                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Correlation-Id", "corr-shadow-compat-id")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer shadow-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(professorId.toString()));
+
+        mockMvc.perform(get("/internal/professores/turmas/{turmaId}", turmaId)
+                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Correlation-Id", "corr-shadow-compat-turma")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer shadow-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].turmaId").value(turmaId.toString()));
+    }
+
+    @Test
     void deveListarProfessoresPorTurmaNoRuntimeShadow() throws Exception {
         UUID turmaId = UUID.randomUUID();
         UUID professorId = UUID.randomUUID();

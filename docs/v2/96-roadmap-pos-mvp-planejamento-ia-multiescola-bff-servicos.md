@@ -1259,11 +1259,29 @@ Entregue na trigesima primeira subfase:
 - preservacao do escopo: nenhuma escrita movida, nenhum contrato externo
   alterado, nenhum cutover no BFF e nenhuma dependencia nova de infraestrutura.
 
+Entregue na trigesima segunda subfase:
+
+- execucao real do smoke operacional controlado por
+  `scripts/operational/professor-shadow-operational-smoke.ps1`, com subida
+  local dos dois runtimes em portas livres e geracao do relatorio operacional
+  `target/professor-shadow-operational-smoke/report.json`;
+- endurecimento minimo dos contratos internos para o fluxo ponta a ponta:
+  compatibilidade no `academic-professor-service` com as rotas internas atuais
+  do monolito sob `/internal/**`, aplicacao do interceptor interno tambem nessas
+  rotas e repasse de `X-Internal-Token`, `X-Correlation-Id` e
+  `X-Usuario-Id` pelo cliente interno do `school-management-service`;
+- comprovacao operacional real de leitura em `GET /api/professores` e
+  `GET /api/professores/{id}` no monolito, mais `GET /internal/v1/professores`
+  e `GET /internal/v1/professores/{id}` no runtime shadow, sem fallback e com
+  healths dos dois lados em `UP`;
+- preservacao do escopo: nenhuma escrita movida, nenhum contrato externo
+  alterado, nenhum cutover no BFF e nenhuma dependencia nova de infraestrutura.
+
 Proxima subfase pratica e de menor risco:
 
-- executar esse smoke operacional controlado com os dois runtimes locais para
-  gerar o primeiro relatorio real ponta a ponta, revisar logs e confirmar os
-  contadores de health dos dois lados;
-- se o relatorio real confirmar estabilidade, ampliar o smoke operacional para
-  cobrir `listarFuncionariosElegiveis` e `listarPorTurma`, ainda sem mover
-  escrita nem iniciar cutover externo.
+- ampliar o smoke operacional real para cobrir `listarFuncionariosElegiveis` e
+  `listarPorTurma`, consolidando no mesmo relatorio os contadores e sinais
+  dessas duas rotas no `school-management-service` e no
+  `academic-professor-service`;
+- manter criacao, alocacao e qualquer escrita ainda no monolito ate que essa
+  cobertura read-only adicional esteja comprovada em execucao real.

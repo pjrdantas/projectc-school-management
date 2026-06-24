@@ -301,6 +301,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   gerar o primeiro relatorio real ponta a ponta e, se estavel, ampliar a
   cobertura operacional para `listarFuncionariosElegiveis` e `listarPorTurma`,
   ainda sem cutover externo.
+- A trigesima segunda subfase da Fase 51D executou esse smoke operacional em
+  runtime real dos dois backends, gerando
+  `target/professor-shadow-operational-smoke/report.json` com portas livres por
+  execucao, usuario seedado, healths em `UP` e contadores reais de
+  `GET /api/professores`, `GET /api/professores/{id}`,
+  `GET /internal/v1/professores` e `GET /internal/v1/professores/{id}`. Para
+  viabilizar a execucao ponta a ponta sem alterar contrato externo, foi preciso
+  endurecer apenas o contrato interno: o `academic-professor-service` passou a
+  aceitar alias `/internal/**` compativeis com o monolito atual e o
+  `school-management-service` passou a repassar `X-Internal-Token`,
+  `X-Correlation-Id` e `X-Usuario-Id` ao cliente interno de professor. O fluxo
+  fechou sem fallback e sem mover escrita alguma.
+- A proxima subfase da 51D deve ampliar o smoke operacional real para
+  `listarFuncionariosElegiveis` e `listarPorTurma`, ainda mantendo todas as
+  escritas no monolito e sem cutover externo.
 
 ## Historico resumido
 

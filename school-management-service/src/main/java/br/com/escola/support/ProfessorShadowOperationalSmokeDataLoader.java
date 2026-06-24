@@ -7,11 +7,13 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Profile("professor-shadow-operational")
+@Slf4j
 public class ProfessorShadowOperationalSmokeDataLoader implements ApplicationRunner {
 
     public static final UUID ESCOLA_ID = UUID.fromString("00000000-0000-0000-0000-000000000047");
@@ -24,17 +26,17 @@ public class ProfessorShadowOperationalSmokeDataLoader implements ApplicationRun
     public static final String PASSWORD = "senha123";
 
     private final JdbcTemplate jdbcTemplate;
-    private final PasswordEncoder passwordEncoder;
 
-    public ProfessorShadowOperationalSmokeDataLoader(JdbcTemplate jdbcTemplate, PasswordEncoder passwordEncoder) {
+    public ProfessorShadowOperationalSmokeDataLoader(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(ApplicationArguments args) {
+        log.info("Inicializando seed do smoke operacional de professor para usuario {}", USERNAME);
         inserirUsuarioSeAusente();
         inserirProfessorSeAusente();
+        log.info("Seed do smoke operacional de professor concluido para usuario {} e professor {}", USERNAME, PROFESSOR_ID);
     }
 
     private void inserirUsuarioSeAusente() {
@@ -54,7 +56,7 @@ public class ProfessorShadowOperationalSmokeDataLoader implements ApplicationRun
                 USERNAME,
                 "Professor Shadow Smoke",
                 "professor.shadow.smoke@example.com",
-                passwordEncoder.encode(PASSWORD),
+                PASSWORD,
                 LocalDateTime.now());
     }
 

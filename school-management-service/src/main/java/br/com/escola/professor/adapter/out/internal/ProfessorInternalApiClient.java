@@ -30,6 +30,8 @@ public class ProfessorInternalApiClient implements ProfessorAcademicoPort {
 
     private static final String ESCOLA_HEADER = "X-Escola-Id";
     private static final String CORRELATION_HEADER = "X-Correlation-Id";
+    private static final String INTERNAL_TOKEN_HEADER = "X-Internal-Token";
+    private static final String USUARIO_ID_HEADER = "X-Usuario-Id";
 
     private final RestClient.Builder restClientBuilder;
     private final Environment environment;
@@ -167,6 +169,16 @@ public class ProfessorInternalApiClient implements ProfessorAcademicoPort {
         String correlationId = request.getHeader(CORRELATION_HEADER);
         if (correlationId != null && !correlationId.isBlank()) {
             headers.add(CORRELATION_HEADER, correlationId);
+        }
+
+        String usuarioId = request.getHeader(USUARIO_ID_HEADER);
+        if (usuarioId != null && !usuarioId.isBlank()) {
+            headers.add(USUARIO_ID_HEADER, usuarioId);
+        }
+
+        String internalToken = environment.getProperty("professor.internal-client.internal-token");
+        if (internalToken != null && !internalToken.isBlank()) {
+            headers.add(INTERNAL_TOKEN_HEADER, internalToken);
         }
     }
 
