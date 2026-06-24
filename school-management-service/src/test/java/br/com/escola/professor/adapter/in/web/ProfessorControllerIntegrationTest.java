@@ -155,6 +155,27 @@ class ProfessorControllerIntegrationTest {
                 .andExpect(status().isConflict());
     }
 
+    @Test
+    @WithMockUser
+    void deveListarFuncionariosElegiveisSemExporInativosOuJaCadastrados() throws Exception {
+        UUID elegivelId = criarFuncionario("Professor Fase 20 Elegivel", "professor.fase20.elegivel@example.com");
+        UUID jaProfessorId = criarFuncionario("Professor Fase 20 Ja Cadastrado", "professor.fase20.ja@example.com");
+        UUID inativoId = criarFuncionarioInativo("Professor Fase 20 Inativo", "professor.fase20.inativo@example.com");
+
+        jdbcTemplate.update("""
+                INSERT INTO professor (id_professor, id_pessoa, registro_profissional, formacao, ativo, created_at)
+                SELECT ?, p.id_pessoa, ?, ?, true, CURRENT_TIMESTAMP
+                FROM pessoa p WHERE p.email = ?
+                """, UUID.randomUUID(), "RP-JA", "Licenciatura", "professor.fase20.ja@example.com");
+
+        mockMvc.perform(get("/api/professores/funcionarios-elegiveis"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].funcionarioId").value(elegivelId.toString()))
+                .andExpect(jsonPath("$[0].nomeCompleto").value("Professor Fase 20 Elegivel"))
+                .andExpect(jsonPath("$[0].ativo").value(true))
+                .andExpect(jsonPath("$").isArray());
+    }
+
     private UUID criarFuncionario(String nome, String email) {
         UUID pessoaId = UUID.randomUUID();
         UUID cargoId = UUID.randomUUID();
@@ -173,6 +194,29 @@ class ProfessorControllerIntegrationTest {
         jdbcTemplate.update("""
                 INSERT INTO funcionario (id_funcionario, id_pessoa, id_cargo, ativo, created_at)
                 VALUES (?, ?, ?, true, CURRENT_TIMESTAMP)
+                """, funcionarioId, pessoaId, cargoId);
+
+        return funcionarioId;
+    }
+
+    private UUID criarFuncionarioInativo(String nome, String email) {
+        UUID pessoaId = UUID.randomUUID();
+        UUID cargoId = UUID.randomUUID();
+        UUID funcionarioId = UUID.randomUUID();
+
+        jdbcTemplate.update("""
+                INSERT INTO pessoa (id_pessoa, nome_completo, cpf, email, id_escola, ativo, created_at)
+                VALUES (?, ?, ?, ?, '00000000-0000-0000-0000-000000000047', false, CURRENT_TIMESTAMP)
+                """, pessoaId, nome, cpfAleatorio(), email);
+
+        jdbcTemplate.update("""
+                INSERT INTO cargo (id_cargo, codigo, descricao)
+                VALUES (?, ?, ?)
+                """, cargoId, "PROF-FASE20-" + System.nanoTime(), "Professor");
+
+        jdbcTemplate.update("""
+                INSERT INTO funcionario (id_funcionario, id_pessoa, id_cargo, ativo, created_at)
+                VALUES (?, ?, ?, false, CURRENT_TIMESTAMP)
                 """, funcionarioId, pessoaId, cargoId);
 
         return funcionarioId;

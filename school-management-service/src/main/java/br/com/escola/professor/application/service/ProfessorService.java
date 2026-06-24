@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import jakarta.persistence.EntityManager;
+
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,34 +34,37 @@ import br.com.escola.professor.domain.exception.ProfessorJaCadastradoException;
 import br.com.escola.professor.domain.exception.ProfessorNaoEncontradoException;
 import br.com.escola.professor.domain.exception.ProfessorTurmaDisciplinaDuplicadaException;
 import br.com.escola.professor.domain.exception.ProfessorTurmaDisciplinaNaoEncontradaException;
+import br.com.escola.compartilhado.pessoa.entity.PessoaEntity;
 import br.com.escola.institucional.application.service.EscolaTenantService;
-import br.com.escola.rh.adapter.out.persistence.entity.FuncionarioEntity;
-import br.com.escola.rh.adapter.out.persistence.repository.FuncionarioJpaRepository;
+import br.com.escola.rh.application.port.internal.FuncionarioProfessorPort;
 
 @Service
 @Primary
 public class ProfessorService implements ProfessorAcademicoPort {
 
     private final ProfessorJpaRepository professorJpaRepository;
-    private final FuncionarioJpaRepository funcionarioJpaRepository;
+    private final FuncionarioProfessorPort funcionarioProfessorPort;
     private final TurmaJpaRepository turmaJpaRepository;
     private final TurmaDisciplinaJpaRepository turmaDisciplinaJpaRepository;
     private final ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository;
     private final EscolaTenantService escolaTenantService;
+    private final EntityManager entityManager;
 
     public ProfessorService(
             ProfessorJpaRepository professorJpaRepository,
-            FuncionarioJpaRepository funcionarioJpaRepository,
+            FuncionarioProfessorPort funcionarioProfessorPort,
             TurmaJpaRepository turmaJpaRepository,
             TurmaDisciplinaJpaRepository turmaDisciplinaJpaRepository,
             ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaTenantService escolaTenantService,
+            EntityManager entityManager) {
         this.professorJpaRepository = professorJpaRepository;
-        this.funcionarioJpaRepository = funcionarioJpaRepository;
+        this.funcionarioProfessorPort = funcionarioProfessorPort;
         this.turmaJpaRepository = turmaJpaRepository;
         this.turmaDisciplinaJpaRepository = turmaDisciplinaJpaRepository;
         this.professorTurmaDisciplinaJpaRepository = professorTurmaDisciplinaJpaRepository;
         this.escolaTenantService = escolaTenantService;
+        this.entityManager = entityManager;
     }
 
     @Transactional
@@ -81,12 +86,7 @@ public class ProfessorService implements ProfessorAcademicoPort {
     @Transactional(readOnly = true)
     public List<ProfessorFuncionarioElegivelResponse> listarFuncionariosElegiveis() {
         UUID escolaId = escolaPadraoId();
-        return funcionarioJpaRepository.findAllByPessoa_Escola_Id(escolaId).stream()
-                .filter(funcionario -> Boolean.TRUE.equals(funcionario.getAtivo()))
-                .filter(funcionario -> !professorJpaRepository.existsByPessoa_IdAndPessoa_Escola_Id(
-                        funcionario.getPessoa().getId(), escolaId))
-                .sorted((left, right) -> left.getPessoa().getNomeCompleto()
-                        .compareToIgnoreCase(right.getPessoa().getNomeCompleto()))
+        return funcionarioProfessorPort.listarFuncionariosElegiveisParaProfessor(escolaId).stream()
                 .map(this::toFuncionarioElegivelResponse)
                 .toList();
     }
@@ -131,21 +131,22 @@ public class ProfessorService implements ProfessorAcademicoPort {
     @Transactional
     public ProfessorResumo criarProfessor(UUID escolaId, CriarProfessorSolicitacao solicitacao) {
         UUID escolaResolvidaId = resolverEscolaId(escolaId);
-        FuncionarioEntity funcionario = funcionarioJpaRepository
-                .findByIdAndPessoa_Escola_Id(solicitacao.funcionarioId(), escolaResolvidaId)
+        var funcionario = funcionarioProfessorPort
+                .buscarFuncionarioParaProfessor(escolaResolvidaId, solicitacao.funcionarioId())
                 .orElseThrow(() -> new ProfessorNaoEncontradoException("Funcionário não encontrado."));
 
-        if (Boolean.FALSE.equals(funcionario.getAtivo())) {
+        if (Boolean.FALSE.equals(funcionario.ativo())) {
             throw new ProfessorFuncionarioInativoException();
         }
 
-        professorJpaRepository.findByPessoa_IdAndPessoa_Escola_Id(funcionario.getPessoa().getId(), escolaResolvidaId)
-                .ifPresent(professor -> {
-                    throw new ProfessorJaCadastradoException();
-                });
+        if (Boolean.FALSE.equals(funcionario.elegivelProfessor())) {
+            throw new ProfessorJaCadastradoException();
+        }
+
+        PessoaEntity pessoa = entityManager.getReference(PessoaEntity.class, funcionario.pessoaId());
 
         ProfessorEntity professor = ProfessorEntity.builder()
-                .pessoa(funcionario.getPessoa())
+                .pessoa(pessoa)
                 .registroProfissional(solicitacao.registroProfissional())
                 .formacao(solicitacao.formacao())
                 .ativo(solicitacao.ativo() == null ? Boolean.TRUE : solicitacao.ativo())
@@ -232,14 +233,15 @@ public class ProfessorService implements ProfessorAcademicoPort {
                 resumo.updatedAt());
     }
 
-    private ProfessorFuncionarioElegivelResponse toFuncionarioElegivelResponse(FuncionarioEntity entity) {
+    private ProfessorFuncionarioElegivelResponse toFuncionarioElegivelResponse(
+            br.com.escola.rh.application.dto.internal.FuncionarioProfessorResumo resumo) {
         return new ProfessorFuncionarioElegivelResponse(
-                entity.getId(),
-                entity.getPessoa().getNomeCompleto(),
-                entity.getPessoa().getEscola().getId(),
-                entity.getPessoa().getEscola().getNome(),
-                entity.getCargo() == null ? null : entity.getCargo().getDescricao(),
-                entity.getAtivo());
+                resumo.funcionarioId(),
+                resumo.nomeCompleto(),
+                resumo.escolaId(),
+                resumo.escolaNome(),
+                resumo.cargo(),
+                resumo.ativo());
     }
 
     private ProfessorAlocacaoResponse toAlocacaoResponse(ProfessorTurmaDisciplinaEntity entity) {

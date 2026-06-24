@@ -1110,3 +1110,33 @@ Proxima subfase pratica e de menor risco:
 - se a extracao fisica ainda nao estiver segura, introduzir antes um contrato
   interno minimo de consulta/elegibilidade de funcionario para reduzir o
   acoplamento atual entre professor e RH/pessoa sem ampliar o BFF.
+
+Entregue na vigesima-quarta subfase:
+
+- introducao do contrato interno minimo de funcionario para o fluxo de
+  professores, com a porta `FuncionarioProfessorPort` e DTO interno proprio,
+  ainda dentro do `school-management-service`;
+- implementacao local em RH para busca de funcionario por escola e listagem de
+  funcionarios elegiveis para cadastro de professor, sem expor repositórios ou
+  entidades de RH diretamente ao dominio de professores;
+- adaptacao minima do `ProfessorService`, que deixou de depender diretamente de
+  `FuncionarioJpaRepository` e `FuncionarioEntity`, passando a consumir o resumo
+  interno de funcionario e a materializar apenas uma referencia JPA de
+  `PessoaEntity` no momento da escrita do professor;
+- exposicao dos endpoints internos autenticados
+  `GET /internal/funcionarios/{id}/professor` e
+  `GET /internal/funcionarios/professor-elegiveis`, preparando a futura
+  extracao incremental do dominio sem alterar rotas externas nem abrir cutover
+  no BFF;
+- validacao automatizada cobrindo os novos endpoints internos de funcionario e
+  a preservacao do endpoint externo `GET /api/professores/funcionarios-elegiveis`.
+
+Proxima subfase pratica e de menor risco:
+
+- usar as duas fronteiras internas agora explicitas (`ProfessorAcademicoPort` e
+  `FuncionarioProfessorPort`) para preparar a primeira separacao fisica
+  incremental do dominio de professores, preferencialmente iniciando por
+  leitura shadow/read-only em runtime proprio;
+- manter a criacao e a alocacao de professor no monolito nesta etapa, usando o
+  novo runtime apenas como consumidor observavel dos contratos internos, sem
+  mudar rotas no BFF.

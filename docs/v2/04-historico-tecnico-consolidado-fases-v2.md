@@ -195,12 +195,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   negocio. Testes dedicados cobriram tanto a logica pura do indicador quanto a
   exposicao real do actuator, alem de preservar o teste operacional ponta a
   ponta do cliente interno.
-- A proxima subfase da 51D deve usar essa fronteira interna ja observada para
-  preparar a primeira separacao fisica incremental do dominio de professores,
-  preferencialmente por leitura shadow/read-only; se isso ainda nao estiver
-  seguro, o menor recorte seguinte e introduzir antes um contrato interno minimo
+- A vigesima-quarta subfase da Fase 51D introduziu esse contrato interno minimo
   de consulta/elegibilidade de funcionario para reduzir o acoplamento atual
-  entre professor e RH/pessoa sem abrir escrita nova no BFF.
+  entre professor e RH/pessoa, ainda sem abrir runtime novo nem ampliar o BFF.
+  Foi criada a porta `FuncionarioProfessorPort`, com DTO interno proprio e
+  implementacao local em RH para busca de funcionario por escola e listagem de
+  funcionarios elegiveis para cadastro de professor. O `ProfessorService`
+  deixou de consultar `FuncionarioJpaRepository` e `FuncionarioEntity`
+  diretamente, passando a criar professor a partir do resumo interno do
+  funcionario e de uma referencia JPA de `PessoaEntity`. Tambem foram expostos
+  endpoints internos autenticados `GET /internal/funcionarios/{id}/professor` e
+  `GET /internal/funcionarios/professor-elegiveis`, preparando uma futura
+  separacao fisica incremental do dominio com contrato backend/backend explicito.
+- A proxima subfase da 51D deve usar as duas fronteiras internas agora
+  explicitadas (`ProfessorAcademicoPort` e `FuncionarioProfessorPort`) para
+  preparar a primeira separacao fisica incremental do dominio de professores,
+  preferencialmente iniciando por leitura shadow/read-only em runtime proprio,
+  sem mover escritas nem alterar rotas do BFF.
 
 ## Historico resumido
 
