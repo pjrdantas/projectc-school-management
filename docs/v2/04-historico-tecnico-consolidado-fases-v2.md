@@ -269,11 +269,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   Testes unitarios, teste de endpoint do actuator e os testes ja existentes do
   controller shadow validaram a nova observabilidade sem alterar o contrato
   funcional das leituras.
-- A proxima subfase da 51D deve usar essa observabilidade fechada dos dois
-  lados para executar um smoke operacional controlado entre o monolito e o
-  `academic-professor-service`, comprovando em runtime real os sinais de
-  sucesso, erro e indisponibilidade do monolito antes de discutir qualquer
-  cutover externo.
+- A trigesima subfase da Fase 51D usou essa observabilidade fechada para
+  executar um smoke operacional controlado do runtime shadow em porta aleatoria,
+  ainda sem cutover externo. O smoke exercitou tres cenarios contra a
+  dependencia remota controlada: sucesso em `GET /internal/v1/professores`,
+  `not_found` em `GET /internal/v1/professores/{id}` e erro remoto em
+  `GET /internal/v1/professores/funcionarios-elegiveis`. Ao final, o teste
+  consultou `/actuator/health/professorShadowMonolith` e comprovou, em runtime
+  real do `academic-professor-service`, os contadores por rota e os sinais de
+  sucesso, `not_found` e falha do lado remoto. Os testes anteriores do runtime
+  shadow foram preservados e o backend principal permaneceu validado sem mover
+  escrita alguma.
+- A proxima subfase da 51D deve converter esse smoke controlado em um smoke
+  operacional ponta a ponta mais proximo do ambiente real, conectando o
+  `academic-professor-service` ao `school-management-service` real em perfil
+  controlado para observar os healths dos dois lados na mesma execucao, ainda
+  sem cutover externo.
 
 ## Historico resumido
 

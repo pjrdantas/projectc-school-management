@@ -1230,11 +1230,24 @@ Entregue na vigesima-nona subfase:
 - preservacao integral do escopo: nenhuma escrita movida, nenhum contrato
   externo alterado, nenhum cutover no BFF e nenhum banco novo.
 
+Entregue na trigesima subfase:
+
+- criacao de um smoke operacional controlado do `academic-professor-service`
+  em porta aleatoria, exercitando em runtime real da aplicacao shadow os
+  cenarios de sucesso, `not_found` e erro remoto;
+- consulta automatizada ao health dedicado `professorShadowMonolith` ao final
+  do smoke para comprovar os contadores por rota e os sinais agregados da
+  dependencia remota;
+- preservacao dos testes anteriores do runtime shadow, mantendo o contrato
+  funcional de `/internal/v1` inalterado;
+- preservacao integral do escopo: nenhuma escrita movida, nenhum contrato
+  externo alterado, nenhum cutover no BFF e nenhum banco novo.
+
 Proxima subfase pratica e de menor risco:
 
-- executar um smoke operacional controlado entre o monolito e o
-  `academic-professor-service`, comprovando em runtime real os sinais de
-  sucesso, erro e indisponibilidade do monolito nos healths e metricas dos
-  dois lados;
+- converter esse smoke controlado em um smoke operacional mais proximo do
+  ambiente real, conectando o `academic-professor-service` ao
+  `school-management-service` real em perfil controlado para observar os
+  healths dos dois lados na mesma execucao;
 - manter criacao e alocacao de professor no monolito ate que essa
   observabilidade ponta a ponta esteja comprovada.
