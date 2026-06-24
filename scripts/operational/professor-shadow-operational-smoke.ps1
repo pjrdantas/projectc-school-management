@@ -222,6 +222,10 @@ mvn spring-boot:run
 
     $professorId = @($professoresMonolith)[0].id
     $professorMonolith = Invoke-Json -Method Get -Url "http://localhost:$resolvedMonolithPort/api/professores/$professorId" -Headers $authHeaders
+    $alocacoesMonolith = Invoke-Json -Method Get -Url "http://localhost:$resolvedMonolithPort/api/professores/$professorId/turmas-disciplinas" -Headers $authHeaders
+    if (@($alocacoesMonolith).Count -lt 1) {
+        throw "O monolito nao retornou alocacoes do professor no smoke operacional."
+    }
     $funcionariosElegiveisMonolith = Invoke-Json -Method Get -Url "http://localhost:$resolvedMonolithPort/api/professores/funcionarios-elegiveis" -Headers $authHeaders
     if (@($funcionariosElegiveisMonolith).Count -lt 1) {
         throw "O monolito nao retornou funcionarios elegiveis no smoke operacional."
@@ -242,6 +246,10 @@ mvn spring-boot:run
 
     $professoresShadow = Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores" -Headers $shadowHeaders
     $professorShadow = Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores/$professorId" -Headers $shadowHeaders
+    $alocacoesShadow = Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores/$professorId/turmas-disciplinas" -Headers $shadowHeaders
+    if (@($alocacoesShadow).Count -lt 1) {
+        throw "O shadow nao retornou alocacoes do professor no smoke operacional."
+    }
     $funcionariosElegiveisShadow = Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores/funcionarios-elegiveis" -Headers $shadowHeaders
     if (@($funcionariosElegiveisShadow).Count -lt 1) {
         throw "O shadow nao retornou funcionarios elegiveis no smoke operacional."
@@ -274,10 +282,13 @@ mvn spring-boot:run
             turmaId = $turmaId
             monolithProfessorNome = $professorMonolith.nomeCompleto
             shadowProfessorNome = $professorShadow.nomeCompleto
+            monolithAlocacaoCount = @($alocacoesMonolith).Count
+            shadowAlocacaoCount = @($alocacoesShadow).Count
             monolithEligibleCount = @($funcionariosElegiveisMonolith).Count
             shadowEligibleCount = @($funcionariosElegiveisShadow).Count
             monolithTurmaProfessorCount = @($professoresPorTurmaMonolith).Count
             shadowTurmaProfessorCount = @($professoresPorTurmaShadow).Count
+            turmaDisciplinaId = @($alocacoesMonolith)[0].turmaDisciplinaId
             elegivelFuncionarioId = @($funcionariosElegiveisMonolith)[0].funcionarioId
             shadowNotFoundId = $notFoundId
         }

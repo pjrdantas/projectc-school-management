@@ -1317,3 +1317,29 @@ Proxima subfase pratica e de menor risco:
   metricas e health operacional;
 - manter criacao, alocacao e qualquer escrita ainda no monolito ate que essa
   ultima leitura read-only esteja comprovada em execucao real.
+
+Entregue na trigesima quarta subfase:
+
+- ampliacao final do smoke operacional real para cobrir
+  `GET /api/professores/{id}/turmas-disciplinas` e
+  `GET /internal/v1/professores/{id}/turmas-disciplinas`, consolidando no
+  mesmo `target/professor-shadow-operational-smoke/report.json` os contadores
+  reais de `listarAlocacoes` junto de `listar`, `buscarPorId`,
+  `listarPorTurma` e `listarFuncionariosElegiveis`;
+- comprovacao operacional real de que o monolito e o runtime shadow respondem
+  todo o bloco read-only de professores com `status` funcional,
+  `professorShadowMonolith` e `professorInternalClient` em `UP` e ausencia de
+  fallback no backend principal;
+- preservacao do escopo: nenhuma escrita movida, nenhum contrato externo
+  alterado, nenhum cutover no BFF e nenhuma persistencia propria introduzida no
+  runtime shadow.
+
+Proxima subfase pratica e de menor risco:
+
+- iniciar o diagnostico operacional minimo da primeira escrita shadow de
+  professores, com foco em `POST /api/professores`: revisar contrato, seed
+  operacional, metricas, health e ponto exato de observabilidade antes de
+  qualquer tentativa de cutover externo;
+- manter criacao, alocacao e qualquer escrita ainda no monolito ate que esse
+  passo de escrita shadow esteja comprovado com risco controlado e sem ampliar
+  escopo para persistencia propria ou BFF.

@@ -338,6 +338,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `GET /internal/v1/professores/{id}/turmas-disciplinas`), fechando o bloco
   read-only do runtime shadow de professores antes de qualquer discussao sobre
   escrita, persistencia propria ou cutover externo.
+- A trigesima-quarta subfase da Fase 51D fechou esse bloco read-only do runtime
+  shadow de professores em execucao real. O script
+  `scripts/operational/professor-shadow-operational-smoke.ps1` passou a cobrir
+  tambem `GET /api/professores/{id}/turmas-disciplinas` e
+  `GET /internal/v1/professores/{id}/turmas-disciplinas`, consolidando no
+  relatorio operacional os contadores reais de alocacoes junto das demais
+  leituras shadow. A nova execucao voltou a gerar
+  `target/professor-shadow-operational-smoke/report.json` com contadores
+  positivos em `listar`, `buscarPorId`, `listarAlocacoes`,
+  `listarPorTurma` e `listarFuncionariosElegiveis`, healths dos dois lados em
+  `UP` e ausencia de fallback no backend principal. Nenhuma escrita foi movida,
+  nenhum contrato externo foi alterado e o BFF permaneceu fora deste recorte.
+- A proxima subfase da 51D deve sair do bloco puramente read-only e preparar o
+  menor passo de escrita shadow de professores com risco controlado: diagnostico
+  operacional minimo de `POST /api/professores`, definicao do seed/contrato de
+  escrita observavel e prova de health/metricas sem cutover externo nem
+  persistencia propria no runtime shadow.
 
 ## Historico resumido
 
