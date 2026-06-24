@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.escola.professorservice.application.context.InternalHeaders;
 import br.com.escola.professorservice.application.context.InternalRequestContext;
 import br.com.escola.professorservice.application.dto.FuncionarioElegivelResponse;
+import br.com.escola.professorservice.application.dto.ProfessorAllocateRequest;
 import br.com.escola.professorservice.application.dto.ProfessorCreateRequest;
 import br.com.escola.professorservice.application.dto.ProfessorAlocacaoResponse;
 import br.com.escola.professorservice.application.dto.ProfessorResumoResponse;
@@ -47,6 +48,16 @@ public class ProfessorShadowQueryController {
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
             @Valid @RequestBody ProfessorCreateRequest request) {
         return professorCommandUseCase.criarProfessor(authorization, context, request);
+    }
+
+    @PostMapping("/professores/{id}/turmas-disciplinas")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ProfessorAlocacaoResponse alocarProfessorTurmaDisciplina(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID id,
+            @Valid @RequestBody ProfessorAllocateRequest request) {
+        return professorCommandUseCase.alocarProfessorTurmaDisciplina(authorization, context, id, request);
     }
 
     @GetMapping("/professores")

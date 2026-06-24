@@ -22,6 +22,10 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
     private static final String INTERNAL_ENDPOINT_PREFIX = "/internal/professores";
     private static final List<RouteMetricDescriptor> SHADOW_READ_ROUTES = List.of(
             new RouteMetricDescriptor("criar", "POST /api/professores", "POST /internal/professores"),
+            new RouteMetricDescriptor(
+                    "vincularTurmaDisciplina",
+                    "POST /api/professores/{id}/turmas-disciplinas",
+                    "POST /internal/professores/{id}/turmas-disciplinas"),
             new RouteMetricDescriptor("listar", "GET /api/professores", "GET /internal/professores"),
             new RouteMetricDescriptor("buscarPorId", "GET /api/professores/{id}", "GET /internal/professores/{id}"),
             new RouteMetricDescriptor(

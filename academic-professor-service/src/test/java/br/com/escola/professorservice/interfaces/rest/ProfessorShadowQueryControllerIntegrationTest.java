@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterAll;
@@ -99,6 +100,57 @@ class ProfessorShadowQueryControllerIntegrationTest {
     }
 
     @Test
+    void deveAlocarProfessorNoRuntimeShadow() throws Exception {
+        UUID professorId = UUID.randomUUID();
+        UUID turmaDisciplinaId = UUID.randomUUID();
+        UUID turmaId = UUID.randomUUID();
+        UUID disciplinaId = UUID.randomUUID();
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setResponseCode(201)
+                .setBody("""
+                        {
+                          "id": "%s",
+                          "professorId": "%s",
+                          "professorNome": "Professor Shadow Write",
+                          "turmaDisciplinaId": "%s",
+                          "turmaId": "%s",
+                          "turmaNome": "Turma Write",
+                          "disciplinaId": "%s",
+                          "disciplinaNome": "Matematica",
+                          "dataInicio": "2026-02-01",
+                          "dataFim": null,
+                          "ativo": true,
+                          "createdAt": "2026-06-23T10:15:30"
+                        }
+                        """.formatted(UUID.randomUUID(), professorId, turmaDisciplinaId, turmaId, disciplinaId)));
+
+        mockMvc.perform(post("/internal/v1/professores/{id}/turmas-disciplinas", professorId)
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "turmaDisciplinaId": "%s",
+                                  "dataInicio": "2026-02-01",
+                                  "ativo": true
+                                }
+                                """.formatted(turmaDisciplinaId))
+                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Correlation-Id", "corr-shadow-allocate")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer shadow-user-token"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.professorId").value(professorId.toString()))
+                .andExpect(jsonPath("$.turmaDisciplinaId").value(turmaDisciplinaId.toString()))
+                .andExpect(jsonPath("$.disciplinaNome").value("Matematica"));
+
+        RecordedRequest recorded = aguardarRequisicao("POST", "/internal/professores/" + professorId + "/turmas-disciplinas");
+        assertThat(recorded.getMethod()).isEqualTo("POST");
+        assertThat(recorded.getPath()).isEqualTo("/internal/professores/" + professorId + "/turmas-disciplinas");
+        assertThat(recorded.getBody().readUtf8()).contains(turmaDisciplinaId.toString());
+    }
+
+    @Test
     void deveConsultarProfessorPorIdNoRuntimeShadow() throws Exception {
         UUID professorId = UUID.randomUUID();
         mockWebServer.enqueue(new MockResponse()
@@ -128,7 +180,7 @@ class ProfessorShadowQueryControllerIntegrationTest {
                 .andExpect(jsonPath("$.id").value(professorId.toString()))
                 .andExpect(jsonPath("$.nomeCompleto").value("Professor Shadow"));
 
-        RecordedRequest recorded = mockWebServer.takeRequest();
+        RecordedRequest recorded = aguardarRequisicao("GET", "/internal/professores/" + professorId);
         assertThat(recorded.getMethod()).isEqualTo("GET");
         assertThat(recorded.getPath()).isEqualTo("/internal/professores/" + professorId);
         assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer shadow-user-token");
@@ -362,7 +414,7 @@ class ProfessorShadowQueryControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].turmaId").value(turmaId.toString()))
                 .andExpect(jsonPath("$[0].disciplinaNome").value("Historia"));
 
-        RecordedRequest recorded = mockWebServer.takeRequest();
+        RecordedRequest recorded = aguardarRequisicao("GET", "/internal/professores/turmas/" + turmaId);
         assertThat(recorded.getPath()).isEqualTo("/internal/professores/turmas/" + turmaId);
     }
 
@@ -390,5 +442,18 @@ class ProfessorShadowQueryControllerIntegrationTest {
                         .header("Authorization", "Bearer shadow-user-token"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
+    }
+
+    private RecordedRequest aguardarRequisicao(String method, String path) throws InterruptedException {
+        for (int tentativa = 0; tentativa < 5; tentativa++) {
+            RecordedRequest request = mockWebServer.takeRequest(2, TimeUnit.SECONDS);
+            if (request == null) {
+                continue;
+            }
+            if (method.equals(request.getMethod()) && path.equals(request.getPath())) {
+                return request;
+            }
+        }
+        throw new AssertionError("Requisicao esperada nao encontrada: " + method + " " + path);
     }
 }

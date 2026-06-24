@@ -31,7 +31,7 @@ class ProfessorInternalClientHealthIndicatorTest {
                 .containsEntry("fallbackLocalOnError", true);
         @SuppressWarnings("unchecked")
         Map<String, Object> shadowReadRoutes = (Map<String, Object>) health.getDetails().get("shadowReadRoutes");
-        assertThat(shadowReadRoutes).containsKeys("criar", "listar", "buscarPorId", "listarAlocacoes", "listarPorTurma");
+        assertThat(shadowReadRoutes).containsKeys("criar", "vincularTurmaDisciplina", "listar", "buscarPorId", "listarAlocacoes", "listarPorTurma");
     }
 
     @Test
@@ -83,6 +83,8 @@ class ProfessorInternalClientHealthIndicatorTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> criar = (Map<String, Object>) shadowReadRoutes.get("criar");
         @SuppressWarnings("unchecked")
+        Map<String, Object> alocar = (Map<String, Object>) shadowReadRoutes.get("vincularTurmaDisciplina");
+        @SuppressWarnings("unchecked")
         Map<String, Object> listar = (Map<String, Object>) shadowReadRoutes.get("listar");
         @SuppressWarnings("unchecked")
         Map<String, Object> listarPorTurma = (Map<String, Object>) shadowReadRoutes.get("listarPorTurma");
@@ -90,6 +92,9 @@ class ProfessorInternalClientHealthIndicatorTest {
                 .containsEntry("externalRoute", "POST /api/professores")
                 .containsEntry("internalRoute", "POST /internal/professores")
                 .containsEntry("internalSuccessTotal", 2.0d);
+        assertThat(alocar)
+                .containsEntry("externalRoute", "POST /api/professores/{id}/turmas-disciplinas")
+                .containsEntry("internalRoute", "POST /internal/professores/{id}/turmas-disciplinas");
         assertThat(listar)
                 .containsEntry("externalRoute", "GET /api/professores")
                 .containsEntry("internalRoute", "GET /internal/professores")

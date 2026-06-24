@@ -55,6 +55,7 @@ class ProfessorShadowOperationalSmokeIntegrationTest {
     void deveComprovarSinaisDeSucessoNotFoundEIndisponibilidadeNoHealthDoShadow() {
         UUID professorId = UUID.randomUUID();
         UUID funcionarioId = UUID.randomUUID();
+        UUID turmaDisciplinaId = UUID.randomUUID();
 
         mockWebServer.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -73,6 +74,25 @@ class ProfessorShadowOperationalSmokeIntegrationTest {
                           "updatedAt": "2026-06-23T10:15:30"
                         }
                         """.formatted(UUID.randomUUID(), UUID.randomUUID())));
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setResponseCode(201)
+                .setBody("""
+                        {
+                          "id": "%s",
+                          "professorId": "%s",
+                          "professorNome": "Professor Smoke Write",
+                          "turmaDisciplinaId": "%s",
+                          "turmaId": "%s",
+                          "turmaNome": "Turma Smoke",
+                          "disciplinaId": "%s",
+                          "disciplinaNome": "Matematica",
+                          "dataInicio": "2026-02-01",
+                          "dataFim": null,
+                          "ativo": true,
+                          "createdAt": "2026-06-23T10:15:30"
+                        }
+                        """.formatted(UUID.randomUUID(), professorId, turmaDisciplinaId, UUID.randomUUID(), UUID.randomUUID())));
         mockWebServer.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -118,6 +138,20 @@ class ProfessorShadowOperationalSmokeIntegrationTest {
                 .body(String.class);
         assertThat(criarResponse).contains("Professor Smoke Write");
 
+        String alocarResponse = shadowClient.post()
+                .uri("/internal/v1/professores/{id}/turmas-disciplinas", professorId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        {
+                          "turmaDisciplinaId": "%s",
+                          "dataInicio": "2026-02-01",
+                          "ativo": true
+                        }
+                        """.formatted(turmaDisciplinaId))
+                .retrieve()
+                .body(String.class);
+        assertThat(alocarResponse).contains("Professor Smoke Write");
+
         String listarResponse = shadowClient.get()
                 .uri("/internal/v1/professores")
                 .retrieve()
@@ -159,13 +193,15 @@ class ProfessorShadowOperationalSmokeIntegrationTest {
         Map<String, Object> details = (Map<String, Object>) health.get("details");
         assertThat(details)
                 .containsEntry("dependency", "monolith")
-                .containsEntry("requestsTotal", 4.0d)
+                .containsEntry("requestsTotal", 5.0d)
                 .containsEntry("failuresTotal", 1.0d);
 
         @SuppressWarnings("unchecked")
         Map<String, Object> shadowReadRoutes = (Map<String, Object>) details.get("shadowReadRoutes");
         @SuppressWarnings("unchecked")
         Map<String, Object> criar = (Map<String, Object>) shadowReadRoutes.get("criar");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> alocar = (Map<String, Object>) shadowReadRoutes.get("vincularTurmaDisciplina");
         @SuppressWarnings("unchecked")
         Map<String, Object> listar = (Map<String, Object>) shadowReadRoutes.get("listar");
         @SuppressWarnings("unchecked")
@@ -175,6 +211,9 @@ class ProfessorShadowOperationalSmokeIntegrationTest {
 
         assertThat(criar)
                 .containsEntry("shadowRoute", "POST /internal/v1/professores")
+                .containsEntry("monolithSuccessTotal", 1.0d);
+        assertThat(alocar)
+                .containsEntry("shadowRoute", "POST /internal/v1/professores/{id}/turmas-disciplinas")
                 .containsEntry("monolithSuccessTotal", 1.0d);
         assertThat(listar)
                 .containsEntry("shadowRoute", "GET /internal/v1/professores")

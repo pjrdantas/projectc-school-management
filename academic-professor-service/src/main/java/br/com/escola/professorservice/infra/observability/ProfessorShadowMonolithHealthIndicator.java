@@ -20,6 +20,10 @@ public class ProfessorShadowMonolithHealthIndicator implements HealthIndicator {
 
     private static final List<RouteMetricDescriptor> SHADOW_ROUTES = List.of(
             new RouteMetricDescriptor("criar", "POST /internal/v1/professores", "POST /internal/professores"),
+            new RouteMetricDescriptor(
+                    "vincularTurmaDisciplina",
+                    "POST /internal/v1/professores/{id}/turmas-disciplinas",
+                    "POST /internal/professores/{id}/turmas-disciplinas"),
             new RouteMetricDescriptor("listar", "GET /internal/v1/professores", "GET /internal/professores"),
             new RouteMetricDescriptor("buscarPorId", "GET /internal/v1/professores/{id}", "GET /internal/professores/{id}"),
             new RouteMetricDescriptor(

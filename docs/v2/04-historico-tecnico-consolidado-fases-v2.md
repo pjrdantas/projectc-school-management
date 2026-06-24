@@ -373,6 +373,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `POST /api/professores/{id}/turmas-disciplinas`, mantendo o escopo estrito:
   proxy shadow sem persistencia propria, observabilidade dedicada, smoke
   operacional controlado e sem qualquer cutover no BFF.
+- A trigesima-sexta subfase da Fase 51D aplicou exatamente esse mesmo padrao
+  minimo ao segundo write interno de professores:
+  `POST /api/professores/{id}/turmas-disciplinas`. O
+  `academic-professor-service` passou a expor
+  `POST /internal/v1/professores/{id}/turmas-disciplinas` como proxy do
+  contrato interno `POST /internal/professores/{id}/turmas-disciplinas` do
+  monolito, ainda sem persistencia propria e sem BFF. Os health indicators
+  dedicados dos dois runtimes passaram a incluir a operacao
+  `vincularTurmaDisciplina` no diagnostico por rota e nos contadores
+  operacionais. O smoke operacional real foi expandido para criar um professor,
+  aloca-lo via `POST /api/professores/{id}/turmas-disciplinas` e validar a
+  leitura dessa alocacao pelo runtime shadow, fechando tambem esse segundo
+  write com healths em `UP` e ausencia de fallback.
+- A proxima subfase da 51D deve revisar se ainda resta algum write interno de
+  professores fora desse bloco minimo backend/backend. Se nao restar, o proximo
+  passo e encerrar oficialmente a Fase 51D, preparar a PR para `Master` e
+  iniciar a proxima fase em um chat novo, conforme combinado.
 
 ## Historico resumido
 

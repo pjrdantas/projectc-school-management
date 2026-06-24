@@ -269,6 +269,16 @@ mvn spring-boot:run
     if ([string]::IsNullOrWhiteSpace($professorCriadoId)) {
         throw "A criacao de professor via shadow nao retornou id no smoke operacional."
     }
+    $seedTurmaDisciplinaId = "30000000-0000-0000-0000-000000000012"
+    $alocacaoCriadaMonolith = Invoke-Json -Method Post -Url "http://localhost:$resolvedMonolithPort/api/professores/$professorCriadoId/turmas-disciplinas" -Headers $authHeaders -Body @{
+        turmaDisciplinaId = $seedTurmaDisciplinaId
+        dataInicio = "2041-02-01"
+        ativo = $true
+    } -ExpectedStatus 201
+    $alocacoesProfessorCriadoShadow = Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores/$professorCriadoId/turmas-disciplinas" -Headers $shadowHeaders
+    if (@($alocacoesProfessorCriadoShadow).Count -lt 1) {
+        throw "O shadow nao retornou alocacoes do professor criado no smoke operacional."
+    }
     $professorCriadoShadow = Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores/$professorCriadoId" -Headers $shadowHeaders
     $notFoundId = [guid]::NewGuid()
     Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores/$notFoundId" -Headers $shadowHeaders -ExpectedStatus 404 | Out-Null
@@ -297,6 +307,8 @@ mvn spring-boot:run
             createdProfessorId = $professorCriadoId
             createdProfessorNome = $professorCriadoMonolith.nomeCompleto
             createdProfessorShadowNome = $professorCriadoShadow.nomeCompleto
+            createdProfessorAlocacaoId = $alocacaoCriadaMonolith.id
+            createdProfessorAlocacaoCount = @($alocacoesProfessorCriadoShadow).Count
             monolithAlocacaoCount = @($alocacoesMonolith).Count
             shadowAlocacaoCount = @($alocacoesShadow).Count
             monolithEligibleCount = @($funcionariosElegiveisMonolith).Count

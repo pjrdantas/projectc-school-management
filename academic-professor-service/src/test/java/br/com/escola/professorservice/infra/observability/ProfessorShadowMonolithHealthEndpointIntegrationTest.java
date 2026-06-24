@@ -36,6 +36,11 @@ class ProfessorShadowMonolithHealthEndpointIntegrationTest {
                 "resultado", "success").increment();
         meterRegistry.counter(
                 "professor.shadow.monolith.requests",
+                "operacao", "vincularTurmaDisciplina",
+                "destino", "monolith",
+                "resultado", "success").increment();
+        meterRegistry.counter(
+                "professor.shadow.monolith.requests",
                 "operacao", "listar",
                 "destino", "monolith",
                 "resultado", "success").increment(2.0d);
@@ -67,18 +72,23 @@ class ProfessorShadowMonolithHealthEndpointIntegrationTest {
                 .containsEntry("dependency", "monolith")
                 .containsEntry("baseUrlScheme", "http")
                 .containsEntry("baseUrlHost", "localhost")
-                .containsEntry("requestsTotal", 4.0d)
+                .containsEntry("requestsTotal", 5.0d)
                 .containsEntry("failuresTotal", 1.0d);
         @SuppressWarnings("unchecked")
         Map<String, Object> shadowReadRoutes = (Map<String, Object>) details.get("shadowReadRoutes");
         @SuppressWarnings("unchecked")
         Map<String, Object> criar = (Map<String, Object>) shadowReadRoutes.get("criar");
         @SuppressWarnings("unchecked")
+        Map<String, Object> alocar = (Map<String, Object>) shadowReadRoutes.get("vincularTurmaDisciplina");
+        @SuppressWarnings("unchecked")
         Map<String, Object> listar = (Map<String, Object>) shadowReadRoutes.get("listar");
         @SuppressWarnings("unchecked")
         Map<String, Object> elegiveis = (Map<String, Object>) shadowReadRoutes.get("listarFuncionariosElegiveis");
         assertThat(criar)
                 .containsEntry("shadowRoute", "POST /internal/v1/professores")
+                .containsEntry("monolithSuccessTotal", 1.0d);
+        assertThat(alocar)
+                .containsEntry("shadowRoute", "POST /internal/v1/professores/{id}/turmas-disciplinas")
                 .containsEntry("monolithSuccessTotal", 1.0d);
         assertThat(listar)
                 .containsEntry("shadowRoute", "GET /internal/v1/professores")

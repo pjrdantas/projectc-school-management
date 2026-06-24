@@ -1373,3 +1373,32 @@ Proxima subfase pratica e de menor risco:
   controlado;
 - manter criacao, alocacao e qualquer escrita ainda fora do BFF ate esse bloco
   backend/backend estar comprovado ponta a ponta com risco controlado.
+
+Entregue na trigesima sexta subfase:
+
+- implementacao do mesmo padrao minimo para o segundo write interno de
+  professores:
+  `POST /internal/v1/professores/{id}/turmas-disciplinas` no
+  `academic-professor-service`, atuando apenas como proxy do contrato interno
+  `POST /internal/professores/{id}/turmas-disciplinas` do monolito, sem banco
+  proprio e sem BFF;
+- ampliacao dos healths dedicados `professorShadowMonolith` e
+  `professorInternalClient` para incluir a operacao
+  `vincularTurmaDisciplina` no diagnostico por rota e nos contadores
+  operacionais;
+- ampliacao do smoke operacional real em
+  `scripts/operational/professor-shadow-operational-smoke.ps1` para criar um
+  professor, aloca-lo via `POST /api/professores/{id}/turmas-disciplinas`,
+  validar a leitura da alocacao criada pelo runtime shadow e comprovar no
+  `report.json` healths em `UP`, contadores de `vincularTurmaDisciplina` nos
+  dois lados e ausencia de fallback no backend principal;
+- preservacao do escopo: nenhuma persistencia propria no runtime shadow,
+  nenhuma mudanca de rotas no BFF e nenhuma alteracao de contrato externo para
+  frontend.
+
+Proxima subfase pratica e de menor risco:
+
+- revisar se ainda resta algum write interno de professores fora desse bloco
+  minimo backend/backend; se nao restar, encerrar oficialmente a Fase 51D,
+  preparar a PR para `Master` e iniciar a proxima fase em um chat novo;
+- manter o combinado de parar antes da proxima fase para o fechamento da 51D.
