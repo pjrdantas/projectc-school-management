@@ -316,6 +316,28 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A proxima subfase da 51D deve ampliar o smoke operacional real para
   `listarFuncionariosElegiveis` e `listarPorTurma`, ainda mantendo todas as
   escritas no monolito e sem cutover externo.
+- A trigesima-terceira subfase da Fase 51D ampliou esse smoke operacional real
+  para cobrir tambem `listarFuncionariosElegiveis` e `listarPorTurma`, ainda
+  sem mover escrita alguma nem alterar rotas externas. Para suportar o cenario
+  ponta a ponta em runtime real, o perfil `professor-shadow-operational` do
+  `school-management-service` passou a seedar as dependencias minimas do
+  catalogo (`nivel_ensino`, `turno`, `serie`, `periodo_letivo`, `turma`,
+  `disciplina`, `turma_disciplina` e `professor_turma_disciplina`) e um
+  funcionario elegivel sem vinculo previo com professor. O script operacional
+  `scripts/operational/professor-shadow-operational-smoke.ps1` passou a chamar
+  `GET /api/professores/funcionarios-elegiveis`,
+  `GET /api/turmas/{turmaId}/professores`,
+  `GET /internal/v1/professores/funcionarios-elegiveis` e
+  `GET /internal/v1/turmas/{turmaId}/professores`, consolidando no mesmo
+  relatorio os contadores dessas rotas. A execucao real voltou a gerar
+  `target/professor-shadow-operational-smoke/report.json` com os dois healths
+  em `UP`, contadores positivos nas quatro leituras novas e ausencia de
+  fallback no backend principal.
+- A proxima subfase da 51D deve ampliar o smoke operacional real para
+  `listarAlocacoes` (`GET /api/professores/{id}/turmas-disciplinas` e
+  `GET /internal/v1/professores/{id}/turmas-disciplinas`), fechando o bloco
+  read-only do runtime shadow de professores antes de qualquer discussao sobre
+  escrita, persistencia propria ou cutover externo.
 
 ## Historico resumido
 

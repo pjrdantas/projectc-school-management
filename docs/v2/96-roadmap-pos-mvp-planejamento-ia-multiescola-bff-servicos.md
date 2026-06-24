@@ -1285,3 +1285,35 @@ Proxima subfase pratica e de menor risco:
   `academic-professor-service`;
 - manter criacao, alocacao e qualquer escrita ainda no monolito ate que essa
   cobertura read-only adicional esteja comprovada em execucao real.
+
+Entregue na trigesima terceira subfase:
+
+- ampliacao do smoke operacional real para cobrir
+  `GET /api/professores/funcionarios-elegiveis`,
+  `GET /api/turmas/{turmaId}/professores`,
+  `GET /internal/v1/professores/funcionarios-elegiveis` e
+  `GET /internal/v1/turmas/{turmaId}/professores`, consolidando no mesmo
+  `target/professor-shadow-operational-smoke/report.json` os contadores
+  positivos dessas rotas e os healths dos dois lados;
+- endurecimento minimo do perfil `professor-shadow-operational` no
+  `school-management-service`, com seed controlado das dependencias minimas de
+  catalogo (`nivel_ensino`, `turno`, `serie`, `periodo_letivo`, `turma`,
+  `disciplina`, `turma_disciplina`, `professor_turma_disciplina`) e de um
+  funcionario elegivel sem vinculo com professor, apenas para viabilizar o
+  cenario operacional real em H2 sem depender de `data.sql` de teste;
+- comprovacao operacional real de que o monolito e o runtime shadow respondem
+  essas leituras adicionais com `status` funcional, `professorShadowMonolith`
+  e `professorInternalClient` em `UP` e ausencia de fallback no backend
+  principal;
+- preservacao do escopo: nenhuma escrita movida, nenhum contrato externo
+  alterado, nenhum cutover no BFF e nenhuma dependencia nova de infraestrutura.
+
+Proxima subfase pratica e de menor risco:
+
+- ampliar o smoke operacional real para cobrir `listarAlocacoes`
+  (`GET /api/professores/{id}/turmas-disciplinas` e
+  `GET /internal/v1/professores/{id}/turmas-disciplinas`), fechando o bloco
+  read-only do runtime shadow de professores com o mesmo padrao de relatorio,
+  metricas e health operacional;
+- manter criacao, alocacao e qualquer escrita ainda no monolito ate que essa
+  ultima leitura read-only esteja comprovada em execucao real.

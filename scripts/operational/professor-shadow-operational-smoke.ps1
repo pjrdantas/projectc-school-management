@@ -222,6 +222,15 @@ mvn spring-boot:run
 
     $professorId = @($professoresMonolith)[0].id
     $professorMonolith = Invoke-Json -Method Get -Url "http://localhost:$resolvedMonolithPort/api/professores/$professorId" -Headers $authHeaders
+    $funcionariosElegiveisMonolith = Invoke-Json -Method Get -Url "http://localhost:$resolvedMonolithPort/api/professores/funcionarios-elegiveis" -Headers $authHeaders
+    if (@($funcionariosElegiveisMonolith).Count -lt 1) {
+        throw "O monolito nao retornou funcionarios elegiveis no smoke operacional."
+    }
+    $turmaId = "30000000-0000-0000-0000-000000000010"
+    $professoresPorTurmaMonolith = Invoke-Json -Method Get -Url "http://localhost:$resolvedMonolithPort/api/turmas/$turmaId/professores" -Headers $authHeaders
+    if (@($professoresPorTurmaMonolith).Count -lt 1) {
+        throw "O monolito nao retornou professores por turma no smoke operacional."
+    }
 
     $shadowHeaders = @{
         Authorization = "Bearer $accessToken"
@@ -233,6 +242,14 @@ mvn spring-boot:run
 
     $professoresShadow = Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores" -Headers $shadowHeaders
     $professorShadow = Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores/$professorId" -Headers $shadowHeaders
+    $funcionariosElegiveisShadow = Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores/funcionarios-elegiveis" -Headers $shadowHeaders
+    if (@($funcionariosElegiveisShadow).Count -lt 1) {
+        throw "O shadow nao retornou funcionarios elegiveis no smoke operacional."
+    }
+    $professoresPorTurmaShadow = Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/turmas/$turmaId/professores" -Headers $shadowHeaders
+    if (@($professoresPorTurmaShadow).Count -lt 1) {
+        throw "O shadow nao retornou professores por turma no smoke operacional."
+    }
     $notFoundId = [guid]::NewGuid()
     Invoke-Json -Method Get -Url "http://localhost:$resolvedShadowPort/internal/v1/professores/$notFoundId" -Headers $shadowHeaders -ExpectedStatus 404 | Out-Null
 
@@ -254,8 +271,14 @@ mvn spring-boot:run
             monolithListCount = @($professoresMonolith).Count
             shadowListCount = @($professoresShadow).Count
             professorId = $professorId
+            turmaId = $turmaId
             monolithProfessorNome = $professorMonolith.nomeCompleto
             shadowProfessorNome = $professorShadow.nomeCompleto
+            monolithEligibleCount = @($funcionariosElegiveisMonolith).Count
+            shadowEligibleCount = @($funcionariosElegiveisShadow).Count
+            monolithTurmaProfessorCount = @($professoresPorTurmaMonolith).Count
+            shadowTurmaProfessorCount = @($professoresPorTurmaShadow).Count
+            elegivelFuncionarioId = @($funcionariosElegiveisMonolith)[0].funcionarioId
             shadowNotFoundId = $notFoundId
         }
         health = @{
