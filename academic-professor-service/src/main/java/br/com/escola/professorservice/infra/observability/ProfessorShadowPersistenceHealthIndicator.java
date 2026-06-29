@@ -1,6 +1,7 @@
 package br.com.escola.professorservice.infra.observability;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -24,6 +25,18 @@ import io.micrometer.core.instrument.Statistic;
 
 @Component("professorShadowPersistence")
 public class ProfessorShadowPersistenceHealthIndicator implements HealthIndicator {
+
+    private static final List<ReadRouteDescriptor> READ_ROUTES = List.of(
+            new ReadRouteDescriptor("listar", "GET /internal/v1/professores", "complete_sync_state_required"),
+            new ReadRouteDescriptor("buscarPorId", "GET /internal/v1/professores/{id}", "local_record_presence_required"),
+            new ReadRouteDescriptor(
+                    "listarAlocacoes",
+                    "GET /internal/v1/professores/{id}/turmas-disciplinas",
+                    "complete_sync_state_required"),
+            new ReadRouteDescriptor(
+                    "listarPorTurma",
+                    "GET /internal/v1/turmas/{turmaId}/professores",
+                    "complete_sync_state_required"));
 
     private final ProfessorShadowLocalPersistenceProperties properties;
     private final ProfessorShadowJpaRepository repository;
@@ -80,6 +93,7 @@ public class ProfessorShadowPersistenceHealthIndicator implements HealthIndicato
             details.put("storedRecords", ((Number) details.get("storedProfessorRecords")).longValue()
                     + ((Number) details.get("storedAllocationRecords")).longValue());
             details.put("shadowSyncStates", diagnosticoSyncStates());
+            details.put("shadowReadRoutes", diagnosticoRotasLeitura());
         } catch (RuntimeException exception) {
             details.put("reason", "persistence_unavailable");
             details.put("exception", exception.getClass().getSimpleName());
@@ -119,6 +133,42 @@ public class ProfessorShadowPersistenceHealthIndicator implements HealthIndicato
         return syncStates;
     }
 
+    private Map<String, Object> diagnosticoRotasLeitura() {
+        Map<String, Object> rotas = new LinkedHashMap<>();
+        Map<String, Object> syncStates = diagnosticoSyncStates();
+        for (ReadRouteDescriptor route : READ_ROUTES) {
+            Map<String, Object> detalhe = new LinkedHashMap<>();
+            detalhe.put("shadowRoute", route.shadowRoute());
+            detalhe.put("readStrategy", route.readStrategy());
+            detalhe.put("localTotal", totalReadRequests(route.operation(), "local"));
+            detalhe.put("fallbackTotal", totalReadRequests(route.operation(), "fallback"));
+            detalhe.put("disabledTotal", totalReadRequests(route.operation(), "disabled"));
+            detalhe.put("fallbackIncompleteSyncStateTotal",
+                    totalReadRequests(route.operation(), "fallback", "sync_state_incomplete"));
+            detalhe.put("fallbackMissingLocalRecordTotal",
+                    totalReadRequests(route.operation(), "fallback", "local_record_missing"));
+            detalhe.put("disabledFeatureFlagTotal",
+                    totalReadRequests(route.operation(), "disabled", "feature_disabled"));
+            detalhe.put("localSyncReadyTotal",
+                    totalReadRequests(route.operation(), "local", "sync_state_complete"));
+            detalhe.put("localRecordPresentTotal",
+                    totalReadRequests(route.operation(), "local", "local_record_present"));
+
+            if ("listar".equals(route.operation())) {
+                detalhe.put("syncStateSummary", syncStates.get("professores"));
+            } else if ("listarAlocacoes".equals(route.operation())) {
+                detalhe.put("syncStateSummary", syncStates.get("alocacoesPorProfessor"));
+            } else if ("listarPorTurma".equals(route.operation())) {
+                detalhe.put("syncStateSummary", syncStates.get("alocacoesPorTurma"));
+            } else if ("buscarPorId".equals(route.operation())) {
+                detalhe.put("storedProfessorRecords", repository.count());
+            }
+
+            rotas.put(route.operation(), detalhe);
+        }
+        return rotas;
+    }
+
     private <T> Map<String, Object> resumirSyncState(
             java.util.List<T> syncStates,
             Function<T, Boolean> completoExtractor,
@@ -155,6 +205,25 @@ public class ProfessorShadowPersistenceHealthIndicator implements HealthIndicato
                 .sum();
     }
 
+    private double totalReadRequests(String operation, String origem) {
+        return meterRegistry.getMeters().stream()
+                .filter(meter -> "professor.shadow.local.read.requests".equals(meter.getId().getName()))
+                .filter(meter -> operation.equals(meter.getId().getTag("operacao")))
+                .filter(meter -> origem.equals(meter.getId().getTag("origem")))
+                .mapToDouble(this::valorContador)
+                .sum();
+    }
+
+    private double totalReadRequests(String operation, String origem, String motivo) {
+        return meterRegistry.getMeters().stream()
+                .filter(meter -> "professor.shadow.local.read.requests".equals(meter.getId().getName()))
+                .filter(meter -> operation.equals(meter.getId().getTag("operacao")))
+                .filter(meter -> origem.equals(meter.getId().getTag("origem")))
+                .filter(meter -> motivo.equals(meter.getId().getTag("motivo")))
+                .mapToDouble(this::valorContador)
+                .sum();
+    }
+
     private double totalContador(String meterName) {
         return meterRegistry.getMeters().stream()
                 .filter(meter -> meterName.equals(meter.getId().getName()))
@@ -169,5 +238,8 @@ public class ProfessorShadowPersistenceHealthIndicator implements HealthIndicato
             }
         }
         return 0.0d;
+    }
+
+    private record ReadRouteDescriptor(String operation, String shadowRoute, String readStrategy) {
     }
 }

@@ -54,7 +54,7 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
     @Override
     public boolean supportsListarProfessores(InternalRequestContext context) {
         if (!properties.enabled()) {
-            registrarDecisao("listar", "disabled");
+            registrarDecisao("listar", "disabled", "feature_disabled");
             return false;
         }
 
@@ -62,7 +62,7 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
                 .map(state -> Boolean.TRUE.equals(state.getProfessoresCompletos()))
                 .orElse(false);
 
-        registrarDecisao("listar", supported ? "local" : "fallback");
+        registrarDecisao("listar", supported ? "local" : "fallback", supported ? "sync_state_complete" : "sync_state_incomplete");
         return supported;
     }
 
@@ -76,19 +76,19 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
     @Override
     public Optional<ProfessorResumoResponse> buscarProfessorPorId(InternalRequestContext context, UUID professorId) {
         if (!properties.enabled()) {
-            registrarDecisao("buscarPorId", "disabled");
+            registrarDecisao("buscarPorId", "disabled", "feature_disabled");
             return Optional.empty();
         }
 
         Optional<ProfessorResumoResponse> local = professorRepository.findById(professorId)
                 .filter(professor -> professor.getEscolaId().equals(context.escolaId()))
                 .map(professor -> {
-                    registrarDecisao("buscarPorId", "local");
+                    registrarDecisao("buscarPorId", "local", "local_record_present");
                     return toResponse(professor);
                 });
 
         if (local.isEmpty()) {
-            registrarDecisao("buscarPorId", "fallback");
+            registrarDecisao("buscarPorId", "fallback", "local_record_missing");
         }
         return local;
     }
@@ -96,7 +96,7 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
     @Override
     public boolean supportsListarAlocacoes(InternalRequestContext context, UUID professorId) {
         if (!properties.enabled()) {
-            registrarDecisao("listarAlocacoes", "disabled");
+            registrarDecisao("listarAlocacoes", "disabled", "feature_disabled");
             return false;
         }
 
@@ -105,7 +105,10 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
                 .map(state -> Boolean.TRUE.equals(state.getAlocacoesCompletas()))
                 .orElse(false);
 
-        registrarDecisao("listarAlocacoes", supported ? "local" : "fallback");
+        registrarDecisao(
+                "listarAlocacoes",
+                supported ? "local" : "fallback",
+                supported ? "sync_state_complete" : "sync_state_incomplete");
         return supported;
     }
 
@@ -123,7 +126,7 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
     @Override
     public boolean supportsListarProfessoresPorTurma(InternalRequestContext context, UUID turmaId) {
         if (!properties.enabled()) {
-            registrarDecisao("listarPorTurma", "disabled");
+            registrarDecisao("listarPorTurma", "disabled", "feature_disabled");
             return false;
         }
 
@@ -132,7 +135,10 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
                 .map(state -> Boolean.TRUE.equals(state.getAlocacoesCompletas()))
                 .orElse(false);
 
-        registrarDecisao("listarPorTurma", supported ? "local" : "fallback");
+        registrarDecisao(
+                "listarPorTurma",
+                supported ? "local" : "fallback",
+                supported ? "sync_state_complete" : "sync_state_incomplete");
         return supported;
     }
 
@@ -153,11 +159,12 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
                 .orElse(null);
     }
 
-    private void registrarDecisao(String operacao, String origem) {
+    private void registrarDecisao(String operacao, String origem, String motivo) {
         meterRegistry.counter(
                 "professor.shadow.local.read.requests",
                 "operacao", operacao,
-                "origem", origem)
+                "origem", origem,
+                "motivo", motivo)
                 .increment();
     }
 }
