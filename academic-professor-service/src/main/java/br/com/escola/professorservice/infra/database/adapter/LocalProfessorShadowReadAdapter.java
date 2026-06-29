@@ -19,6 +19,7 @@ import br.com.escola.professorservice.infra.database.entity.ProfessorShadowJpaEn
 import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowSyncStateJpaRepository;
+import br.com.escola.professorservice.infra.database.repository.ProfessorTurmaShadowSyncStateJpaRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 
 @Repository
@@ -27,6 +28,7 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
     private final ProfessorShadowJpaRepository professorRepository;
     private final ProfessorAlocacaoShadowJpaRepository alocacaoRepository;
     private final ProfessorShadowSyncStateJpaRepository syncStateRepository;
+    private final ProfessorTurmaShadowSyncStateJpaRepository turmaSyncStateRepository;
     private final ProfessorShadowLocalPersistenceProperties properties;
     private final MeterRegistry meterRegistry;
 
@@ -34,11 +36,13 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
             ProfessorShadowJpaRepository professorRepository,
             ProfessorAlocacaoShadowJpaRepository alocacaoRepository,
             ProfessorShadowSyncStateJpaRepository syncStateRepository,
+            ProfessorTurmaShadowSyncStateJpaRepository turmaSyncStateRepository,
             ProfessorShadowLocalPersistenceProperties properties,
             MeterRegistry meterRegistry) {
         this.professorRepository = professorRepository;
         this.alocacaoRepository = alocacaoRepository;
         this.syncStateRepository = syncStateRepository;
+        this.turmaSyncStateRepository = turmaSyncStateRepository;
         this.properties = properties;
         this.meterRegistry = meterRegistry;
     }
@@ -118,12 +122,10 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
             return false;
         }
 
-        boolean supported = alocacaoRepository.findAllByTurmaIdOrderByCreatedAtAsc(turmaId).stream()
-                .map(ProfessorAlocacaoShadowJpaEntity::getProfessorId)
-                .map(professorRepository::findById)
-                .filter(java.util.Optional::isPresent)
-                .map(java.util.Optional::get)
-                .anyMatch(professor -> professor.getEscolaId().equals(context.escolaId()));
+        boolean supported = turmaSyncStateRepository.findById(turmaId)
+                .filter(state -> state.getEscolaId().equals(context.escolaId()))
+                .map(state -> Boolean.TRUE.equals(state.getAlocacoesCompletas()))
+                .orElse(false);
 
         registrarDecisao("listarPorTurma", supported ? "local" : "fallback");
         return supported;

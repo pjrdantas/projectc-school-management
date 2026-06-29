@@ -26,9 +26,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import br.com.escola.professorservice.infra.database.entity.ProfessorAlocacaoShadowJpaEntity;
 import br.com.escola.professorservice.infra.database.entity.ProfessorShadowJpaEntity;
 import br.com.escola.professorservice.infra.database.entity.ProfessorShadowSyncStateJpaEntity;
+import br.com.escola.professorservice.infra.database.entity.ProfessorTurmaShadowSyncStateJpaEntity;
 import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowSyncStateJpaRepository;
+import br.com.escola.professorservice.infra.database.repository.ProfessorTurmaShadowSyncStateJpaRepository;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -51,6 +53,9 @@ class ProfessorShadowQueryControllerIntegrationTest {
     @Autowired
     private ProfessorShadowSyncStateJpaRepository syncStateRepository;
 
+    @Autowired
+    private ProfessorTurmaShadowSyncStateJpaRepository turmaSyncStateRepository;
+
     @BeforeAll
     static void beforeAll() throws IOException {
         mockWebServer = new MockWebServer();
@@ -71,6 +76,7 @@ class ProfessorShadowQueryControllerIntegrationTest {
     @BeforeEach
     void setUp() {
         alocacaoRepository.deleteAll();
+        turmaSyncStateRepository.deleteAll();
         syncStateRepository.deleteAll();
         professorRepository.deleteAll();
     }
@@ -426,7 +432,7 @@ class ProfessorShadowQueryControllerIntegrationTest {
     }
 
     @Test
-    void deveListarProfessoresPorTurmaDoBancoLocalQuandoJaExistiremAlocacoesNaShadow() throws Exception {
+    void deveListarProfessoresPorTurmaDoBancoLocalQuandoTurmaJaEstaMarcadaComoCompletaNaShadow() throws Exception {
         UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
         UUID professorId = UUID.randomUUID();
         UUID turmaId = UUID.randomUUID();
@@ -456,6 +462,12 @@ class ProfessorShadowQueryControllerIntegrationTest {
                 null,
                 true,
                 LocalDateTime.of(2026, 6, 29, 10, 15, 0)));
+        turmaSyncStateRepository.save(new ProfessorTurmaShadowSyncStateJpaEntity(
+                turmaId,
+                escolaId,
+                true,
+                1L,
+                LocalDateTime.of(2026, 6, 29, 10, 20, 0)));
 
         mockMvc.perform(get("/internal/v1/turmas/{turmaId}/professores", turmaId)
                         .header("X-Internal-Token", "shadow-token")
@@ -474,7 +486,33 @@ class ProfessorShadowQueryControllerIntegrationTest {
 
     @Test
     void deveFazerFallbackAoMonolitoQuandoLeituraLocalPorTurmaAindaNaoTemBaseSuficiente() throws Exception {
+        UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
         UUID turmaId = UUID.randomUUID();
+        professorRepository.save(new ProfessorShadowJpaEntity(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "Professor Parcial Turma",
+                escolaId,
+                "Escola Padrao",
+                "RP-TURMA-PARCIAL",
+                "Licenciatura",
+                true,
+                LocalDateTime.of(2026, 6, 29, 10, 30, 0),
+                LocalDateTime.of(2026, 6, 29, 10, 30, 0),
+                null));
+        alocacaoRepository.save(new ProfessorAlocacaoShadowJpaEntity(
+                UUID.randomUUID(),
+                professorRepository.findAll().getFirst().getId(),
+                UUID.randomUUID(),
+                turmaId,
+                "Turma Parcial",
+                UUID.randomUUID(),
+                "Geografia",
+                LocalDate.of(2026, 2, 1),
+                null,
+                true,
+                LocalDateTime.of(2026, 6, 29, 10, 35, 0)));
+
         mockWebServer.enqueue(new MockResponse()
                 .setHeader("Content-Type", "application/json")
                 .setBody("""
@@ -505,7 +543,7 @@ class ProfessorShadowQueryControllerIntegrationTest {
                         .header("X-Internal-Token", "shadow-token")
                         .header("X-Correlation-Id", "corr-shadow-fallback-turma")
                         .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("X-Escola-Id", escolaId)
                         .header("Authorization", "Bearer shadow-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].professorNome").value("Professor Fallback Turma"));
