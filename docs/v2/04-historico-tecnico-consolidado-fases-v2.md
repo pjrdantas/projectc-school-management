@@ -440,6 +440,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `GET /api/auth/contexto-atual` usado hoje pelo BFF. O diagnostico tambem
   confirmou que ainda nao existe `usuario_escola` e que o tenant ativo segue
   implicitamente em `usuario.id_escola`, com fallback para a escola padrao.
+- A segunda subfase da Fase 52 implementou essa fronteira interna minima ainda
+  dentro do `school-management-service`, sem runtime novo, sem migration e sem
+  alterar o contrato externo do BFF. Foi criada a porta
+  `IdentidadeTenantPort`, com DTOs internos proprios para sessao autenticada e
+  contexto autenticado, e a implementacao `IdentidadeTenantService` passou a
+  concentrar autenticacao por token opaco, refresh, logout, validacao de access
+  token, resolucao de perfis/permissoes e contexto autenticado por escola. O
+  `AuthService` foi reduzido a uma fachada de compatibilidade que apenas
+  delega para essa nova fronteira e monta os DTOs externos ja existentes.
 
 ## Historico resumido
 

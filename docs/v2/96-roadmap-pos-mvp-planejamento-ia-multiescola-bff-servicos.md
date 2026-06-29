@@ -1531,3 +1531,34 @@ Proxima subfase pratica:
 - preservar rollback trivial, porque a implementacao continuara no mesmo
   runtime e nas mesmas tabelas (`usuario`, `usuario_perfil`, `perfil`,
   `perfil_permissao`, `permissao`, `sessao_autenticacao` e `escola`).
+
+Entregue na segunda subfase da Fase 52:
+
+- a fronteira interna minima de identidade/tenant foi introduzida dentro do
+  `school-management-service` por meio da porta `IdentidadeTenantPort`, dos
+  DTOs internos `SessaoAutenticadaResumo` e `ContextoAutenticadoResumo` e da
+  implementacao `IdentidadeTenantService`, ainda no mesmo runtime e sem
+  alteracao de schema;
+- `AuthService` deixou de concentrar a regra de autenticacao e contexto e
+  passou a atuar como fachada de compatibilidade para o contrato externo atual,
+  apenas delegando para a nova fronteira interna e montando `AuthResponse` e
+  `AuthContextResponse`;
+- o contrato externo usado pelo BFF foi preservado sem mudanca de rota ou
+  payload: `POST /api/auth/login`, `POST /api/auth/refresh`,
+  `POST /api/auth/logout` e `GET /api/auth/contexto-atual` continuam estaveis;
+- o rollback desta subfase permanece trivial, porque a logica continua nas
+  mesmas tabelas e no mesmo runtime, sem cutover externo, sem nova migration e
+  sem dependencia operacional adicional;
+- a separacao interna reduz o acoplamento imediato entre consumidores futuros e
+  `AuthService`, criando o ponto minimo para evoluir depois a autoridade de
+  tenant e o vinculo usuario-escola sem refatoracao ampla nesta etapa.
+
+Proxima subfase pratica:
+
+- revisar os consumidores internos mais proximos do contexto autenticado para
+  decidir o primeiro candidato seguro a passar a depender da nova fronteira
+  `IdentidadeTenantPort`, sem mudar rotas externas nem iniciar extracao fisica;
+- diagnosticar o menor passo seguro para explicitar a autoridade de tenant
+  alem de `usuario.id_escola`, separando o que continua local do que precisara
+  de `usuario_escola` e selecao de escola ativa nas proximas subfases da Fase
+  52.
