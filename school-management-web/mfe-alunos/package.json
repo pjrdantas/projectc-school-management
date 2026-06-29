@@ -42,9 +42,9 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^20.3.13",
-    "@angular/build": "^20.3.13",
-    "@angular/cli": "^20.3.13",
-    "@angular/compiler-cli": "^20.3.0",
+    "@angular/build": "20.3.25",
+    "@angular/cli": "20.3.25",
+    "@angular/compiler-cli": "20.3.25",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.9.0",
     "karma": "~6.4.0",
@@ -53,5 +53,8 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.9.2"
+  },
+  "overrides": {
+    "@angular/build": "20.3.25"
   }
 }

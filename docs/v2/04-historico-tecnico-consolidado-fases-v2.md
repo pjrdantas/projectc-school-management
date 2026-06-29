@@ -28,6 +28,11 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - O roadmap arquitetural agora tambem documenta explicitamente a arvore final
   do monorepo, a arvore de plataforma, o papel de cada pasta raiz e a
   convencao estrutural obrigatoria de cada servico extraido.
+- A primeira subfase da Fase 52 confirmou que identidade e tenant ainda estao
+  acoplados no monolito atual: `AuthService` concentra sessao opaca,
+  autenticacao e contexto autenticado; `EscolaTenantService` continua sendo a
+  autoridade local de tenant por `usuario.id_escola` e escola padrao, sem
+  `usuario_escola` nem troca explicita de escola ativa.
 - `EscolaContextoPort` ja foi aplicado em dashboards, snapshots, consultas auxiliares de matricula, catalogo interno, planejamento bimestral, diario de aula e avaliacoes.
 - `EstruturaTurmaPort` esta consolidado em planejamento bimestral, diario de aula e avaliacoes.
 - Os usos remanescentes de `EscolaTenantService` exigem diagnostico pontual antes de novas trocas, principalmente em persistencia, matricula, documentos, historico, IA, pessoa, professor e seguranca.
@@ -427,6 +432,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   controlado introduzido no `academic-professor-service`. A proxima frente
   sugerida passa a ser a Fase 52, iniciando pelo diagnostico pontual de
   identidade e tenant antes de qualquer extracao fisica ou cutover externo.
+- A primeira subfase da Fase 52 executou esse diagnostico pontual de
+  identidade e tenant e fixou o menor passo seguro da macrofase: antes de
+  qualquer extracao fisica, a implementacao precisa separar dentro do monolito
+  uma fronteira interna minima para sessao/autenticacao por token opaco e para
+  resolucao do tenant ativo, preservando o contrato externo
+  `GET /api/auth/contexto-atual` usado hoje pelo BFF. O diagnostico tambem
+  confirmou que ainda nao existe `usuario_escola` e que o tenant ativo segue
+  implicitamente em `usuario.id_escola`, com fallback para a escola padrao.
 
 ## Historico resumido
 

@@ -1494,3 +1494,40 @@ Proxima fase pratica:
   monolito e impactos sobre sessao, autorizacao e vinculo usuario-escola;
 - manter o mesmo criterio incremental: sem cutover externo, sem refatoracao
   ampla e sem extracao fisica do dominio antes do diagnostico objetivo.
+
+Entregue na primeira subfase da Fase 52:
+
+- diagnostico objetivo do estado atual de identidade e tenant no monolito:
+  `AuthService` ainda concentra login, refresh, logout, validacao do access
+  token opaco e resolucao do contexto autenticado a partir de
+  `sessao_autenticacao`, enquanto `EscolaTenantService` segue como autoridade
+  local de tenant;
+- confirmacao de que o tenant ativo continua implicito em `usuario.id_escola`
+  com fallback para a escola padrao `00000000-0000-0000-0000-000000000047`;
+  ainda nao existe `usuario_escola`, troca explicita de escola ativa ou uma
+  fronteira separada para autorizacao de acesso por tenant;
+- confirmacao de que o BFF atual depende do contrato externo
+  `GET /api/auth/contexto-atual` no monolito para resolver `usuarioId`,
+  `escolaId` e `escolaNome`, portanto qualquer extracao prematura de identity ou
+  tenant quebraria o strangler atual;
+- mapeamento do acoplamento remanescente: o monolito ainda possui dezenas de
+  consumidores diretos de `EscolaTenantService` e `EscolaContextoPort`, o que
+  torna arriscado tentar extracao fisica antes de estabilizar uma fronteira
+  interna minima;
+- definicao do menor contrato seguro para a proxima subfase:
+  1. resolver sessao/autenticacao por token opaco;
+  2. resolver tenant ativo e autorizacao de acesso por usuario;
+  3. expor contexto autenticado interno com `usuarioId`, `escolaId`,
+     `escolaNome`, perfis e permissoes sem depender diretamente das entidades
+     JPA de seguranca nos consumidores.
+
+Proxima subfase pratica:
+
+- introduzir, ainda dentro do `school-management-service`, a fronteira interna
+  minima de identidade/tenant por portas e DTOs proprios, sem criar runtime
+  novo e sem alterar o contrato externo do BFF;
+- manter `AuthController` e `GET /api/auth/contexto-atual` inalterados nesta
+  etapa, apenas fazendo-os delegar para a nova fronteira interna;
+- preservar rollback trivial, porque a implementacao continuara no mesmo
+  runtime e nas mesmas tabelas (`usuario`, `usuario_perfil`, `perfil`,
+  `perfil_permissao`, `permissao`, `sessao_autenticacao` e `escola`).
