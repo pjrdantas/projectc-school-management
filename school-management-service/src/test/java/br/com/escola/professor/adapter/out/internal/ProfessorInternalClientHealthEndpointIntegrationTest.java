@@ -19,6 +19,8 @@ import io.micrometer.core.instrument.MeterRegistry;
                 "management.endpoint.health.show-details=always",
                 "professor.internal-client.enabled=true",
                 "professor.internal-client.fallback-local-on-error=true",
+                "professor.internal-client.criar-cutover-enabled=true",
+                "professor.internal-client.vincular-turma-disciplina-cutover-enabled=true",
                 "professor.internal-client.buscar-por-id-cutover-enabled=true",
                 "professor.internal-client.listar-cutover-enabled=true",
                 "professor.internal-client.listar-alocacoes-cutover-enabled=true",
@@ -78,6 +80,8 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
         assertThat(details)
                 .containsEntry("enabled", true)
                 .containsEntry("fallbackLocalOnError", true)
+                .containsEntry("criarCutoverEnabled", true)
+                .containsEntry("vincularTurmaDisciplinaCutoverEnabled", true)
                 .containsEntry("buscarPorIdCutoverEnabled", true)
                 .containsEntry("listarCutoverEnabled", true)
                 .containsEntry("listarAlocacoesCutoverEnabled", true)
@@ -106,9 +110,15 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
                 (Map<String, Object>) shadowReadRoutes.get("listarFuncionariosElegiveis");
         assertThat(criar)
                 .containsEntry("externalRoute", "POST /api/professores")
-                .containsEntry("internalSuccessTotal", 1.0d);
+                .containsEntry("internalSuccessTotal", 1.0d)
+                .containsEntry("fallbackStrategy", "disabled_for_route")
+                .containsEntry("cutoverEnabled", true)
+                .containsEntry("rollbackStrategy", "disable_property");
         assertThat(alocar)
-                .containsEntry("externalRoute", "POST /api/professores/{id}/turmas-disciplinas");
+                .containsEntry("externalRoute", "POST /api/professores/{id}/turmas-disciplinas")
+                .containsEntry("fallbackStrategy", "disabled_for_route")
+                .containsEntry("cutoverEnabled", true)
+                .containsEntry("rollbackStrategy", "disable_property");
         assertThat(listar)
                 .containsEntry("externalRoute", "GET /api/professores")
                 .containsEntry("internalSuccessTotal", 2.0d)

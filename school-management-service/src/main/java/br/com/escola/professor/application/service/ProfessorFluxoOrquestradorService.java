@@ -31,6 +31,8 @@ public class ProfessorFluxoOrquestradorService {
     private final MeterRegistry meterRegistry;
     private final boolean internalClientEnabled;
     private final boolean fallbackLocalOnError;
+    private final boolean criarCutoverEnabled;
+    private final boolean vincularTurmaDisciplinaCutoverEnabled;
     private final boolean buscarPorIdCutoverEnabled;
     private final boolean listarCutoverEnabled;
     private final boolean listarAlocacoesCutoverEnabled;
@@ -44,6 +46,8 @@ public class ProfessorFluxoOrquestradorService {
             MeterRegistry meterRegistry,
             @Value("${professor.internal-client.enabled:false}") boolean internalClientEnabled,
             @Value("${professor.internal-client.fallback-local-on-error:true}") boolean fallbackLocalOnError,
+            @Value("${professor.internal-client.criar-cutover-enabled:false}") boolean criarCutoverEnabled,
+            @Value("${professor.internal-client.vincular-turma-disciplina-cutover-enabled:false}") boolean vincularTurmaDisciplinaCutoverEnabled,
             @Value("${professor.internal-client.buscar-por-id-cutover-enabled:false}") boolean buscarPorIdCutoverEnabled,
             @Value("${professor.internal-client.listar-cutover-enabled:false}") boolean listarCutoverEnabled,
             @Value("${professor.internal-client.listar-alocacoes-cutover-enabled:false}") boolean listarAlocacoesCutoverEnabled,
@@ -55,6 +59,8 @@ public class ProfessorFluxoOrquestradorService {
         this.meterRegistry = meterRegistry;
         this.internalClientEnabled = internalClientEnabled;
         this.fallbackLocalOnError = fallbackLocalOnError;
+        this.criarCutoverEnabled = criarCutoverEnabled;
+        this.vincularTurmaDisciplinaCutoverEnabled = vincularTurmaDisciplinaCutoverEnabled;
         this.buscarPorIdCutoverEnabled = buscarPorIdCutoverEnabled;
         this.listarCutoverEnabled = listarCutoverEnabled;
         this.listarAlocacoesCutoverEnabled = listarAlocacoesCutoverEnabled;
@@ -162,6 +168,12 @@ public class ProfessorFluxoOrquestradorService {
 
     private boolean permiteFallbackLocal(String operacao, RuntimeException exception) {
         if (!fallbackLocalOnError || !permiteFallback(exception)) {
+            return false;
+        }
+        if ("criar".equals(operacao) && criarCutoverEnabled) {
+            return false;
+        }
+        if ("vincularTurmaDisciplina".equals(operacao) && vincularTurmaDisciplinaCutoverEnabled) {
             return false;
         }
         if ("listar".equals(operacao) && listarCutoverEnabled) {

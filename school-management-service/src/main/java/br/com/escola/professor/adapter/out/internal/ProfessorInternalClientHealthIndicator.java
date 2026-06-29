@@ -56,6 +56,14 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
                 "professor.internal-client.fallback-local-on-error",
                 Boolean.class,
                 true);
+        boolean criarCutoverEnabled = environment.getProperty(
+                "professor.internal-client.criar-cutover-enabled",
+                Boolean.class,
+                false);
+        boolean vincularTurmaDisciplinaCutoverEnabled = environment.getProperty(
+                "professor.internal-client.vincular-turma-disciplina-cutover-enabled",
+                Boolean.class,
+                false);
         boolean buscarPorIdCutoverEnabled = environment.getProperty(
                 "professor.internal-client.buscar-por-id-cutover-enabled",
                 Boolean.class,
@@ -81,6 +89,8 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("enabled", enabled);
         details.put("fallbackLocalOnError", fallbackLocalOnError);
+        details.put("criarCutoverEnabled", criarCutoverEnabled);
+        details.put("vincularTurmaDisciplinaCutoverEnabled", vincularTurmaDisciplinaCutoverEnabled);
         details.put("buscarPorIdCutoverEnabled", buscarPorIdCutoverEnabled);
         details.put("listarCutoverEnabled", listarCutoverEnabled);
         details.put("listarAlocacoesCutoverEnabled", listarAlocacoesCutoverEnabled);
@@ -148,7 +158,13 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
             detalhe.put("localFallbackTotal", totalRequests(descriptor.operation(), "local", "fallback"));
             detalhe.put("featureDisabledLocalTotal", totalRequests(descriptor.operation(), "local", "feature_disabled"));
             detalhe.put("fallbacksTotal", totalFallbacks(descriptor.operation()));
-            if ("listar".equals(descriptor.operation())) {
+            if ("criar".equals(descriptor.operation())) {
+                detalhe.put("cutoverEnabled", criarCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
+            } else if ("vincularTurmaDisciplina".equals(descriptor.operation())) {
+                detalhe.put("cutoverEnabled", vincularTurmaDisciplinaCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
+            } else if ("listar".equals(descriptor.operation())) {
                 detalhe.put("cutoverEnabled", listarCutoverEnabled());
                 detalhe.put("rollbackStrategy", "disable_property");
             } else if ("listarAlocacoes".equals(descriptor.operation())) {
@@ -170,6 +186,12 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
     }
 
     private String fallbackStrategy(String operation) {
+        if ("criar".equals(operation) && criarCutoverEnabled()) {
+            return "disabled_for_route";
+        }
+        if ("vincularTurmaDisciplina".equals(operation) && vincularTurmaDisciplinaCutoverEnabled()) {
+            return "disabled_for_route";
+        }
         if ("listar".equals(operation) && listarCutoverEnabled()) {
             return "disabled_for_route";
         }
@@ -192,6 +214,17 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
 
     private boolean listarCutoverEnabled() {
         return environment.getProperty("professor.internal-client.listar-cutover-enabled", Boolean.class, false);
+    }
+
+    private boolean criarCutoverEnabled() {
+        return environment.getProperty("professor.internal-client.criar-cutover-enabled", Boolean.class, false);
+    }
+
+    private boolean vincularTurmaDisciplinaCutoverEnabled() {
+        return environment.getProperty(
+                "professor.internal-client.vincular-turma-disciplina-cutover-enabled",
+                Boolean.class,
+                false);
     }
 
     private boolean listarAlocacoesCutoverEnabled() {
