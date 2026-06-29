@@ -24,10 +24,12 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.escola.professorservice.infra.database.entity.ProfessorAlocacaoShadowJpaEntity;
+import br.com.escola.professorservice.infra.database.entity.ProfessorAlocacaoShadowSyncStateJpaEntity;
 import br.com.escola.professorservice.infra.database.entity.ProfessorShadowJpaEntity;
 import br.com.escola.professorservice.infra.database.entity.ProfessorShadowSyncStateJpaEntity;
 import br.com.escola.professorservice.infra.database.entity.ProfessorTurmaShadowSyncStateJpaEntity;
 import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowJpaRepository;
+import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowSyncStateJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowSyncStateJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorTurmaShadowSyncStateJpaRepository;
@@ -49,6 +51,9 @@ class ProfessorShadowQueryControllerIntegrationTest {
 
     @Autowired
     private ProfessorAlocacaoShadowJpaRepository alocacaoRepository;
+
+    @Autowired
+    private ProfessorAlocacaoShadowSyncStateJpaRepository alocacaoSyncStateRepository;
 
     @Autowired
     private ProfessorShadowSyncStateJpaRepository syncStateRepository;
@@ -76,6 +81,7 @@ class ProfessorShadowQueryControllerIntegrationTest {
     @BeforeEach
     void setUp() {
         alocacaoRepository.deleteAll();
+        alocacaoSyncStateRepository.deleteAll();
         turmaSyncStateRepository.deleteAll();
         syncStateRepository.deleteAll();
         professorRepository.deleteAll();
@@ -383,7 +389,7 @@ class ProfessorShadowQueryControllerIntegrationTest {
     }
 
     @Test
-    void deveListarAlocacoesDoBancoLocalQuandoProfessorJaExisteNaShadow() throws Exception {
+    void deveListarAlocacoesDoBancoLocalQuandoProfessorJaEstaMarcadoComoCompletoNaShadow() throws Exception {
         UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
         UUID professorId = UUID.randomUUID();
         UUID turmaDisciplinaId = UUID.randomUUID();
@@ -415,6 +421,12 @@ class ProfessorShadowQueryControllerIntegrationTest {
                 null,
                 true,
                 LocalDateTime.of(2026, 6, 29, 9, 30, 0)));
+        alocacaoSyncStateRepository.save(new ProfessorAlocacaoShadowSyncStateJpaEntity(
+                professorId,
+                escolaId,
+                true,
+                1L,
+                LocalDateTime.of(2026, 6, 29, 9, 35, 0)));
 
         mockMvc.perform(get("/internal/v1/professores/{id}/turmas-disciplinas", professorId)
                         .header("X-Internal-Token", "shadow-token")
@@ -429,6 +441,74 @@ class ProfessorShadowQueryControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].disciplinaNome").value("Matematica"));
 
         assertThat(mockWebServer.getRequestCount()).isEqualTo(requestCountBefore);
+    }
+
+    @Test
+    void deveFazerFallbackAoMonolitoQuandoAlocacoesLocaisDoProfessorAindaNaoTemMarcacaoDeCompletude() throws Exception {
+        UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
+        UUID professorId = UUID.randomUUID();
+        professorRepository.save(new ProfessorShadowJpaEntity(
+                professorId,
+                UUID.randomUUID(),
+                "Professor Parcial Alocacoes",
+                escolaId,
+                "Escola Padrao",
+                "RP-PARCIAL-ALOC",
+                "Licenciatura",
+                true,
+                LocalDateTime.of(2026, 6, 29, 9, 40, 0),
+                LocalDateTime.of(2026, 6, 29, 9, 40, 0),
+                null));
+        alocacaoRepository.save(new ProfessorAlocacaoShadowJpaEntity(
+                UUID.randomUUID(),
+                professorId,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "Turma Parcial",
+                UUID.randomUUID(),
+                "Ciencias",
+                LocalDate.of(2026, 2, 1),
+                null,
+                true,
+                LocalDateTime.of(2026, 6, 29, 9, 45, 0)));
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [
+                          {
+                            "id": "%s",
+                            "professorId": "%s",
+                            "professorNome": "Professor Fallback Alocacoes",
+                            "turmaDisciplinaId": "%s",
+                            "turmaId": "%s",
+                            "turmaNome": "Turma Fallback",
+                            "disciplinaId": "%s",
+                            "disciplinaNome": "Ciencias",
+                            "dataInicio": "2026-02-01",
+                            "dataFim": null,
+                            "ativo": true,
+                            "createdAt": "2026-06-23T10:15:30"
+                          }
+                        ]
+                        """.formatted(
+                        UUID.randomUUID(),
+                        professorId,
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        UUID.randomUUID())));
+
+        mockMvc.perform(get("/internal/v1/professores/{id}/turmas-disciplinas", professorId)
+                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Correlation-Id", "corr-shadow-fallback-alocacoes")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer shadow-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].professorNome").value("Professor Fallback Alocacoes"));
+
+        RecordedRequest recorded = aguardarRequisicao("GET", "/internal/professores/" + professorId + "/turmas-disciplinas");
+        assertThat(recorded.getPath()).isEqualTo("/internal/professores/" + professorId + "/turmas-disciplinas");
     }
 
     @Test

@@ -17,6 +17,7 @@ import br.com.escola.professorservice.infra.config.ProfessorShadowLocalPersisten
 import br.com.escola.professorservice.infra.database.entity.ProfessorAlocacaoShadowJpaEntity;
 import br.com.escola.professorservice.infra.database.entity.ProfessorShadowJpaEntity;
 import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowJpaRepository;
+import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowSyncStateJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowSyncStateJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorTurmaShadowSyncStateJpaRepository;
@@ -27,6 +28,7 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
 
     private final ProfessorShadowJpaRepository professorRepository;
     private final ProfessorAlocacaoShadowJpaRepository alocacaoRepository;
+    private final ProfessorAlocacaoShadowSyncStateJpaRepository alocacaoSyncStateRepository;
     private final ProfessorShadowSyncStateJpaRepository syncStateRepository;
     private final ProfessorTurmaShadowSyncStateJpaRepository turmaSyncStateRepository;
     private final ProfessorShadowLocalPersistenceProperties properties;
@@ -35,12 +37,14 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
     public LocalProfessorShadowReadAdapter(
             ProfessorShadowJpaRepository professorRepository,
             ProfessorAlocacaoShadowJpaRepository alocacaoRepository,
+            ProfessorAlocacaoShadowSyncStateJpaRepository alocacaoSyncStateRepository,
             ProfessorShadowSyncStateJpaRepository syncStateRepository,
             ProfessorTurmaShadowSyncStateJpaRepository turmaSyncStateRepository,
             ProfessorShadowLocalPersistenceProperties properties,
             MeterRegistry meterRegistry) {
         this.professorRepository = professorRepository;
         this.alocacaoRepository = alocacaoRepository;
+        this.alocacaoSyncStateRepository = alocacaoSyncStateRepository;
         this.syncStateRepository = syncStateRepository;
         this.turmaSyncStateRepository = turmaSyncStateRepository;
         this.properties = properties;
@@ -96,8 +100,9 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
             return false;
         }
 
-        boolean supported = professorRepository.findById(professorId)
-                .map(professor -> professor.getEscolaId().equals(context.escolaId()))
+        boolean supported = alocacaoSyncStateRepository.findById(professorId)
+                .filter(state -> state.getEscolaId().equals(context.escolaId()))
+                .map(state -> Boolean.TRUE.equals(state.getAlocacoesCompletas()))
                 .orElse(false);
 
         registrarDecisao("listarAlocacoes", supported ? "local" : "fallback");
