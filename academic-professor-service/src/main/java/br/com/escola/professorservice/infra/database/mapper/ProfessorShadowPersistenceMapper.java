@@ -22,4 +22,18 @@ public final class ProfessorShadowPersistenceMapper {
                 response.updatedAt(),
                 null);
     }
+
+    public static ProfessorResumoResponse toResponse(ProfessorShadowJpaEntity entity) {
+        return new ProfessorResumoResponse(
+                entity.getId(),
+                entity.getPessoaId(),
+                entity.getNomeCompleto(),
+                entity.getEscolaId(),
+                entity.getEscolaNome(),
+                entity.getRegistroProfissional(),
+                entity.getFormacao(),
+                entity.getAtivo(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt());
+    }
 }

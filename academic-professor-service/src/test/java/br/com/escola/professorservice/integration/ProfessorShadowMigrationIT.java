@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import br.com.escola.professorservice.application.service.ProfessorShadowMigrationService;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowJpaRepository;
+import br.com.escola.professorservice.infra.database.repository.ProfessorShadowSyncStateJpaRepository;
 
 @SpringBootTest(properties = {
         "professor.shadow.migration.enabled=true",
@@ -35,9 +36,13 @@ class ProfessorShadowMigrationIT {
     @Autowired
     private ProfessorShadowJpaRepository repository;
 
+    @Autowired
+    private ProfessorShadowSyncStateJpaRepository syncStateRepository;
+
     @BeforeEach
     void setUp() throws Exception {
         repository.deleteAll();
+        syncStateRepository.deleteAll();
         try (Connection connection = DriverManager.getConnection(
                 "jdbc:h2:mem:professor_shadow_source;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
                 "sa",
@@ -93,6 +98,13 @@ class ProfessorShadowMigrationIT {
         assertThat(first.applied()).isTrue();
         assertThat(first.reconciled()).isTrue();
         assertThat(repository.count()).isEqualTo(1);
+        assertThat(syncStateRepository.findById(ESCOLA_A))
+                .isPresent()
+                .get()
+                .satisfies(state -> {
+                    assertThat(state.getProfessoresCompletos()).isTrue();
+                    assertThat(state.getProfessorCount()).isEqualTo(1L);
+                });
         assertThat(first.tables())
                 .filteredOn(table -> "professor".equals(table.table()) && ESCOLA_A.equals(table.escolaId()))
                 .singleElement()

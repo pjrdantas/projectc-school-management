@@ -2,6 +2,7 @@ package br.com.escola.professorservice.infra.migration;
 
 import static java.util.stream.Collectors.toMap;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -13,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.escola.professorservice.application.migration.ProfessorShadowMigrationSnapshot;
 import br.com.escola.professorservice.application.port.out.ProfessorShadowMigrationTargetPort;
 import br.com.escola.professorservice.infra.database.entity.ProfessorShadowJpaEntity;
+import br.com.escola.professorservice.infra.database.entity.ProfessorShadowSyncStateJpaEntity;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowJpaRepository;
+import br.com.escola.professorservice.infra.database.repository.ProfessorShadowSyncStateJpaRepository;
 
 @Component
 @Transactional
@@ -21,9 +24,13 @@ import br.com.escola.professorservice.infra.database.repository.ProfessorShadowJ
 public class JpaProfessorShadowMigrationTargetAdapter implements ProfessorShadowMigrationTargetPort {
 
     private final ProfessorShadowJpaRepository repository;
+    private final ProfessorShadowSyncStateJpaRepository syncStateRepository;
 
-    public JpaProfessorShadowMigrationTargetAdapter(ProfessorShadowJpaRepository repository) {
+    public JpaProfessorShadowMigrationTargetAdapter(
+            ProfessorShadowJpaRepository repository,
+            ProfessorShadowSyncStateJpaRepository syncStateRepository) {
         this.repository = repository;
+        this.syncStateRepository = syncStateRepository;
     }
 
     @Override
@@ -45,6 +52,18 @@ public class JpaProfessorShadowMigrationTargetAdapter implements ProfessorShadow
                 .map(row -> toEntity(existing.get(row.id()), row))
                 .toList();
         repository.saveAll(entities);
+        syncStateRepository.saveAll(snapshot.professores().stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        ProfessorShadowMigrationSnapshot.ProfessorRow::escolaId,
+                        java.util.LinkedHashMap::new,
+                        java.util.stream.Collectors.counting()))
+                .entrySet().stream()
+                .map(entry -> new ProfessorShadowSyncStateJpaEntity(
+                        entry.getKey(),
+                        true,
+                        entry.getValue(),
+                        LocalDateTime.now(java.time.Clock.systemUTC())))
+                .toList());
     }
 
     private ProfessorShadowMigrationSnapshot.ProfessorRow toRow(ProfessorShadowJpaEntity entity) {

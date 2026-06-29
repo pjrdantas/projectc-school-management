@@ -29,11 +29,18 @@ public class ProfessorQueryService implements ProfessorQueryUseCase {
 
     @Override
     public List<ProfessorResumoResponse> listarProfessores(String authorization, InternalRequestContext context) {
+        if (professorShadowLocalReadPort.supportsListarProfessores(context)) {
+            return professorShadowLocalReadPort.listarProfessores(context);
+        }
         return professorReadPort.listarProfessores(authorization, context);
     }
 
     @Override
     public ProfessorResumoResponse buscarProfessorPorId(String authorization, InternalRequestContext context, UUID professorId) {
+        var local = professorShadowLocalReadPort.buscarProfessorPorId(context, professorId);
+        if (local.isPresent()) {
+            return local.orElseThrow();
+        }
         return professorReadPort.buscarProfessorPorId(authorization, context, professorId)
                 .orElseThrow(() -> new ProfessorServiceResourceNotFoundException("Professor não encontrado"));
     }

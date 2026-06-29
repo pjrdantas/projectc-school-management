@@ -1,20 +1,24 @@
 package br.com.escola.professorservice.infra.database.adapter;
 
 import static br.com.escola.professorservice.infra.database.mapper.ProfessorAlocacaoShadowReadMapper.toResponse;
+import static br.com.escola.professorservice.infra.database.mapper.ProfessorShadowPersistenceMapper.toResponse;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
 
 import br.com.escola.professorservice.application.context.InternalRequestContext;
 import br.com.escola.professorservice.application.dto.ProfessorAlocacaoResponse;
+import br.com.escola.professorservice.application.dto.ProfessorResumoResponse;
 import br.com.escola.professorservice.application.port.out.ProfessorShadowLocalReadPort;
 import br.com.escola.professorservice.infra.config.ProfessorShadowLocalPersistenceProperties;
 import br.com.escola.professorservice.infra.database.entity.ProfessorAlocacaoShadowJpaEntity;
 import br.com.escola.professorservice.infra.database.entity.ProfessorShadowJpaEntity;
 import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowJpaRepository;
+import br.com.escola.professorservice.infra.database.repository.ProfessorShadowSyncStateJpaRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 
 @Repository
@@ -22,18 +26,63 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
 
     private final ProfessorShadowJpaRepository professorRepository;
     private final ProfessorAlocacaoShadowJpaRepository alocacaoRepository;
+    private final ProfessorShadowSyncStateJpaRepository syncStateRepository;
     private final ProfessorShadowLocalPersistenceProperties properties;
     private final MeterRegistry meterRegistry;
 
     public LocalProfessorShadowReadAdapter(
             ProfessorShadowJpaRepository professorRepository,
             ProfessorAlocacaoShadowJpaRepository alocacaoRepository,
+            ProfessorShadowSyncStateJpaRepository syncStateRepository,
             ProfessorShadowLocalPersistenceProperties properties,
             MeterRegistry meterRegistry) {
         this.professorRepository = professorRepository;
         this.alocacaoRepository = alocacaoRepository;
+        this.syncStateRepository = syncStateRepository;
         this.properties = properties;
         this.meterRegistry = meterRegistry;
+    }
+
+    @Override
+    public boolean supportsListarProfessores(InternalRequestContext context) {
+        if (!properties.enabled()) {
+            registrarDecisao("listar", "disabled");
+            return false;
+        }
+
+        boolean supported = syncStateRepository.findById(context.escolaId())
+                .map(state -> Boolean.TRUE.equals(state.getProfessoresCompletos()))
+                .orElse(false);
+
+        registrarDecisao("listar", supported ? "local" : "fallback");
+        return supported;
+    }
+
+    @Override
+    public List<ProfessorResumoResponse> listarProfessores(InternalRequestContext context) {
+        return professorRepository.findAllByEscolaIdOrderByNomeCompletoAscIdAsc(context.escolaId()).stream()
+                .map(professor -> toResponse(professor))
+                .toList();
+    }
+
+    @Override
+    public Optional<ProfessorResumoResponse> buscarProfessorPorId(InternalRequestContext context, UUID professorId) {
+        if (!properties.enabled()) {
+            registrarDecisao("buscarPorId", "disabled");
+            return Optional.empty();
+        }
+
+        Optional<ProfessorResumoResponse> local = professorRepository.findById(professorId)
+                .filter(professor -> professor.getEscolaId().equals(context.escolaId()))
+                .map(professor -> {
+                    registrarDecisao("buscarPorId", "local");
+                    return toResponse(professor);
+                });
+
+        if (local.isEmpty()) {
+            registrarDecisao("buscarPorId", "fallback");
+        }
+        return local;
     }
 
     @Override
