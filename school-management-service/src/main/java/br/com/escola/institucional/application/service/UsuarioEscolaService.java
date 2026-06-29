@@ -46,4 +46,13 @@ public class UsuarioEscolaService implements UsuarioEscolaPort {
         }
         return usuarioEscolaJpaRepository.findEscolaIdsByUsuarioId(usuarioId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean usuarioTemVinculo(UUID usuarioId, UUID escolaId) {
+        if (usuarioId == null || escolaId == null) {
+            return false;
+        }
+        return usuarioEscolaJpaRepository.existsByUsuario_IdAndEscola_Id(usuarioId, escolaId);
+    }
 }

@@ -88,5 +88,9 @@ public class SessaoAutenticacaoEntity {
         this.revogado = false;
     }
 
+    public void alterarEscola(EscolaEntity escola) {
+        this.escola = escola;
+    }
+
     public void revogar() { this.revogado = true; }
 }

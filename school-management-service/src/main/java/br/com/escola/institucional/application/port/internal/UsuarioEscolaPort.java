@@ -8,4 +8,6 @@ public interface UsuarioEscolaPort {
     void garantirVinculo(UUID usuarioId, UUID escolaId);
 
     List<UUID> listarEscolasDoUsuario(UUID usuarioId);
+
+    boolean usuarioTemVinculo(UUID usuarioId, UUID escolaId);
 }

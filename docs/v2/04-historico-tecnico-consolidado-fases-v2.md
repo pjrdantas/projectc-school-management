@@ -476,6 +476,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   historico de escolas ja vinculadas. Com isso, o backend deixa preparado o
   primeiro bloco real para futura selecao explicita de escola ativa, enquanto
   o comportamento externo continua estavel.
+- A sexta subfase da Fase 52 usou essa fundacao para criar o primeiro fluxo
+  interno autenticado de selecao explicita de escola ativa. Foram adicionados
+  os endpoints internos `GET /internal/auth/escolas` e
+  `POST /internal/auth/escola-ativa`, apoiados por novas operacoes da porta
+  `IdentidadeTenantPort`. A listagem passa a expor as escolas disponiveis na
+  sessao a partir de `usuario_escola`, e a troca da escola ativa so e aceita
+  quando o usuario possui vinculo explicito com a escola solicitada. Assim,
+  `sessao_autenticacao.id_escola` passa a registrar uma escolha validada de
+  tenant, ainda sem mudar o contrato externo do login ou exigir acao do BFF.
 
 ## Historico resumido
 

@@ -63,4 +63,15 @@ class UsuarioEscolaServiceTest {
 
         assertThat(service.listarEscolasDoUsuario(usuarioId)).containsExactlyElementsOf(escolaIds);
     }
+
+    @Test
+    void deveInformarQuandoUsuarioPossuirVinculo() {
+        UUID usuarioId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+        UsuarioEscolaService service = new UsuarioEscolaService(usuarioEscolaJpaRepository);
+
+        when(usuarioEscolaJpaRepository.existsByUsuario_IdAndEscola_Id(usuarioId, escolaId)).thenReturn(true);
+
+        assertThat(service.usuarioTemVinculo(usuarioId, escolaId)).isTrue();
+    }
 }

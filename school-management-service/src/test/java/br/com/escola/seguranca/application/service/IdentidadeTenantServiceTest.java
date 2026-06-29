@@ -24,6 +24,7 @@ import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.application.dto.OrigemTenantAtivo;
 import br.com.escola.institucional.application.dto.TenantAtivoResumo;
 import br.com.escola.institucional.application.port.internal.TenantAtivoPort;
+import br.com.escola.institucional.application.port.internal.UsuarioEscolaPort;
 import br.com.escola.professor.adapter.out.persistence.repository.ProfessorJpaRepository;
 import br.com.escola.seguranca.adapter.out.persistence.entity.PerfilEntity;
 import br.com.escola.seguranca.adapter.out.persistence.entity.SessaoAutenticacaoEntity;
@@ -47,6 +48,9 @@ class IdentidadeTenantServiceTest {
     private TenantAtivoPort tenantAtivoPort;
 
     @Mock
+    private UsuarioEscolaPort usuarioEscolaPort;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -61,6 +65,7 @@ class IdentidadeTenantServiceTest {
                 sessaoRepository,
                 professorRepository,
                 tenantAtivoPort,
+                usuarioEscolaPort,
                 passwordEncoder,
                 jdbcTemplate);
     }
@@ -133,6 +138,37 @@ class IdentidadeTenantServiceTest {
         assertThat(contexto.username()).isEqualTo("admin52");
         assertThat(contexto.perfis()).containsExactly("ADMIN");
         assertThat(contexto.permissoes()).containsExactly("USUARIO_LEITURA", "USUARIO_ESCRITA");
+    }
+
+    @Test
+    void deveSelecionarEscolaAtivaQuandoUsuarioPossuirVinculo() {
+        UUID usuarioId = UUID.randomUUID();
+        UUID escolaAtualId = UUID.randomUUID();
+        UUID novaEscolaId = UUID.randomUUID();
+        UsuarioEntity usuario = usuario(usuarioId, "admin52", "admin52@example.com", "hash");
+        EscolaEntity escolaAtual = escola(escolaAtualId, "Escola Atual");
+        EscolaEntity novaEscola = escola(novaEscolaId, "Escola Nova");
+        SessaoAutenticacaoEntity sessao = new SessaoAutenticacaoEntity(
+                usuario,
+                escolaAtual,
+                "refresh-hash",
+                "access-hash",
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusMinutes(30));
+
+        when(sessaoRepository.findByAccessTokenHashAndRevogadoFalseAndAccessExpiraEmAfter(anyString(), any()))
+                .thenReturn(Optional.of(sessao));
+        when(usuarioEscolaPort.usuarioTemVinculo(usuarioId, novaEscolaId)).thenReturn(true);
+        when(tenantAtivoPort.carregarEscola(novaEscolaId)).thenReturn(novaEscola);
+        when(usuarioRepository.findPerfisByIdUsuario(usuarioId)).thenReturn(List.of("ADMIN"));
+        when(usuarioRepository.findPermissoesByIdUsuario(usuarioId)).thenReturn(List.of("USUARIO_LEITURA"));
+
+        var contexto = service.selecionarEscolaAtiva("access-token-valido", novaEscolaId);
+
+        assertThat(contexto.escolaId()).isEqualTo(novaEscolaId);
+        assertThat(contexto.escolaNome()).isEqualTo("Escola Nova");
+        assertThat(sessao.getEscola().getId()).isEqualTo(novaEscolaId);
+        verify(sessaoRepository).save(sessao);
     }
 
     private UsuarioEntity usuario(UUID id, String username, String email, String senhaHash) {

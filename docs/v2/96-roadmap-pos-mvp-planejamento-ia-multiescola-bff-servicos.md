@@ -1644,3 +1644,30 @@ Proxima subfase pratica:
   selecao explicita de escola ativa, ainda sem expor rota externa nova no BFF;
 - definir como `sessao_autenticacao.id_escola` passa de reflexo do legado para
   resultado de uma escolha validada contra `usuario_escola`.
+
+Entregue na sexta subfase da Fase 52:
+
+- foi implementado o primeiro fluxo interno real de selecao explicita de escola
+  ativa, ainda sem criar rota externa no BFF e sem alterar o contrato externo
+  de `/api/auth/**`;
+- a nova rota interna autenticada `GET /internal/auth/escolas` lista as escolas
+  disponiveis para a sessao atual a partir de `usuario_escola`, marcando qual
+  delas esta ativa naquele momento;
+- a nova rota interna autenticada `POST /internal/auth/escola-ativa` permite
+  trocar a escola ativa da sessao, validando se o usuario possui vinculo com a
+  escola informada antes de persistir a troca em `sessao_autenticacao.id_escola`;
+- com isso, `sessao_autenticacao.id_escola` deixa de ser apenas reflexo do
+  legado e passa a suportar uma escolha validada contra `usuario_escola`, sem
+  mudar ainda o login externo nem exigir cutover do BFF;
+- o rollback continua simples, porque a selecao explicita ficou restrita a
+  endpoints internos do mesmo runtime e a atualizacao pontual da sessao opaca.
+
+Proxima subfase pratica:
+
+- consolidar o fechamento da macrofase 52, definindo se o login continua com
+  selecao implicita por default ou se a proxima etapa deve aceitar escolha de
+  escola no fluxo autenticado sem romper compatibilidade externa;
+- preparar o ponto minimo para a futura extracao fisica de
+  `identity-access-service` e `institutional-tenant-service`, agora que sessao,
+  vinculo usuario-escola e escolha de tenant ja possuem fronteiras internas
+  separadas.

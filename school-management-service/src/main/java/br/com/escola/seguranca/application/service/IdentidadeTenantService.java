@@ -16,12 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.application.dto.TenantAtivoResumo;
 import br.com.escola.institucional.application.port.internal.TenantAtivoPort;
+import br.com.escola.institucional.application.port.internal.UsuarioEscolaPort;
 import br.com.escola.professor.adapter.out.persistence.repository.ProfessorJpaRepository;
 import br.com.escola.seguranca.adapter.out.persistence.entity.SessaoAutenticacaoEntity;
 import br.com.escola.seguranca.adapter.out.persistence.entity.UsuarioEntity;
 import br.com.escola.seguranca.adapter.out.persistence.repository.SessaoAutenticacaoJpaRepository;
 import br.com.escola.seguranca.adapter.out.persistence.repository.SpringUsuarioJpaRepository;
 import br.com.escola.seguranca.application.dto.internal.ContextoAutenticadoResumo;
+import br.com.escola.seguranca.application.dto.internal.EscolaSessaoResumo;
 import br.com.escola.seguranca.application.dto.internal.PrincipalAutenticadoResumo;
 import br.com.escola.seguranca.application.dto.internal.SessaoAutenticadaResumo;
 import br.com.escola.seguranca.application.port.internal.IdentidadeTenantPort;
@@ -38,6 +40,7 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
     private final SessaoAutenticacaoJpaRepository sessaoRepository;
     private final ProfessorJpaRepository professorRepository;
     private final TenantAtivoPort tenantAtivoPort;
+    private final UsuarioEscolaPort usuarioEscolaPort;
     private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
 
@@ -46,12 +49,14 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
             SessaoAutenticacaoJpaRepository sessaoRepository,
             ProfessorJpaRepository professorRepository,
             TenantAtivoPort tenantAtivoPort,
+            UsuarioEscolaPort usuarioEscolaPort,
             PasswordEncoder passwordEncoder,
             JdbcTemplate jdbcTemplate) {
         this.usuarioRepository = usuarioRepository;
         this.sessaoRepository = sessaoRepository;
         this.professorRepository = professorRepository;
         this.tenantAtivoPort = tenantAtivoPort;
+        this.usuarioEscolaPort = usuarioEscolaPort;
         this.passwordEncoder = passwordEncoder;
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -147,6 +152,53 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
                 usuario.getId(),
                 tenantAtivo.escolaId(),
                 tenantAtivo.escolaNome(),
+                usuario.getUsername(),
+                usuarioRepository.findPerfisByIdUsuario(usuario.getId()),
+                usuarioRepository.findPermissoesByIdUsuario(usuario.getId()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EscolaSessaoResumo> listarEscolasDisponiveis(String accessToken) {
+        SessaoAutenticacaoEntity sessao = buscarSessaoPorAccessToken(accessToken);
+        UsuarioEntity usuario = sessao.getUsuario();
+        UUID escolaAtivaId = sessao.getEscola() != null
+                ? sessao.getEscola().getId()
+                : tenantAtivoPort.resolverTenantAtivo(usuario).escolaId();
+
+        List<UUID> escolaIds = usuarioEscolaPort.listarEscolasDoUsuario(usuario.getId());
+        if (escolaIds.isEmpty() && escolaAtivaId != null) {
+            escolaIds = List.of(escolaAtivaId);
+        }
+
+        return escolaIds.stream()
+                .distinct()
+                .map(tenantAtivoPort::carregarEscola)
+                .map(escola -> new EscolaSessaoResumo(
+                        escola.getId(),
+                        escola.getNome(),
+                        escola.getId().equals(escolaAtivaId)))
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public ContextoAutenticadoResumo selecionarEscolaAtiva(String accessToken, UUID escolaId) {
+        SessaoAutenticacaoEntity sessao = buscarSessaoPorAccessToken(accessToken);
+        UsuarioEntity usuario = sessao.getUsuario();
+
+        if (!usuarioEscolaPort.usuarioTemVinculo(usuario.getId(), escolaId)) {
+            throw new IllegalArgumentException("Usuário não possui vínculo com a escola informada.");
+        }
+
+        EscolaEntity escola = tenantAtivoPort.carregarEscola(escolaId);
+        sessao.alterarEscola(escola);
+        sessaoRepository.save(sessao);
+
+        return new ContextoAutenticadoResumo(
+                usuario.getId(),
+                escola.getId(),
+                escola.getNome(),
                 usuario.getUsername(),
                 usuarioRepository.findPerfisByIdUsuario(usuario.getId()),
                 usuarioRepository.findPermissoesByIdUsuario(usuario.getId()));
