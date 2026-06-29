@@ -64,6 +64,10 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
                 "professor.internal-client.listar-alocacoes-cutover-enabled",
                 Boolean.class,
                 false);
+        boolean listarPorTurmaCutoverEnabled = environment.getProperty(
+                "professor.internal-client.listar-por-turma-cutover-enabled",
+                Boolean.class,
+                false);
         String resolvedBaseUrl = baseUrlResolvida();
 
         Map<String, Object> details = new LinkedHashMap<>();
@@ -72,6 +76,7 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
         details.put("buscarPorIdCutoverEnabled", buscarPorIdCutoverEnabled);
         details.put("listarCutoverEnabled", listarCutoverEnabled);
         details.put("listarAlocacoesCutoverEnabled", listarAlocacoesCutoverEnabled);
+        details.put("listarPorTurmaCutoverEnabled", listarPorTurmaCutoverEnabled);
         details.put("internalEndpointPrefix", INTERNAL_ENDPOINT_PREFIX);
         details.put("requestsTotal", totalContador("professor.internal.client.requests"));
         details.put("fallbacksTotal", totalContador("professor.internal.client.fallbacks"));
@@ -140,6 +145,9 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
             } else if ("listarAlocacoes".equals(descriptor.operation())) {
                 detalhe.put("cutoverEnabled", listarAlocacoesCutoverEnabled());
                 detalhe.put("rollbackStrategy", "disable_property");
+            } else if ("listarPorTurma".equals(descriptor.operation())) {
+                detalhe.put("cutoverEnabled", listarPorTurmaCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
             } else if ("buscarPorId".equals(descriptor.operation())) {
                 detalhe.put("cutoverEnabled", buscarPorIdCutoverEnabled());
                 detalhe.put("rollbackStrategy", "disable_property");
@@ -156,6 +164,9 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
         if ("listarAlocacoes".equals(operation) && listarAlocacoesCutoverEnabled()) {
             return "disabled_for_route";
         }
+        if ("listarPorTurma".equals(operation) && listarPorTurmaCutoverEnabled()) {
+            return "disabled_for_route";
+        }
         if ("buscarPorId".equals(operation) && buscarPorIdCutoverEnabled()) {
             return "disabled_for_route";
         }
@@ -170,6 +181,10 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
 
     private boolean listarAlocacoesCutoverEnabled() {
         return environment.getProperty("professor.internal-client.listar-alocacoes-cutover-enabled", Boolean.class, false);
+    }
+
+    private boolean listarPorTurmaCutoverEnabled() {
+        return environment.getProperty("professor.internal-client.listar-por-turma-cutover-enabled", Boolean.class, false);
     }
 
     private boolean buscarPorIdCutoverEnabled() {

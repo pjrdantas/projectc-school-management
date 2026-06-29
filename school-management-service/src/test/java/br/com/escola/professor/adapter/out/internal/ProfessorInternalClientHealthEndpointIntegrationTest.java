@@ -22,6 +22,7 @@ import io.micrometer.core.instrument.MeterRegistry;
                 "professor.internal-client.buscar-por-id-cutover-enabled=true",
                 "professor.internal-client.listar-cutover-enabled=true",
                 "professor.internal-client.listar-alocacoes-cutover-enabled=true",
+                "professor.internal-client.listar-por-turma-cutover-enabled=true",
                 "professor.internal-client.base-url=http://localhost:${local.server.port}"
         })
 class ProfessorInternalClientHealthEndpointIntegrationTest {
@@ -74,6 +75,7 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
                 .containsEntry("buscarPorIdCutoverEnabled", true)
                 .containsEntry("listarCutoverEnabled", true)
                 .containsEntry("listarAlocacoesCutoverEnabled", true)
+                .containsEntry("listarPorTurmaCutoverEnabled", true)
                 .containsEntry("baseUrlScheme", "http")
                 .containsEntry("baseUrlHost", "localhost")
                 .containsEntry("requestsTotal", 4.0d)
@@ -115,6 +117,9 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
                 .containsEntry("rollbackStrategy", "disable_property");
         assertThat(listarPorTurma)
                 .containsEntry("externalRoute", "GET /api/turmas/{turmaId}/professores")
+                .containsEntry("fallbackStrategy", "disabled_for_route")
+                .containsEntry("cutoverEnabled", true)
+                .containsEntry("rollbackStrategy", "disable_property")
                 .containsEntry("localFallbackTotal", 1.0d)
                 .containsEntry("fallbacksTotal", 1.0d);
 
