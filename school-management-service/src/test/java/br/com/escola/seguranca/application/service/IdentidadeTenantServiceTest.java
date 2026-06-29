@@ -21,7 +21,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.dto.OrigemTenantAtivo;
+import br.com.escola.institucional.application.dto.TenantAtivoResumo;
+import br.com.escola.institucional.application.port.internal.TenantAtivoPort;
 import br.com.escola.professor.adapter.out.persistence.repository.ProfessorJpaRepository;
 import br.com.escola.seguranca.adapter.out.persistence.entity.PerfilEntity;
 import br.com.escola.seguranca.adapter.out.persistence.entity.SessaoAutenticacaoEntity;
@@ -42,7 +44,7 @@ class IdentidadeTenantServiceTest {
     private ProfessorJpaRepository professorRepository;
 
     @Mock
-    private EscolaTenantService escolaTenantService;
+    private TenantAtivoPort tenantAtivoPort;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -58,7 +60,7 @@ class IdentidadeTenantServiceTest {
                 usuarioRepository,
                 sessaoRepository,
                 professorRepository,
-                escolaTenantService,
+                tenantAtivoPort,
                 passwordEncoder,
                 jdbcTemplate);
     }
@@ -72,7 +74,11 @@ class IdentidadeTenantServiceTest {
         EscolaEntity escola = escola(escolaId, "Escola Fase 52");
 
         when(usuarioRepository.findByUsernameIgnoreCaseAndAtivoTrue("professor52")).thenReturn(Optional.of(usuario));
-        when(escolaTenantService.resolverEscolaAtiva(usuario)).thenReturn(escola);
+        when(tenantAtivoPort.resolverTenantAtivo(usuario)).thenReturn(new TenantAtivoResumo(
+                escolaId,
+                "Escola Fase 52",
+                OrigemTenantAtivo.USUARIO_ESCOLA));
+        when(tenantAtivoPort.carregarEscola(escolaId)).thenReturn(escola);
         when(professorRepository.findByUsuario_IdAndPessoa_Escola_Id(usuarioId, escolaId)).thenReturn(Optional.empty());
         when(professorRepository.findAtivoByPessoaEmailIgnoreCaseAndEscolaId("prof52@example.com", escolaId))
                 .thenReturn(Optional.of(br.com.escola.professor.adapter.out.persistence.entity.ProfessorEntity.builder()
@@ -112,6 +118,10 @@ class IdentidadeTenantServiceTest {
 
         when(sessaoRepository.findByAccessTokenHashAndRevogadoFalseAndAccessExpiraEmAfter(anyString(), any()))
                 .thenReturn(Optional.of(sessao));
+        when(tenantAtivoPort.resolverTenantDaSessaoOuUsuario(usuario, escolaId)).thenReturn(new TenantAtivoResumo(
+                escolaId,
+                "Escola Contexto",
+                OrigemTenantAtivo.ESCOLA_SESSAO));
         when(usuarioRepository.findPerfisByIdUsuario(usuarioId)).thenReturn(List.of("ADMIN"));
         when(usuarioRepository.findPermissoesByIdUsuario(usuarioId)).thenReturn(List.of("USUARIO_LEITURA", "USUARIO_ESCRITA"));
 

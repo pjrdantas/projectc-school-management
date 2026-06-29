@@ -458,6 +458,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   interno `PrincipalAutenticadoResumo`, contendo apenas identidade minima e
   permissoes necessarias para montar o principal autenticado no
   `SecurityContextHolder`.
+- A quarta subfase da Fase 52 explicitou a autoridade atual de tenant sem
+  introduzir ainda `usuario_escola`. Foi criada a porta interna
+  `TenantAtivoPort`, com os DTOs `TenantAtivoResumo` e `OrigemTenantAtivo`,
+  tornando declarada a origem da escola ativa em tres cenarios: escola
+  persistida na sessao autenticada, escola vinda de `usuario.id_escola` e
+  fallback para a escola padrao. `IdentidadeTenantService` passou a consumir
+  essa fronteira na criacao de sessao, no refresh e na resolucao de contexto
+  autenticado, preservando o contrato externo e preparando o menor ponto de
+  evolucao futura para selecao explicita de escola ativa.
 
 ## Historico resumido
 

@@ -1590,3 +1590,29 @@ Proxima subfase pratica:
   exigira `usuario_escola` e selecao explicita de escola ativa;
 - manter o recorte no backend/backend, sem abrir rota externa nova no BFF e
   sem iniciar extracao fisica antes desse diagnostico controlado.
+
+Entregue na quarta subfase da Fase 52:
+
+- a autoridade de tenant deixou de permanecer apenas implicita em
+  `EscolaTenantService` e passou a existir como contrato interno explicito por
+  meio da porta `TenantAtivoPort` e dos DTOs `TenantAtivoResumo` e
+  `OrigemTenantAtivo`;
+- o fluxo atual do monolito agora diferencia, de forma declarada e testavel, a
+  origem da escola ativa em tres casos: escola vinda da sessao autenticada,
+  escola vinculada em `usuario.id_escola` e fallback para a escola padrao;
+- `IdentidadeTenantService` passou a depender dessa nova fronteira para
+  resolver tenant na criacao de sessao, no refresh e na leitura do contexto
+  autenticado, sem alterar o contrato externo `/api/auth/**`;
+- o resultado pratico desta subfase nao e a introducao de `usuario_escola`
+  ainda, e sim a criacao do ponto minimo que separa claramente o comportamento
+  atual legado da futura evolucao para escola ativa explicita;
+- o rollback continua trivial porque o runtime, o schema e as rotas externas
+  permanecem inalterados.
+
+Proxima subfase pratica:
+
+- fechar a macrofase preparatoria de identidade/tenant com o desenho do menor
+  passo para introduzir vinculo explicito `usuario_escola` e selecao de escola
+  ativa sem cutover externo imediato;
+- manter o trabalho no backend/backend, ainda sem extracao fisica dos servicos
+  `identity-access-service` e `institutional-tenant-service`.

@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.dto.TenantAtivoResumo;
+import br.com.escola.institucional.application.port.internal.TenantAtivoPort;
 import br.com.escola.professor.adapter.out.persistence.repository.ProfessorJpaRepository;
 import br.com.escola.seguranca.adapter.out.persistence.entity.SessaoAutenticacaoEntity;
 import br.com.escola.seguranca.adapter.out.persistence.entity.UsuarioEntity;
@@ -36,7 +37,7 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
     private final SpringUsuarioJpaRepository usuarioRepository;
     private final SessaoAutenticacaoJpaRepository sessaoRepository;
     private final ProfessorJpaRepository professorRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final TenantAtivoPort tenantAtivoPort;
     private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
 
@@ -44,13 +45,13 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
             SpringUsuarioJpaRepository usuarioRepository,
             SessaoAutenticacaoJpaRepository sessaoRepository,
             ProfessorJpaRepository professorRepository,
-            EscolaTenantService escolaTenantService,
+            TenantAtivoPort tenantAtivoPort,
             PasswordEncoder passwordEncoder,
             JdbcTemplate jdbcTemplate) {
         this.usuarioRepository = usuarioRepository;
         this.sessaoRepository = sessaoRepository;
         this.professorRepository = professorRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.tenantAtivoPort = tenantAtivoPort;
         this.passwordEncoder = passwordEncoder;
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -74,7 +75,8 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
 
         String accessToken = gerarToken();
         String refreshToken = gerarToken();
-        EscolaEntity escolaAtiva = escolaTenantService.resolverEscolaAtiva(usuario);
+        TenantAtivoResumo tenantAtivo = tenantAtivoPort.resolverTenantAtivo(usuario);
+        EscolaEntity escolaAtiva = tenantAtivoPort.carregarEscola(tenantAtivo.escolaId());
 
         sessaoRepository.save(new SessaoAutenticacaoEntity(
                 usuario,
@@ -105,9 +107,10 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
         sessaoRepository.save(sessao);
 
         UsuarioEntity usuario = sessao.getUsuario();
-        EscolaEntity escolaAtiva = sessao.getEscola() == null
-                ? escolaTenantService.resolverEscolaAtiva(usuario)
-                : sessao.getEscola();
+        TenantAtivoResumo tenantAtivo = tenantAtivoPort.resolverTenantDaSessaoOuUsuario(
+                usuario,
+                sessao.getEscola() == null ? null : sessao.getEscola().getId());
+        EscolaEntity escolaAtiva = tenantAtivoPort.carregarEscola(tenantAtivo.escolaId());
         return resumirSessao(newAccessToken, newRefreshToken, usuario, escolaAtiva);
     }
 
@@ -137,13 +140,13 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
     public ContextoAutenticadoResumo resolverContextoAtual(String accessToken) {
         SessaoAutenticacaoEntity sessao = buscarSessaoPorAccessToken(accessToken);
         UsuarioEntity usuario = sessao.getUsuario();
-        EscolaEntity escolaAtiva = sessao.getEscola() == null
-                ? escolaTenantService.resolverEscolaAtiva(usuario)
-                : sessao.getEscola();
+        TenantAtivoResumo tenantAtivo = tenantAtivoPort.resolverTenantDaSessaoOuUsuario(
+                usuario,
+                sessao.getEscola() == null ? null : sessao.getEscola().getId());
         return new ContextoAutenticadoResumo(
                 usuario.getId(),
-                escolaAtiva.getId(),
-                escolaAtiva.getNome(),
+                tenantAtivo.escolaId(),
+                tenantAtivo.escolaNome(),
                 usuario.getUsername(),
                 usuarioRepository.findPerfisByIdUsuario(usuario.getId()),
                 usuarioRepository.findPermissoesByIdUsuario(usuario.getId()));
