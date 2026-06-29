@@ -8,6 +8,7 @@ import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
 import br.com.escola.professorservice.infra.config.ProfessorShadowLocalPersistenceProperties;
+import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowJpaRepository;
 import io.micrometer.core.instrument.Measurement;
 import io.micrometer.core.instrument.Meter;
@@ -19,14 +20,17 @@ public class ProfessorShadowPersistenceHealthIndicator implements HealthIndicato
 
     private final ProfessorShadowLocalPersistenceProperties properties;
     private final ProfessorShadowJpaRepository repository;
+    private final ProfessorAlocacaoShadowJpaRepository alocacaoRepository;
     private final MeterRegistry meterRegistry;
 
     public ProfessorShadowPersistenceHealthIndicator(
             ProfessorShadowLocalPersistenceProperties properties,
             ProfessorShadowJpaRepository repository,
+            ProfessorAlocacaoShadowJpaRepository alocacaoRepository,
             MeterRegistry meterRegistry) {
         this.properties = properties;
         this.repository = repository;
+        this.alocacaoRepository = alocacaoRepository;
         this.meterRegistry = meterRegistry;
     }
 
@@ -36,14 +40,29 @@ public class ProfessorShadowPersistenceHealthIndicator implements HealthIndicato
         details.put("enabled", properties.enabled());
         details.put("failOnError", properties.failOnError());
         details.put("requestsTotal", totalContador("professor.shadow.local.persistence.requests"));
-        details.put("successTotal", totalRequests("criar", "success"));
-        details.put("skippedDisabledTotal", totalRequests("criar", "skipped_disabled"));
-        details.put("divergenceTotal", totalRequests("criar", "divergence"));
-        details.put("errorTotal", totalRequests("criar", "error"));
+        details.put("createSuccessTotal", totalRequests("criar", "success"));
+        details.put("allocateSuccessTotal", totalRequests("vincularTurmaDisciplina", "success"));
+        details.put("successTotal", ((Number) details.get("createSuccessTotal")).doubleValue()
+                + ((Number) details.get("allocateSuccessTotal")).doubleValue());
+        details.put("createSkippedDisabledTotal", totalRequests("criar", "skipped_disabled"));
+        details.put("allocateSkippedDisabledTotal", totalRequests("vincularTurmaDisciplina", "skipped_disabled"));
+        details.put("skippedDisabledTotal", ((Number) details.get("createSkippedDisabledTotal")).doubleValue()
+                + ((Number) details.get("allocateSkippedDisabledTotal")).doubleValue());
+        details.put("createDivergenceTotal", totalRequests("criar", "divergence"));
+        details.put("allocateDivergenceTotal", totalRequests("vincularTurmaDisciplina", "divergence"));
+        details.put("divergenceTotal", ((Number) details.get("createDivergenceTotal")).doubleValue()
+                + ((Number) details.get("allocateDivergenceTotal")).doubleValue());
+        details.put("createErrorTotal", totalRequests("criar", "error"));
+        details.put("allocateErrorTotal", totalRequests("vincularTurmaDisciplina", "error"));
+        details.put("errorTotal", ((Number) details.get("createErrorTotal")).doubleValue()
+                + ((Number) details.get("allocateErrorTotal")).doubleValue());
         details.put("failuresTotal", totalContador("professor.shadow.local.persistence.failures"));
 
         try {
-            details.put("storedRecords", repository.count());
+            details.put("storedProfessorRecords", repository.count());
+            details.put("storedAllocationRecords", alocacaoRepository.count());
+            details.put("storedRecords", ((Number) details.get("storedProfessorRecords")).longValue()
+                    + ((Number) details.get("storedAllocationRecords")).longValue());
         } catch (RuntimeException exception) {
             details.put("reason", "persistence_unavailable");
             details.put("exception", exception.getClass().getSimpleName());

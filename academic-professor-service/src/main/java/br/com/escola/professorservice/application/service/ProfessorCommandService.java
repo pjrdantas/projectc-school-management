@@ -42,6 +42,9 @@ public class ProfessorCommandService implements ProfessorCommandUseCase {
             InternalRequestContext context,
             UUID professorId,
             ProfessorAllocateRequest request) {
-        return professorWritePort.alocarProfessorTurmaDisciplina(authorization, context, professorId, request);
+        ProfessorAlocacaoResponse response =
+                professorWritePort.alocarProfessorTurmaDisciplina(authorization, context, professorId, request);
+        professorShadowPersistencePort.registrarAlocacaoShadow(context, request, response);
+        return response;
     }
 }

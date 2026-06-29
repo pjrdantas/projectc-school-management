@@ -17,11 +17,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.escola.professorservice.infra.database.entity.ProfessorShadowJpaEntity;
+import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowJpaRepository;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -32,6 +34,7 @@ import okhttp3.mockwebserver.MockWebServer;
         "management.endpoint.health.show-details=always"
 })
 @AutoConfigureMockMvc
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class LocalProfessorShadowPersistenceIntegrationTest {
 
     private static MockWebServer mockWebServer;
@@ -41,6 +44,9 @@ class LocalProfessorShadowPersistenceIntegrationTest {
 
     @Autowired
     private ProfessorShadowJpaRepository repository;
+
+    @Autowired
+    private ProfessorAlocacaoShadowJpaRepository alocacaoRepository;
 
     @BeforeAll
     static void beforeAll() throws IOException {
@@ -56,6 +62,7 @@ class LocalProfessorShadowPersistenceIntegrationTest {
     @BeforeEach
     void setUp() {
         repository.deleteAll();
+        alocacaoRepository.deleteAll();
     }
 
     @DynamicPropertySource
@@ -115,8 +122,84 @@ class LocalProfessorShadowPersistenceIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UP"))
                 .andExpect(jsonPath("$.details.enabled").value(true))
-                .andExpect(jsonPath("$.details.successTotal").value(1.0))
+                .andExpect(jsonPath("$.details.createSuccessTotal").value(1.0))
+                .andExpect(jsonPath("$.details.storedProfessorRecords").value(1))
+                .andExpect(jsonPath("$.details.storedAllocationRecords").value(0))
                 .andExpect(jsonPath("$.details.storedRecords").value(1));
+    }
+
+    @Test
+    void devePersistirAlocacaoLocalmenteAposSucessoDoProxyShadow() throws Exception {
+        UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
+        UUID professorId = UUID.randomUUID();
+        UUID turmaDisciplinaId = UUID.randomUUID();
+        UUID alocacaoId = UUID.randomUUID();
+
+        repository.save(new ProfessorShadowJpaEntity(
+                professorId,
+                UUID.randomUUID(),
+                "Professor Alocado",
+                escolaId,
+                "Escola Padrao",
+                "RP-ALOC",
+                "Licenciatura",
+                true,
+                LocalDateTime.of(2026, 6, 29, 11, 0, 0),
+                LocalDateTime.of(2026, 6, 29, 11, 0, 0),
+                null));
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setResponseCode(201)
+                .setBody("""
+                        {
+                          "id": "%s",
+                          "professorId": "%s",
+                          "professorNome": "Professor Alocado",
+                          "turmaDisciplinaId": "%s",
+                          "turmaId": "%s",
+                          "turmaNome": "Turma A",
+                          "disciplinaId": "%s",
+                          "disciplinaNome": "Matematica",
+                          "dataInicio": "2026-02-01",
+                          "dataFim": null,
+                          "ativo": true,
+                          "createdAt": "2026-06-29T11:30:00"
+                        }
+                        """.formatted(
+                        alocacaoId,
+                        professorId,
+                        turmaDisciplinaId,
+                        UUID.randomUUID(),
+                        UUID.randomUUID())));
+
+        mockMvc.perform(post("/internal/v1/professores/{id}/turmas-disciplinas", professorId)
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "turmaDisciplinaId": "%s",
+                                  "dataInicio": "2026-02-01",
+                                  "ativo": true
+                                }
+                                """.formatted(turmaDisciplinaId))
+                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Correlation-Id", "corr-shadow-local-allocate")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer shadow-user-token"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(alocacaoId.toString()));
+
+        assertThat(alocacaoRepository.findById(alocacaoId)).isPresent();
+
+        mockMvc.perform(get("/actuator/health/professorShadowPersistence"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.details.enabled").value(true))
+                .andExpect(jsonPath("$.details.allocateSuccessTotal").value(1.0))
+                .andExpect(jsonPath("$.details.storedProfessorRecords").value(1))
+                .andExpect(jsonPath("$.details.storedAllocationRecords").value(1))
+                .andExpect(jsonPath("$.details.storedRecords").value(2));
     }
 
     @Test
@@ -183,8 +266,71 @@ class LocalProfessorShadowPersistenceIntegrationTest {
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.status").value("OUT_OF_SERVICE"))
                 .andExpect(jsonPath("$.details.enabled").value(true))
-                .andExpect(jsonPath("$.details.divergenceTotal").value(1.0))
+                .andExpect(jsonPath("$.details.createDivergenceTotal").value(1.0))
                 .andExpect(jsonPath("$.details.failuresTotal").value(1.0))
+                .andExpect(jsonPath("$.details.storedProfessorRecords").value(1))
+                .andExpect(jsonPath("$.details.storedAllocationRecords").value(0))
                 .andExpect(jsonPath("$.details.storedRecords").value(1));
+    }
+
+    @Test
+    void deveSinalizarDivergenciaDeAlocacaoSemQuebrarRespostaExternaQuandoProfessorNaoExisteNaShadow() throws Exception {
+        UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
+        UUID professorId = UUID.randomUUID();
+        UUID turmaDisciplinaId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setResponseCode(201)
+                .setBody("""
+                        {
+                          "id": "%s",
+                          "professorId": "%s",
+                          "professorNome": "Professor Sem Shadow",
+                          "turmaDisciplinaId": "%s",
+                          "turmaId": "%s",
+                          "turmaNome": "Turma Divergente",
+                          "disciplinaId": "%s",
+                          "disciplinaNome": "Historia",
+                          "dataInicio": "2026-02-01",
+                          "dataFim": null,
+                          "ativo": true,
+                          "createdAt": "2026-06-29T12:30:00"
+                        }
+                        """.formatted(
+                        UUID.randomUUID(),
+                        professorId,
+                        turmaDisciplinaId,
+                        UUID.randomUUID(),
+                        UUID.randomUUID())));
+
+        mockMvc.perform(post("/internal/v1/professores/{id}/turmas-disciplinas", professorId)
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "turmaDisciplinaId": "%s",
+                                  "dataInicio": "2026-02-01",
+                                  "ativo": true
+                                }
+                                """.formatted(turmaDisciplinaId))
+                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Correlation-Id", "corr-shadow-allocate-divergence")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer shadow-user-token"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.professorId").value(professorId.toString()));
+
+        assertThat(alocacaoRepository.count()).isZero();
+
+        mockMvc.perform(get("/actuator/health/professorShadowPersistence"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.status").value("OUT_OF_SERVICE"))
+                .andExpect(jsonPath("$.details.enabled").value(true))
+                .andExpect(jsonPath("$.details.allocateDivergenceTotal").value(1.0))
+                .andExpect(jsonPath("$.details.failuresTotal").value(1.0))
+                .andExpect(jsonPath("$.details.storedProfessorRecords").value(0))
+                .andExpect(jsonPath("$.details.storedAllocationRecords").value(0))
+                .andExpect(jsonPath("$.details.storedRecords").value(0));
     }
 }
