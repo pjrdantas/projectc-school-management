@@ -74,6 +74,11 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
     }
 
     @Override
+    public boolean supportsBuscarProfessorPorIdCutover(InternalRequestContext context) {
+        return properties.enabled() && properties.buscarPorIdCutoverEnabled();
+    }
+
+    @Override
     public Optional<ProfessorResumoResponse> buscarProfessorPorId(InternalRequestContext context, UUID professorId) {
         if (!properties.enabled()) {
             registrarDecisao("buscarPorId", "disabled", "feature_disabled");
@@ -88,7 +93,10 @@ public class LocalProfessorShadowReadAdapter implements ProfessorShadowLocalRead
                 });
 
         if (local.isEmpty()) {
-            registrarDecisao("buscarPorId", "fallback", "local_record_missing");
+            registrarDecisao(
+                    "buscarPorId",
+                    properties.buscarPorIdCutoverEnabled() ? "local" : "fallback",
+                    properties.buscarPorIdCutoverEnabled() ? "cutover_local_not_found" : "local_record_missing");
         }
         return local;
     }

@@ -41,6 +41,9 @@ public class ProfessorQueryService implements ProfessorQueryUseCase {
         if (local.isPresent()) {
             return local.orElseThrow();
         }
+        if (professorShadowLocalReadPort.supportsBuscarProfessorPorIdCutover(context)) {
+            throw new ProfessorServiceResourceNotFoundException("Professor não encontrado");
+        }
         return professorReadPort.buscarProfessorPorId(authorization, context, professorId)
                 .orElseThrow(() -> new ProfessorServiceResourceNotFoundException("Professor não encontrado"));
     }

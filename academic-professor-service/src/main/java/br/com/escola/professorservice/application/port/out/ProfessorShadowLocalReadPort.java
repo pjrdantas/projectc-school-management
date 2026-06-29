@@ -14,6 +14,8 @@ public interface ProfessorShadowLocalReadPort {
 
     List<ProfessorResumoResponse> listarProfessores(InternalRequestContext context);
 
+    boolean supportsBuscarProfessorPorIdCutover(InternalRequestContext context);
+
     Optional<ProfessorResumoResponse> buscarProfessorPorId(InternalRequestContext context, UUID professorId);
 
     boolean supportsListarAlocacoes(InternalRequestContext context, UUID professorId);

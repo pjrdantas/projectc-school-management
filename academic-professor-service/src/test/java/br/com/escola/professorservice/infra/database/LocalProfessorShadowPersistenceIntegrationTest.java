@@ -626,6 +626,7 @@ class LocalProfessorShadowPersistenceIntegrationTest {
 
         mockMvc.perform(get("/actuator/health/professorShadowPersistence"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.details.buscarPorIdCutoverEnabled").value(false))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.listar.localTotal").value(1.0))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.listar.fallbackTotal").value(1.0))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.listar.fallbackIncompleteSyncStateTotal").value(1.0))
@@ -633,6 +634,9 @@ class LocalProfessorShadowPersistenceIntegrationTest {
                 .andExpect(jsonPath("$.details.shadowReadRoutes.listar.syncStateSummary.completeTotal").value(1))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.buscarPorId.localTotal").value(1.0))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.buscarPorId.fallbackTotal").value(1.0))
+                .andExpect(jsonPath("$.details.shadowReadRoutes.buscarPorId.cutoverEnabled").value(false))
+                .andExpect(jsonPath("$.details.shadowReadRoutes.buscarPorId.rollbackStrategy").value("disable_property"))
+                .andExpect(jsonPath("$.details.shadowReadRoutes.buscarPorId.localCutoverNotFoundTotal").value(0.0))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.buscarPorId.localRecordPresentTotal").value(1.0))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.buscarPorId.fallbackMissingLocalRecordTotal").value(1.0))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.listarAlocacoes.localTotal").value(1.0))

@@ -68,6 +68,7 @@ public class ProfessorShadowPersistenceHealthIndicator implements HealthIndicato
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("enabled", properties.enabled());
         details.put("failOnError", properties.failOnError());
+        details.put("buscarPorIdCutoverEnabled", properties.buscarPorIdCutoverEnabled());
         details.put("requestsTotal", totalContador("professor.shadow.local.persistence.requests"));
         details.put("createSuccessTotal", totalRequests("criar", "success"));
         details.put("allocateSuccessTotal", totalRequests("vincularTurmaDisciplina", "success"));
@@ -139,7 +140,7 @@ public class ProfessorShadowPersistenceHealthIndicator implements HealthIndicato
         for (ReadRouteDescriptor route : READ_ROUTES) {
             Map<String, Object> detalhe = new LinkedHashMap<>();
             detalhe.put("shadowRoute", route.shadowRoute());
-            detalhe.put("readStrategy", route.readStrategy());
+            detalhe.put("readStrategy", estrategiaLeitura(route));
             detalhe.put("localTotal", totalReadRequests(route.operation(), "local"));
             detalhe.put("fallbackTotal", totalReadRequests(route.operation(), "fallback"));
             detalhe.put("disabledTotal", totalReadRequests(route.operation(), "disabled"));
@@ -161,6 +162,10 @@ public class ProfessorShadowPersistenceHealthIndicator implements HealthIndicato
             } else if ("listarPorTurma".equals(route.operation())) {
                 detalhe.put("syncStateSummary", syncStates.get("alocacoesPorTurma"));
             } else if ("buscarPorId".equals(route.operation())) {
+                detalhe.put("cutoverEnabled", properties.buscarPorIdCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
+                detalhe.put("localCutoverNotFoundTotal",
+                        totalReadRequests(route.operation(), "local", "cutover_local_not_found"));
                 detalhe.put("storedProfessorRecords", repository.count());
             }
 
@@ -194,6 +199,13 @@ public class ProfessorShadowPersistenceHealthIndicator implements HealthIndicato
                 .map(java.time.LocalDateTime::toString)
                 .orElse(null));
         return resumo;
+    }
+
+    private String estrategiaLeitura(ReadRouteDescriptor route) {
+        if ("buscarPorId".equals(route.operation()) && properties.buscarPorIdCutoverEnabled()) {
+            return "local_record_presence_required_no_fallback";
+        }
+        return route.readStrategy();
     }
 
     private double totalRequests(String operation, String resultado) {
