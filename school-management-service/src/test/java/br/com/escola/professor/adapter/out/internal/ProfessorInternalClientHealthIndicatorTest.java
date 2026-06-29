@@ -30,7 +30,8 @@ class ProfessorInternalClientHealthIndicatorTest {
                 .containsEntry("mode", "disabled")
                 .containsEntry("fallbackLocalOnError", true)
                 .containsEntry("buscarPorIdCutoverEnabled", false)
-                .containsEntry("listarCutoverEnabled", false);
+                .containsEntry("listarCutoverEnabled", false)
+                .containsEntry("listarAlocacoesCutoverEnabled", false);
         @SuppressWarnings("unchecked")
         Map<String, Object> shadowReadRoutes = (Map<String, Object>) health.getDetails().get("shadowReadRoutes");
         assertThat(shadowReadRoutes).containsKeys("criar", "vincularTurmaDisciplina", "listar", "buscarPorId", "listarAlocacoes", "listarPorTurma");
@@ -43,6 +44,7 @@ class ProfessorInternalClientHealthIndicatorTest {
                 .withProperty("professor.internal-client.fallback-local-on-error", "true")
                 .withProperty("professor.internal-client.buscar-por-id-cutover-enabled", "true")
                 .withProperty("professor.internal-client.listar-cutover-enabled", "true")
+                .withProperty("professor.internal-client.listar-alocacoes-cutover-enabled", "true")
                 .withProperty("professor.internal-client.base-url", "http://localhost:8080");
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         Counter.builder("professor.internal.client.requests")
@@ -80,6 +82,7 @@ class ProfessorInternalClientHealthIndicatorTest {
                 .containsEntry("fallbackLocalOnError", true)
                 .containsEntry("buscarPorIdCutoverEnabled", true)
                 .containsEntry("listarCutoverEnabled", true)
+                .containsEntry("listarAlocacoesCutoverEnabled", true)
                 .containsEntry("baseUrlScheme", "http")
                 .containsEntry("baseUrlHost", "localhost")
                 .containsEntry("requestsTotal", 6.0d)
@@ -94,6 +97,8 @@ class ProfessorInternalClientHealthIndicatorTest {
         Map<String, Object> listar = (Map<String, Object>) shadowReadRoutes.get("listar");
         @SuppressWarnings("unchecked")
         Map<String, Object> buscarPorId = (Map<String, Object>) shadowReadRoutes.get("buscarPorId");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> listarAlocacoes = (Map<String, Object>) shadowReadRoutes.get("listarAlocacoes");
         @SuppressWarnings("unchecked")
         Map<String, Object> listarPorTurma = (Map<String, Object>) shadowReadRoutes.get("listarPorTurma");
         assertThat(criar)
@@ -115,6 +120,11 @@ class ProfessorInternalClientHealthIndicatorTest {
                 .containsEntry("fallbackStrategy", "disabled_for_route")
                 .containsEntry("cutoverEnabled", true)
                 .containsEntry("rollbackStrategy", "disable_property");
+        assertThat(listarAlocacoes)
+                .containsEntry("externalRoute", "GET /api/professores/{id}/turmas-disciplinas")
+                .containsEntry("fallbackStrategy", "disabled_for_route")
+                .containsEntry("cutoverEnabled", true)
+                .containsEntry("rollbackStrategy", "disable_property");
         assertThat(listarPorTurma)
                 .containsEntry("externalRoute", "GET /api/turmas/{turmaId}/professores")
                 .containsEntry("internalRoute", "GET /internal/professores/turmas/{turmaId}")
@@ -128,6 +138,7 @@ class ProfessorInternalClientHealthIndicatorTest {
                 .withProperty("professor.internal-client.enabled", "true")
                 .withProperty("professor.internal-client.buscar-por-id-cutover-enabled", "true")
                 .withProperty("professor.internal-client.listar-cutover-enabled", "true")
+                .withProperty("professor.internal-client.listar-alocacoes-cutover-enabled", "true")
                 .withProperty("professor.internal-client.base-url", "://invalida");
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
 

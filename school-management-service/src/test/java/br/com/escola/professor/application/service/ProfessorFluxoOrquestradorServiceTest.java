@@ -59,7 +59,7 @@ class ProfessorFluxoOrquestradorServiceTest {
     @Test
     void deveUsarClienteInternoQuandoFeatureHabilitada() {
         UUID professorId = UUID.randomUUID();
-        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false);
         when(professorInternalApiClient.buscarProfessor(ESCOLA_ID, professorId))
                 .thenReturn(Optional.of(professorResumo(professorId)));
 
@@ -78,7 +78,7 @@ class ProfessorFluxoOrquestradorServiceTest {
 
     @Test
     void deveUsarClienteInternoParaListagemQuandoFeatureHabilitada() {
-        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false);
         when(professorInternalApiClient.listarProfessores(ESCOLA_ID))
                 .thenReturn(List.of(professorResumo(UUID.randomUUID())));
 
@@ -98,7 +98,7 @@ class ProfessorFluxoOrquestradorServiceTest {
     @Test
     void deveFazerFallbackParaServicoLocalQuandoClienteInternoFalha() {
         UUID professorId = UUID.randomUUID();
-        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false);
         when(professorInternalApiClient.listarAlocacoes(ESCOLA_ID, professorId))
                 .thenThrow(new RestClientException("falha interna"));
         when(professorService.listarAlocacoes(professorId))
@@ -130,7 +130,7 @@ class ProfessorFluxoOrquestradorServiceTest {
     @Test
     void deveFazerFallbackParaServicoLocalQuandoListarPorTurmaFalhaNoClienteInterno() {
         UUID turmaId = UUID.randomUUID();
-        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false);
         when(professorInternalApiClient.listarProfessoresPorTurma(ESCOLA_ID, turmaId))
                 .thenThrow(new RestClientException("falha interna"));
         when(professorService.listarPorTurma(turmaId))
@@ -163,7 +163,7 @@ class ProfessorFluxoOrquestradorServiceTest {
     void deveUsarServicoLocalQuandoFeatureEstiverDesabilitada() {
         UUID funcionarioId = UUID.randomUUID();
         ProfessorRequest request = new ProfessorRequest(funcionarioId, "RP-1", "Licenciatura", true);
-        ProfessorFluxoOrquestradorService service = novoService(false, true, false, false);
+        ProfessorFluxoOrquestradorService service = novoService(false, true, false, false, false);
         when(professorService.criar(request)).thenReturn(professorResponse());
 
         ProfessorResponse response = service.criar(request);
@@ -182,7 +182,7 @@ class ProfessorFluxoOrquestradorServiceTest {
     @Test
     void devePropagarErroQuandoFallbackEstiverDesabilitado() {
         UUID professorId = UUID.randomUUID();
-        ProfessorFluxoOrquestradorService service = novoService(true, false, false, false);
+        ProfessorFluxoOrquestradorService service = novoService(true, false, false, false, false);
         when(professorInternalApiClient.buscarProfessor(ESCOLA_ID, professorId))
                 .thenThrow(new RestClientException("falha interna"));
 
@@ -194,7 +194,7 @@ class ProfessorFluxoOrquestradorServiceTest {
     @Test
     void deveFazerFallbackLocalNoBuscarPorIdQuandoCutoverAindaNaoEstaAtivo() {
         UUID professorId = UUID.randomUUID();
-        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false);
         when(professorInternalApiClient.buscarProfessor(ESCOLA_ID, professorId))
                 .thenThrow(new RestClientException("falha interna"));
         when(professorService.buscarPorId(professorId)).thenReturn(professorResponse());
@@ -214,7 +214,7 @@ class ProfessorFluxoOrquestradorServiceTest {
     @Test
     void devePropagarErroNoBuscarPorIdSemFallbackQuandoCutoverEstaAtivo() {
         UUID professorId = UUID.randomUUID();
-        ProfessorFluxoOrquestradorService service = novoService(true, true, true, false);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, true, false, false);
         when(professorInternalApiClient.buscarProfessor(ESCOLA_ID, professorId))
                 .thenThrow(new RestClientException("falha interna"));
 
@@ -231,7 +231,7 @@ class ProfessorFluxoOrquestradorServiceTest {
 
     @Test
     void deveFazerFallbackLocalNoListarQuandoCutoverAindaNaoEstaAtivo() {
-        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false);
         when(professorInternalApiClient.listarProfessores(ESCOLA_ID))
                 .thenThrow(new RestClientException("falha interna"));
         when(professorService.listar()).thenReturn(List.of(professorResponse()));
@@ -250,7 +250,7 @@ class ProfessorFluxoOrquestradorServiceTest {
 
     @Test
     void devePropagarErroNoListarSemFallbackQuandoCutoverEstaAtivo() {
-        ProfessorFluxoOrquestradorService service = novoService(true, true, false, true);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, true, false);
         when(professorInternalApiClient.listarProfessores(ESCOLA_ID))
                 .thenThrow(new RestClientException("falha interna"));
 
@@ -265,11 +265,51 @@ class ProfessorFluxoOrquestradorServiceTest {
                 .count()).isEqualTo(1.0d);
     }
 
+    @Test
+    void deveFazerFallbackLocalNoListarAlocacoesQuandoCutoverAindaNaoEstaAtivo() {
+        UUID professorId = UUID.randomUUID();
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false);
+        when(professorInternalApiClient.listarAlocacoes(ESCOLA_ID, professorId))
+                .thenThrow(new RestClientException("falha interna"));
+        when(professorService.listarAlocacoes(professorId))
+                .thenReturn(List.of(alocacaoResponse(professorId)));
+
+        List<ProfessorAlocacaoResponse> response = service.listarAlocacoes(professorId);
+
+        assertThat(response).hasSize(1);
+        verify(professorService).listarAlocacoes(professorId);
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listarAlocacoes")
+                .tag("destino", "local")
+                .tag("resultado", "fallback")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void devePropagarErroNoListarAlocacoesSemFallbackQuandoCutoverEstaAtivo() {
+        UUID professorId = UUID.randomUUID();
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, true);
+        when(professorInternalApiClient.listarAlocacoes(ESCOLA_ID, professorId))
+                .thenThrow(new RestClientException("falha interna"));
+
+        assertThrows(RestClientException.class, () -> service.listarAlocacoes(professorId));
+
+        verify(professorService, never()).listarAlocacoes(professorId);
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listarAlocacoes")
+                .tag("destino", "internal")
+                .tag("resultado", "error")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
     private ProfessorFluxoOrquestradorService novoService(
             boolean enabled,
             boolean fallbackLocalOnError,
             boolean buscarPorIdCutoverEnabled,
-            boolean listarCutoverEnabled) {
+            boolean listarCutoverEnabled,
+            boolean listarAlocacoesCutoverEnabled) {
         return new ProfessorFluxoOrquestradorService(
                 professorService,
                 professorInternalApiClient,
@@ -278,7 +318,8 @@ class ProfessorFluxoOrquestradorServiceTest {
                 enabled,
                 fallbackLocalOnError,
                 buscarPorIdCutoverEnabled,
-                listarCutoverEnabled);
+                listarCutoverEnabled,
+                listarAlocacoesCutoverEnabled);
     }
 
     private ProfessorResumo professorResumo(UUID professorId) {

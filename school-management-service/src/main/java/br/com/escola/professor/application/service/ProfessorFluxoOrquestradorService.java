@@ -33,6 +33,7 @@ public class ProfessorFluxoOrquestradorService {
     private final boolean fallbackLocalOnError;
     private final boolean buscarPorIdCutoverEnabled;
     private final boolean listarCutoverEnabled;
+    private final boolean listarAlocacoesCutoverEnabled;
 
     public ProfessorFluxoOrquestradorService(
             ProfessorService professorService,
@@ -42,7 +43,8 @@ public class ProfessorFluxoOrquestradorService {
             @Value("${professor.internal-client.enabled:false}") boolean internalClientEnabled,
             @Value("${professor.internal-client.fallback-local-on-error:true}") boolean fallbackLocalOnError,
             @Value("${professor.internal-client.buscar-por-id-cutover-enabled:false}") boolean buscarPorIdCutoverEnabled,
-            @Value("${professor.internal-client.listar-cutover-enabled:false}") boolean listarCutoverEnabled) {
+            @Value("${professor.internal-client.listar-cutover-enabled:false}") boolean listarCutoverEnabled,
+            @Value("${professor.internal-client.listar-alocacoes-cutover-enabled:false}") boolean listarAlocacoesCutoverEnabled) {
         this.professorService = professorService;
         this.professorInternalApiClient = professorInternalApiClient;
         this.escolaTenantService = escolaTenantService;
@@ -51,6 +53,7 @@ public class ProfessorFluxoOrquestradorService {
         this.fallbackLocalOnError = fallbackLocalOnError;
         this.buscarPorIdCutoverEnabled = buscarPorIdCutoverEnabled;
         this.listarCutoverEnabled = listarCutoverEnabled;
+        this.listarAlocacoesCutoverEnabled = listarAlocacoesCutoverEnabled;
     }
 
     public ProfessorResponse criar(ProfessorRequest request) {
@@ -153,6 +156,9 @@ public class ProfessorFluxoOrquestradorService {
             return false;
         }
         if ("listar".equals(operacao) && listarCutoverEnabled) {
+            return false;
+        }
+        if ("listarAlocacoes".equals(operacao) && listarAlocacoesCutoverEnabled) {
             return false;
         }
         if ("buscarPorId".equals(operacao) && buscarPorIdCutoverEnabled) {
