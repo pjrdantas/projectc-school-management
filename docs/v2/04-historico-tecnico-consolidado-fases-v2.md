@@ -467,6 +467,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   essa fronteira na criacao de sessao, no refresh e na resolucao de contexto
   autenticado, preservando o contrato externo e preparando o menor ponto de
   evolucao futura para selecao explicita de escola ativa.
+- A quinta subfase da Fase 52 iniciou a fundacao persistente de
+  `usuario_escola` sem trocar ainda a leitura do tenant ativo. Foi criada uma
+  migration aditiva com backfill do vinculo atual a partir de
+  `usuario.id_escola`, alem da entidade, repositorio e porta interna
+  `UsuarioEscolaPort`. O `UsuarioInteractor` passou a sincronizar esse vinculo
+  explicitamente nos writes de usuario, sempre de forma aditiva e sem remover
+  historico de escolas ja vinculadas. Com isso, o backend deixa preparado o
+  primeiro bloco real para futura selecao explicita de escola ativa, enquanto
+  o comportamento externo continua estavel.
 
 ## Historico resumido
 

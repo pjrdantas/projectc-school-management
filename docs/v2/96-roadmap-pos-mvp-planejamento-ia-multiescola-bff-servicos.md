@@ -1616,3 +1616,31 @@ Proxima subfase pratica:
   ativa sem cutover externo imediato;
 - manter o trabalho no backend/backend, ainda sem extracao fisica dos servicos
   `identity-access-service` e `institutional-tenant-service`.
+
+Entregue na quinta subfase da Fase 52:
+
+- foi aplicado o primeiro passo real e aditivo para sair de `usuario.id_escola`
+  como unica fonte estrutural de vinculo usuario-escola: a nova tabela
+  `usuario_escola` passou a existir por migration propria, com backfill inicial
+  a partir do estado atual de `usuario.id_escola`;
+- a fundacao foi mantida sem cutover de leitura: o tenant ativo continua sendo
+  resolvido pelo comportamento legado ja explicitado em `TenantAtivoPort`,
+  enquanto `usuario_escola` passa a ser preenchida e preservada para a proxima
+  etapa;
+- foi criado o contrato interno `UsuarioEscolaPort`, com implementacao
+  `UsuarioEscolaService`, para garantir o vinculo explicito e listar as escolas
+  do usuario sem depender de SQL espalhado pelos casos de uso;
+- o write de usuario no backend passou a sincronizar esse vinculo de forma
+  aditiva e de baixo risco: `UsuarioInteractor` agora garante em
+  `usuario_escola` a escola corrente do usuario no create e no update, sem
+  remover vinculos anteriores e sem alterar o contrato externo de usuarios;
+- o rollback continua simples, porque a etapa apenas adiciona tabela,
+  repositorio e sincronizacao complementar, sem trocar a autoridade atual de
+  leitura do tenant nem exigir mudanca no BFF.
+
+Proxima subfase pratica:
+
+- usar essa fundacao para desenhar e implementar o menor fluxo interno de
+  selecao explicita de escola ativa, ainda sem expor rota externa nova no BFF;
+- definir como `sessao_autenticacao.id_escola` passa de reflexo do legado para
+  resultado de uma escolha validada contra `usuario_escola`.
