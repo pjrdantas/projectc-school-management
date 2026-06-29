@@ -18,8 +18,9 @@ import io.micrometer.core.instrument.MeterRegistry;
         properties = {
                 "management.endpoint.health.show-details=always",
                 "professor.internal-client.enabled=true",
-                "professor.internal-client.fallback-local-on-error=false",
+                "professor.internal-client.fallback-local-on-error=true",
                 "professor.internal-client.buscar-por-id-cutover-enabled=true",
+                "professor.internal-client.listar-cutover-enabled=true",
                 "professor.internal-client.base-url=http://localhost:${local.server.port}"
         })
 class ProfessorInternalClientHealthEndpointIntegrationTest {
@@ -68,8 +69,9 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
         Map<String, Object> details = (Map<String, Object>) health.get("details");
         assertThat(details)
                 .containsEntry("enabled", true)
-                .containsEntry("fallbackLocalOnError", false)
+                .containsEntry("fallbackLocalOnError", true)
                 .containsEntry("buscarPorIdCutoverEnabled", true)
+                .containsEntry("listarCutoverEnabled", true)
                 .containsEntry("baseUrlScheme", "http")
                 .containsEntry("baseUrlHost", "localhost")
                 .containsEntry("requestsTotal", 4.0d)
@@ -93,7 +95,10 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
                 .containsEntry("externalRoute", "POST /api/professores/{id}/turmas-disciplinas");
         assertThat(listar)
                 .containsEntry("externalRoute", "GET /api/professores")
-                .containsEntry("internalSuccessTotal", 2.0d);
+                .containsEntry("internalSuccessTotal", 2.0d)
+                .containsEntry("fallbackStrategy", "disabled_for_route")
+                .containsEntry("cutoverEnabled", true)
+                .containsEntry("rollbackStrategy", "disable_property");
         assertThat(buscarPorId)
                 .containsEntry("externalRoute", "GET /api/professores/{id}")
                 .containsEntry("fallbackStrategy", "disabled_for_route")
