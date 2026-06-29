@@ -23,8 +23,10 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.escola.professorservice.infra.database.entity.ProfessorShadowJpaEntity;
+import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowSyncStateJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowJpaRepository;
+import br.com.escola.professorservice.infra.database.repository.ProfessorTurmaShadowSyncStateJpaRepository;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 
@@ -48,6 +50,12 @@ class LocalProfessorShadowPersistenceIntegrationTest {
     @Autowired
     private ProfessorAlocacaoShadowJpaRepository alocacaoRepository;
 
+    @Autowired
+    private ProfessorAlocacaoShadowSyncStateJpaRepository alocacaoSyncStateRepository;
+
+    @Autowired
+    private ProfessorTurmaShadowSyncStateJpaRepository turmaSyncStateRepository;
+
     @BeforeAll
     static void beforeAll() throws IOException {
         mockWebServer = new MockWebServer();
@@ -61,6 +69,8 @@ class LocalProfessorShadowPersistenceIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        alocacaoSyncStateRepository.deleteAll();
+        turmaSyncStateRepository.deleteAll();
         repository.deleteAll();
         alocacaoRepository.deleteAll();
     }
@@ -134,6 +144,7 @@ class LocalProfessorShadowPersistenceIntegrationTest {
         UUID professorId = UUID.randomUUID();
         UUID turmaDisciplinaId = UUID.randomUUID();
         UUID alocacaoId = UUID.randomUUID();
+        UUID turmaId = UUID.randomUUID();
 
         repository.save(new ProfessorShadowJpaEntity(
                 professorId,
@@ -170,7 +181,7 @@ class LocalProfessorShadowPersistenceIntegrationTest {
                         alocacaoId,
                         professorId,
                         turmaDisciplinaId,
-                        UUID.randomUUID(),
+                        turmaId,
                         UUID.randomUUID())));
 
         mockMvc.perform(post("/internal/v1/professores/{id}/turmas-disciplinas", professorId)
@@ -191,6 +202,22 @@ class LocalProfessorShadowPersistenceIntegrationTest {
                 .andExpect(jsonPath("$.id").value(alocacaoId.toString()));
 
         assertThat(alocacaoRepository.findById(alocacaoId)).isPresent();
+        assertThat(alocacaoSyncStateRepository.findById(professorId))
+                .isPresent()
+                .get()
+                .satisfies(state -> {
+                    assertThat(state.getEscolaId()).isEqualTo(escolaId);
+                    assertThat(state.getAlocacoesCompletas()).isTrue();
+                    assertThat(state.getAlocacaoCount()).isEqualTo(1L);
+                });
+        assertThat(turmaSyncStateRepository.findById(turmaId))
+                .isPresent()
+                .get()
+                .satisfies(state -> {
+                    assertThat(state.getEscolaId()).isEqualTo(escolaId);
+                    assertThat(state.getAlocacoesCompletas()).isTrue();
+                    assertThat(state.getAlocacaoCount()).isEqualTo(1L);
+                });
 
         mockMvc.perform(get("/actuator/health/professorShadowPersistence"))
                 .andExpect(status().isOk())
@@ -278,6 +305,7 @@ class LocalProfessorShadowPersistenceIntegrationTest {
         UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
         UUID professorId = UUID.randomUUID();
         UUID turmaDisciplinaId = UUID.randomUUID();
+        UUID turmaId = UUID.randomUUID();
 
         mockWebServer.enqueue(new MockResponse()
                 .setHeader("Content-Type", "application/json")
@@ -301,7 +329,7 @@ class LocalProfessorShadowPersistenceIntegrationTest {
                         UUID.randomUUID(),
                         professorId,
                         turmaDisciplinaId,
-                        UUID.randomUUID(),
+                        turmaId,
                         UUID.randomUUID())));
 
         mockMvc.perform(post("/internal/v1/professores/{id}/turmas-disciplinas", professorId)
@@ -322,6 +350,8 @@ class LocalProfessorShadowPersistenceIntegrationTest {
                 .andExpect(jsonPath("$.professorId").value(professorId.toString()));
 
         assertThat(alocacaoRepository.count()).isZero();
+        assertThat(alocacaoSyncStateRepository.findById(professorId)).isEmpty();
+        assertThat(turmaSyncStateRepository.findById(turmaId)).isEmpty();
 
         mockMvc.perform(get("/actuator/health/professorShadowPersistence"))
                 .andExpect(status().isServiceUnavailable())

@@ -17,9 +17,13 @@ import br.com.escola.professorservice.application.exception.ProfessorShadowPersi
 import br.com.escola.professorservice.application.port.out.ProfessorShadowPersistencePort;
 import br.com.escola.professorservice.infra.config.ProfessorShadowLocalPersistenceProperties;
 import br.com.escola.professorservice.infra.database.entity.ProfessorAlocacaoShadowJpaEntity;
+import br.com.escola.professorservice.infra.database.entity.ProfessorAlocacaoShadowSyncStateJpaEntity;
 import br.com.escola.professorservice.infra.database.entity.ProfessorShadowJpaEntity;
+import br.com.escola.professorservice.infra.database.entity.ProfessorTurmaShadowSyncStateJpaEntity;
 import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowJpaRepository;
+import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowSyncStateJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowJpaRepository;
+import br.com.escola.professorservice.infra.database.repository.ProfessorTurmaShadowSyncStateJpaRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 
 @Repository
@@ -28,16 +32,22 @@ public class LocalProfessorShadowPersistenceAdapter implements ProfessorShadowPe
 
     private final ProfessorShadowJpaRepository repository;
     private final ProfessorAlocacaoShadowJpaRepository alocacaoRepository;
+    private final ProfessorAlocacaoShadowSyncStateJpaRepository alocacaoSyncStateRepository;
+    private final ProfessorTurmaShadowSyncStateJpaRepository turmaSyncStateRepository;
     private final ProfessorShadowLocalPersistenceProperties properties;
     private final MeterRegistry meterRegistry;
 
     public LocalProfessorShadowPersistenceAdapter(
             ProfessorShadowJpaRepository repository,
             ProfessorAlocacaoShadowJpaRepository alocacaoRepository,
+            ProfessorAlocacaoShadowSyncStateJpaRepository alocacaoSyncStateRepository,
+            ProfessorTurmaShadowSyncStateJpaRepository turmaSyncStateRepository,
             ProfessorShadowLocalPersistenceProperties properties,
             MeterRegistry meterRegistry) {
         this.repository = repository;
         this.alocacaoRepository = alocacaoRepository;
+        this.alocacaoSyncStateRepository = alocacaoSyncStateRepository;
+        this.turmaSyncStateRepository = turmaSyncStateRepository;
         this.properties = properties;
         this.meterRegistry = meterRegistry;
     }
@@ -81,6 +91,7 @@ public class LocalProfessorShadowPersistenceAdapter implements ProfessorShadowPe
         try {
             validarAlocacaoDivergencia(context.escolaId(), request, response);
             alocacaoRepository.save(toEntity(response));
+            atualizarSyncStateDeAlocacao(context, response);
             registrarRequisicao("vincularTurmaDisciplina", "success");
         } catch (ProfessorShadowPersistenceDivergenceException exception) {
             registrarRequisicao("vincularTurmaDisciplina", "divergence");
@@ -159,6 +170,24 @@ public class LocalProfessorShadowPersistenceAdapter implements ProfessorShadowPe
             throw new ProfessorShadowPersistenceDivergenceException(
                     "Alocacao ja existe localmente com identidade diferente da retornada pelo monolito");
         }
+    }
+
+    private void atualizarSyncStateDeAlocacao(InternalRequestContext context, ProfessorAlocacaoResponse response) {
+        long professorCount = alocacaoRepository.findAllByProfessorIdOrderByCreatedAtAsc(response.professorId()).size();
+        long turmaCount = alocacaoRepository.findAllByTurmaIdOrderByCreatedAtAsc(response.turmaId()).size();
+
+        alocacaoSyncStateRepository.save(new ProfessorAlocacaoShadowSyncStateJpaEntity(
+                response.professorId(),
+                context.escolaId(),
+                true,
+                professorCount,
+                response.createdAt()));
+        turmaSyncStateRepository.save(new ProfessorTurmaShadowSyncStateJpaEntity(
+                response.turmaId(),
+                context.escolaId(),
+                true,
+                turmaCount,
+                response.createdAt()));
     }
 
     private void registrarRequisicao(String operacao, String resultado) {
