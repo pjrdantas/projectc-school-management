@@ -485,6 +485,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   quando o usuario possui vinculo explicito com a escola solicitada. Assim,
   `sessao_autenticacao.id_escola` passa a registrar uma escolha validada de
   tenant, ainda sem mudar o contrato externo do login ou exigir acao do BFF.
+- A setima subfase da Fase 52 fechou o bloco minimo de compatibilidade do
+  login multiescola no backend atual. `POST /api/auth/login` passou a aceitar
+  `escolaId` opcional sem romper o payload existente; quando informado, o
+  backend valida o vinculo em `usuario_escola` antes de criar a sessao, e
+  `sessao_autenticacao.id_escola` ja nasce com a escola escolhida. Quando
+  ausente, o comportamento legado continua implicito e retrocompativel. Com
+  isso, sessao, tenant ativo, vinculo usuario-escola e selecao de escola ficam
+  fechados como fronteiras internas preparatorias para a futura extracao fisica
+  de `identity-access-service` e `institutional-tenant-service`.
 
 ## Historico resumido
 

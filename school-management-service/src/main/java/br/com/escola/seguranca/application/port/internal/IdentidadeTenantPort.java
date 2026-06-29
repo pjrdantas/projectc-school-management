@@ -10,7 +10,7 @@ import br.com.escola.seguranca.application.dto.internal.SessaoAutenticadaResumo;
 
 public interface IdentidadeTenantPort {
 
-    SessaoAutenticadaResumo autenticar(String login, String senha);
+    SessaoAutenticadaResumo autenticar(String login, String senha, UUID escolaId);
 
     SessaoAutenticadaResumo renovarSessao(String refreshToken);
 

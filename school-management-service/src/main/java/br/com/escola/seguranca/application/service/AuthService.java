@@ -1,5 +1,7 @@
 package br.com.escola.seguranca.application.service;
 
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 
 import br.com.escola.seguranca.adapter.in.web.dto.AuthContextResponse;
@@ -16,8 +18,8 @@ public class AuthService {
         this.identidadeTenantPort = identidadeTenantPort;
     }
 
-    public AuthResponse login(String login, String senha) {
-        return toAuthResponse(identidadeTenantPort.autenticar(login, senha));
+    public AuthResponse login(String login, String senha, UUID escolaId) {
+        return toAuthResponse(identidadeTenantPort.autenticar(login, senha, escolaId));
     }
 
     public AuthResponse refresh(String refreshToken) {

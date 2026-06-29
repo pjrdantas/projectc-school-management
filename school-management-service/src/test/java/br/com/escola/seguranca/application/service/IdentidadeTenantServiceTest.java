@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
@@ -92,7 +93,7 @@ class IdentidadeTenantServiceTest {
         when(usuarioRepository.findPerfisByIdUsuario(usuarioId)).thenReturn(List.of("PROFESSOR"));
         when(usuarioRepository.findPermissoesByIdUsuario(usuarioId)).thenReturn(List.of("PLANEJAMENTO_LEITURA"));
 
-        var resumo = service.autenticar("professor52", "senha123");
+        var resumo = service.autenticar("professor52", "senha123", null);
 
         assertThat(resumo.usuarioId()).isEqualTo(usuarioId);
         assertThat(resumo.professorId()).isEqualTo(professorId);
@@ -169,6 +170,42 @@ class IdentidadeTenantServiceTest {
         assertThat(contexto.escolaNome()).isEqualTo("Escola Nova");
         assertThat(sessao.getEscola().getId()).isEqualTo(novaEscolaId);
         verify(sessaoRepository).save(sessao);
+    }
+
+    @Test
+    void deveAutenticarComEscolaInformadaQuandoUsuarioPossuirVinculo() {
+        UUID usuarioId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+        UsuarioEntity usuario = usuario(usuarioId, "professor52login", "prof52login@example.com", "senha123");
+        EscolaEntity escola = escola(escolaId, "Escola Escolhida");
+
+        when(usuarioRepository.findByUsernameIgnoreCaseAndAtivoTrue("professor52login")).thenReturn(Optional.of(usuario));
+        when(usuarioEscolaPort.usuarioTemVinculo(usuarioId, escolaId)).thenReturn(true);
+        when(tenantAtivoPort.carregarEscola(escolaId)).thenReturn(escola);
+        when(professorRepository.findByUsuario_IdAndPessoa_Escola_Id(usuarioId, escolaId)).thenReturn(Optional.empty());
+        when(professorRepository.findAtivoByPessoaEmailIgnoreCaseAndEscolaId("prof52login@example.com", escolaId))
+                .thenReturn(Optional.empty());
+        when(usuarioRepository.findPerfisByIdUsuario(usuarioId)).thenReturn(List.of("PROFESSOR"));
+        when(usuarioRepository.findPermissoesByIdUsuario(usuarioId)).thenReturn(List.of("PLANEJAMENTO_LEITURA"));
+
+        var resumo = service.autenticar("professor52login", "senha123", escolaId);
+
+        assertThat(resumo.escolaId()).isEqualTo(escolaId);
+        assertThat(resumo.escolaNome()).isEqualTo("Escola Escolhida");
+        verify(sessaoRepository).save(any(SessaoAutenticacaoEntity.class));
+    }
+
+    @Test
+    void deveNegarAutenticacaoQuandoEscolaInformadaNaoPertencerAoUsuario() {
+        UUID usuarioId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+        UsuarioEntity usuario = usuario(usuarioId, "professor52negado", "prof52negado@example.com", "senha123");
+
+        when(usuarioRepository.findByUsernameIgnoreCaseAndAtivoTrue("professor52negado")).thenReturn(Optional.of(usuario));
+        when(usuarioEscolaPort.usuarioTemVinculo(usuarioId, escolaId)).thenReturn(false);
+
+        org.junit.jupiter.api.Assertions.assertThrows(AccessDeniedException.class,
+                () -> service.autenticar("professor52negado", "senha123", escolaId));
     }
 
     private UsuarioEntity usuario(UUID id, String username, String email, String senhaHash) {

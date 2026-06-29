@@ -1671,3 +1671,30 @@ Proxima subfase pratica:
   `identity-access-service` e `institutional-tenant-service`, agora que sessao,
   vinculo usuario-escola e escolha de tenant ja possuem fronteiras internas
   separadas.
+
+Entregue na setima subfase da Fase 52:
+
+- o bloco de identidade e tenant foi fechado com a definicao compativel do
+  login multiescola: `POST /api/auth/login` passou a aceitar `escolaId`
+  opcional, sem quebrar o payload ja consumido pelos clientes atuais;
+- quando `escolaId` nao e informado, o comportamento continua implicito e
+  retrocompativel, reaproveitando a resolucao legada da escola ativa por
+  default;
+- quando `escolaId` e informado, o backend valida o vinculo do usuario contra
+  `usuario_escola` antes de abrir a sessao, e a sessao autenticada ja nasce com
+  essa escola ativa persistida em `sessao_autenticacao.id_escola`;
+- a troca explicita iniciada na sexta subfase e a escolha opcional no login
+  agora cobrem os dois pontos minimos do ciclo de sessao sem exigir mudanca no
+  BFF nem no frontend nesta etapa;
+- com isso, a macrofase 52 fica encerrada no backend atual com fronteiras
+  internas explicitas para sessao, vinculo usuario-escola, tenant ativo e
+  selecao de escola, reduzindo o risco da futura extracao fisica de
+  `identity-access-service` e `institutional-tenant-service`.
+
+Proxima fase pratica:
+
+- iniciar a preparacao fisica minima dos modulos `identity-access-service` e
+  `institutional-tenant-service`, reaproveitando os contratos internos ja
+  estabilizados no monolito;
+- manter o recorte backend/backend, sem cutover de BFF e sem migracao ampla de
+  persistencia nesta primeira etapa da extracao fisica.

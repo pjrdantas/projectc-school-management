@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,7 +64,7 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
 
     @Override
     @Transactional
-    public SessaoAutenticadaResumo autenticar(String login, String senha) {
+    public SessaoAutenticadaResumo autenticar(String login, String senha, UUID escolaId) {
         UsuarioEntity usuario = usuarioRepository.findByUsernameIgnoreCaseAndAtivoTrue(login)
                 .or(() -> usuarioRepository.findByEmailIgnoreCaseAndAtivoTrue(login))
                 .or(() -> usuarioRepository.findByUsernameTrimmedIgnoreCaseAndAtivoTrue(login))
@@ -80,8 +81,7 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
 
         String accessToken = gerarToken();
         String refreshToken = gerarToken();
-        TenantAtivoResumo tenantAtivo = tenantAtivoPort.resolverTenantAtivo(usuario);
-        EscolaEntity escolaAtiva = tenantAtivoPort.carregarEscola(tenantAtivo.escolaId());
+        EscolaEntity escolaAtiva = resolverEscolaAtivaInicial(usuario, escolaId);
 
         sessaoRepository.save(new SessaoAutenticacaoEntity(
                 usuario,
@@ -188,7 +188,7 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
         UsuarioEntity usuario = sessao.getUsuario();
 
         if (!usuarioEscolaPort.usuarioTemVinculo(usuario.getId(), escolaId)) {
-            throw new IllegalArgumentException("Usuário não possui vínculo com a escola informada.");
+            throw new AccessDeniedException("Usuário não possui vínculo com a escola informada.");
         }
 
         EscolaEntity escola = tenantAtivoPort.carregarEscola(escolaId);
@@ -202,6 +202,18 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
                 usuario.getUsername(),
                 usuarioRepository.findPerfisByIdUsuario(usuario.getId()),
                 usuarioRepository.findPermissoesByIdUsuario(usuario.getId()));
+    }
+
+    private EscolaEntity resolverEscolaAtivaInicial(UsuarioEntity usuario, UUID escolaIdInformada) {
+        if (escolaIdInformada != null) {
+            if (!usuarioEscolaPort.usuarioTemVinculo(usuario.getId(), escolaIdInformada)) {
+                throw new AccessDeniedException("Usuário não possui vínculo com a escola informada.");
+            }
+            return tenantAtivoPort.carregarEscola(escolaIdInformada);
+        }
+
+        TenantAtivoResumo tenantAtivo = tenantAtivoPort.resolverTenantAtivo(usuario);
+        return tenantAtivoPort.carregarEscola(tenantAtivo.escolaId());
     }
 
     private SessaoAutenticadaResumo resumirSessao(

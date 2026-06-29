@@ -26,19 +26,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Sql(
         statements = {
                 "DELETE FROM sessao_autenticacao WHERE id_usuario IN (SELECT id_usuario FROM usuario WHERE username LIKE 'professor44f%')",
+                "DELETE FROM usuario_escola WHERE id_usuario IN (SELECT id_usuario FROM usuario WHERE username LIKE 'professor44f%')",
                 "DELETE FROM usuario_perfil WHERE id_usuario IN (SELECT id_usuario FROM usuario WHERE username LIKE 'professor44f%')",
                 "DELETE FROM professor WHERE id_usuario IN (SELECT id_usuario FROM usuario WHERE username LIKE 'professor44f%')",
                 "DELETE FROM usuario WHERE username LIKE 'professor44f%'",
-                "DELETE FROM pessoa WHERE email LIKE 'professor44f.%'"
+                "DELETE FROM pessoa WHERE email LIKE 'professor44f.%'",
+                "DELETE FROM escola WHERE id_escola = '00000000-0000-0000-0000-000000000048'"
         },
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(
         statements = {
                 "DELETE FROM sessao_autenticacao WHERE id_usuario IN (SELECT id_usuario FROM usuario WHERE username LIKE 'professor44f%')",
+                "DELETE FROM usuario_escola WHERE id_usuario IN (SELECT id_usuario FROM usuario WHERE username LIKE 'professor44f%')",
                 "DELETE FROM usuario_perfil WHERE id_usuario IN (SELECT id_usuario FROM usuario WHERE username LIKE 'professor44f%')",
                 "DELETE FROM professor WHERE id_usuario IN (SELECT id_usuario FROM usuario WHERE username LIKE 'professor44f%')",
                 "DELETE FROM usuario WHERE username LIKE 'professor44f%'",
-                "DELETE FROM pessoa WHERE email LIKE 'professor44f.%'"
+                "DELETE FROM pessoa WHERE email LIKE 'professor44f.%'",
+                "DELETE FROM escola WHERE id_escola = '00000000-0000-0000-0000-000000000048'"
         },
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 class AuthControllerIntegrationTest {
@@ -120,6 +124,55 @@ class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.escolaId").value("00000000-0000-0000-0000-000000000047"))
                 .andExpect(jsonPath("$.escolaNome").value("Escola padrão"))
                 .andExpect(jsonPath("$.username").value("professor44fctx"));
+    }
+
+    @Test
+    void devePermitirLoginComEscolaInformadaSemQuebrarContratoAtual() throws Exception {
+        UUID usuarioId = UUID.randomUUID();
+        UUID segundaEscolaId = UUID.fromString("00000000-0000-0000-0000-000000000048");
+
+        jdbcTemplate.update("""
+                INSERT INTO escola (id_escola, nome, codigo_inep, cnpj, ativo, created_at)
+                VALUES (?, 'Escola 48', ?, ?, true, CURRENT_TIMESTAMP)
+                """, segundaEscolaId, "48000000", "48000000000048");
+        jdbcTemplate.update("""
+                INSERT INTO usuario (id_usuario, username, nome, email, senha_hash, ativo, created_at)
+                VALUES (?, 'professor44flogin', 'Professor 44F Login', 'professor44f.login@example.com', ?, true, CURRENT_TIMESTAMP)
+                """, usuarioId, passwordEncoder.encode("senha123"));
+        jdbcTemplate.update("""
+                INSERT INTO usuario_escola (id_usuario_escola, id_usuario, id_escola, created_at)
+                VALUES (?, ?, '00000000-0000-0000-0000-000000000047', CURRENT_TIMESTAMP)
+                """, UUID.randomUUID(), usuarioId);
+        jdbcTemplate.update("""
+                INSERT INTO usuario_escola (id_usuario_escola, id_usuario, id_escola, created_at)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                """, UUID.randomUUID(), usuarioId, segundaEscolaId);
+
+        MvcResult login = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "login": "professor44flogin",
+                                  "senha": "senha123",
+                                  "escolaId": "00000000-0000-0000-0000-000000000048"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.usuarioId").value(usuarioId.toString()))
+                .andExpect(jsonPath("$.escolaId").value("00000000-0000-0000-0000-000000000048"))
+                .andExpect(jsonPath("$.escolaNome").value("Escola 48"))
+                .andReturn();
+
+        JsonNode payload = objectMapper.readTree(login.getResponse().getContentAsString());
+        String accessToken = payload.get("accessToken").asText();
+
+        mockMvc.perform(get("/api/auth/contexto-atual")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.usuarioId").value(usuarioId.toString()))
+                .andExpect(jsonPath("$.escolaId").value("00000000-0000-0000-0000-000000000048"))
+                .andExpect(jsonPath("$.escolaNome").value("Escola 48"))
+                .andExpect(jsonPath("$.username").value("professor44flogin"));
     }
 
     private String cpfAleatorio() {
