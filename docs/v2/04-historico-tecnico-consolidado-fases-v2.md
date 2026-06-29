@@ -449,6 +449,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   token, resolucao de perfis/permissoes e contexto autenticado por escola. O
   `AuthService` foi reduzido a uma fachada de compatibilidade que apenas
   delega para essa nova fronteira e monta os DTOs externos ja existentes.
+- A terceira subfase da Fase 52 aplicou o primeiro consumo interno seguro
+  dessa nova fronteira no proprio encadeamento de seguranca do monolito.
+  `JwtAuthenticationFilter` e `SecurityBeansConfig` deixaram de depender de
+  `AuthService` para validacao do bearer token e passaram a consumir
+  `IdentidadeTenantPort` diretamente. Para reduzir o acoplamento interno, a
+  porta deixou de expor `UsuarioEntity` nesse fluxo e passou a entregar o DTO
+  interno `PrincipalAutenticadoResumo`, contendo apenas identidade minima e
+  permissoes necessarias para montar o principal autenticado no
+  `SecurityContextHolder`.
 
 ## Historico resumido
 

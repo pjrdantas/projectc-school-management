@@ -1,10 +1,9 @@
 package br.com.escola.seguranca.application.port.internal;
 
 import java.util.List;
-import java.util.UUID;
 
-import br.com.escola.seguranca.adapter.out.persistence.entity.UsuarioEntity;
 import br.com.escola.seguranca.application.dto.internal.ContextoAutenticadoResumo;
+import br.com.escola.seguranca.application.dto.internal.PrincipalAutenticadoResumo;
 import br.com.escola.seguranca.application.dto.internal.SessaoAutenticadaResumo;
 
 public interface IdentidadeTenantPort {
@@ -15,9 +14,7 @@ public interface IdentidadeTenantPort {
 
     void encerrarSessao(String refreshToken);
 
-    UsuarioEntity validarAccessToken(String accessToken);
+    PrincipalAutenticadoResumo resolverPrincipal(String accessToken);
 
     ContextoAutenticadoResumo resolverContextoAtual(String accessToken);
-
-    List<String> buscarPermissoes(UUID idUsuario);
 }

@@ -21,6 +21,7 @@ import br.com.escola.seguranca.adapter.out.persistence.entity.UsuarioEntity;
 import br.com.escola.seguranca.adapter.out.persistence.repository.SessaoAutenticacaoJpaRepository;
 import br.com.escola.seguranca.adapter.out.persistence.repository.SpringUsuarioJpaRepository;
 import br.com.escola.seguranca.application.dto.internal.ContextoAutenticadoResumo;
+import br.com.escola.seguranca.application.dto.internal.PrincipalAutenticadoResumo;
 import br.com.escola.seguranca.application.dto.internal.SessaoAutenticadaResumo;
 import br.com.escola.seguranca.application.port.internal.IdentidadeTenantPort;
 import br.com.escola.seguranca.domain.exception.CredenciaisInvalidasException;
@@ -123,8 +124,12 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
 
     @Override
     @Transactional(readOnly = true)
-    public UsuarioEntity validarAccessToken(String accessToken) {
-        return buscarSessaoPorAccessToken(accessToken).getUsuario();
+    public PrincipalAutenticadoResumo resolverPrincipal(String accessToken) {
+        UsuarioEntity usuario = buscarSessaoPorAccessToken(accessToken).getUsuario();
+        return new PrincipalAutenticadoResumo(
+                usuario.getId(),
+                usuario.getUsername(),
+                usuarioRepository.findPermissoesByIdUsuario(usuario.getId()));
     }
 
     @Override
@@ -142,11 +147,6 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
                 usuario.getUsername(),
                 usuarioRepository.findPerfisByIdUsuario(usuario.getId()),
                 usuarioRepository.findPermissoesByIdUsuario(usuario.getId()));
-    }
-
-    @Override
-    public List<String> buscarPermissoes(UUID idUsuario) {
-        return usuarioRepository.findPermissoesByIdUsuario(idUsuario);
     }
 
     private SessaoAutenticadaResumo resumirSessao(

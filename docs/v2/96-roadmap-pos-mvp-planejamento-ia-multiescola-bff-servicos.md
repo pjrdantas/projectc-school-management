@@ -1562,3 +1562,31 @@ Proxima subfase pratica:
   alem de `usuario.id_escola`, separando o que continua local do que precisara
   de `usuario_escola` e selecao de escola ativa nas proximas subfases da Fase
   52.
+
+Entregue na terceira subfase da Fase 52:
+
+- o primeiro consumidor interno da nova fronteira `IdentidadeTenantPort` foi
+  aplicado na cadeia de seguranca do proprio monolito, que era o ponto mais
+  proximo e de menor risco para deixar de depender da fachada `AuthService`;
+- `JwtAuthenticationFilter` e `SecurityBeansConfig` passaram a consumir a porta
+  interna diretamente apenas para resolucao do principal autenticado por access
+  token, sem alterar a autenticacao externa nem o contrato REST de
+  `/api/auth/**`;
+- para evitar que a nova fronteira continuasse vazando entidade JPA de
+  seguranca, foi introduzido o DTO interno `PrincipalAutenticadoResumo`, com
+  `usuarioId`, `username` e permissoes, removendo da borda a dependencia
+  imediata de `UsuarioEntity` e do hash de senha;
+- `AuthService` ficou ainda mais restrito ao papel de fachada do contrato
+  externo de autenticacao/contexto, enquanto o consumo interno de seguranca
+  passou a ocorrer pela porta nova;
+- o rollback continua trivial, porque a troca aconteceu apenas dentro do mesmo
+  runtime e manteve as mesmas tabelas, o mesmo filtro HTTP e o mesmo fluxo de
+  bearer token opaco.
+
+Proxima subfase pratica:
+
+- diagnosticar o menor passo seguro para explicitar a autoridade de tenant alem
+  de `usuario.id_escola`, separando o que ainda pode continuar local do que
+  exigira `usuario_escola` e selecao explicita de escola ativa;
+- manter o recorte no backend/backend, sem abrir rota externa nova no BFF e
+  sem iniciar extracao fisica antes desse diagnostico controlado.
