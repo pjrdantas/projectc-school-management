@@ -19,6 +19,7 @@ public final class ProfessorShadowPersistenceMapper {
                 response.formacao(),
                 response.ativo(),
                 response.createdAt(),
-                response.updatedAt());
+                response.updatedAt(),
+                null);
     }
 }

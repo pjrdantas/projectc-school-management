@@ -43,6 +43,9 @@ public class ProfessorShadowJpaEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "id_usuario")
+    private UUID usuarioId;
+
     protected ProfessorShadowJpaEntity() {
     }
 
@@ -56,7 +59,8 @@ public class ProfessorShadowJpaEntity {
             String formacao,
             Boolean ativo,
             LocalDateTime createdAt,
-            LocalDateTime updatedAt) {
+            LocalDateTime updatedAt,
+            UUID usuarioId) {
         this.id = id;
         this.pessoaId = pessoaId;
         this.nomeCompleto = nomeCompleto;
@@ -67,6 +71,7 @@ public class ProfessorShadowJpaEntity {
         this.ativo = ativo;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.usuarioId = usuarioId;
     }
 
     public UUID getId() {
@@ -107,5 +112,9 @@ public class ProfessorShadowJpaEntity {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public UUID getUsuarioId() {
+        return usuarioId;
     }
 }

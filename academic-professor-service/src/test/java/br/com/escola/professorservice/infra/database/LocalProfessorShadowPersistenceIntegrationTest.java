@@ -136,7 +136,8 @@ class LocalProfessorShadowPersistenceIntegrationTest {
                 "Formacao Antiga",
                 true,
                 LocalDateTime.of(2026, 6, 29, 10, 0, 0),
-                LocalDateTime.of(2026, 6, 29, 10, 0, 0)));
+                LocalDateTime.of(2026, 6, 29, 10, 0, 0),
+                null));
 
         mockWebServer.enqueue(new MockResponse()
                 .setHeader("Content-Type", "application/json")
