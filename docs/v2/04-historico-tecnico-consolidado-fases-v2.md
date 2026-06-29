@@ -386,10 +386,47 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   aloca-lo via `POST /api/professores/{id}/turmas-disciplinas` e validar a
   leitura dessa alocacao pelo runtime shadow, fechando tambem esse segundo
   write com healths em `UP` e ausencia de fallback.
-- A proxima subfase da 51D deve revisar se ainda resta algum write interno de
-  professores fora desse bloco minimo backend/backend. Se nao restar, o proximo
-  passo e encerrar oficialmente a Fase 51D, preparar a PR para `Master` e
-  iniciar a proxima fase em um chat novo, conforme combinado.
+- A trigesima-setima subfase da Fase 51D abriu a primeira persistencia propria
+  controlada do `academic-professor-service`, ainda sem alterar BFF nem
+  cutover externo. O runtime shadow ganhou migrations proprias para
+  `professor_shadow`, `professor_alocacao_shadow` e estados de sincronizacao
+  por escola, professor e turma, alem de um migrador opt-in com runner
+  controlado, dry-run/aplicacao e relatorio JSON reconciliado. Os testes de
+  migracao comprovaram repeticao segura, reconciliacao por escola e deteccao de
+  divergencia sem mudar o contrato externo de professores.
+- A trigesima-oitava subfase da Fase 51D transformou os dois writes shadow de
+  professores em automacao controlada de persistencia local. Depois do sucesso
+  do proxy para o monolito, o `academic-professor-service` passou a registrar
+  localmente a criacao de professor e a alocacao professor-turma-disciplina,
+  com validacoes explicitas de divergencia, metricas dedicadas, health
+  `professorShadowPersistence` e rollback simples por propriedade. O monolito
+  permaneceu como autoridade de escrita; a copia local passou a ser apenas o
+  reflexo controlado do resultado retornado.
+- A trigesima-nona subfase da Fase 51D aplicou o primeiro cutover controlado de
+  leitura sobre essa persistencia propria, ainda restrito ao backend/backend do
+  `academic-professor-service`. As rotas `GET /internal/v1/professores`,
+  `GET /internal/v1/professores/{id}/turmas-disciplinas` e
+  `GET /internal/v1/turmas/{turmaId}/professores` passaram a preferir a copia
+  local somente quando o respectivo estado de sincronizacao estiver completo;
+  caso contrario, o runtime shadow faz fallback para o monolito e registra o
+  motivo operacional (`sync_state_incomplete`, `feature_disabled` ou ausencia
+  de registro local). Isso manteve o risco baixo e preparou o primeiro recorte
+  de leitura controlada sem envolver o BFF.
+- A quadragesima subfase da Fase 51D fechou o bloco restante do primeiro
+  cutover controlado de leitura com `GET /internal/v1/professores/{id}`. Quando
+  a propriedade `professor.shadow.local-persistence.buscar-por-id-cutover-enabled`
+  esta ativa, a busca por id passa a responder diretamente da copia local e
+  retorna `404 RESOURCE_NOT_FOUND` sem consultar o monolito se o professor nao
+  existir localmente. Os testes comprovaram o nao-acesso remoto, a estrategia
+  de rollback por propriedade e o diagnostico no actuator
+  `professorShadowPersistence`. Com isso, o dominio de professores fechou a
+  `51D` com writes shadow observaveis, persistencia propria controlada, leitura
+  local incremental e sem qualquer alteracao de rota externa no BFF.
+- Encerramento oficial da Fase 51D: o bloco de professores ficou coberto no
+  recorte backend/backend atual, sem writes remanescentes fora do padrao
+  controlado introduzido no `academic-professor-service`. A proxima frente
+  sugerida passa a ser a Fase 52, iniciando pelo diagnostico pontual de
+  identidade e tenant antes de qualquer extracao fisica ou cutover externo.
 
 ## Historico resumido
 

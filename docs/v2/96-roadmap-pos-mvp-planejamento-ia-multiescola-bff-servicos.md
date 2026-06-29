@@ -1402,3 +1402,95 @@ Proxima subfase pratica e de menor risco:
   minimo backend/backend; se nao restar, encerrar oficialmente a Fase 51D,
   preparar a PR para `Master` e iniciar a proxima fase em um chat novo;
 - manter o combinado de parar antes da proxima fase para o fechamento da 51D.
+
+Entregue na trigesima setima subfase:
+
+- abertura da primeira persistencia propria controlada do
+  `academic-professor-service`, ainda sem BFF e sem cutover externo, com
+  migrations locais para `professor_shadow`, `professor_alocacao_shadow` e
+  estados de sincronizacao por escola, professor e turma;
+- criacao de um migrador opt-in de professores do monolito para a copia local,
+  com runner controlado por propriedade, dry-run/aplicacao e relatorio JSON
+  reconciliado por escola;
+- validacao automatizada da migracao cobrindo repeticao segura, reconciliacao
+  e deteccao de divergencias de destino;
+- preservacao do escopo: monolito segue como autoridade funcional e nenhuma
+  rota externa do BFF foi alterada.
+
+Proxima subfase pratica e de menor risco:
+
+- automatizar o registro local dos writes shadow ja fechados
+  (`POST /api/professores` e
+  `POST /api/professores/{id}/turmas-disciplinas`) imediatamente apos o
+  sucesso do proxy para o monolito, com metricas, health e rollback simples;
+- evitar qualquer ampliacao para BFF ou cutover externo enquanto a copia local
+  ainda nao estiver observavel e validada.
+
+Entregue na trigesima oitava subfase:
+
+- automacao controlada da persistencia local dos writes shadow de professores
+  no `academic-professor-service`, registrando a criacao de professor e a
+  alocacao professor-turma-disciplina depois do sucesso do proxy ao monolito;
+- validacoes explicitas de divergencia de escola, identidade e alocacao na
+  copia local, com tratamento configuravel por `failOnError`;
+- metricas dedicadas `professor.shadow.local.persistence.*` e actuator
+  `professorShadowPersistence` para diagnosticar sucesso, divergencia, erro e
+  volume persistido localmente;
+- preservacao do escopo: o monolito continua sendo a autoridade da escrita e a
+  copia local permanece apenas como reflexo controlado para o proximo passo de
+  leitura.
+
+Proxima subfase pratica e de menor risco:
+
+- aplicar o mesmo criterio incremental na leitura local do runtime shadow,
+  priorizando rotas que possam depender de um estado de sincronizacao completo
+  antes de responder localmente;
+- manter fallback controlado para o monolito enquanto a sincronizacao local nao
+  estiver comprovadamente completa por escola, professor ou turma.
+
+Entregue na trigesima nona subfase:
+
+- primeiro cutover controlado de leitura dentro do proprio
+  `academic-professor-service`, ainda sem BFF: `GET /internal/v1/professores`,
+  `GET /internal/v1/professores/{id}/turmas-disciplinas` e
+  `GET /internal/v1/turmas/{turmaId}/professores` passaram a preferir a copia
+  local quando o respectivo estado de sincronizacao estiver completo;
+- fallback explicito para o monolito quando a feature estiver desabilitada ou
+  o sync state estiver incompleto, com motivo operacional registrado em
+  `professor.shadow.local.read.requests`;
+- ampliacao do actuator `professorShadowPersistence` para expor a estrategia de
+  leitura, contadores locais/fallback e resumo dos sync states usados por cada
+  rota;
+- preservacao do escopo: `listarFuncionariosElegiveis` continua remoto e nenhum
+  contrato externo do BFF foi alterado.
+
+Proxima subfase pratica e de menor risco:
+
+- fechar o bloco restante do primeiro cutover controlado de leitura com
+  `GET /internal/v1/professores/{id}`, adotando uma decisao binaria local sem
+  fallback quando a propriedade de cutover estiver ativa;
+- manter rollback simples por propriedade, sem abrir qualquer redirecionamento
+  externo no BFF.
+
+Entregue na quadragesima subfase:
+
+- fechamento do primeiro cutover controlado de leitura por id no
+  `academic-professor-service`: quando
+  `professor.shadow.local-persistence.buscar-por-id-cutover-enabled=true`,
+  `GET /internal/v1/professores/{id}` responde diretamente da copia local e
+  retorna `404 RESOURCE_NOT_FOUND` sem consultar o monolito quando o registro
+  nao existir localmente;
+- validacao automatizada de nao-acesso remoto, rollback por propriedade e
+  diagnostico no actuator `professorShadowPersistence`, incluindo a estrategia
+  `local_record_presence_required_no_fallback`;
+- fechamento objetivo da Fase 51D no dominio de professores: writes shadow
+  observaveis, persistencia propria controlada, leituras locais incrementais e
+  nenhuma alteracao de rotas externas no BFF.
+
+Proxima fase pratica:
+
+- iniciar a Fase 52 com diagnostico pontual de identidade e tenant no recorte
+  backend/backend, mapeando contratos internos minimos, dependencias no
+  monolito e impactos sobre sessao, autorizacao e vinculo usuario-escola;
+- manter o mesmo criterio incremental: sem cutover externo, sem refatoracao
+  ampla e sem extracao fisica do dominio antes do diagnostico objetivo.
