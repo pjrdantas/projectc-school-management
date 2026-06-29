@@ -23,9 +23,11 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.escola.professorservice.infra.database.entity.ProfessorShadowJpaEntity;
+import br.com.escola.professorservice.infra.database.entity.ProfessorShadowSyncStateJpaEntity;
 import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowSyncStateJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorAlocacaoShadowJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorShadowJpaRepository;
+import br.com.escola.professorservice.infra.database.repository.ProfessorShadowSyncStateJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.ProfessorTurmaShadowSyncStateJpaRepository;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -56,6 +58,9 @@ class LocalProfessorShadowPersistenceIntegrationTest {
     @Autowired
     private ProfessorTurmaShadowSyncStateJpaRepository turmaSyncStateRepository;
 
+    @Autowired
+    private ProfessorShadowSyncStateJpaRepository syncStateRepository;
+
     @BeforeAll
     static void beforeAll() throws IOException {
         mockWebServer = new MockWebServer();
@@ -71,6 +76,7 @@ class LocalProfessorShadowPersistenceIntegrationTest {
     void setUp() {
         alocacaoSyncStateRepository.deleteAll();
         turmaSyncStateRepository.deleteAll();
+        syncStateRepository.deleteAll();
         repository.deleteAll();
         alocacaoRepository.deleteAll();
     }
@@ -127,6 +133,11 @@ class LocalProfessorShadowPersistenceIntegrationTest {
         assertThat(persisted.getPessoaId()).isEqualTo(pessoaId);
         assertThat(persisted.getEscolaId()).isEqualTo(escolaId);
         assertThat(persisted.getNomeCompleto()).isEqualTo("Professor Persistido");
+        syncStateRepository.save(new ProfessorShadowSyncStateJpaEntity(
+                escolaId,
+                true,
+                1L,
+                LocalDateTime.of(2026, 6, 29, 11, 16, 0)));
 
         mockMvc.perform(get("/actuator/health/professorShadowPersistence"))
                 .andExpect(status().isOk())
@@ -135,7 +146,14 @@ class LocalProfessorShadowPersistenceIntegrationTest {
                 .andExpect(jsonPath("$.details.createSuccessTotal").value(1.0))
                 .andExpect(jsonPath("$.details.storedProfessorRecords").value(1))
                 .andExpect(jsonPath("$.details.storedAllocationRecords").value(0))
-                .andExpect(jsonPath("$.details.storedRecords").value(1));
+                .andExpect(jsonPath("$.details.storedRecords").value(1))
+                .andExpect(jsonPath("$.details.shadowSyncStates.professores.trackedTotal").value(1))
+                .andExpect(jsonPath("$.details.shadowSyncStates.professores.completeTotal").value(1))
+                .andExpect(jsonPath("$.details.shadowSyncStates.professores.trackedRecordsTotal").value(1))
+                .andExpect(jsonPath("$.details.shadowSyncStates.professores.lastSynchronizedAt")
+                        .value("2026-06-29T11:16"))
+                .andExpect(jsonPath("$.details.shadowSyncStates.alocacoesPorProfessor.trackedTotal").value(0))
+                .andExpect(jsonPath("$.details.shadowSyncStates.alocacoesPorTurma.trackedTotal").value(0));
     }
 
     @Test
@@ -226,7 +244,18 @@ class LocalProfessorShadowPersistenceIntegrationTest {
                 .andExpect(jsonPath("$.details.allocateSuccessTotal").value(1.0))
                 .andExpect(jsonPath("$.details.storedProfessorRecords").value(1))
                 .andExpect(jsonPath("$.details.storedAllocationRecords").value(1))
-                .andExpect(jsonPath("$.details.storedRecords").value(2));
+                .andExpect(jsonPath("$.details.storedRecords").value(2))
+                .andExpect(jsonPath("$.details.shadowSyncStates.professores.trackedTotal").value(0))
+                .andExpect(jsonPath("$.details.shadowSyncStates.alocacoesPorProfessor.trackedTotal").value(1))
+                .andExpect(jsonPath("$.details.shadowSyncStates.alocacoesPorProfessor.completeTotal").value(1))
+                .andExpect(jsonPath("$.details.shadowSyncStates.alocacoesPorProfessor.trackedRecordsTotal").value(1))
+                .andExpect(jsonPath("$.details.shadowSyncStates.alocacoesPorProfessor.lastSynchronizedAt")
+                        .value("2026-06-29T11:30"))
+                .andExpect(jsonPath("$.details.shadowSyncStates.alocacoesPorTurma.trackedTotal").value(1))
+                .andExpect(jsonPath("$.details.shadowSyncStates.alocacoesPorTurma.completeTotal").value(1))
+                .andExpect(jsonPath("$.details.shadowSyncStates.alocacoesPorTurma.trackedRecordsTotal").value(1))
+                .andExpect(jsonPath("$.details.shadowSyncStates.alocacoesPorTurma.lastSynchronizedAt")
+                        .value("2026-06-29T11:30"));
     }
 
     @Test
@@ -297,7 +326,10 @@ class LocalProfessorShadowPersistenceIntegrationTest {
                 .andExpect(jsonPath("$.details.failuresTotal").value(1.0))
                 .andExpect(jsonPath("$.details.storedProfessorRecords").value(1))
                 .andExpect(jsonPath("$.details.storedAllocationRecords").value(0))
-                .andExpect(jsonPath("$.details.storedRecords").value(1));
+                .andExpect(jsonPath("$.details.storedRecords").value(1))
+                .andExpect(jsonPath("$.details.shadowSyncStates.professores.trackedTotal").value(0))
+                .andExpect(jsonPath("$.details.shadowSyncStates.alocacoesPorProfessor.trackedTotal").value(0))
+                .andExpect(jsonPath("$.details.shadowSyncStates.alocacoesPorTurma.trackedTotal").value(0));
     }
 
     @Test
@@ -361,6 +393,9 @@ class LocalProfessorShadowPersistenceIntegrationTest {
                 .andExpect(jsonPath("$.details.failuresTotal").value(1.0))
                 .andExpect(jsonPath("$.details.storedProfessorRecords").value(0))
                 .andExpect(jsonPath("$.details.storedAllocationRecords").value(0))
-                .andExpect(jsonPath("$.details.storedRecords").value(0));
+                .andExpect(jsonPath("$.details.storedRecords").value(0))
+                .andExpect(jsonPath("$.details.shadowSyncStates.professores.trackedTotal").value(0))
+                .andExpect(jsonPath("$.details.shadowSyncStates.alocacoesPorProfessor.trackedTotal").value(0))
+                .andExpect(jsonPath("$.details.shadowSyncStates.alocacoesPorTurma.trackedTotal").value(0));
     }
 }
