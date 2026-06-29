@@ -35,7 +35,11 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
             new RouteMetricDescriptor(
                     "listarPorTurma",
                     "GET /api/turmas/{turmaId}/professores",
-                    "GET /internal/professores/turmas/{turmaId}"));
+                    "GET /internal/professores/turmas/{turmaId}"),
+            new RouteMetricDescriptor(
+                    "listarFuncionariosElegiveis",
+                    "GET /api/professores/funcionarios-elegiveis",
+                    "GET /internal/professores/funcionarios-elegiveis"));
 
     private final Environment environment;
     private final MeterRegistry meterRegistry;
@@ -68,6 +72,10 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
                 "professor.internal-client.listar-por-turma-cutover-enabled",
                 Boolean.class,
                 false);
+        boolean listarFuncionariosElegiveisCutoverEnabled = environment.getProperty(
+                "professor.internal-client.listar-funcionarios-elegiveis-cutover-enabled",
+                Boolean.class,
+                false);
         String resolvedBaseUrl = baseUrlResolvida();
 
         Map<String, Object> details = new LinkedHashMap<>();
@@ -77,6 +85,7 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
         details.put("listarCutoverEnabled", listarCutoverEnabled);
         details.put("listarAlocacoesCutoverEnabled", listarAlocacoesCutoverEnabled);
         details.put("listarPorTurmaCutoverEnabled", listarPorTurmaCutoverEnabled);
+        details.put("listarFuncionariosElegiveisCutoverEnabled", listarFuncionariosElegiveisCutoverEnabled);
         details.put("internalEndpointPrefix", INTERNAL_ENDPOINT_PREFIX);
         details.put("requestsTotal", totalContador("professor.internal.client.requests"));
         details.put("fallbacksTotal", totalContador("professor.internal.client.fallbacks"));
@@ -148,6 +157,9 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
             } else if ("listarPorTurma".equals(descriptor.operation())) {
                 detalhe.put("cutoverEnabled", listarPorTurmaCutoverEnabled());
                 detalhe.put("rollbackStrategy", "disable_property");
+            } else if ("listarFuncionariosElegiveis".equals(descriptor.operation())) {
+                detalhe.put("cutoverEnabled", listarFuncionariosElegiveisCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
             } else if ("buscarPorId".equals(descriptor.operation())) {
                 detalhe.put("cutoverEnabled", buscarPorIdCutoverEnabled());
                 detalhe.put("rollbackStrategy", "disable_property");
@@ -165,6 +177,9 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
             return "disabled_for_route";
         }
         if ("listarPorTurma".equals(operation) && listarPorTurmaCutoverEnabled()) {
+            return "disabled_for_route";
+        }
+        if ("listarFuncionariosElegiveis".equals(operation) && listarFuncionariosElegiveisCutoverEnabled()) {
             return "disabled_for_route";
         }
         if ("buscarPorId".equals(operation) && buscarPorIdCutoverEnabled()) {
@@ -185,6 +200,13 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
 
     private boolean listarPorTurmaCutoverEnabled() {
         return environment.getProperty("professor.internal-client.listar-por-turma-cutover-enabled", Boolean.class, false);
+    }
+
+    private boolean listarFuncionariosElegiveisCutoverEnabled() {
+        return environment.getProperty(
+                "professor.internal-client.listar-funcionarios-elegiveis-cutover-enabled",
+                Boolean.class,
+                false);
     }
 
     private boolean buscarPorIdCutoverEnabled() {

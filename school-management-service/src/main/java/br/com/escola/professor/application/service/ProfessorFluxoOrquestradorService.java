@@ -35,6 +35,7 @@ public class ProfessorFluxoOrquestradorService {
     private final boolean listarCutoverEnabled;
     private final boolean listarAlocacoesCutoverEnabled;
     private final boolean listarPorTurmaCutoverEnabled;
+    private final boolean listarFuncionariosElegiveisCutoverEnabled;
 
     public ProfessorFluxoOrquestradorService(
             ProfessorService professorService,
@@ -46,7 +47,8 @@ public class ProfessorFluxoOrquestradorService {
             @Value("${professor.internal-client.buscar-por-id-cutover-enabled:false}") boolean buscarPorIdCutoverEnabled,
             @Value("${professor.internal-client.listar-cutover-enabled:false}") boolean listarCutoverEnabled,
             @Value("${professor.internal-client.listar-alocacoes-cutover-enabled:false}") boolean listarAlocacoesCutoverEnabled,
-            @Value("${professor.internal-client.listar-por-turma-cutover-enabled:false}") boolean listarPorTurmaCutoverEnabled) {
+            @Value("${professor.internal-client.listar-por-turma-cutover-enabled:false}") boolean listarPorTurmaCutoverEnabled,
+            @Value("${professor.internal-client.listar-funcionarios-elegiveis-cutover-enabled:false}") boolean listarFuncionariosElegiveisCutoverEnabled) {
         this.professorService = professorService;
         this.professorInternalApiClient = professorInternalApiClient;
         this.escolaTenantService = escolaTenantService;
@@ -57,6 +59,7 @@ public class ProfessorFluxoOrquestradorService {
         this.listarCutoverEnabled = listarCutoverEnabled;
         this.listarAlocacoesCutoverEnabled = listarAlocacoesCutoverEnabled;
         this.listarPorTurmaCutoverEnabled = listarPorTurmaCutoverEnabled;
+        this.listarFuncionariosElegiveisCutoverEnabled = listarFuncionariosElegiveisCutoverEnabled;
     }
 
     public ProfessorResponse criar(ProfessorRequest request) {
@@ -82,7 +85,10 @@ public class ProfessorFluxoOrquestradorService {
     }
 
     public List<ProfessorFuncionarioElegivelResponse> listarFuncionariosElegiveis() {
-        return professorService.listarFuncionariosElegiveis();
+        return executarComClienteInterno(
+                "listarFuncionariosElegiveis",
+                () -> professorInternalApiClient.listarFuncionariosElegiveis(escolaPadraoId()),
+                professorService::listarFuncionariosElegiveis);
     }
 
     public ProfessorResponse buscarPorId(UUID id) {
@@ -165,6 +171,9 @@ public class ProfessorFluxoOrquestradorService {
             return false;
         }
         if ("listarPorTurma".equals(operacao) && listarPorTurmaCutoverEnabled) {
+            return false;
+        }
+        if ("listarFuncionariosElegiveis".equals(operacao) && listarFuncionariosElegiveisCutoverEnabled) {
             return false;
         }
         if ("buscarPorId".equals(operacao) && buscarPorIdCutoverEnabled) {

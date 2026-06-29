@@ -18,6 +18,7 @@ import br.com.escola.professor.adapter.in.web.dto.internal.ProfessorAlocacaoInte
 import br.com.escola.professor.adapter.in.web.dto.internal.ProfessorAlocacaoInternalResponse;
 import br.com.escola.professor.adapter.in.web.dto.internal.ProfessorInternalRequest;
 import br.com.escola.professor.adapter.in.web.dto.internal.ProfessorInternalResponse;
+import br.com.escola.professor.adapter.in.web.dto.ProfessorFuncionarioElegivelResponse;
 import br.com.escola.professor.application.dto.internal.AlocarProfessorTurmaDisciplinaSolicitacao;
 import br.com.escola.professor.application.dto.internal.CriarProfessorSolicitacao;
 import br.com.escola.professor.application.dto.internal.ProfessorAlocacaoResumo;
@@ -152,6 +153,22 @@ public class ProfessorInternalApiClient implements ProfessorAcademicoPort {
         return response.stream()
                 .map(this::toAlocacaoResumo)
                 .toList();
+    }
+
+    @Override
+    public List<ProfessorFuncionarioElegivelResponse> listarFuncionariosElegiveis(UUID escolaId) {
+        List<ProfessorFuncionarioElegivelResponse> response = restClient().get()
+                .uri("/internal/professores/funcionarios-elegiveis")
+                .headers(headers -> preencherHeaders(headers, escolaId))
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<ProfessorFuncionarioElegivelResponse>>() {
+                });
+
+        if (response == null) {
+            return List.of();
+        }
+
+        return response;
     }
 
     private void preencherHeaders(HttpHeaders headers, UUID escolaId) {

@@ -8,6 +8,7 @@ import br.com.escola.professor.application.dto.internal.AlocarProfessorTurmaDisc
 import br.com.escola.professor.application.dto.internal.CriarProfessorSolicitacao;
 import br.com.escola.professor.application.dto.internal.ProfessorAlocacaoResumo;
 import br.com.escola.professor.application.dto.internal.ProfessorResumo;
+import br.com.escola.professor.adapter.in.web.dto.ProfessorFuncionarioElegivelResponse;
 
 public interface ProfessorAcademicoPort {
 
@@ -27,4 +28,6 @@ public interface ProfessorAcademicoPort {
     List<ProfessorAlocacaoResumo> listarAlocacoes(UUID escolaId, UUID professorId);
 
     List<ProfessorAlocacaoResumo> listarProfessoresPorTurma(UUID escolaId, UUID turmaId);
+
+    List<ProfessorFuncionarioElegivelResponse> listarFuncionariosElegiveis(UUID escolaId);
 }

@@ -23,6 +23,7 @@ import io.micrometer.core.instrument.MeterRegistry;
                 "professor.internal-client.listar-cutover-enabled=true",
                 "professor.internal-client.listar-alocacoes-cutover-enabled=true",
                 "professor.internal-client.listar-por-turma-cutover-enabled=true",
+                "professor.internal-client.listar-funcionarios-elegiveis-cutover-enabled=true",
                 "professor.internal-client.base-url=http://localhost:${local.server.port}"
         })
 class ProfessorInternalClientHealthEndpointIntegrationTest {
@@ -54,6 +55,11 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
                 "professor.internal.client.fallbacks",
                 "operacao", "listarPorTurma",
                 "causa", "RestClientException").increment();
+        meterRegistry.counter(
+                "professor.internal.client.requests",
+                "operacao", "listarFuncionariosElegiveis",
+                "destino", "internal",
+                "resultado", "success").increment();
 
         RestClient client = RestClient.builder()
                 .baseUrl("http://localhost:" + port)
@@ -76,9 +82,10 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
                 .containsEntry("listarCutoverEnabled", true)
                 .containsEntry("listarAlocacoesCutoverEnabled", true)
                 .containsEntry("listarPorTurmaCutoverEnabled", true)
+                .containsEntry("listarFuncionariosElegiveisCutoverEnabled", true)
                 .containsEntry("baseUrlScheme", "http")
                 .containsEntry("baseUrlHost", "localhost")
-                .containsEntry("requestsTotal", 4.0d)
+                .containsEntry("requestsTotal", 5.0d)
                 .containsEntry("fallbacksTotal", 1.0d);
         @SuppressWarnings("unchecked")
         Map<String, Object> shadowReadRoutes = (Map<String, Object>) details.get("shadowReadRoutes");
@@ -94,6 +101,9 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
         Map<String, Object> listarAlocacoes = (Map<String, Object>) shadowReadRoutes.get("listarAlocacoes");
         @SuppressWarnings("unchecked")
         Map<String, Object> listarPorTurma = (Map<String, Object>) shadowReadRoutes.get("listarPorTurma");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> listarFuncionariosElegiveis =
+                (Map<String, Object>) shadowReadRoutes.get("listarFuncionariosElegiveis");
         assertThat(criar)
                 .containsEntry("externalRoute", "POST /api/professores")
                 .containsEntry("internalSuccessTotal", 1.0d);
@@ -122,6 +132,13 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
                 .containsEntry("rollbackStrategy", "disable_property")
                 .containsEntry("localFallbackTotal", 1.0d)
                 .containsEntry("fallbacksTotal", 1.0d);
+        assertThat(listarFuncionariosElegiveis)
+                .containsEntry("externalRoute", "GET /api/professores/funcionarios-elegiveis")
+                .containsEntry("internalRoute", "GET /internal/professores/funcionarios-elegiveis")
+                .containsEntry("internalSuccessTotal", 1.0d)
+                .containsEntry("fallbackStrategy", "disabled_for_route")
+                .containsEntry("cutoverEnabled", true)
+                .containsEntry("rollbackStrategy", "disable_property");
 
         Map<?, ?> readiness = client.get()
                 .uri("/actuator/health")

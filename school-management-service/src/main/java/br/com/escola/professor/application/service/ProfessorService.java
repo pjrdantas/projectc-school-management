@@ -85,8 +85,14 @@ public class ProfessorService implements ProfessorAcademicoPort {
 
     @Transactional(readOnly = true)
     public List<ProfessorFuncionarioElegivelResponse> listarFuncionariosElegiveis() {
-        UUID escolaId = escolaPadraoId();
-        return funcionarioProfessorPort.listarFuncionariosElegiveisParaProfessor(escolaId).stream()
+        return listarFuncionariosElegiveis(escolaPadraoId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProfessorFuncionarioElegivelResponse> listarFuncionariosElegiveis(UUID escolaId) {
+        UUID escolaResolvidaId = escolaId != null ? escolaId : escolaPadraoId();
+        return funcionarioProfessorPort.listarFuncionariosElegiveisParaProfessor(escolaResolvidaId).stream()
                 .map(this::toFuncionarioElegivelResponse)
                 .toList();
     }
