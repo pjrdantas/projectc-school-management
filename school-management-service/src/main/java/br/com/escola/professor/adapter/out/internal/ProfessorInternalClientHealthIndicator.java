@@ -52,11 +52,16 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
                 "professor.internal-client.fallback-local-on-error",
                 Boolean.class,
                 true);
+        boolean buscarPorIdCutoverEnabled = environment.getProperty(
+                "professor.internal-client.buscar-por-id-cutover-enabled",
+                Boolean.class,
+                false);
         String resolvedBaseUrl = baseUrlResolvida();
 
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("enabled", enabled);
         details.put("fallbackLocalOnError", fallbackLocalOnError);
+        details.put("buscarPorIdCutoverEnabled", buscarPorIdCutoverEnabled);
         details.put("internalEndpointPrefix", INTERNAL_ENDPOINT_PREFIX);
         details.put("requestsTotal", totalContador("professor.internal.client.requests"));
         details.put("fallbacksTotal", totalContador("professor.internal.client.fallbacks"));
@@ -113,14 +118,32 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
             Map<String, Object> detalhe = new LinkedHashMap<>();
             detalhe.put("externalRoute", descriptor.externalRoute());
             detalhe.put("internalRoute", descriptor.internalRoute());
+            detalhe.put("fallbackStrategy", fallbackStrategy(descriptor.operation()));
             detalhe.put("internalSuccessTotal", totalRequests(descriptor.operation(), "internal", "success"));
             detalhe.put("internalErrorTotal", totalRequests(descriptor.operation(), "internal", "error"));
             detalhe.put("localFallbackTotal", totalRequests(descriptor.operation(), "local", "fallback"));
             detalhe.put("featureDisabledLocalTotal", totalRequests(descriptor.operation(), "local", "feature_disabled"));
             detalhe.put("fallbacksTotal", totalFallbacks(descriptor.operation()));
+            if ("buscarPorId".equals(descriptor.operation())) {
+                detalhe.put("cutoverEnabled", buscarPorIdCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
+            }
             rotas.put(descriptor.operation(), detalhe);
         }
         return rotas;
+    }
+
+    private String fallbackStrategy(String operation) {
+        if ("buscarPorId".equals(operation) && buscarPorIdCutoverEnabled()) {
+            return "disabled_for_route";
+        }
+        return environment.getProperty("professor.internal-client.fallback-local-on-error", Boolean.class, true)
+                ? "local_on_error"
+                : "disabled_globally";
+    }
+
+    private boolean buscarPorIdCutoverEnabled() {
+        return environment.getProperty("professor.internal-client.buscar-por-id-cutover-enabled", Boolean.class, false);
     }
 
     private double totalRequests(String operation, String destino, String resultado) {

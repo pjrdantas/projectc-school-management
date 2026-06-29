@@ -19,6 +19,7 @@ import io.micrometer.core.instrument.MeterRegistry;
                 "management.endpoint.health.show-details=always",
                 "professor.internal-client.enabled=true",
                 "professor.internal-client.fallback-local-on-error=false",
+                "professor.internal-client.buscar-por-id-cutover-enabled=true",
                 "professor.internal-client.base-url=http://localhost:${local.server.port}"
         })
 class ProfessorInternalClientHealthEndpointIntegrationTest {
@@ -68,6 +69,7 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
         assertThat(details)
                 .containsEntry("enabled", true)
                 .containsEntry("fallbackLocalOnError", false)
+                .containsEntry("buscarPorIdCutoverEnabled", true)
                 .containsEntry("baseUrlScheme", "http")
                 .containsEntry("baseUrlHost", "localhost")
                 .containsEntry("requestsTotal", 4.0d)
@@ -81,6 +83,8 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> listar = (Map<String, Object>) shadowReadRoutes.get("listar");
         @SuppressWarnings("unchecked")
+        Map<String, Object> buscarPorId = (Map<String, Object>) shadowReadRoutes.get("buscarPorId");
+        @SuppressWarnings("unchecked")
         Map<String, Object> listarPorTurma = (Map<String, Object>) shadowReadRoutes.get("listarPorTurma");
         assertThat(criar)
                 .containsEntry("externalRoute", "POST /api/professores")
@@ -90,6 +94,11 @@ class ProfessorInternalClientHealthEndpointIntegrationTest {
         assertThat(listar)
                 .containsEntry("externalRoute", "GET /api/professores")
                 .containsEntry("internalSuccessTotal", 2.0d);
+        assertThat(buscarPorId)
+                .containsEntry("externalRoute", "GET /api/professores/{id}")
+                .containsEntry("fallbackStrategy", "disabled_for_route")
+                .containsEntry("cutoverEnabled", true)
+                .containsEntry("rollbackStrategy", "disable_property");
         assertThat(listarPorTurma)
                 .containsEntry("externalRoute", "GET /api/turmas/{turmaId}/professores")
                 .containsEntry("localFallbackTotal", 1.0d)

@@ -28,7 +28,8 @@ class ProfessorInternalClientHealthIndicatorTest {
         assertThat(health.getDetails())
                 .containsEntry("enabled", false)
                 .containsEntry("mode", "disabled")
-                .containsEntry("fallbackLocalOnError", true);
+                .containsEntry("fallbackLocalOnError", true)
+                .containsEntry("buscarPorIdCutoverEnabled", false);
         @SuppressWarnings("unchecked")
         Map<String, Object> shadowReadRoutes = (Map<String, Object>) health.getDetails().get("shadowReadRoutes");
         assertThat(shadowReadRoutes).containsKeys("criar", "vincularTurmaDisciplina", "listar", "buscarPorId", "listarAlocacoes", "listarPorTurma");
@@ -39,6 +40,7 @@ class ProfessorInternalClientHealthIndicatorTest {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("professor.internal-client.enabled", "true")
                 .withProperty("professor.internal-client.fallback-local-on-error", "false")
+                .withProperty("professor.internal-client.buscar-por-id-cutover-enabled", "true")
                 .withProperty("professor.internal-client.base-url", "http://localhost:8080");
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         Counter.builder("professor.internal.client.requests")
@@ -74,6 +76,7 @@ class ProfessorInternalClientHealthIndicatorTest {
         assertThat(health.getDetails())
                 .containsEntry("enabled", true)
                 .containsEntry("fallbackLocalOnError", false)
+                .containsEntry("buscarPorIdCutoverEnabled", true)
                 .containsEntry("baseUrlScheme", "http")
                 .containsEntry("baseUrlHost", "localhost")
                 .containsEntry("requestsTotal", 6.0d)
@@ -87,6 +90,8 @@ class ProfessorInternalClientHealthIndicatorTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> listar = (Map<String, Object>) shadowReadRoutes.get("listar");
         @SuppressWarnings("unchecked")
+        Map<String, Object> buscarPorId = (Map<String, Object>) shadowReadRoutes.get("buscarPorId");
+        @SuppressWarnings("unchecked")
         Map<String, Object> listarPorTurma = (Map<String, Object>) shadowReadRoutes.get("listarPorTurma");
         assertThat(criar)
                 .containsEntry("externalRoute", "POST /api/professores")
@@ -99,6 +104,11 @@ class ProfessorInternalClientHealthIndicatorTest {
                 .containsEntry("externalRoute", "GET /api/professores")
                 .containsEntry("internalRoute", "GET /internal/professores")
                 .containsEntry("internalSuccessTotal", 3.0d);
+        assertThat(buscarPorId)
+                .containsEntry("externalRoute", "GET /api/professores/{id}")
+                .containsEntry("fallbackStrategy", "disabled_for_route")
+                .containsEntry("cutoverEnabled", true)
+                .containsEntry("rollbackStrategy", "disable_property");
         assertThat(listarPorTurma)
                 .containsEntry("externalRoute", "GET /api/turmas/{turmaId}/professores")
                 .containsEntry("internalRoute", "GET /internal/professores/turmas/{turmaId}")
@@ -110,6 +120,7 @@ class ProfessorInternalClientHealthIndicatorTest {
     void deveReportarOutOfServiceQuandoBaseUrlEhInvalida() {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("professor.internal-client.enabled", "true")
+                .withProperty("professor.internal-client.buscar-por-id-cutover-enabled", "true")
                 .withProperty("professor.internal-client.base-url", "://invalida");
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
 

@@ -31,6 +31,7 @@ public class ProfessorFluxoOrquestradorService {
     private final MeterRegistry meterRegistry;
     private final boolean internalClientEnabled;
     private final boolean fallbackLocalOnError;
+    private final boolean buscarPorIdCutoverEnabled;
 
     public ProfessorFluxoOrquestradorService(
             ProfessorService professorService,
@@ -38,13 +39,15 @@ public class ProfessorFluxoOrquestradorService {
             EscolaTenantService escolaTenantService,
             MeterRegistry meterRegistry,
             @Value("${professor.internal-client.enabled:false}") boolean internalClientEnabled,
-            @Value("${professor.internal-client.fallback-local-on-error:true}") boolean fallbackLocalOnError) {
+            @Value("${professor.internal-client.fallback-local-on-error:true}") boolean fallbackLocalOnError,
+            @Value("${professor.internal-client.buscar-por-id-cutover-enabled:false}") boolean buscarPorIdCutoverEnabled) {
         this.professorService = professorService;
         this.professorInternalApiClient = professorInternalApiClient;
         this.escolaTenantService = escolaTenantService;
         this.meterRegistry = meterRegistry;
         this.internalClientEnabled = internalClientEnabled;
         this.fallbackLocalOnError = fallbackLocalOnError;
+        this.buscarPorIdCutoverEnabled = buscarPorIdCutoverEnabled;
     }
 
     public ProfessorResponse criar(ProfessorRequest request) {
@@ -127,7 +130,7 @@ public class ProfessorFluxoOrquestradorService {
         } catch (RuntimeException exception) {
             registrarRequisicao(operacao, "internal", "error");
 
-            if (!fallbackLocalOnError || !permiteFallback(exception)) {
+            if (!permiteFallbackLocal(operacao, exception)) {
                 throw exception;
             }
 
@@ -140,6 +143,16 @@ public class ProfessorFluxoOrquestradorService {
 
     private boolean permiteFallback(RuntimeException exception) {
         return exception instanceof RestClientException;
+    }
+
+    private boolean permiteFallbackLocal(String operacao, RuntimeException exception) {
+        if (!fallbackLocalOnError || !permiteFallback(exception)) {
+            return false;
+        }
+        if ("buscarPorId".equals(operacao) && buscarPorIdCutoverEnabled) {
+            return false;
+        }
+        return true;
     }
 
     private void registrarRequisicao(String operacao, String destino, String resultado) {
