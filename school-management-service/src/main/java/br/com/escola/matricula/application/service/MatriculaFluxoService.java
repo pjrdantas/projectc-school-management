@@ -218,14 +218,13 @@ public class MatriculaFluxoService implements MatriculaEtapaPort, MatriculaDocum
 
     @Transactional
     public MatriculaOutput rematricular(UUID matriculaAnteriorId, MatriculaRematriculaRequest request) {
-        MatriculaEntity matriculaAnterior = matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaAnteriorId, escolaId())
-                .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaAnteriorId));
-        if (!"CONCLUIDA".equalsIgnoreCase(matriculaAnterior.getStatus().getCodigo())) {
+        var matriculaBase = matriculaRematriculaPort.buscarBaseParaRematricula(matriculaAnteriorId);
+        if (!"CONCLUIDA".equalsIgnoreCase(matriculaBase.statusBase())) {
             throw new RematriculaNaoPermitidaException("matrícula base deve estar concluída para renovação");
         }
 
         return criarMatriculaUseCase.executar(new MatriculaInput(
-                matriculaAnterior.getAluno().getId(),
+                matriculaBase.alunoId(),
                 request.turmaId(),
                 request.periodoLetivoId(),
                 "RENOVACAO",

@@ -12,6 +12,7 @@ import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaJpaReposit
 import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.matricula.adapter.out.persistence.entity.MatriculaEntity;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
+import br.com.escola.matricula.application.dto.internal.MatriculaRematriculaBaseResumo;
 import br.com.escola.matricula.application.dto.internal.MatriculaRematriculaElegibilidadeResumo;
 import br.com.escola.matricula.application.port.internal.MatriculaRematriculaPort;
 import br.com.escola.matricula.domain.exception.MatriculaNaoEncontradaException;
@@ -36,14 +37,21 @@ public class MatriculaRematriculaService implements MatriculaRematriculaPort {
 
     @Override
     @Transactional(readOnly = true)
+    public MatriculaRematriculaBaseResumo buscarBaseParaRematricula(UUID matriculaAnteriorId) {
+        MatriculaEntity matriculaAnterior = buscarMatriculaBase(matriculaAnteriorId);
+        return new MatriculaRematriculaBaseResumo(
+                matriculaAnterior.getId(),
+                matriculaAnterior.getAluno().getId(),
+                matriculaAnterior.getStatus().getCodigo());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public MatriculaRematriculaElegibilidadeResumo consultarElegibilidade(
             UUID matriculaAnteriorId,
             UUID turmaDestinoId,
             UUID periodoLetivoDestinoId) {
-        MatriculaEntity matriculaAnterior = matriculaJpaRepository.findByIdAndTurma_Escola_Id(
-                        matriculaAnteriorId,
-                        escolaId())
-                .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaAnteriorId));
+        MatriculaEntity matriculaAnterior = buscarMatriculaBase(matriculaAnteriorId);
         List<String> motivos = new ArrayList<>();
 
         if (!"CONCLUIDA".equalsIgnoreCase(matriculaAnterior.getStatus().getCodigo())) {
@@ -107,5 +115,10 @@ public class MatriculaRematriculaService implements MatriculaRematriculaPort {
 
     private UUID escolaId() {
         return escolaTenantService.obterOuCriarEscolaPadrao().getId();
+    }
+
+    private MatriculaEntity buscarMatriculaBase(UUID matriculaAnteriorId) {
+        return matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaAnteriorId, escolaId())
+                .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaAnteriorId));
     }
 }

@@ -866,6 +866,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `matricula` e `turma` para o endpoint de elegibilidade, preservando o mesmo
   contrato REST externo, o mesmo runtime e a mesma criacao final via
   `CriarMatriculaUseCase`.
+- A subfase seguinte aplicou o mesmo padrao ao write operacional minimo de
+  `rematricula`: a mesma fronteira interna passou a expor o resumo
+  `MatriculaRematriculaBaseResumo`, contendo apenas `matriculaBaseId`,
+  `alunoId` e `statusBase`. Com isso, `MatriculaFluxoService` deixou de carregar
+  diretamente a matricula base tambem em `rematricular`, passando a validar o
+  status e obter o `alunoId` pela porta `MatriculaRematriculaPort` antes de
+  delegar a criacao final ao `CriarMatriculaUseCase`.
 
 ## Historico resumido
 

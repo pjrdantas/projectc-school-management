@@ -1855,6 +1855,29 @@ Proxima subfase pratica:
 - manter o recorte no backend atual, sem BFF, sem endpoint interno HTTP novo e
   sem persistencia propria adicional nesta etapa.
 
+Entregue na subfase seguinte:
+
+- foi aplicado o mesmo padrao de fronteira interna ao write operacional minimo
+  de `rematricular`, sem mudar o contrato externo de
+  `POST /api/matriculas/{id}/rematricula` e sem mexer ainda no
+  `CriarMatriculaUseCase`;
+- `MatriculaRematriculaPort` passou a expor tambem o resumo
+  `MatriculaRematriculaBaseResumo`, contendo apenas `matriculaBaseId`,
+  `alunoId` e `statusBase`, que sao os unicos dados realmente consumidos pelo
+  fluxo operacional antes da criacao da nova matricula;
+- `MatriculaFluxoService` deixou de carregar diretamente a matricula base em
+  `rematricular`, passando a validar o status `CONCLUIDA` e resolver o
+  `alunoId` pela porta interna de `rematricula`, enquanto a criacao final
+  permanece centralizada e inalterada em `CriarMatriculaUseCase`.
+
+Proxima subfase pratica:
+
+- fechar formalmente este bloco de `rematricula`, revisando se o fluxo externo
+  ja ficou reduzido ao consumo das fronteiras internas apropriadas e se ainda
+  resta algum ajuste pontual pequeno antes de encerrar a macrofase atual;
+- manter o criterio incremental, backend/backend e sem persistencia propria
+  adicional nessa etapa de fechamento.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
