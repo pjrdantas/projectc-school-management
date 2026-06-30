@@ -14,12 +14,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardIndicadorSnapshotRequest;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardIndicadorSnapshotResponse;
-import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorResponse;
 import br.com.escola.dashboard.application.dto.internal.DashboardAcademicoResumo;
 import br.com.escola.dashboard.application.dto.internal.DashboardDiretorResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardProfessorResumo;
 import br.com.escola.dashboard.application.dto.internal.DashboardSecretariaResumo;
 import br.com.escola.dashboard.application.port.internal.DashboardAcademicoPort;
 import br.com.escola.dashboard.application.port.internal.DashboardDiretorPort;
+import br.com.escola.dashboard.application.port.internal.DashboardProfessorPort;
 import br.com.escola.dashboard.application.port.internal.DashboardSecretariaPort;
 import br.com.escola.dashboard.adapter.out.persistence.entity.PublicoDashboardEntity;
 import br.com.escola.dashboard.adapter.out.persistence.repository.PublicoDashboardJpaRepository;
@@ -31,7 +32,7 @@ public class DashboardSnapshotGeradorService {
     private final DashboardAcademicoPort dashboardAcademicoPort;
     private final DashboardSecretariaPort dashboardSecretariaPort;
     private final DashboardDiretorPort dashboardDiretorPort;
-    private final DashboardProfessorService dashboardProfessorService;
+    private final DashboardProfessorPort dashboardProfessorPort;
     private final DashboardIndicadorSnapshotService dashboardIndicadorSnapshotService;
 
     public DashboardSnapshotGeradorService(
@@ -39,13 +40,13 @@ public class DashboardSnapshotGeradorService {
             DashboardAcademicoPort dashboardAcademicoPort,
             DashboardSecretariaPort dashboardSecretariaPort,
             DashboardDiretorPort dashboardDiretorPort,
-            DashboardProfessorService dashboardProfessorService,
+            DashboardProfessorPort dashboardProfessorPort,
             DashboardIndicadorSnapshotService dashboardIndicadorSnapshotService) {
         this.publicoDashboardJpaRepository = publicoDashboardJpaRepository;
         this.dashboardAcademicoPort = dashboardAcademicoPort;
         this.dashboardSecretariaPort = dashboardSecretariaPort;
         this.dashboardDiretorPort = dashboardDiretorPort;
-        this.dashboardProfessorService = dashboardProfessorService;
+        this.dashboardProfessorPort = dashboardProfessorPort;
         this.dashboardIndicadorSnapshotService = dashboardIndicadorSnapshotService;
     }
 
@@ -71,7 +72,7 @@ public class DashboardSnapshotGeradorService {
         LocalDate dataReferencia = referenciaData == null ? LocalDate.now() : referenciaData;
         PublicoDashboardEntity publico = publicoDashboardJpaRepository.findByCodigo("PROFESSOR")
                 .orElseThrow(() -> notFound("Público de dashboard não encontrado para o código PROFESSOR"));
-        DashboardProfessorResponse dashboard = dashboardProfessorService.consultar(professorId);
+        DashboardProfessorResumo dashboard = dashboardProfessorPort.consultarResumo(professorId);
         String prefixo = "PROFESSOR_" + professorId.toString().replace("-", "").toUpperCase(Locale.ROOT) + "_";
         String valorTexto = professorId.toString();
 

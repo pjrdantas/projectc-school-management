@@ -1597,6 +1597,30 @@ Proxima subfase pratica:
 - manter o escopo backend/backend, sem cutover externo, sem eventos e sem
   refatoracao ampla das consultas do professor nesta etapa.
 
+Entregue na segunda subfase da macrofase seguinte:
+
+- foi introduzida a fronteira interna `DashboardProfessorPort`, com DTO proprio
+  de resumo de professor, mantendo `DashboardProfessorService` como
+  implementacao concreta inicial sem alterar o contrato REST ja exposto;
+- `DashboardAlertaService` e `DashboardSnapshotGeradorService` deixaram de
+  depender diretamente de `DashboardProfessorService` e passaram a consumir a
+  nova porta interna, reduzindo o acoplamento backend/backend nos dois
+  consumidores de menor risco definidos no diagnostico anterior;
+- o controller REST de professor e `DashboardFrontendService` permaneceram
+  intencionalmente inalterados nesta etapa, preservando o critério de menor
+  risco antes de abrir a troca nos pontos ainda ligados ao payload externo;
+- o rollback continua simples, porque a mudanca ficou confinada ao contrato
+  interno de professor, ao mapeamento local do proprio service e a dois
+  consumidores internos do modulo.
+
+Proxima subfase pratica:
+
+- aplicar a mesma fronteira interna restante em `DashboardFrontendService` e,
+  se fizer sentido manter o mesmo criterio incremental, avaliar tambem a troca
+  do controller REST apenas como adaptador externo do service concreto;
+- manter o escopo backend/backend e incremental, sem BFF, sem eventos e sem
+  refatoracao ampla das consultas internas do professor.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

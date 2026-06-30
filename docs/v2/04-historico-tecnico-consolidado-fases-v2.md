@@ -770,6 +770,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   segue sem porta interna e ainda e consumido diretamente por controller,
   frontend, alertas e geracao de snapshots. Como base para a proxima troca de
   fronteira, foi adicionada a primeira cobertura unitária direta do service.
+- A segunda subfase dessa macrofase introduziu `DashboardProfessorPort` e um
+  DTO interno proprio para o resumo do professor, mantendo
+  `DashboardProfessorService` como implementacao concreta inicial. Nessa mesma
+  etapa, `DashboardAlertaService` e `DashboardSnapshotGeradorService` passaram
+  a depender da nova porta interna, enquanto controller REST e
+  `DashboardFrontendService` permaneceram inalterados para preservar o criterio
+  de menor risco no bloco.
 
 ## Historico resumido
 

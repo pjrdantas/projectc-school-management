@@ -13,12 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardAlertaResponse;
-import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorResponse;
 import br.com.escola.dashboard.application.dto.internal.DashboardAcademicoResumo;
 import br.com.escola.dashboard.application.dto.internal.DashboardDiretorResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardProfessorResumo;
 import br.com.escola.dashboard.application.dto.internal.DashboardSecretariaResumo;
 import br.com.escola.dashboard.application.port.internal.DashboardAcademicoPort;
 import br.com.escola.dashboard.application.port.internal.DashboardDiretorPort;
+import br.com.escola.dashboard.application.port.internal.DashboardProfessorPort;
 import br.com.escola.dashboard.application.port.internal.DashboardSecretariaPort;
 
 @Service
@@ -27,19 +28,19 @@ public class DashboardAlertaService {
     private final DashboardAcademicoPort dashboardAcademicoPort;
     private final DashboardSecretariaPort dashboardSecretariaPort;
     private final DashboardDiretorPort dashboardDiretorPort;
-    private final DashboardProfessorService dashboardProfessorService;
+    private final DashboardProfessorPort dashboardProfessorPort;
     private final long limitePadrao;
 
     public DashboardAlertaService(
             DashboardAcademicoPort dashboardAcademicoPort,
             DashboardSecretariaPort dashboardSecretariaPort,
             DashboardDiretorPort dashboardDiretorPort,
-            DashboardProfessorService dashboardProfessorService,
+            DashboardProfessorPort dashboardProfessorPort,
             @Value("${dashboard.alertas.limite-padrao:0}") long limitePadrao) {
         this.dashboardAcademicoPort = dashboardAcademicoPort;
         this.dashboardSecretariaPort = dashboardSecretariaPort;
         this.dashboardDiretorPort = dashboardDiretorPort;
-        this.dashboardProfessorService = dashboardProfessorService;
+        this.dashboardProfessorPort = dashboardProfessorPort;
         this.limitePadrao = limitePadrao;
     }
 
@@ -126,7 +127,7 @@ public class DashboardAlertaService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "professorId é obrigatório para alertas do público PROFESSOR");
         }
 
-        DashboardProfessorResponse dashboard = dashboardProfessorService.consultar(professorId);
+        DashboardProfessorResumo dashboard = dashboardProfessorPort.consultarResumo(professorId);
         List<DashboardAlertaResponse> alertas = new ArrayList<>();
         adicionar(alertas, "PROFESSOR", professorId, "FREQUENCIAS_PENDENTES", "CRITICO",
                 "Frequências pendentes",

@@ -14,12 +14,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardAlertaResponse;
-import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorResponse;
 import br.com.escola.dashboard.application.dto.internal.DashboardAcademicoResumo;
 import br.com.escola.dashboard.application.dto.internal.DashboardDiretorResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardProfessorResumo;
 import br.com.escola.dashboard.application.dto.internal.DashboardSecretariaResumo;
 import br.com.escola.dashboard.application.port.internal.DashboardAcademicoPort;
 import br.com.escola.dashboard.application.port.internal.DashboardDiretorPort;
+import br.com.escola.dashboard.application.port.internal.DashboardProfessorPort;
 import br.com.escola.dashboard.application.port.internal.DashboardSecretariaPort;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,7 +36,7 @@ class DashboardAlertaServiceTest {
     private DashboardDiretorPort dashboardDiretorPort;
 
     @Mock
-    private DashboardProfessorService dashboardProfessorService;
+    private DashboardProfessorPort dashboardProfessorPort;
 
     @Test
     void deveRetornarAlertasDoDiretorOrdenadosPorSeveridade() {
@@ -84,7 +85,7 @@ class DashboardAlertaServiceTest {
     @Test
     void deveRetornarAlertasDoProfessorComProfessorId() {
         UUID professorId = UUID.randomUUID();
-        when(dashboardProfessorService.consultar(professorId)).thenReturn(new DashboardProfessorResponse(
+        when(dashboardProfessorPort.consultarResumo(professorId)).thenReturn(new DashboardProfessorResumo(
                 UUID.randomUUID(),
                 "Escola teste",
                 professorId,
@@ -160,7 +161,7 @@ class DashboardAlertaServiceTest {
                 dashboardAcademicoPort,
                 dashboardSecretariaPort,
                 dashboardDiretorPort,
-                dashboardProfessorService,
+                dashboardProfessorPort,
                 limitePadrao);
     }
 }
