@@ -944,6 +944,28 @@ Proxima subfase pratica:
 Extrair `pedagogical-service` com alocacao, aula, frequencia, avaliacao, notas,
 boletim e historico.
 
+Entregue na primeira subfase da Fase 55:
+
+- a macrofase pedagogica foi iniciada pelo menor recorte de leitura
+  consolidada ainda acoplado fora do proprio modulo: o resumo academico da
+  matricula em `/api/matriculas/{id}/academico`;
+- `MatriculaAcademicoResumoService` deixou de depender diretamente de
+  `NotaAlunoJpaRepository`, `FrequenciaAlunoJpaRepository` e das entidades de
+  `avaliacao` e `frequencia`;
+- foi criada a fronteira interna `RendimentoAcademicoPort`, implementada por
+  `RendimentoAcademicoService`, com DTOs internos proprios para notas e
+  frequencias academicas por matricula;
+- com isso, a Fase 55 abre o desacoplamento do bloco pedagogico pelo ponto de
+  menor risco, sem alterar contrato REST, sem mexer em `boletim` e sem abrir
+  persistencia propria nesta etapa.
+
+Proxima subfase pratica:
+
+- aplicar o mesmo criterio ao primeiro recorte minimo de `boletim`,
+  reaproveitando essa nova fronteira interna onde fizer sentido e evitando
+  refatoracao ampla do modulo pedagogico;
+- manter o escopo backend/backend, sem BFF e sem cutover externo nesta etapa.
+
 ### Fase 56 - Planejamento e IA
 
 Extrair `planning-ai-service`, ativar MongoDB para payloads flexiveis, Kafka para

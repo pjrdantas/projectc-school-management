@@ -587,6 +587,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   reutilizar `AlunoMatriculaPort` com escopo de escola. Com isso, o bloco
   minimo de desacoplamento interno de `transferencia`, `matricula`,
   `documento` e `historico` ficou formalmente encerrado no backend atual.
+- A primeira subfase da Fase 55 iniciou a macrofase pedagogica pelo menor
+  recorte de leitura consolidada fora do proprio modulo: o resumo academico da
+  matricula. `MatriculaAcademicoResumoService` deixou de consultar
+  `NotaAlunoJpaRepository`, `FrequenciaAlunoJpaRepository` e entidades de
+  `avaliacao`/`frequencia` diretamente, passando a reutilizar a nova fronteira
+  interna `RendimentoAcademicoPort`, implementada por
+  `RendimentoAcademicoService` com DTOs internos proprios. Com isso, o bloco
+  pedagogico comeca a ser desacoplado sem alterar o endpoint externo da
+  matricula nem abrir ainda o recorte de `boletim`.
 
 ## Historico resumido
 
