@@ -1141,6 +1141,29 @@ Proxima subfase pratica e de menor risco:
   novo runtime apenas como consumidor observavel dos contratos internos, sem
   mudar rotas no BFF.
 
+Entregue na terceira subfase da Fase 53:
+
+- ampliacao controlada da fronteira interna de pessoas ja existente
+  (`PessoaCadastroPort`) com busca por `pessoaId` e `escolaId`, sem criar novo
+  runtime, sem nova persistencia e sem alterar rotas externas;
+- remocao da dependencia direta de `EntityManager` em `ProfessorService`, que
+  passou a resolver a pessoa do funcionario exclusivamente pela porta interna
+  de pessoas antes do write local do professor;
+- preservacao do fluxo de criacao de professor no monolito atual, mantendo a
+  consistencia do write local e reduzindo o acoplamento interno restante entre
+  professor e infraestrutura JPA compartilhada;
+- validacao automatizada pela suite do backend, sem cutover no BFF e sem
+  ampliar o escopo para separacao fisica adicional nesta etapa.
+
+Proxima subfase pratica e de menor risco:
+
+- reaplicar o mesmo padrao de fronteira interna no recorte restante de
+  professores/RH, priorizando a elegibilidade e a verificacao de professor ja
+  cadastrado sem expor consulta cruzada de `ProfessorJpaRepository` fora do
+  limite minimo necessario;
+- manter a fase restrita ao backend/backend do monolito, sem mover rotas
+  externas nem abrir persistencia propria adicional.
+
 Entregue na vigesima-quinta subfase:
 
 - criacao do modulo `academic-professor-service` no monorepo como primeiro

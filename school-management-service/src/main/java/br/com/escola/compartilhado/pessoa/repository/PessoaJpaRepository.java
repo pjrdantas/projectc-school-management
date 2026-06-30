@@ -9,6 +9,8 @@ import br.com.escola.compartilhado.pessoa.entity.PessoaEntity;
 
 public interface PessoaJpaRepository extends JpaRepository<PessoaEntity, UUID> {
 
+    Optional<PessoaEntity> findByIdAndEscola_Id(UUID id, UUID escolaId);
+
     Optional<PessoaEntity> findByCpf(String cpf);
 
     Optional<PessoaEntity> findByCpfAndEscola_Id(String cpf, UUID escolaId);

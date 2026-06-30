@@ -126,6 +126,15 @@ public class PessoaFoundationService implements PessoaCadastroPort {
         pessoaEnderecoRepository.save(vinculo);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<PessoaEntity> buscarPorIdEEscola(UUID pessoaId, UUID escolaId) {
+        if (pessoaId == null || escolaId == null) {
+            return Optional.empty();
+        }
+        return pessoaRepository.findByIdAndEscola_Id(pessoaId, escolaId);
+    }
+
     @Transactional
     public void vincularTipoPessoa(PessoaEntity pessoa, String tipoPessoaCodigo) {
         vincularTipoPessoa(pessoa, buscarTipoPessoaObrigatorio(tipoPessoaCodigo));

@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import jakarta.persistence.EntityManager;
-
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +32,7 @@ import br.com.escola.professor.domain.exception.ProfessorJaCadastradoException;
 import br.com.escola.professor.domain.exception.ProfessorNaoEncontradoException;
 import br.com.escola.professor.domain.exception.ProfessorTurmaDisciplinaDuplicadaException;
 import br.com.escola.professor.domain.exception.ProfessorTurmaDisciplinaNaoEncontradaException;
-import br.com.escola.compartilhado.pessoa.entity.PessoaEntity;
+import br.com.escola.compartilhado.pessoa.port.internal.PessoaCadastroPort;
 import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.rh.application.port.internal.FuncionarioProfessorPort;
 
@@ -48,7 +46,7 @@ public class ProfessorService implements ProfessorAcademicoPort {
     private final TurmaDisciplinaJpaRepository turmaDisciplinaJpaRepository;
     private final ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository;
     private final EscolaTenantService escolaTenantService;
-    private final EntityManager entityManager;
+    private final PessoaCadastroPort pessoaCadastroPort;
 
     public ProfessorService(
             ProfessorJpaRepository professorJpaRepository,
@@ -57,14 +55,14 @@ public class ProfessorService implements ProfessorAcademicoPort {
             TurmaDisciplinaJpaRepository turmaDisciplinaJpaRepository,
             ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository,
             EscolaTenantService escolaTenantService,
-            EntityManager entityManager) {
+            PessoaCadastroPort pessoaCadastroPort) {
         this.professorJpaRepository = professorJpaRepository;
         this.funcionarioProfessorPort = funcionarioProfessorPort;
         this.turmaJpaRepository = turmaJpaRepository;
         this.turmaDisciplinaJpaRepository = turmaDisciplinaJpaRepository;
         this.professorTurmaDisciplinaJpaRepository = professorTurmaDisciplinaJpaRepository;
         this.escolaTenantService = escolaTenantService;
-        this.entityManager = entityManager;
+        this.pessoaCadastroPort = pessoaCadastroPort;
     }
 
     @Transactional
@@ -166,10 +164,9 @@ public class ProfessorService implements ProfessorAcademicoPort {
             throw new ProfessorJaCadastradoException();
         }
 
-        PessoaEntity pessoa = entityManager.getReference(PessoaEntity.class, funcionario.pessoaId());
-
         ProfessorEntity professor = ProfessorEntity.builder()
-                .pessoa(pessoa)
+                .pessoa(pessoaCadastroPort.buscarPorIdEEscola(funcionario.pessoaId(), escolaResolvidaId)
+                        .orElseThrow(() -> new ProfessorNaoEncontradoException("Pessoa do funcionário não encontrada.")))
                 .registroProfissional(solicitacao.registroProfissional())
                 .formacao(solicitacao.formacao())
                 .ativo(solicitacao.ativo() == null ? Boolean.TRUE : solicitacao.ativo())

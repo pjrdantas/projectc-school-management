@@ -24,6 +24,8 @@ public interface PessoaCadastroPort {
             EnderecoDados enderecoDados,
             UUID escolaId);
 
+    Optional<PessoaEntity> buscarPorIdEEscola(UUID pessoaId, UUID escolaId);
+
     Optional<PessoaEntity> buscarPorCpf(String cpf);
 
     List<CatalogoPessoaResponse> listarTiposPessoa();

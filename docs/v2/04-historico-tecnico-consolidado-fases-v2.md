@@ -511,6 +511,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `PessoaCatalogoController` deixaram de depender diretamente da implementacao
   concreta de fundacao, passando a consumir uma fronteira interna preparatoria
   para a extracao fisica do modulo de people.
+- A terceira subfase da Fase 53 reaplicou esse mesmo padrao de fronteira
+  interna no fluxo de professores, sem abrir novo runtime nem ampliar o BFF. A
+  porta `PessoaCadastroPort` passou a expor a busca controlada de pessoa por
+  `pessoaId` e `escolaId`, `PessoaFoundationService` implementou essa
+  resolucao e `ProfessorService` deixou de depender diretamente de
+  `EntityManager` para materializar `PessoaEntity` no write local de professor.
+  Com isso, o acoplamento residual entre professor e infraestrutura JPA
+  compartilhada foi reduzido sem alterar as rotas externas nem o comportamento
+  funcional do monolito.
 
 ## Historico resumido
 
