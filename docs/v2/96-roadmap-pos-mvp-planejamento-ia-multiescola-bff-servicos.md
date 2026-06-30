@@ -818,6 +818,33 @@ Proxima subfase pratica:
 - manter o escopo no backend atual, sem cutover de BFF, sem saga distribuida e
   sem persistencia propria fora do monolito nesta etapa.
 
+Entregue na segunda subfase da Fase 54:
+
+- foi aplicado esse mesmo padrao minimo ao write principal de `matricula`, sem
+  alterar rotas externas, sem migracao de schema e sem mudar a modelagem fisica
+  de `MatriculaEntity` nesta etapa;
+- foi criada a porta interna `AlunoMatriculaPort`, implementada localmente por
+  `AlunoMatriculaService`, para encapsular existencia e materializacao escopada
+  de aluno por `alunoId` e `escolaId`;
+- `AlunoConsultaPersistenceGateway` deixou de depender diretamente de
+  `AlunoJpaRepository` e passou a delegar essa verificacao a essa fronteira
+  interna;
+- `MatriculaPersistenceGateway` deixou de materializar `AlunoEntity`
+  diretamente por `EntityManager.getReference(AlunoEntity.class, ...)` e passou
+  a obter o aluno via `AlunoMatriculaPort`, preservando o comportamento da
+  escrita principal de matricula no backend atual;
+- com isso, a Fase 54 avancou no desacoplamento contrato-a-contrato do bloco de
+  matricula antes de discutir remocao de relacionamento ORM, storage de
+  documentos ou saga distribuida.
+
+Proxima subfase pratica:
+
+- aplicar o mesmo criterio ao recorte de `documento` ou ao fluxo complementar
+  de `historico`, escolhendo o menor ponto ainda acoplado diretamente a
+  repositorios/entidades de outro modulo;
+- manter a evolucao ainda no backend/backend local, sem BFF e sem storage
+  externo nesta etapa.
+
 ### Fase 55 - Pedagogico
 
 Extrair `pedagogical-service` com alocacao, aula, frequencia, avaliacao, notas,

@@ -548,6 +548,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `JdbcTemplate`, enquanto `TransferenciaAlunoController` e
   `EscolaOrigemController` passaram a apenas mapear contrato externo para o
   contrato interno, preservando as APIs publicas existentes.
+- A segunda subfase da Fase 54 aplicou o mesmo padrao ao write principal de
+  `matricula`, sem alterar o contrato REST nem a modelagem fisica da tabela.
+  Foi criada a porta interna `AlunoMatriculaPort`, implementada por
+  `AlunoMatriculaService`, para encapsular existencia e materializacao escopada
+  de aluno por escola. Com isso, `AlunoConsultaPersistenceGateway` deixou de
+  consultar `AlunoJpaRepository` diretamente e `MatriculaPersistenceGateway`
+  deixou de materializar `AlunoEntity` via
+  `EntityManager.getReference(AlunoEntity.class, ...)`, passando a depender de
+  uma fronteira interna explicita do dominio de aluno.
 
 ## Historico resumido
 
