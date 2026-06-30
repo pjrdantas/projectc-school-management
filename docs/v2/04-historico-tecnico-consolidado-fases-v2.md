@@ -732,6 +732,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   para os publicos ja cobertos pelo bloco anterior, mantendo
   `DashboardProfessorService` concreto por ora. O comportamento externo
   permaneceu inalterado e o recorte continuou restrito ao backend atual.
+- A terceira subfase dessa nova macrofase encerrou formalmente esse segundo
+  bloco minimo de `dashboard`. O diagnostico final confirmou que
+  `DashboardAlertaService` esgota o proximo consumidor de composicao de baixo
+  risco, e que os caminhos remanescentes ja exigem uma decisao explicita entre
+  abrir `DashboardFrontendService` como composicao externa maior ou
+  `DashboardProfessorService` como recorte de dominio mais pesado. O bloco foi
+  fechado sem ampliar o escopo tecnico nem introduzir infraestrutura
+  distribuida.
 
 ## Historico resumido
 

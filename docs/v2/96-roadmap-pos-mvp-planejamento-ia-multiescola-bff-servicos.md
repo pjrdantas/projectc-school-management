@@ -1434,6 +1434,34 @@ Proxima subfase pratica:
 - manter o escopo backend/backend e incremental, sem BFF, sem eventos e sem
   refatoracao ampla nesta etapa de fechamento.
 
+Entregue na terceira subfase da macrofase seguinte de `dashboard`:
+
+- foi executado o fechamento formal deste bloco minimo de composicao interna,
+  confirmando que `DashboardAlertaService` esgota o proximo recorte seguro de
+  baixo risco depois do bloco anterior de resumos internos;
+- nao foi identificado outro consumidor de composicao comparavel entre esse
+  ponto e o proximo salto de escopo: o que resta no modulo passa
+  essencialmente por `DashboardFrontendService`, que agrega resumo, alertas,
+  configuracao administrativa, configuracao por usuario e historico de
+  snapshots, ou por `DashboardProfessorService`, que segue concentrando
+  consultas especificas mais pesadas por professor;
+- por esse motivo, este bloco fica encerrado sem nova refatoracao nesta
+  subfase: o backend atual ja separou os resumos reutilizaveis e o primeiro
+  consumidor de composicao de menor risco, mantendo rollback simples e nenhum
+  impacto em rotas externas;
+- nao houve alteracao de schema, nao houve migracao de dados e nao houve uso de
+  Kafka, MongoDB, Redis, BFF ou outra infraestrutura distribuida neste
+  fechamento formal.
+
+Proxima fase pratica:
+
+- iniciar a proxima macrofase de `dashboard` com diagnostico pontual para
+  decidir explicitamente entre dois caminhos remanescentes:
+  `DashboardFrontendService` como proximo recorte de composicao externa ou
+  `DashboardProfessorService` como proximo recorte de dominio mais pesado;
+- manter o mesmo criterio incremental: sem cutover externo e sem infraestrutura
+  distribuida antes desse novo diagnostico objetivo.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
