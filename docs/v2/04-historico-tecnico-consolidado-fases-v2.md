@@ -788,6 +788,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `DashboardProfessorService` fora de `DashboardProfessorPort`. O uso direto
   remanescente ficou apenas em `DashboardProfessorController`, tratado como
   adaptador REST externo e nao como recorte interno adicional nesta macrofase.
+- A subfase seguinte executou o diagnostico de decisao do proximo recorte
+  backend apos o fechamento de `dashboard`. A comparacao objetiva entre
+  `DashboardProfessorController`, `PlanejamentoBimestralService`,
+  `HistoricoEscolarServiceImpl` e `MatriculaFluxoService` confirmou que nao
+  vale abrir nova macrofase em `dashboard`: o controller de professor restante
+  atua apenas como adaptador REST fino sobre `DashboardProfessorPort`, enquanto
+  `planejamento` e `historico` ja estao mais protegidos por portas internas e
+  contexto escolar explicito. O maior acoplamento transacional remanescente com
+  melhor relacao risco/ganho passa a ser `matricula`, especialmente em
+  `MatriculaFluxoService`, que ainda concentra writes, repositorios JPA
+  cruzados e consistencia local entre matricula, documentos, turma e boletim.
+  Com isso, `dashboard` fica formalmente encerrado como bloco interno e a
+  proxima macrofase backend passa a ser aberta em `matricula`.
 
 ## Historico resumido
 

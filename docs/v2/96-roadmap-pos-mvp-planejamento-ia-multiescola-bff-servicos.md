@@ -1669,6 +1669,33 @@ Proxima subfase pratica:
 - manter o criterio de menor risco, sem cutover externo e sem refatoracao
   ampla de dominio antes desse novo diagnostico.
 
+Entregue na subfase seguinte:
+
+- o diagnostico comparativo final foi executado e concluiu que nao vale abrir
+  nova macrofase em `dashboard`, porque o uso restante de
+  `DashboardProfessorController` ja e apenas de adaptacao REST externa sobre a
+  porta interna estabilizada `DashboardProfessorPort`;
+- a comparacao com `PlanejamentoBimestralService` e
+  `HistoricoEscolarServiceImpl` mostrou que esses blocos ja avancaram mais no
+  criterio de fronteiras internas, tenant explicito e consumo por portas,
+  ficando com menor retorno arquitetural imediato para a proxima etapa;
+- o melhor proximo alvo incremental passa a ser `MatriculaFluxoService`, que
+  ainda concentra write transacional relevante com dependencias diretas de
+  `matricula`, `documento`, `catalogo` e `historico`, alem de impacto de
+  consistencia local e rollback mais sensivel;
+- por isso, a proxima macrofase backend deve sair do modulo `dashboard` e abrir
+  o primeiro recorte minimo de `matricula`, sem alterar rotas externas no BFF
+  e sem iniciar persistencia propria fora do monolito nesta etapa.
+
+Proxima subfase pratica:
+
+- abrir diagnostico pontual do menor write/controlador interno de `matricula`
+  com menor risco de separacao, priorizando contrato interno, dependencias
+  cruzadas, consistencia transacional e rollback local;
+- usar `MatriculaFluxoService` como ponto de partida para escolher a primeira
+  fronteira interna de write da nova macrofase, evitando refatoracao ampla do
+  modulo inteiro.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
