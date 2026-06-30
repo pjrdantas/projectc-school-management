@@ -1878,6 +1878,29 @@ Proxima subfase pratica:
 - manter o criterio incremental, backend/backend e sem persistencia propria
   adicional nessa etapa de fechamento.
 
+Entregue na subfase seguinte:
+
+- foi executado o fechamento formal do bloco de `rematricula` apos a revisao
+  final do fluxo externo;
+- a revisao confirmou que, dentro desse recorte, `MatriculaFluxoService`
+  permaneceu apenas como adaptador/orquestrador fino dos endpoints externos de
+  rematricula, sem voltar a carregar diretamente a matricula base ou a turma de
+  destino para elegibilidade e write minimo;
+- `MatriculaRematriculaPort` ficou consolidada como a fronteira interna do
+  bloco, concentrando a leitura de elegibilidade e da base minima necessaria,
+  enquanto `CriarMatriculaUseCase` segue como implementacao central da criacao
+  final;
+- por isso, a macrofase atual de `matricula` fica encerrada neste ponto sem
+  abrir novo endpoint interno HTTP, sem persistencia propria adicional e sem
+  ampliar a mudanca para outro write mais pesado na mesma etapa.
+
+Proxima subfase pratica:
+
+- iniciar a proxima macrofase backend por diagnostico pontual do proximo fluxo
+  concentrado ainda remanescente no monolito, escolhendo um recorte minimo com
+  risco comparavel ao que foi aplicado em `matricula`;
+- manter a linha incremental, backend/backend e sem BFF nessa abertura.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

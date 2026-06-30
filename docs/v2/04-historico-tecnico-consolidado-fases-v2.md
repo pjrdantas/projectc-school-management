@@ -873,6 +873,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   diretamente a matricula base tambem em `rematricular`, passando a validar o
   status e obter o `alunoId` pela porta `MatriculaRematriculaPort` antes de
   delegar a criacao final ao `CriarMatriculaUseCase`.
+- A subfase seguinte encerrou formalmente esse bloco de `rematricula`. A
+  revisao final confirmou que, dentro desse recorte, `MatriculaFluxoService`
+  nao concentra mais leitura direta da matricula base nem da turma de destino
+  para os endpoints externos de rematricula: a elegibilidade e a carga minima
+  da base passaram a ser resolvidas por `MatriculaRematriculaPort`, enquanto a
+  criacao final continua centralizada no `CriarMatriculaUseCase`. O bloco foi
+  fechado sem novo endpoint interno HTTP, sem migracao de schema e sem ampliar
+  a mudanca para outro fluxo mais pesado de `matricula`.
 
 ## Historico resumido
 
