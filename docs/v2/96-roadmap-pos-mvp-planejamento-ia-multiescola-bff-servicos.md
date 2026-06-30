@@ -1369,6 +1369,46 @@ Proxima fase pratica:
 - manter o mesmo criterio incremental: sem cutover externo, sem projecoes por
   eventos ainda e sem infraestrutura distribuida antes do diagnostico objetivo.
 
+Entregue na primeira subfase da macrofase seguinte de `dashboard`:
+
+- foi executado o diagnostico comparativo do menor recorte remanescente apos o
+  fechamento do bloco de resumos internos;
+- `DashboardProfessorService` foi descartado como proximo passo imediato porque
+  continua acoplado a consultas especificas por professor, alocacoes, aulas,
+  frequencias, avaliacoes, notas e planejamentos, o que elevaria o risco e o
+  tamanho da fronteira logo na abertura da nova macrofase;
+- `DashboardFrontendService` tambem nao foi escolhido como primeiro candidato,
+  porque ele compoe resumo, alertas, configuracao administrativa,
+  configuracao por usuario e historico de snapshots em uma mesma resposta,
+  tornando o recorte maior do que o necessario para reiniciar a evolucao
+  incremental;
+- o menor candidato seguro identificado passa a ser `DashboardAlertaService`,
+  que hoje ainda depende diretamente dos services concretos de `academico`,
+  `secretaria`, `diretor` e `professor`, mas pode reutilizar as fronteiras
+  internas ja abertas no bloco anterior sem mexer ainda na composicao maior do
+  frontend.
+
+Impactos e consistencia mapeados:
+
+- nenhuma rota externa precisa mudar nesse proximo recorte, porque a troca
+  permanece confinada ao backend atual e aos consumidores internos do modulo de
+  dashboard;
+- a consistencia continua sincrona e baseada em leitura do PostgreSQL do
+  monolito, sem eventos, sem cache distribuido e sem mudanca de persistencia;
+- o rollback segue simples, pois o recorte pode ficar limitado a
+  `DashboardAlertaService` e aos contratos internos ja existentes para
+  academico, secretaria e diretor, mantendo `DashboardProfessorService`
+  concreto nesta primeira etapa.
+
+Proxima subfase pratica:
+
+- aplicar a mesma fronteira interna minima no primeiro ponto de composicao da
+  nova macrofase, fazendo `DashboardAlertaService` consumir as portas internas
+  ja existentes de `academico`, `secretaria` e `diretor`, enquanto o caminho
+  de `professor` permanece concreto por ora;
+- manter o escopo backend/backend e incremental, sem BFF, sem eventos e sem
+  refatoracao ampla de `DashboardFrontendService` nesta etapa.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

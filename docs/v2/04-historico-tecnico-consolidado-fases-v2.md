@@ -718,6 +718,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `DashboardFrontendService` e `DashboardAlertaService` ainda operam como
   composicoes externas sobre services concretos. A macrofase foi fechada sem
   ampliar escopo para nova refatoracao nem para infraestrutura distribuida.
+- A primeira subfase da macrofase seguinte de `dashboard` executou o
+  diagnostico comparativo do proximo recorte minimo apos o fechamento da Fase
+  57. O resultado objetivo foi: `DashboardProfessorService` segue pesado demais
+  para abrir a nova etapa, `DashboardFrontendService` agrega dependencias
+  demais para um primeiro passo seguro, e `DashboardAlertaService` passa a ser
+  o menor candidato de composicao interna por conseguir reaproveitar as portas
+  ja criadas de academico, secretaria e diretor sem exigir refatoracao ampla
+  nem mudanca externa.
 
 ## Historico resumido
 
