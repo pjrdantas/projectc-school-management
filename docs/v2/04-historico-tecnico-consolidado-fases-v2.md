@@ -596,6 +596,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `RendimentoAcademicoService` com DTOs internos proprios. Com isso, o bloco
   pedagogico comeca a ser desacoplado sem alterar o endpoint externo da
   matricula nem abrir ainda o recorte de `boletim`.
+- A segunda subfase da Fase 55 aplicou o mesmo criterio ao primeiro recorte de
+  `boletim`. `BoletimService` deixou de consultar
+  `NotaAlunoJpaRepository`, `FrequenciaAlunoJpaRepository` e entidades de
+  `avaliacao`/`frequencia` diretamente para calcular o boletim em memoria,
+  passando a reutilizar `RendimentoAcademicoPort`. Com isso, o desacoplamento
+  pedagogico avancou no fluxo de boletim sem alterar o endpoint externo nem o
+  fechamento persistido.
 
 ## Historico resumido
 

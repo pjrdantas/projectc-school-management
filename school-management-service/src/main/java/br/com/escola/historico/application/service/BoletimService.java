@@ -15,10 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.catalogo.adapter.out.persistence.entity.DisciplinaEntity;
 import br.com.escola.catalogo.adapter.out.persistence.repository.DisciplinaJpaRepository;
-import br.com.escola.avaliacao.adapter.out.persistence.entity.NotaAlunoEntity;
-import br.com.escola.avaliacao.adapter.out.persistence.repository.NotaAlunoJpaRepository;
-import br.com.escola.frequencia.adapter.out.persistence.entity.FrequenciaAlunoEntity;
-import br.com.escola.frequencia.adapter.out.persistence.repository.FrequenciaAlunoJpaRepository;
 import br.com.escola.historico.adapter.in.web.dto.BoletimFechamentoRequest;
 import br.com.escola.historico.adapter.in.web.dto.BoletimIndicadoresResponse;
 import br.com.escola.historico.adapter.in.web.dto.BoletimItemResponse;
@@ -27,6 +23,9 @@ import br.com.escola.historico.adapter.out.persistence.entity.BoletimEntity;
 import br.com.escola.historico.adapter.out.persistence.entity.BoletimItemEntity;
 import br.com.escola.historico.adapter.out.persistence.repository.BoletimItemJpaRepository;
 import br.com.escola.historico.adapter.out.persistence.repository.BoletimJpaRepository;
+import br.com.escola.historico.application.dto.internal.FrequenciaAcademicaResumo;
+import br.com.escola.historico.application.dto.internal.NotaAcademicaResumo;
+import br.com.escola.historico.application.port.internal.RendimentoAcademicoPort;
 import br.com.escola.historico.domain.exception.BoletimFechamentoDuplicadoException;
 import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.matricula.adapter.out.persistence.entity.MatriculaEntity;
@@ -41,8 +40,7 @@ public class BoletimService {
     private static final BigDecimal FREQUENCIA_MINIMA = BigDecimal.valueOf(75);
 
     private final MatriculaJpaRepository matriculaJpaRepository;
-    private final NotaAlunoJpaRepository notaAlunoJpaRepository;
-    private final FrequenciaAlunoJpaRepository frequenciaAlunoJpaRepository;
+    private final RendimentoAcademicoPort rendimentoAcademicoPort;
     private final DisciplinaJpaRepository disciplinaJpaRepository;
     private final BoletimJpaRepository boletimJpaRepository;
     private final BoletimItemJpaRepository boletimItemJpaRepository;
@@ -50,15 +48,13 @@ public class BoletimService {
 
     public BoletimService(
             MatriculaJpaRepository matriculaJpaRepository,
-            NotaAlunoJpaRepository notaAlunoJpaRepository,
-            FrequenciaAlunoJpaRepository frequenciaAlunoJpaRepository,
+            RendimentoAcademicoPort rendimentoAcademicoPort,
             DisciplinaJpaRepository disciplinaJpaRepository,
             BoletimJpaRepository boletimJpaRepository,
             BoletimItemJpaRepository boletimItemJpaRepository,
             EscolaTenantService escolaTenantService) {
         this.matriculaJpaRepository = matriculaJpaRepository;
-        this.notaAlunoJpaRepository = notaAlunoJpaRepository;
-        this.frequenciaAlunoJpaRepository = frequenciaAlunoJpaRepository;
+        this.rendimentoAcademicoPort = rendimentoAcademicoPort;
         this.disciplinaJpaRepository = disciplinaJpaRepository;
         this.boletimJpaRepository = boletimJpaRepository;
         this.boletimItemJpaRepository = boletimItemJpaRepository;
@@ -115,12 +111,14 @@ public class BoletimService {
     private BoletimResponse gerarBoletimCalculado(MatriculaEntity matricula, UUID escolaId) {
         UUID matriculaId = matricula.getId();
         Map<UUID, DisciplinaBoletim> disciplinas = new LinkedHashMap<>();
+        var rendimento = rendimentoAcademicoPort.consultarPorMatricula(matriculaId, escolaId);
 
-        notaAlunoJpaRepository.findByMatricula_IdAndMatricula_Turma_Escola_Id(matriculaId, escolaId)
-                .forEach(nota -> disciplinas.computeIfAbsent(disciplinaId(nota), id -> fromNota(nota)).notas.add(nota));
-        frequenciaAlunoJpaRepository.findByMatricula_IdAndMatricula_Turma_Escola_Id(matriculaId, escolaId)
-                .forEach(frequencia -> disciplinas.computeIfAbsent(disciplinaId(frequencia), id -> fromFrequencia(frequencia))
-                        .frequencias.add(frequencia));
+        rendimento.notas()
+                .forEach(nota -> disciplinas.computeIfAbsent(nota.disciplinaId(), id -> fromNota(nota)).notas.add(nota));
+        rendimento.frequencias()
+                .forEach(frequencia -> disciplinas.computeIfAbsent(
+                        frequencia.disciplinaId(),
+                        id -> fromFrequencia(frequencia)).frequencias.add(frequencia));
 
         List<BoletimItemResponse> itens = disciplinas.values().stream()
                 .sorted(Comparator.comparing(DisciplinaBoletim::nome))
@@ -221,24 +219,16 @@ public class BoletimService {
         return escolaTenantService.obterOuCriarEscolaPadrao().getId();
     }
 
-    private UUID disciplinaId(NotaAlunoEntity nota) {
-        return nota.getAvaliacao().getProfessorTurmaDisciplina().getTurmaDisciplina().getDisciplina().getId();
-    }
-
-    private UUID disciplinaId(FrequenciaAlunoEntity frequencia) {
-        return frequencia.getAula().getProfessorTurmaDisciplina().getTurmaDisciplina().getDisciplina().getId();
-    }
-
-    private DisciplinaBoletim fromNota(NotaAlunoEntity nota) {
+    private DisciplinaBoletim fromNota(NotaAcademicaResumo nota) {
         return new DisciplinaBoletim(
-                disciplinaId(nota),
-                nota.getAvaliacao().getProfessorTurmaDisciplina().getTurmaDisciplina().getDisciplina().getNome());
+                nota.disciplinaId(),
+                nota.disciplinaNome());
     }
 
-    private DisciplinaBoletim fromFrequencia(FrequenciaAlunoEntity frequencia) {
+    private DisciplinaBoletim fromFrequencia(FrequenciaAcademicaResumo frequencia) {
         return new DisciplinaBoletim(
-                disciplinaId(frequencia),
-                frequencia.getAula().getProfessorTurmaDisciplina().getTurmaDisciplina().getDisciplina().getNome());
+                frequencia.disciplinaId(),
+                frequencia.disciplinaNome());
     }
 
     private BoletimItemResponse toItemResponse(DisciplinaBoletim disciplina) {
@@ -289,22 +279,22 @@ public class BoletimService {
         return new BoletimIndicadoresResponse(itens.size(), mediaGeral, frequenciaGeral, resultadoGeral);
     }
 
-    private BigDecimal media(List<NotaAlunoEntity> notas) {
+    private BigDecimal media(List<NotaAcademicaResumo> notas) {
         if (notas.isEmpty()) {
             return BigDecimal.ZERO;
         }
         return notas.stream()
-                .map(NotaAlunoEntity::getNota)
+                .map(NotaAcademicaResumo::nota)
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .divide(BigDecimal.valueOf(notas.size()), 2, RoundingMode.HALF_UP);
     }
 
-    private BigDecimal frequenciaPercentual(List<FrequenciaAlunoEntity> frequencias) {
+    private BigDecimal frequenciaPercentual(List<FrequenciaAcademicaResumo> frequencias) {
         if (frequencias.isEmpty()) {
             return BigDecimal.ZERO;
         }
         long presencas = frequencias.stream()
-                .filter(frequencia -> "PRESENTE".equals(frequencia.getSituacaoFrequencia().getCodigo()))
+                .filter(frequencia -> "PRESENTE".equals(frequencia.situacao()))
                 .count();
         return BigDecimal.valueOf(presencas)
                 .multiply(CEM)
@@ -325,8 +315,8 @@ public class BoletimService {
 
         private final UUID id;
         private final String nome;
-        private final List<NotaAlunoEntity> notas = new java.util.ArrayList<>();
-        private final List<FrequenciaAlunoEntity> frequencias = new java.util.ArrayList<>();
+        private final List<NotaAcademicaResumo> notas = new java.util.ArrayList<>();
+        private final List<FrequenciaAcademicaResumo> frequencias = new java.util.ArrayList<>();
 
         private DisciplinaBoletim(UUID id, String nome) {
             this.id = id;

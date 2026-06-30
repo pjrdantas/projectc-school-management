@@ -966,6 +966,28 @@ Proxima subfase pratica:
   refatoracao ampla do modulo pedagogico;
 - manter o escopo backend/backend, sem BFF e sem cutover externo nesta etapa.
 
+Entregue na segunda subfase da Fase 55:
+
+- o mesmo padrao minimo foi aplicado ao primeiro recorte de `boletim`, ainda
+  sem mexer na persistencia de fechamento nem no contrato HTTP externo;
+- `BoletimService` deixou de depender diretamente de
+  `NotaAlunoJpaRepository`, `FrequenciaAlunoJpaRepository` e das entidades de
+  `avaliacao`/`frequencia` para calcular o boletim em memoria;
+- o calculo do boletim passou a reutilizar `RendimentoAcademicoPort`, criado na
+  subfase anterior, preservando o comportamento do endpoint e o fluxo de
+  fechamento persistido;
+- com isso, a Fase 55 avanca no bloco pedagogico por leitura consolidada antes
+  de atacar recortes mais estruturais de historico oficial ou persistencia
+  propria.
+
+Proxima subfase pratica:
+
+- fechar o primeiro bloco interno pedagogico revisando `historico`/`boletim`
+  apos a introducao de `RendimentoAcademicoPort`, e, se o recorte estiver
+  coberto, identificar o proximo ponto minimo ainda acoplado dentro da
+  macrofase;
+- manter o escopo backend/backend, sem BFF e sem cutover externo nesta etapa.
+
 ### Fase 56 - Planejamento e IA
 
 Extrair `planning-ai-service`, ativar MongoDB para payloads flexiveis, Kafka para
