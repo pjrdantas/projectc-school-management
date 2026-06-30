@@ -1122,6 +1122,47 @@ Proxima subfase pratica:
   relevante a entidades de `planejamento` apenas para mapeamento ou contexto;
 - manter o escopo backend/backend, sem Mongo, Kafka, Redis ou BFF nesta etapa.
 
+Entregue na terceira subfase da Fase 56:
+
+- o contexto escolar de resposta em `PlanejamentoIAService` deixou de depender
+  da travessia de `PlanejamentoBimestral` apenas para recuperar escola;
+- `toInteracaoResponse` e `toConteudoResponse` passaram a usar diretamente
+  `EscolaContextoPort` como autoridade interna do contexto escolar atual,
+  eliminando o uso residual do planejamento apenas para esse mapeamento;
+- com isso, o primeiro bloco interno de `planejamento e IA` fica formalmente
+  fechado no backend atual, ainda sem Mongo, Kafka, Redis, BFF ou extracao
+  fisica.
+
+Proxima subfase pratica:
+
+- iniciar o proximo bloco interno da Fase 56 escolhendo o menor recorte
+  remanescente de `PlanejamentoIAService` ou da biblioteca pedagogica que ainda
+  faça consulta direta relevante a repositorios auxiliares antes de qualquer
+  debate sobre infraestrutura externa;
+- manter o escopo backend/backend e incremental.
+
+Entregue na quarta subfase da Fase 56:
+
+- o bloco de persistencia e consulta da biblioteca pedagogica saiu de
+  `PlanejamentoIAService` para a nova porta interna
+  `PlanejamentoIABibliotecaPort`, implementada por
+  `PlanejamentoIABibliotecaService`;
+- foi criado o DTO interno `PlanejamentoIABibliotecaResumo` para materializar o
+  contrato backend/backend minimo da biblioteca, sem expor `PlanejamentoIAService`
+  diretamente aos detalhes de `BibliotecaConteudoPedagogicoJpaRepository`;
+- com isso, `PlanejamentoIAService` deixa de consultar e publicar diretamente
+  na biblioteca pedagogica, preservando o mesmo contrato REST externo e o mesmo
+  comportamento funcional;
+- Mongo, Kafka, Redis, BFF e extracao fisica continuam fora desta subfase.
+
+Proxima subfase pratica:
+
+- executar a subfase minima restante de Fase 56 para revisar se o bloco de
+  `planejamento e IA` agora ficou restrito a dependencias internas do proprio
+  modulo, fechando formalmente a macrofase antes de abrir outro dominio;
+- manter o escopo backend/backend, sem ampliar para infraestrutura externa ou
+  refatoracao ampla.
+
 ### Fase 57 - Dashboard orientado a eventos
 
 Extrair `dashboard-query-service`, substituir consultas cruzadas por projecoes

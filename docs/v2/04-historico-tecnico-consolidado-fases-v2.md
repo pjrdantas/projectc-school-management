@@ -650,6 +650,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   contexto de publicacao e da entidade de biblioteca a partir do conteudo
   aprovado. Com isso, `PlanejamentoIAService` deixa de concentrar a travessia
   direta de entidades de `planejamento`, `professor` e `catalogo` nesse fluxo.
+- A terceira subfase da Fase 56 fechou o ponto residual de mapeamento de
+  contexto escolar em `PlanejamentoIAService`. `toInteracaoResponse` e
+  `toConteudoResponse` passaram a usar `EscolaContextoPort` diretamente para
+  escola atual, eliminando a dependencia da travessia de `PlanejamentoBimestral`
+  apenas para compor resposta. Com isso, o primeiro bloco interno de
+  `planejamento e IA` fica formalmente encerrado no backend atual.
+- A quarta subfase da Fase 56 abriu o bloco seguinte pelo menor acoplamento
+  remanescente de `PlanejamentoIAService` com a biblioteca pedagogica. Foi
+  criada a porta interna `PlanejamentoIABibliotecaPort`, implementada por
+  `PlanejamentoIABibliotecaService`, e o DTO interno
+  `PlanejamentoIABibliotecaResumo` para listar e publicar conteudos da
+  biblioteca sem acesso direto de `PlanejamentoIAService` ao
+  `BibliotecaConteudoPedagogicoJpaRepository`. O contrato REST externo e o
+  comportamento funcional permaneceram inalterados.
 
 ## Historico resumido
 
