@@ -1721,6 +1721,33 @@ Proxima subfase pratica:
 - manter a evolucao no backend atual, sem BFF, sem persistencia propria e sem
   endpoint interno HTTP nesta etapa seguinte.
 
+Entregue na subfase seguinte:
+
+- foi aplicado o mesmo criterio ao write `registrarDocumentoEntregue`, mantendo
+  a evolucao da macrofase de `matricula` no menor passo ainda seguro e sem
+  abrir refatoracao ampla do service inteiro;
+- foi criado o contrato interno `MatriculaDocumentoEntreguePort` com o DTO
+  proprio `RegistrarMatriculaDocumentoEntregueSolicitacao`, separando o write
+  do payload REST externo e deixando explicita a fronteira do primeiro ponto de
+  cruzamento entre `matricula` e `documento`;
+- `MatriculaFluxoService` permaneceu como implementacao local unica, mantendo a
+  mesma persistencia em `matricula_documento_entregue`, a validacao de
+  `documento` por escola e a atualizacao local de status da matricula quando os
+  obrigatorios ficam completos;
+- `MatriculaController` passou a atuar apenas como adaptador do request externo
+  para esse contrato interno minimo tambem nesse write, sem criar endpoint
+  interno HTTP, sem cliente backend/backend e sem tocar ainda os blocos de
+  `historico` ou `rematricula`.
+
+Proxima subfase pratica:
+
+- fechar formalmente este primeiro bloco minimo da macrofase de `matricula`,
+  revisando se os writes mais seguros de `MatriculaFluxoService` ja ficaram
+  cobertos por fronteiras internas antes de decidir se o proximo passo deve
+  abrir `concluirAcademicamente` ou se o bloco atual pode ser encerrado;
+- manter o criterio incremental, ainda sem BFF, sem persistencia propria e sem
+  endpoint interno HTTP nesta etapa de fechamento.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

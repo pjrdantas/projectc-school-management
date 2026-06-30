@@ -812,6 +812,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   permaneceu deliberadamente pequeno, sem alterar schema, sem abrir endpoint
   interno HTTP, sem tocar `documento` ou `historico` e preservando rollback
   simples no mesmo runtime.
+- A subfase seguinte aplicou o mesmo criterio ao proximo write de
+  `MatriculaFluxoService` com maior ganho arquitetural ainda controlado:
+  `POST /api/matriculas/{id}/documentos-entregues`. Foi criado o DTO interno
+  `RegistrarMatriculaDocumentoEntregueSolicitacao` e a porta
+  `MatriculaDocumentoEntreguePort`, novamente com implementacao local pelo
+  proprio `MatriculaFluxoService`. O `MatriculaController` passou a adaptar o
+  request externo para esse contrato interno minimo antes de acionar o write,
+  deixando explicita a fronteira do primeiro ponto que cruza `matricula` com
+  `documento` e com a transicao local de status da matricula. O recorte
+  permaneceu propositalmente restrito: nenhuma rota nova, nenhum schema novo,
+  nenhum endpoint interno HTTP e nenhuma ampliacao para leituras, `historico`
+  ou `rematricula`.
 
 ## Historico resumido
 

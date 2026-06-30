@@ -20,6 +20,8 @@ import br.com.escola.matricula.application.dto.MatriculaInput;
 import br.com.escola.matricula.application.dto.MatriculaOutput;
 import br.com.escola.matricula.application.dto.MatriculaEtapaOutput;
 import br.com.escola.matricula.application.dto.internal.AtualizarMatriculaEtapaStatusSolicitacao;
+import br.com.escola.matricula.application.dto.internal.RegistrarMatriculaDocumentoEntregueSolicitacao;
+import br.com.escola.matricula.application.port.internal.MatriculaDocumentoEntreguePort;
 import br.com.escola.matricula.application.port.internal.MatriculaEtapaPort;
 import br.com.escola.matricula.application.service.MatriculaFluxoService;
 import br.com.escola.matricula.application.usecase.AtualizarStatusMatriculaUseCase;
@@ -38,6 +40,7 @@ public class MatriculaController {
     private final AtualizarStatusMatriculaUseCase atualizarStatusMatriculaUseCase;
     private final ExcluirMatriculaUseCase excluirMatriculaUseCase;
     private final MatriculaEtapaPort matriculaEtapaPort;
+    private final MatriculaDocumentoEntreguePort matriculaDocumentoEntreguePort;
     private final MatriculaFluxoService matriculaFluxoService;
 
     public MatriculaController(
@@ -46,12 +49,14 @@ public class MatriculaController {
             AtualizarStatusMatriculaUseCase atualizarStatusMatriculaUseCase,
             ExcluirMatriculaUseCase excluirMatriculaUseCase,
             MatriculaEtapaPort matriculaEtapaPort,
+            MatriculaDocumentoEntreguePort matriculaDocumentoEntreguePort,
             MatriculaFluxoService matriculaFluxoService) {
         this.criarMatriculaUseCase = criarMatriculaUseCase;
         this.consultarMatriculasUseCase = consultarMatriculasUseCase;
         this.atualizarStatusMatriculaUseCase = atualizarStatusMatriculaUseCase;
         this.excluirMatriculaUseCase = excluirMatriculaUseCase;
         this.matriculaEtapaPort = matriculaEtapaPort;
+        this.matriculaDocumentoEntreguePort = matriculaDocumentoEntreguePort;
         this.matriculaFluxoService = matriculaFluxoService;
     }
 
@@ -131,7 +136,13 @@ public class MatriculaController {
     public MatriculaDocumentoEntregueResponse registrarDocumentoEntregue(
             @PathVariable UUID id,
             @Valid @RequestBody MatriculaDocumentoEntregueRequest request) {
-        return matriculaFluxoService.registrarDocumentoEntregue(id, request);
+        return matriculaDocumentoEntreguePort.registrarDocumentoEntregue(
+                id,
+                new RegistrarMatriculaDocumentoEntregueSolicitacao(
+                        request.documentoId(),
+                        request.conferido(),
+                        request.conferidoPor(),
+                        request.observacao()));
     }
 
     @PostMapping("/{id}/conclusao-academica")

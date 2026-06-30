@@ -40,6 +40,8 @@ import br.com.escola.matricula.application.dto.MatriculaEtapaOutput;
 import br.com.escola.matricula.application.dto.MatriculaInput;
 import br.com.escola.matricula.application.dto.MatriculaOutput;
 import br.com.escola.matricula.application.dto.internal.AtualizarMatriculaEtapaStatusSolicitacao;
+import br.com.escola.matricula.application.dto.internal.RegistrarMatriculaDocumentoEntregueSolicitacao;
+import br.com.escola.matricula.application.port.internal.MatriculaDocumentoEntreguePort;
 import br.com.escola.matricula.application.port.internal.MatriculaEtapaPort;
 import br.com.escola.matricula.application.usecase.CriarMatriculaUseCase;
 import br.com.escola.matricula.domain.exception.MatriculaDocumentoNaoEncontradoException;
@@ -51,7 +53,7 @@ import br.com.escola.matricula.domain.exception.RematriculaNaoPermitidaException
 import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Service
-public class MatriculaFluxoService implements MatriculaEtapaPort {
+public class MatriculaFluxoService implements MatriculaEtapaPort, MatriculaDocumentoEntreguePort {
 
     private static final List<String> STATUS_NAO_OCUPAM_VAGA = List.of("CANCELADA", "INDEFERIDA", "TRANSFERIDO");
 
@@ -150,22 +152,23 @@ public class MatriculaFluxoService implements MatriculaEtapaPort {
     }
 
     @Transactional
+    @Override
     public MatriculaDocumentoEntregueResponse registrarDocumentoEntregue(
             UUID matriculaId,
-            MatriculaDocumentoEntregueRequest request) {
+            RegistrarMatriculaDocumentoEntregueSolicitacao solicitacao) {
         MatriculaEntity matricula = matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaId, escolaId())
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaId));
-        DocumentoEntity documento = documentoJpaRepository.findByIdAndEscolaId(request.documentoId(), escolaId())
-                .orElseThrow(() -> new MatriculaDocumentoNaoEncontradoException(request.documentoId()));
+        DocumentoEntity documento = documentoJpaRepository.findByIdAndEscolaId(solicitacao.documentoId(), escolaId())
+                .orElseThrow(() -> new MatriculaDocumentoNaoEncontradoException(solicitacao.documentoId()));
 
-        boolean conferido = Boolean.TRUE.equals(request.conferido());
+        boolean conferido = Boolean.TRUE.equals(solicitacao.conferido());
         MatriculaDocumentoEntregueEntity entity = MatriculaDocumentoEntregueEntity.builder()
                 .matricula(matricula)
                 .documento(documento)
                 .conferido(conferido)
-                .conferidoPor(request.conferidoPor())
+                .conferidoPor(solicitacao.conferidoPor())
                 .dataConferencia(conferido ? LocalDateTime.now() : null)
-                .observacao(request.observacao())
+                .observacao(solicitacao.observacao())
                 .createdAt(LocalDateTime.now())
                 .build();
 
