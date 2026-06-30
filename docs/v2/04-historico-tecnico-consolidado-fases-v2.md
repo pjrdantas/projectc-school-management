@@ -671,6 +671,11 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   gerado e versao. Com isso, `PlanejamentoIAService` deixou de depender
   diretamente de `PlanejamentoBimestralEntity` e `EntityManager`, encerrando
   formalmente a macrofase backend de `planejamento e IA` no monolito atual.
+- O encerramento oficial da Fase 56 consolidou que o bloco de `planejamento e
+  IA` fica fechado no backend atual sem mudanca de rotas externas, sem cutover
+  de BFF e sem nova persistencia distribuida. A proxima macrofase sugerida
+  passa a ser a Fase 57, iniciando por diagnostico pontual do menor recorte
+  backend/backend de `dashboard`.
 
 ## Historico resumido
 

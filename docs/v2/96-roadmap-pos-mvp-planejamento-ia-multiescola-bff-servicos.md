@@ -1182,6 +1182,25 @@ Proxima subfase pratica:
   nesta mesma etapa;
 - manter o escopo incremental e backend/backend.
 
+Encerramento oficial da Fase 56:
+
+- a macrofase backend de `planejamento e IA` fica encerrada no monolito atual;
+- os recortes aplicados nesta fase deixaram `PlanejamentoIAService` apoiado por
+  portas e fabricas internas do proprio modulo para leitura de planejamento,
+  publicacao/listagem da biblioteca e montagem das escritas;
+- nao houve alteracao de rotas externas, nao houve cutover de BFF e nao houve
+  abertura de persistencia distribuida adicional nesta etapa;
+- qualquer nova evolucao de `planejamento e IA` passa a depender de decisao
+  explicita de nova macrofase, e nao de continuidade automatica desta.
+
+Proxima fase pratica:
+
+- iniciar a primeira subfase da Fase 57 com diagnostico pontual do menor
+  recorte backend/backend de `dashboard`, separando consulta consolidada,
+  dependencias cruzadas e possibilidade de fronteira interna minima antes de
+  qualquer uso de Kafka, MongoDB, Redis ou extracao fisica;
+- manter o mesmo criterio incremental, sem BFF e sem refatoracao ampla.
+
 ### Fase 57 - Dashboard orientado a eventos
 
 Extrair `dashboard-query-service`, substituir consultas cruzadas por projecoes
