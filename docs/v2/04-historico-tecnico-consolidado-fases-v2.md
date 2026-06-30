@@ -565,6 +565,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   local existentes. Com isso, o desacoplamento backend/backend do bloco
   matricula/documentos avancou sem abrir refatoracao ampla do gateway nem tocar
   no fluxo de responsavel nesta etapa.
+- A quarta subfase da Fase 54 fechou o mesmo recorte de `documento` no lado de
+  `responsavel`. Foi criada a porta interna `ResponsavelDocumentoPort`,
+  implementada por `ResponsavelDocumentoService`, e
+  `DocumentoPersistenceGateway` deixou de consultar
+  `ResponsavelJpaRepository` diretamente para resolver
+  `RESPONSAVEL -> pessoaId`. Com isso, o gateway documental passou a depender
+  apenas de fronteiras internas explicitas para os vinculos hoje suportados,
+  mantendo os contratos externos inalterados.
 
 ## Historico resumido
 

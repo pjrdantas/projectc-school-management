@@ -17,29 +17,28 @@ import br.com.escola.documento.domain.EntidadeDocumentalTipo;
 import br.com.escola.documento.domain.TipoDocumento;
 import br.com.escola.documento.domain.exception.DocumentoInvalidoException;
 import br.com.escola.documento.domain.exception.DocumentoNaoEncontradoException;
-import br.com.escola.responsavel.adapter.out.persistence.entity.ResponsavelEntity;
-import br.com.escola.responsavel.adapter.out.persistence.repository.ResponsavelJpaRepository;
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.responsavel.application.port.internal.ResponsavelDocumentoPort;
 
 @Component
 public class DocumentoPersistenceGateway implements DocumentoGateway {
 
     private final DocumentoJpaRepository documentoJpaRepository;
     private final AlunoMatriculaPort alunoMatriculaPort;
-    private final ResponsavelJpaRepository responsavelJpaRepository;
+    private final ResponsavelDocumentoPort responsavelDocumentoPort;
     private final JdbcTemplate jdbcTemplate;
     private final EscolaTenantService escolaTenantService;
 
     public DocumentoPersistenceGateway(
             DocumentoJpaRepository documentoJpaRepository,
             AlunoMatriculaPort alunoMatriculaPort,
-            ResponsavelJpaRepository responsavelJpaRepository,
+            ResponsavelDocumentoPort responsavelDocumentoPort,
             JdbcTemplate jdbcTemplate,
             EscolaTenantService escolaTenantService) {
         this.documentoJpaRepository = documentoJpaRepository;
         this.alunoMatriculaPort = alunoMatriculaPort;
-        this.responsavelJpaRepository = responsavelJpaRepository;
+        this.responsavelDocumentoPort = responsavelDocumentoPort;
         this.jdbcTemplate = jdbcTemplate;
         this.escolaTenantService = escolaTenantService;
     }
@@ -114,8 +113,8 @@ public class DocumentoPersistenceGateway implements DocumentoGateway {
                     .orElseThrow(() -> new DocumentoInvalidoException("Aluno não encontrado: " + entidadeId));
         }
         if (entidadeTipo == EntidadeDocumentalTipo.RESPONSAVEL) {
-            return responsavelJpaRepository.findByIdAndPessoa_Escola_Id(entidadeId, escolaId())
-                    .map(ResponsavelEntity::getPessoa)
+            return responsavelDocumentoPort.buscarResponsavelPorIdEEscola(entidadeId, escolaId())
+                    .map(responsavel -> responsavel.getPessoa())
                     .map(pessoa -> pessoa.getId())
                     .orElseThrow(() -> new DocumentoInvalidoException("Responsável não encontrado: " + entidadeId));
         }

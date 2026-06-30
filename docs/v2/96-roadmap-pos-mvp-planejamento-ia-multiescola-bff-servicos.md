@@ -869,6 +869,31 @@ Proxima subfase pratica:
 - manter a fase restrita ao backend atual, sem migracao de schema e sem
   distribuicao fisica nesta etapa.
 
+Entregue na quarta subfase da Fase 54:
+
+- foi aplicado o mesmo padrao ao fluxo de `responsavel` dentro de
+  `documento`, fechando o gateway documental nos dois vinculos atualmente
+  expostos sem alterar controllers, casos de uso ou storage;
+- foi criada a porta interna `ResponsavelDocumentoPort`, implementada por
+  `ResponsavelDocumentoService`, para encapsular a busca escopada de
+  `ResponsavelEntity` por `responsavelId` e `escolaId`;
+- `DocumentoPersistenceGateway` deixou de consultar
+  `ResponsavelJpaRepository` diretamente para resolver
+  `RESPONSAVEL -> pessoaId`, passando a usar essa nova fronteira interna;
+- com isso, o recorte de `documento` ficou alinhado ao mesmo criterio usado em
+  `transferencia` e `matricula`: nenhuma dependencia direta restante do gateway
+  em repositorio JPA de outro modulo para os vinculos de aluno e responsavel;
+- a subfase permaneceu backend/backend e incremental, sem migracao fisica, sem
+  storage externo e sem mudanca de contrato REST.
+
+Proxima subfase pratica:
+
+- iniciar o primeiro recorte minimo de `historico`, escolhendo o menor ponto
+  que ainda materializa ou consulta diretamente entidade/repositorio de outro
+  modulo;
+- manter a fase no backend atual, sem BFF e sem refatoracao ampla do bloco de
+  historico/boletim nesta etapa.
+
 ### Fase 55 - Pedagogico
 
 Extrair `pedagogical-service` com alocacao, aula, frequencia, avaliacao, notas,
