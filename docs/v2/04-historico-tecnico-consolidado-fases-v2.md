@@ -703,6 +703,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `DashboardDiretorService` junto com o caminho `SECRETARIA` de
   `DashboardSnapshotGeradorService` passaram a consumir esse contrato em vez da
   implementacao concreta. O comportamento externo permaneceu inalterado.
+- A quinta subfase da Fase 57 aplicou o mesmo criterio ao ultimo resumo interno
+  minimo deste primeiro ciclo. Foram criados `DashboardDiretorPort` e
+  `DashboardDiretorResumo`, `DashboardDiretorService` passou a separar o resumo
+  backend/backend da resposta REST externa, e o caminho `DIRETOR` de
+  `DashboardSnapshotGeradorService` passou a consumir esse contrato em vez da
+  implementacao concreta. Com isso, o primeiro bloco minimo de fronteiras
+  internas de `dashboard` ficou fechado sem alterar comportamento externo.
 
 ## Historico resumido
 

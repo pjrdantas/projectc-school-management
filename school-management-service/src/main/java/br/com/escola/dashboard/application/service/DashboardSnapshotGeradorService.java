@@ -12,13 +12,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import br.com.escola.dashboard.adapter.in.web.dto.DashboardDiretorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardIndicadorSnapshotRequest;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardIndicadorSnapshotResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorResponse;
 import br.com.escola.dashboard.application.dto.internal.DashboardAcademicoResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardDiretorResumo;
 import br.com.escola.dashboard.application.dto.internal.DashboardSecretariaResumo;
 import br.com.escola.dashboard.application.port.internal.DashboardAcademicoPort;
+import br.com.escola.dashboard.application.port.internal.DashboardDiretorPort;
 import br.com.escola.dashboard.application.port.internal.DashboardSecretariaPort;
 import br.com.escola.dashboard.adapter.out.persistence.entity.PublicoDashboardEntity;
 import br.com.escola.dashboard.adapter.out.persistence.repository.PublicoDashboardJpaRepository;
@@ -29,7 +30,7 @@ public class DashboardSnapshotGeradorService {
     private final PublicoDashboardJpaRepository publicoDashboardJpaRepository;
     private final DashboardAcademicoPort dashboardAcademicoPort;
     private final DashboardSecretariaPort dashboardSecretariaPort;
-    private final DashboardDiretorService dashboardDiretorService;
+    private final DashboardDiretorPort dashboardDiretorPort;
     private final DashboardProfessorService dashboardProfessorService;
     private final DashboardIndicadorSnapshotService dashboardIndicadorSnapshotService;
 
@@ -37,13 +38,13 @@ public class DashboardSnapshotGeradorService {
             PublicoDashboardJpaRepository publicoDashboardJpaRepository,
             DashboardAcademicoPort dashboardAcademicoPort,
             DashboardSecretariaPort dashboardSecretariaPort,
-            DashboardDiretorService dashboardDiretorService,
+            DashboardDiretorPort dashboardDiretorPort,
             DashboardProfessorService dashboardProfessorService,
             DashboardIndicadorSnapshotService dashboardIndicadorSnapshotService) {
         this.publicoDashboardJpaRepository = publicoDashboardJpaRepository;
         this.dashboardAcademicoPort = dashboardAcademicoPort;
         this.dashboardSecretariaPort = dashboardSecretariaPort;
-        this.dashboardDiretorService = dashboardDiretorService;
+        this.dashboardDiretorPort = dashboardDiretorPort;
         this.dashboardProfessorService = dashboardProfessorService;
         this.dashboardIndicadorSnapshotService = dashboardIndicadorSnapshotService;
     }
@@ -120,7 +121,7 @@ public class DashboardSnapshotGeradorService {
     }
 
     private List<DashboardIndicadorSnapshotResponse> gerarDiretor(PublicoDashboardEntity publico, LocalDate referenciaData) {
-        DashboardDiretorResponse dashboard = dashboardDiretorService.consultar();
+        DashboardDiretorResumo dashboard = dashboardDiretorPort.consultarResumo();
         List<DashboardIndicadorSnapshotRequest> indicadores = new ArrayList<>();
         indicadores.add(indicador(publico, "TOTAL_MATRICULAS", "Total de matrículas", dashboard.totalMatriculas(), referenciaData));
         indicadores.add(indicador(publico, "MATRICULAS_PENDENTES", "Matrículas pendentes", dashboard.matriculasPendentes(), referenciaData));

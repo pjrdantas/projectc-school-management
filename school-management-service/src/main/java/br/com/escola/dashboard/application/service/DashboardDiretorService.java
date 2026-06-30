@@ -16,8 +16,10 @@ import br.com.escola.dashboard.adapter.in.web.dto.DashboardDiretorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardMatriculaStatusResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardTurmaVagaResponse;
 import br.com.escola.dashboard.application.dto.internal.DashboardAcademicoResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardDiretorResumo;
 import br.com.escola.dashboard.application.dto.internal.DashboardSecretariaResumo;
 import br.com.escola.dashboard.application.port.internal.DashboardAcademicoPort;
+import br.com.escola.dashboard.application.port.internal.DashboardDiretorPort;
 import br.com.escola.dashboard.application.port.internal.DashboardSecretariaPort;
 import br.com.escola.institucional.application.dto.EscolaContexto;
 import br.com.escola.institucional.application.port.EscolaContextoPort;
@@ -28,7 +30,7 @@ import br.com.escola.professor.adapter.out.persistence.repository.AulaJpaReposit
 import br.com.escola.professor.adapter.out.persistence.repository.ProfessorTurmaDisciplinaJpaRepository;
 
 @Service
-public class DashboardDiretorService {
+public class DashboardDiretorService implements DashboardDiretorPort {
 
     private static final List<String> STATUS_NAO_OCUPAM_VAGA = List.of(
             MatriculaStatus.CANCELADA.name(),
@@ -71,12 +73,50 @@ public class DashboardDiretorService {
 
     @Transactional(readOnly = true)
     public DashboardDiretorResponse consultar() {
+        DashboardDiretorResumo resumo = consultarResumo();
+        return new DashboardDiretorResponse(
+                resumo.escolaId(),
+                resumo.escolaNome(),
+                resumo.totalMatriculas(),
+                resumo.matriculasPendentes(),
+                resumo.matriculasConcluidas(),
+                resumo.matriculasEfetivadas(),
+                resumo.matriculasAptasRematricula(),
+                resumo.alunosAtivos(),
+                resumo.alunosInativos(),
+                resumo.turmasAtivas(),
+                resumo.turmasLotadas(),
+                resumo.professoresAlocados(),
+                resumo.aulasRealizadas(),
+                resumo.avaliacoesRegistradas(),
+                resumo.avaliacoesComNotasPendentes(),
+                resumo.boletinsFechados(),
+                resumo.historicosInternosGerados(),
+                resumo.transferencias(),
+                resumo.solicitacoesExclusaoPendentes(),
+                resumo.matriculasComDocumentosPendentes(),
+                resumo.matriculasPorStatus().stream()
+                        .map(item -> new DashboardMatriculaStatusResponse(item.status(), item.total()))
+                        .toList(),
+                resumo.turmasComVagas().stream()
+                        .map(item -> new DashboardTurmaVagaResponse(
+                                item.turmaId(),
+                                item.turmaNome(),
+                                item.capacidade(),
+                                item.vagasOcupadas(),
+                                item.vagasDisponiveis()))
+                        .toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DashboardDiretorResumo consultarResumo() {
         EscolaContexto contexto = escolaContextoPort.obterContextoPadrao();
         UUID escolaId = contexto.escolaId();
         DashboardAcademicoResumo academico = dashboardAcademicoPort.consultarResumo();
         DashboardSecretariaResumo secretaria = dashboardSecretariaPort.consultarResumo();
 
-        return new DashboardDiretorResponse(
+        return new DashboardDiretorResumo(
                 contexto.escolaId(),
                 contexto.escolaNome(),
                 academico.totalMatriculas(),
@@ -97,17 +137,8 @@ public class DashboardDiretorService {
                 secretaria.transferencias(),
                 secretaria.solicitacoesExclusaoPendentes(),
                 secretaria.matriculasComDocumentosPendentes(),
-                academico.matriculasPorStatus().stream()
-                        .map(item -> new DashboardMatriculaStatusResponse(item.status(), item.total()))
-                        .toList(),
-                academico.turmasComVagas().stream()
-                        .map(item -> new DashboardTurmaVagaResponse(
-                                item.turmaId(),
-                                item.turmaNome(),
-                                item.capacidade(),
-                                item.vagasOcupadas(),
-                                item.vagasDisponiveis()))
-                        .toList());
+                academico.matriculasPorStatus(),
+                academico.turmasComVagas());
     }
 
     private long contarMatriculasPendentes(DashboardSecretariaResumo secretaria) {
