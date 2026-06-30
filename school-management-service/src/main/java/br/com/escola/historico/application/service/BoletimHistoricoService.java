@@ -47,9 +47,9 @@ public class BoletimHistoricoService implements BoletimHistoricoPort {
                         boletimItemJpaRepository.findByBoletimId(boletim.getId()).stream()
                                 .sorted(Comparator.comparing(item -> item.getDisciplina().getNome(), String.CASE_INSENSITIVE_ORDER))
                                 .map(item -> new BoletimHistoricoItemResumo(
-                                        boletim.getMatricula().getPeriodoLetivo(),
-                                        boletim.getMatricula().getTurma().getSerie(),
-                                        item.getDisciplina(),
+                                        boletim.getMatricula().getPeriodoLetivo().getId(),
+                                        boletim.getMatricula().getTurma().getSerie().getId(),
+                                        item.getDisciplina().getId(),
                                         item.getDisciplina().getNome(),
                                         boletim.getMatricula().getPeriodoLetivo().getAno(),
                                         boletim.getMatricula().getTurma().getSerie().getNome(),

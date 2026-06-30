@@ -1052,6 +1052,26 @@ Proxima subfase pratica:
   recorte encerrado;
 - manter o escopo backend/backend, sem cutover externo nesta etapa.
 
+Entregue na sexta subfase da Fase 55:
+
+- o contrato interno `BoletimHistoricoItemResumo` deixou de carregar
+  `PeriodoLetivoEntity`, `SerieEntity` e `DisciplinaEntity`, passando a expor
+  apenas os respectivos IDs estruturais;
+- a resolucao JPA dessas referencias ficou encapsulada em
+  `HistoricoEscolarGeracaoFactory` por `EntityManager.getReference(...)`,
+  mantendo o detalhe de persistencia apenas no ponto de montagem final do
+  `HistoricoEscolar`;
+- com isso, o bloco estrutural minimo de geracao oficial de `historico` por
+  `boletim` fica formalmente encerrado no backend atual, sem alterar rota
+  externa, sem BFF e sem abrir persistencia propria adicional nesta macrofase.
+
+Proxima subfase pratica:
+
+- encerrar oficialmente a Fase 55 e iniciar a primeira subfase da Fase 56 com
+  diagnostico do menor recorte interno de `planejamento e IA`, escolhendo a
+  fronteira backend/backend de menor risco antes de qualquer extração física;
+- manter o escopo incremental e backend-only.
+
 ### Fase 56 - Planejamento e IA
 
 Extrair `planning-ai-service`, ativar MongoDB para payloads flexiveis, Kafka para

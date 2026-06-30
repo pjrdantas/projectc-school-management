@@ -626,6 +626,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   A composicao do cabecalho oficial, dos itens e da observacao padrao de
   geracao passou a ficar centralizada nessa fabrica, mantendo o service como
   orquestrador do fluxo e preservando contratos externos e persistencia atual.
+- A sexta subfase da Fase 55 fechou o bloco estrutural minimo remanescente da
+  geracao oficial de `historico` por `boletim`. O DTO interno
+  `BoletimHistoricoItemResumo` deixou de transportar `PeriodoLetivoEntity`,
+  `SerieEntity` e `DisciplinaEntity`, passando a expor apenas IDs, enquanto a
+  resolucao JPA dessas referencias ficou encapsulada em
+  `HistoricoEscolarGeracaoFactory` por `EntityManager.getReference(...)`. Com
+  isso, a Fase 55 fica formalmente encerrada no backend atual sem alterar rota
+  externa nem abrir persistencia propria adicional.
 
 ## Historico resumido
 

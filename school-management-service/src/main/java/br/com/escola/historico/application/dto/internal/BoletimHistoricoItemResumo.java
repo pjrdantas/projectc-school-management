@@ -1,15 +1,12 @@
 package br.com.escola.historico.application.dto.internal;
 
 import java.math.BigDecimal;
-
-import br.com.escola.catalogo.adapter.out.persistence.entity.DisciplinaEntity;
-import br.com.escola.catalogo.adapter.out.persistence.entity.PeriodoLetivoEntity;
-import br.com.escola.catalogo.adapter.out.persistence.entity.SerieEntity;
+import java.util.UUID;
 
 public record BoletimHistoricoItemResumo(
-        PeriodoLetivoEntity periodoLetivo,
-        SerieEntity serieEntity,
-        DisciplinaEntity disciplina,
+        UUID periodoLetivoId,
+        UUID serieId,
+        UUID disciplinaId,
         String componenteCurricular,
         Integer anoLetivo,
         String serie,

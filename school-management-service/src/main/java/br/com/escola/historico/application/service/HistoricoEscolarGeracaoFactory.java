@@ -7,14 +7,24 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Component;
 
 import br.com.escola.aluno.adapter.out.persistence.entity.AlunoEntity;
+import br.com.escola.catalogo.adapter.out.persistence.entity.DisciplinaEntity;
+import br.com.escola.catalogo.adapter.out.persistence.entity.PeriodoLetivoEntity;
+import br.com.escola.catalogo.adapter.out.persistence.entity.SerieEntity;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarGeracaoRequest;
 import br.com.escola.historico.adapter.out.persistence.entity.HistoricoEscolar;
 import br.com.escola.historico.adapter.out.persistence.entity.HistoricoEscolarItem;
 import br.com.escola.historico.application.dto.internal.BoletimHistoricoItemResumo;
 import br.com.escola.historico.application.dto.internal.BoletimHistoricoResumo;
+import jakarta.persistence.EntityManager;
 
 @Component
 public class HistoricoEscolarGeracaoFactory {
+
+    private final EntityManager entityManager;
+
+    public HistoricoEscolarGeracaoFactory(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
 
     public HistoricoEscolar criar(
             HistoricoEscolarGeracaoRequest request,
@@ -46,9 +56,9 @@ public class HistoricoEscolarGeracaoFactory {
 
     private HistoricoEscolarItem toHistoricoItem(BoletimHistoricoItemResumo item) {
         return HistoricoEscolarItem.builder()
-                .periodoLetivo(item.periodoLetivo())
-                .serieEntity(item.serieEntity())
-                .disciplina(item.disciplina())
+                .periodoLetivo(entityManager.getReference(PeriodoLetivoEntity.class, item.periodoLetivoId()))
+                .serieEntity(entityManager.getReference(SerieEntity.class, item.serieId()))
+                .disciplina(entityManager.getReference(DisciplinaEntity.class, item.disciplinaId()))
                 .componenteCurricular(item.componenteCurricular())
                 .anoLetivo(item.anoLetivo())
                 .serie(item.serie())
