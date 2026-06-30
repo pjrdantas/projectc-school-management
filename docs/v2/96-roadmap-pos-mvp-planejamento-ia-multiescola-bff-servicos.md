@@ -1748,6 +1748,33 @@ Proxima subfase pratica:
 - manter o criterio incremental, ainda sem BFF, sem persistencia propria e sem
   endpoint interno HTTP nesta etapa de fechamento.
 
+Entregue na subfase seguinte:
+
+- foi executado o fechamento formal desse primeiro bloco minimo da macrofase de
+  `matricula`, sem ampliar o escopo tecnico para os writes mais pesados do
+  service;
+- a revisao confirmou que os dois writes de menor risco e melhor retorno
+  imediato de `MatriculaFluxoService` (`atualizarStatusEtapa` e
+  `registrarDocumentoEntregue`) ja contam com fronteiras internas explicitas e
+  controller atuando apenas como adaptador de contrato externo;
+- tambem ficou confirmado que os proximos candidatos naturais,
+  `concluirAcademicamente` e `rematricular`, ja elevam o risco arquitetural por
+  dependerem mais fortemente de `boletim`, `historico`, capacidade de turma e
+  regras academicas de progressao, nao cabendo mais neste primeiro bloco
+  minimo;
+- com isso, o bloco tecnico atual de `matricula` fica encerrado mantendo o
+  mesmo runtime, as mesmas tabelas, rollback simples e nenhuma abertura de
+  endpoint interno HTTP ou persistencia propria adicional nesta etapa.
+
+Proxima subfase pratica:
+
+- iniciar o proximo bloco da macrofase de `matricula` por diagnostico pontual
+  de `concluirAcademicamente`, separando contrato interno, dependencias em
+  `boletim/historico`, impactos de consistencia e criterio de rollback antes de
+  qualquer troca concreta;
+- manter o recorte backend/backend e incremental, ainda sem BFF e sem
+  persistencia propria fora do monolito nessa proxima abertura.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

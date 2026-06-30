@@ -824,6 +824,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   permaneceu propositalmente restrito: nenhuma rota nova, nenhum schema novo,
   nenhum endpoint interno HTTP e nenhuma ampliacao para leituras, `historico`
   ou `rematricula`.
+- A subfase seguinte executou o fechamento formal desse primeiro bloco minimo
+  da macrofase de `matricula`. A revisao confirmou que os dois writes mais
+  seguros de `MatriculaFluxoService` dentro do criterio atual
+  (`atualizarStatusEtapa` e `registrarDocumentoEntregue`) ja ficaram cobertos
+  por contratos internos explicitos, enquanto os proximos passos naturais
+  (`concluirAcademicamente` e `rematricula`) ja entram em acoplamento
+  transacional mais pesado com `boletim`, `historico` e regras academicas de
+  progressao. Com isso, o primeiro bloco minimo de `matricula` fica formalmente
+  encerrado sem abrir endpoint interno HTTP, sem migracao de schema e sem
+  persistencia propria fora do monolito.
 
 ## Historico resumido
 
