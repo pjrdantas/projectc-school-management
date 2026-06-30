@@ -12,14 +12,10 @@ import br.com.escola.documento.adapter.out.persistence.entity.DocumentoEntity;
 import br.com.escola.documento.adapter.out.persistence.repository.DocumentoJpaRepository;
 import br.com.escola.catalogo.adapter.out.persistence.entity.TurmaEntity;
 import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaJpaRepository;
-import br.com.escola.historico.adapter.out.persistence.entity.BoletimEntity;
-import br.com.escola.historico.adapter.out.persistence.entity.BoletimItemEntity;
-import br.com.escola.historico.adapter.out.persistence.repository.BoletimItemJpaRepository;
-import br.com.escola.historico.adapter.out.persistence.repository.BoletimJpaRepository;
+import br.com.escola.historico.application.port.internal.BoletimHistoricoPort;
 import br.com.escola.historico.domain.exception.BoletimFechadoNaoEncontradoException;
 import br.com.escola.matricula.adapter.in.web.MatriculaConclusaoAcademicaRequest;
 import br.com.escola.matricula.adapter.in.web.MatriculaConclusaoAcademicaResponse;
-import br.com.escola.matricula.adapter.in.web.MatriculaDocumentoEntregueRequest;
 import br.com.escola.matricula.adapter.in.web.MatriculaDocumentoEntregueResponse;
 import br.com.escola.matricula.adapter.in.web.MatriculaDocumentoExigidoResponse;
 import br.com.escola.matricula.adapter.in.web.MatriculaRematriculaElegibilidadeResponse;
@@ -65,8 +61,7 @@ public class MatriculaFluxoService implements MatriculaEtapaPort, MatriculaDocum
     private final DocumentoJpaRepository documentoJpaRepository;
     private final MatriculaDocumentoEntregueJpaRepository matriculaDocumentoEntregueJpaRepository;
     private final MatriculaDocumentoExigidoJpaRepository matriculaDocumentoExigidoJpaRepository;
-    private final BoletimJpaRepository boletimJpaRepository;
-    private final BoletimItemJpaRepository boletimItemJpaRepository;
+    private final BoletimHistoricoPort boletimHistoricoPort;
     private final CriarMatriculaUseCase criarMatriculaUseCase;
     private final EscolaTenantService escolaTenantService;
 
@@ -79,8 +74,7 @@ public class MatriculaFluxoService implements MatriculaEtapaPort, MatriculaDocum
             DocumentoJpaRepository documentoJpaRepository,
             MatriculaDocumentoEntregueJpaRepository matriculaDocumentoEntregueJpaRepository,
             MatriculaDocumentoExigidoJpaRepository matriculaDocumentoExigidoJpaRepository,
-            BoletimJpaRepository boletimJpaRepository,
-            BoletimItemJpaRepository boletimItemJpaRepository,
+            BoletimHistoricoPort boletimHistoricoPort,
             CriarMatriculaUseCase criarMatriculaUseCase,
             EscolaTenantService escolaTenantService) {
         this.matriculaJpaRepository = matriculaJpaRepository;
@@ -91,8 +85,7 @@ public class MatriculaFluxoService implements MatriculaEtapaPort, MatriculaDocum
         this.documentoJpaRepository = documentoJpaRepository;
         this.matriculaDocumentoEntregueJpaRepository = matriculaDocumentoEntregueJpaRepository;
         this.matriculaDocumentoExigidoJpaRepository = matriculaDocumentoExigidoJpaRepository;
-        this.boletimJpaRepository = boletimJpaRepository;
-        this.boletimItemJpaRepository = boletimItemJpaRepository;
+        this.boletimHistoricoPort = boletimHistoricoPort;
         this.criarMatriculaUseCase = criarMatriculaUseCase;
         this.escolaTenantService = escolaTenantService;
     }
@@ -183,24 +176,24 @@ public class MatriculaFluxoService implements MatriculaEtapaPort, MatriculaDocum
             MatriculaConclusaoAcademicaRequest request) {
         MatriculaEntity matricula = matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaId, escolaId())
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaId));
-        BoletimEntity boletim = boletimJpaRepository.findByIdAndMatricula_Turma_Escola_Id(request.boletimId(), escolaId())
+        var boletim = boletimHistoricoPort.buscarParaConclusaoAcademica(request.boletimId(), escolaId())
                 .orElseThrow(() -> new BoletimFechadoNaoEncontradoException(request.boletimId()));
-        if (!boletim.getMatricula().getId().equals(matriculaId)) {
+        if (!boletim.matriculaId().equals(matriculaId)) {
             throw new MatriculaConclusaoAcademicaInvalidaException(
                     "Boletim fechado não pertence à matrícula informada");
         }
 
-        List<BoletimItemEntity> itens = boletimItemJpaRepository.findByBoletimId(boletim.getId());
+        var itens = boletim.itens();
         if (itens.isEmpty()) {
             throw new MatriculaConclusaoAcademicaInvalidaException(
                     "Boletim fechado não possui itens para conclusão acadêmica");
         }
-        if (itens.stream().anyMatch(item -> "PENDENTE".equalsIgnoreCase(item.getResultado()))) {
+        if (itens.stream().anyMatch(item -> "PENDENTE".equalsIgnoreCase(item.resultado()))) {
             throw new MatriculaConclusaoAcademicaInvalidaException(
                     "Boletim fechado possui componentes pendentes");
         }
 
-        String resultadoFinal = itens.stream().anyMatch(item -> "REPROVADO".equalsIgnoreCase(item.getResultado()))
+        String resultadoFinal = itens.stream().anyMatch(item -> "REPROVADO".equalsIgnoreCase(item.resultado()))
                 ? "REPROVADO"
                 : "APROVADO";
         String statusFinal = "APROVADO".equals(resultadoFinal) ? "CONCLUIDA" : "EFETIVADA";
@@ -209,7 +202,7 @@ public class MatriculaFluxoService implements MatriculaEtapaPort, MatriculaDocum
                 .orElseThrow(() -> new MatriculaStatusInvalidoException(statusFinal));
         matricula.setStatus(status);
 
-        String evento = "Conclusão acadêmica " + resultadoFinal + " pelo boletim " + boletim.getId();
+        String evento = "Conclusão acadêmica " + resultadoFinal + " pelo boletim " + boletim.boletimId();
         if (request.observacao() != null && !request.observacao().isBlank()) {
             evento += ": " + request.observacao().trim();
         }
@@ -221,7 +214,7 @@ public class MatriculaFluxoService implements MatriculaEtapaPort, MatriculaDocum
 
         return new MatriculaConclusaoAcademicaResponse(
                 matricula.getId(),
-                boletim.getId(),
+                boletim.boletimId(),
                 resultadoFinal,
                 statusFinal,
                 matricula.getObservacao());

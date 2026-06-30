@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.historico.adapter.out.persistence.repository.BoletimItemJpaRepository;
 import br.com.escola.historico.adapter.out.persistence.repository.BoletimJpaRepository;
+import br.com.escola.historico.application.dto.internal.BoletimConclusaoAcademicaItemResumo;
+import br.com.escola.historico.application.dto.internal.BoletimConclusaoAcademicaResumo;
 import br.com.escola.historico.application.dto.internal.BoletimHistoricoItemResumo;
 import br.com.escola.historico.application.dto.internal.BoletimHistoricoResumo;
 import br.com.escola.historico.application.port.internal.BoletimHistoricoPort;
@@ -58,6 +60,18 @@ public class BoletimHistoricoService implements BoletimHistoricoPort {
                                         item.getCargaHoraria(),
                                         item.getDisciplina().getCargaHoraria(),
                                         item.getResultado()))
+                                .toList()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<BoletimConclusaoAcademicaResumo> buscarParaConclusaoAcademica(UUID boletimId, UUID escolaId) {
+        return boletimJpaRepository.findByIdAndMatricula_Turma_Escola_Id(boletimId, escolaId)
+                .map(boletim -> new BoletimConclusaoAcademicaResumo(
+                        boletim.getId(),
+                        boletim.getMatricula().getId(),
+                        boletimItemJpaRepository.findByBoletimId(boletim.getId()).stream()
+                                .map(item -> new BoletimConclusaoAcademicaItemResumo(item.getResultado()))
                                 .toList()));
     }
 }

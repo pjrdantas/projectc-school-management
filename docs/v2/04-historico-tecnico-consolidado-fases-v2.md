@@ -846,6 +846,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   fechamento objetivo do recorte seguinte: antes de qualquer troca concreta, o
   menor passo seguro passa a ser separar o contrato interno de consulta
   academica do boletim usado por `concluirAcademicamente`.
+- A subfase seguinte implementou esse primeiro passo minimo do novo bloco. A
+  fronteira interna `BoletimHistoricoPort` foi evoluida com o resumo dedicado
+  `BoletimConclusaoAcademicaResumo`, contendo apenas os dados realmente
+  consumidos por `concluirAcademicamente` (`boletimId`, `matriculaId` e
+  resultados dos itens). `BoletimHistoricoService` passou a materializar esse
+  resumo proprio e `MatriculaFluxoService` deixou de depender diretamente de
+  `BoletimJpaRepository` e `BoletimItemJpaRepository`, passando a consumir essa
+  leitura interna para validar pertencimento do boletim, itens pendentes e
+  resultado final. O recorte permaneceu backend/backend, sem endpoint interno
+  HTTP, sem migracao de schema e sem ampliar a mudanca para `historico`
+  completo ou `rematricula`.
 
 ## Historico resumido
 
