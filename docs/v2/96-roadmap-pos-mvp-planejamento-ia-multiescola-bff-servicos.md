@@ -1644,6 +1644,31 @@ Proxima subfase pratica:
 - manter o escopo incremental, sem cutover externo e sem abrir refatoracao
   ampla do dominio de professor nesta etapa de fechamento.
 
+Entregue na quarta subfase da macrofase seguinte:
+
+- foi executado o fechamento formal deste bloco de `dashboard` orientado ao
+  resumo de professor;
+- ficou confirmado que os consumos backend/backend do modulo passaram a ficar
+  concentrados em `DashboardProfessorPort`, hoje reutilizado por
+  `DashboardAlertaService`, `DashboardSnapshotGeradorService` e
+  `DashboardFrontendService`;
+- `DashboardProfessorController` permaneceu como unico consumidor direto de
+  `DashboardProfessorService`, atuando apenas como adaptador externo do payload
+  REST existente, sem caracterizar novo acoplamento interno a ser tratado nesta
+  macrofase;
+- por isso, o bloco tecnico fica encerrado sem alterar rota externa, sem BFF,
+  sem eventos e sem nova persistencia, preservando rollback simples pelo
+  proprio wiring interno do modulo.
+
+Proxima subfase pratica:
+
+- iniciar a proxima macrofase de diagnostico pontual no modulo `dashboard`,
+  decidindo se o proximo passo incremental deve abrir o controller REST de
+  professor como adaptador da nova porta ou se a frente seguinte deve migrar
+  para outro recorte backend com melhor relacao risco/ganho;
+- manter o criterio de menor risco, sem cutover externo e sem refatoracao
+  ampla de dominio antes desse novo diagnostico.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

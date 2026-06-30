@@ -783,6 +783,11 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   para o payload REST ja existente. Com isso, o unico ponto ainda ligado
   diretamente a `DashboardProfessorService` ficou restrito ao controller REST
   como adaptador externo simples.
+- A quarta subfase dessa macrofase executou o fechamento formal do bloco e
+  confirmou que nao resta mais consumo backend/backend de
+  `DashboardProfessorService` fora de `DashboardProfessorPort`. O uso direto
+  remanescente ficou apenas em `DashboardProfessorController`, tratado como
+  adaptador REST externo e nao como recorte interno adicional nesta macrofase.
 
 ## Historico resumido
 
