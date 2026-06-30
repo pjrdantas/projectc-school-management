@@ -529,6 +529,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   para professor deixou de depender de repositorio JPA de outro modulo,
   preservando o comportamento funcional do cadastro de professor e da listagem
   de elegiveis.
+- A quinta subfase da Fase 53 fechou o bloco interno de professores com dois
+  ajustes finais de contrato. Primeiro, `ProfessorAcademicoPort` deixou de
+  expor `ProfessorFuncionarioElegivelResponse`, que era DTO de adaptador web, e
+  passou a usar um DTO interno proprio para funcionarios elegiveis. Segundo, o
+  adaptador interno de professores passou a expor explicitamente
+  `GET /internal/professores/funcionarios-elegiveis`, alinhando o endpoint
+  real ao cliente interno e ao health operacional ja existente. Com isso, o
+  recorte professor/RH/pessoas ficou fechado com fronteiras internas
+  explicitas, sem depender de DTO externo no contrato backend/backend.
 
 ## Historico resumido
 

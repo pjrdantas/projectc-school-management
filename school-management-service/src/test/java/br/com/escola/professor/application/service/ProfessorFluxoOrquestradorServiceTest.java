@@ -28,6 +28,7 @@ import br.com.escola.professor.adapter.in.web.dto.ProfessorRequest;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorResponse;
 import br.com.escola.professor.application.dto.internal.CriarProfessorSolicitacao;
 import br.com.escola.professor.application.dto.internal.ProfessorAlocacaoResumo;
+import br.com.escola.professor.application.dto.internal.ProfessorFuncionarioElegivelResumo;
 import br.com.escola.professor.application.dto.internal.ProfessorResumo;
 import br.com.escola.professor.application.port.internal.ProfessorAcademicoPort;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -366,6 +367,25 @@ class ProfessorFluxoOrquestradorServiceTest {
     }
 
     @Test
+    void deveUsarClienteInternoNoListarFuncionariosElegiveisQuandoDisponivel() {
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, false);
+        when(professorInternalApiClient.listarFuncionariosElegiveis(ESCOLA_ID))
+                .thenReturn(List.of(funcionarioElegivelResumo()));
+
+        List<ProfessorFuncionarioElegivelResponse> response = service.listarFuncionariosElegiveis();
+
+        assertThat(response).hasSize(1);
+        assertThat(response.get(0).nomeCompleto()).isEqualTo("Funcionario Elegivel");
+        verify(professorService, never()).listarFuncionariosElegiveis();
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listarFuncionariosElegiveis")
+                .tag("destino", "internal")
+                .tag("resultado", "success")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
     void devePropagarErroNoListarFuncionariosElegiveisSemFallbackQuandoCutoverEstaAtivo() {
         ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, true);
         when(professorInternalApiClient.listarFuncionariosElegiveis(ESCOLA_ID))
@@ -548,6 +568,16 @@ class ProfessorFluxoOrquestradorServiceTest {
 
     private ProfessorFuncionarioElegivelResponse funcionarioElegivelResponse() {
         return new ProfessorFuncionarioElegivelResponse(
+                UUID.randomUUID(),
+                "Funcionario Elegivel",
+                ESCOLA_ID,
+                "Escola Padrão",
+                "Professor",
+                true);
+    }
+
+    private ProfessorFuncionarioElegivelResumo funcionarioElegivelResumo() {
+        return new ProfessorFuncionarioElegivelResumo(
                 UUID.randomUUID(),
                 "Funcionario Elegivel",
                 ESCOLA_ID,

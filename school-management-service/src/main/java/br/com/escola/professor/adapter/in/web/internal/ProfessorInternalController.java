@@ -17,11 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.professor.adapter.in.web.dto.internal.ProfessorAlocacaoInternalRequest;
 import br.com.escola.professor.adapter.in.web.dto.internal.ProfessorAlocacaoInternalResponse;
+import br.com.escola.professor.adapter.in.web.dto.internal.ProfessorFuncionarioElegivelInternalResponse;
 import br.com.escola.professor.adapter.in.web.dto.internal.ProfessorInternalRequest;
 import br.com.escola.professor.adapter.in.web.dto.internal.ProfessorInternalResponse;
 import br.com.escola.professor.application.dto.internal.AlocarProfessorTurmaDisciplinaSolicitacao;
 import br.com.escola.professor.application.dto.internal.CriarProfessorSolicitacao;
 import br.com.escola.professor.application.dto.internal.ProfessorAlocacaoResumo;
+import br.com.escola.professor.application.dto.internal.ProfessorFuncionarioElegivelResumo;
 import br.com.escola.professor.application.dto.internal.ProfessorResumo;
 import br.com.escola.professor.application.port.internal.ProfessorAcademicoPort;
 import io.swagger.v3.oas.annotations.Operation;
@@ -60,6 +62,15 @@ public class ProfessorInternalController {
     public List<ProfessorInternalResponse> listar(
             @RequestHeader(ESCOLA_HEADER) UUID escolaId) {
         return professorAcademicoPort.listarProfessores(escolaId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @GetMapping("/funcionarios-elegiveis")
+    @Operation(summary = "Lista funcionarios elegiveis para cadastro de professor em uso interno")
+    public List<ProfessorFuncionarioElegivelInternalResponse> listarFuncionariosElegiveis(
+            @RequestHeader(ESCOLA_HEADER) UUID escolaId) {
+        return professorAcademicoPort.listarFuncionariosElegiveis(escolaId).stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -139,5 +150,15 @@ public class ProfessorInternalController {
                 resumo.dataFim(),
                 resumo.ativo(),
                 resumo.createdAt());
+    }
+
+    private ProfessorFuncionarioElegivelInternalResponse toResponse(ProfessorFuncionarioElegivelResumo resumo) {
+        return new ProfessorFuncionarioElegivelInternalResponse(
+                resumo.funcionarioId(),
+                resumo.nomeCompleto(),
+                resumo.escolaId(),
+                resumo.escolaNome(),
+                resumo.cargo(),
+                resumo.ativo());
     }
 }

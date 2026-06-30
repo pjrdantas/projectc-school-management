@@ -1185,6 +1185,28 @@ Proxima subfase pratica e de menor risco:
 - se o bloco estiver coberto, encerrar oficialmente a macrofase 53 e preparar
   a transicao para a proxima frente backend sem ampliar escopo para BFF.
 
+Entregue na quinta subfase da Fase 53:
+
+- substituicao do DTO web `ProfessorFuncionarioElegivelResponse` por um DTO
+  interno proprio no contrato `ProfessorAcademicoPort`, removendo o ultimo
+  vazamento de tipo de adaptador externo na fronteira backend/backend;
+- exposicao explicita de `GET /internal/professores/funcionarios-elegiveis`
+  no adaptador interno de professores, alinhando a rota real ao
+  `ProfessorInternalApiClient` e ao health operacional ja publicado;
+- adaptacao minima do orquestrador e do cliente interno para converter o
+  contrato interno de funcionarios elegiveis para o DTO externo apenas na API
+  publica `/api/professores/funcionarios-elegiveis`;
+- validacao automatizada cobrindo a nova rota interna, o consumo operacional
+  do cliente interno e a preservacao da suite completa do backend verde.
+
+Proximo passo pratico:
+
+- considerar o bloco interno da Fase 53 fechado no `school-management-service`
+  e iniciar a proxima macrofase backend a partir desse estado, sem reabrir
+  esse recorte salvo se surgir necessidade concreta na extracao fisica seguinte;
+- a partir daqui, a evolucao sugerida volta a mirar a frente seguinte de
+  desacoplamento, e nao mais o ajuste fino interno deste bloco.
+
 Entregue na vigesima-quinta subfase:
 
 - criacao do modulo `academic-professor-service` no monorepo como primeiro

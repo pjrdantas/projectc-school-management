@@ -18,6 +18,7 @@ import br.com.escola.professor.adapter.in.web.dto.ProfessorResponse;
 import br.com.escola.professor.application.dto.internal.AlocarProfessorTurmaDisciplinaSolicitacao;
 import br.com.escola.professor.application.dto.internal.CriarProfessorSolicitacao;
 import br.com.escola.professor.application.dto.internal.ProfessorAlocacaoResumo;
+import br.com.escola.professor.application.dto.internal.ProfessorFuncionarioElegivelResumo;
 import br.com.escola.professor.application.dto.internal.ProfessorResumo;
 import br.com.escola.professor.application.port.internal.ProfessorAcademicoPort;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -93,7 +94,9 @@ public class ProfessorFluxoOrquestradorService {
     public List<ProfessorFuncionarioElegivelResponse> listarFuncionariosElegiveis() {
         return executarComClienteInterno(
                 "listarFuncionariosElegiveis",
-                () -> professorInternalApiClient.listarFuncionariosElegiveis(escolaPadraoId()),
+                () -> professorInternalApiClient.listarFuncionariosElegiveis(escolaPadraoId()).stream()
+                        .map(this::toFuncionarioElegivelResponse)
+                        .toList(),
                 professorService::listarFuncionariosElegiveis);
     }
 
@@ -243,5 +246,15 @@ public class ProfessorFluxoOrquestradorService {
                 resumo.dataFim(),
                 resumo.ativo(),
                 resumo.createdAt());
+    }
+
+    private ProfessorFuncionarioElegivelResponse toFuncionarioElegivelResponse(ProfessorFuncionarioElegivelResumo resumo) {
+        return new ProfessorFuncionarioElegivelResponse(
+                resumo.funcionarioId(),
+                resumo.nomeCompleto(),
+                resumo.escolaId(),
+                resumo.escolaNome(),
+                resumo.cargo(),
+                resumo.ativo());
     }
 }

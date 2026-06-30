@@ -25,6 +25,7 @@ import br.com.escola.professor.adapter.out.persistence.repository.ProfessorTurma
 import br.com.escola.professor.application.dto.internal.AlocarProfessorTurmaDisciplinaSolicitacao;
 import br.com.escola.professor.application.dto.internal.CriarProfessorSolicitacao;
 import br.com.escola.professor.application.dto.internal.ProfessorAlocacaoResumo;
+import br.com.escola.professor.application.dto.internal.ProfessorFuncionarioElegivelResumo;
 import br.com.escola.professor.application.dto.internal.ProfessorResumo;
 import br.com.escola.professor.application.port.internal.ProfessorAcademicoPort;
 import br.com.escola.professor.domain.exception.ProfessorFuncionarioInativoException;
@@ -83,15 +84,17 @@ public class ProfessorService implements ProfessorAcademicoPort {
 
     @Transactional(readOnly = true)
     public List<ProfessorFuncionarioElegivelResponse> listarFuncionariosElegiveis() {
-        return listarFuncionariosElegiveis(escolaPadraoId());
+        return listarFuncionariosElegiveis(escolaPadraoId()).stream()
+                .map(this::toFuncionarioElegivelResponse)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProfessorFuncionarioElegivelResponse> listarFuncionariosElegiveis(UUID escolaId) {
+    public List<ProfessorFuncionarioElegivelResumo> listarFuncionariosElegiveis(UUID escolaId) {
         UUID escolaResolvidaId = escolaId != null ? escolaId : escolaPadraoId();
         return funcionarioProfessorPort.listarFuncionariosElegiveisParaProfessor(escolaResolvidaId).stream()
-                .map(this::toFuncionarioElegivelResponse)
+                .map(this::toFuncionarioElegivelResumo)
                 .toList();
     }
 
@@ -253,8 +256,19 @@ public class ProfessorService implements ProfessorAcademicoPort {
                 resumo.updatedAt());
     }
 
-    private ProfessorFuncionarioElegivelResponse toFuncionarioElegivelResponse(
+    private ProfessorFuncionarioElegivelResumo toFuncionarioElegivelResumo(
             br.com.escola.rh.application.dto.internal.FuncionarioProfessorResumo resumo) {
+        return new ProfessorFuncionarioElegivelResumo(
+                resumo.funcionarioId(),
+                resumo.nomeCompleto(),
+                resumo.escolaId(),
+                resumo.escolaNome(),
+                resumo.cargo(),
+                resumo.ativo());
+    }
+
+    private ProfessorFuncionarioElegivelResponse toFuncionarioElegivelResponse(
+            ProfessorFuncionarioElegivelResumo resumo) {
         return new ProfessorFuncionarioElegivelResponse(
                 resumo.funcionarioId(),
                 resumo.nomeCompleto(),
