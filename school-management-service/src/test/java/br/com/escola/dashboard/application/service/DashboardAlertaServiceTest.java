@@ -13,30 +13,33 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
-import br.com.escola.dashboard.adapter.in.web.dto.DashboardAcademicoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardAlertaResponse;
-import br.com.escola.dashboard.adapter.in.web.dto.DashboardDiretorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorResponse;
-import br.com.escola.dashboard.adapter.in.web.dto.DashboardSecretariaResponse;
+import br.com.escola.dashboard.application.dto.internal.DashboardAcademicoResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardDiretorResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardSecretariaResumo;
+import br.com.escola.dashboard.application.port.internal.DashboardAcademicoPort;
+import br.com.escola.dashboard.application.port.internal.DashboardDiretorPort;
+import br.com.escola.dashboard.application.port.internal.DashboardSecretariaPort;
 
 @ExtendWith(MockitoExtension.class)
 class DashboardAlertaServiceTest {
 
     @Mock
-    private DashboardAcademicoService dashboardAcademicoService;
+    private DashboardAcademicoPort dashboardAcademicoPort;
 
     @Mock
-    private DashboardSecretariaService dashboardSecretariaService;
+    private DashboardSecretariaPort dashboardSecretariaPort;
 
     @Mock
-    private DashboardDiretorService dashboardDiretorService;
+    private DashboardDiretorPort dashboardDiretorPort;
 
     @Mock
     private DashboardProfessorService dashboardProfessorService;
 
     @Test
     void deveRetornarAlertasDoDiretorOrdenadosPorSeveridade() {
-        when(dashboardDiretorService.consultar()).thenReturn(new DashboardDiretorResponse(
+        when(dashboardDiretorPort.consultarResumo()).thenReturn(new DashboardDiretorResumo(
                 UUID.randomUUID(),
                 "Escola teste",
                 10,
@@ -106,7 +109,7 @@ class DashboardAlertaServiceTest {
 
     @Test
     void deveRespeitarLimitePadrao() {
-        when(dashboardSecretariaService.consultar()).thenReturn(new DashboardSecretariaResponse(
+        when(dashboardSecretariaPort.consultarResumo()).thenReturn(new DashboardSecretariaResumo(
                 UUID.randomUUID(),
                 "Escola teste",
                 10,
@@ -130,7 +133,7 @@ class DashboardAlertaServiceTest {
 
     @Test
     void deveRetornarAlertaAcademicoQuandoExistirReprovacao() {
-        when(dashboardAcademicoService.consultar()).thenReturn(new DashboardAcademicoResponse(
+        when(dashboardAcademicoPort.consultarResumo()).thenReturn(new DashboardAcademicoResumo(
                 UUID.randomUUID(),
                 "Escola teste",
                 10,
@@ -154,9 +157,9 @@ class DashboardAlertaServiceTest {
 
     private DashboardAlertaService service(long limitePadrao) {
         return new DashboardAlertaService(
-                dashboardAcademicoService,
-                dashboardSecretariaService,
-                dashboardDiretorService,
+                dashboardAcademicoPort,
+                dashboardSecretariaPort,
+                dashboardDiretorPort,
                 dashboardProfessorService,
                 limitePadrao);
     }

@@ -726,6 +726,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   o menor candidato de composicao interna por conseguir reaproveitar as portas
   ja criadas de academico, secretaria e diretor sem exigir refatoracao ampla
   nem mudanca externa.
+- A segunda subfase dessa nova macrofase aplicou esse primeiro passo de
+  composicao minima: `DashboardAlertaService` passou a consumir
+  `DashboardAcademicoPort`, `DashboardSecretariaPort` e `DashboardDiretorPort`
+  para os publicos ja cobertos pelo bloco anterior, mantendo
+  `DashboardProfessorService` concreto por ora. O comportamento externo
+  permaneceu inalterado e o recorte continuou restrito ao backend atual.
 
 ## Historico resumido
 

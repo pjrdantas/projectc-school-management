@@ -12,30 +12,33 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import br.com.escola.dashboard.adapter.in.web.dto.DashboardAcademicoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardAlertaResponse;
-import br.com.escola.dashboard.adapter.in.web.dto.DashboardDiretorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorResponse;
-import br.com.escola.dashboard.adapter.in.web.dto.DashboardSecretariaResponse;
+import br.com.escola.dashboard.application.dto.internal.DashboardAcademicoResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardDiretorResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardSecretariaResumo;
+import br.com.escola.dashboard.application.port.internal.DashboardAcademicoPort;
+import br.com.escola.dashboard.application.port.internal.DashboardDiretorPort;
+import br.com.escola.dashboard.application.port.internal.DashboardSecretariaPort;
 
 @Service
 public class DashboardAlertaService {
 
-    private final DashboardAcademicoService dashboardAcademicoService;
-    private final DashboardSecretariaService dashboardSecretariaService;
-    private final DashboardDiretorService dashboardDiretorService;
+    private final DashboardAcademicoPort dashboardAcademicoPort;
+    private final DashboardSecretariaPort dashboardSecretariaPort;
+    private final DashboardDiretorPort dashboardDiretorPort;
     private final DashboardProfessorService dashboardProfessorService;
     private final long limitePadrao;
 
     public DashboardAlertaService(
-            DashboardAcademicoService dashboardAcademicoService,
-            DashboardSecretariaService dashboardSecretariaService,
-            DashboardDiretorService dashboardDiretorService,
+            DashboardAcademicoPort dashboardAcademicoPort,
+            DashboardSecretariaPort dashboardSecretariaPort,
+            DashboardDiretorPort dashboardDiretorPort,
             DashboardProfessorService dashboardProfessorService,
             @Value("${dashboard.alertas.limite-padrao:0}") long limitePadrao) {
-        this.dashboardAcademicoService = dashboardAcademicoService;
-        this.dashboardSecretariaService = dashboardSecretariaService;
-        this.dashboardDiretorService = dashboardDiretorService;
+        this.dashboardAcademicoPort = dashboardAcademicoPort;
+        this.dashboardSecretariaPort = dashboardSecretariaPort;
+        this.dashboardDiretorPort = dashboardDiretorPort;
         this.dashboardProfessorService = dashboardProfessorService;
         this.limitePadrao = limitePadrao;
     }
@@ -61,7 +64,7 @@ public class DashboardAlertaService {
     }
 
     private List<DashboardAlertaResponse> alertasAcademico() {
-        DashboardAcademicoResponse dashboard = dashboardAcademicoService.consultar();
+        DashboardAcademicoResumo dashboard = dashboardAcademicoPort.consultarResumo();
         List<DashboardAlertaResponse> alertas = new ArrayList<>();
         adicionar(alertas, "ACADEMICO", null, "MATRICULAS_AGUARDANDO_DOCUMENTOS", "ATENCAO",
                 "Matrículas aguardando documentos",
@@ -75,7 +78,7 @@ public class DashboardAlertaService {
     }
 
     private List<DashboardAlertaResponse> alertasSecretaria() {
-        DashboardSecretariaResponse dashboard = dashboardSecretariaService.consultar();
+        DashboardSecretariaResumo dashboard = dashboardSecretariaPort.consultarResumo();
         List<DashboardAlertaResponse> alertas = new ArrayList<>();
         adicionar(alertas, "SECRETARIA", null, "MATRICULAS_AGUARDANDO_DOCUMENTOS", "ATENCAO",
                 "Matrículas aguardando documentos",
@@ -97,7 +100,7 @@ public class DashboardAlertaService {
     }
 
     private List<DashboardAlertaResponse> alertasDiretor() {
-        DashboardDiretorResponse dashboard = dashboardDiretorService.consultar();
+        DashboardDiretorResumo dashboard = dashboardDiretorPort.consultarResumo();
         List<DashboardAlertaResponse> alertas = new ArrayList<>();
         adicionar(alertas, "DIRETOR", null, "MATRICULAS_PENDENTES", "ATENCAO",
                 "Matrículas pendentes",
