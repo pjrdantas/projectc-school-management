@@ -740,6 +740,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `DashboardProfessorService` como recorte de dominio mais pesado. O bloco foi
   fechado sem ampliar o escopo tecnico nem introduzir infraestrutura
   distribuida.
+- A primeira subfase da macrofase seguinte executou esse diagnostico
+  comparativo final e escolheu `DashboardFrontendService` como o proximo
+  recorte minimo seguro. O motivo objetivo foi que `DashboardFrontendService`
+  continua sendo uma camada de composicao sem consultas JPA proprias e pode
+  reaproveitar incrementalmente as portas internas ja abertas, enquanto
+  `DashboardProfessorService` segue mais pesado por concentrar consultas
+  especificas de professor, alocacoes, aulas, frequencias, avaliacoes, notas e
+  planejamentos.
 
 ## Historico resumido
 

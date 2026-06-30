@@ -1462,6 +1462,44 @@ Proxima fase pratica:
 - manter o mesmo criterio incremental: sem cutover externo e sem infraestrutura
   distribuida antes desse novo diagnostico objetivo.
 
+Entregue na primeira subfase da macrofase seguinte:
+
+- foi executado o diagnostico comparativo entre `DashboardFrontendService` e
+  `DashboardProfessorService` como proximos recortes remanescentes do modulo de
+  dashboard;
+- `DashboardProfessorService` foi mantido fora do proximo passo imediato
+  porque continua concentrando consultas especificas de professor, alocacoes,
+  aulas, frequencias, avaliacoes, notas e planejamentos, o que caracteriza um
+  recorte de dominio mais pesado e com maior risco de ampliacao de escopo;
+- `DashboardFrontendService` foi escolhido como proximo recorte minimo seguro,
+  porque ele opera como camada de composicao sobre servicos ja existentes, nao
+  possui consultas JPA proprias, ja depende do `DashboardAlertaService`
+  estabilizado e permite reaproveitar de forma incremental as fronteiras
+  internas abertas nos blocos anteriores;
+- a decisao preserva o criterio de menor risco: primeiro separar mais uma
+  composicao backend/backend antes de entrar no recorte mais pesado de
+  `DashboardProfessorService`.
+
+Impactos e consistencia mapeados:
+
+- nenhuma rota externa precisa mudar no proximo passo, porque a evolucao pode
+  permanecer confinada ao `DashboardFrontendService` e aos contratos internos
+  ja existentes do proprio modulo;
+- a consistencia continua sincrona e baseada em leitura do PostgreSQL do
+  monolito, sem eventos, sem cache distribuido e sem mudanca de persistencia;
+- o rollback segue simples, porque o proximo recorte pode ficar limitado a
+  trocas de dependencia e mapeamento interno do pacote agregado de dashboard
+  frontend.
+
+Proxima subfase pratica:
+
+- aplicar a mesma fronteira interna minima em `DashboardFrontendService`,
+  substituindo primeiro os consumos concretos de `academico`, `secretaria` e
+  `diretor` pelas portas internas ja existentes, mantendo `professor`,
+  configuracao e snapshots conforme estao nesta etapa;
+- manter o escopo backend/backend e incremental, sem BFF, sem eventos e sem
+  refatoracao ampla do recorte de professor.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
