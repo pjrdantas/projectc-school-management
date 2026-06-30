@@ -1552,6 +1552,51 @@ Proxima subfase pratica:
 - manter o mesmo criterio incremental, sem cutover externo, sem refatoracao
   ampla e sem introduzir runtime distribuido novo nesta etapa.
 
+Entregue na primeira subfase da macrofase seguinte:
+
+- foi executado o diagnostico comparativo do bloco remanescente de `dashboard`
+  e ficou confirmado que nao existe, fora de `DashboardProfessorService`, um
+  recorte backend/backend menor com ganho equivalente;
+- `DashboardConfiguracaoAdminService`, `DashboardUsuarioConfiguracaoService` e
+  `DashboardIndicadorSnapshotService` foram descartados como proximo passo
+  porque sao componentes transversais de configuracao e historico, com CRUD e
+  persistencia proprios, sem a mesma concentracao de consultas cruzadas que
+  motivou as fronteiras internas anteriores;
+- `DashboardProfessorService` foi confirmado como o proximo candidato real
+  porque permanece sem porta interna propria e segue consumido diretamente por
+  quatro pontos do modulo: controller REST, `DashboardFrontendService`,
+  `DashboardAlertaService` e `DashboardSnapshotGeradorService`;
+- o risco principal nao esta no contrato externo atual, mas no fato de o
+  resumo do professor ainda sair como DTO web direto de um service que conhece
+  repositorios de `professor`, `aula`, `frequencia`, `avaliacao`, `nota` e
+  `planejamento`, o que amplia o acoplamento backend/backend no proprio modulo;
+- por isso, o menor proximo passo seguro nao e quebrar consultas por agregado
+  ou tentar extracao fisica imediata, e sim criar primeiro uma fronteira
+  interna explicita para o resumo de professor.
+
+Impactos e consistencia mapeados:
+
+- nenhuma rota externa do dashboard precisa mudar na proxima subfase, porque o
+  recorte pode ficar restrito a contrato interno, troca de dependencia e
+  mapeamento local dentro do proprio modulo;
+- a consistencia continua sincrona e baseada na mesma leitura do PostgreSQL do
+  monolito, sem eventos, sem cache distribuido e sem nova persistencia;
+- o rollback permanece simples, pois a implementacao concreta de
+  `DashboardProfessorService` pode continuar a mesma enquanto os consumidores
+  backend/backend passam gradualmente a depender da nova porta.
+
+Proxima subfase pratica:
+
+- introduzir `DashboardProfessorPort` e um DTO interno proprio para o resumo de
+  professor, mantendo `DashboardProfessorService` como implementacao concreta
+  inicial da nova fronteira;
+- aplicar primeiro essa troca de dependencia em `DashboardAlertaService` e
+  `DashboardSnapshotGeradorService`, que sao os consumidores backend/backend de
+  menor risco, deixando controller REST e `DashboardFrontendService` para a
+  subfase seguinte;
+- manter o escopo backend/backend, sem cutover externo, sem eventos e sem
+  refatoracao ampla das consultas do professor nesta etapa.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

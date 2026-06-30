@@ -762,6 +762,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `PROFESSOR`, dependente de `DashboardProfessorService`. Com isso, o recorte
   seguro desta macro-subfase foi considerado esgotado antes de qualquer entrada
   no dominio mais pesado de professor.
+- A primeira subfase da macrofase seguinte executou o diagnostico comparativo
+  do bloco remanescente de `dashboard` e confirmou que o proximo recorte real
+  precisa abrir `DashboardProfessorService`. Os services de configuracao e
+  snapshots foram descartados como proximo passo porque atuam como componentes
+  transversais com persistencia propria, enquanto `DashboardProfessorService`
+  segue sem porta interna e ainda e consumido diretamente por controller,
+  frontend, alertas e geracao de snapshots. Como base para a proxima troca de
+  fronteira, foi adicionada a primeira cobertura unitária direta do service.
 
 ## Historico resumido
 
