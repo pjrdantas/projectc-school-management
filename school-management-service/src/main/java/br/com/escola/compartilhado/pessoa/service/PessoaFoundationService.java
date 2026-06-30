@@ -28,9 +28,10 @@ import br.com.escola.compartilhado.pessoa.repository.TipoPessoaJpaRepository;
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.adapter.out.persistence.repository.EscolaJpaRepository;
 import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.compartilhado.pessoa.port.internal.PessoaCadastroPort;
 
 @Service
-public class PessoaFoundationService {
+public class PessoaFoundationService implements PessoaCadastroPort {
 
     private static final String TIPO_ENDERECO_PADRAO = "RESIDENCIAL";
 
@@ -70,6 +71,7 @@ public class PessoaFoundationService {
         return criarPessoaComTipoEEndereco(pessoaDados, tipoPessoaCodigo, enderecoDados, null);
     }
 
+    @Override
     @Transactional
     public PessoaCriada criarPessoaComTipoEEndereco(
             PessoaDados pessoaDados,
@@ -96,6 +98,7 @@ public class PessoaFoundationService {
         atualizarPessoaEEndereco(pessoa, pessoaDados, enderecoDados, null);
     }
 
+    @Override
     @Transactional
     public void atualizarPessoaEEndereco(PessoaEntity pessoa, PessoaDados pessoaDados, EnderecoDados enderecoDados, UUID escolaId) {
         preencherPessoa(pessoa, pessoaDados);
@@ -134,6 +137,7 @@ public class PessoaFoundationService {
                 .orElseThrow(() -> new IllegalArgumentException("Tipo de pessoa nao cadastrado: " + codigo));
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Optional<PessoaEntity> buscarPorCpf(String cpf) {
         if (!StringUtils.hasText(cpf)) {
@@ -143,6 +147,7 @@ public class PessoaFoundationService {
         return pessoaRepository.findByCpfAndEscola_Id(cpf.trim(), escolaId);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public List<CatalogoPessoaResponse> listarTiposPessoa() {
         return tipoPessoaRepository.findAll().stream()
@@ -150,6 +155,7 @@ public class PessoaFoundationService {
                 .toList();
     }
 
+    @Override
     @Transactional(readOnly = true)
     public List<CatalogoPessoaResponse> listarTiposEndereco() {
         return tipoEnderecoRepository.findAll().stream()

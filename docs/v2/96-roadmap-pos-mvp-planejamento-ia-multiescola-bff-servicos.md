@@ -1722,3 +1722,26 @@ Proxima subfase pratica:
   refatoracao ampla;
 - somente depois disso avaliar a abertura do modulo `people-service` em modo
   shadow/backend-backend.
+
+Entregue na segunda subfase da Fase 53:
+
+- foi criado o primeiro contrato interno explicito do futuro `people-service`
+  no proprio monolito, encapsulando o nucleo compartilhado de cadastro base de
+  pessoa e endereco usado por aluno e responsavel;
+- a nova porta interna `PessoaCadastroPort` passou a expor criacao/atualizacao
+  de pessoa com tipo e endereco, consulta por CPF e catalogos de tipos, com a
+  implementacao atual ainda delegada a `PessoaFoundationService`;
+- `AlunoPersistenceGateway`, `ResponsavelPersistenceGateway` e
+  `PessoaCatalogoController` deixaram de depender diretamente da implementacao
+  concreta, passando a consumir a fronteira interna do dominio de people;
+- com isso, a Fase 53 avanca do desacoplamento ORM com seguranca para o
+  desacoplamento contratual do cadastro base de pessoas, sem abrir runtime novo
+  ainda e sem alterar contratos externos.
+
+Proxima subfase pratica:
+
+- aplicar o mesmo padrao de fronteira interna no recorte de funcionario e
+  professor, definindo o menor contrato de people para elegibilidade e consulta
+  cadastral antes da extracao fisica do `people-service`;
+- manter o foco backend/backend e evitar publicar eventos antes de fechar essas
+  fronteiras internas minimas.

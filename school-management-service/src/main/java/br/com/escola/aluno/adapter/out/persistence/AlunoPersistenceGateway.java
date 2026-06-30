@@ -34,7 +34,7 @@ import br.com.escola.compartilhado.endereco.repository.EnderecoJpaRepository;
 import br.com.escola.compartilhado.endereco.repository.PessoaEnderecoJpaRepository;
 import br.com.escola.compartilhado.pessoa.repository.PessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.repository.PessoaTipoPessoaJpaRepository;
-import br.com.escola.compartilhado.pessoa.service.PessoaFoundationService;
+import br.com.escola.compartilhado.pessoa.port.internal.PessoaCadastroPort;
 import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Component
@@ -46,7 +46,7 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     private final PessoaTipoPessoaJpaRepository pessoaTipoPessoaJpaRepository;
     private final EnderecoJpaRepository enderecoJpaRepository;
     private final PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository;
-    private final PessoaFoundationService pessoaFoundationService;
+    private final PessoaCadastroPort pessoaCadastroPort;
     private final AlunoResponsavelJpaRepository alunoResponsavelJpaRepository;
     private final ResponsavelJpaRepository responsavelJpaRepository;
     private final HistoricoEscolarJpaRepository historicoEscolarJpaRepository;
@@ -62,7 +62,7 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
             PessoaTipoPessoaJpaRepository pessoaTipoPessoaJpaRepository,
             EnderecoJpaRepository enderecoJpaRepository,
             PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository,
-            PessoaFoundationService pessoaFoundationService,
+            PessoaCadastroPort pessoaCadastroPort,
             AlunoResponsavelJpaRepository alunoResponsavelJpaRepository,
             ResponsavelJpaRepository responsavelJpaRepository,
             HistoricoEscolarJpaRepository historicoEscolarJpaRepository,
@@ -76,7 +76,7 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
         this.pessoaTipoPessoaJpaRepository = pessoaTipoPessoaJpaRepository;
         this.enderecoJpaRepository = enderecoJpaRepository;
         this.pessoaEnderecoJpaRepository = pessoaEnderecoJpaRepository;
-        this.pessoaFoundationService = pessoaFoundationService;
+        this.pessoaCadastroPort = pessoaCadastroPort;
         this.alunoResponsavelJpaRepository = alunoResponsavelJpaRepository;
         this.responsavelJpaRepository = responsavelJpaRepository;
         this.historicoEscolarJpaRepository = historicoEscolarJpaRepository;
@@ -99,7 +99,7 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     @Override
     @Transactional
     public AlunoOutput save(AlunoInput input) {
-        PessoaCriada pessoaCriada = pessoaFoundationService.criarPessoaComTipoEEndereco(
+        PessoaCriada pessoaCriada = pessoaCadastroPort.criarPessoaComTipoEEndereco(
                 toPessoaDados(input),
                 "ALUNO",
                 toEnderecoDados(input),
@@ -117,7 +117,7 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
         AlunoEntity alunoEntity = alunoJpaRepository.findByIdAndPessoa_Escola_Id(id, resolverEscolaId(input.escolaId()))
                 .orElseThrow(() -> new AlunoNaoEncontradoException(id));
 
-        pessoaFoundationService.atualizarPessoaEEndereco(
+        pessoaCadastroPort.atualizarPessoaEEndereco(
                 alunoEntity.getPessoa(),
                 toPessoaDados(input),
                 toEnderecoDados(input),

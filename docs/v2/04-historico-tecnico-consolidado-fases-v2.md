@@ -502,6 +502,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `IdentidadeTenantService` foram ajustados para essa referencia simples,
   mantendo o comportamento externo do login e preparando o dominio de pessoas
   para a remocao progressiva de dependencias ORM com seguranca.
+- A segunda subfase da Fase 53 criou o primeiro contrato interno explicito do
+  futuro `people-service` no cadastro base de pessoas. A porta
+  `PessoaCadastroPort` passou a encapsular a criacao/atualizacao de pessoa com
+  tipo e endereco, busca por CPF e catalogos de tipos, mantendo
+  `PessoaFoundationService` como implementacao local nesta etapa. Com isso,
+  `AlunoPersistenceGateway`, `ResponsavelPersistenceGateway` e
+  `PessoaCatalogoController` deixaram de depender diretamente da implementacao
+  concreta de fundacao, passando a consumir uma fronteira interna preparatoria
+  para a extracao fisica do modulo de people.
 
 ## Historico resumido
 

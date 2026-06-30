@@ -22,9 +22,9 @@ import br.com.escola.compartilhado.endereco.entity.EnderecoEntity;
 import br.com.escola.compartilhado.endereco.entity.PessoaEnderecoEntity;
 import br.com.escola.compartilhado.endereco.repository.EnderecoJpaRepository;
 import br.com.escola.compartilhado.endereco.repository.PessoaEnderecoJpaRepository;
+import br.com.escola.compartilhado.pessoa.port.internal.PessoaCadastroPort;
 import br.com.escola.compartilhado.pessoa.repository.PessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.repository.PessoaTipoPessoaJpaRepository;
-import br.com.escola.compartilhado.pessoa.service.PessoaFoundationService;
 import br.com.escola.documento.adapter.out.persistence.repository.DocumentoJpaRepository;
 import br.com.escola.institucional.application.service.EscolaTenantService;
 
@@ -37,7 +37,7 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
     private final EnderecoJpaRepository enderecoJpaRepository;
     private final DocumentoJpaRepository documentoJpaRepository;
     private final PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository;
-    private final PessoaFoundationService pessoaFoundationService;
+    private final PessoaCadastroPort pessoaCadastroPort;
     private final AlunoResponsavelJpaRepository alunoResponsavelJpaRepository;
     private final EscolaTenantService escolaTenantService;
 
@@ -48,7 +48,7 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
             EnderecoJpaRepository enderecoJpaRepository,
             DocumentoJpaRepository documentoJpaRepository,
             PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository,
-            PessoaFoundationService pessoaFoundationService,
+            PessoaCadastroPort pessoaCadastroPort,
             AlunoResponsavelJpaRepository alunoResponsavelJpaRepository,
             EscolaTenantService escolaTenantService) {
         this.responsavelJpaRepository = responsavelJpaRepository;
@@ -57,7 +57,7 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
         this.enderecoJpaRepository = enderecoJpaRepository;
         this.documentoJpaRepository = documentoJpaRepository;
         this.pessoaEnderecoJpaRepository = pessoaEnderecoJpaRepository;
-        this.pessoaFoundationService = pessoaFoundationService;
+        this.pessoaCadastroPort = pessoaCadastroPort;
         this.alunoResponsavelJpaRepository = alunoResponsavelJpaRepository;
         this.escolaTenantService = escolaTenantService;
     }
@@ -75,7 +75,7 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
     @Override
     @Transactional
     public ResponsavelOutput save(ResponsavelInput input) {
-        PessoaCriada pessoaCriada = pessoaFoundationService.criarPessoaComTipoEEndereco(
+        PessoaCriada pessoaCriada = pessoaCadastroPort.criarPessoaComTipoEEndereco(
                 toPessoaDados(input),
                 "RESPONSAVEL",
                 toEnderecoDados(input),
@@ -92,7 +92,7 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
         ResponsavelEntity entity = responsavelJpaRepository.findByIdAndPessoa_Escola_Id(id, resolverEscolaId(input.escolaId()))
                 .orElseThrow(() -> new ResponsavelNaoEncontradoException(id));
 
-        pessoaFoundationService.atualizarPessoaEEndereco(
+        pessoaCadastroPort.atualizarPessoaEEndereco(
                 entity.getPessoa(),
                 toPessoaDados(input),
                 toEnderecoDados(input),

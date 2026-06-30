@@ -8,30 +8,30 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.compartilhado.pessoa.dto.CatalogoPessoaResponse;
-import br.com.escola.compartilhado.pessoa.service.PessoaFoundationService;
+import br.com.escola.compartilhado.pessoa.port.internal.PessoaCadastroPort;
 import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
 @RequestMapping("/api/pessoas/catalogos")
 public class PessoaCatalogoController {
 
-    private final PessoaFoundationService pessoaFoundationService;
+    private final PessoaCadastroPort pessoaCadastroPort;
 
-    public PessoaCatalogoController(PessoaFoundationService pessoaFoundationService) {
-        this.pessoaFoundationService = pessoaFoundationService;
+    public PessoaCatalogoController(PessoaCadastroPort pessoaCadastroPort) {
+        this.pessoaCadastroPort = pessoaCadastroPort;
     }
 
     @GetMapping("/tipos-pessoa")
     @PreAuthorize("hasAnyAuthority('READ','READ_ALL','ADMIN')")
     @Operation(summary = "Lista tipos de pessoa")
     public List<CatalogoPessoaResponse> listarTiposPessoa() {
-        return pessoaFoundationService.listarTiposPessoa();
+        return pessoaCadastroPort.listarTiposPessoa();
     }
 
     @GetMapping("/tipos-endereco")
     @PreAuthorize("hasAnyAuthority('READ','READ_ALL','ADMIN')")
     @Operation(summary = "Lista tipos de endereço")
     public List<CatalogoPessoaResponse> listarTiposEndereco() {
-        return pessoaFoundationService.listarTiposEndereco();
+        return pessoaCadastroPort.listarTiposEndereco();
     }
 }
