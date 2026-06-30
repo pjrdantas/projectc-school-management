@@ -634,6 +634,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `HistoricoEscolarGeracaoFactory` por `EntityManager.getReference(...)`. Com
   isso, a Fase 55 fica formalmente encerrada no backend atual sem alterar rota
   externa nem abrir persistencia propria adicional.
+- A primeira subfase da Fase 56 abriu o bloco de `planejamento e IA` pelo
+  menor acoplamento backend/backend identificado em `PlanejamentoIAService`.
+  Foi criada a fronteira interna `PlanejamentoIAPort`, implementada por
+  `PlanejamentoIAPlanejamentoService`, com DTO proprio `PlanejamentoIAResumo`
+  para resumir o planejamento usado na geracao de conteudo. Com isso,
+  `PlanejamentoIAService` deixou de consultar diretamente
+  `PlanejamentoBimestralJpaRepository` para esse fluxo, mantendo apenas a
+  referencia JPA do planejamento no ponto de persistencia da interacao e do
+  conteudo gerado.
 
 ## Historico resumido
 

@@ -1077,6 +1077,31 @@ Proxima subfase pratica:
 Extrair `planning-ai-service`, ativar MongoDB para payloads flexiveis, Kafka para
 publicacao e Redis para locks/rate limit.
 
+Entregue na primeira subfase da Fase 56:
+
+- foi aberto o primeiro recorte backend/backend de menor risco no bloco de
+  `planejamento e IA`, exatamente na dependencia de `PlanejamentoIAService`
+  sobre o fluxo de `planejamento bimestral`;
+- `PlanejamentoIAService` deixou de consultar diretamente
+  `PlanejamentoBimestralJpaRepository` para validar e resumir o planejamento
+  usado na geracao de conteudo, passando a consumir a nova fronteira interna
+  `PlanejamentoIAPort`;
+- foi criado `PlanejamentoIAPlanejamentoService` com DTO interno proprio
+  `PlanejamentoIAResumo`, mantendo a resolucao JPA do `PlanejamentoBimestral`
+  apenas como referencia no ponto de persistencia da interacao e do conteudo
+  gerado;
+- com isso, a Fase 56 inicia pelo menor acoplamento direto entre IA e
+  planejamento, sem alterar rota externa, sem BFF e sem extracao fisica nesta
+  etapa.
+
+Proxima subfase pratica:
+
+- aplicar o mesmo criterio no bloco restante de `PlanejamentoIAService`,
+  escolhendo o proximo menor acoplamento direto a repositorios/entidades de
+  `planejamento` ou catalogos auxiliares antes de discutir Mongo, Kafka ou
+  Redis;
+- manter o escopo backend/backend e incremental.
+
 ### Fase 57 - Dashboard orientado a eventos
 
 Extrair `dashboard-query-service`, substituir consultas cruzadas por projecoes

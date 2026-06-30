@@ -32,6 +32,8 @@ import br.com.escola.ia.adapter.out.persistence.repository.PlanejamentoIAConteud
 import br.com.escola.ia.adapter.out.persistence.repository.PlanejamentoIAInteracaoJpaRepository;
 import br.com.escola.ia.adapter.out.persistence.repository.StatusConteudoIAJpaRepository;
 import br.com.escola.ia.adapter.out.persistence.repository.TipoConteudoIAJpaRepository;
+import br.com.escola.ia.application.dto.internal.PlanejamentoIAResumo;
+import br.com.escola.ia.application.port.internal.PlanejamentoIAPort;
 import br.com.escola.ia.application.gateway.GeradorConteudoPedagogicoGateway;
 import br.com.escola.ia.domain.exception.ConteudoIANaoEncontradoException;
 import br.com.escola.ia.domain.exception.ConteudoIAInativoException;
@@ -41,9 +43,9 @@ import br.com.escola.ia.domain.exception.ConteudoIATipoNaoEncontradoException;
 import br.com.escola.ia.domain.exception.ConteudoIAVersaoNaoEncontradaException;
 import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.planejamento.adapter.out.persistence.entity.PlanejamentoBimestralEntity;
-import br.com.escola.planejamento.adapter.out.persistence.repository.PlanejamentoBimestralJpaRepository;
 import br.com.escola.planejamento.domain.exception.PlanejamentoBimestralNaoEncontradoException;
 import br.com.escola.professor.adapter.out.persistence.entity.ProfessorTurmaDisciplinaEntity;
+import jakarta.persistence.EntityManager;
 
 @Service
 public class PlanejamentoIAService {
@@ -53,7 +55,7 @@ public class PlanejamentoIAService {
     private static final String STATUS_APROVADO = "APROVADO";
     private static final String ORIGEM_PLANEJAMENTO_IA = "PLANEJAMENTO_IA";
 
-    private final PlanejamentoBimestralJpaRepository planejamentoBimestralJpaRepository;
+    private final PlanejamentoIAPort planejamentoIAPort;
     private final PlanejamentoIAInteracaoJpaRepository interacaoJpaRepository;
     private final PlanejamentoIAConteudoGeradoJpaRepository conteudoGeradoJpaRepository;
     private final PlanejamentoIAConteudoVersaoJpaRepository conteudoVersaoJpaRepository;
@@ -62,9 +64,10 @@ public class PlanejamentoIAService {
     private final StatusConteudoIAJpaRepository statusConteudoIAJpaRepository;
     private final GeradorConteudoPedagogicoGateway geradorConteudoPedagogicoGateway;
     private final EscolaContextoPort escolaContextoPort;
+    private final EntityManager entityManager;
 
     public PlanejamentoIAService(
-            PlanejamentoBimestralJpaRepository planejamentoBimestralJpaRepository,
+            PlanejamentoIAPort planejamentoIAPort,
             PlanejamentoIAInteracaoJpaRepository interacaoJpaRepository,
             PlanejamentoIAConteudoGeradoJpaRepository conteudoGeradoJpaRepository,
             PlanejamentoIAConteudoVersaoJpaRepository conteudoVersaoJpaRepository,
@@ -72,8 +75,9 @@ public class PlanejamentoIAService {
             TipoConteudoIAJpaRepository tipoConteudoIAJpaRepository,
             StatusConteudoIAJpaRepository statusConteudoIAJpaRepository,
             GeradorConteudoPedagogicoGateway geradorConteudoPedagogicoGateway,
-            EscolaContextoPort escolaContextoPort) {
-        this.planejamentoBimestralJpaRepository = planejamentoBimestralJpaRepository;
+            EscolaContextoPort escolaContextoPort,
+            EntityManager entityManager) {
+        this.planejamentoIAPort = planejamentoIAPort;
         this.interacaoJpaRepository = interacaoJpaRepository;
         this.conteudoGeradoJpaRepository = conteudoGeradoJpaRepository;
         this.conteudoVersaoJpaRepository = conteudoVersaoJpaRepository;
@@ -82,28 +86,30 @@ public class PlanejamentoIAService {
         this.statusConteudoIAJpaRepository = statusConteudoIAJpaRepository;
         this.geradorConteudoPedagogicoGateway = geradorConteudoPedagogicoGateway;
         this.escolaContextoPort = escolaContextoPort;
+        this.entityManager = entityManager;
     }
 
     @Transactional
     public ConteudoIAResponse gerarConteudo(UUID planejamentoId, GerarConteudoIARequest request) {
-        PlanejamentoBimestralEntity planejamento = findPlanejamento(planejamentoId);
+        var planejamento = findPlanejamentoResumo(planejamentoId);
         TipoConteudoIAEntity tipoConteudo = findTipoConteudo(request.tipoConteudo());
         StatusConteudoIAEntity statusGerado = findStatusConteudo(STATUS_GERADO);
-
-        ProfessorTurmaDisciplinaEntity alocacao = planejamento.getProfessorTurmaDisciplina();
         GeracaoConteudoPedagogicoResultado resultado = geradorConteudoPedagogicoGateway.gerar(
                 new GeracaoConteudoPedagogicoComando(
-                        planejamento.getTitulo(),
-                        planejamento.getTemaPrincipal(),
-                        planejamento.getDescricaoInicial(),
-                        planejamento.getObjetivoGeral(),
-                        alocacao.getTurmaDisciplina().getTurma().getNome(),
-                        alocacao.getTurmaDisciplina().getDisciplina().getNome(),
+                        planejamento.titulo(),
+                        planejamento.temaPrincipal(),
+                        planejamento.descricaoInicial(),
+                        planejamento.objetivoGeral(),
+                        planejamento.turmaNome(),
+                        planejamento.disciplinaNome(),
                         tipoConteudo.getCodigo(),
                         request.promptProfessor()));
 
+        PlanejamentoBimestralEntity planejamentoReference =
+                entityManager.getReference(PlanejamentoBimestralEntity.class, planejamentoId);
+
         PlanejamentoIAInteracaoEntity interacao = interacaoJpaRepository.save(PlanejamentoIAInteracaoEntity.builder()
-                .planejamentoBimestral(planejamento)
+                .planejamentoBimestral(planejamentoReference)
                 .promptProfessor(request.promptProfessor())
                 .respostaIA(resultado.conteudo())
                 .modeloIA(resultado.modelo())
@@ -114,10 +120,10 @@ public class PlanejamentoIAService {
                 .build());
 
         String titulo = request.titulo() == null || request.titulo().isBlank()
-                ? "Sugestão - " + planejamento.getTemaPrincipal()
+                ? "Sugestão - " + planejamento.temaPrincipal()
                 : request.titulo().trim();
         PlanejamentoIAConteudoGeradoEntity conteudo = conteudoGeradoJpaRepository.save(PlanejamentoIAConteudoGeradoEntity.builder()
-                .planejamentoBimestral(planejamento)
+                .planejamentoBimestral(planejamentoReference)
                 .planejamentoIAInteracao(interacao)
                 .tipoConteudoIA(tipoConteudo)
                 .statusConteudoIA(statusGerado)
@@ -301,16 +307,13 @@ public class PlanejamentoIAService {
                 .build());
     }
 
-    private PlanejamentoBimestralEntity findPlanejamento(UUID planejamentoId) {
-        return planejamentoBimestralJpaRepository
-                .findByIdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(planejamentoId, escolaId())
+    private PlanejamentoIAResumo findPlanejamentoResumo(UUID planejamentoId) {
+        return planejamentoIAPort.buscarResumo(planejamentoId, escolaId())
                 .orElseThrow(PlanejamentoBimestralNaoEncontradoException::new);
     }
 
     private void validarPlanejamentoExiste(UUID planejamentoId) {
-        if (!planejamentoBimestralJpaRepository.existsByIdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(
-                planejamentoId,
-                escolaId())) {
+        if (!planejamentoIAPort.existePlanejamento(planejamentoId, escolaId())) {
             throw new PlanejamentoBimestralNaoEncontradoException();
         }
     }
