@@ -12,9 +12,12 @@ import br.com.escola.avaliacao.adapter.out.persistence.repository.AvaliacaoJpaRe
 import br.com.escola.avaliacao.adapter.out.persistence.repository.NotaAlunoJpaRepository;
 import br.com.escola.catalogo.adapter.out.persistence.entity.TurmaEntity;
 import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaJpaRepository;
-import br.com.escola.dashboard.adapter.in.web.dto.DashboardAcademicoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardDiretorResponse;
+import br.com.escola.dashboard.adapter.in.web.dto.DashboardMatriculaStatusResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardSecretariaResponse;
+import br.com.escola.dashboard.adapter.in.web.dto.DashboardTurmaVagaResponse;
+import br.com.escola.dashboard.application.dto.internal.DashboardAcademicoResumo;
+import br.com.escola.dashboard.application.port.internal.DashboardAcademicoPort;
 import br.com.escola.institucional.application.dto.EscolaContexto;
 import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
@@ -31,7 +34,7 @@ public class DashboardDiretorService {
             MatriculaStatus.INDEFERIDA.name(),
             MatriculaStatus.TRANSFERIDO.name());
 
-    private final DashboardAcademicoService dashboardAcademicoService;
+    private final DashboardAcademicoPort dashboardAcademicoPort;
     private final DashboardSecretariaService dashboardSecretariaService;
     private final AlunoJpaRepository alunoJpaRepository;
     private final TurmaJpaRepository turmaJpaRepository;
@@ -43,7 +46,7 @@ public class DashboardDiretorService {
     private final EscolaContextoPort escolaContextoPort;
 
     public DashboardDiretorService(
-            DashboardAcademicoService dashboardAcademicoService,
+            DashboardAcademicoPort dashboardAcademicoPort,
             DashboardSecretariaService dashboardSecretariaService,
             AlunoJpaRepository alunoJpaRepository,
             TurmaJpaRepository turmaJpaRepository,
@@ -53,7 +56,7 @@ public class DashboardDiretorService {
             AvaliacaoJpaRepository avaliacaoJpaRepository,
             NotaAlunoJpaRepository notaAlunoJpaRepository,
             EscolaContextoPort escolaContextoPort) {
-        this.dashboardAcademicoService = dashboardAcademicoService;
+        this.dashboardAcademicoPort = dashboardAcademicoPort;
         this.dashboardSecretariaService = dashboardSecretariaService;
         this.alunoJpaRepository = alunoJpaRepository;
         this.turmaJpaRepository = turmaJpaRepository;
@@ -69,7 +72,7 @@ public class DashboardDiretorService {
     public DashboardDiretorResponse consultar() {
         EscolaContexto contexto = escolaContextoPort.obterContextoPadrao();
         UUID escolaId = contexto.escolaId();
-        DashboardAcademicoResponse academico = dashboardAcademicoService.consultar();
+        DashboardAcademicoResumo academico = dashboardAcademicoPort.consultarResumo();
         DashboardSecretariaResponse secretaria = dashboardSecretariaService.consultar();
 
         return new DashboardDiretorResponse(
@@ -93,8 +96,17 @@ public class DashboardDiretorService {
                 secretaria.transferencias(),
                 secretaria.solicitacoesExclusaoPendentes(),
                 secretaria.matriculasComDocumentosPendentes(),
-                academico.matriculasPorStatus(),
-                academico.turmasComVagas());
+                academico.matriculasPorStatus().stream()
+                        .map(item -> new DashboardMatriculaStatusResponse(item.status(), item.total()))
+                        .toList(),
+                academico.turmasComVagas().stream()
+                        .map(item -> new DashboardTurmaVagaResponse(
+                                item.turmaId(),
+                                item.turmaNome(),
+                                item.capacidade(),
+                                item.vagasOcupadas(),
+                                item.vagasDisponiveis()))
+                        .toList());
     }
 
     private long contarMatriculasPendentes(DashboardSecretariaResponse secretaria) {

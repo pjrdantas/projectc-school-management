@@ -683,6 +683,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `DashboardDiretorService`, concentra dependencias cruzadas reais de
   `matricula`, `catalogo` e `historico`, e permite rollback interno simples sem
   alterar rotas externas, snapshots ou infraestrutura distribuida.
+- A segunda subfase da Fase 57 materializou essa primeira fronteira interna de
+  dashboard. Foram criados `DashboardAcademicoPort` e `DashboardAcademicoResumo`
+  com tipos internos proprios para o resumo academico, e
+  `DashboardSecretariaService` e `DashboardDiretorService` passaram a consumir
+  esse contrato em vez da implementacao concreta de `DashboardAcademicoService`.
+  Os contratos REST externos permaneceram inalterados e o bloco de snapshots
+  ficou fora desta etapa.
 
 ## Historico resumido
 
