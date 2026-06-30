@@ -11,8 +11,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.aluno.adapter.out.persistence.entity.AlunoEntity;
-import br.com.escola.aluno.adapter.out.persistence.repository.AlunoJpaRepository;
+import br.com.escola.aluno.application.port.internal.AlunoMatriculaPort;
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
+import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.transferencia.adapter.out.persistence.entity.TransferenciaAlunoEntity;
 import br.com.escola.transferencia.adapter.out.persistence.repository.TransferenciaAlunoJpaRepository;
 import br.com.escola.transferencia.application.dto.internal.EscolaOrigemResumo;
@@ -25,25 +26,28 @@ import jakarta.persistence.EntityManager;
 public class TransferenciaAlunoPersistenceGateway implements TransferenciaAlunoGateway {
 
     private final TransferenciaAlunoJpaRepository transferenciaAlunoJpaRepository;
-    private final AlunoJpaRepository alunoJpaRepository;
+    private final AlunoMatriculaPort alunoMatriculaPort;
     private final JdbcTemplate jdbcTemplate;
     private final EntityManager entityManager;
+    private final EscolaTenantService escolaTenantService;
 
     public TransferenciaAlunoPersistenceGateway(
             TransferenciaAlunoJpaRepository transferenciaAlunoJpaRepository,
-            AlunoJpaRepository alunoJpaRepository,
+            AlunoMatriculaPort alunoMatriculaPort,
             JdbcTemplate jdbcTemplate,
-            EntityManager entityManager) {
+            EntityManager entityManager,
+            EscolaTenantService escolaTenantService) {
         this.transferenciaAlunoJpaRepository = transferenciaAlunoJpaRepository;
-        this.alunoJpaRepository = alunoJpaRepository;
+        this.alunoMatriculaPort = alunoMatriculaPort;
         this.jdbcTemplate = jdbcTemplate;
         this.entityManager = entityManager;
+        this.escolaTenantService = escolaTenantService;
     }
 
     @Override
     @Transactional(readOnly = true)
     public boolean existsAlunoById(UUID alunoId) {
-        return alunoJpaRepository.existsById(alunoId);
+        return alunoMatriculaPort.existeAlunoPorIdEEscola(alunoId, escolaId());
     }
 
     @Override
@@ -156,5 +160,9 @@ public class TransferenciaAlunoPersistenceGateway implements TransferenciaAlunoG
                 entity.getUsuarioOperacao(),
                 entity.getDataHoraOperacao(),
                 entity.getCreatedAt());
+    }
+
+    private UUID escolaId() {
+        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
     }
 }

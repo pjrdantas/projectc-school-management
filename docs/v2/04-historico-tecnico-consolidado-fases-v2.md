@@ -580,6 +580,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   reutilizar `AlunoMatriculaPort`. Com isso, o primeiro desacoplamento interno
   do modulo de historico foi feito sem ampliar escopo para `boletim`, mapper ou
   refatoracao estrutural maior.
+- A sexta subfase da Fase 54 fechou a revisao final do bloco interno e removeu
+  um residuo do mesmo padrao ainda em `transferencia`.
+  `TransferenciaAlunoPersistenceGateway` deixou de consultar
+  `AlunoJpaRepository` diretamente para validar existencia de aluno e passou a
+  reutilizar `AlunoMatriculaPort` com escopo de escola. Com isso, o bloco
+  minimo de desacoplamento interno de `transferencia`, `matricula`,
+  `documento` e `historico` ficou formalmente encerrado no backend atual.
 
 ## Historico resumido
 

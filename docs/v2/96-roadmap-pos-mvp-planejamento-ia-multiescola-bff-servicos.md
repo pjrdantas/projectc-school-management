@@ -918,6 +918,27 @@ Proxima subfase pratica:
 - manter o escopo backend/backend, sem ampliar para cutover externo nesta
   etapa.
 
+Entregue na sexta subfase da Fase 54:
+
+- a revisao final do bloco interno identificou um residuo do mesmo padrao ainda
+  em `transferencia`: a validacao de existencia de aluno dentro de
+  `TransferenciaAlunoPersistenceGateway`;
+- esse gateway deixou de depender diretamente de `AlunoJpaRepository` e passou
+  a reutilizar `AlunoMatriculaPort` com escopo de escola para a validacao de
+  aluno, preservando o contrato publico existente e sem alterar o write da
+  transferencia;
+- com isso, o bloco minimo de desacoplamento interno de `transferencia`,
+  `matricula`, `documento` e `historico` fica formalmente fechado no backend
+  atual, restando como proximos passos apenas recortes estruturais maiores
+  fora deste mesmo escopo minimo.
+
+Proxima subfase pratica:
+
+- iniciar a macrofase seguinte pelo primeiro recorte minimo de leitura ou
+  persistencia propria em dominio ainda nao iniciado, sem reabrir este bloco
+  interno de matricula/documentos/historico;
+- manter o escopo backend/backend, sem cutover externo de BFF nesta etapa.
+
 ### Fase 55 - Pedagogico
 
 Extrair `pedagogical-service` com alocacao, aula, frequencia, avaliacao, notas,
