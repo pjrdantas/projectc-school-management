@@ -1500,6 +1500,30 @@ Proxima subfase pratica:
 - manter o escopo backend/backend e incremental, sem BFF, sem eventos e sem
   refatoracao ampla do recorte de professor.
 
+Entregue na segunda subfase da macrofase seguinte:
+
+- `DashboardFrontendService` passou a consumir `DashboardAcademicoPort`,
+  `DashboardSecretariaPort` e `DashboardDiretorPort` nos caminhos
+  `ACADEMICO`, `SECRETARIA` e `DIRETOR`, reaproveitando as fronteiras internas
+  abertas nas macrofases anteriores;
+- o payload externo do pacote agregado de dashboard frontend foi preservado por
+  mapeamento interno dos resumos backend/backend para os DTOs REST ja
+  existentes, sem alteracao de rota, sem mudanca de schema e sem impacto em
+  configuracao, historico ou alertas;
+- o caminho `PROFESSOR` permaneceu dependente de `DashboardProfessorService`,
+  mantendo o criterio de menor risco e evitando abrir ainda o recorte mais
+  pesado de consultas especificas por professor;
+- o rollback continua simples, porque a mudanca ficou confinada ao service de
+  composicao e aos contratos internos ja existentes do mesmo modulo.
+
+Proxima subfase pratica:
+
+- fechar formalmente este bloco minimo da macrofase atual, confirmando se
+  `DashboardFrontendService` esgota o ultimo recorte seguro antes de qualquer
+  entrada em `DashboardProfessorService`;
+- manter o escopo backend/backend e incremental, sem BFF, sem eventos e sem
+  refatoracao ampla de dominio nesta etapa de fechamento.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

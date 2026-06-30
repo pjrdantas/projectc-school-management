@@ -27,18 +27,22 @@ import br.com.escola.dashboard.adapter.in.web.dto.DashboardIndicadorHistoricoRes
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardUsuarioConfiguracaoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardWidgetResponse;
+import br.com.escola.dashboard.application.dto.internal.DashboardDiretorResumo;
+import br.com.escola.dashboard.application.port.internal.DashboardAcademicoPort;
+import br.com.escola.dashboard.application.port.internal.DashboardDiretorPort;
+import br.com.escola.dashboard.application.port.internal.DashboardSecretariaPort;
 
 @ExtendWith(MockitoExtension.class)
 class DashboardFrontendServiceTest {
 
     @Mock
-    private DashboardAcademicoService dashboardAcademicoService;
+    private DashboardAcademicoPort dashboardAcademicoPort;
 
     @Mock
-    private DashboardSecretariaService dashboardSecretariaService;
+    private DashboardSecretariaPort dashboardSecretariaPort;
 
     @Mock
-    private DashboardDiretorService dashboardDiretorService;
+    private DashboardDiretorPort dashboardDiretorPort;
 
     @Mock
     private DashboardProfessorService dashboardProfessorService;
@@ -61,7 +65,7 @@ class DashboardFrontendServiceTest {
         UUID dashboardId = UUID.randomUUID();
         UUID widgetId = UUID.randomUUID();
         UUID configuracaoId = UUID.randomUUID();
-        DashboardDiretorResponse resumo = diretorResponse();
+        DashboardDiretorResumo resumo = diretorResumo();
         DashboardAlertaResponse alerta = new DashboardAlertaResponse(
                 "DIRETOR", null, "TURMAS_LOTADAS", "CRITICO", "Turmas lotadas", "Mensagem", 2, 0);
         DashboardConfiguracaoResponse dashboard = new DashboardConfiguracaoResponse(
@@ -73,7 +77,7 @@ class DashboardFrontendServiceTest {
         DashboardIndicadorHistoricoResponse historico = new DashboardIndicadorHistoricoResponse(
                 "DIRETOR", "TURMAS_LOTADAS", "Turmas lotadas", BigDecimal.ONE, BigDecimal.ZERO, null, List.of());
 
-        when(dashboardDiretorService.consultar()).thenReturn(resumo);
+        when(dashboardDiretorPort.consultarResumo()).thenReturn(resumo);
         when(dashboardAlertaService.consultar("DIRETOR", null)).thenReturn(List.of(alerta));
         when(dashboardConfiguracaoAdminService.listarDashboardsPorPublicoCodigo("DIRETOR")).thenReturn(List.of(dashboard));
         when(dashboardConfiguracaoAdminService.listarWidgets(dashboardId)).thenReturn(List.of(widget));
@@ -85,7 +89,11 @@ class DashboardFrontendServiceTest {
 
         assertThat(response.publicoCodigo()).isEqualTo("DIRETOR");
         assertThat(response.usuarioId()).isEqualTo(usuarioId);
-        assertThat(response.resumo()).isSameAs(resumo);
+        assertThat(response.resumo()).isInstanceOf(DashboardDiretorResponse.class);
+        DashboardDiretorResponse resumoResponse = (DashboardDiretorResponse) response.resumo();
+        assertThat(resumoResponse.escolaId()).isEqualTo(resumo.escolaId());
+        assertThat(resumoResponse.totalMatriculas()).isEqualTo(resumo.totalMatriculas());
+        assertThat(resumoResponse.turmasLotadas()).isEqualTo(resumo.turmasLotadas());
         assertThat(response.alertas()).containsExactly(alerta);
         assertThat(response.dashboards()).hasSize(1);
         assertThat(response.dashboards().getFirst().widgets()).hasSize(1);
@@ -122,9 +130,9 @@ class DashboardFrontendServiceTest {
 
     private DashboardFrontendService service() {
         return new DashboardFrontendService(
-                dashboardAcademicoService,
-                dashboardSecretariaService,
-                dashboardDiretorService,
+                dashboardAcademicoPort,
+                dashboardSecretariaPort,
+                dashboardDiretorPort,
                 dashboardProfessorService,
                 dashboardAlertaService,
                 dashboardConfiguracaoAdminService,
@@ -133,8 +141,8 @@ class DashboardFrontendServiceTest {
                 30);
     }
 
-    private DashboardDiretorResponse diretorResponse() {
-        return new DashboardDiretorResponse(
+    private DashboardDiretorResumo diretorResumo() {
+        return new DashboardDiretorResumo(
                 UUID.randomUUID(), "Escola teste",
                 10, 1, 2, 3, 1, 20, 1, 3, 1, 4, 5, 6, 1, 2, 1, 0, 0, 1, List.of(), List.of());
     }

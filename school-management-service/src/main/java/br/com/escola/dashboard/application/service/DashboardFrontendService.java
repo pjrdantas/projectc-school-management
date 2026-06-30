@@ -11,19 +11,30 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import br.com.escola.dashboard.adapter.in.web.dto.DashboardAcademicoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardConfiguracaoResponse;
+import br.com.escola.dashboard.adapter.in.web.dto.DashboardDiretorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardFrontendConfiguracaoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardFrontendResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardFrontendWidgetResponse;
+import br.com.escola.dashboard.adapter.in.web.dto.DashboardMatriculaStatusResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardUsuarioConfiguracaoResponse;
+import br.com.escola.dashboard.adapter.in.web.dto.DashboardSecretariaResponse;
+import br.com.escola.dashboard.adapter.in.web.dto.DashboardTurmaVagaResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardWidgetResponse;
+import br.com.escola.dashboard.application.dto.internal.DashboardAcademicoResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardDiretorResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardSecretariaResumo;
+import br.com.escola.dashboard.application.port.internal.DashboardAcademicoPort;
+import br.com.escola.dashboard.application.port.internal.DashboardDiretorPort;
+import br.com.escola.dashboard.application.port.internal.DashboardSecretariaPort;
 
 @Service
 public class DashboardFrontendService {
 
-    private final DashboardAcademicoService dashboardAcademicoService;
-    private final DashboardSecretariaService dashboardSecretariaService;
-    private final DashboardDiretorService dashboardDiretorService;
+    private final DashboardAcademicoPort dashboardAcademicoPort;
+    private final DashboardSecretariaPort dashboardSecretariaPort;
+    private final DashboardDiretorPort dashboardDiretorPort;
     private final DashboardProfessorService dashboardProfessorService;
     private final DashboardAlertaService dashboardAlertaService;
     private final DashboardConfiguracaoAdminService dashboardConfiguracaoAdminService;
@@ -32,18 +43,18 @@ public class DashboardFrontendService {
     private final int historicoDias;
 
     public DashboardFrontendService(
-            DashboardAcademicoService dashboardAcademicoService,
-            DashboardSecretariaService dashboardSecretariaService,
-            DashboardDiretorService dashboardDiretorService,
+            DashboardAcademicoPort dashboardAcademicoPort,
+            DashboardSecretariaPort dashboardSecretariaPort,
+            DashboardDiretorPort dashboardDiretorPort,
             DashboardProfessorService dashboardProfessorService,
             DashboardAlertaService dashboardAlertaService,
             DashboardConfiguracaoAdminService dashboardConfiguracaoAdminService,
             DashboardUsuarioConfiguracaoService dashboardUsuarioConfiguracaoService,
             DashboardIndicadorSnapshotService dashboardIndicadorSnapshotService,
             @Value("${dashboard.frontend.historico-dias:30}") int historicoDias) {
-        this.dashboardAcademicoService = dashboardAcademicoService;
-        this.dashboardSecretariaService = dashboardSecretariaService;
-        this.dashboardDiretorService = dashboardDiretorService;
+        this.dashboardAcademicoPort = dashboardAcademicoPort;
+        this.dashboardSecretariaPort = dashboardSecretariaPort;
+        this.dashboardDiretorPort = dashboardDiretorPort;
         this.dashboardProfessorService = dashboardProfessorService;
         this.dashboardAlertaService = dashboardAlertaService;
         this.dashboardConfiguracaoAdminService = dashboardConfiguracaoAdminService;
@@ -74,9 +85,9 @@ public class DashboardFrontendService {
 
     private Object consultarResumo(String publicoCodigo, UUID professorId) {
         return switch (publicoCodigo) {
-            case "ACADEMICO" -> dashboardAcademicoService.consultar();
-            case "SECRETARIA" -> dashboardSecretariaService.consultar();
-            case "DIRETOR" -> dashboardDiretorService.consultar();
+            case "ACADEMICO" -> toAcademicoResponse(dashboardAcademicoPort.consultarResumo());
+            case "SECRETARIA" -> toSecretariaResponse(dashboardSecretariaPort.consultarResumo());
+            case "DIRETOR" -> toDiretorResponse(dashboardDiretorPort.consultarResumo());
             case "PROFESSOR" -> {
                 if (professorId == null) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "professorId é obrigatório para dashboard do público PROFESSOR");
@@ -87,6 +98,95 @@ public class DashboardFrontendService {
                     HttpStatus.BAD_REQUEST,
                     "Dashboard frontend não suportado para o público " + publicoCodigo);
         };
+    }
+
+    private DashboardAcademicoResponse toAcademicoResponse(DashboardAcademicoResumo resumo) {
+        return new DashboardAcademicoResponse(
+                resumo.escolaId(),
+                resumo.escolaNome(),
+                resumo.totalMatriculas(),
+                resumo.matriculasAguardandoDocumentos(),
+                resumo.matriculasConcluidas(),
+                resumo.matriculasEfetivadas(),
+                resumo.matriculasAptasRematricula(),
+                resumo.boletinsFechados(),
+                resumo.historicosInternosGerados(),
+                resumo.alunosAprovados(),
+                resumo.alunosReprovados(),
+                resumo.matriculasPorStatus().stream()
+                        .map(item -> new DashboardMatriculaStatusResponse(item.status(), item.total()))
+                        .toList(),
+                resumo.turmasComVagas().stream()
+                        .map(item -> new DashboardTurmaVagaResponse(
+                                item.turmaId(),
+                                item.turmaNome(),
+                                item.capacidade(),
+                                item.vagasOcupadas(),
+                                item.vagasDisponiveis()))
+                        .toList());
+    }
+
+    private DashboardSecretariaResponse toSecretariaResponse(DashboardSecretariaResumo resumo) {
+        return new DashboardSecretariaResponse(
+                resumo.escolaId(),
+                resumo.escolaNome(),
+                resumo.totalMatriculas(),
+                resumo.matriculasSolicitadas(),
+                resumo.matriculasEmAndamento(),
+                resumo.matriculasAguardandoDocumentos(),
+                resumo.matriculasAguardandoHistoricoEscolar(),
+                resumo.matriculasComDocumentosPendentes(),
+                resumo.matriculasAptasRematricula(),
+                resumo.boletinsFechados(),
+                resumo.historicosInternosGerados(),
+                resumo.transferencias(),
+                resumo.solicitacoesExclusaoPendentes(),
+                resumo.matriculasPorStatus().stream()
+                        .map(item -> new DashboardMatriculaStatusResponse(item.status(), item.total()))
+                        .toList(),
+                resumo.turmasComVagas().stream()
+                        .map(item -> new DashboardTurmaVagaResponse(
+                                item.turmaId(),
+                                item.turmaNome(),
+                                item.capacidade(),
+                                item.vagasOcupadas(),
+                                item.vagasDisponiveis()))
+                        .toList());
+    }
+
+    private DashboardDiretorResponse toDiretorResponse(DashboardDiretorResumo resumo) {
+        return new DashboardDiretorResponse(
+                resumo.escolaId(),
+                resumo.escolaNome(),
+                resumo.totalMatriculas(),
+                resumo.matriculasPendentes(),
+                resumo.matriculasConcluidas(),
+                resumo.matriculasEfetivadas(),
+                resumo.matriculasAptasRematricula(),
+                resumo.alunosAtivos(),
+                resumo.alunosInativos(),
+                resumo.turmasAtivas(),
+                resumo.turmasLotadas(),
+                resumo.professoresAlocados(),
+                resumo.aulasRealizadas(),
+                resumo.avaliacoesRegistradas(),
+                resumo.avaliacoesComNotasPendentes(),
+                resumo.boletinsFechados(),
+                resumo.historicosInternosGerados(),
+                resumo.transferencias(),
+                resumo.solicitacoesExclusaoPendentes(),
+                resumo.matriculasComDocumentosPendentes(),
+                resumo.matriculasPorStatus().stream()
+                        .map(item -> new DashboardMatriculaStatusResponse(item.status(), item.total()))
+                        .toList(),
+                resumo.turmasComVagas().stream()
+                        .map(item -> new DashboardTurmaVagaResponse(
+                                item.turmaId(),
+                                item.turmaNome(),
+                                item.capacidade(),
+                                item.vagasOcupadas(),
+                                item.vagasDisponiveis()))
+                        .toList());
     }
 
     private List<DashboardFrontendConfiguracaoResponse> listarDashboards(String publicoCodigo) {

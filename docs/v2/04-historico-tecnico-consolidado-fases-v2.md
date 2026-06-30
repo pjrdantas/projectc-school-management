@@ -748,6 +748,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `DashboardProfessorService` segue mais pesado por concentrar consultas
   especificas de professor, alocacoes, aulas, frequencias, avaliacoes, notas e
   planejamentos.
+- A segunda subfase dessa macrofase aplicou esse passo de composicao minima em
+  `DashboardFrontendService`, que passou a consumir
+  `DashboardAcademicoPort`, `DashboardSecretariaPort` e
+  `DashboardDiretorPort` para montar o pacote agregado dos publicos ja cobertos
+  pelas fronteiras internas anteriores. O contrato externo do frontend foi
+  preservado por mapeamento interno para os DTOs REST existentes, enquanto o
+  caminho `PROFESSOR` permaneceu concreto por ora.
 
 ## Historico resumido
 
