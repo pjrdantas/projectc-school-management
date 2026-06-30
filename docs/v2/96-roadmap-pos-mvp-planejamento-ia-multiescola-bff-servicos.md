@@ -1291,6 +1291,30 @@ Proxima subfase pratica:
 - manter o escopo backend/backend e incremental, sem BFF nem infraestrutura
   distribuida.
 
+Entregue na quarta subfase da Fase 57:
+
+- foi criada a porta interna `DashboardSecretariaPort` e o DTO interno
+  `DashboardSecretariaResumo`, reaproveitando os tipos internos ja existentes
+  para `matriculasPorStatus` e `turmasComVagas`;
+- `DashboardSecretariaService` passou a implementar essa nova fronteira e a
+  separar explicitamente o resumo backend/backend da resposta REST externa da
+  secretaria;
+- `DashboardDiretorService` e o fluxo `SECRETARIA` de
+  `DashboardSnapshotGeradorService` deixaram de depender da implementacao
+  concreta de `DashboardSecretariaService` e passaram a consumir o contrato
+  interno minimo;
+- os endpoints externos de dashboard e o comportamento funcional dos snapshots
+  permaneceram inalterados, mantendo o recorte no backend atual e o rollback
+  interno simples.
+
+Proxima subfase pratica:
+
+- aplicar o mesmo padrao ao proximo recorte minimo restante do bloco,
+  avaliando se `DashboardDiretorService` deve expor um resumo interno proprio
+  antes de qualquer diagnostico mais profundo sobre `DashboardProfessorService`;
+- manter o escopo backend/backend e incremental, sem BFF nem infraestrutura
+  distribuida.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

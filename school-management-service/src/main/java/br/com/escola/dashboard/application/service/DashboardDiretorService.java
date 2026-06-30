@@ -14,10 +14,11 @@ import br.com.escola.catalogo.adapter.out.persistence.entity.TurmaEntity;
 import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaJpaRepository;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardDiretorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardMatriculaStatusResponse;
-import br.com.escola.dashboard.adapter.in.web.dto.DashboardSecretariaResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardTurmaVagaResponse;
 import br.com.escola.dashboard.application.dto.internal.DashboardAcademicoResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardSecretariaResumo;
 import br.com.escola.dashboard.application.port.internal.DashboardAcademicoPort;
+import br.com.escola.dashboard.application.port.internal.DashboardSecretariaPort;
 import br.com.escola.institucional.application.dto.EscolaContexto;
 import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
@@ -35,7 +36,7 @@ public class DashboardDiretorService {
             MatriculaStatus.TRANSFERIDO.name());
 
     private final DashboardAcademicoPort dashboardAcademicoPort;
-    private final DashboardSecretariaService dashboardSecretariaService;
+    private final DashboardSecretariaPort dashboardSecretariaPort;
     private final AlunoJpaRepository alunoJpaRepository;
     private final TurmaJpaRepository turmaJpaRepository;
     private final MatriculaJpaRepository matriculaJpaRepository;
@@ -47,7 +48,7 @@ public class DashboardDiretorService {
 
     public DashboardDiretorService(
             DashboardAcademicoPort dashboardAcademicoPort,
-            DashboardSecretariaService dashboardSecretariaService,
+            DashboardSecretariaPort dashboardSecretariaPort,
             AlunoJpaRepository alunoJpaRepository,
             TurmaJpaRepository turmaJpaRepository,
             MatriculaJpaRepository matriculaJpaRepository,
@@ -57,7 +58,7 @@ public class DashboardDiretorService {
             NotaAlunoJpaRepository notaAlunoJpaRepository,
             EscolaContextoPort escolaContextoPort) {
         this.dashboardAcademicoPort = dashboardAcademicoPort;
-        this.dashboardSecretariaService = dashboardSecretariaService;
+        this.dashboardSecretariaPort = dashboardSecretariaPort;
         this.alunoJpaRepository = alunoJpaRepository;
         this.turmaJpaRepository = turmaJpaRepository;
         this.matriculaJpaRepository = matriculaJpaRepository;
@@ -73,7 +74,7 @@ public class DashboardDiretorService {
         EscolaContexto contexto = escolaContextoPort.obterContextoPadrao();
         UUID escolaId = contexto.escolaId();
         DashboardAcademicoResumo academico = dashboardAcademicoPort.consultarResumo();
-        DashboardSecretariaResponse secretaria = dashboardSecretariaService.consultar();
+        DashboardSecretariaResumo secretaria = dashboardSecretariaPort.consultarResumo();
 
         return new DashboardDiretorResponse(
                 contexto.escolaId(),
@@ -109,7 +110,7 @@ public class DashboardDiretorService {
                         .toList());
     }
 
-    private long contarMatriculasPendentes(DashboardSecretariaResponse secretaria) {
+    private long contarMatriculasPendentes(DashboardSecretariaResumo secretaria) {
         return secretaria.matriculasSolicitadas()
                 + secretaria.matriculasEmAndamento()
                 + secretaria.matriculasAguardandoDocumentos()

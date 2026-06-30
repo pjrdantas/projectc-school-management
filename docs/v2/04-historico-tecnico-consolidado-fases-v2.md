@@ -696,6 +696,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `DashboardAcademicoPort` em vez da implementacao concreta de
   `DashboardAcademicoService`. O comportamento externo dos snapshots e os
   fluxos de `SECRETARIA`, `DIRETOR` e `PROFESSOR` permaneceram inalterados.
+- A quarta subfase da Fase 57 aplicou o mesmo padrao ao proximo resumo interno
+  de menor risco do bloco. Foram criados `DashboardSecretariaPort` e
+  `DashboardSecretariaResumo`, `DashboardSecretariaService` passou a separar o
+  resumo backend/backend da resposta REST externa, e
+  `DashboardDiretorService` junto com o caminho `SECRETARIA` de
+  `DashboardSnapshotGeradorService` passaram a consumir esse contrato em vez da
+  implementacao concreta. O comportamento externo permaneceu inalterado.
 
 ## Historico resumido
 
