@@ -22,7 +22,6 @@ import br.com.escola.matricula.adapter.in.web.MatriculaConclusaoAcademicaRespons
 import br.com.escola.matricula.adapter.in.web.MatriculaDocumentoEntregueRequest;
 import br.com.escola.matricula.adapter.in.web.MatriculaDocumentoEntregueResponse;
 import br.com.escola.matricula.adapter.in.web.MatriculaDocumentoExigidoResponse;
-import br.com.escola.matricula.adapter.in.web.MatriculaEtapaStatusRequest;
 import br.com.escola.matricula.adapter.in.web.MatriculaRematriculaElegibilidadeResponse;
 import br.com.escola.matricula.adapter.in.web.MatriculaRematriculaRequest;
 import br.com.escola.matricula.adapter.out.persistence.entity.MatriculaDocumentoEntregueEntity;
@@ -40,6 +39,8 @@ import br.com.escola.matricula.adapter.out.persistence.repository.StatusMatricul
 import br.com.escola.matricula.application.dto.MatriculaEtapaOutput;
 import br.com.escola.matricula.application.dto.MatriculaInput;
 import br.com.escola.matricula.application.dto.MatriculaOutput;
+import br.com.escola.matricula.application.dto.internal.AtualizarMatriculaEtapaStatusSolicitacao;
+import br.com.escola.matricula.application.port.internal.MatriculaEtapaPort;
 import br.com.escola.matricula.application.usecase.CriarMatriculaUseCase;
 import br.com.escola.matricula.domain.exception.MatriculaDocumentoNaoEncontradoException;
 import br.com.escola.matricula.domain.exception.MatriculaEtapaNaoEncontradaException;
@@ -50,7 +51,7 @@ import br.com.escola.matricula.domain.exception.RematriculaNaoPermitidaException
 import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Service
-public class MatriculaFluxoService {
+public class MatriculaFluxoService implements MatriculaEtapaPort {
 
     private static final List<String> STATUS_NAO_OCUPAM_VAGA = List.of("CANCELADA", "INDEFERIDA", "TRANSFERIDO");
 
@@ -103,19 +104,20 @@ public class MatriculaFluxoService {
     }
 
     @Transactional
+    @Override
     public MatriculaEtapaOutput atualizarStatusEtapa(
             UUID matriculaId,
             UUID etapaId,
-            MatriculaEtapaStatusRequest request) {
+            AtualizarMatriculaEtapaStatusSolicitacao solicitacao) {
         validarMatriculaExistente(matriculaId);
         MatriculaEtapaEntity etapa = matriculaEtapaJpaRepository.findByIdAndMatricula_Id(etapaId, matriculaId)
                 .orElseThrow(() -> new MatriculaEtapaNaoEncontradaException(etapaId));
         StatusEtapaMatriculaEntity status = statusEtapaMatriculaJpaRepository
-                .findByCodigoIgnoreCase(request.status())
-                .orElseThrow(() -> new MatriculaStatusInvalidoException(request.status()));
+                .findByCodigoIgnoreCase(solicitacao.status())
+                .orElseThrow(() -> new MatriculaStatusInvalidoException(solicitacao.status()));
 
         etapa.setStatus(status);
-        etapa.setObservacao(request.observacao());
+        etapa.setObservacao(solicitacao.observacao());
         if ("CONCLUIDA".equalsIgnoreCase(status.getCodigo())) {
             etapa.setDataConclusao(LocalDateTime.now());
         } else {

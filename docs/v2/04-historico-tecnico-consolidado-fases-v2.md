@@ -801,6 +801,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   cruzados e consistencia local entre matricula, documentos, turma e boletim.
   Com isso, `dashboard` fica formalmente encerrado como bloco interno e a
   proxima macrofase backend passa a ser aberta em `matricula`.
+- A subfase seguinte iniciou essa macrofase de `matricula` pelo menor write de
+  menor risco dentro de `MatriculaFluxoService`: a atualizacao de status de
+  etapa em `PATCH /api/matriculas/{id}/etapas/{etapaId}/status`. Foi criado o
+  DTO interno `AtualizarMatriculaEtapaStatusSolicitacao` e a porta
+  `MatriculaEtapaPort`, com implementacao local pelo proprio
+  `MatriculaFluxoService`. O `MatriculaController` deixou de repassar esse
+  write diretamente pelo payload web para a implementacao concreta e passou a
+  mapear o request externo para o contrato interno minimo da etapa. O recorte
+  permaneceu deliberadamente pequeno, sem alterar schema, sem abrir endpoint
+  interno HTTP, sem tocar `documento` ou `historico` e preservando rollback
+  simples no mesmo runtime.
 
 ## Historico resumido
 

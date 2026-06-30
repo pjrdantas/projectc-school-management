@@ -1696,6 +1696,31 @@ Proxima subfase pratica:
   fronteira interna de write da nova macrofase, evitando refatoracao ampla do
   modulo inteiro.
 
+Entregue na subfase seguinte:
+
+- foi aberto o primeiro recorte minimo de write da nova macrofase exatamente no
+  ponto de menor risco identificado em `MatriculaFluxoService`: a atualizacao
+  de status de etapa da matricula;
+- foi criado o contrato interno `MatriculaEtapaPort` com o DTO proprio
+  `AtualizarMatriculaEtapaStatusSolicitacao`, separando esse write do payload
+  REST externo e deixando explicita a primeira fronteira interna do bloco;
+- `MatriculaFluxoService` permaneceu como implementacao local unica nesta
+  etapa, preservando o mesmo runtime, as mesmas tabelas e o mesmo comportamento
+  transacional de `matricula_etapa` e seus catalogos de status;
+- `MatriculaController` passou a atuar apenas como adaptador do request externo
+  para esse contrato interno minimo no write de etapa, sem mudar rota publica,
+  sem abrir cliente HTTP interno e sem ampliar escopo para os demais writes de
+  `documento`, `historico` ou `rematricula`.
+
+Proxima subfase pratica:
+
+- aplicar o mesmo criterio ao proximo write de `MatriculaFluxoService` com
+  maior ganho arquitetural ainda controlado, priorizando `registrarDocumentoEntregue`
+  por ser o primeiro ponto que explicita a dependencia cruzada com `documento`
+  e a transicao local de status da matricula;
+- manter a evolucao no backend atual, sem BFF, sem persistencia propria e sem
+  endpoint interno HTTP nesta etapa seguinte.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

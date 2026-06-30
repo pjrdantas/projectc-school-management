@@ -1,8 +1,7 @@
 package br.com.escola.matricula.adapter.in.web;
 
-import java.util.UUID;
-
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,12 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.escola.matricula.application.dto.MatriculaFiltro;
 import br.com.escola.matricula.application.dto.MatriculaInput;
 import br.com.escola.matricula.application.dto.MatriculaOutput;
+import br.com.escola.matricula.application.dto.MatriculaEtapaOutput;
+import br.com.escola.matricula.application.dto.internal.AtualizarMatriculaEtapaStatusSolicitacao;
+import br.com.escola.matricula.application.port.internal.MatriculaEtapaPort;
 import br.com.escola.matricula.application.service.MatriculaFluxoService;
 import br.com.escola.matricula.application.usecase.AtualizarStatusMatriculaUseCase;
 import br.com.escola.matricula.application.usecase.ConsultarMatriculasUseCase;
 import br.com.escola.matricula.application.usecase.CriarMatriculaUseCase;
 import br.com.escola.matricula.application.usecase.ExcluirMatriculaUseCase;
-import br.com.escola.matricula.application.dto.MatriculaEtapaOutput;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 
@@ -36,6 +37,7 @@ public class MatriculaController {
     private final ConsultarMatriculasUseCase consultarMatriculasUseCase;
     private final AtualizarStatusMatriculaUseCase atualizarStatusMatriculaUseCase;
     private final ExcluirMatriculaUseCase excluirMatriculaUseCase;
+    private final MatriculaEtapaPort matriculaEtapaPort;
     private final MatriculaFluxoService matriculaFluxoService;
 
     public MatriculaController(
@@ -43,11 +45,13 @@ public class MatriculaController {
             ConsultarMatriculasUseCase consultarMatriculasUseCase,
             AtualizarStatusMatriculaUseCase atualizarStatusMatriculaUseCase,
             ExcluirMatriculaUseCase excluirMatriculaUseCase,
+            MatriculaEtapaPort matriculaEtapaPort,
             MatriculaFluxoService matriculaFluxoService) {
         this.criarMatriculaUseCase = criarMatriculaUseCase;
         this.consultarMatriculasUseCase = consultarMatriculasUseCase;
         this.atualizarStatusMatriculaUseCase = atualizarStatusMatriculaUseCase;
         this.excluirMatriculaUseCase = excluirMatriculaUseCase;
+        this.matriculaEtapaPort = matriculaEtapaPort;
         this.matriculaFluxoService = matriculaFluxoService;
     }
 
@@ -103,7 +107,10 @@ public class MatriculaController {
             @PathVariable UUID id,
             @PathVariable UUID etapaId,
             @Valid @RequestBody MatriculaEtapaStatusRequest request) {
-        return matriculaFluxoService.atualizarStatusEtapa(id, etapaId, request);
+        return matriculaEtapaPort.atualizarStatusEtapa(
+                id,
+                etapaId,
+                new AtualizarMatriculaEtapaStatusSolicitacao(request.status(), request.observacao()));
     }
 
     @GetMapping("/{id}/documentos-entregues")
