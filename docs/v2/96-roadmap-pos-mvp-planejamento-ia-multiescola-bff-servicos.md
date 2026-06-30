@@ -988,6 +988,29 @@ Proxima subfase pratica:
   macrofase;
 - manter o escopo backend/backend, sem BFF e sem cutover externo nesta etapa.
 
+Entregue na terceira subfase da Fase 55:
+
+- foi fechado o primeiro bloco interno pedagogico com a revisao final de
+  `historico` e `boletim` apos a introducao de `RendimentoAcademicoPort`;
+- `BoletimService` e `HistoricoEscolarServiceImpl` deixaram de resolver escola
+  padrao via `EscolaTenantService` e passaram a reutilizar `EscolaContextoPort`,
+  alinhando o contexto escolar desses fluxos ao mesmo padrao interno ja usado em
+  leituras consolidadas e gateways auxiliares;
+- com isso, o recorte minimo de fronteiras internas em resumo academico,
+  boletim e historico fica formalmente fechado sem alterar contratos REST, sem
+  BFF e sem persistencia propria nesta etapa;
+- os acoplamentos remanescentes no modulo de historico passam a ser mais
+  estruturais, ligados a mapeamento ORM e persistencia oficial, e nao mais ao
+  mesmo padrao minimo de consulta interna tratado neste bloco.
+
+Proxima subfase pratica:
+
+- iniciar o proximo recorte minimo da macrofase 55 em um ponto estrutural
+  ainda controlado, preferencialmente na geracao oficial de `historico` a
+  partir de `boletim` ou em outra fronteira interna de persistencia
+  pedagogica, sem abrir persistencia propria nem cutover externo;
+- manter o escopo backend/backend, sem BFF nesta etapa.
+
 ### Fase 56 - Planejamento e IA
 
 Extrair `planning-ai-service`, ativar MongoDB para payloads flexiveis, Kafka para

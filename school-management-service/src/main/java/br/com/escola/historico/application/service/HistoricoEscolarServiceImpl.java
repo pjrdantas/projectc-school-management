@@ -30,7 +30,7 @@ import br.com.escola.historico.domain.exception.BoletimFechadoNaoEncontradoExcep
 import br.com.escola.historico.domain.exception.HistoricoEscolarDuplicadoException;
 import br.com.escola.historico.domain.exception.HistoricoEscolarInvalidoException;
 import br.com.escola.historico.domain.exception.HistoricoEscolarNaoEncontradoException;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.matricula.domain.exception.MatriculaNaoEncontradaException;
 import lombok.RequiredArgsConstructor;
 
@@ -43,7 +43,7 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
     private final BoletimItemJpaRepository boletimItemJpaRepository;
     private final HistoricoEscolarMapper historicoEscolarMapper;
     private final AlunoMatriculaPort alunoMatriculaPort;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     @Override
     @Transactional
@@ -233,6 +233,6 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
     }
 
     private UUID escolaId() {
-        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        return escolaContextoPort.obterContextoPadrao().escolaId();
     }
 }

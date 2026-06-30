@@ -603,6 +603,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   passando a reutilizar `RendimentoAcademicoPort`. Com isso, o desacoplamento
   pedagogico avancou no fluxo de boletim sem alterar o endpoint externo nem o
   fechamento persistido.
+- A terceira subfase da Fase 55 fechou o primeiro bloco interno pedagogico.
+  `BoletimService` e `HistoricoEscolarServiceImpl` deixaram de resolver escola
+  padrao via `EscolaTenantService` e passaram a reutilizar `EscolaContextoPort`,
+  alinhando `boletim` e `historico` ao mesmo padrao interno de contexto escolar
+  ja adotado em leituras consolidadas e gateways auxiliares. Com isso, o bloco
+  minimo de fronteiras internas em resumo academico, boletim e historico ficou
+  formalmente encerrado, restando como proximos passos apenas recortes mais
+  estruturais do dominio pedagogico.
 
 ## Historico resumido
 

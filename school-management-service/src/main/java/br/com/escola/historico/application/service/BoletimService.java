@@ -27,7 +27,7 @@ import br.com.escola.historico.application.dto.internal.FrequenciaAcademicaResum
 import br.com.escola.historico.application.dto.internal.NotaAcademicaResumo;
 import br.com.escola.historico.application.port.internal.RendimentoAcademicoPort;
 import br.com.escola.historico.domain.exception.BoletimFechamentoDuplicadoException;
-import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.matricula.adapter.out.persistence.entity.MatriculaEntity;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
 import br.com.escola.matricula.domain.exception.MatriculaNaoEncontradaException;
@@ -44,7 +44,7 @@ public class BoletimService {
     private final DisciplinaJpaRepository disciplinaJpaRepository;
     private final BoletimJpaRepository boletimJpaRepository;
     private final BoletimItemJpaRepository boletimItemJpaRepository;
-    private final EscolaTenantService escolaTenantService;
+    private final EscolaContextoPort escolaContextoPort;
 
     public BoletimService(
             MatriculaJpaRepository matriculaJpaRepository,
@@ -52,13 +52,13 @@ public class BoletimService {
             DisciplinaJpaRepository disciplinaJpaRepository,
             BoletimJpaRepository boletimJpaRepository,
             BoletimItemJpaRepository boletimItemJpaRepository,
-            EscolaTenantService escolaTenantService) {
+            EscolaContextoPort escolaContextoPort) {
         this.matriculaJpaRepository = matriculaJpaRepository;
         this.rendimentoAcademicoPort = rendimentoAcademicoPort;
         this.disciplinaJpaRepository = disciplinaJpaRepository;
         this.boletimJpaRepository = boletimJpaRepository;
         this.boletimItemJpaRepository = boletimItemJpaRepository;
-        this.escolaTenantService = escolaTenantService;
+        this.escolaContextoPort = escolaContextoPort;
     }
 
     @Transactional(readOnly = true)
@@ -216,7 +216,7 @@ public class BoletimService {
     }
 
     private UUID escolaId() {
-        return escolaTenantService.obterOuCriarEscolaPadrao().getId();
+        return escolaContextoPort.obterContextoPadrao().escolaId();
     }
 
     private DisciplinaBoletim fromNota(NotaAcademicaResumo nota) {
