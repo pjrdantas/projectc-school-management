@@ -881,6 +881,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   criacao final continua centralizada no `CriarMatriculaUseCase`. O bloco foi
   fechado sem novo endpoint interno HTTP, sem migracao de schema e sem ampliar
   a mudanca para outro fluxo mais pesado de `matricula`.
+- A subfase seguinte iniciou a macrofase backend posterior a `matricula` por um
+  diagnostico comparativo dos proximos fluxos ainda concentrados no monolito.
+  A comparacao entre candidatos como `AlunoPersistenceGateway` e
+  `BoletimService` confirmou que o menor recorte incremental seguinte nao esta
+  em fluxos destrutivos de aluno, que ainda concentram limpeza coordenada de
+  responsavel, documento, transferencia e historico, mas sim em `boletim`,
+  dentro do bloco pedagogico. O mapeamento mostrou que `BoletimService` ainda
+  cruza diretamente `matricula` e `catalogo` por `MatriculaJpaRepository`,
+  `MatriculaEntity`, `DisciplinaJpaRepository` e `DisciplinaEntity`, enquanto a
+  parte de rendimento academico ja foi isolada anteriormente por
+  `RendimentoAcademicoPort`. Com isso, o proximo passo minimo recomendado fica
+  definido como abrir primeiro a fronteira interna do resumo de matricula
+  consumido por `boletim`, antes de atacar a resolucao estrutural de disciplina
+  ou qualquer persistencia propria adicional.
 
 ## Historico resumido
 

@@ -1901,6 +1901,35 @@ Proxima subfase pratica:
   risco comparavel ao que foi aplicado em `matricula`;
 - manter a linha incremental, backend/backend e sem BFF nessa abertura.
 
+Entregue na subfase seguinte:
+
+- foi executado o diagnostico comparativo da primeira macrofase backend apos o
+  fechamento de `matricula`, sem reabrir esse bloco e sem ampliar escopo para
+  BFF ou persistencia propria adicional;
+- a comparacao entre candidatos mais pesados, como `AlunoPersistenceGateway`, e
+  candidatos estruturais menores confirmou que o proximo recorte incremental
+  mais seguro esta em `BoletimService`, dentro do bloco pedagogico;
+- o diagnostico mostrou que o calculo de rendimento ja foi desacoplado por
+  `RendimentoAcademicoPort`, mas `BoletimService` ainda cruza diretamente os
+  dominios de `matricula` e `catalogo` ao carregar `MatriculaEntity` por
+  `MatriculaJpaRepository`, navegar seus dados para compor resposta e resolver
+  `DisciplinaEntity` por `DisciplinaJpaRepository` no fechamento persistido;
+- por criterio de menor risco, o primeiro recorte pratico recomendado nao e
+  mexer no fechamento inteiro de uma vez nem abrir exclusao/coordenacao de
+  aluno, e sim separar primeiro o resumo interno de matricula que `boletim`
+  realmente consome, preservando o mesmo contrato externo de
+  `/api/matriculas/{id}/boletim` e `/fechamento`.
+
+Proxima subfase pratica:
+
+- iniciar o novo bloco pedagogico por uma fronteira interna minima de
+  `matricula` para `boletim`, extraindo do `BoletimService` o resumo de
+  matricula usado na consulta e no fechamento do boletim, sem tocar ainda na
+  resolucao estrutural de `disciplina` nem na persistencia oficial do
+  fechamento;
+- manter o recorte backend/backend, incremental e sem BFF nessa implementacao
+  inicial.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
