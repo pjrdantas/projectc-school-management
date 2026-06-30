@@ -620,6 +620,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `BoletimJpaRepository`, `BoletimItemJpaRepository`, `BoletimEntity` e
   `BoletimItemEntity` nesse fluxo, sem alterar a rota externa nem abrir
   persistencia propria.
+- A quinta subfase da Fase 55 consolidou esse mesmo fluxo oficial de geracao
+  extraindo de `HistoricoEscolarServiceImpl` a montagem estrutural do
+  `HistoricoEscolar` para a fabrica interna `HistoricoEscolarGeracaoFactory`.
+  A composicao do cabecalho oficial, dos itens e da observacao padrao de
+  geracao passou a ficar centralizada nessa fabrica, mantendo o service como
+  orquestrador do fluxo e preservando contratos externos e persistencia atual.
 
 ## Historico resumido
 

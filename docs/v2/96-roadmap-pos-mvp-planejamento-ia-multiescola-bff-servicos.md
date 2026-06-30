@@ -1032,6 +1032,26 @@ Proxima subfase pratica:
   sair para fronteira interna antes de atacar mudancas maiores de modelo;
 - manter o escopo backend/backend, sem cutover externo nesta etapa.
 
+Entregue na quinta subfase da Fase 55:
+
+- a montagem estrutural do `HistoricoEscolar` gerado por boletim fechado foi
+  extraida de `HistoricoEscolarServiceImpl` para a fabrica interna
+  `HistoricoEscolarGeracaoFactory`;
+- a nova fabrica passou a concentrar a composicao do cabecalho oficial do
+  historico, a montagem dos `HistoricoEscolarItem` e a observacao padrao de
+  geracao, deixando o service focado na orquestracao do fluxo;
+- com isso, o recorte estrutural iniciado na subfase anterior ficou mais
+  coeso e isolado em fronteiras internas do proprio modulo, sem alterar rota
+  externa, sem BFF e sem ampliar persistencia propria.
+
+Proxima subfase pratica:
+
+- executar a subfase minima restante para fechar esse bloco estrutural de
+  `historico`, revisando se ainda ha algum vazamento relevante de detalhe de
+  persistencia no contrato interno da geracao oficial antes de considerar o
+  recorte encerrado;
+- manter o escopo backend/backend, sem cutover externo nesta etapa.
+
 ### Fase 56 - Planejamento e IA
 
 Extrair `planning-ai-service`, ativar MongoDB para payloads flexiveis, Kafka para
