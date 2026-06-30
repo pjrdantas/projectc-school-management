@@ -1,6 +1,5 @@
 package br.com.escola.ia.application.service;
 
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -43,9 +42,7 @@ import br.com.escola.ia.domain.exception.ConteudoIAStatusNaoEncontradoException;
 import br.com.escola.ia.domain.exception.ConteudoIATipoNaoEncontradoException;
 import br.com.escola.ia.domain.exception.ConteudoIAVersaoNaoEncontradaException;
 import br.com.escola.institucional.application.port.EscolaContextoPort;
-import br.com.escola.planejamento.adapter.out.persistence.entity.PlanejamentoBimestralEntity;
 import br.com.escola.planejamento.domain.exception.PlanejamentoBimestralNaoEncontradoException;
-import jakarta.persistence.EntityManager;
 
 @Service
 public class PlanejamentoIAService {
@@ -64,8 +61,8 @@ public class PlanejamentoIAService {
     private final StatusConteudoIAJpaRepository statusConteudoIAJpaRepository;
     private final GeradorConteudoPedagogicoGateway geradorConteudoPedagogicoGateway;
     private final EscolaContextoPort escolaContextoPort;
-    private final EntityManager entityManager;
     private final PlanejamentoIABibliotecaFactory planejamentoIABibliotecaFactory;
+    private final PlanejamentoIAEscritaFactory planejamentoIAEscritaFactory;
 
     public PlanejamentoIAService(
             PlanejamentoIAPort planejamentoIAPort,
@@ -77,8 +74,8 @@ public class PlanejamentoIAService {
             StatusConteudoIAJpaRepository statusConteudoIAJpaRepository,
             GeradorConteudoPedagogicoGateway geradorConteudoPedagogicoGateway,
             EscolaContextoPort escolaContextoPort,
-            EntityManager entityManager,
-            PlanejamentoIABibliotecaFactory planejamentoIABibliotecaFactory) {
+            PlanejamentoIABibliotecaFactory planejamentoIABibliotecaFactory,
+            PlanejamentoIAEscritaFactory planejamentoIAEscritaFactory) {
         this.planejamentoIAPort = planejamentoIAPort;
         this.interacaoJpaRepository = interacaoJpaRepository;
         this.conteudoGeradoJpaRepository = conteudoGeradoJpaRepository;
@@ -88,8 +85,8 @@ public class PlanejamentoIAService {
         this.statusConteudoIAJpaRepository = statusConteudoIAJpaRepository;
         this.geradorConteudoPedagogicoGateway = geradorConteudoPedagogicoGateway;
         this.escolaContextoPort = escolaContextoPort;
-        this.entityManager = entityManager;
         this.planejamentoIABibliotecaFactory = planejamentoIABibliotecaFactory;
+        this.planejamentoIAEscritaFactory = planejamentoIAEscritaFactory;
     }
 
     @Transactional
@@ -108,45 +105,25 @@ public class PlanejamentoIAService {
                         tipoConteudo.getCodigo(),
                         request.promptProfessor()));
 
-        PlanejamentoBimestralEntity planejamentoReference =
-                entityManager.getReference(PlanejamentoBimestralEntity.class, planejamentoId);
-
-        PlanejamentoIAInteracaoEntity interacao = interacaoJpaRepository.save(PlanejamentoIAInteracaoEntity.builder()
-                .planejamentoBimestral(planejamentoReference)
-                .promptProfessor(request.promptProfessor())
-                .respostaIA(resultado.conteudo())
-                .modeloIA(resultado.modelo())
-                .tokensEntrada(resultado.tokensEntrada())
-                .tokensSaida(resultado.tokensSaida())
-                .custoEstimado(BigDecimal.ZERO)
-                .createdAt(LocalDateTime.now())
-                .build());
+        PlanejamentoIAInteracaoEntity interacao = interacaoJpaRepository.save(
+                planejamentoIAEscritaFactory.criarInteracao(planejamentoId, request.promptProfessor(), resultado));
 
         String titulo = request.titulo() == null || request.titulo().isBlank()
                 ? "Sugestão - " + planejamento.temaPrincipal()
                 : request.titulo().trim();
-        PlanejamentoIAConteudoGeradoEntity conteudo = conteudoGeradoJpaRepository.save(PlanejamentoIAConteudoGeradoEntity.builder()
-                .planejamentoBimestral(planejamentoReference)
-                .planejamentoIAInteracao(interacao)
-                .tipoConteudoIA(tipoConteudo)
-                .statusConteudoIA(statusGerado)
-                .titulo(titulo)
-                .conteudo(resultado.conteudo())
-                .versao(1)
-                .hashConteudo(sha256(resultado.conteudo()))
-                .aprovadoPeloProfessor(Boolean.FALSE)
-                .reutilizavel(request.reutilizavel() == null ? Boolean.TRUE : request.reutilizavel())
-                .ativo(Boolean.TRUE)
-                .createdAt(LocalDateTime.now())
-                .build());
+        PlanejamentoIAConteudoGeradoEntity conteudo = conteudoGeradoJpaRepository.save(
+                planejamentoIAEscritaFactory.criarConteudoGerado(
+                        planejamentoId,
+                        interacao,
+                        tipoConteudo,
+                        statusGerado,
+                        titulo,
+                        resultado.conteudo(),
+                        sha256(resultado.conteudo()),
+                        request.reutilizavel() == null ? Boolean.TRUE : request.reutilizavel()));
 
-        conteudoVersaoJpaRepository.save(PlanejamentoIAConteudoVersaoEntity.builder()
-                .planejamentoIAConteudoGerado(conteudo)
-                .numeroVersao(1)
-                .conteudo(resultado.conteudo())
-                .motivoAlteracao("Versão inicial gerada em modo simulado.")
-                .createdAt(LocalDateTime.now())
-                .build());
+        conteudoVersaoJpaRepository.save(
+                planejamentoIAEscritaFactory.criarVersaoInicial(conteudo, resultado.conteudo()));
 
         return toConteudoResponse(conteudo);
     }
@@ -191,13 +168,12 @@ public class PlanejamentoIAService {
                 .map(versao -> versao.getNumeroVersao() + 1)
                 .orElse(1);
 
-        PlanejamentoIAConteudoVersaoEntity versao = conteudoVersaoJpaRepository.save(PlanejamentoIAConteudoVersaoEntity.builder()
-                .planejamentoIAConteudoGerado(conteudo)
-                .numeroVersao(proximaVersao)
-                .conteudo(request.conteudo())
-                .motivoAlteracao(request.motivoAlteracao())
-                .createdAt(LocalDateTime.now())
-                .build());
+        PlanejamentoIAConteudoVersaoEntity versao = conteudoVersaoJpaRepository.save(
+                planejamentoIAEscritaFactory.criarNovaVersao(
+                        conteudo,
+                        proximaVersao,
+                        request.conteudo(),
+                        request.motivoAlteracao()));
 
         conteudo.setStatusConteudoIA(findStatusConteudo(STATUS_EM_EDICAO));
         conteudo.setUpdatedAt(LocalDateTime.now());

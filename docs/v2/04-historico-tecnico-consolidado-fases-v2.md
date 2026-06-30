@@ -664,6 +664,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   biblioteca sem acesso direto de `PlanejamentoIAService` ao
   `BibliotecaConteudoPedagogicoJpaRepository`. O contrato REST externo e o
   comportamento funcional permaneceram inalterados.
+- A quinta subfase da Fase 56 fechou o ultimo acoplamento visivel de escrita em
+  `PlanejamentoIAService` com o modulo de planejamento. Foi criada
+  `PlanejamentoIAEscritaFactory` para encapsular a referencia JPA ao
+  `PlanejamentoBimestral` e a montagem das entidades de interacao, conteudo
+  gerado e versao. Com isso, `PlanejamentoIAService` deixou de depender
+  diretamente de `PlanejamentoBimestralEntity` e `EntityManager`, encerrando
+  formalmente a macrofase backend de `planejamento e IA` no monolito atual.
 
 ## Historico resumido
 

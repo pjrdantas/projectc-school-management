@@ -1163,6 +1163,25 @@ Proxima subfase pratica:
 - manter o escopo backend/backend, sem ampliar para infraestrutura externa ou
   refatoracao ampla.
 
+Entregue na quinta subfase da Fase 56:
+
+- a montagem das entidades de escrita de IA saiu de `PlanejamentoIAService`
+  para a fabrica interna `PlanejamentoIAEscritaFactory`;
+- com isso, `PlanejamentoIAService` deixou de depender diretamente de
+  `PlanejamentoBimestralEntity` e `EntityManager` apenas para amarrar a escrita
+  de interacoes, conteudos gerados e versoes ao planejamento;
+- o bloco de `planejamento e IA` ficou fechado no backend atual com
+  orquestracao principal apoiada apenas por portas e fabricas internas do
+  proprio modulo, sem alterar contrato REST externo, sem BFF e sem
+  infraestrutura distribuida nesta etapa.
+
+Proxima subfase pratica:
+
+- encerrar oficialmente a Fase 56 e iniciar a proxima macrofase backend pelo
+  menor dominio remanescente fora desse bloco, sem reabrir `planejamento e IA`
+  nesta mesma etapa;
+- manter o escopo incremental e backend/backend.
+
 ### Fase 57 - Dashboard orientado a eventos
 
 Extrair `dashboard-query-service`, substituir consultas cruzadas por projecoes
