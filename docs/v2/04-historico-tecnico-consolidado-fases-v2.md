@@ -834,6 +834,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   progressao. Com isso, o primeiro bloco minimo de `matricula` fica formalmente
   encerrado sem abrir endpoint interno HTTP, sem migracao de schema e sem
   persistencia propria fora do monolito.
+- A subfase seguinte iniciou o proximo bloco da macrofase de `matricula` pelo
+  diagnostico pontual de `concluirAcademicamente`. O mapeamento confirmou que
+  esse fluxo ja nao tem o mesmo perfil dos writes anteriores: ele depende da
+  leitura oficial de `boletim` fechado, da inspeccao dos `boletim_item` para
+  validar pendencias e resultado final, e da transicao de status da matricula
+  com observacao historizada. Tambem ficou identificado que ja existe no modulo
+  de `historico` a fronteira interna `BoletimHistoricoPort`, mas ela hoje esta
+  orientada a geracao de historico escolar e nao explicita ainda um contrato
+  dedicado ao desfecho academico da matricula. O resultado da fase foi o
+  fechamento objetivo do recorte seguinte: antes de qualquer troca concreta, o
+  menor passo seguro passa a ser separar o contrato interno de consulta
+  academica do boletim usado por `concluirAcademicamente`.
 
 ## Historico resumido
 

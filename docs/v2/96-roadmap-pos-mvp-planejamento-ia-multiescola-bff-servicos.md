@@ -1775,6 +1775,34 @@ Proxima subfase pratica:
 - manter o recorte backend/backend e incremental, ainda sem BFF e sem
   persistencia propria fora do monolito nessa proxima abertura.
 
+Entregue na subfase seguinte:
+
+- foi executado o diagnostico pontual de `concluirAcademicamente` como abertura
+  do proximo bloco da macrofase de `matricula`;
+- o fluxo foi classificado como estruturalmente mais pesado do que os writes do
+  primeiro bloco minimo, porque depende de `BoletimJpaRepository`,
+  `BoletimItemJpaRepository`, validacao de pertencimento do boletim a
+  matricula, verificacao de itens pendentes e decisao do status final
+  `CONCLUIDA` ou `EFETIVADA` a partir do resultado academico;
+- o diagnostico tambem confirmou que ja existe no modulo de `historico` a porta
+  `BoletimHistoricoPort`, hoje usada para geracao de historico escolar, mas
+  ainda sem um contrato explicito e dedicado para a necessidade especifica de
+  conclusao academica da matricula;
+- por isso, o menor proximo passo seguro nao e trocar todo o write de uma vez,
+  e sim abrir primeiro a fronteira interna do resumo academico de boletim que
+  `concluirAcademicamente` realmente consome, preservando rollback simples e
+  evitando misturar nessa mesma etapa `historico` completo ou `rematricula`.
+
+Proxima subfase pratica:
+
+- implementar a primeira fronteira interna minima para `concluirAcademicamente`,
+  separando o contrato de leitura academica de boletim consumido por
+  `MatriculaFluxoService`, preferencialmente reaproveitando ou evoluindo a base
+  ja existente em `BoletimHistoricoPort` sem refatoracao ampla do modulo de
+  `historico`;
+- manter a alteracao no backend atual, sem endpoint interno HTTP, sem BFF e sem
+  persistencia propria adicional nesta etapa.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
