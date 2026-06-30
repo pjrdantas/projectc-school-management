@@ -845,6 +845,30 @@ Proxima subfase pratica:
 - manter a evolucao ainda no backend/backend local, sem BFF e sem storage
   externo nesta etapa.
 
+Entregue na terceira subfase da Fase 54:
+
+- foi aplicado o mesmo criterio ao menor ponto restante de `documento`, sem
+  alterar controller, casos de uso, storage local nem contrato REST externo;
+- `DocumentoPersistenceGateway` deixou de consultar `AlunoJpaRepository`
+  diretamente para resolver o vinculo `ALUNO -> pessoaId`;
+- esse gateway passou a reutilizar a fronteira interna `AlunoMatriculaPort`,
+  ja criada na subfase anterior, para materializar o aluno escopado por escola
+  antes de gravar ou listar documentos do aluno;
+- o recorte foi mantido propositalmente minimo: o fluxo de `RESPONSAVEL` e os
+  demais pontos do gateway continuam inalterados nesta etapa para evitar
+  refatoracao ampla do bloco de documentos;
+- com isso, a Fase 54 avanca no desacoplamento incremental do recorte
+  matricula/documentos reaproveitando fronteiras internas existentes, sem abrir
+  storage externo nem cutover de BFF.
+
+Proxima subfase pratica:
+
+- aplicar o mesmo padrao ao proximo ponto minimo remanescente, priorizando o
+  fluxo de `responsavel` em `documento` ou o primeiro acoplamento direto de
+  `historico`, conforme o menor risco de implementacao;
+- manter a fase restrita ao backend atual, sem migracao de schema e sem
+  distribuicao fisica nesta etapa.
+
 ### Fase 55 - Pedagogico
 
 Extrair `pedagogical-service` com alocacao, aula, frequencia, avaliacao, notas,

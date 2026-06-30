@@ -557,6 +557,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   deixou de materializar `AlunoEntity` via
   `EntityManager.getReference(AlunoEntity.class, ...)`, passando a depender de
   uma fronteira interna explicita do dominio de aluno.
+- A terceira subfase da Fase 54 reaproveitou essa mesma fronteira interna no
+  recorte de `documento`, pelo menor ponto ainda acoplado do fluxo de aluno.
+  `DocumentoPersistenceGateway` deixou de consultar `AlunoJpaRepository`
+  diretamente para resolver `ALUNO -> pessoaId` e passou a usar
+  `AlunoMatriculaPort`, preservando os controllers, casos de uso e storage
+  local existentes. Com isso, o desacoplamento backend/backend do bloco
+  matricula/documentos avancou sem abrir refatoracao ampla do gateway nem tocar
+  no fluxo de responsavel nesta etapa.
 
 ## Historico resumido
 
