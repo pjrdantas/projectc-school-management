@@ -1621,6 +1621,29 @@ Proxima subfase pratica:
 - manter o escopo backend/backend e incremental, sem BFF, sem eventos e sem
   refatoracao ampla das consultas internas do professor.
 
+Entregue na terceira subfase da macrofase seguinte:
+
+- `DashboardFrontendService` deixou de depender diretamente de
+  `DashboardProfessorService` no caminho `PROFESSOR` e passou a consumir
+  `DashboardProfessorPort`, concluindo a aplicacao da nova fronteira interna
+  nos consumidores backend/backend do pacote agregado;
+- o payload externo do dashboard de professor foi preservado por mapeamento
+  local de `DashboardProfessorResumo` para `DashboardProfessorResponse`, sem
+  alteracao de rota, sem mudanca de schema e sem impacto nos demais publicos;
+- o controller REST de professor permaneceu como unico consumidor direto do
+  service concreto nesta etapa, o que mantem o fechamento do bloco dentro do
+  criterio de menor risco e sem abrir refatoracao externa adicional;
+- com isso, o bloco minimo de fronteira interna de professor fica encerrado sem
+  BFF, sem eventos e sem mudanca de persistencia.
+
+Proxima subfase pratica:
+
+- fechar formalmente este bloco, confirmando que o controller REST de professor
+  pode permanecer como adaptador externo simples nesta macrofase e que nao
+  resta outro consumo backend/backend fora da nova porta;
+- manter o escopo incremental, sem cutover externo e sem abrir refatoracao
+  ampla do dominio de professor nesta etapa de fechamento.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

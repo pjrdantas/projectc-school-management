@@ -777,6 +777,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   a depender da nova porta interna, enquanto controller REST e
   `DashboardFrontendService` permaneceram inalterados para preservar o criterio
   de menor risco no bloco.
+- A terceira subfase dessa macrofase concluiu a aplicacao da fronteira interna
+  de professor em `DashboardFrontendService`, que passou a consumir
+  `DashboardProfessorPort` no caminho `PROFESSOR` e a mapear o resumo interno
+  para o payload REST ja existente. Com isso, o unico ponto ainda ligado
+  diretamente a `DashboardProfessorService` ficou restrito ao controller REST
+  como adaptador externo simples.
 
 ## Historico resumido
 

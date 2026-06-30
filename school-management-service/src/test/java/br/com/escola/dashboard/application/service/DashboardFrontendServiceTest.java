@@ -32,10 +32,13 @@ import br.com.escola.dashboard.adapter.in.web.dto.DashboardWidgetResponse;
 import br.com.escola.dashboard.application.dto.internal.DashboardAcademicoResumo;
 import br.com.escola.dashboard.application.dto.internal.DashboardDiretorResumo;
 import br.com.escola.dashboard.application.dto.internal.DashboardMatriculaStatusResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardProfessorResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardProfessorTurmaResumo;
 import br.com.escola.dashboard.application.dto.internal.DashboardSecretariaResumo;
 import br.com.escola.dashboard.application.dto.internal.DashboardTurmaVagaResumo;
 import br.com.escola.dashboard.application.port.internal.DashboardAcademicoPort;
 import br.com.escola.dashboard.application.port.internal.DashboardDiretorPort;
+import br.com.escola.dashboard.application.port.internal.DashboardProfessorPort;
 import br.com.escola.dashboard.application.port.internal.DashboardSecretariaPort;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,7 +59,7 @@ class DashboardFrontendServiceTest {
     private DashboardDiretorPort dashboardDiretorPort;
 
     @Mock
-    private DashboardProfessorService dashboardProfessorService;
+    private DashboardProfessorPort dashboardProfessorPort;
 
     @Mock
     private DashboardAlertaService dashboardAlertaService;
@@ -111,7 +114,7 @@ class DashboardFrontendServiceTest {
         assertThat(response.configuracoesUsuario()).containsExactly(configuracaoUsuario);
         assertThat(response.historico()).containsExactly(historico);
         verify(dashboardDiretorPort).consultarResumo();
-        verify(dashboardProfessorService, never()).consultar(any());
+        verify(dashboardProfessorPort, never()).consultarResumo(any());
     }
 
     @Test
@@ -145,7 +148,7 @@ class DashboardFrontendServiceTest {
                     assertThat(item.vagasDisponiveis()).isEqualTo(TURMA_VAGA.vagasDisponiveis());
                 });
         verify(dashboardAcademicoPort).consultarResumo();
-        verify(dashboardProfessorService, never()).consultar(any());
+        verify(dashboardProfessorPort, never()).consultarResumo(any());
     }
 
     @Test
@@ -179,7 +182,7 @@ class DashboardFrontendServiceTest {
                     assertThat(item.capacidade()).isEqualTo(TURMA_VAGA.capacidade());
                 });
         verify(dashboardSecretariaPort).consultarResumo();
-        verify(dashboardProfessorService, never()).consultar(any());
+        verify(dashboardProfessorPort, never()).consultarResumo(any());
     }
 
     @Test
@@ -192,10 +195,9 @@ class DashboardFrontendServiceTest {
     @Test
     void deveMontarPacoteDoProfessorSemConfiguracaoQuandoUsuarioNaoInformado() {
         UUID professorId = UUID.randomUUID();
-        DashboardProfessorResponse resumo = new DashboardProfessorResponse(
-                UUID.randomUUID(), "Escola teste", professorId, 1, 1, 1, 1, 0, 1, 0, 1, 0, List.of());
+        DashboardProfessorResumo resumo = professorResumo(professorId);
 
-        when(dashboardProfessorService.consultar(professorId)).thenReturn(resumo);
+        when(dashboardProfessorPort.consultarResumo(professorId)).thenReturn(resumo);
         when(dashboardAlertaService.consultar("PROFESSOR", professorId)).thenReturn(List.of());
         when(dashboardConfiguracaoAdminService.listarDashboardsPorPublicoCodigo("PROFESSOR")).thenReturn(List.of());
         when(dashboardIndicadorSnapshotService.consultarHistorico(eq("PROFESSOR"), eq(null), any(LocalDate.class), any(LocalDate.class), eq(professorId)))
@@ -204,7 +206,16 @@ class DashboardFrontendServiceTest {
         DashboardFrontendResponse response = service().consultar("professor", null, professorId);
 
         assertThat(response.professorId()).isEqualTo(professorId);
-        assertThat(response.resumo()).isSameAs(resumo);
+        assertThat(response.resumo()).isInstanceOf(DashboardProfessorResponse.class);
+        DashboardProfessorResponse resumoResponse = (DashboardProfessorResponse) response.resumo();
+        assertThat(resumoResponse.professorId()).isEqualTo(professorId);
+        assertThat(resumoResponse.turmasVinculadas()).isEqualTo(resumo.turmasVinculadas());
+        assertThat(resumoResponse.turmas())
+                .singleElement()
+                .satisfies(item -> {
+                    assertThat(item.turmaId()).isEqualTo(resumo.turmas().getFirst().turmaId());
+                    assertThat(item.disciplinaNome()).isEqualTo(resumo.turmas().getFirst().disciplinaNome());
+                });
         assertThat(response.configuracoesUsuario()).isEmpty();
         verify(dashboardUsuarioConfiguracaoService, never()).listar(any(), any());
     }
@@ -214,7 +225,7 @@ class DashboardFrontendServiceTest {
                 dashboardAcademicoPort,
                 dashboardSecretariaPort,
                 dashboardDiretorPort,
-                dashboardProfessorService,
+                dashboardProfessorPort,
                 dashboardAlertaService,
                 dashboardConfiguracaoAdminService,
                 dashboardUsuarioConfiguracaoService,
@@ -238,5 +249,27 @@ class DashboardFrontendServiceTest {
         return new DashboardSecretariaResumo(
                 UUID.randomUUID(), "Escola teste",
                 18, 3, 4, 2, 1, 2, 5, 6, 7, 1, 2, List.of(MATRICULA_STATUS), List.of(TURMA_VAGA));
+    }
+
+    private DashboardProfessorResumo professorResumo(UUID professorId) {
+        return new DashboardProfessorResumo(
+                UUID.randomUUID(),
+                "Escola teste",
+                professorId,
+                1,
+                1,
+                1,
+                1,
+                0,
+                1,
+                0,
+                1,
+                0,
+                List.of(new DashboardProfessorTurmaResumo(
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        "Turma teste",
+                        UUID.randomUUID(),
+                        "Disciplina teste")));
     }
 }

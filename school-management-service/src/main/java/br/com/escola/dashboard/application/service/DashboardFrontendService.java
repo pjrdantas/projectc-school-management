@@ -18,15 +18,18 @@ import br.com.escola.dashboard.adapter.in.web.dto.DashboardFrontendConfiguracaoR
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardFrontendResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardFrontendWidgetResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardMatriculaStatusResponse;
+import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardUsuarioConfiguracaoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardSecretariaResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardTurmaVagaResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardWidgetResponse;
 import br.com.escola.dashboard.application.dto.internal.DashboardAcademicoResumo;
 import br.com.escola.dashboard.application.dto.internal.DashboardDiretorResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardProfessorResumo;
 import br.com.escola.dashboard.application.dto.internal.DashboardSecretariaResumo;
 import br.com.escola.dashboard.application.port.internal.DashboardAcademicoPort;
 import br.com.escola.dashboard.application.port.internal.DashboardDiretorPort;
+import br.com.escola.dashboard.application.port.internal.DashboardProfessorPort;
 import br.com.escola.dashboard.application.port.internal.DashboardSecretariaPort;
 
 @Service
@@ -35,7 +38,7 @@ public class DashboardFrontendService {
     private final DashboardAcademicoPort dashboardAcademicoPort;
     private final DashboardSecretariaPort dashboardSecretariaPort;
     private final DashboardDiretorPort dashboardDiretorPort;
-    private final DashboardProfessorService dashboardProfessorService;
+    private final DashboardProfessorPort dashboardProfessorPort;
     private final DashboardAlertaService dashboardAlertaService;
     private final DashboardConfiguracaoAdminService dashboardConfiguracaoAdminService;
     private final DashboardUsuarioConfiguracaoService dashboardUsuarioConfiguracaoService;
@@ -46,7 +49,7 @@ public class DashboardFrontendService {
             DashboardAcademicoPort dashboardAcademicoPort,
             DashboardSecretariaPort dashboardSecretariaPort,
             DashboardDiretorPort dashboardDiretorPort,
-            DashboardProfessorService dashboardProfessorService,
+            DashboardProfessorPort dashboardProfessorPort,
             DashboardAlertaService dashboardAlertaService,
             DashboardConfiguracaoAdminService dashboardConfiguracaoAdminService,
             DashboardUsuarioConfiguracaoService dashboardUsuarioConfiguracaoService,
@@ -55,7 +58,7 @@ public class DashboardFrontendService {
         this.dashboardAcademicoPort = dashboardAcademicoPort;
         this.dashboardSecretariaPort = dashboardSecretariaPort;
         this.dashboardDiretorPort = dashboardDiretorPort;
-        this.dashboardProfessorService = dashboardProfessorService;
+        this.dashboardProfessorPort = dashboardProfessorPort;
         this.dashboardAlertaService = dashboardAlertaService;
         this.dashboardConfiguracaoAdminService = dashboardConfiguracaoAdminService;
         this.dashboardUsuarioConfiguracaoService = dashboardUsuarioConfiguracaoService;
@@ -92,7 +95,7 @@ public class DashboardFrontendService {
                 if (professorId == null) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "professorId é obrigatório para dashboard do público PROFESSOR");
                 }
-                yield dashboardProfessorService.consultar(professorId);
+                yield toProfessorResponse(dashboardProfessorPort.consultarResumo(professorId));
             }
             default -> throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -186,6 +189,30 @@ public class DashboardFrontendService {
                                 item.capacidade(),
                                 item.vagasOcupadas(),
                                 item.vagasDisponiveis()))
+                        .toList());
+    }
+
+    private DashboardProfessorResponse toProfessorResponse(DashboardProfessorResumo resumo) {
+        return new DashboardProfessorResponse(
+                resumo.escolaId(),
+                resumo.escolaNome(),
+                resumo.professorId(),
+                resumo.turmasVinculadas(),
+                resumo.alocacoesAtivas(),
+                resumo.aulasPlanejadas(),
+                resumo.aulasRealizadas(),
+                resumo.frequenciasPendentes(),
+                resumo.avaliacoesRegistradas(),
+                resumo.avaliacoesComNotasPendentes(),
+                resumo.planejamentosBimestrais(),
+                resumo.planejamentosBimestraisPendentes(),
+                resumo.turmas().stream()
+                        .map(item -> new br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorTurmaResponse(
+                                item.professorTurmaDisciplinaId(),
+                                item.turmaId(),
+                                item.turmaNome(),
+                                item.disciplinaId(),
+                                item.disciplinaNome()))
                         .toList());
     }
 
