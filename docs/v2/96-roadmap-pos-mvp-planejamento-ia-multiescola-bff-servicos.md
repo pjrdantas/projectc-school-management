@@ -1102,6 +1102,26 @@ Proxima subfase pratica:
   Redis;
 - manter o escopo backend/backend e incremental.
 
+Entregue na segunda subfase da Fase 56:
+
+- o bloco de publicacao de conteudo na biblioteca pedagogica saiu de
+  `PlanejamentoIAService` para a fabrica interna
+  `PlanejamentoIABibliotecaFactory`;
+- foi criado o DTO interno `PlanejamentoIABibliotecaPublicacaoResumo` para
+  transportar apenas os dados minimos da publicacao, encapsulando no ponto
+  interno apropriado a travessia de entidades de `planejamento`, `professor` e
+  `catalogo`;
+- com isso, `PlanejamentoIAService` fica mais concentrado na orquestracao do
+  fluxo de IA, enquanto a montagem da publicacao reutilizavel da biblioteca
+  passa a ficar isolada em uma fronteira interna do proprio modulo.
+
+Proxima subfase pratica:
+
+- executar a subfase minima restante do primeiro bloco de `planejamento e IA`,
+  revisando se ainda resta em `PlanejamentoIAService` algum acoplamento direto
+  relevante a entidades de `planejamento` apenas para mapeamento ou contexto;
+- manter o escopo backend/backend, sem Mongo, Kafka, Redis ou BFF nesta etapa.
+
 ### Fase 57 - Dashboard orientado a eventos
 
 Extrair `dashboard-query-service`, substituir consultas cruzadas por projecoes

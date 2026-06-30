@@ -32,6 +32,7 @@ import br.com.escola.ia.adapter.out.persistence.repository.PlanejamentoIAConteud
 import br.com.escola.ia.adapter.out.persistence.repository.PlanejamentoIAInteracaoJpaRepository;
 import br.com.escola.ia.adapter.out.persistence.repository.StatusConteudoIAJpaRepository;
 import br.com.escola.ia.adapter.out.persistence.repository.TipoConteudoIAJpaRepository;
+import br.com.escola.ia.application.dto.internal.PlanejamentoIABibliotecaPublicacaoResumo;
 import br.com.escola.ia.application.dto.internal.PlanejamentoIAResumo;
 import br.com.escola.ia.application.port.internal.PlanejamentoIAPort;
 import br.com.escola.ia.application.gateway.GeradorConteudoPedagogicoGateway;
@@ -44,7 +45,6 @@ import br.com.escola.ia.domain.exception.ConteudoIAVersaoNaoEncontradaException;
 import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.planejamento.adapter.out.persistence.entity.PlanejamentoBimestralEntity;
 import br.com.escola.planejamento.domain.exception.PlanejamentoBimestralNaoEncontradoException;
-import br.com.escola.professor.adapter.out.persistence.entity.ProfessorTurmaDisciplinaEntity;
 import jakarta.persistence.EntityManager;
 
 @Service
@@ -65,6 +65,7 @@ public class PlanejamentoIAService {
     private final GeradorConteudoPedagogicoGateway geradorConteudoPedagogicoGateway;
     private final EscolaContextoPort escolaContextoPort;
     private final EntityManager entityManager;
+    private final PlanejamentoIABibliotecaFactory planejamentoIABibliotecaFactory;
 
     public PlanejamentoIAService(
             PlanejamentoIAPort planejamentoIAPort,
@@ -76,7 +77,8 @@ public class PlanejamentoIAService {
             StatusConteudoIAJpaRepository statusConteudoIAJpaRepository,
             GeradorConteudoPedagogicoGateway geradorConteudoPedagogicoGateway,
             EscolaContextoPort escolaContextoPort,
-            EntityManager entityManager) {
+            EntityManager entityManager,
+            PlanejamentoIABibliotecaFactory planejamentoIABibliotecaFactory) {
         this.planejamentoIAPort = planejamentoIAPort;
         this.interacaoJpaRepository = interacaoJpaRepository;
         this.conteudoGeradoJpaRepository = conteudoGeradoJpaRepository;
@@ -87,6 +89,7 @@ public class PlanejamentoIAService {
         this.geradorConteudoPedagogicoGateway = geradorConteudoPedagogicoGateway;
         this.escolaContextoPort = escolaContextoPort;
         this.entityManager = entityManager;
+        this.planejamentoIABibliotecaFactory = planejamentoIABibliotecaFactory;
     }
 
     @Transactional
@@ -276,35 +279,17 @@ public class PlanejamentoIAService {
             throw new ConteudoIAPublicacaoInvalidaException();
         }
 
-        PlanejamentoBimestralEntity planejamento = conteudo.getPlanejamentoBimestral();
-        ProfessorTurmaDisciplinaEntity alocacao = planejamento.getProfessorTurmaDisciplina();
+        PlanejamentoIABibliotecaPublicacaoResumo resumo =
+                planejamentoIABibliotecaFactory.extrairResumo(conteudo, ORIGEM_PLANEJAMENTO_IA);
         return bibliotecaJpaRepository.findFirstPublicadoEquivalente(
-                        alocacao.getProfessor().getId(),
-                        alocacao.getTurmaDisciplina().getDisciplina().getId(),
-                        conteudo.getTipoConteudoIA().getId(),
-                        conteudo.getTitulo(),
-                        planejamento.getTemaPrincipal(),
-                        conteudo.getConteudo(),
-                        ORIGEM_PLANEJAMENTO_IA)
-                .orElseGet(() -> salvarBiblioteca(conteudo, planejamento, alocacao));
-    }
-
-    private BibliotecaConteudoPedagogicoEntity salvarBiblioteca(
-            PlanejamentoIAConteudoGeradoEntity conteudo,
-            PlanejamentoBimestralEntity planejamento,
-            ProfessorTurmaDisciplinaEntity alocacao) {
-        return bibliotecaJpaRepository.save(BibliotecaConteudoPedagogicoEntity.builder()
-                .professor(alocacao.getProfessor())
-                .disciplina(alocacao.getTurmaDisciplina().getDisciplina())
-                .tipoConteudoIA(conteudo.getTipoConteudoIA())
-                .titulo(conteudo.getTitulo())
-                .tema(planejamento.getTemaPrincipal())
-                .conteudo(conteudo.getConteudo())
-                .origem(ORIGEM_PLANEJAMENTO_IA)
-                .reutilizavel(conteudo.getReutilizavel())
-                .ativo(Boolean.TRUE)
-                .createdAt(LocalDateTime.now())
-                .build());
+                        resumo.professorId(),
+                        resumo.disciplinaId(),
+                        resumo.tipoConteudoId(),
+                        resumo.titulo(),
+                        resumo.tema(),
+                        resumo.conteudo(),
+                        resumo.origem())
+                .orElseGet(() -> bibliotecaJpaRepository.save(planejamentoIABibliotecaFactory.criar(resumo)));
     }
 
     private PlanejamentoIAResumo findPlanejamentoResumo(UUID planejamentoId) {

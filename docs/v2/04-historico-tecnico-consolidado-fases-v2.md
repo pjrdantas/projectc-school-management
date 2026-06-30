@@ -643,6 +643,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `PlanejamentoBimestralJpaRepository` para esse fluxo, mantendo apenas a
   referencia JPA do planejamento no ponto de persistencia da interacao e do
   conteudo gerado.
+- A segunda subfase da Fase 56 aplicou o mesmo criterio ao bloco de
+  publicacao da biblioteca pedagogica. Foi criada
+  `PlanejamentoIABibliotecaFactory`, apoiada pelo DTO interno
+  `PlanejamentoIABibliotecaPublicacaoResumo`, para encapsular a montagem do
+  contexto de publicacao e da entidade de biblioteca a partir do conteudo
+  aprovado. Com isso, `PlanejamentoIAService` deixa de concentrar a travessia
+  direta de entidades de `planejamento`, `professor` e `catalogo` nesse fluxo.
 
 ## Historico resumido
 
