@@ -894,6 +894,30 @@ Proxima subfase pratica:
 - manter a fase no backend atual, sem BFF e sem refatoracao ampla do bloco de
   historico/boletim nesta etapa.
 
+Entregue na quinta subfase da Fase 54:
+
+- foi iniciado o primeiro recorte minimo de `historico` pelo menor acoplamento
+  direto remanescente: a consulta e materializacao de aluno dentro de
+  `HistoricoEscolarServiceImpl`;
+- `HistoricoEscolarServiceImpl` deixou de depender diretamente de
+  `AlunoJpaRepository` para validar existencia de aluno por escola e para
+  carregar `AlunoEntity` no create/update do historico;
+- o service passou a reutilizar a fronteira interna `AlunoMatriculaPort`, ja
+  estabelecida nas subfases anteriores, mantendo inalterados os contratos REST,
+  o mapper de historico e o recorte de `boletim`;
+- com isso, a Fase 54 fecha o bloco minimo de desacoplamento interno de
+  matricula/documentos/historico no backend atual sem abrir refatoracao ampla
+  do modulo historico nem mexer em BFF, storage ou distribuicao fisica.
+
+Proxima subfase pratica:
+
+- encerrar oficialmente o bloco interno da Fase 54 revisando se restou algum
+  acesso direto relevante entre `matricula`, `documento` e `historico` para
+  aluno/responsavel, e, se o recorte estiver coberto, preparar a macrofase
+  seguinte;
+- manter o escopo backend/backend, sem ampliar para cutover externo nesta
+  etapa.
+
 ### Fase 55 - Pedagogico
 
 Extrair `pedagogical-service` com alocacao, aula, frequencia, avaliacao, notas,

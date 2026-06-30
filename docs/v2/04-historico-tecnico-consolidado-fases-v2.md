@@ -573,6 +573,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `RESPONSAVEL -> pessoaId`. Com isso, o gateway documental passou a depender
   apenas de fronteiras internas explicitas para os vinculos hoje suportados,
   mantendo os contratos externos inalterados.
+- A quinta subfase da Fase 54 iniciou o primeiro recorte minimo de
+  `historico`. `HistoricoEscolarServiceImpl` deixou de consultar
+  `AlunoJpaRepository` diretamente para validar existencia de aluno por escola e
+  para materializar `AlunoEntity` no create/update do historico, passando a
+  reutilizar `AlunoMatriculaPort`. Com isso, o primeiro desacoplamento interno
+  do modulo de historico foi feito sem ampliar escopo para `boletim`, mapper ou
+  refatoracao estrutural maior.
 
 ## Historico resumido
 
