@@ -857,6 +857,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   resultado final. O recorte permaneceu backend/backend, sem endpoint interno
   HTTP, sem migracao de schema e sem ampliar a mudanca para `historico`
   completo ou `rematricula`.
+- A subfase seguinte abriu o primeiro recorte minimo de `rematricula` sem
+  alterar a escrita final: a elegibilidade passou a ter fronteira interna
+  propria por `MatriculaRematriculaPort`, implementada em
+  `MatriculaRematriculaService` com o resumo
+  `MatriculaRematriculaElegibilidadeResumo`. Com isso,
+  `MatriculaFluxoService` deixou de concentrar diretamente a leitura de
+  `matricula` e `turma` para o endpoint de elegibilidade, preservando o mesmo
+  contrato REST externo, o mesmo runtime e a mesma criacao final via
+  `CriarMatriculaUseCase`.
 
 ## Historico resumido
 

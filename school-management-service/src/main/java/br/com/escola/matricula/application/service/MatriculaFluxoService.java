@@ -1,7 +1,6 @@
 package br.com.escola.matricula.application.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,8 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.documento.adapter.out.persistence.entity.DocumentoEntity;
 import br.com.escola.documento.adapter.out.persistence.repository.DocumentoJpaRepository;
-import br.com.escola.catalogo.adapter.out.persistence.entity.TurmaEntity;
-import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaJpaRepository;
 import br.com.escola.historico.application.port.internal.BoletimHistoricoPort;
 import br.com.escola.historico.domain.exception.BoletimFechadoNaoEncontradoException;
 import br.com.escola.matricula.adapter.in.web.MatriculaConclusaoAcademicaRequest;
@@ -39,6 +36,7 @@ import br.com.escola.matricula.application.dto.internal.AtualizarMatriculaEtapaS
 import br.com.escola.matricula.application.dto.internal.RegistrarMatriculaDocumentoEntregueSolicitacao;
 import br.com.escola.matricula.application.port.internal.MatriculaDocumentoEntreguePort;
 import br.com.escola.matricula.application.port.internal.MatriculaEtapaPort;
+import br.com.escola.matricula.application.port.internal.MatriculaRematriculaPort;
 import br.com.escola.matricula.application.usecase.CriarMatriculaUseCase;
 import br.com.escola.matricula.domain.exception.MatriculaDocumentoNaoEncontradoException;
 import br.com.escola.matricula.domain.exception.MatriculaEtapaNaoEncontradaException;
@@ -51,10 +49,7 @@ import br.com.escola.institucional.application.service.EscolaTenantService;
 @Service
 public class MatriculaFluxoService implements MatriculaEtapaPort, MatriculaDocumentoEntreguePort {
 
-    private static final List<String> STATUS_NAO_OCUPAM_VAGA = List.of("CANCELADA", "INDEFERIDA", "TRANSFERIDO");
-
     private final MatriculaJpaRepository matriculaJpaRepository;
-    private final TurmaJpaRepository turmaJpaRepository;
     private final MatriculaEtapaJpaRepository matriculaEtapaJpaRepository;
     private final StatusEtapaMatriculaJpaRepository statusEtapaMatriculaJpaRepository;
     private final StatusMatriculaJpaRepository statusMatriculaJpaRepository;
@@ -62,12 +57,12 @@ public class MatriculaFluxoService implements MatriculaEtapaPort, MatriculaDocum
     private final MatriculaDocumentoEntregueJpaRepository matriculaDocumentoEntregueJpaRepository;
     private final MatriculaDocumentoExigidoJpaRepository matriculaDocumentoExigidoJpaRepository;
     private final BoletimHistoricoPort boletimHistoricoPort;
+    private final MatriculaRematriculaPort matriculaRematriculaPort;
     private final CriarMatriculaUseCase criarMatriculaUseCase;
     private final EscolaTenantService escolaTenantService;
 
     public MatriculaFluxoService(
             MatriculaJpaRepository matriculaJpaRepository,
-            TurmaJpaRepository turmaJpaRepository,
             MatriculaEtapaJpaRepository matriculaEtapaJpaRepository,
             StatusEtapaMatriculaJpaRepository statusEtapaMatriculaJpaRepository,
             StatusMatriculaJpaRepository statusMatriculaJpaRepository,
@@ -75,10 +70,10 @@ public class MatriculaFluxoService implements MatriculaEtapaPort, MatriculaDocum
             MatriculaDocumentoEntregueJpaRepository matriculaDocumentoEntregueJpaRepository,
             MatriculaDocumentoExigidoJpaRepository matriculaDocumentoExigidoJpaRepository,
             BoletimHistoricoPort boletimHistoricoPort,
+            MatriculaRematriculaPort matriculaRematriculaPort,
             CriarMatriculaUseCase criarMatriculaUseCase,
             EscolaTenantService escolaTenantService) {
         this.matriculaJpaRepository = matriculaJpaRepository;
-        this.turmaJpaRepository = turmaJpaRepository;
         this.matriculaEtapaJpaRepository = matriculaEtapaJpaRepository;
         this.statusEtapaMatriculaJpaRepository = statusEtapaMatriculaJpaRepository;
         this.statusMatriculaJpaRepository = statusMatriculaJpaRepository;
@@ -86,6 +81,7 @@ public class MatriculaFluxoService implements MatriculaEtapaPort, MatriculaDocum
         this.matriculaDocumentoEntregueJpaRepository = matriculaDocumentoEntregueJpaRepository;
         this.matriculaDocumentoExigidoJpaRepository = matriculaDocumentoExigidoJpaRepository;
         this.boletimHistoricoPort = boletimHistoricoPort;
+        this.matriculaRematriculaPort = matriculaRematriculaPort;
         this.criarMatriculaUseCase = criarMatriculaUseCase;
         this.escolaTenantService = escolaTenantService;
     }
@@ -241,67 +237,25 @@ public class MatriculaFluxoService implements MatriculaEtapaPort, MatriculaDocum
             UUID matriculaAnteriorId,
             UUID turmaDestinoId,
             UUID periodoLetivoDestinoId) {
-        MatriculaEntity matriculaAnterior = matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaAnteriorId, escolaId())
-                .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaAnteriorId));
-        List<String> motivos = new ArrayList<>();
-
-        if (!"CONCLUIDA".equalsIgnoreCase(matriculaAnterior.getStatus().getCodigo())) {
-            motivos.add("Matrícula base deve estar concluída para renovação");
-        }
-
-        TurmaEntity turmaDestino = null;
-        if (turmaDestinoId != null) {
-            turmaDestino = turmaJpaRepository.findByIdAndEscola_Id(turmaDestinoId, escolaId()).orElse(null);
-            if (turmaDestino == null) {
-                motivos.add("Turma de destino não encontrada");
-            }
-        }
-
-        if (turmaDestino != null && periodoLetivoDestinoId != null
-                && !turmaDestino.getPeriodoLetivo().getId().equals(periodoLetivoDestinoId)) {
-            motivos.add("Turma de destino não pertence ao período letivo informado");
-        }
-
-        if (periodoLetivoDestinoId != null
-                && matriculaJpaRepository.existsByAluno_IdAndAluno_Pessoa_Escola_IdAndPeriodoLetivo_Id(
-                        matriculaAnterior.getAluno().getId(),
-                        escolaId(),
-                        periodoLetivoDestinoId)) {
-            motivos.add("Aluno já possui matrícula no período letivo de destino");
-        }
-
-        if (turmaDestino != null) {
-            Integer serieOrigem = matriculaAnterior.getTurma().getSerie().getOrdem();
-            Integer serieDestino = turmaDestino.getSerie().getOrdem();
-            if (serieOrigem == null || serieDestino == null || !serieDestino.equals(serieOrigem + 1)) {
-                motivos.add("Turma de destino deve ser da série imediatamente posterior");
-            }
-
-            long matriculasQueOcupamVaga =
-                    matriculaJpaRepository.countByTurma_IdAndTurma_Escola_IdAndStatus_CodigoNotIn(
-                            turmaDestinoId,
-                            escolaId(),
-                            STATUS_NAO_OCUPAM_VAGA);
-            if (matriculasQueOcupamVaga >= turmaDestino.getCapacidade()) {
-                motivos.add("Turma de destino não possui vaga disponível");
-            }
-        }
-
+        var elegibilidade = matriculaRematriculaPort.consultarElegibilidade(
+                matriculaAnteriorId,
+                turmaDestinoId,
+                periodoLetivoDestinoId);
         return new MatriculaRematriculaElegibilidadeResponse(
-                matriculaAnterior.getId(),
-                matriculaAnterior.getAluno().getId(),
-                matriculaAnterior.getStatus().getCodigo(),
-                matriculaAnterior.getTurma().getId(),
-                matriculaAnterior.getTurma().getSerie().getId(),
-                matriculaAnterior.getTurma().getSerie().getNome(),
-                matriculaAnterior.getTurma().getSerie().getOrdem(),
-                turmaDestino == null ? turmaDestinoId : turmaDestino.getId(),
-                periodoLetivoDestinoId,
-                turmaDestino == null ? null : turmaDestino.getSerie().getId(),
-                turmaDestino == null ? null : turmaDestino.getSerie().getNome(),
-                turmaDestino == null ? null : turmaDestino.getSerie().getOrdem(),
-                motivos.isEmpty(),
-                motivos);
+                elegibilidade.matriculaBaseId(),
+                elegibilidade.alunoId(),
+                elegibilidade.statusBase(),
+                elegibilidade.turmaBaseId(),
+                elegibilidade.serieBaseId(),
+                elegibilidade.serieBaseNome(),
+                elegibilidade.serieBaseOrdem(),
+                elegibilidade.turmaDestinoId(),
+                elegibilidade.periodoLetivoDestinoId(),
+                elegibilidade.serieDestinoId(),
+                elegibilidade.serieDestinoNome(),
+                elegibilidade.serieDestinoOrdem(),
+                elegibilidade.elegivel(),
+                elegibilidade.motivos());
     }
 
     private void atualizarStatusSeDocumentosObrigatoriosCompletos(MatriculaEntity matricula) {
