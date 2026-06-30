@@ -690,6 +690,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   esse contrato em vez da implementacao concreta de `DashboardAcademicoService`.
   Os contratos REST externos permaneceram inalterados e o bloco de snapshots
   ficou fora desta etapa.
+- A terceira subfase da Fase 57 reaplicou o mesmo criterio ao primeiro
+  consumidor interno adicional de menor risco desse resumo: o caminho
+  `ACADEMICO` de `DashboardSnapshotGeradorService` passou a consumir
+  `DashboardAcademicoPort` em vez da implementacao concreta de
+  `DashboardAcademicoService`. O comportamento externo dos snapshots e os
+  fluxos de `SECRETARIA`, `DIRETOR` e `PROFESSOR` permaneceram inalterados.
 
 ## Historico resumido
 
