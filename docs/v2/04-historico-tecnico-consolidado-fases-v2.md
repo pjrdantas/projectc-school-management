@@ -538,6 +538,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   real ao cliente interno e ao health operacional ja existente. Com isso, o
   recorte professor/RH/pessoas ficou fechado com fronteiras internas
   explicitas, sem depender de DTO externo no contrato backend/backend.
+- A primeira subfase da Fase 54 abriu o bloco de `matricula e documentos` pelo
+  menor recorte de menor risco: `transferencia`. Foram criados DTOs internos
+  para transferencia e escola de origem, a nova porta
+  `TransferenciaAlunoGateway` e sua implementacao local
+  `TransferenciaAlunoPersistenceGateway`, encapsulando lookup de aluno,
+  persistencia JPA e resolucao dos catalogos SQL. Com isso,
+  `TransferenciaAlunoService` deixou de depender diretamente de repositorios e
+  `JdbcTemplate`, enquanto `TransferenciaAlunoController` e
+  `EscolaOrigemController` passaram a apenas mapear contrato externo para o
+  contrato interno, preservando as APIs publicas existentes.
 
 ## Historico resumido
 

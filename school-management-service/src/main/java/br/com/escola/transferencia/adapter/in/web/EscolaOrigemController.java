@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.transferencia.adapter.in.web.dto.EscolaOrigemRequest;
 import br.com.escola.transferencia.adapter.in.web.dto.EscolaOrigemResponse;
+import br.com.escola.transferencia.application.dto.internal.EscolaOrigemResumo;
+import br.com.escola.transferencia.application.dto.internal.EscolaOrigemSolicitacao;
 import br.com.escola.transferencia.application.service.TransferenciaAlunoService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -33,18 +35,44 @@ public class EscolaOrigemController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Cadastra escola de origem")
     public EscolaOrigemResponse criar(@Valid @RequestBody EscolaOrigemRequest request) {
-        return transferenciaAlunoService.criarEscolaOrigem(request);
+        return toResponse(transferenciaAlunoService.criarEscolaOrigem(new EscolaOrigemSolicitacao(
+                request.nomeEscola(),
+                request.codigoInep(),
+                request.cnpj(),
+                request.cep(),
+                request.logradouro(),
+                request.numero(),
+                request.complemento(),
+                request.bairro(),
+                request.cidade(),
+                request.uf())));
     }
 
     @GetMapping
     @Operation(summary = "Lista escolas de origem")
     public List<EscolaOrigemResponse> listar() {
-        return transferenciaAlunoService.listarEscolasOrigem();
+        return transferenciaAlunoService.listarEscolasOrigem().stream().map(this::toResponse).toList();
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Busca escola de origem por ID")
     public EscolaOrigemResponse buscarPorId(@PathVariable @NonNull UUID id) {
-        return transferenciaAlunoService.buscarEscolaOrigem(id);
+        return toResponse(transferenciaAlunoService.buscarEscolaOrigem(id));
+    }
+
+    private EscolaOrigemResponse toResponse(EscolaOrigemResumo resumo) {
+        return new EscolaOrigemResponse(
+                resumo.id(),
+                resumo.nomeEscola(),
+                resumo.codigoInep(),
+                resumo.cnpj(),
+                resumo.cep(),
+                resumo.logradouro(),
+                resumo.numero(),
+                resumo.complemento(),
+                resumo.bairro(),
+                resumo.cidade(),
+                resumo.uf(),
+                resumo.createdAt());
     }
 }

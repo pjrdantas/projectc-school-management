@@ -792,6 +792,32 @@ eventos de aluno, responsavel e professor.
 Extrair `enrollment-document-service`, introduzir storage de objetos e saga de
 matricula/rematricula/transferencia.
 
+Entregue na primeira subfase da Fase 54:
+
+- o menor recorte backend/backend de menor risco foi aberto em
+  `transferencia`, sem tocar BFF, sem storage externo e sem migracao de schema;
+- `TransferenciaAlunoService` deixou de depender diretamente de
+  `AlunoJpaRepository`, `TransferenciaAlunoJpaRepository`, `JdbcTemplate` e DTOs
+  do adaptador web, passando a orquestrar apenas um contrato interno proprio;
+- foram criados DTOs internos de transferencia e escola de origem, alem da
+  nova porta `TransferenciaAlunoGateway`, com implementacao local em
+  `TransferenciaAlunoPersistenceGateway` para encapsular lookup de aluno,
+  persistencia da transferencia e resolucao dos catalogos de tipo/status;
+- `TransferenciaAlunoController` e `EscolaOrigemController` passaram a fazer
+  apenas o mapeamento entre contrato externo e contrato interno, preservando as
+  mesmas rotas publicas `/api/transferencias` e `/api/escolas-origem`;
+- com isso, a Fase 54 comeca pelo ponto mais simples do bloco
+  matricula/documentos para reduzir dependencia direta de repositorios/SQL de
+  outro modulo antes de atacar matricula, historico e storage de arquivos.
+
+Proxima subfase pratica:
+
+- aplicar o mesmo padrao de fronteira interna ao write principal de
+  `matricula`, reduzindo o acoplamento remanescente entre caso de uso e
+  materializacao JPA compartilhada do aluno;
+- manter o escopo no backend atual, sem cutover de BFF, sem saga distribuida e
+  sem persistencia propria fora do monolito nesta etapa.
+
 ### Fase 55 - Pedagogico
 
 Extrair `pedagogical-service` com alocacao, aula, frequencia, avaliacao, notas,
