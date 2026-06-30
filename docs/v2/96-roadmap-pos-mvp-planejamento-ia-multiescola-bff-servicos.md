@@ -1164,6 +1164,27 @@ Proxima subfase pratica e de menor risco:
 - manter a fase restrita ao backend/backend do monolito, sem mover rotas
   externas nem abrir persistencia propria adicional.
 
+Entregue na quarta subfase da Fase 53:
+
+- introducao da porta interna minima `ProfessorPessoaPort`, dedicada a
+  responder se uma `pessoa` ja possui professor cadastrado em determinada
+  escola, sem expor repositorio JPA de professor fora do limite do dominio;
+- implementacao local dessa consulta no proprio dominio de professor,
+  preservando o monolito como runtime unico e sem abrir persistencia propria;
+- adaptacao de `FuncionarioProfessorService`, que deixou de depender
+  diretamente de `ProfessorJpaRepository` para calcular elegibilidade de
+  funcionario no fluxo de criacao de professor;
+- validacao automatizada pela suite do backend, mantendo o contrato externo e
+  os endpoints internos existentes sem alteracao.
+
+Proxima subfase pratica e de menor risco:
+
+- executar a subfase minima restante para fechar o bloco interno de Fase 53,
+  revisando se ainda existe dependencia concreta cruzada entre professor, RH e
+  pessoas que precise da mesma fronteira interna;
+- se o bloco estiver coberto, encerrar oficialmente a macrofase 53 e preparar
+  a transicao para a proxima frente backend sem ampliar escopo para BFF.
+
 Entregue na vigesima-quinta subfase:
 
 - criacao do modulo `academic-professor-service` no monorepo como primeiro

@@ -520,6 +520,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   Com isso, o acoplamento residual entre professor e infraestrutura JPA
   compartilhada foi reduzido sem alterar as rotas externas nem o comportamento
   funcional do monolito.
+- A quarta subfase da Fase 53 fechou o recorte remanescente de elegibilidade
+  entre RH e professor dentro do backend atual. Foi criada a porta interna
+  `ProfessorPessoaPort`, implementada localmente no dominio de professor apenas
+  para responder a existencia de professor por `pessoaId` e `escolaId`, e
+  `FuncionarioProfessorService` deixou de consultar `ProfessorJpaRepository`
+  diretamente para calcular elegibilidade. Com isso, a consulta cruzada de RH
+  para professor deixou de depender de repositorio JPA de outro modulo,
+  preservando o comportamento funcional do cadastro de professor e da listagem
+  de elegiveis.
 
 ## Historico resumido
 

@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.escola.professor.adapter.out.persistence.repository.ProfessorJpaRepository;
+import br.com.escola.professor.application.port.internal.ProfessorPessoaPort;
 import br.com.escola.rh.adapter.out.persistence.entity.FuncionarioEntity;
 import br.com.escola.rh.adapter.out.persistence.repository.FuncionarioJpaRepository;
 import br.com.escola.rh.application.dto.internal.FuncionarioProfessorResumo;
@@ -19,13 +19,13 @@ import br.com.escola.rh.application.port.internal.FuncionarioProfessorPort;
 public class FuncionarioProfessorService implements FuncionarioProfessorPort {
 
     private final FuncionarioJpaRepository funcionarioJpaRepository;
-    private final ProfessorJpaRepository professorJpaRepository;
+    private final ProfessorPessoaPort professorPessoaPort;
 
     public FuncionarioProfessorService(
             FuncionarioJpaRepository funcionarioJpaRepository,
-            ProfessorJpaRepository professorJpaRepository) {
+            ProfessorPessoaPort professorPessoaPort) {
         this.funcionarioJpaRepository = funcionarioJpaRepository;
-        this.professorJpaRepository = professorJpaRepository;
+        this.professorPessoaPort = professorPessoaPort;
     }
 
     @Override
@@ -47,9 +47,8 @@ public class FuncionarioProfessorService implements FuncionarioProfessorPort {
 
     private FuncionarioProfessorResumo toResumo(FuncionarioEntity entity, UUID escolaId) {
         boolean ativo = Boolean.TRUE.equals(entity.getAtivo());
-        boolean jaCadastradoComoProfessor = professorJpaRepository.existsByPessoa_IdAndPessoa_Escola_Id(
-                entity.getPessoa().getId(),
-                escolaId);
+        boolean jaCadastradoComoProfessor = professorPessoaPort
+                .existeProfessorPorPessoa(escolaId, entity.getPessoa().getId());
         return new FuncionarioProfessorResumo(
                 entity.getId(),
                 entity.getPessoa().getId(),
