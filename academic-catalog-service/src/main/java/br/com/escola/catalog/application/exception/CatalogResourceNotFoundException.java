@@ -4,7 +4,10 @@ import java.util.UUID;
 
 public class CatalogResourceNotFoundException extends RuntimeException {
 
-    public CatalogResourceNotFoundException(String resource, UUID id) {
+
+	private static final long serialVersionUID = 1L;
+
+	public CatalogResourceNotFoundException(String resource, UUID id) {
         super(resource + " nao encontrado: " + id);
     }
 }

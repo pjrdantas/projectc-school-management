@@ -258,7 +258,7 @@ public class IdentidadeTenantService implements IdentidadeTenantPort {
     }
 
     private UUID resolverProfessorId(UsuarioEntity usuario, UUID escolaId) {
-        return professorRepository.findByUsuario_IdAndPessoa_Escola_Id(usuario.getId(), escolaId)
+        return professorRepository.findByUsuarioIdAndPessoa_Escola_Id(usuario.getId(), escolaId)
                 .or(() -> professorRepository.findAtivoByPessoaEmailIgnoreCaseAndEscolaId(usuario.getEmail(), escolaId))
                 .map(professor -> professor.getId())
                 .orElse(null);

@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import br.com.escola.compartilhado.pessoa.entity.PessoaEntity;
-import br.com.escola.seguranca.adapter.out.persistence.entity.UsuarioEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -56,7 +55,6 @@ public class ProfessorEntity implements Serializable {
     @JoinColumn(name = "id_pessoa", referencedColumnName = "id_pessoa", nullable = false)
     private PessoaEntity pessoa;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario", referencedColumnName = "id_usuario")
-    private UsuarioEntity usuario;
+    @Column(name = "id_usuario")
+    private UUID usuarioId;
 }

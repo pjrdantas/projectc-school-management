@@ -2,7 +2,10 @@ package br.com.escola.catalog.domain.exception;
 
 public class CatalogDomainException extends RuntimeException {
 
-    public CatalogDomainException(String message) {
+
+	private static final long serialVersionUID = 1L;
+
+	public CatalogDomainException(String message) {
         super(message);
     }
 }

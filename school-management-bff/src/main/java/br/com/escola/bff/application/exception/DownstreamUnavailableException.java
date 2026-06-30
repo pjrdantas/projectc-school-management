@@ -2,7 +2,10 @@ package br.com.escola.bff.application.exception;
 
 public class DownstreamUnavailableException extends RuntimeException {
 
-    public DownstreamUnavailableException(String message) {
+
+	private static final long serialVersionUID = 1L;
+
+	public DownstreamUnavailableException(String message) {
         super(message);
     }
 

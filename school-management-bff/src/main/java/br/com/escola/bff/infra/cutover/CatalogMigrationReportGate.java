@@ -93,7 +93,8 @@ public class CatalogMigrationReportGate {
             List<String> targetIssues,
             List<MigrationTableSnapshot> tables
     ) {
-        MigrationReportSnapshot {
+        @SuppressWarnings("unused")
+		MigrationReportSnapshot {
             sourceIssues = sourceIssues == null ? List.of() : List.copyOf(sourceIssues);
             targetIssues = targetIssues == null ? List.of() : List.copyOf(targetIssues);
             tables = tables == null ? List.of() : List.copyOf(tables);
@@ -105,7 +106,8 @@ public class CatalogMigrationReportGate {
             List<String> unexpectedIds,
             List<String> divergentIds
     ) {
-        MigrationTableSnapshot {
+        @SuppressWarnings("unused")
+		MigrationTableSnapshot {
             missingIds = missingIds == null ? List.of() : List.copyOf(missingIds);
             unexpectedIds = unexpectedIds == null ? List.of() : List.copyOf(unexpectedIds);
             divergentIds = divergentIds == null ? List.of() : List.copyOf(divergentIds);

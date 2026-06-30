@@ -494,6 +494,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   isso, sessao, tenant ativo, vinculo usuario-escola e selecao de escola ficam
   fechados como fronteiras internas preparatorias para a futura extracao fisica
   de `identity-access-service` e `institutional-tenant-service`.
+- A primeira subfase da Fase 53 iniciou o desacoplamento de `people-service`
+  pelo menor acoplamento remanescente com seguranca: `ProfessorEntity` deixou
+  de manter relacionamento JPA direto com `UsuarioEntity` e passou a tratar
+  `id_usuario` apenas como referencia externa UUID, preservando a mesma coluna
+  fisica. `ProfessorJpaRepository` e a resolucao de `professorId` em
+  `IdentidadeTenantService` foram ajustados para essa referencia simples,
+  mantendo o comportamento externo do login e preparando o dominio de pessoas
+  para a remocao progressiva de dependencias ORM com seguranca.
 
 ## Historico resumido
 

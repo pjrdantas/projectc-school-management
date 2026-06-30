@@ -27,7 +27,8 @@ import br.com.escola.professorservice.infra.database.repository.ProfessorShadowS
 class ProfessorShadowMigrationIT {
 
     private static final UUID ESCOLA_A = UUID.fromString("00000000-0000-0000-0000-0000000000a1");
-    private static final UUID PESSOA_A = UUID.fromString("10000000-0000-0000-0000-000000000001");
+    @SuppressWarnings("unused")
+	private static final UUID PESSOA_A = UUID.fromString("10000000-0000-0000-0000-000000000001");
     private static final UUID PROFESSOR_A = UUID.fromString("20000000-0000-0000-0000-000000000001");
 
     @Autowired

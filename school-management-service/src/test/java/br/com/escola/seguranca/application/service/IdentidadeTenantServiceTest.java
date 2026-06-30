@@ -85,7 +85,7 @@ class IdentidadeTenantServiceTest {
                 "Escola Fase 52",
                 OrigemTenantAtivo.USUARIO_ESCOLA));
         when(tenantAtivoPort.carregarEscola(escolaId)).thenReturn(escola);
-        when(professorRepository.findByUsuario_IdAndPessoa_Escola_Id(usuarioId, escolaId)).thenReturn(Optional.empty());
+        when(professorRepository.findByUsuarioIdAndPessoa_Escola_Id(usuarioId, escolaId)).thenReturn(Optional.empty());
         when(professorRepository.findAtivoByPessoaEmailIgnoreCaseAndEscolaId("prof52@example.com", escolaId))
                 .thenReturn(Optional.of(br.com.escola.professor.adapter.out.persistence.entity.ProfessorEntity.builder()
                         .id(professorId)
@@ -182,7 +182,7 @@ class IdentidadeTenantServiceTest {
         when(usuarioRepository.findByUsernameIgnoreCaseAndAtivoTrue("professor52login")).thenReturn(Optional.of(usuario));
         when(usuarioEscolaPort.usuarioTemVinculo(usuarioId, escolaId)).thenReturn(true);
         when(tenantAtivoPort.carregarEscola(escolaId)).thenReturn(escola);
-        when(professorRepository.findByUsuario_IdAndPessoa_Escola_Id(usuarioId, escolaId)).thenReturn(Optional.empty());
+        when(professorRepository.findByUsuarioIdAndPessoa_Escola_Id(usuarioId, escolaId)).thenReturn(Optional.empty());
         when(professorRepository.findAtivoByPessoaEmailIgnoreCaseAndEscolaId("prof52login@example.com", escolaId))
                 .thenReturn(Optional.empty());
         when(usuarioRepository.findPerfisByIdUsuario(usuarioId)).thenReturn(List.of("PROFESSOR"));

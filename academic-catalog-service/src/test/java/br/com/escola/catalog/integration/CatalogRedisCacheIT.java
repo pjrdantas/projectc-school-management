@@ -39,7 +39,8 @@ class CatalogRedisCacheIT {
     @ServiceConnection
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17-alpine");
 
-    @Container
+    @SuppressWarnings("resource")
+	@Container
     static final GenericContainer<?> REDIS = new GenericContainer<>("redis:8-alpine")
             .withExposedPorts(6379);
 

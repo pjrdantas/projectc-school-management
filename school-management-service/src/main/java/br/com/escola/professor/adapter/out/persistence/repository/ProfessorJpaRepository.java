@@ -18,7 +18,7 @@ public interface ProfessorJpaRepository extends JpaRepository<ProfessorEntity, U
 
     Optional<ProfessorEntity> findByUsuarioId(UUID usuarioId);
 
-    Optional<ProfessorEntity> findByUsuario_IdAndPessoa_Escola_Id(UUID usuarioId, UUID escolaId);
+    Optional<ProfessorEntity> findByUsuarioIdAndPessoa_Escola_Id(UUID usuarioId, UUID escolaId);
 
     @Query("""
             SELECT p FROM ProfessorEntity p

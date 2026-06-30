@@ -33,7 +33,8 @@ class CatalogMigrationIT {
     @ServiceConnection
     static final PostgreSQLContainer<?> TARGET = new PostgreSQLContainer<>("postgres:17-alpine");
 
-    @Container
+    @SuppressWarnings("resource")
+	@Container
     static final PostgreSQLContainer<?> SOURCE = new PostgreSQLContainer<>("postgres:17-alpine")
             .withInitScript("catalog-migration-source.sql");
 

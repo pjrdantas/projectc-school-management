@@ -1698,3 +1698,27 @@ Proxima fase pratica:
   estabilizados no monolito;
 - manter o recorte backend/backend, sem cutover de BFF e sem migracao ampla de
   persistencia nesta primeira etapa da extracao fisica.
+
+Entregue na primeira subfase da Fase 53:
+
+- foi iniciado o desacoplamento de `people-service` pelo menor ponto ainda
+  acoplado a seguranca no monolito: o relacionamento JPA direto entre
+  `professor` e `usuario`;
+- `ProfessorEntity` deixou de depender de `UsuarioEntity` como `@ManyToOne` e
+  passou a tratar `id_usuario` apenas como referencia externa por UUID,
+  preservando a mesma coluna fisica e sem exigir migracao de schema;
+- `ProfessorJpaRepository` e a resolucao de `professorId` na autenticacao foram
+  ajustados para usar essa referencia simples, mantendo o comportamento externo
+  de login e contexto autenticado;
+- com isso, a Fase 53 comeca atacando exatamente o objetivo de remover
+  relacionamentos JPA entre people e seguranca, sem abrir runtime novo cedo
+  demais e sem ampliar escopo para eventos ou BFF nesta etapa.
+
+Proxima subfase pratica:
+
+- aplicar o mesmo criterio de desacoplamento nas fronteiras de pessoa usadas por
+  aluno, responsavel, professor e funcionario, definindo o primeiro contrato
+  interno de `people-service` que permita preparar a extracao fisica sem
+  refatoracao ampla;
+- somente depois disso avaliar a abertura do modulo `people-service` em modo
+  shadow/backend-backend.
