@@ -1011,6 +1011,27 @@ Proxima subfase pratica:
   pedagogica, sem abrir persistencia propria nem cutover externo;
 - manter o escopo backend/backend, sem BFF nesta etapa.
 
+Entregue na quarta subfase da Fase 55:
+
+- foi iniciado o proximo recorte estrutural controlado exatamente na geracao
+  oficial de `historico` a partir de `boletim`;
+- `HistoricoEscolarServiceImpl` deixou de consultar diretamente
+  `BoletimJpaRepository`, `BoletimItemJpaRepository`, `BoletimEntity` e
+  `BoletimItemEntity` para esse fluxo;
+- foi criada a fronteira interna `BoletimHistoricoPort`, implementada por
+  `BoletimHistoricoService`, com DTOs internos proprios para o resumo do
+  boletim fechado e dos itens usados na geracao oficial do historico;
+- com isso, a Fase 55 avancou do bloco interno de leitura para o primeiro
+  recorte estrutural de persistencia oficial sem alterar rota externa, sem BFF
+  e sem persistencia propria nesta etapa.
+
+Proxima subfase pratica:
+
+- consolidar esse recorte estrutural de geracao oficial de `historico`,
+  revisando se ainda resta no mesmo fluxo algum acoplamento minimo que possa
+  sair para fronteira interna antes de atacar mudancas maiores de modelo;
+- manter o escopo backend/backend, sem cutover externo nesta etapa.
+
 ### Fase 56 - Planejamento e IA
 
 Extrair `planning-ai-service`, ativar MongoDB para payloads flexiveis, Kafka para

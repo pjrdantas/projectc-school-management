@@ -611,6 +611,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   minimo de fronteiras internas em resumo academico, boletim e historico ficou
   formalmente encerrado, restando como proximos passos apenas recortes mais
   estruturais do dominio pedagogico.
+- A quarta subfase da Fase 55 iniciou o primeiro recorte estrutural controlado
+  na geracao oficial de `historico` a partir de `boletim`. Foi criada a
+  fronteira interna `BoletimHistoricoPort`, implementada por
+  `BoletimHistoricoService`, com DTOs internos proprios para o resumo do
+  boletim fechado e dos itens usados na geracao oficial. Com isso,
+  `HistoricoEscolarServiceImpl` deixou de consultar diretamente
+  `BoletimJpaRepository`, `BoletimItemJpaRepository`, `BoletimEntity` e
+  `BoletimItemEntity` nesse fluxo, sem alterar a rota externa nem abrir
+  persistencia propria.
 
 ## Historico resumido
 

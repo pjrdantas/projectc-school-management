@@ -18,13 +18,11 @@ import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarGeracaoRequest
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarItemRequest;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarRequest;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarResponse;
-import br.com.escola.historico.adapter.out.persistence.entity.BoletimEntity;
-import br.com.escola.historico.adapter.out.persistence.entity.BoletimItemEntity;
 import br.com.escola.historico.adapter.out.persistence.entity.HistoricoEscolar;
 import br.com.escola.historico.adapter.out.persistence.entity.HistoricoEscolarItem;
-import br.com.escola.historico.adapter.out.persistence.repository.BoletimItemJpaRepository;
-import br.com.escola.historico.adapter.out.persistence.repository.BoletimJpaRepository;
 import br.com.escola.historico.adapter.out.persistence.repository.HistoricoEscolarJpaRepository;
+import br.com.escola.historico.application.dto.internal.BoletimHistoricoItemResumo;
+import br.com.escola.historico.application.port.internal.BoletimHistoricoPort;
 import br.com.escola.historico.application.mapper.HistoricoEscolarMapper;
 import br.com.escola.historico.domain.exception.BoletimFechadoNaoEncontradoException;
 import br.com.escola.historico.domain.exception.HistoricoEscolarDuplicadoException;
@@ -39,8 +37,7 @@ import lombok.RequiredArgsConstructor;
 public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
 
     private final HistoricoEscolarJpaRepository historicoEscolarJpaRepository;
-    private final BoletimJpaRepository boletimJpaRepository;
-    private final BoletimItemJpaRepository boletimItemJpaRepository;
+    private final BoletimHistoricoPort boletimHistoricoPort;
     private final HistoricoEscolarMapper historicoEscolarMapper;
     private final AlunoMatriculaPort alunoMatriculaPort;
     private final EscolaContextoPort escolaContextoPort;
@@ -106,67 +103,64 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
     @Transactional
     public HistoricoEscolarResponse gerarPorBoletim(UUID matriculaId, HistoricoEscolarGeracaoRequest request) {
         UUID escolaId = escolaId();
-        BoletimEntity boletim = boletimJpaRepository.findByIdAndMatricula_Turma_Escola_Id(request.boletimId(), escolaId)
+        var boletim = boletimHistoricoPort.buscarParaGeracao(request.boletimId(), escolaId)
                 .orElseThrow(() -> new BoletimFechadoNaoEncontradoException(request.boletimId()));
-        if (!boletim.getMatricula().getId().equals(matriculaId)) {
+        if (!boletim.matriculaId().equals(matriculaId)) {
             throw new MatriculaNaoEncontradaException(matriculaId);
         }
 
-        var matricula = boletim.getMatricula();
-        UUID alunoId = matricula.getAluno().getId();
-        UUID periodoLetivoId = matricula.getPeriodoLetivo().getId();
+        UUID alunoId = boletim.alunoId();
+        Integer anoConclusao = boletim.anoConclusao();
 
         List<HistoricoEscolar> duplicados = historicoEscolarJpaRepository
-                .findByAlunoIdAndEscolaIdAndPeriodoLetivoId(alunoId, escolaId, periodoLetivoId);
+                .findByAlunoIdAndEscolaIdAndPeriodoLetivoId(alunoId, escolaId, boletim.periodoLetivoId());
         if (!duplicados.isEmpty() && !Boolean.TRUE.equals(request.sobrescrever())) {
-            throw new HistoricoEscolarDuplicadoException(alunoId, periodoLetivoId);
+            throw new HistoricoEscolarDuplicadoException(alunoId, boletim.periodoLetivoId());
         }
         duplicados.forEach(historicoEscolarJpaRepository::delete);
 
-        List<BoletimItemEntity> boletimItens = boletimItemJpaRepository.findByBoletimId(boletim.getId());
-        if (boletimItens.isEmpty()) {
+        if (boletim.itens().isEmpty()) {
             throw new HistoricoEscolarInvalidoException("Boletim fechado não possui itens para geração do histórico escolar");
         }
 
         HistoricoEscolar historico = HistoricoEscolar.builder()
                 .alunoId(alunoId)
                 .origem("INTERNO")
-                .nomeAluno(matricula.getAluno().getNomeCompleto())
-                .rgRen(matricula.getAluno().getRg())
-                .ra(matricula.getAluno().getRa())
-                .rm(matricula.getAluno().getRm())
-                .dataNascimento(matricula.getAluno().getDataNascimento())
-                .municipioNascimento(matricula.getAluno().getNaturalidade())
-                .paisNascimento(matricula.getAluno().getNacionalidade())
-                .anoConclusao(matricula.getPeriodoLetivo().getAno())
+                .nomeAluno(boletim.nomeAluno())
+                .rgRen(boletim.rg())
+                .ra(boletim.ra())
+                .rm(boletim.rm())
+                .dataNascimento(boletim.dataNascimento())
+                .municipioNascimento(boletim.naturalidade())
+                .paisNascimento(boletim.nacionalidade())
+                .anoConclusao(anoConclusao)
                 .ensinoConcluido(trimToNull(request.ensinoConcluido()))
                 .dataEmissao(LocalDate.now())
                 .observacoes(observacoesGeracao(request, boletim))
                 .build();
-        historico.setAluno(matricula.getAluno());
+        historico.setAluno(alunoEscopado(alunoId));
 
-        boletimItens.stream()
-                .sorted((a, b) -> a.getDisciplina().getNome().compareToIgnoreCase(b.getDisciplina().getNome()))
-                .map(item -> toHistoricoItem(boletim, item))
+        boletim.itens().stream()
+                .map(this::toHistoricoItem)
                 .forEach(historico::addComponenteCurricular);
 
         var salvo = historicoEscolarJpaRepository.save(historico);
         return historicoEscolarMapper.toResponse(buscarHistoricoEscopado(salvo.getId()));
     }
 
-    private HistoricoEscolarItem toHistoricoItem(BoletimEntity boletim, BoletimItemEntity item) {
+    private HistoricoEscolarItem toHistoricoItem(BoletimHistoricoItemResumo item) {
         return HistoricoEscolarItem.builder()
-                .periodoLetivo(boletim.getMatricula().getPeriodoLetivo())
-                .serieEntity(boletim.getMatricula().getTurma().getSerie())
-                .disciplina(item.getDisciplina())
-                .componenteCurricular(item.getDisciplina().getNome())
-                .anoLetivo(boletim.getMatricula().getPeriodoLetivo().getAno())
-                .serie(boletim.getMatricula().getTurma().getSerie().getNome())
-                .notaConceito(toNotaConceito(item.getMedia()))
-                .frequenciaPercentual(item.getFrequenciaPercentual())
-                .totalAulas(item.getCargaHoraria())
-                .cargaHoraria(item.getDisciplina().getCargaHoraria())
-                .resultado(item.getResultado())
+                .periodoLetivo(item.periodoLetivo())
+                .serieEntity(item.serieEntity())
+                .disciplina(item.disciplina())
+                .componenteCurricular(item.componenteCurricular())
+                .anoLetivo(item.anoLetivo())
+                .serie(item.serie())
+                .notaConceito(toNotaConceito(item.media()))
+                .frequenciaPercentual(item.frequenciaPercentual())
+                .totalAulas(item.totalAulas())
+                .cargaHoraria(item.cargaHoraria())
+                .resultado(item.resultado())
                 .build();
     }
 
@@ -177,13 +171,13 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
         return media.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
-    private String observacoesGeracao(HistoricoEscolarGeracaoRequest request, BoletimEntity boletim) {
+    private String observacoesGeracao(HistoricoEscolarGeracaoRequest request, br.com.escola.historico.application.dto.internal.BoletimHistoricoResumo boletim) {
         String observacoes = trimToNull(request.observacoes());
         if (observacoes != null) {
             return observacoes;
         }
         return "Histórico gerado a partir do boletim fechado %s, período %s"
-                .formatted(boletim.getId(), boletim.getPeriodoReferencia());
+                .formatted(boletim.boletimId(), boletim.periodoReferencia());
     }
 
     private void validarRequest(HistoricoEscolarRequest request) {
