@@ -676,6 +676,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   de BFF e sem nova persistencia distribuida. A proxima macrofase sugerida
   passa a ser a Fase 57, iniciando por diagnostico pontual do menor recorte
   backend/backend de `dashboard`.
+- A primeira subfase da Fase 57 executou esse diagnostico pontual de
+  `dashboard` e identificou `DashboardAcademicoService` como o menor recorte
+  backend/backend de menor risco para abrir a macrofase. O servico ja expõe um
+  resumo consolidado reutilizado por `DashboardSecretariaService` e
+  `DashboardDiretorService`, concentra dependencias cruzadas reais de
+  `matricula`, `catalogo` e `historico`, e permite rollback interno simples sem
+  alterar rotas externas, snapshots ou infraestrutura distribuida.
 
 ## Historico resumido
 

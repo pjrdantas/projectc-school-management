@@ -1206,6 +1206,46 @@ Proxima fase pratica:
 Extrair `dashboard-query-service`, substituir consultas cruzadas por projecoes
 Kafka, usar MongoDB para historico detalhado e Redis para respostas recentes.
 
+Entregue na primeira subfase da Fase 57:
+
+- foi executado o diagnostico pontual do menor recorte backend/backend de
+  `dashboard` no monolito atual, ainda sem Kafka, MongoDB, Redis, BFF ou
+  extracao fisica;
+- o menor ponto de entrada identificado e `DashboardAcademicoService`, porque
+  ele ja materializa um resumo consolidado reutilizado por
+  `DashboardSecretariaService` e `DashboardDiretorService`, com contrato de
+  resposta estavel e rollback interno simples;
+- esse servico concentra dependencias cruzadas reais de `matricula`,
+  `catalogo` e `historico` por meio de `MatriculaJpaRepository`,
+  `CatalogoAcademicoPort`, `BoletimJpaRepository` e
+  `HistoricoEscolarJpaRepository`, tornando-se o melhor candidato para abrir a
+  primeira fronteira interna da macrofase;
+- `DashboardProfessorService` e `DashboardDiretorService` permanecem mais
+  acoplados e com risco maior nesta etapa, porque agregam contagens por
+  `aula`, `avaliacao`, `nota`, `planejamento`, `aluno` e `professor`, alem de
+  iteracoes em memoria sobre consultas amplas;
+- `DashboardSnapshotGeradorService` foi mantido fora como primeiro recorte
+  pratico, porque ele depende da estabilizacao dos resumos de dashboard antes de
+  virar orquestrador de projecoes ou snapshots desacoplados.
+
+Impactos e consistencia mapeados:
+
+- nenhuma rota externa precisa mudar na primeira fronteira interna, porque o
+  consumo e hoje exclusivamente entre servicos do proprio modulo `dashboard`;
+- a consistencia continua sincrona e baseada na leitura do PostgreSQL do
+  monolito nesta etapa, sem outbox, sem eventos e sem cache distribuido;
+- o rollback minimo e trivial: a futura troca pode permanecer limitada ao
+  chamador interno, com retorno direto ao `DashboardAcademicoService` atual sem
+  migracao de dados.
+
+Proxima subfase pratica:
+
+- criar a primeira fronteira interna explicita da Fase 57 em torno de
+  `DashboardAcademicoService`, definindo uma porta backend/backend e um DTO
+  interno proprio para o resumo academico consumido por secretaria e diretoria;
+- manter o escopo no backend atual, sem alterar contratos REST, sem mexer em
+  snapshots, sem BFF e sem infraestrutura distribuida.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
