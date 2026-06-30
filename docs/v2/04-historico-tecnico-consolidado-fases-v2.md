@@ -755,6 +755,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   pelas fronteiras internas anteriores. O contrato externo do frontend foi
   preservado por mapeamento interno para os DTOs REST existentes, enquanto o
   caminho `PROFESSOR` permaneceu concreto por ora.
+- A terceira subfase dessa macrofase encerrou formalmente esse bloco minimo de
+  composicao em `DashboardFrontendService`. Os testes do agregador passaram a
+  cobrir explicitamente `ACADEMICO`, `SECRETARIA` e `DIRETOR` via portas
+  internas, confirmando que o unico caminho ainda concreto no service e
+  `PROFESSOR`, dependente de `DashboardProfessorService`. Com isso, o recorte
+  seguro desta macro-subfase foi considerado esgotado antes de qualquer entrada
+  no dominio mais pesado de professor.
 
 ## Historico resumido
 

@@ -1524,6 +1524,34 @@ Proxima subfase pratica:
 - manter o escopo backend/backend e incremental, sem BFF, sem eventos e sem
   refatoracao ampla de dominio nesta etapa de fechamento.
 
+Entregue na terceira subfase da macrofase seguinte:
+
+- foi executado o fechamento formal deste bloco minimo de `dashboard`,
+  confirmando por testes do agregador que os caminhos `ACADEMICO`,
+  `SECRETARIA` e `DIRETOR` ja consomem exclusivamente as portas internas
+  abertas no proprio modulo;
+- com isso, o unico caminho ainda concreto dentro de
+  `DashboardFrontendService` passou a ser `PROFESSOR`, que depende de
+  `DashboardProfessorService` e concentra um recorte de dominio mais pesado do
+  que a composicao frontend/backend encerrada nesta macro-subfase;
+- configuracao administrativa, configuracao por usuario e historico de
+  snapshots permaneceram como componentes transversais do pacote agregado e nao
+  caracterizam, nesta etapa, um novo recorte seguro equivalente ao que foi
+  fechado para `academico`, `secretaria` e `diretor`;
+- por esse motivo, `DashboardFrontendService` esgota o ultimo recorte seguro de
+  composicao minima antes de qualquer entrada em `DashboardProfessorService`, e
+  este bloco fica encerrado sem alterar BFF, sem eventos e sem nova
+  persistencia.
+
+Proxima subfase pratica:
+
+- iniciar uma nova macro-subfase de diagnostico comparativo para decidir se o
+  proximo passo backend/backend do modulo `dashboard` deve abrir
+  `DashboardProfessorService` como recorte mais pesado ou se ainda existe algum
+  corte estrutural mais seguro fora dele;
+- manter o mesmo criterio incremental, sem cutover externo, sem refatoracao
+  ampla e sem introduzir runtime distribuido novo nesta etapa.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
