@@ -1338,6 +1338,37 @@ Proxima subfase pratica:
 - manter o escopo backend/backend e incremental, sem BFF nem infraestrutura
   distribuida nesta subfase de fechamento.
 
+Entregue na sexta subfase da Fase 57:
+
+- foi executado o fechamento formal do primeiro ciclo interno da macrofase,
+  confirmando que os resumos de `DashboardAcademicoService`,
+  `DashboardSecretariaService` e `DashboardDiretorService` ja possuem portas e
+  DTOs internos proprios consumidos pelo gerador de snapshots sem dependencia
+  concreta desses tres servicos;
+- o recorte remanescente foi diagnosticado como qualitativamente diferente:
+  `DashboardProfessorService` continua mais acoplado por depender de consultas
+  especificas de professor, alocacoes, aulas, frequencias, avaliacoes, notas e
+  planejamentos, enquanto `DashboardFrontendService` e `DashboardAlertaService`
+  ainda compoem respostas externas diretamente a partir dos services concretos
+  de dashboard;
+- por esse motivo, a Fase 57 fica encerrada sem ampliar escopo para nova
+  refatoracao interna nesta subfase: o bloco minimo backend/backend de resumos
+  reutilizaveis foi fechado, e qualquer passo adicional ja entra em um recorte
+  maior do dominio de consultas/agregacoes;
+- nao houve alteracao de rotas externas, nao houve mudanca de persistencia e
+  nao houve introducao de Kafka, MongoDB, Redis ou BFF nesta etapa de
+  encerramento formal.
+
+Proxima fase pratica:
+
+- iniciar a proxima macrofase de `dashboard` pelo diagnostico pontual do menor
+  recorte remanescente apos o bloco de resumos internos, com duas opcoes
+  explicitas a validar: `DashboardProfessorService` como novo candidato de
+  fronteira interna ou `DashboardFrontendService`/`DashboardAlertaService` como
+  primeiro ponto de composicao a separar;
+- manter o mesmo criterio incremental: sem cutover externo, sem projecoes por
+  eventos ainda e sem infraestrutura distribuida antes do diagnostico objetivo.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
