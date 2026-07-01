@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -43,8 +44,10 @@ import br.com.escola.professor.adapter.in.web.dto.DiarioClasseResponse;
 import br.com.escola.professor.adapter.in.web.dto.DiarioClasseSalvarRequest;
 import br.com.escola.professor.adapter.in.web.dto.DiarioClasseSalvarResponse;
 import br.com.escola.professor.adapter.out.persistence.entity.AulaEntity;
+import br.com.escola.professor.adapter.out.persistence.entity.DiarioClasseLancamentoEntity;
 import br.com.escola.professor.adapter.out.persistence.entity.ProfessorTurmaDisciplinaEntity;
 import br.com.escola.professor.adapter.out.persistence.repository.AulaJpaRepository;
+import br.com.escola.professor.adapter.out.persistence.repository.DiarioClasseLancamentoJpaRepository;
 import br.com.escola.professor.adapter.out.persistence.repository.ProfessorTurmaDisciplinaJpaRepository;
 import br.com.escola.professor.domain.exception.DiarioClasseLancamentoDuplicadoException;
 import br.com.escola.professor.domain.exception.DiarioClasseLancamentoInvalidoException;
@@ -55,6 +58,9 @@ import br.com.escola.professor.domain.exception.SituacaoFrequenciaNaoEncontradaE
 public class DiarioClasseConsultaService {
 
     private static final DateTimeFormatter DATA_BR = DateTimeFormatter.ofPattern("dd/MM");
+    private static final DateTimeFormatter DATA_ASSINATURA_BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final String STATUS_SALVO = "SALVO";
+    private static final String STATUS_BLOQUEADO = "BLOQUEADO";
     private static final List<String> STATUS_MATRICULA_EXCLUIDOS = List.of("CANCELADA", "INDEFERIDA", "TRANSFERIDO");
 
     private final ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository;
@@ -65,6 +71,7 @@ public class DiarioClasseConsultaService {
     private final PlanejamentoBimestralAulaJpaRepository planejamentoBimestralAulaJpaRepository;
     private final AvaliacaoJpaRepository avaliacaoJpaRepository;
     private final SituacaoFrequenciaJpaRepository situacaoFrequenciaJpaRepository;
+    private final DiarioClasseLancamentoJpaRepository diarioClasseLancamentoJpaRepository;
     private final EscolaContextoPort escolaContextoPort;
 
     public DiarioClasseConsultaService(
@@ -76,6 +83,7 @@ public class DiarioClasseConsultaService {
             PlanejamentoBimestralAulaJpaRepository planejamentoBimestralAulaJpaRepository,
             AvaliacaoJpaRepository avaliacaoJpaRepository,
             SituacaoFrequenciaJpaRepository situacaoFrequenciaJpaRepository,
+            DiarioClasseLancamentoJpaRepository diarioClasseLancamentoJpaRepository,
             EscolaContextoPort escolaContextoPort) {
         this.professorTurmaDisciplinaJpaRepository = professorTurmaDisciplinaJpaRepository;
         this.aulaJpaRepository = aulaJpaRepository;
@@ -85,6 +93,7 @@ public class DiarioClasseConsultaService {
         this.planejamentoBimestralAulaJpaRepository = planejamentoBimestralAulaJpaRepository;
         this.avaliacaoJpaRepository = avaliacaoJpaRepository;
         this.situacaoFrequenciaJpaRepository = situacaoFrequenciaJpaRepository;
+        this.diarioClasseLancamentoJpaRepository = diarioClasseLancamentoJpaRepository;
         this.escolaContextoPort = escolaContextoPort;
     }
 
@@ -158,6 +167,11 @@ public class DiarioClasseConsultaService {
                 .filter(observacao -> observacao != null && !observacao.isBlank())
                 .distinct()
                 .toList();
+        Optional<DiarioClasseLancamentoEntity> lancamento = diarioClasseLancamentoJpaRepository
+                .findByProfessorTurmaDisciplina_IdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdAndDataLancamento(
+                        alocacao.getId(),
+                        escolaId(),
+                        dataReferencia);
 
         return new DiarioClasseResponse(
                 montarCabecalho(alocacao, anoLetivo, mes, dataReferencia),
@@ -165,8 +179,8 @@ public class DiarioClasseConsultaService {
                 conteudosPlanejados,
                 observacoes,
                 avaliacoes,
-                new DiarioClasseAssinaturaResponse("", ""),
-                Boolean.FALSE);
+                assinaturaResponse(lancamento),
+                lancamento.map(DiarioClasseLancamentoEntity::getBloqueado).orElse(Boolean.FALSE));
     }
 
     @Transactional
@@ -200,13 +214,39 @@ public class DiarioClasseConsultaService {
         Map<UUID, MatriculaEntity> matriculasPorAluno = matriculas.stream()
                 .collect(Collectors.toMap(matricula -> matricula.getAluno().getId(), Function.identity()));
         validarFrequenciasObrigatorias(request.frequencias(), matriculasPorAluno.keySet(), dataLancamento);
+        LocalDate dataAssinatura = validarEObterDataAssinatura(request);
+
+        diarioClasseLancamentoJpaRepository
+                .findByProfessorTurmaDisciplina_IdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdAndDataLancamento(
+                        alocacao.getId(),
+                        escolaId(),
+                        dataLancamento)
+                .ifPresent(lancamento -> {
+                    throw new DiarioClasseLancamentoDuplicadoException();
+                });
+
+        LocalDateTime salvoEm = LocalDateTime.now();
+        DiarioClasseLancamentoEntity novoLancamento = DiarioClasseLancamentoEntity.builder()
+                .professorTurmaDisciplina(alocacao)
+                .dataLancamento(dataLancamento)
+                .mes(dataLancamento.getMonthValue())
+                .ano(dataLancamento.getYear())
+                .status(STATUS_BLOQUEADO)
+                .bloqueado(Boolean.TRUE)
+                .assinaturaProfessor(request.assinatura().nomeProfessor().trim())
+                .dataAssinatura(dataAssinatura)
+                .salvoEm(salvoEm)
+                .createdAt(salvoEm)
+                .build();
+        DiarioClasseLancamentoEntity lancamento = diarioClasseLancamentoJpaRepository.save(novoLancamento);
 
         AulaEntity aula = aulaJpaRepository
                 .findByProfessorTurmaDisciplina_IdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdAndDataAula(
                         alocacao.getId(),
                         escolaId(),
                         dataLancamento)
-                .orElseGet(() -> criarAulaDiario(alocacao, dataLancamento, request));
+                .map(aulaExistente -> vincularLancamento(aulaExistente, lancamento))
+                .orElseGet(() -> criarAulaDiario(alocacao, dataLancamento, request, lancamento));
 
         for (DiarioClasseFrequenciaRequest frequenciaRequest : request.frequencias()) {
             MatriculaEntity matricula = Optional.ofNullable(matriculasPorAluno.get(frequenciaRequest.idAluno()))
@@ -231,9 +271,9 @@ public class DiarioClasseConsultaService {
 
         return new DiarioClasseSalvarResponse(
                 idDiarioClasse,
-                "SALVO",
+                STATUS_SALVO,
                 "Diario de Classe salvo com sucesso.",
-                LocalDateTime.now(),
+                salvoEm,
                 Boolean.TRUE);
     }
 
@@ -346,6 +386,37 @@ public class DiarioClasseConsultaService {
         return valor == null ? "" : valor;
     }
 
+    private DiarioClasseAssinaturaResponse assinaturaResponse(Optional<DiarioClasseLancamentoEntity> lancamento) {
+        return lancamento
+                .map(entity -> new DiarioClasseAssinaturaResponse(
+                        nuloParaVazio(entity.getAssinaturaProfessor()),
+                        entity.getDataAssinatura() == null ? "" : entity.getDataAssinatura().format(DATA_ASSINATURA_BR)))
+                .orElseGet(() -> new DiarioClasseAssinaturaResponse("", ""));
+    }
+
+    private LocalDate validarEObterDataAssinatura(DiarioClasseSalvarRequest request) {
+        if (request.assinatura() == null
+                || request.assinatura().nomeProfessor() == null
+                || request.assinatura().nomeProfessor().isBlank()
+                || request.assinatura().dataAssinatura() == null
+                || request.assinatura().dataAssinatura().isBlank()) {
+            throw new DiarioClasseLancamentoInvalidoException("Assinatura do professor e data da assinatura sao obrigatorias.");
+        }
+        return parseDataAssinatura(request.assinatura().dataAssinatura());
+    }
+
+    private LocalDate parseDataAssinatura(String dataAssinatura) {
+        try {
+            return LocalDate.parse(dataAssinatura);
+        } catch (DateTimeParseException ignored) {
+            try {
+                return LocalDate.parse(dataAssinatura, DATA_ASSINATURA_BR);
+            } catch (DateTimeParseException ex) {
+                throw new DiarioClasseLancamentoInvalidoException("Data da assinatura invalida.");
+            }
+        }
+    }
+
     private void validarFrequenciasObrigatorias(
             List<DiarioClasseFrequenciaRequest> frequencias,
             Set<UUID> alunosEsperados,
@@ -374,9 +445,11 @@ public class DiarioClasseConsultaService {
     private AulaEntity criarAulaDiario(
             ProfessorTurmaDisciplinaEntity alocacao,
             LocalDate dataLancamento,
-            DiarioClasseSalvarRequest request) {
+            DiarioClasseSalvarRequest request,
+            DiarioClasseLancamentoEntity lancamento) {
         AulaEntity aula = AulaEntity.builder()
                 .professorTurmaDisciplina(alocacao)
+                .diarioClasseLancamento(lancamento)
                 .dataAula(dataLancamento)
                 .conteudoMinistrado(conteudoMinistrado(request))
                 .observacao(observacaoLancamento(request))
@@ -384,6 +457,14 @@ public class DiarioClasseConsultaService {
                 .createdAt(LocalDateTime.now())
                 .build();
         return aulaJpaRepository.save(aula);
+    }
+
+    private AulaEntity vincularLancamento(AulaEntity aula, DiarioClasseLancamentoEntity lancamento) {
+        if (aula.getDiarioClasseLancamento() == null) {
+            aula.setDiarioClasseLancamento(lancamento);
+            return aulaJpaRepository.save(aula);
+        }
+        return aula;
     }
 
     private SituacaoFrequenciaEntity findSituacaoFrequencia(String statusDiario) {

@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
                 "DELETE FROM frequencia_aluno",
                 "DELETE FROM frequencia_professor",
                 "DELETE FROM aula",
+                "DELETE FROM diario_classe_lancamento",
                 "DELETE FROM avaliacao",
                 "DELETE FROM planejamento_bimestral_avaliacao",
                 "DELETE FROM planejamento_bimestral_aula",
@@ -60,6 +61,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
                 "DELETE FROM frequencia_aluno",
                 "DELETE FROM frequencia_professor",
                 "DELETE FROM aula",
+                "DELETE FROM diario_classe_lancamento",
                 "DELETE FROM avaliacao",
                 "DELETE FROM planejamento_bimestral_avaliacao",
                 "DELETE FROM planejamento_bimestral_aula",
@@ -243,7 +245,10 @@ class DiarioClasseControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.alunos[0].frequencias.%d".formatted(dataLancamento.getDayOfMonth())).value("P"))
                 .andExpect(jsonPath("$.alunos[1].frequencias.%d".formatted(dataLancamento.getDayOfMonth())).value("F"))
-                .andExpect(jsonPath("$.observacoes[0]").value("Registro inicial do diario"));
+                .andExpect(jsonPath("$.observacoes[0]").value("Registro inicial do diario"))
+                .andExpect(jsonPath("$.assinatura.nomeProfessor").value("Professor Diario Fase 57 Write"))
+                .andExpect(jsonPath("$.assinatura.dataAssinatura").value(dataLancamento.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
+                .andExpect(jsonPath("$.bloqueado").value(true));
 
         mockMvc.perform(put("/api/diarios-classe/{idDiarioClasse}", idDiarioClasse)
                         .contentType(MediaType.APPLICATION_JSON)
