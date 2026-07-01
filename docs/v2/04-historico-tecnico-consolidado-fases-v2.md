@@ -1000,12 +1000,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `DIRETOR` no modelo base, porem nao possui uma fronteira interna que resolva,
   de forma testavel, o usuario autenticado como funcionario autorizado para
   checar diario por escola.
-- O menor recorte seguro definido para a proxima subfase e criar essa
-  fronteira interna de autoridade pedagogica dentro do
-  `school-management-service`, sem BFF e sem frontend: resolver usuario,
-  escola, funcionario ativo e cargo permitido (`COORDENADOR`/`DIRETOR`) por
-  contrato proprio antes de qualquer rota de checagem ou nova migracao de
-  workflow.
+- A subfase pratica seguinte criou essa fronteira interna de autoridade
+  pedagogica dentro do `school-management-service`, sem BFF e sem frontend:
+  `AutoridadePedagogicaPort` resolve usuario, escola, funcionario ativo e cargo
+  permitido (`COORDENADOR`/`DIRETOR`) por contrato proprio antes de qualquer
+  rota de checagem ou nova migracao de workflow. A resolucao usa o contexto
+  autenticado, o usuario ativo e o vinculo `pessoa`/RH por e-mail dentro da
+  escola, falhando fechado quando o funcionario nao existe ou o cargo nao e
+  permitido.
+- O proximo recorte seguro e modelar os campos/transicoes internas de checagem
+  do diario sobre essa autoridade, ainda sem alterar rotas externas no BFF.
 
 ## Historico resumido
 

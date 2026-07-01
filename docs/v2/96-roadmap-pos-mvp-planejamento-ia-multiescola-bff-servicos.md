@@ -2079,11 +2079,15 @@ Entregue na abertura da macrofase seguinte:
   monolito atual ainda nao possui uma fronteira interna que transforme o
   usuario autenticado em autoridade pedagogica verificavel por escola,
   funcionario ativo e cargo (`COORDENADOR` ou `DIRETOR`).
-- a proxima subfase pratica recomendada e introduzir essa fronteira interna de
-  autoridade pedagogica no `school-management-service`, com DTO/porta propria
-  e implementacao local sobre seguranca, pessoa/RH e tenant. So depois disso
-  devem ser abertos os campos/transicoes de checagem do diario, evitando criar
-  uma rota que confie apenas em texto de payload ou em permissao generica.
+- a subfase pratica seguinte introduziu essa fronteira interna de autoridade
+  pedagogica no `school-management-service`, com DTO/porta propria e
+  implementacao local sobre seguranca, pessoa/RH e tenant. O contrato resolve o
+  access token em usuario, escola, funcionario ativo e cargo permitido
+  (`COORDENADOR` ou `DIRETOR`), ainda sem endpoint publico, sem BFF, sem
+  frontend e sem nova migration.
+- a proxima ampliacao segura e modelar os campos/transicoes internas de
+  checagem do diario sobre essa fronteira, mantendo o workflow sem cutover
+  externo ate que rollback, consistencia e estados minimos estejam fechados.
 
 ### Fase 58 - Desativacao do monolito
 
