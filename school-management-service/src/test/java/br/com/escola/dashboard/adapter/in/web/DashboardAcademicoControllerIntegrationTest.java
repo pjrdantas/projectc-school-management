@@ -223,10 +223,11 @@ class DashboardAcademicoControllerIntegrationTest {
     private void criarHistoricoInterno(UUID alunoId) {
         jdbcTemplate.update("""
                 INSERT INTO historico_escolar (
-                    id_historico_escolar, id_aluno, origem, nome_aluno, ano_conclusao,
-                    ensino_concluido, data_emissao, observacoes, created_at
+                    id_historico_escolar, id_aluno, origem, nome_aluno, status, bloqueado,
+                    ano_conclusao, ensino_concluido, data_emissao, observacoes, created_at
                 )
-                SELECT ?, a.id_aluno, 'INTERNO', p.nome_completo, 2050, 'Ensino Fundamental', CURRENT_DATE, 'DASHBOARD-HISTORICO', CURRENT_TIMESTAMP
+                SELECT ?, a.id_aluno, 'INTERNO', p.nome_completo, 'PENDENTE', false,
+                       2050, 'Ensino Fundamental', CURRENT_DATE, 'DASHBOARD-HISTORICO', CURRENT_TIMESTAMP
                   FROM aluno a
                   JOIN pessoa p ON p.id_pessoa = a.id_pessoa
                  WHERE a.id_aluno = ?

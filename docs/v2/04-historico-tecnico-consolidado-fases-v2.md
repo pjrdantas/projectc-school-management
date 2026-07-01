@@ -973,6 +973,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   permitindo que o carregamento em modo edicao reutilize `nomeEscola`,
   `enderecoEscola`, `municipioEscola`, `cepEscola`, `emailEscola`, dados de
   nascimento e demais informacoes basicas ja suportadas pelo fluxo atual.
+- A terceira subfase pratica fechou o bloco minimo de persistencia contextual
+  desse historico sem alterar a fachada externa: `historico_escolar` passou a
+  guardar `id_matricula`, `status`, `bloqueado`, serie atual/origem e dados
+  basicos de transferencia, com preenchimento automatico a partir da matricula
+  e da transferencia mais recente do aluno no fluxo atual de criacao/edicao.
+  Assim, o carregamento em modo edicao deixa de reconstruir esse contexto
+  apenas por fallback e passa a ler primeiro o snapshot persistido.
 
 ## Historico resumido
 

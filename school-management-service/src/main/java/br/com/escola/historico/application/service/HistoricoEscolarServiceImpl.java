@@ -1,6 +1,7 @@
 package br.com.escola.historico.application.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -45,6 +46,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
 
+    private static final String STATUS_RASCUNHO = "RASCUNHO";
+    private static final String STATUS_PENDENTE = "PENDENTE";
     private static final String GOVERNO_PADRAO = "GOVERNO DO ESTADO DE SÃO PAULO";
     private static final String SECRETARIA_PADRAO = "SECRETARIA DE ESTADO DA EDUCAÇÃO";
     private static final String ATO_LEGAL_LABEL = "Ato Legal de criação:";
@@ -67,6 +70,7 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
         validarRequest(request);
         var historico = historicoEscolarMapper.toEntity(request);
         historico.setAluno(alunoEscopado(request.alunoId()));
+        preencherContextoPersistido(historico);
         var salvo = historicoEscolarJpaRepository.save(historico);
         return historicoEscolarMapper.toResponse(buscarHistoricoEscopado(salvo.getId()));
     }
@@ -79,6 +83,7 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
                 .orElseThrow(() -> new HistoricoEscolarNaoEncontradoException(id));
         historicoEscolarMapper.copyToEntity(request, historico);
         historico.setAluno(alunoEscopado(request.alunoId()));
+        preencherContextoPersistido(historico);
         var salvo = historicoEscolarJpaRepository.save(historico);
         return historicoEscolarMapper.toResponse(buscarHistoricoEscopado(salvo.getId()));
     }
@@ -141,6 +146,7 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
         }
 
         HistoricoEscolar historico = historicoEscolarGeracaoFactory.criar(request, boletim, alunoEscopado(alunoId));
+        preencherContextoPersistido(historico, matriculaId, null);
 
         var salvo = historicoEscolarJpaRepository.save(historico);
         return historicoEscolarMapper.toResponse(buscarHistoricoEscopado(salvo.getId()));
@@ -203,14 +209,16 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
                 new HistoricoEscolarTelaResponse.Contexto(
                         historico.getId(),
                         historico.getAlunoId(),
-                        matricula == null ? null : matricula.getId(),
+                        firstNonNull(historico.getMatriculaId(), matricula == null ? null : matricula.getId()),
                         "EDICAO",
-                        "RASCUNHO",
-                        serieAtual,
-                        serieConcluidaOrigem,
-                        transferencia == null || transferencia.getEscolaOrigem() == null ? "" : nullToEmpty(transferencia.getEscolaOrigem().getNome()),
-                        formatDate(transferencia == null ? null : transferencia.getDataTransferencia()),
-                        false),
+                        blankToDefault(historico.getStatus(), STATUS_RASCUNHO),
+                        firstNonNull(historico.getSerieMatriculaAtual(), serieAtual),
+                        firstNonNull(historico.getSerieConcluidaOrigem(), serieConcluidaOrigem),
+                        firstNonBlank(
+                                historico.getEscolaOrigemNome(),
+                                transferencia == null || transferencia.getEscolaOrigem() == null ? "" : transferencia.getEscolaOrigem().getNome()),
+                        formatDate(firstNonNull(historico.getDataTransferencia(), transferencia == null ? null : transferencia.getDataTransferencia())),
+                        Boolean.TRUE.equals(historico.getBloqueado())),
                 cabecalhoHistorico(historico),
                 alunoHistorico(historico),
                 periodos,
@@ -220,7 +228,10 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
                 List.of(estudoRealizadoVazio(1)),
                 nullToEmpty(historico.getObservacoes()),
                 certificadoHistorico(historico),
-                pendenciasHistorico(historico, serieAtual, serieConcluidaOrigem));
+                pendenciasHistorico(
+                        historico,
+                        firstNonNull(historico.getSerieMatriculaAtual(), serieAtual),
+                        firstNonNull(historico.getSerieConcluidaOrigem(), serieConcluidaOrigem)));
     }
 
     private void validarRequest(HistoricoEscolarRequest request) {
@@ -273,6 +284,35 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
     private AlunoEntity alunoEscopado(UUID alunoId) {
         return alunoMatriculaPort.buscarAlunoPorIdEEscola(alunoId, escolaId())
                 .orElseThrow(() -> new HistoricoEscolarInvalidoException("Aluno do histórico escolar não encontrado"));
+    }
+
+    private void preencherContextoPersistido(HistoricoEscolar historico) {
+        preencherContextoPersistido(historico, null, null);
+    }
+
+    private void preencherContextoPersistido(
+            HistoricoEscolar historico,
+            UUID matriculaIdPreferencial,
+            UUID transferenciaIdPreferencial) {
+        MatriculaEntity matricula = matriculaIdPreferencial == null
+                ? matriculaAtual(historico.getAlunoId())
+                : matriculaJpaRepository.findByIdAndTurma_Escola_Id(matriculaIdPreferencial, escolaId()).orElse(null);
+        TransferenciaAlunoEntity transferencia = transferenciaIdPreferencial == null
+                ? transferenciaAlunoJpaRepository.findByAluno_IdOrderByCreatedAtDesc(historico.getAlunoId()).stream().findFirst().orElse(null)
+                : transferenciaAlunoJpaRepository.findById(transferenciaIdPreferencial).orElse(null);
+
+        historico.setMatriculaId(matricula == null ? null : matricula.getId());
+        historico.setTransferenciaAlunoId(transferencia == null ? null : transferencia.getId());
+        historico.setSerieMatriculaAtual(serieAtual(matricula));
+        historico.setSerieConcluidaOrigem(serieConcluidaOrigem(transferencia));
+        historico.setEscolaOrigemNome(
+                transferencia == null || transferencia.getEscolaOrigem() == null
+                        ? null
+                        : trimToNull(transferencia.getEscolaOrigem().getNome()));
+        historico.setDataTransferencia(transferencia == null ? null : transferencia.getDataTransferencia());
+        historico.setBloqueado(false);
+        historico.setStatus(STATUS_PENDENTE);
+        historico.setAtualizadoEm(LocalDateTime.now());
     }
 
     private HistoricoEscolarTelaResponse.Cabecalho cabecalhoNovo(MatriculaEntity matricula) {
@@ -556,6 +596,10 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
     private String blankToDefault(String value, String defaultValue) {
         String trimmed = trimToNull(value);
         return trimmed == null ? defaultValue : trimmed;
+    }
+
+    private <T> T firstNonNull(T primary, T fallback) {
+        return primary != null ? primary : fallback;
     }
 
     private String trimToNull(String value) {

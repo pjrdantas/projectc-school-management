@@ -275,8 +275,8 @@ class AlunoControllerIntegrationTest {
     private void criarHistorico(String nomeAluno) {
         UUID historicoId = UUID.randomUUID();
         jdbcTemplate.update("""
-                INSERT INTO historico_escolar (id_historico_escolar, id_aluno, origem, nome_aluno, created_at)
-                SELECT ?, a.id_aluno, 'EXTERNO', p.nome_completo, CURRENT_TIMESTAMP
+                INSERT INTO historico_escolar (id_historico_escolar, id_aluno, origem, nome_aluno, status, bloqueado, created_at)
+                SELECT ?, a.id_aluno, 'EXTERNO', p.nome_completo, 'PENDENTE', false, CURRENT_TIMESTAMP
                   FROM aluno a
                   JOIN pessoa p ON p.id_pessoa = a.id_pessoa
                  WHERE LOWER(p.nome_completo) = LOWER(?)

@@ -2055,6 +2055,12 @@ Entregue na abertura da macrofase seguinte:
   abrir nova rota externa e sem introduzir ainda as estruturas mais amplas de
   cabecalho, periodos, pendencias ou importacao de PDF propostas no pacote
   `projetos-historico-diario`.
+- o fechamento desse bloco minimo tambem fica entregue: o agregado
+  `historico_escolar` passa a persistir o contexto minimo de workflow da nova
+  tela (`id_matricula`, `status`, `bloqueado`, serie atual/origem, escola de
+  origem e data de transferencia) com enriquecimento automatico no fluxo atual,
+  permitindo que a leitura em edicao reutilize primeiro esse snapshot antes de
+  buscar fallback dinamico no restante do monolito.
 
 ### Fase 58 - Desativacao do monolito
 

@@ -17,8 +17,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import br.com.escola.aluno.adapter.out.persistence.entity.AlunoEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -128,8 +128,35 @@ public class HistoricoEscolar {
     @Column(name = "observacoes", columnDefinition = "TEXT")
     private String observacoes;
 
+    @Column(name = "id_matricula")
+    private UUID matriculaId;
+
+    @Column(name = "id_transferencia_aluno")
+    private UUID transferenciaAlunoId;
+
+    @Column(name = "status", nullable = false, length = 30)
+    private String status;
+
+    @Column(name = "bloqueado", nullable = false)
+    private Boolean bloqueado;
+
+    @Column(name = "serie_matricula_atual")
+    private Integer serieMatriculaAtual;
+
+    @Column(name = "serie_concluida_origem")
+    private Integer serieConcluidaOrigem;
+
+    @Column(name = "escola_origem_nome", length = 150)
+    private String escolaOrigemNome;
+
+    @Column(name = "data_transferencia")
+    private LocalDate dataTransferencia;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "atualizado_em")
+    private LocalDateTime atualizadoEm;
 
     @OneToMany(
             mappedBy = "historicoEscolar",
@@ -160,5 +187,23 @@ public class HistoricoEscolar {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
+        if (status == null || status.isBlank()) {
+            status = "RASCUNHO";
+        }
+        if (bloqueado == null) {
+            bloqueado = false;
+        }
+        atualizadoEm = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        if (status == null || status.isBlank()) {
+            status = "RASCUNHO";
+        }
+        if (bloqueado == null) {
+            bloqueado = false;
+        }
+        atualizadoEm = LocalDateTime.now();
     }
 }
