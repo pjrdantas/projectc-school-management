@@ -2073,6 +2073,17 @@ Entregue na abertura da macrofase seguinte:
   corrente e em dia util. A checagem por coordenacao/direcao e a governanca de
   reabertura/correcao ficam explicitamente fora deste MVP inicial e devem ser
   diagnosticadas antes de qualquer ampliacao.
+- o diagnostico controlado do workflow de checagem do diario conclui que a
+  primeira ampliacao segura nao deve ser endpoint publico nem migration de
+  status ainda. O prototipo funcional nao especifica contrato de checagem, e o
+  monolito atual ainda nao possui uma fronteira interna que transforme o
+  usuario autenticado em autoridade pedagogica verificavel por escola,
+  funcionario ativo e cargo (`COORDENADOR` ou `DIRETOR`).
+- a proxima subfase pratica recomendada e introduzir essa fronteira interna de
+  autoridade pedagogica no `school-management-service`, com DTO/porta propria
+  e implementacao local sobre seguranca, pessoa/RH e tenant. So depois disso
+  devem ser abertos os campos/transicoes de checagem do diario, evitando criar
+  uma rota que confie apenas em texto de payload ou em permissao generica.
 
 ### Fase 58 - Desativacao do monolito
 

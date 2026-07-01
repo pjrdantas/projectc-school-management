@@ -992,6 +992,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   em dia util, usando relogio injetavel para teste deterministico. O workflow
   posterior de checagem por coordenacao/direcao permanece fora deste MVP
   backend inicial e deve ser tratado em macrofase propria.
+- A subfase seguinte iniciou o diagnostico controlado desse workflow de
+  checagem e confirmou que ainda nao e seguro abrir endpoint de coordenacao ou
+  direcao diretamente: o contrato do prototipo de diario cobre carregamento,
+  salvamento, assinatura e bloqueio, mas nao define payloads ou transicoes de
+  checagem; o backend atual possui `cargo` com codigos como `COORDENADOR` e
+  `DIRETOR` no modelo base, porem nao possui uma fronteira interna que resolva,
+  de forma testavel, o usuario autenticado como funcionario autorizado para
+  checar diario por escola.
+- O menor recorte seguro definido para a proxima subfase e criar essa
+  fronteira interna de autoridade pedagogica dentro do
+  `school-management-service`, sem BFF e sem frontend: resolver usuario,
+  escola, funcionario ativo e cargo permitido (`COORDENADOR`/`DIRETOR`) por
+  contrato proprio antes de qualquer rota de checagem ou nova migracao de
+  workflow.
 
 ## Historico resumido
 
