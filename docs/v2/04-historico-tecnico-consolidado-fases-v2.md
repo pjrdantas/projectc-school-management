@@ -28,6 +28,28 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - O roadmap arquitetural agora tambem documenta explicitamente a arvore final
   do monorepo, a arvore de plataforma, o papel de cada pasta raiz e a
   convencao estrutural obrigatoria de cada servico extraido.
+- A pasta `projetos-historico-diario` passa a ser insumo funcional oficial do
+  MVP inicial para duas frentes futuras: `diario de classe` e substituicao da
+  tela atual de `historico escolar`. Os documentos internos desse pacote
+  descrevem contratos backend, regras de bloqueio por assinatura e checagem,
+  importacao de PDF e ajustes minimos de banco que devem orientar as proximas
+  macrofases desses dominios.
+- O `diario de classe` foi classificado como evolucao prioritariamente do bloco
+  pedagogico, porque depende de `professor_turma_disciplina`, `aula`,
+  `frequencia_aluno`, `planejamento_bimestral_aula`, `avaliacao` e workflow de
+  bloqueio por papeis. A necessidade de impedir alteracoes apos assinatura do
+  professor e validacao posterior por coordenacao e direcao ainda nao existe no
+  backend atual e deve ser tratada como evolucao propria.
+- A nova tela de `historico escolar` foi classificada como substituta funcional
+  do fluxo atual em `historico`, exigindo evolucao do contrato hoje exposto em
+  `/api/historicos-escolares`: cadastro inicial incompleto, pendencias
+  calculadas, snapshot documental de cabecalho e aluno, estudos realizados,
+  certificado evolutivo e importacao de PDF como pre-preenchimento revisavel.
+- A diretriz de frontend associada a esse pacote tambem fica registrada: as
+  duas novas telas passam a ser referencia visual para o layout futuro do
+  sistema. Isso nao altera a frente atual exclusivamente backend, mas deve ser
+  considerado quando houver macrofase propria de consolidacao visual no
+  `school-management-web`.
 - A primeira subfase da Fase 52 confirmou que identidade e tenant ainda estao
   acoplados no monolito atual: `AuthService` concentra sessao opaca,
   autenticacao e contexto autenticado; `EscolaTenantService` continua sendo a

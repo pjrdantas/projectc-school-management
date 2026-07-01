@@ -322,6 +322,23 @@ PostgreSQL mantem metadados e a referencia do objeto.
 Responsabilidades: alocacao docente, diario de aula, frequencia, avaliacao,
 notas, boletim e historico academico oficial.
 
+Insumo funcional adicional do MVP inicial:
+
+- a pasta `projetos-historico-diario` passa a ser referencia oficial para duas
+  entregas futuras deste dominio: `diario de classe` e nova experiencia de
+  `historico escolar`;
+- o `diario de classe` deve atender preferencialmente professor, coordenacao
+  pedagogica e direcao, com consulta restrita para secretaria apos assinatura e
+  checagem, sem permitir alteracao de informacoes ja validadas nas etapas
+  anteriores;
+- a tela nova de `historico escolar` deve substituir a experiencia atual,
+  preservando o valor documental do dominio e ampliando o fluxo para cadastro
+  inicial incompleto, pendencias, certificado evolutivo e importacao de PDF
+  como pre-preenchimento revisavel;
+- os documentos desse pacote tambem sugerem ajustes incrementais de banco e de
+  contrato backend que devem ser tratados como insumo de futuras macrofases, e
+  nao como mudanca imediata dentro do bloco atualmente encerrado de `boletim`.
+
 Tabelas de propriedade:
 
 - `professor_turma_disciplina`;
@@ -447,6 +464,18 @@ proprietario futuro de todas as familias REST encontradas no monolito.
 | `/api/planejamentos-bimestrais`, `/api/planejamentos-ia` | planning-ai | MongoDB para payload flexivel, nao para status oficial |
 | todas as familias `/api/dashboard/**` | dashboard-query | substituir fan-out ao vivo por projecoes |
 | consulta de CEP | people | adapter externo com timeout/circuit breaker |
+
+Novo insumo de API/UX a considerar nas proximas macrofases:
+
+- futura familia `/api/diarios-classe` como parte do dominio pedagogico, com
+  contrato proprio de carregamento mensal, salvamento do dia corrente,
+  bloqueio apos assinatura e workflow de checagem por papeis;
+- substituicao evolutiva do contrato de `/api/historicos-escolares` para
+  suportar cadastro inicial com pendencias, edicao progressiva, bloqueio formal
+  e importacao de PDF;
+- a padronizacao visual das novas telas de diario e historico deve orientar a
+  futura macrofase de consolidacao de layout do frontend, sem alterar a frente
+  backend atual nesta etapa.
 
 Controllers que hoje misturam responsabilidades devem ser divididos por caso de
 uso no servico proprietario. Compatibilidade de URL fica no BFF, nao em um
