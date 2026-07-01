@@ -7,13 +7,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -85,6 +90,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class DiarioClasseControllerIntegrationTest {
 
     private static final UUID SERIE_PADRAO_ID = UUID.fromString("00000000-0000-0000-0000-000000000100");
+    private static final LocalDate HOJE_FIXO = LocalDate.of(2026, 7, 1);
+    private static final ZoneId ZONE_ID = ZoneId.of("America/Sao_Paulo");
 
     @Autowired
     private MockMvc mockMvc;
@@ -94,6 +101,16 @@ class DiarioClasseControllerIntegrationTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @TestConfiguration
+    static class DiarioClasseClockTestConfig {
+
+        @Bean
+        @Primary
+        Clock diarioClasseClock() {
+            return Clock.fixed(HOJE_FIXO.atStartOfDay(ZONE_ID).toInstant(), ZONE_ID);
+        }
+    }
 
     @Test
     @WithMockUser
@@ -160,19 +177,75 @@ class DiarioClasseControllerIntegrationTest {
     @Test
     @WithMockUser
     void deveSalvarLancamentoControladoDoDiarioClasse() throws Exception {
-        LocalDate dataLancamento = LocalDate.now();
+        DiarioLancamentoFixture fixture = criarCenarioLancamento(HOJE_FIXO, "WRITE");
+        LocalDate dataLancamento = fixture.dataLancamento();
+        String idDiarioClasse = fixture.idDiarioClasse();
+        String requestBody = requestLancamento(fixture);
+
+        mockMvc.perform(put("/api/diarios-classe/{idDiarioClasse}", idDiarioClasse)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idDiarioClasse").value(idDiarioClasse))
+                .andExpect(jsonPath("$.status").value("SALVO"))
+                .andExpect(jsonPath("$.bloqueado").value(true));
+
+        mockMvc.perform(get("/api/diarios-classe")
+                        .param("idProfessor", fixture.professorId().toString())
+                        .param("idTurma", fixture.turmaId().toString())
+                        .param("idDisciplina", fixture.disciplinaId().toString())
+                        .param("anoLetivo", String.valueOf(dataLancamento.getYear()))
+                        .param("mes", String.valueOf(dataLancamento.getMonthValue()))
+                        .param("dataReferencia", dataLancamento.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.alunos[0].frequencias.%d".formatted(dataLancamento.getDayOfMonth())).value("P"))
+                .andExpect(jsonPath("$.alunos[1].frequencias.%d".formatted(dataLancamento.getDayOfMonth())).value("F"))
+                .andExpect(jsonPath("$.observacoes[0]").value("Registro inicial do diario"))
+                .andExpect(jsonPath("$.assinatura.nomeProfessor").value("Professor Diario Fase 57 Write"))
+                .andExpect(jsonPath("$.assinatura.dataAssinatura").value(dataLancamento.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
+                .andExpect(jsonPath("$.bloqueado").value(true));
+
+        mockMvc.perform(put("/api/diarios-classe/{idDiarioClasse}", idDiarioClasse)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    @WithMockUser
+    void deveRejeitarLancamentoForaDoDiaCorrente() throws Exception {
+        DiarioLancamentoFixture fixture = criarCenarioLancamento(HOJE_FIXO.plusDays(1), "FUTURO");
+
+        mockMvc.perform(put("/api/diarios-classe/{idDiarioClasse}", fixture.idDiarioClasse())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestLancamento(fixture)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser
+    void deveRejeitarLancamentoEmFimDeSemana() throws Exception {
+        DiarioLancamentoFixture fixture = criarCenarioLancamento(LocalDate.of(2026, 7, 4), "SABADO");
+
+        mockMvc.perform(put("/api/diarios-classe/{idDiarioClasse}", fixture.idDiarioClasse())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestLancamento(fixture)))
+                .andExpect(status().isBadRequest());
+    }
+
+    private DiarioLancamentoFixture criarCenarioLancamento(LocalDate dataLancamento, String sufixo) throws Exception {
         UUID periodoId = criarPeriodo(
-                "DIARIO57-WRITE-" + dataLancamento.getYear() + "-" + System.nanoTime(),
+                "DIARIO57-WRITE-" + sufixo + "-" + System.nanoTime(),
                 dataLancamento.withDayOfMonth(1).toString(),
                 dataLancamento.withDayOfMonth(dataLancamento.lengthOfMonth()).toString());
-        UUID turmaId = criarTurma("DIARIO57-W" + Math.abs(System.nanoTime() % 10000), "Diario Fase 57 Turma Write", 30, periodoId);
-        UUID disciplinaId = criarDisciplina("Diario Fase 57 Escrita " + System.nanoTime(), 80);
+        UUID turmaId = criarTurma("DIARIO57-W" + sufixo + Math.abs(System.nanoTime() % 10000), "Diario Fase 57 Turma " + sufixo, 30, periodoId);
+        UUID disciplinaId = criarDisciplina("Diario Fase 57 Escrita " + sufixo + " " + System.nanoTime(), 80);
         UUID turmaDisciplinaId = vincularDisciplina(turmaId, disciplinaId, 80);
-        UUID funcionarioId = criarFuncionario("Professor Diario Fase 57 Write", "diario.fase57.write.professor@example.com");
+        UUID funcionarioId = criarFuncionario("Professor Diario Fase 57 " + sufixo, "diario.fase57.write." + sufixo.toLowerCase() + ".professor@example.com");
         UUID professorId = criarProfessor(funcionarioId);
         UUID alocacaoId = vincularProfessorTurmaDisciplina(professorId, turmaDisciplinaId);
-        UUID alunoUmId = criarAluno("Aluno Diario Fase 57 Write A", "diario.fase57.write.a@example.com");
-        UUID alunoDoisId = criarAluno("Aluno Diario Fase 57 Write B", "diario.fase57.write.b@example.com");
+        UUID alunoUmId = criarAluno("Aluno Diario Fase 57 " + sufixo + " A", "diario.fase57.write." + sufixo.toLowerCase() + ".a@example.com");
+        UUID alunoDoisId = criarAluno("Aluno Diario Fase 57 " + sufixo + " B", "diario.fase57.write." + sufixo.toLowerCase() + ".b@example.com");
         UUID matriculaUmId = criarMatricula(alunoUmId, turmaId, periodoId);
         UUID matriculaDoisId = criarMatricula(alunoDoisId, turmaId, periodoId);
         atualizarStatusMatricula(matriculaUmId, "EFETIVADA", "Aluno ativo no diário");
@@ -181,8 +254,19 @@ class DiarioClasseControllerIntegrationTest {
                 dataLancamento.getYear(),
                 dataLancamento.getMonthValue(),
                 alocacaoId);
+        return new DiarioLancamentoFixture(
+                dataLancamento,
+                idDiarioClasse,
+                professorId,
+                turmaId,
+                disciplinaId,
+                alunoUmId,
+                alunoDoisId);
+    }
 
-        String requestBody = """
+    private String requestLancamento(DiarioLancamentoFixture fixture) {
+        LocalDate dataLancamento = fixture.dataLancamento();
+        return """
                 {
                   "idDiarioClasse": "%s",
                   "dataLancamento": "%s",
@@ -216,44 +300,26 @@ class DiarioClasseControllerIntegrationTest {
                   }
                 }
                 """.formatted(
-                idDiarioClasse,
+                fixture.idDiarioClasse(),
                 dataLancamento,
-                alunoUmId,
+                fixture.alunoUmId(),
                 dataLancamento,
                 dataLancamento.getDayOfMonth(),
-                alunoDoisId,
+                fixture.alunoDoisId(),
                 dataLancamento,
                 dataLancamento.getDayOfMonth(),
                 dataLancamento.getDayOfMonth(),
                 dataLancamento);
+    }
 
-        mockMvc.perform(put("/api/diarios-classe/{idDiarioClasse}", idDiarioClasse)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.idDiarioClasse").value(idDiarioClasse))
-                .andExpect(jsonPath("$.status").value("SALVO"))
-                .andExpect(jsonPath("$.bloqueado").value(true));
-
-        mockMvc.perform(get("/api/diarios-classe")
-                        .param("idProfessor", professorId.toString())
-                        .param("idTurma", turmaId.toString())
-                        .param("idDisciplina", disciplinaId.toString())
-                        .param("anoLetivo", String.valueOf(dataLancamento.getYear()))
-                        .param("mes", String.valueOf(dataLancamento.getMonthValue()))
-                        .param("dataReferencia", dataLancamento.toString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.alunos[0].frequencias.%d".formatted(dataLancamento.getDayOfMonth())).value("P"))
-                .andExpect(jsonPath("$.alunos[1].frequencias.%d".formatted(dataLancamento.getDayOfMonth())).value("F"))
-                .andExpect(jsonPath("$.observacoes[0]").value("Registro inicial do diario"))
-                .andExpect(jsonPath("$.assinatura.nomeProfessor").value("Professor Diario Fase 57 Write"))
-                .andExpect(jsonPath("$.assinatura.dataAssinatura").value(dataLancamento.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
-                .andExpect(jsonPath("$.bloqueado").value(true));
-
-        mockMvc.perform(put("/api/diarios-classe/{idDiarioClasse}", idDiarioClasse)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isConflict());
+    private record DiarioLancamentoFixture(
+            LocalDate dataLancamento,
+            String idDiarioClasse,
+            UUID professorId,
+            UUID turmaId,
+            UUID disciplinaId,
+            UUID alunoUmId,
+            UUID alunoDoisId) {
     }
 
     private UUID criarFuncionario(String nome, String email) {

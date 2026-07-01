@@ -980,6 +980,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   e da transferencia mais recente do aluno no fluxo atual de criacao/edicao.
   Assim, o carregamento em modo edicao deixa de reconstruir esse contexto
   apenas por fallback e passa a ler primeiro o snapshot persistido.
+- O recorte inicial de `diario de classe` tambem foi entregue de forma
+  incremental no backend atual, sem BFF e sem frontend: a leitura mensal
+  `GET /api/diarios-classe` consolida alunos, frequencias, conteudos
+  planejados, observacoes, avaliacoes, assinatura e bloqueio; o salvamento
+  `PUT /api/diarios-classe/{idDiarioClasse}` persiste o lancamento controlado
+  em `diario_classe_lancamento`, vincula a `aula`, grava frequencias e bloqueia
+  duplicidade por alocacao/data apos assinatura do professor.
+- A subfase final desse recorte fechou as regras minimas de consistencia de
+  lancamento do diario: o backend aceita escrita somente para o dia corrente e
+  em dia util, usando relogio injetavel para teste deterministico. O workflow
+  posterior de checagem por coordenacao/direcao permanece fora deste MVP
+  backend inicial e deve ser tratado em macrofase propria.
 
 ## Historico resumido
 

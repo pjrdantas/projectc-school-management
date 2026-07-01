@@ -1,6 +1,8 @@
 package br.com.escola.professor.application.service;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -73,6 +75,7 @@ public class DiarioClasseConsultaService {
     private final SituacaoFrequenciaJpaRepository situacaoFrequenciaJpaRepository;
     private final DiarioClasseLancamentoJpaRepository diarioClasseLancamentoJpaRepository;
     private final EscolaContextoPort escolaContextoPort;
+    private final Clock clock;
 
     public DiarioClasseConsultaService(
             ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository,
@@ -84,7 +87,8 @@ public class DiarioClasseConsultaService {
             AvaliacaoJpaRepository avaliacaoJpaRepository,
             SituacaoFrequenciaJpaRepository situacaoFrequenciaJpaRepository,
             DiarioClasseLancamentoJpaRepository diarioClasseLancamentoJpaRepository,
-            EscolaContextoPort escolaContextoPort) {
+            EscolaContextoPort escolaContextoPort,
+            Clock clock) {
         this.professorTurmaDisciplinaJpaRepository = professorTurmaDisciplinaJpaRepository;
         this.aulaJpaRepository = aulaJpaRepository;
         this.frequenciaAlunoJpaRepository = frequenciaAlunoJpaRepository;
@@ -95,6 +99,7 @@ public class DiarioClasseConsultaService {
         this.situacaoFrequenciaJpaRepository = situacaoFrequenciaJpaRepository;
         this.diarioClasseLancamentoJpaRepository = diarioClasseLancamentoJpaRepository;
         this.escolaContextoPort = escolaContextoPort;
+        this.clock = clock;
     }
 
     @Transactional(readOnly = true)
@@ -195,6 +200,7 @@ public class DiarioClasseConsultaService {
                 || dataLancamento.getMonthValue() != diarioClasseId.mes()) {
             throw new DiarioClasseLancamentoInvalidoException("Data de lancamento fora do mes do diario.");
         }
+        validarDataLancamento(dataLancamento);
 
         ProfessorTurmaDisciplinaEntity alocacao = professorTurmaDisciplinaJpaRepository
                 .findByIdAndTurmaDisciplina_Turma_Escola_Id(diarioClasseId.professorTurmaDisciplinaId(), escolaId())
@@ -225,7 +231,7 @@ public class DiarioClasseConsultaService {
                     throw new DiarioClasseLancamentoDuplicadoException();
                 });
 
-        LocalDateTime salvoEm = LocalDateTime.now();
+        LocalDateTime salvoEm = LocalDateTime.now(clock);
         DiarioClasseLancamentoEntity novoLancamento = DiarioClasseLancamentoEntity.builder()
                 .professorTurmaDisciplina(alocacao)
                 .dataLancamento(dataLancamento)
@@ -264,7 +270,7 @@ public class DiarioClasseConsultaService {
                     .aula(aula)
                     .matricula(matricula)
                     .situacaoFrequencia(findSituacaoFrequencia(frequenciaRequest.status()))
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(LocalDateTime.now(clock))
                     .build();
             frequenciaAlunoJpaRepository.save(frequencia);
         }
@@ -417,6 +423,16 @@ public class DiarioClasseConsultaService {
         }
     }
 
+    private void validarDataLancamento(LocalDate dataLancamento) {
+        DayOfWeek diaSemana = dataLancamento.getDayOfWeek();
+        if (diaSemana == DayOfWeek.SATURDAY || diaSemana == DayOfWeek.SUNDAY) {
+            throw new DiarioClasseLancamentoInvalidoException("Lancamento do diario permitido apenas em dia util.");
+        }
+        if (!dataLancamento.equals(LocalDate.now(clock))) {
+            throw new DiarioClasseLancamentoInvalidoException("Lancamento do diario permitido apenas para o dia corrente.");
+        }
+    }
+
     private void validarFrequenciasObrigatorias(
             List<DiarioClasseFrequenciaRequest> frequencias,
             Set<UUID> alunosEsperados,
@@ -454,7 +470,7 @@ public class DiarioClasseConsultaService {
                 .conteudoMinistrado(conteudoMinistrado(request))
                 .observacao(observacaoLancamento(request))
                 .realizada(Boolean.TRUE)
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now(clock))
                 .build();
         return aulaJpaRepository.save(aula);
     }

@@ -2061,6 +2061,18 @@ Entregue na abertura da macrofase seguinte:
   origem e data de transferencia) com enriquecimento automatico no fluxo atual,
   permitindo que a leitura em edicao reutilize primeiro esse snapshot antes de
   buscar fallback dinamico no restante do monolito.
+- o primeiro bloco backend de `diario de classe` tambem fica entregue no
+  `school-management-service`, ainda sem BFF e sem frontend: a leitura mensal
+  consolida dados de alunos, frequencias, planejamento, observacoes,
+  avaliacoes, assinatura e bloqueio; a escrita controlada cria o lancamento
+  persistido, vincula a aula do dia, grava frequencias obrigatorias para todos
+  os alunos ativos e bloqueia nova escrita para a mesma alocacao/data apos a
+  assinatura do professor.
+- a subfase final do diario fecha a regra minima de governanca operacional:
+  `PUT /api/diarios-classe/{idDiarioClasse}` so aceita lancamento no dia
+  corrente e em dia util. A checagem por coordenacao/direcao e a governanca de
+  reabertura/correcao ficam explicitamente fora deste MVP inicial e devem ser
+  diagnosticadas antes de qualquer ampliacao.
 
 ### Fase 58 - Desativacao do monolito
 
