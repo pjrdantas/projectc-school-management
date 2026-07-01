@@ -50,46 +50,46 @@ public class HistoricoEscolar {
     @Column(name = "origem", nullable = false, length = 20)
     private String origem;
 
-    @Transient
+    @Column(name = "nome_aluno", nullable = false, length = 255)
     private String nomeAluno;
 
-    @Transient
+    @Column(name = "rg_ren", length = 80)
     private String rgRen;
 
-    @Transient
+    @Column(name = "ra", length = 80)
     private String ra;
 
-    @Transient
+    @Column(name = "rm", length = 80)
     private String rm;
 
-    @Transient
+    @Column(name = "data_nascimento")
     private LocalDate dataNascimento;
 
-    @Transient
+    @Column(name = "municipio_nascimento", length = 150)
     private String municipioNascimento;
 
-    @Transient
+    @Column(name = "estado_nascimento", length = 2)
     private String estadoNascimento;
 
-    @Transient
+    @Column(name = "pais_nascimento", length = 100)
     private String paisNascimento;
 
-    @Transient
+    @Column(name = "nome_escola", length = 255)
     private String nomeEscola;
 
-    @Transient
+    @Column(name = "endereco_escola", length = 255)
     private String enderecoEscola;
 
-    @Transient
+    @Column(name = "municipio_escola", length = 150)
     private String municipioEscola;
 
-    @Transient
+    @Column(name = "cep_escola", length = 10)
     private String cepEscola;
 
-    @Transient
+    @Column(name = "telefone_escola", length = 30)
     private String telefoneEscola;
 
-    @Transient
+    @Column(name = "email_escola", length = 150)
     private String emailEscola;
 
     @Column(name = "ano_conclusao")

@@ -966,6 +966,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   de matricula, cabecalho documental, periodos, componentes e pendencias para
   a nova tela, preservando intactos o contrato de salvamento vigente e a
   ausencia de importacao de PDF nesta etapa.
+- A segunda subfase pratica iniciou a persistencia minima controlada desse
+  recorte sem trocar rotas externas: os campos documentais ja aceitos pelo
+  contrato atual de `POST/PUT /api/historicos-escolares` deixaram de ficar
+  apenas em memoria e passaram a compor o snapshot persistido do historico,
+  permitindo que o carregamento em modo edicao reutilize `nomeEscola`,
+  `enderecoEscola`, `municipioEscola`, `cepEscola`, `emailEscola`, dados de
+  nascimento e demais informacoes basicas ja suportadas pelo fluxo atual.
 
 ## Historico resumido
 

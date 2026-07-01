@@ -2048,6 +2048,13 @@ Entregue na abertura da macrofase seguinte:
   `GET /api/historicos-escolares/{id}/carregamento` alimentando a nova tela sem
   alterar o contrato externo atual de criacao/edicao, sem trocar o fluxo de
   persistencia vigente e sem introduzir importacao de PDF neste recorte.
+- a subfase seguinte recomendada para esse mesmo bloco tambem fica entregue no
+  menor recorte possivel: os campos documentais basicos ja presentes no
+  contrato atual de `historico escolar` passam a ser persistidos de fato no
+  agregado, reduzindo o uso de fallback em modo edicao sem alterar o BFF, sem
+  abrir nova rota externa e sem introduzir ainda as estruturas mais amplas de
+  cabecalho, periodos, pendencias ou importacao de PDF propostas no pacote
+  `projetos-historico-diario`.
 
 ### Fase 58 - Desativacao do monolito
 

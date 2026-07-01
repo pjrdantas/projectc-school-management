@@ -80,6 +80,9 @@ class HistoricoEscolarControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(historicoId.toString()))
                 .andExpect(jsonPath("$.alunoId").value(ALUNO_ID))
+                .andExpect(jsonPath("$.nomeEscola").value("Escola Municipal Central"))
+                .andExpect(jsonPath("$.municipioEscola").value("São Paulo"))
+                .andExpect(jsonPath("$.emailEscola").value("secretaria@escola.com"))
                 .andExpect(jsonPath("$.componentesCurriculares.length()").value(2));
 
         mockMvc.perform(get("/api/historicos-escolares/alunos/{alunoId}", ALUNO_ID))
@@ -196,8 +199,12 @@ class HistoricoEscolarControllerIntegrationTest {
                 .andExpect(jsonPath("$.contexto.idMatricula").value(MATRICULA_ID))
                 .andExpect(jsonPath("$.contexto.modo").value("EDICAO"))
                 .andExpect(jsonPath("$.contexto.serieMatriculaAtual").value(5))
-                .andExpect(jsonPath("$.cabecalho.escola").value("Escola padrão"))
+                .andExpect(jsonPath("$.cabecalho.escola").value("Escola Municipal Central"))
+                .andExpect(jsonPath("$.cabecalho.endereco").value("Rua Central, 100"))
+                .andExpect(jsonPath("$.cabecalho.municipio").value("São Paulo"))
+                .andExpect(jsonPath("$.cabecalho.cep").value("01001000"))
                 .andExpect(jsonPath("$.aluno.nome").value("PAULO JOSE ROCHA DANTAS"))
+                .andExpect(jsonPath("$.aluno.nascimentoEstado").value("SP"))
                 .andExpect(jsonPath("$.periodos.length()").value(1))
                 .andExpect(jsonPath("$.periodos[0].serie").value("5 série"))
                 .andExpect(jsonPath("$.baseComum.length()").value(1))
