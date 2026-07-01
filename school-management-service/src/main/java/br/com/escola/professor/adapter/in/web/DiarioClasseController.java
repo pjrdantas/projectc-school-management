@@ -6,12 +6,18 @@ import java.util.UUID;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.escola.professor.adapter.in.web.dto.DiarioClasseSalvarRequest;
+import br.com.escola.professor.adapter.in.web.dto.DiarioClasseSalvarResponse;
 import br.com.escola.professor.adapter.in.web.dto.DiarioClasseResponse;
 import br.com.escola.professor.application.service.DiarioClasseConsultaService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/diarios-classe")
@@ -39,5 +45,13 @@ public class DiarioClasseController {
                 anoLetivo,
                 mes,
                 dataReferencia);
+    }
+
+    @PutMapping("/{idDiarioClasse}")
+    @Operation(summary = "Salva o lancamento controlado do diario de classe")
+    public DiarioClasseSalvarResponse salvar(
+            @PathVariable String idDiarioClasse,
+            @Valid @RequestBody DiarioClasseSalvarRequest request) {
+        return diarioClasseConsultaService.salvar(idDiarioClasse, request);
     }
 }

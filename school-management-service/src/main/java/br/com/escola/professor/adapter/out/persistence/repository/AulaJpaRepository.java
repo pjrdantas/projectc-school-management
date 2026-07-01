@@ -24,6 +24,12 @@ public interface AulaJpaRepository extends JpaRepository<AulaEntity, UUID> {
                     LocalDate dataInicial,
                     LocalDate dataFinal);
 
+    Optional<AulaEntity>
+            findByProfessorTurmaDisciplina_IdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdAndDataAula(
+                    UUID professorTurmaDisciplinaId,
+                    UUID escolaId,
+                    LocalDate dataAula);
+
     List<AulaEntity> findByDataAula(LocalDate dataAula);
 
     List<AulaEntity> findByProfessorTurmaDisciplinaTurmaDisciplinaTurmaId(UUID turmaId);
