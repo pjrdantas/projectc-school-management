@@ -1975,6 +1975,25 @@ Proxima subfase pratica:
 - se a revisao confirmar o bloco limpo, preparar a transicao para o proximo
   recorte backend/backend sem ampliar escopo nesta mesma fase.
 
+Entregue na subfase final deste bloco:
+
+- a revisao formal do recorte de `boletim` confirmou que nao restou leitura
+  direta por repositorio de `matricula` ou `disciplina` em `BoletimService`,
+  ficando o fluxo restrito aos contratos internos `MatriculaBoletimPort`,
+  `RendimentoAcademicoPort` e `DisciplinaBoletimPort`;
+- os unicos vinculos JPA remanescentes ficaram limitados aos pontos locais de
+  persistencia oficial (`MatriculaEntity` para `BoletimEntity` e
+  `DisciplinaEntity` para `boletim_item`), sem reabrir acoplamento de leitura;
+- com isso, o primeiro ciclo de cutover controlado backend/backend do bloco de
+  `boletim` fica formalmente encerrado no backend atual, sem alterar rota
+  externa, sem BFF e sem persistencia propria adicional nesta macrofase.
+
+Proxima fase sugerida:
+
+- iniciar o proximo diagnostico backend/backend fora de `boletim`, priorizando
+  um novo recorte minimo com baixo risco transacional e baixo acoplamento de
+  escrita antes de qualquer movimento maior de persistencia propria.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

@@ -913,6 +913,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   passou a resolver a disciplina por contrato interno escopado por escola,
   mantendo `DisciplinaEntity` apenas como referencia JPA local em
   `EntityManager.getReference(...)` na persistencia de `boletim_item`.
+- A subfase final deste bloco fez a revisao formal do recorte de `boletim` e
+  confirmou que nao restou leitura direta fora do padrao interno aplicado. O
+  fluxo permaneceu dependente apenas de `MatriculaBoletimPort`,
+  `RendimentoAcademicoPort` e `DisciplinaBoletimPort` para leitura e resumo de
+  contexto, mantendo `MatriculaEntity` e `DisciplinaEntity` somente como
+  referencias JPA locais nos pontos estritamente necessarios de persistencia.
+  Com isso, o primeiro ciclo de cutover controlado backend/backend em
+  `boletim` fica formalmente encerrado sem alterar contratos REST, sem mexer no
+  BFF e sem abrir persistencia propria adicional nesta mesma fase.
 
 ## Historico resumido
 
