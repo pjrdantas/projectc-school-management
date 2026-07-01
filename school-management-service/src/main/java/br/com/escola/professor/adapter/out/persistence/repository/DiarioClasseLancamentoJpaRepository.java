@@ -15,4 +15,8 @@ public interface DiarioClasseLancamentoJpaRepository extends JpaRepository<Diari
                     UUID professorTurmaDisciplinaId,
                     UUID escolaId,
                     LocalDate dataLancamento);
+
+    Optional<DiarioClasseLancamentoEntity> findByIdAndProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_Id(
+            UUID id,
+            UUID escolaId);
 }

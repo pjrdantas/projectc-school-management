@@ -2088,6 +2088,16 @@ Entregue na abertura da macrofase seguinte:
 - a proxima ampliacao segura e modelar os campos/transicoes internas de
   checagem do diario sobre essa fronteira, mantendo o workflow sem cutover
   externo ate que rollback, consistencia e estados minimos estejam fechados.
+- essa ampliacao interna foi materializada no `school-management-service` com
+  metadados auditaveis em `diario_classe_lancamento` para checagem por
+  coordenacao e direcao, extensao controlada dos status
+  (`CHECADO_COORDENACAO`, `CHECADO_DIRECAO`) e servico transacional interno que
+  aplica a sequencia `BLOQUEADO -> CHECADO_COORDENACAO -> CHECADO_DIRECAO`
+  usando `AutoridadePedagogicaPort`. A subfase ainda nao cria endpoint publico,
+  nao altera BFF e nao toca frontend.
+- o proximo recorte seguro passa a ser expor o primeiro adaptador controlado
+  para acionar essas transicoes, mantendo o mesmo contrato interno, sem permitir
+  payload que burle cargo, escola ou ordem de checagem.
 
 ### Fase 58 - Desativacao do monolito
 

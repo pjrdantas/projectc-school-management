@@ -1010,6 +1010,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   permitido.
 - O proximo recorte seguro e modelar os campos/transicoes internas de checagem
   do diario sobre essa autoridade, ainda sem alterar rotas externas no BFF.
+- A subfase seguinte materializou esse recorte interno: a tabela
+  `diario_classe_lancamento` passa a ter metadados auditaveis para checagem da
+  coordenacao e da direcao, o status aceita `CHECADO_COORDENACAO` e
+  `CHECADO_DIRECAO`, e `DiarioClasseChecagemService` aplica a sequencia
+  controlada `BLOQUEADO -> CHECADO_COORDENACAO -> CHECADO_DIRECAO` usando
+  `AutoridadePedagogicaPort`. A entrega continua sem BFF, sem frontend e sem
+  endpoint publico.
+- O proximo passo seguro e abrir o primeiro adaptador controlado para essa
+  checagem, reutilizando o servico interno e mantendo validação por escola,
+  funcionario ativo, cargo e ordem da transicao.
 
 ## Historico resumido
 

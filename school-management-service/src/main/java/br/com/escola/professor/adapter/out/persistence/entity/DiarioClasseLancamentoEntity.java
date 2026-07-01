@@ -60,6 +60,24 @@ public class DiarioClasseLancamentoEntity implements Serializable {
     @Column(name = "salvo_em")
     private LocalDateTime salvoEm;
 
+    @Column(name = "checado_coordenacao_por_funcionario")
+    private UUID checadoCoordenacaoPorFuncionario;
+
+    @Column(name = "checado_coordenacao_em")
+    private LocalDateTime checadoCoordenacaoEm;
+
+    @Column(name = "observacao_coordenacao", length = 500)
+    private String observacaoCoordenacao;
+
+    @Column(name = "checado_direcao_por_funcionario")
+    private UUID checadoDirecaoPorFuncionario;
+
+    @Column(name = "checado_direcao_em")
+    private LocalDateTime checadoDirecaoEm;
+
+    @Column(name = "observacao_direcao", length = 500)
+    private String observacaoDirecao;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
