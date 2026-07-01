@@ -2098,6 +2098,14 @@ Entregue na abertura da macrofase seguinte:
 - o proximo recorte seguro passa a ser expor o primeiro adaptador controlado
   para acionar essas transicoes, mantendo o mesmo contrato interno, sem permitir
   payload que burle cargo, escola ou ordem de checagem.
+- o adaptador backend controlado foi aberto em `/api/diarios-classe/lancamentos/{idLancamento}/checagens/coordenacao`
+  e `/api/diarios-classe/lancamentos/{idLancamento}/checagens/direcao`. As
+  rotas exigem Bearer token, nao aceitam escola/cargo no payload e delegam a
+  validacao para `DiarioClasseChecagemService` + `AutoridadePedagogicaPort`,
+  preservando a ordem obrigatoria da transicao e mantendo BFF/frontend fora do
+  escopo.
+- com isso, o bloco backend de checagem do diario fica pronto para fechamento
+  formal antes de qualquer evolucao de BFF ou tela.
 
 ### Fase 58 - Desativacao do monolito
 

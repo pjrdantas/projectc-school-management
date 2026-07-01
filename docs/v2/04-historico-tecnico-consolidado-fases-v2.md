@@ -1020,6 +1020,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - O proximo passo seguro e abrir o primeiro adaptador controlado para essa
   checagem, reutilizando o servico interno e mantendo validação por escola,
   funcionario ativo, cargo e ordem da transicao.
+- A ultima subfase pratica abriu esse adaptador backend controlado sem BFF e sem
+  frontend: `/api/diarios-classe/lancamentos/{idLancamento}/checagens/coordenacao`
+  e `/api/diarios-classe/lancamentos/{idLancamento}/checagens/direcao` exigem
+  Bearer token e delegam a validacao de escola, cargo e ordem do workflow para
+  `DiarioClasseChecagemService` e `AutoridadePedagogicaPort`. O payload aceita
+  apenas observacao, evitando que cliente informe cargo, escola ou autoridade.
+- Com essa entrega, o bloco backend de checagem do diario esta apto para
+  fechamento formal antes de qualquer recorte de BFF/frontend.
 
 ## Historico resumido
 
