@@ -904,6 +904,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   escopada da matricula e passou a manter o detalhe estrutural de
   `MatriculaEntity` apenas no ponto da persistencia oficial do fechamento por
   `EntityManager.getReference(...)`.
+- A subfase seguinte aplicou o mesmo criterio ao detalhe estrutural restante de
+  `disciplina` no fechamento persistido de `boletim`. Foi criada a fronteira
+  interna `DisciplinaBoletimPort`, implementada em
+  `CatalogoAcademicoInternalService`, com o resumo `DisciplinaBoletimResumo`
+  contendo apenas `disciplinaId`, `nome` e `cargaHoraria`. Com isso,
+  `BoletimService` deixou de usar `DisciplinaJpaRepository` diretamente e
+  passou a resolver a disciplina por contrato interno escopado por escola,
+  mantendo `DisciplinaEntity` apenas como referencia JPA local em
+  `EntityManager.getReference(...)` na persistencia de `boletim_item`.
 
 ## Historico resumido
 

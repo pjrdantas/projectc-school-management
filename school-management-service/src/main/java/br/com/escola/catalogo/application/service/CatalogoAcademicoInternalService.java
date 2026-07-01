@@ -20,17 +20,19 @@ import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaDisciplina
 import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaJpaRepository;
 import br.com.escola.catalogo.adapter.out.persistence.repository.TurnoJpaRepository;
 import br.com.escola.catalogo.application.dto.internal.DisciplinaResumo;
+import br.com.escola.catalogo.application.dto.internal.DisciplinaBoletimResumo;
 import br.com.escola.catalogo.application.dto.internal.PeriodoLetivoResumo;
 import br.com.escola.catalogo.application.dto.internal.SerieResumo;
 import br.com.escola.catalogo.application.dto.internal.TurmaDisciplinaResumo;
 import br.com.escola.catalogo.application.dto.internal.TurmaResumo;
 import br.com.escola.catalogo.application.dto.internal.TurnoResumo;
 import br.com.escola.catalogo.application.port.internal.CatalogoAcademicoPort;
+import br.com.escola.catalogo.application.port.internal.DisciplinaBoletimPort;
 import br.com.escola.catalogo.application.port.internal.EstruturaTurmaPort;
 import br.com.escola.institucional.application.port.EscolaContextoPort;
 
 @Service
-public class CatalogoAcademicoInternalService implements CatalogoAcademicoPort, EstruturaTurmaPort {
+public class CatalogoAcademicoInternalService implements CatalogoAcademicoPort, EstruturaTurmaPort, DisciplinaBoletimPort {
 
     private final PeriodoLetivoJpaRepository periodoLetivoJpaRepository;
     private final SerieJpaRepository serieJpaRepository;
@@ -120,6 +122,13 @@ public class CatalogoAcademicoInternalService implements CatalogoAcademicoPort, 
     public Optional<DisciplinaResumo> buscarDisciplina(UUID escolaId, UUID disciplinaId) {
         return disciplinaJpaRepository.findByIdAndEscola_Id(disciplinaId, resolverEscolaId(escolaId))
                 .map(this::toDisciplinaResumo);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<DisciplinaBoletimResumo> buscarResumoPorIdEEscola(UUID disciplinaId, UUID escolaId) {
+        return disciplinaJpaRepository.findByIdAndEscola_Id(disciplinaId, resolverEscolaId(escolaId))
+                .map(this::toDisciplinaBoletimResumo);
     }
 
     @Override
@@ -216,6 +225,13 @@ public class CatalogoAcademicoInternalService implements CatalogoAcademicoPort, 
                 entity.getNome(),
                 entity.getCargaHoraria(),
                 !"INATIVA".equalsIgnoreCase(entity.getStatus()));
+    }
+
+    private DisciplinaBoletimResumo toDisciplinaBoletimResumo(DisciplinaEntity entity) {
+        return new DisciplinaBoletimResumo(
+                entity.getId(),
+                entity.getNome(),
+                entity.getCargaHoraria());
     }
 
     private TurmaResumo toTurmaResumo(TurmaEntity entity) {

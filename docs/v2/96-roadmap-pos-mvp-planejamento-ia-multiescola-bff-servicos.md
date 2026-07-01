@@ -1955,6 +1955,26 @@ Proxima subfase pratica:
 - manter a evolucao backend/backend, sem BFF e sem persistencia propria
   adicional nesta etapa.
 
+Entregue na subfase seguinte:
+
+- o detalhe estrutural minimo remanescente de `disciplina` em `boletim` foi
+  extraido para a fronteira interna `DisciplinaBoletimPort`, com o resumo
+  `DisciplinaBoletimResumo` implementado em `CatalogoAcademicoInternalService`;
+- `BoletimService` deixou de consultar `DisciplinaJpaRepository` diretamente no
+  fechamento persistido e passou a usar resumo interno por escola, mantendo
+  `DisciplinaEntity` apenas como referencia JPA local para gravar
+  `boletim_item`;
+- o recorte continuou sem alterar rotas externas no BFF, sem persistencia
+  propria nova e sem refatoracao ampla.
+
+Proxima subfase pratica:
+
+- revisar o bloco restante de `boletim` para fechamento formal deste ciclo e
+  confirmar se nao resta leitura ou resolucao estrutural direta fora do padrao
+  interno ja aplicado;
+- se a revisao confirmar o bloco limpo, preparar a transicao para o proximo
+  recorte backend/backend sem ampliar escopo nesta mesma fase.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

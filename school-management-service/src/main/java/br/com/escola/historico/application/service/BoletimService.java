@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.catalogo.adapter.out.persistence.entity.DisciplinaEntity;
-import br.com.escola.catalogo.adapter.out.persistence.repository.DisciplinaJpaRepository;
+import br.com.escola.catalogo.application.dto.internal.DisciplinaBoletimResumo;
+import br.com.escola.catalogo.application.port.internal.DisciplinaBoletimPort;
+import br.com.escola.catalogo.domain.exception.DisciplinaNaoEncontradaException;
 import br.com.escola.historico.adapter.in.web.dto.BoletimFechamentoRequest;
 import br.com.escola.historico.adapter.in.web.dto.BoletimIndicadoresResponse;
 import br.com.escola.historico.adapter.in.web.dto.BoletimItemResponse;
@@ -43,7 +45,7 @@ public class BoletimService {
 
     private final MatriculaBoletimPort matriculaBoletimPort;
     private final RendimentoAcademicoPort rendimentoAcademicoPort;
-    private final DisciplinaJpaRepository disciplinaJpaRepository;
+    private final DisciplinaBoletimPort disciplinaBoletimPort;
     private final BoletimJpaRepository boletimJpaRepository;
     private final BoletimItemJpaRepository boletimItemJpaRepository;
     private final EscolaContextoPort escolaContextoPort;
@@ -52,14 +54,14 @@ public class BoletimService {
     public BoletimService(
             MatriculaBoletimPort matriculaBoletimPort,
             RendimentoAcademicoPort rendimentoAcademicoPort,
-            DisciplinaJpaRepository disciplinaJpaRepository,
+            DisciplinaBoletimPort disciplinaBoletimPort,
             BoletimJpaRepository boletimJpaRepository,
             BoletimItemJpaRepository boletimItemJpaRepository,
             EscolaContextoPort escolaContextoPort,
             EntityManager entityManager) {
         this.matriculaBoletimPort = matriculaBoletimPort;
         this.rendimentoAcademicoPort = rendimentoAcademicoPort;
-        this.disciplinaJpaRepository = disciplinaJpaRepository;
+        this.disciplinaBoletimPort = disciplinaBoletimPort;
         this.boletimJpaRepository = boletimJpaRepository;
         this.boletimItemJpaRepository = boletimItemJpaRepository;
         this.escolaContextoPort = escolaContextoPort;
@@ -174,16 +176,17 @@ public class BoletimService {
     }
 
     private void salvarItens(BoletimEntity boletim, List<BoletimItemResponse> itens) {
+        UUID escolaId = escolaId();
         List<BoletimItemEntity> entities = itens.stream()
                 .map(item -> {
-                    DisciplinaEntity disciplina = disciplina(item.disciplinaId());
+                    DisciplinaBoletimResumo disciplina = disciplina(item.disciplinaId(), escolaId);
                     return BoletimItemEntity.builder()
                             .boletim(boletim)
-                            .disciplina(disciplina)
+                            .disciplina(entityManager.getReference(DisciplinaEntity.class, disciplina.disciplinaId()))
                             .media(item.media())
                             .frequenciaPercentual(item.frequenciaPercentual())
                             .resultado(item.resultado())
-                            .cargaHoraria(disciplina.getCargaHoraria())
+                            .cargaHoraria(disciplina.cargaHoraria())
                             .observacao("Fechamento gerado automaticamente")
                             .build();
                 })
@@ -191,9 +194,9 @@ public class BoletimService {
         boletimItemJpaRepository.saveAll(entities);
     }
 
-    private DisciplinaEntity disciplina(UUID disciplinaId) {
-        return disciplinaJpaRepository.findById(disciplinaId)
-                .orElseThrow(() -> new IllegalArgumentException("Disciplina não encontrada: " + disciplinaId));
+    private DisciplinaBoletimResumo disciplina(UUID disciplinaId, UUID escolaId) {
+        return disciplinaBoletimPort.buscarResumoPorIdEEscola(disciplinaId, escolaId)
+                .orElseThrow(() -> new DisciplinaNaoEncontradaException(disciplinaId));
     }
 
     private BoletimResponse toBoletimPersistidoResponse(
