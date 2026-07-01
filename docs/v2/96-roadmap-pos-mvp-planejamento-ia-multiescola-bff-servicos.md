@@ -2042,6 +2042,12 @@ Entregue na abertura da macrofase seguinte:
   matricula, pendencias e dados documentais, sem substituir ainda o salvamento
   atual, sem importacao de PDF nesta etapa e sem mover ainda para o workflow
   mais pesado de `diario de classe`.
+- essa primeira subfase pratica passa a ficar entregue de forma aditiva no
+  `school-management-service`, com os endpoints
+  `GET /api/historicos-escolares/novo` e
+  `GET /api/historicos-escolares/{id}/carregamento` alimentando a nova tela sem
+  alterar o contrato externo atual de criacao/edicao, sem trocar o fluxo de
+  persistencia vigente e sem introduzir importacao de PDF neste recorte.
 
 ### Fase 58 - Desativacao do monolito
 

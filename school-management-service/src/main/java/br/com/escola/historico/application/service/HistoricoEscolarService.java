@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarRequest;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarResponse;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarGeracaoRequest;
+import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarTelaResponse;
 
 public interface HistoricoEscolarService {
 
@@ -25,4 +26,8 @@ public interface HistoricoEscolarService {
     Page<HistoricoEscolarResponse> listar(Pageable pageable);
 
     HistoricoEscolarResponse gerarPorBoletim(UUID matriculaId, HistoricoEscolarGeracaoRequest request);
+
+    HistoricoEscolarTelaResponse carregarNovo(UUID alunoId, UUID matriculaId, String modo);
+
+    HistoricoEscolarTelaResponse carregarParaEdicao(UUID id);
 }

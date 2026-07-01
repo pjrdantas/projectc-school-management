@@ -960,6 +960,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   pendencias e dados documentais sem substituir ainda o salvamento atual, sem
   importar PDF nesta etapa e sem avancar para o workflow mais pesado de
   `diario de classe`.
+- A primeira subfase pratica dessa macrofase implementou esse carregamento de
+  forma aditiva no backend atual: `GET /api/historicos-escolares/novo` e
+  `GET /api/historicos-escolares/{id}/carregamento` passaram a expor contexto
+  de matricula, cabecalho documental, periodos, componentes e pendencias para
+  a nova tela, preservando intactos o contrato de salvamento vigente e a
+  ausencia de importacao de PDF nesta etapa.
 
 ## Historico resumido
 
