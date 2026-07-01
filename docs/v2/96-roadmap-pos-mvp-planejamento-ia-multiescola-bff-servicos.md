@@ -2023,6 +2023,26 @@ Proxima fase sugerida:
   um novo recorte minimo com baixo risco transacional e baixo acoplamento de
   escrita antes de qualquer movimento maior de persistencia propria.
 
+Entregue na abertura da macrofase seguinte:
+
+- foi executado o diagnostico comparativo inicial entre as duas novas frentes
+  do pacote `projetos-historico-diario`: `diario de classe` e substituicao da
+  tela de `historico escolar`;
+- `diario de classe` foi classificado como recorte mais pesado neste momento,
+  porque exige agregacao mensal propria, regras de dia util, bloqueio apos
+  assinatura, checagem por coordenacao/direcao e novas estruturas de
+  persistencia sobre o bloco pedagogico atual de `aula`, `frequencia`,
+  `planejamento` e `avaliacao`;
+- a nova experiencia de `historico escolar` foi classificada como o menor
+  primeiro recorte seguro da macrofase, porque pode iniciar por contrato de
+  leitura e carregamento da tela dentro do dominio de `historico`, que ja possui
+  endpoint e base oficial ativos;
+- por esse motivo, a primeira subfase pratica recomendada passa a ser abrir o
+  carregamento de `historico escolar` em modo cadastro/edicao com contexto de
+  matricula, pendencias e dados documentais, sem substituir ainda o salvamento
+  atual, sem importacao de PDF nesta etapa e sem mover ainda para o workflow
+  mais pesado de `diario de classe`.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

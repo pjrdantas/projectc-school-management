@@ -944,6 +944,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   Com isso, o primeiro ciclo de cutover controlado backend/backend em
   `boletim` fica formalmente encerrado sem alterar contratos REST, sem mexer no
   BFF e sem abrir persistencia propria adicional nesta mesma fase.
+- A macrofase seguinte foi aberta por diagnostico pontual do novo pacote
+  funcional `diario de classe + historico escolar`, usando a pasta
+  `projetos-historico-diario` como insumo de MVP. A comparacao entre as duas
+  frentes mostrou que `diario de classe` possui risco transacional maior neste
+  momento, porque exige agregacao mensal propria, bloqueio por data util,
+  assinatura do professor, checagem por coordenacao/direcao e nova governanca
+  de alteracao sobre `aula`, `frequencia_aluno`, `planejamento` e
+  `avaliacao`. Ja a substituicao da tela de `historico escolar`, embora amplie
+  bastante o contrato atual, permanece mais concentrada no proprio dominio de
+  `historico`, que ja possui endpoint, entidade e fluxo oficial em operacao.
+- Com isso, o menor primeiro recorte seguro dessa macrofase fica definido como
+  a leitura e preparacao contratual do novo `historico escolar`: abrir o
+  carregamento de cadastro/edicao da nova tela com contexto de matricula,
+  pendencias e dados documentais sem substituir ainda o salvamento atual, sem
+  importar PDF nesta etapa e sem avancar para o workflow mais pesado de
+  `diario de classe`.
 
 ## Historico resumido
 
