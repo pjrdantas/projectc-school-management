@@ -2106,6 +2106,15 @@ Entregue na abertura da macrofase seguinte:
   escopo.
 - com isso, o bloco backend de checagem do diario fica pronto para fechamento
   formal antes de qualquer evolucao de BFF ou tela.
+- o fechamento formal confirma que o recorte backend de checagem do diario esta
+  encerrado: existem fronteira de autoridade pedagogica, metadados persistidos,
+  transicoes internas, migration, endpoints backend controlados e testes
+  automatizados cobrindo a sequencia minima. Nao houve BFF, frontend ou
+  permissao de cliente informar escola/cargo/autoridade.
+- a proxima decisao de macrofase deve escolher entre: (1) iniciar o recorte
+  BFF/frontend do diario usando os endpoints ja controlados; ou (2) manter a
+  frente exclusivamente backend e abrir nova familia funcional, preservando o
+  diario como bloco backend fechado.
 
 ### Fase 58 - Desativacao do monolito
 

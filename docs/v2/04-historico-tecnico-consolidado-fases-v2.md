@@ -1028,6 +1028,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   apenas observacao, evitando que cliente informe cargo, escola ou autoridade.
 - Com essa entrega, o bloco backend de checagem do diario esta apto para
   fechamento formal antes de qualquer recorte de BFF/frontend.
+- O fechamento formal confirmou o bloco backend de checagem do diario como
+  encerrado: a solucao cobre autoridade pedagogica, persistencia dos metadados
+  de coordenacao/direcao, transicoes internas, migration, adaptador backend
+  controlado e testes automatizados. O BFF e o frontend permanecem fora desse
+  bloco.
+- A proxima macrofase deve decidir se o diario avanca para BFF/frontend ou se a
+  frente continua exclusivamente backend em outra familia funcional.
 
 ## Historico resumido
 
