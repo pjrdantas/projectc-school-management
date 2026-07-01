@@ -1930,6 +1930,31 @@ Proxima subfase pratica:
 - manter o recorte backend/backend, incremental e sem BFF nessa implementacao
   inicial.
 
+Entregue na subfase seguinte:
+
+- foi criada a fronteira interna minima `MatriculaBoletimPort`, implementada
+  por `MatriculaBoletimService`, para encapsular a leitura escopada da
+  matricula usada por `BoletimService`;
+- o novo resumo `MatriculaBoletimResumo` passou a concentrar apenas os dados
+  realmente consumidos por `boletim`: `matriculaId`, identificacao do aluno,
+  turma, periodo letivo e escola;
+- `BoletimService` deixou de consultar `MatriculaJpaRepository` diretamente
+  para a consulta do boletim calculado, para o fechamento e para a listagem de
+  fechamentos, passando a depender dessa fronteira interna de leitura;
+- para manter o recorte estritamente minimo, a persistencia oficial do
+  fechamento continuou local no proprio fluxo de `boletim`, com
+  `MatriculaEntity` restrita ao ponto de referencia JPA do novo
+  `BoletimEntity`, sem mexer ainda na resolucao estrutural de `disciplina`.
+
+Proxima subfase pratica:
+
+- aplicar o mesmo criterio ao proximo detalhe estrutural minimo do bloco de
+  `boletim`, avaliando se a resolucao de `disciplina` no fechamento persistido
+  pode sair para uma fronteira interna dedicada antes de qualquer mudanca maior
+  de modelo;
+- manter a evolucao backend/backend, sem BFF e sem persistencia propria
+  adicional nesta etapa.
+
 ### Fase 58 - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

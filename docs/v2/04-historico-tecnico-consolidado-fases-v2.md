@@ -895,6 +895,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   definido como abrir primeiro a fronteira interna do resumo de matricula
   consumido por `boletim`, antes de atacar a resolucao estrutural de disciplina
   ou qualquer persistencia propria adicional.
+- A subfase seguinte materializou esse primeiro recorte minimo de `boletim`.
+  Foi criada a fronteira interna `MatriculaBoletimPort`, implementada por
+  `MatriculaBoletimService`, com o resumo `MatriculaBoletimResumo` contendo
+  apenas os dados de matricula realmente usados por `BoletimService` na
+  consulta e na composicao de resposta do fechamento. Com isso, `BoletimService`
+  deixou de consultar `MatriculaJpaRepository` diretamente para leitura
+  escopada da matricula e passou a manter o detalhe estrutural de
+  `MatriculaEntity` apenas no ponto da persistencia oficial do fechamento por
+  `EntityManager.getReference(...)`.
 
 ## Historico resumido
 
