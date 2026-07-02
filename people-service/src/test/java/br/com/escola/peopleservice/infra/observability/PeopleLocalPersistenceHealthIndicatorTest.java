@@ -136,13 +136,13 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         Map<String, Object> transactionalPlan =
                 (Map<String, Object>) health.getDetails().get("transactionalReadModelExpansionPlan");
         assertThat(transactionalPlan)
-                .containsEntry("status", "pessoa_identity_local_read_prepared_with_mandatory_fallback")
+                .containsEntry("status", "pessoa_address_diagnostic_prepared_without_cutover")
                 .containsEntry("recommendedNextStep",
-                        "close_phase_64_and_plan_next_people_service_scope")
-                .containsEntry("minimalNextSlice", "pessoa_identity_read_model")
-                .containsEntry("migrationAllowedNow", true)
-                .containsEntry("backfillAllowedNow", true)
-                .containsEntry("localReadCutoverAllowedNow", true);
+                        "prepare_address_schema_opt_in_for_consultar_cadastro")
+                .containsEntry("minimalNextSlice", "pessoa_address_read_model")
+                .containsEntry("migrationAllowedNow", false)
+                .containsEntry("backfillAllowedNow", false)
+                .containsEntry("localReadCutoverAllowedNow", false);
     }
 
     @Test

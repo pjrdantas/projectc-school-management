@@ -2894,6 +2894,41 @@ Proxima fase pratica:
 - manter o recorte backend/backend, sem alterar BFF/frontend, sem escrita local
   e sem remover o monolito como fallback.
 
+### Fase 65 - Diagnostico do read model de endereco do `people-service`
+
+Objetivo: iniciar a macrofase seguinte do `people-service` apos o fechamento da
+leitura local de identidade, decidindo se `consultarCadastro` pode evoluir para
+read model local controlado sem assumir escrita, sem alterar BFF/frontend e sem
+remover o monolito como fallback.
+
+Entregue na primeira subfase da Fase 65:
+
+- o diagnostico interno passou a classificar o proximo recorte minimo como
+  `pessoa_address_read_model`, formado por `endereco` e `pessoa_endereco`, para
+  preparar futuramente `consultarCadastro`;
+- `pessoa` e `pessoa_tipo_pessoa` ficaram marcadas como fatia ja preparada para
+  `buscarPorId`, atras de fallback obrigatorio e reconciliacao verde;
+- `endereco` e `pessoa_endereco` foram marcadas como candidatas da proxima
+  fatia, mas ainda sem autorizacao para migration, backfill ou leitura local;
+- a proxima subfase precisa mapear o contrato exato de resposta de
+  `consultarCadastro` antes de criar schema, porque a consulta envolve vinculo
+  pessoa-endereco, tipo de endereco e campos pessoais sensiveis;
+- rollback permanece simples: manter `consultarCadastro` no proxy do monolito,
+  manter `read-model-cutover` desligado e desabilitar a fundacao local se houver
+  risco operacional.
+
+Contagem da macrofase Fase 65: 3 subfases restantes estimadas: mapear contrato
+de `consultarCadastro`, preparar schema opt-in de endereco e depois avaliar
+backfill/reconciliacao antes de qualquer leitura local.
+
+Proxima subfase pratica:
+
+- mapear o contrato de `consultarCadastro` contra o payload atual do monolito,
+  separando campos de `pessoa`, `pessoa_tipo_pessoa`, `endereco`,
+  `pessoa_endereco` e `tipo_endereco`;
+- manter o recorte em diagnostico backend/backend, sem migration nova, sem
+  adapter local de `consultarCadastro`, sem BFF/frontend e sem escrita.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -2920,7 +2955,6 @@ entre endurecimento operacional da leitura local de identidade ja criada ou
 expansao controlada para `consultarCadastro` com `endereco` e
 `pessoa_endereco`, sem BFF/frontend, sem escrita local e sem remover o monolito
 como fallback.
-que a escrita tenta o `academic-catalog-service`.
 
 Entregue na oitava subfase:
 

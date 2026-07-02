@@ -1359,6 +1359,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   o monolito permanece ativo e observado por metrica propria. `consultarCadastro`,
   `endereco`, `pessoa_endereco`, escritas, BFF/frontend e cutover amplo
   continuam fora. A contagem regressiva da macrofase Fase 64 chega a 0.
+- A primeira subfase da Fase 65 iniciou a macrofase seguinte do `people-service`
+  por diagnostico, sem migration, backfill, adapter novo ou cutover. O planner
+  interno passou a classificar o proximo recorte minimo como
+  `pessoa_address_read_model`, formado por `endereco` e `pessoa_endereco`, para
+  preparar futuramente `consultarCadastro`. `pessoa` e `pessoa_tipo_pessoa`
+  ficam registradas como fatia ja preparada para `buscarPorId`, enquanto
+  `endereco` e `pessoa_endereco` sao candidatas da proxima fatia, ainda sem
+  autorizacao de migration, backfill ou leitura local. A contagem regressiva da
+  macrofase Fase 65 passa a 3 subfases restantes estimadas.
 
 ## Historico resumido
 
