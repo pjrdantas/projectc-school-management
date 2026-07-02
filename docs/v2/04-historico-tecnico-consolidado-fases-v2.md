@@ -1306,6 +1306,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   monolito. Nao houve escrita, BFF/frontend, tabela transacional, mudanca de
   payload externo ou cutover amplo. A contagem regressiva da macrofase de
   schema local read-only do `people-service` chega a 0.
+- A primeira subfase da Fase 64 iniciou o diagnostico da proxima fatia
+  transacional do `people-service`. Foi adicionado ao health
+  `peopleLocalPersistence` o plano `transactionalReadModelExpansionPlan`,
+  separando candidato minimo, dependencias, bloqueios, rollback e proximo passo.
+  A decisao foi nao migrar de uma vez `pessoa`, `pessoa_tipo_pessoa`,
+  `endereco` e `pessoa_endereco`, porque isso mistura identidade, papeis,
+  endereco, consulta cadastral, PII e derivacao de escopo escolar no mesmo
+  passo. O menor recorte candidato ficou como `pessoa_identity_read_model`,
+  composto por `pessoa` e `pessoa_tipo_pessoa`, limitado inicialmente a preparar
+  `buscarPorId`. `endereco` e `pessoa_endereco` ficam fora da primeira fatia
+  transacional. Nao houve migration, backfill, adapter local transacional,
+  escrita, BFF/frontend ou cutover. A contagem regressiva da macrofase Fase 64
+  passa a 3 subfases restantes estimadas.
 
 ## Historico resumido
 

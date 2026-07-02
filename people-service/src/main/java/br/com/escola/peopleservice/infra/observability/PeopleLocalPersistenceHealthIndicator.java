@@ -10,10 +10,12 @@ import org.springframework.stereotype.Component;
 
 import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecision;
 import br.com.escola.peopleservice.application.dto.PeopleCatalogReadModelSchemaPlan;
+import br.com.escola.peopleservice.application.dto.PeopleTransactionalReadModelExpansionPlan;
 import br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner;
 import br.com.escola.peopleservice.application.service.PeopleLocalPersistenceOperationState;
 import br.com.escola.peopleservice.application.service.PeopleLocalReadModelSchemaMigrationState;
 import br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard;
+import br.com.escola.peopleservice.application.service.PeopleTransactionalReadModelExpansionPlanner;
 import br.com.escola.peopleservice.infra.config.PeopleLocalPersistenceProperties;
 import io.micrometer.core.instrument.Measurement;
 import io.micrometer.core.instrument.Meter;
@@ -61,6 +63,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private final MeterRegistry meterRegistry;
     private final PeopleLocalReadCutoverGuard readCutoverGuard;
     private final PeopleCatalogReadModelSchemaPlanner catalogSchemaPlanner;
+    private final PeopleTransactionalReadModelExpansionPlanner transactionalExpansionPlanner;
     private final PeopleLocalReadModelSchemaMigrationState schemaMigrationState;
     private final PeopleLocalPersistenceOperationState operationState;
 
@@ -69,12 +72,14 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             MeterRegistry meterRegistry,
             PeopleLocalReadCutoverGuard readCutoverGuard,
             PeopleCatalogReadModelSchemaPlanner catalogSchemaPlanner,
+            PeopleTransactionalReadModelExpansionPlanner transactionalExpansionPlanner,
             PeopleLocalReadModelSchemaMigrationState schemaMigrationState,
             PeopleLocalPersistenceOperationState operationState) {
         this.properties = properties;
         this.meterRegistry = meterRegistry;
         this.readCutoverGuard = readCutoverGuard;
         this.catalogSchemaPlanner = catalogSchemaPlanner;
+        this.transactionalExpansionPlanner = transactionalExpansionPlanner;
         this.schemaMigrationState = schemaMigrationState;
         this.operationState = operationState;
     }
@@ -99,6 +104,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("backfillPlan", diagnosticoBackfill());
         details.put("readRoutingPlan", diagnosticoRoteamentoLeitura());
         details.put("catalogReadModelSchemaPlan", diagnosticoSchemaCatalogo());
+        details.put("transactionalReadModelExpansionPlan", diagnosticoExpansaoTransacional());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
         details.put("rollbackStrategy", "disable_people.shadow.local-persistence.enabled");
@@ -144,6 +150,23 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("tables", plan.tables());
         details.put("excludedTables", plan.excludedTables());
         details.put("blockers", plan.blockers());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoExpansaoTransacional() {
+        PeopleTransactionalReadModelExpansionPlan plan =
+                transactionalExpansionPlanner.planejarProximaFatiaTransacional();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("migrationAllowedNow", plan.migrationAllowedNow());
+        details.put("backfillAllowedNow", plan.backfillAllowedNow());
+        details.put("localReadCutoverAllowedNow", plan.localReadCutoverAllowedNow());
+        details.put("candidateTables", plan.candidateTables());
+        details.put("requiredHardening", plan.requiredHardening());
+        details.put("blockedTables", plan.blockedTables());
         details.put("rollbackSteps", plan.rollbackSteps());
         return details;
     }

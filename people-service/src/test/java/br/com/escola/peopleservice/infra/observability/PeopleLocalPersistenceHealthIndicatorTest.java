@@ -37,6 +37,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                         meterRegistry,
                         new PeopleLocalPersistenceOperationState()),
                 new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner(),
+                new br.com.escola.peopleservice.application.service.PeopleTransactionalReadModelExpansionPlanner(),
                 new PeopleLocalReadModelSchemaMigrationState(),
                 new PeopleLocalPersistenceOperationState());
 
@@ -128,6 +129,16 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         assertThat(schemaMigration).isNotNull();
         Object catalogBackfill = health.getDetails().get("catalogBackfill");
         assertThat(catalogBackfill).isNotNull();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> transactionalPlan =
+                (Map<String, Object>) health.getDetails().get("transactionalReadModelExpansionPlan");
+        assertThat(transactionalPlan)
+                .containsEntry("status", "diagnostic_transactional_slice_not_ready_for_physical_schema")
+                .containsEntry("recommendedNextStep", "prepare_pessoa_identity_slice_contract_before_migration")
+                .containsEntry("minimalNextSlice", "pessoa_identity_read_model")
+                .containsEntry("migrationAllowedNow", false)
+                .containsEntry("backfillAllowedNow", false)
+                .containsEntry("localReadCutoverAllowedNow", false);
     }
 
     @Test
@@ -140,6 +151,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                         new SimpleMeterRegistry(),
                         new PeopleLocalPersistenceOperationState()),
                 new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner(),
+                new br.com.escola.peopleservice.application.service.PeopleTransactionalReadModelExpansionPlanner(),
                 new PeopleLocalReadModelSchemaMigrationState(),
                 new PeopleLocalPersistenceOperationState());
 
@@ -163,6 +175,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                         meterRegistry,
                         new PeopleLocalPersistenceOperationState()),
                 new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner(),
+                new br.com.escola.peopleservice.application.service.PeopleTransactionalReadModelExpansionPlanner(),
                 new PeopleLocalReadModelSchemaMigrationState(),
                 new PeopleLocalPersistenceOperationState());
 

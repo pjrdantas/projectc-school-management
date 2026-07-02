@@ -2759,6 +2759,47 @@ Proxima macrofase sugerida:
   endurecer operacao/observabilidade dos catalogos locais antes de ampliar o
   escopo.
 
+### Fase 64 - Diagnostico da proxima fatia transacional do `people-service`
+
+Objetivo: decidir o menor recorte transacional seguro apos o fechamento dos
+catalogos locais da Fase 63, sem criar migration fisica, sem backfill real, sem
+alterar BFF/frontend, sem mover escrita e sem habilitar cutover de leitura para
+rotas transacionais.
+
+Entregue na primeira subfase da Fase 64:
+
+- o `people-service` passou a expor no health `peopleLocalPersistence` o plano
+  `transactionalReadModelExpansionPlan`, separando candidato minimo,
+  dependencias, bloqueios, rollback e proximo passo;
+- a decisao foi nao migrar de uma vez `pessoa`, `pessoa_tipo_pessoa`,
+  `endereco` e `pessoa_endereco`, porque isso misturaria identidade, papeis,
+  endereco, consulta cadastral, PII e derivacao de escopo escolar no mesmo
+  passo;
+- o menor recorte candidato ficou definido como `pessoa_identity_read_model`,
+  composto por `pessoa` e `pessoa_tipo_pessoa`, limitado inicialmente a
+  preparar a rota `buscarPorId`;
+- `endereco` e `pessoa_endereco` ficam fora da primeira fatia transacional e
+  devem aguardar contrato proprio da consulta cadastral e reconciliacao da
+  fatia de identidade;
+- nenhuma migration, backfill, adapter local transacional, escrita, BFF/frontend
+  ou cutover foi criado nesta subfase;
+- antes da proxima subfase pratica, o contrato deve definir politica de PII,
+  escopo escolar sem o `people-service` assumir tenant, ordem de backfill
+  idempotente e reconciliacao por ID/CPF/papel.
+
+Contagem da macrofase Fase 64: 3 subfases restantes estimadas: preparar schema
+fisico opt-in de `pessoa`/`pessoa_tipo_pessoa`, implementar backfill/
+reconciliacao da fatia de identidade e, depois, avaliar leitura local de
+`buscarPorId` com fallback obrigatorio para o monolito.
+
+Proxima subfase pratica:
+
+- preparar a migration opt-in somente de `pessoa` e `pessoa_tipo_pessoa`,
+  preservando IDs originais e sem incluir `endereco`, `pessoa_endereco`,
+  `aluno`, `responsavel`, `funcionario`, `professor` ou documentos;
+- manter `buscarPorId` e `consultarCadastro` no monolito ate haver backfill,
+  reconciliacao verde e rollback testado.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
