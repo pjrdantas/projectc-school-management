@@ -1197,6 +1197,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   monolito como fonte unica. A contagem regressiva da macrofase
   `people-service` fisico chega a 0; a proxima macrofase sugerida e diagnostico
   de persistencia propria controlada, ainda sem mover escrita.
+- A primeira subfase da Fase 62 diagnosticou o menor caminho seguro para
+  persistencia propria controlada do `people-service`. A decisao foi iniciar
+  apenas por read model local opcional, sem migration aplicada nesta subfase,
+  sem schema autoritativo, sem write, sem BFF/frontend e sem cutover externo. O
+  primeiro conjunto candidato fica restrito a `pessoa`, `tipo_pessoa`,
+  `pessoa_tipo_pessoa`, `endereco`, `tipo_endereco` e `pessoa_endereco`, com
+  backfill idempotente e reconciliacao por escola/CPF/tipo/endereco principal.
+  `aluno`, `responsavel`, `funcionario`, `professor`, documentos, historico,
+  matricula, diario, avaliacao e IA continuam fora do schema local inicial por
+  dependerem das transacoes e joins do monolito. A contagem regressiva da
+  macrofase de persistencia controlada do `people-service` passa a 3 subfases
+  restantes estimadas.
 
 ## Historico resumido
 

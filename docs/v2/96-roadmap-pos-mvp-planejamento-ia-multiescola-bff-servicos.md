@@ -2511,6 +2511,67 @@ Proxima fase pratica:
 - manter a frente restrita a backend/backend, sem BFF/frontend, sem write e sem
   cutover de rotas externas.
 
+### Fase 62 - Diagnostico de persistencia propria controlada do `people-service`
+
+Objetivo: decidir o menor recorte seguro para iniciar persistencia propria
+controlada no `people-service`, sem aplicar migration, sem criar schema
+autoritativo, sem mover escrita, sem BFF/frontend e sem cutover externo. A fase
+parte do runtime fisico read-only fechado na Fase 61 e do contrato entity-free
+`PessoaConsultaPort`.
+
+Entregue na primeira subfase da Fase 62:
+
+- o primeiro recorte seguro foi definido como read model local opcional,
+  alimentado por backfill controlado a partir do monolito, e nao como escrita
+  autoritativa de `pessoa`;
+- as tabelas candidatas ao read model inicial sao `pessoa`, `tipo_pessoa`,
+  `pessoa_tipo_pessoa`, `endereco`, `tipo_endereco` e `pessoa_endereco`, porque
+  elas sustentam os contratos de catalogos, consulta cadastral e resumo de
+  pessoa ja expostos pelo proxy read-only;
+- `aluno`, `responsavel`, `funcionario`, `professor`, `aluno_responsavel`,
+  `pessoa_documento`, historico, matricula, diario, avaliacao, IA e documentos
+  ficam fora do primeiro schema local, porque ainda dependem de transacoes e
+  joins do `school-management-service`;
+- `PessoaCadastroPort` continua bloqueando qualquer cutover de escrita, pois
+  ainda expoe `PessoaEntity` e e consumida por aluno, responsavel e professor
+  em fluxos transacionais locais;
+- a migration minima futura deve ser opt-in e criar apenas estrutura local
+  espelhada/read-only para os dados centrais de pessoa/endereco/tipos, mantendo
+  IDs originais e metadados necessarios para reconciliacao;
+- o backfill minimo deve ser idempotente por `id_pessoa`, `id_endereco`,
+  `id_pessoa_tipo_pessoa` e `id_pessoa_endereco`, com filtro por escola e
+  relatorio de divergencias por escola/CPF/tipo/endereco principal;
+- o rollback permanece desligar o uso local e voltar todo o runtime para proxy
+  direto ao monolito; nenhuma escrita do `people-service` pode ser habilitada
+  antes de reconciliacao verde e contrato de rollback testado.
+
+Impactos e dependencias mapeados:
+
+- consistencia principal: unicidade `id_escola + cpf`, pessoa ativa, escola da
+  pessoa, tipos vinculados e endereco principal;
+- dependencia de tenant: `pessoa.id_escola` ja existe no monolito, mas o
+  `people-service` ainda nao deve assumir autoridade sobre tenant;
+- dependencia de catalogos: `tipo_pessoa` e `tipo_endereco` devem ser copiados
+  primeiro para preservar integridade do read model;
+- dependencias transacionais fora do recorte: criacao/edicao de aluno,
+  responsavel, professor e funcionario continuam no monolito;
+- observabilidade exigida para a proxima etapa: health separado para
+  persistencia local, contadores de backfill, totais reconciliados e divergencias
+  por tabela.
+
+Contagem da macrofase persistencia controlada do `people-service`: 3 subfases
+restantes estimadas: preparar fundacao opt-in de persistencia local sem uso em
+runtime, implementar backfill/reconciliacao sem cutover e, depois, decidir se
+alguma leitura interna pode usar o read model local com fallback para o monolito.
+
+Proxima subfase pratica:
+
+- adicionar ao `people-service` a fundacao opt-in de persistencia local
+  read-only, com dependencias/configuracao desligadas por padrao e sem alterar
+  rotas internas;
+- ainda nao executar migration autoritativa, nao mover escrita e nao trocar o
+  proxy read-only pelo banco local.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
