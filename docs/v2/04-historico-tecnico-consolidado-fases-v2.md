@@ -1109,6 +1109,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   no limite externo para nao iniciar MinIO/S3, criar bucket ou depender de
   credenciais reais nesta etapa. A contagem regressiva da macrofase object
   storage real controlado passa a 1 subfase restante estimada.
+- O fechamento formal da Fase 59 encerrou a macrofase object storage real
+  controlado sem iniciar runtime S3-compatible real: a decisao foi manter o
+  recorte backend-only preparado por configuracao, com `local` como default,
+  `s3` como modo opt-in validado por testes e rollback imediato via
+  `documento.storage.backend=local`. Nao houve Docker/MinIO, bucket,
+  credenciais reais, migration, BFF/frontend, mudanca de contrato HTTP ou
+  migracao de arquivos existentes. A contagem regressiva desta macrofase
+  chega a 0; uma evolucao real de ambiente S3-compatible deve abrir macrofase
+  propria com migracao, reconciliacao e rollback operacional.
 
 ## Historico resumido
 

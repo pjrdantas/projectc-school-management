@@ -2265,6 +2265,25 @@ Contagem da macrofase object storage real controlado: 1 subfase restante
 estimada: decidir entre validacao com runtime S3-compatible real em escopo
 opt-in ou fechamento formal sem migrar arquivos existentes.
 
+Fechamento formal da Fase 59:
+
+- a validacao com runtime S3-compatible real nao foi iniciada neste bloco para
+  evitar acoplar a fase a Docker/MinIO, bucket, credenciais, rede ou ambiente
+  externo antes de haver decisao operacional explicita;
+- o recorte fica encerrado com o backend preparado para alternar entre
+  `local` e `s3` por configuracao, com `local` como default e rollback
+  imediato por `documento.storage.backend=local`;
+- o modo `s3` permanece opt-in, coberto por teste unitario do adapter e por
+  teste operacional com contexto Spring real e boundary externo mockado;
+- nenhuma rota externa, BFF, frontend, migration, contrato HTTP ou migracao de
+  arquivos existentes foi alterada;
+- a proxima evolucao de storage deve ser uma macrofase propria, somente quando
+  houver decisao de ambiente S3-compatible real, estrategia de migracao de
+  arquivos legados, reconciliacao e rollback operacional.
+
+Contagem da macrofase object storage real controlado: 0. O bloco fica fechado
+sem cutover de arquivos existentes e sem dependencia operacional externa.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
