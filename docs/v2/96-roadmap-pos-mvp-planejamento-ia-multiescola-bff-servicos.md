@@ -2564,13 +2564,36 @@ restantes estimadas: preparar fundacao opt-in de persistencia local sem uso em
 runtime, implementar backfill/reconciliacao sem cutover e, depois, decidir se
 alguma leitura interna pode usar o read model local com fallback para o monolito.
 
+Entregue na segunda subfase da Fase 62:
+
+- o `people-service` recebeu a fundacao opt-in de persistencia local read-only
+  apenas como contrato interno, configuracao e observabilidade, sem adicionar
+  JPA, Flyway, datasource, migration, schema fisico ou adapter local;
+- as flags `people.shadow.local-persistence.enabled`,
+  `migration-enabled`, `read-model-cutover-enabled` e `fail-on-error` ficam
+  desligadas por padrao, preservando o proxy read-only para o monolito como
+  unico caminho em runtime;
+- o health dedicado `peopleLocalPersistence` documenta as tabelas candidatas do
+  read model, as rotas shadow que poderiam ser atendidas futuramente, as tabelas
+  excluidas do primeiro recorte, a estrategia de rollback e os contadores
+  esperados de backfill, divergencia e falha;
+- qualquer ativacao prematura da persistencia local ou do cutover de leitura
+  reporta `OUT_OF_SERVICE`, evitando uso acidental antes de schema, backfill,
+  reconciliacao e fallback estarem implementados;
+- nao houve alteracao de rota interna, contrato externo, BFF/frontend, escrita
+  autoritativa ou fonte de verdade do monolito.
+
+Contagem da macrofase persistencia controlada do `people-service`: 2 subfases
+restantes estimadas: implementar backfill/reconciliacao sem cutover e, depois,
+decidir se alguma leitura interna pode usar o read model local com fallback para
+o monolito.
+
 Proxima subfase pratica:
 
-- adicionar ao `people-service` a fundacao opt-in de persistencia local
-  read-only, com dependencias/configuracao desligadas por padrao e sem alterar
-  rotas internas;
-- ainda nao executar migration autoritativa, nao mover escrita e nao trocar o
-  proxy read-only pelo banco local.
+- implementar o primeiro esqueleto controlado de backfill/reconciliacao para o
+  read model de pessoas, ainda desligado por padrao e sem cutover de rota;
+- manter o monolito como fonte unica, nao mover escrita e nao trocar o proxy
+  read-only pelo banco local.
 
 ### Fase futura - Desativacao do monolito
 

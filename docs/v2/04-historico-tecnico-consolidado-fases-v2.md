@@ -1209,6 +1209,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   dependerem das transacoes e joins do monolito. A contagem regressiva da
   macrofase de persistencia controlada do `people-service` passa a 3 subfases
   restantes estimadas.
+- A segunda subfase da Fase 62 adicionou ao `people-service` a fundacao opt-in
+  de persistencia local read-only apenas como contrato interno, configuracao e
+  observabilidade. Foram criadas as flags
+  `people.shadow.local-persistence.enabled`, `migration-enabled`,
+  `read-model-cutover-enabled` e `fail-on-error`, todas desligadas por padrao,
+  e o health dedicado `peopleLocalPersistence`, que expoe tabelas candidatas,
+  rotas shadow impactadas, tabelas excluidas, estrategia de rollback e
+  contadores esperados de backfill, divergencia e falha. A ativacao prematura
+  da persistencia local ou do cutover de leitura retorna `OUT_OF_SERVICE`,
+  preservando o monolito como fonte unica. Nao houve JPA, Flyway, datasource,
+  migration, schema fisico, rota nova, BFF/frontend, escrita autoritativa ou
+  cutover. A contagem regressiva da macrofase de persistencia controlada do
+  `people-service` passa a 2 subfases restantes estimadas.
 
 ## Historico resumido
 

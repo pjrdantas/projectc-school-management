@@ -19,3 +19,8 @@ people:
       base-url: ${PEOPLE_SHADOW_MONOLITH_BASE_URL:http://localhost:8080}
       connect-timeout: ${PEOPLE_SHADOW_MONOLITH_CONNECT_TIMEOUT:2s}
       read-timeout: ${PEOPLE_SHADOW_MONOLITH_READ_TIMEOUT:5s}
+    local-persistence:
+      enabled: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_ENABLED:false}
+      migration-enabled: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_MIGRATION_ENABLED:false}
+      read-model-cutover-enabled: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_READ_MODEL_CUTOVER_ENABLED:false}
+      fail-on-error: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_FAIL_ON_ERROR:false}
