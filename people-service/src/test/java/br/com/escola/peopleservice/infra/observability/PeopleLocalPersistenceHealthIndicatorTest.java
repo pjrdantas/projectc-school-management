@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.actuate.health.Status;
 
 import br.com.escola.peopleservice.infra.config.PeopleLocalPersistenceProperties;
+import br.com.escola.peopleservice.application.service.PeopleLocalReadModelSchemaMigrationState;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
@@ -33,7 +34,8 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 new br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard(
                         new PeopleLocalPersistenceProperties(false, false, false, false, false, false, 500, true),
                         meterRegistry),
-                new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner());
+                new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner(),
+                new PeopleLocalReadModelSchemaMigrationState());
 
         var health = indicator.health();
 
@@ -109,14 +111,17 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         Map<String, Object> catalogSchemaPlan =
                 (Map<String, Object>) health.getDetails().get("catalogReadModelSchemaPlan");
         assertThat(catalogSchemaPlan)
-                .containsEntry("status", "diagnostic_ready_for_next_migration_preparation")
+                .containsEntry("status", "opt_in_physical_schema_prepared")
                 .containsEntry("recommendedNextStep",
-                        "prepare_opt_in_read_only_schema_for_tipo_pessoa_and_tipo_endereco")
-                .containsEntry("migrationAllowedNow", false)
+                        "run_catalog_backfill_and_reconciliation_without_read_cutover")
+                .containsEntry("migrationAllowedNow", true)
                 .containsEntry("physicalSchemaRequiredNext", true)
                 .containsEntry("localReadAdapterRequiredNext", true)
                 .containsEntry("readCutoverAllowed", false)
                 .containsEntry("writeCutoverAllowed", false);
+
+        Object schemaMigration = health.getDetails().get("schemaMigration");
+        assertThat(schemaMigration).isNotNull();
     }
 
     @Test
@@ -127,7 +132,8 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 new br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard(
                         new PeopleLocalPersistenceProperties(true, false, false, false, false, false, 500, true),
                         new SimpleMeterRegistry()),
-                new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner());
+                new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner(),
+                new PeopleLocalReadModelSchemaMigrationState());
 
         var health = indicator.health();
 
@@ -147,7 +153,8 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 new br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard(
                         new PeopleLocalPersistenceProperties(true, true, true, true, true, true, 100, true),
                         meterRegistry),
-                new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner());
+                new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner(),
+                new PeopleLocalReadModelSchemaMigrationState());
 
         var health = indicator.health();
 

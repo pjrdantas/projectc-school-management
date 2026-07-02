@@ -12,9 +12,9 @@ public class PeopleCatalogReadModelSchemaPlanner {
 
     public PeopleCatalogReadModelSchemaPlan planejarSchemaCatalogo() {
         return new PeopleCatalogReadModelSchemaPlan(
-                "diagnostic_ready_for_next_migration_preparation",
-                "prepare_opt_in_read_only_schema_for_tipo_pessoa_and_tipo_endereco",
-                false,
+                "opt_in_physical_schema_prepared",
+                "run_catalog_backfill_and_reconciliation_without_read_cutover",
+                true,
                 true,
                 true,
                 false,
@@ -50,13 +50,12 @@ public class PeopleCatalogReadModelSchemaPlanner {
                         "aluno_responsavel",
                         "pessoa_documento"),
                 List.of(
-                        "people-service-has-no-datasource-or-flyway-dependency-yet",
                         "local-read-adapter-not-implemented",
                         "catalog-backfill-and-reconciliation-not-executed",
                         "read-cutover-must-keep-monolith-fallback"),
                 List.of(
+                        "disable-people.shadow.local-persistence.migration-enabled",
                         "do-not-enable-read-model-cutover",
-                        "keep-pessoa-read-port-on-monolith-proxy",
-                        "disable-people.shadow.local-persistence.enabled"));
+                        "keep-pessoa-read-port-on-monolith-proxy"));
     }
 }

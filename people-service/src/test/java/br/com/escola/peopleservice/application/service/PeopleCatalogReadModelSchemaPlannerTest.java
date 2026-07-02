@@ -12,10 +12,10 @@ class PeopleCatalogReadModelSchemaPlannerTest {
 
         var plan = planner.planejarSchemaCatalogo();
 
-        assertThat(plan.status()).isEqualTo("diagnostic_ready_for_next_migration_preparation");
+        assertThat(plan.status()).isEqualTo("opt_in_physical_schema_prepared");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("prepare_opt_in_read_only_schema_for_tipo_pessoa_and_tipo_endereco");
-        assertThat(plan.migrationAllowedNow()).isFalse();
+                .isEqualTo("run_catalog_backfill_and_reconciliation_without_read_cutover");
+        assertThat(plan.migrationAllowedNow()).isTrue();
         assertThat(plan.physicalSchemaRequiredNext()).isTrue();
         assertThat(plan.localReadAdapterRequiredNext()).isTrue();
         assertThat(plan.readCutoverAllowed()).isFalse();
@@ -37,7 +37,6 @@ class PeopleCatalogReadModelSchemaPlannerTest {
                 "pessoa_endereco",
                 "pessoa_documento");
         assertThat(plan.blockers()).contains(
-                "people-service-has-no-datasource-or-flyway-dependency-yet",
                 "local-read-adapter-not-implemented",
                 "catalog-backfill-and-reconciliation-not-executed");
     }

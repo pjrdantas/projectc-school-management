@@ -1267,6 +1267,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   adapter local, BFF/frontend, escrita ou cutover. A contagem regressiva da
   macrofase de schema local read-only do `people-service` passa a 3 subfases
   restantes estimadas.
+- A segunda subfase da Fase 63 adicionou ao `people-service` a preparacao
+  fisica opt-in do schema local read-only de `tipo_pessoa` e `tipo_endereco`.
+  Foram adicionados Flyway e driver PostgreSQL sem datasource automatico e sem
+  JPA, alem da migration `V1__create_people_catalog_read_model.sql`, restrita
+  aos dois catalogos globais com IDs originais e `codigo` unico. Um runner
+  manual executa a migration somente quando
+  `people.shadow.local-persistence.migration-enabled` esta habilitado e exige
+  URL explicita em `people.shadow.local-persistence.schema-migration.*`;
+  habilitacao sem destino configurado fica bloqueada e respeita `fail-on-error`.
+  O health `peopleLocalPersistence` passou a expor estado e metricas de schema
+  migration. Nao houve adapter local, alteracao de leitura, BFF/frontend,
+  escrita ou `read-model-cutover`. A contagem regressiva da macrofase de schema
+  local read-only do `people-service` passa a 2 subfases restantes estimadas.
 
 ## Historico resumido
 

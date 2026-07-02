@@ -2678,11 +2678,33 @@ restantes estimadas: adicionar dependencias/configuracao opt-in e migration
 fisica dos catalogos, implementar backfill/reconciliacao desses catalogos sem
 cutover e, depois, avaliar adapter local de leitura com fallback obrigatorio.
 
+Entregue na segunda subfase da Fase 63:
+
+- o `people-service` recebeu a preparacao fisica opt-in do schema local
+  read-only para `tipo_pessoa` e `tipo_endereco`, com Flyway e driver
+  PostgreSQL adicionados sem datasource automatico e sem JPA;
+- a migration `V1__create_people_catalog_read_model.sql` cria somente os dois
+  catalogos, preservando IDs originais, `codigo` como chave natural unica e sem
+  qualquer tabela transacional;
+- foi adicionado um runner manual de schema migration, condicionado por
+  `people.shadow.local-persistence.migration-enabled`; com a flag desligada,
+  nenhuma conexao local e aberta e nenhuma migration e executada;
+- a configuracao opt-in exige URL explicita em
+  `people.shadow.local-persistence.schema-migration.*`, reportando bloqueio se
+  a migration for habilitada sem destino configurado e respeitando
+  `fail-on-error`;
+- o health `peopleLocalPersistence` passou a expor o estado da migration fisica
+  e contadores de sucesso/falha, mantendo `PessoaReadPort` no
+  `monolith_proxy` e `read-model-cutover` proibido.
+
+Contagem da macrofase schema local read-only do `people-service`: 2 subfases
+restantes estimadas: implementar backfill/reconciliacao dos catalogos sem
+cutover e, depois, avaliar adapter local de leitura com fallback obrigatorio.
+
 Proxima subfase pratica:
 
-- adicionar ao `people-service` a preparacao fisica opt-in do schema local
-  read-only para `tipo_pessoa`/`tipo_endereco`, com dependencias e migration
-  controladas por configuracao e sem trocar nenhuma leitura;
+- implementar backfill/reconciliacao opt-in de `tipo_pessoa` e `tipo_endereco`
+  do monolito para o schema local, sem cutover de leitura;
 - manter proibido mover escrita, alterar BFF/frontend, incluir tabelas
   transacionais ou habilitar `read-model-cutover`.
 

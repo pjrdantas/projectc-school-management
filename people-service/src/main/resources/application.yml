@@ -28,3 +28,9 @@ people:
       reconciliation-enabled: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_RECONCILIATION_ENABLED:false}
       backfill-batch-size: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_BACKFILL_BATCH_SIZE:500}
       read-model-fallback-enabled: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_READ_MODEL_FALLBACK_ENABLED:true}
+      schema-migration:
+        url: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_SCHEMA_URL:}
+        username: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_SCHEMA_USERNAME:}
+        password: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_SCHEMA_PASSWORD:}
+        driver-class-name: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_SCHEMA_DRIVER_CLASS_NAME:}
+        locations: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_SCHEMA_LOCATIONS:classpath:db/people-readmodel/migration}
