@@ -2477,6 +2477,40 @@ Proxima subfase pratica:
 - manter a decisao como backend/backend, sem abrir BFF/frontend e sem iniciar
   schema autoritativo nesta macrofase.
 
+Fechamento formal da Fase 61:
+
+- o runtime fisico `people-service` fica oficialmente aberto apenas como proxy
+  backend/backend shadow/read-only para os contratos entity-free ja
+  estabilizados em `PessoaConsultaPort`;
+- o recorte operacional fechado cobre catalogos de pessoa, catalogos de
+  endereco, consulta cadastral e resumo de pessoa por `pessoaId` + `escolaId`,
+  com rotas internas compativeis e health/metricas dedicados;
+- o smoke automatizado confirma que o runtime responde, repassa headers ao
+  monolito, registra sucesso, `not_found` e erro downstream, e expoe esses
+  sinais em `/actuator/health/peopleShadowMonolith`;
+- a escrita continua bloqueada para o `people-service`, porque cadastro base,
+  endereco, aluno, responsavel, funcionario, professor e vinculos JPA ainda
+  dependem das transacoes locais e do schema autoritativo do
+  `school-management-service`;
+- ainda nao ha BFF/frontend, rota externa nova, migration, banco proprio,
+  schema autoritativo, cutover de leitura externa ou cutover de escrita;
+- rollback permanece trivial: remover/desligar o runtime shadow e manter o
+  monolito como unica fonte de leitura e escrita.
+
+Contagem da macrofase `people-service` fisico: 0. A proxima macrofase sugerida
+e diagnosticar a primeira persistencia propria controlada do `people-service`,
+ainda sem cutover externo e sem mover escrita, separando quais dados poderiam
+compor um read model local, qual migration/backfill minimo seria necessario e
+qual rollback impediria perda de consistencia.
+
+Proxima fase pratica:
+
+- iniciar a Fase 62 como diagnostico de persistencia propria controlada do
+  `people-service`, sem criar schema autoritativo nem aplicar migration antes
+  de mapear dados, dependencias, consistencia e rollback;
+- manter a frente restrita a backend/backend, sem BFF/frontend, sem write e sem
+  cutover de rotas externas.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

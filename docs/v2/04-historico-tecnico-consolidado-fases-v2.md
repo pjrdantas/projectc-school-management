@@ -1186,6 +1186,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   banco proprio, cutover externo ou autoridade local de dados. A contagem
   regressiva da macrofase `people-service` fisico passa a 1 subfase restante
   estimada.
+- O fechamento formal da Fase 61 encerrou a macrofase de abertura fisica
+  read-only do `people-service`. O runtime fica limitado a proxy
+  backend/backend shadow/read-only sobre os contratos entity-free de
+  `PessoaConsultaPort`, com cobertura operacional para catalogos de pessoa,
+  catalogos de endereco, consulta cadastral e resumo de pessoa por
+  `pessoaId` + `escolaId`. A decisao manteve bloqueados BFF/frontend, rota
+  externa nova, write, migration, banco proprio, schema autoritativo e cutover
+  externo. O rollback segue trivial, desligando o runtime shadow e mantendo o
+  monolito como fonte unica. A contagem regressiva da macrofase
+  `people-service` fisico chega a 0; a proxima macrofase sugerida e diagnostico
+  de persistencia propria controlada, ainda sem mover escrita.
 
 ## Historico resumido
 
