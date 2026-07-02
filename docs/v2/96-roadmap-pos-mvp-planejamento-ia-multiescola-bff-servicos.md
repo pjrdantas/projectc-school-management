@@ -2448,6 +2448,35 @@ Proxima subfase pratica:
 - manter escrita, persistencia propria e cutover externo fora do escopo ate o
   fechamento formal desta macrofase.
 
+Entregue na segunda subfase da Fase 61:
+
+- o smoke operacional do `people-service` fisico foi automatizado em modo
+  read-only, sem depender de monolito real em execucao e sem iniciar runtime
+  externo fora dos testes;
+- o health indicator `peopleShadowMonolith` passou a ter cobertura dedicada
+  para diagnostico por rota, totais de requests, totais de falhas e estado
+  `OUT_OF_SERVICE` quando a `base-url` configurada e invalida;
+- foi adicionado um teste operacional com porta aleatoria do runtime
+  `people-service`, `MockWebServer` como monolito simulado e chamadas reais para
+  as rotas internas de catalogo, busca por id e consulta cadastral;
+- o smoke comprova os tres sinais minimos esperados para operacao shadow:
+  sucesso, `not_found` e erro downstream, refletidos no endpoint
+  `/actuator/health/peopleShadowMonolith`;
+- o recorte permanece sem BFF/frontend, sem write, sem migration, sem banco
+  proprio, sem cutover externo e sem autoridade local de dados.
+
+Contagem da macrofase `people-service` fisico: 1 subfase restante estimada:
+fechar formalmente a macrofase, confirmando se o proxy read-only esta maduro
+para iniciar diagnostico de persistencia propria controlada ou se ainda exige
+hardening adicional antes de qualquer persistencia.
+
+Proxima subfase pratica:
+
+- fechar formalmente a Fase 61, revisando as rotas internas, os sinais
+  operacionais e os limites que ainda impedem escrita ou persistencia propria;
+- manter a decisao como backend/backend, sem abrir BFF/frontend e sem iniciar
+  schema autoritativo nesta macrofase.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

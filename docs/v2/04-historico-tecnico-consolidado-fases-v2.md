@@ -1176,6 +1176,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   proprio, rota externa nova, cutover de escrita ou autoridade local de dados.
   A contagem regressiva da macrofase `people-service` fisico passa a 2 subfases
   restantes estimadas.
+- A segunda subfase da Fase 61 consolidou o smoke operacional do
+  `people-service` fisico em modo shadow/read-only. Foram adicionados testes de
+  health/metricas para `peopleShadowMonolith`, cobrindo diagnostico por rota,
+  totais de requests, totais de falhas, `base-url` invalida e um fluxo com
+  runtime em porta aleatoria usando `MockWebServer` como monolito simulado. O
+  smoke comprova sucesso, `not_found` e erro downstream refletidos em
+  `/actuator/health/peopleShadowMonolith`, sem BFF/frontend, write, migration,
+  banco proprio, cutover externo ou autoridade local de dados. A contagem
+  regressiva da macrofase `people-service` fisico passa a 1 subfase restante
+  estimada.
 
 ## Historico resumido
 
