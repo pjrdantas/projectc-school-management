@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import br.com.escola.documento.application.port.out.DocumentoArquivoReferencia;
 import br.com.escola.documento.application.port.out.DocumentoArquivoStorage;
 import br.com.escola.documento.domain.EntidadeDocumentalTipo;
 import br.com.escola.documento.domain.exception.DocumentoInvalidoException;
@@ -24,7 +25,7 @@ public class LocalDocumentoArquivoStorage implements DocumentoArquivoStorage {
     }
 
     @Override
-    public String salvar(EntidadeDocumentalTipo entidadeTipo, UUID entidadeId, MultipartFile arquivo) {
+    public DocumentoArquivoReferencia salvar(EntidadeDocumentalTipo entidadeTipo, UUID entidadeId, MultipartFile arquivo) {
         try {
             Path diretorioEntidade = documentosUploadDir
                     .resolve(entidadeTipo.name().toLowerCase())
@@ -45,7 +46,9 @@ public class LocalDocumentoArquivoStorage implements DocumentoArquivoStorage {
             }
 
             Files.copy(arquivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
-            return destino.toString().replace('\\', '/');
+            String chave = documentosUploadDir.relativize(destino).toString().replace('\\', '/');
+            String localizacao = destino.toString().replace('\\', '/');
+            return DocumentoArquivoReferencia.local(chave, localizacao);
         } catch (IOException ex) {
             throw new UncheckedIOException("Não foi possível salvar o arquivo do documento", ex);
         }

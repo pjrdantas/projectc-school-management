@@ -8,5 +8,5 @@ import br.com.escola.documento.domain.EntidadeDocumentalTipo;
 
 public interface DocumentoArquivoStorage {
 
-    String salvar(EntidadeDocumentalTipo entidadeTipo, UUID entidadeId, MultipartFile arquivo);
+    DocumentoArquivoReferencia salvar(EntidadeDocumentalTipo entidadeTipo, UUID entidadeId, MultipartFile arquivo);
 }

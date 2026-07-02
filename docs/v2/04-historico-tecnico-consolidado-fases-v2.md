@@ -1075,6 +1075,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   da macrofase documentos/storage passa a 2 subfases restantes estimadas:
   diagnostico do contrato minimo para object storage e fechamento formal do
   bloco antes de qualquer cutover.
+- A subfase seguinte fechou o contrato minimo para futuro object storage sem
+  ativar storage externo: `DocumentoArquivoStorage` passou a devolver
+  `DocumentoArquivoReferencia`, separando tipo de storage, chave interna e
+  localizacao persistivel. O storage local gera chave relativa por entidade e
+  continua expondo `caminhoPersistencia()` compativel com
+  `documento.caminho_arquivo`, sem migration, sem BFF/frontend e sem alteracao
+  de rotas externas. A contagem regressiva da macrofase documentos/storage
+  passa a 1 subfase restante estimada: fechamento formal do bloco e decisao
+  sobre quando iniciar object storage real em macrofase propria.
 
 ## Historico resumido
 

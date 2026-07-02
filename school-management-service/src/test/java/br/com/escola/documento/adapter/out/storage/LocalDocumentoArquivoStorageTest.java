@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.MockMultipartFile;
 
+import br.com.escola.documento.application.port.out.DocumentoArquivoReferencia;
+import br.com.escola.documento.application.port.out.DocumentoArquivoStorageTipo;
 import br.com.escola.documento.domain.EntidadeDocumentalTipo;
 
 class LocalDocumentoArquivoStorageTest {
@@ -31,9 +33,12 @@ class LocalDocumentoArquivoStorageTest {
                 "application/pdf",
                 "conteudo".getBytes(UTF_8));
 
-        String caminho = storage.salvar(EntidadeDocumentalTipo.ALUNO, alunoId, arquivo);
+        DocumentoArquivoReferencia referencia = storage.salvar(EntidadeDocumentalTipo.ALUNO, alunoId, arquivo);
 
-        Path destino = Path.of(caminho);
+        Path destino = Path.of(referencia.caminhoPersistencia());
+        assertThat(referencia.tipo()).isEqualTo(DocumentoArquivoStorageTipo.LOCAL);
+        assertThat(referencia.chave()).startsWith("aluno/" + alunoId);
+        assertThat(referencia.localizacao()).isEqualTo(referencia.caminhoPersistencia());
         assertThat(destino).startsWith(root);
         assertThat(destino.getParent()).isEqualTo(root.resolve("aluno").resolve(alunoId.toString()));
         assertThat(destino.getFileName().toString()).endsWith(".._historico_aluno.pdf");
@@ -53,8 +58,9 @@ class LocalDocumentoArquivoStorageTest {
                 "application/pdf",
                 "conteudo".getBytes(UTF_8));
 
-        String caminho = storage.salvar(EntidadeDocumentalTipo.ALUNO, alunoId, arquivo);
+        DocumentoArquivoReferencia referencia = storage.salvar(EntidadeDocumentalTipo.ALUNO, alunoId, arquivo);
 
-        assertThat(Path.of(caminho).getFileName().toString()).endsWith("-documento");
+        assertThat(Path.of(referencia.caminhoPersistencia()).getFileName().toString()).endsWith("-documento");
+        assertThat(referencia.chave()).endsWith("-documento");
     }
 }

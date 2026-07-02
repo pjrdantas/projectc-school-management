@@ -2178,6 +2178,24 @@ Contagem da macrofase documentos/storage: 2 subfases restantes estimadas:
 diagnostico do contrato minimo para object storage e fechamento formal do bloco
 antes de qualquer cutover.
 
+Entregue na segunda subfase da Fase 58:
+
+- a porta `DocumentoArquivoStorage` deixou de devolver uma `String` crua e
+  passou a devolver `DocumentoArquivoReferencia`, com tipo de storage, chave
+  interna e localizacao de persistencia;
+- o storage local agora gera uma chave relativa estavel por entidade e mantem
+  `caminhoPersistencia()` compativel com o valor historicamente salvo em
+  `documento.caminho_arquivo`;
+- o contrato minimo para um futuro adapter de object storage fica separado da
+  persistencia transacional: metadados de documento continuam no PostgreSQL e o
+  adapter de arquivo passa a ser responsavel por traduzir chave/localizacao;
+- nao houve criacao de bucket, dependencia de cloud, migration, BFF, frontend
+  ou alteracao de rota externa.
+
+Contagem da macrofase documentos/storage: 1 subfase restante estimada:
+fechamento formal do bloco e decisao sobre quando iniciar object storage real
+em macrofase propria.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import br.com.escola.documento.application.dto.DocumentoInput;
 import br.com.escola.documento.application.dto.DocumentoOutput;
+import br.com.escola.documento.application.port.out.DocumentoArquivoReferencia;
 import br.com.escola.documento.application.port.out.DocumentoArquivoStorage;
 import br.com.escola.documento.domain.EntidadeDocumentalTipo;
 import br.com.escola.documento.domain.exception.DocumentoInvalidoException;
@@ -36,13 +37,13 @@ public class CriarDocumentoUploadUseCase {
         }
 
         EntidadeDocumentalTipo entidadeTipo = DocumentoUseCaseSupport.parseEntidadeTipo(entidadeTipoRaw);
-        String caminhoArquivo = documentoArquivoStorage.salvar(entidadeTipo, entidadeId, arquivo);
+        DocumentoArquivoReferencia referenciaArquivo = documentoArquivoStorage.salvar(entidadeTipo, entidadeId, arquivo);
         return criarDocumentoUseCase.executar(new DocumentoInput(
                 entidadeTipo.name(),
                 entidadeId,
                 tipoDocumento,
                 numeroDocumento,
-                caminhoArquivo,
+                referenciaArquivo.caminhoPersistencia(),
                 observacao));
     }
 }
