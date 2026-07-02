@@ -2196,6 +2196,26 @@ Contagem da macrofase documentos/storage: 1 subfase restante estimada:
 fechamento formal do bloco e decisao sobre quando iniciar object storage real
 em macrofase propria.
 
+Fechamento formal da Fase 58:
+
+- o bloco backend-only de documentos/storage fica encerrado neste recorte: a
+  raiz local de arquivos e configuravel, o storage local normaliza diretorios,
+  a porta `DocumentoArquivoStorage` devolve uma referencia estruturada e o
+  fluxo atual continua persistindo `documento.caminho_arquivo` de forma
+  compativel;
+- o recorte nao introduziu storage externo, bucket, dependencia de cloud,
+  migration, BFF, frontend, rota nova ou alteracao dos contratos HTTP atuais;
+- o rollback permanece controlado pelo default local `uploads/documentos` e
+  pela compatibilidade de `DocumentoArquivoReferencia.caminhoPersistencia()`
+  com o valor legado;
+- a evolucao para object storage real deve ser tratada como macrofase propria,
+  com adapter novo, configuracao operacional, estrategia de migracao dos
+  arquivos existentes, validacao de leitura/gravacao e plano de rollback.
+
+Contagem da macrofase documentos/storage: 0. A proxima decisao deve escolher
+entre iniciar uma macrofase backend-only de object storage real ou abrir outro
+bloco funcional sem ampliar BFF/frontend.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

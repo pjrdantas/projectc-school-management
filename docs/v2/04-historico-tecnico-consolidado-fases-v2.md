@@ -1084,6 +1084,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   de rotas externas. A contagem regressiva da macrofase documentos/storage
   passa a 1 subfase restante estimada: fechamento formal do bloco e decisao
   sobre quando iniciar object storage real em macrofase propria.
+- O fechamento formal encerrou a macrofase documentos/storage neste recorte
+  backend-only: existem raiz local configuravel, normalizacao defensiva de
+  diretorios, contrato interno estruturado para referencia de arquivo e
+  compatibilidade com `documento.caminho_arquivo`. Permanecem fora deste bloco:
+  object storage real, bucket, dependencia de cloud, migration de arquivos,
+  BFF/frontend e alteracao de contratos HTTP. A contagem regressiva desta
+  macrofase chega a 0.
 
 ## Historico resumido
 
