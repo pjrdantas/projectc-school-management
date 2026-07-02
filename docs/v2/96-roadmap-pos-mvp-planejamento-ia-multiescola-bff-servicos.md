@@ -2701,12 +2701,38 @@ Contagem da macrofase schema local read-only do `people-service`: 2 subfases
 restantes estimadas: implementar backfill/reconciliacao dos catalogos sem
 cutover e, depois, avaliar adapter local de leitura com fallback obrigatorio.
 
+Entregue na terceira subfase da Fase 63:
+
+- o `people-service` recebeu backfill/reconciliacao opt-in real dos catalogos
+  `tipo_pessoa` e `tipo_endereco`, copiando dados do monolito por JDBC
+  configurado explicitamente para o schema local ja preparado;
+- a execucao continua inerte por padrao e so roda quando
+  `people.shadow.local-persistence.backfill-enabled` ou
+  `people.shadow.local-persistence.reconciliation-enabled` forem habilitadas,
+  exigindo origem em
+  `people.shadow.local-persistence.catalog-backfill.source-*` e destino em
+  `people.shadow.local-persistence.schema-migration.*`;
+- o adapter de infraestrutura faz upsert idempotente por UUID, preserva
+  `codigo` como chave natural de reconciliacao e valida divergencias por
+  codigo, UUID e descricao, sem incluir tabelas transacionais;
+- o health `peopleLocalPersistence` passou a expor o ultimo relatorio
+  `catalogBackfill`, totais de origem/destino, registros copiados,
+  divergencias e status agregado;
+- o `PessoaReadPort` permanece em `monolith_proxy`; nao houve BFF/frontend,
+  escrita externa, adapter local de leitura nem habilitacao de
+  `read-model-cutover`.
+
+Contagem da macrofase schema local read-only do `people-service`: 1 subfase
+restante estimada: avaliar adapter local de leitura dos catalogos com fallback
+obrigatorio para o monolito, somente depois de backfill/reconciliacao verde.
+
 Proxima subfase pratica:
 
-- implementar backfill/reconciliacao opt-in de `tipo_pessoa` e `tipo_endereco`
-  do monolito para o schema local, sem cutover de leitura;
+- diagnosticar e, se seguro, preparar o adapter local de leitura apenas para
+  `tipo_pessoa` e `tipo_endereco`, mantendo fallback obrigatorio para o
+  monolito;
 - manter proibido mover escrita, alterar BFF/frontend, incluir tabelas
-  transacionais ou habilitar `read-model-cutover`.
+  transacionais ou habilitar cutover amplo.
 
 ### Fase futura - Desativacao do monolito
 

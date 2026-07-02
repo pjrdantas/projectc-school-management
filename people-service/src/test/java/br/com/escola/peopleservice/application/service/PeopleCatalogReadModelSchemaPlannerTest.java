@@ -7,14 +7,14 @@ import org.junit.jupiter.api.Test;
 class PeopleCatalogReadModelSchemaPlannerTest {
 
     @Test
-    void deveDiagnosticarCatalogosComoPrimeiroSchemaReadOnlySemLiberarMigrationAgora() {
+    void deveDiagnosticarCatalogosComBackfillPreparadoSemLiberarCutover() {
         PeopleCatalogReadModelSchemaPlanner planner = new PeopleCatalogReadModelSchemaPlanner();
 
         var plan = planner.planejarSchemaCatalogo();
 
-        assertThat(plan.status()).isEqualTo("opt_in_physical_schema_prepared");
+        assertThat(plan.status()).isEqualTo("opt_in_catalog_backfill_and_reconciliation_prepared");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("run_catalog_backfill_and_reconciliation_without_read_cutover");
+                .isEqualTo("evaluate_local_catalog_read_adapter_with_mandatory_monolith_fallback");
         assertThat(plan.migrationAllowedNow()).isTrue();
         assertThat(plan.physicalSchemaRequiredNext()).isTrue();
         assertThat(plan.localReadAdapterRequiredNext()).isTrue();
@@ -38,6 +38,9 @@ class PeopleCatalogReadModelSchemaPlannerTest {
                 "pessoa_documento");
         assertThat(plan.blockers()).contains(
                 "local-read-adapter-not-implemented",
-                "catalog-backfill-and-reconciliation-not-executed");
+                "catalog-backfill-and-reconciliation-must-run-green-before-local-read");
+        assertThat(plan.rollbackSteps()).contains(
+                "disable-people.shadow.local-persistence.backfill-enabled",
+                "disable-people.shadow.local-persistence.reconciliation-enabled");
     }
 }

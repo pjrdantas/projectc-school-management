@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecision;
 import br.com.escola.peopleservice.application.dto.PeopleCatalogReadModelSchemaPlan;
 import br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner;
+import br.com.escola.peopleservice.application.service.PeopleLocalPersistenceOperationState;
 import br.com.escola.peopleservice.application.service.PeopleLocalReadModelSchemaMigrationState;
 import br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard;
 import br.com.escola.peopleservice.infra.config.PeopleLocalPersistenceProperties;
@@ -61,18 +62,21 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private final PeopleLocalReadCutoverGuard readCutoverGuard;
     private final PeopleCatalogReadModelSchemaPlanner catalogSchemaPlanner;
     private final PeopleLocalReadModelSchemaMigrationState schemaMigrationState;
+    private final PeopleLocalPersistenceOperationState operationState;
 
     public PeopleLocalPersistenceHealthIndicator(
             PeopleLocalPersistenceProperties properties,
             MeterRegistry meterRegistry,
             PeopleLocalReadCutoverGuard readCutoverGuard,
             PeopleCatalogReadModelSchemaPlanner catalogSchemaPlanner,
-            PeopleLocalReadModelSchemaMigrationState schemaMigrationState) {
+            PeopleLocalReadModelSchemaMigrationState schemaMigrationState,
+            PeopleLocalPersistenceOperationState operationState) {
         this.properties = properties;
         this.meterRegistry = meterRegistry;
         this.readCutoverGuard = readCutoverGuard;
         this.catalogSchemaPlanner = catalogSchemaPlanner;
         this.schemaMigrationState = schemaMigrationState;
+        this.operationState = operationState;
     }
 
     @Override
@@ -96,6 +100,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("readRoutingPlan", diagnosticoRoteamentoLeitura());
         details.put("catalogReadModelSchemaPlan", diagnosticoSchemaCatalogo());
         details.put("schemaMigration", schemaMigrationState.currentReport());
+        details.put("catalogBackfill", operationState.currentReport());
         details.put("rollbackStrategy", "disable_people.shadow.local-persistence.enabled");
         details.put("backfillRecordsTotal", totalContador("people.shadow.local.persistence.backfill.records"));
         details.put("backfillTablesPlannedTotal",

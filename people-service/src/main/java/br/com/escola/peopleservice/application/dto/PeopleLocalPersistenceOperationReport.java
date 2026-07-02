@@ -9,6 +9,11 @@ public record PeopleLocalPersistenceOperationReport(
         String reason,
         int batchSize,
         int plannedTables,
+        int successfulTables,
+        int backfilledRecords,
+        int sourceRows,
+        int targetRows,
+        int divergences,
         boolean writesEnabled,
         boolean cutoverEnabled,
         List<TableOperationReport> tables) {
@@ -18,8 +23,14 @@ public record PeopleLocalPersistenceOperationReport(
             String keyColumn,
             String source,
             String target,
+            String status,
+            String reason,
             boolean backfillPlanned,
             boolean reconciliationPlanned,
-            boolean idempotent) {
+            boolean idempotent,
+            int sourceRows,
+            int targetRows,
+            int backfilledRecords,
+            int divergences) {
     }
 }

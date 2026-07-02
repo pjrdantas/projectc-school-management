@@ -1280,6 +1280,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   migration. Nao houve adapter local, alteracao de leitura, BFF/frontend,
   escrita ou `read-model-cutover`. A contagem regressiva da macrofase de schema
   local read-only do `people-service` passa a 2 subfases restantes estimadas.
+- A terceira subfase da Fase 63 adicionou ao `people-service`
+  backfill/reconciliacao opt-in real dos catalogos `tipo_pessoa` e
+  `tipo_endereco`. A origem do monolito e configurada explicitamente em
+  `people.shadow.local-persistence.catalog-backfill.source-*` e o destino
+  local reaproveita `people.shadow.local-persistence.schema-migration.*`. O
+  adapter JDBC copia somente esses dois catalogos com upsert idempotente por
+  UUID, preserva `codigo` como chave natural e reconcilia divergencias por
+  codigo, UUID e descricao. O health `peopleLocalPersistence` passou a expor o
+  ultimo relatorio `catalogBackfill`, totais de origem/destino, registros
+  copiados, divergencias e status agregado. Nao houve adapter local de leitura,
+  escrita, BFF/frontend, tabela transacional ou `read-model-cutover`. A
+  contagem regressiva da macrofase de schema local read-only do
+  `people-service` passa a 1 subfase restante estimada.
 
 ## Historico resumido
 

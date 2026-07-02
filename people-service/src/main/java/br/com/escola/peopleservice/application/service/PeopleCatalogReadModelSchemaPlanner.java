@@ -12,8 +12,8 @@ public class PeopleCatalogReadModelSchemaPlanner {
 
     public PeopleCatalogReadModelSchemaPlan planejarSchemaCatalogo() {
         return new PeopleCatalogReadModelSchemaPlan(
-                "opt_in_physical_schema_prepared",
-                "run_catalog_backfill_and_reconciliation_without_read_cutover",
+                "opt_in_catalog_backfill_and_reconciliation_prepared",
+                "evaluate_local_catalog_read_adapter_with_mandatory_monolith_fallback",
                 true,
                 true,
                 true,
@@ -51,9 +51,11 @@ public class PeopleCatalogReadModelSchemaPlanner {
                         "pessoa_documento"),
                 List.of(
                         "local-read-adapter-not-implemented",
-                        "catalog-backfill-and-reconciliation-not-executed",
+                        "catalog-backfill-and-reconciliation-must-run-green-before-local-read",
                         "read-cutover-must-keep-monolith-fallback"),
                 List.of(
+                        "disable-people.shadow.local-persistence.backfill-enabled",
+                        "disable-people.shadow.local-persistence.reconciliation-enabled",
                         "disable-people.shadow.local-persistence.migration-enabled",
                         "do-not-enable-read-model-cutover",
                         "keep-pessoa-read-port-on-monolith-proxy"));
