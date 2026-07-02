@@ -68,17 +68,26 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("migrationEnabled", properties.migrationEnabled());
         details.put("readModelCutoverEnabled", properties.readModelCutoverEnabled());
         details.put("failOnError", properties.failOnError());
+        details.put("backfillEnabled", properties.backfillEnabled());
+        details.put("reconciliationEnabled", properties.reconciliationEnabled());
+        details.put("backfillBatchSize", properties.backfillBatchSize());
         details.put("mode", "read_only_shadow_foundation");
         details.put("authoritative", false);
         details.put("writeCutoverAllowed", false);
         details.put("readModelTables", READ_MODEL_TABLES);
         details.put("excludedAuthoritativeTables", EXCLUDED_AUTHORITATIVE_TABLES);
         details.put("shadowReadRoutes", diagnosticoRotasLeitura());
+        details.put("backfillPlan", diagnosticoBackfill());
         details.put("rollbackStrategy", "disable_people.shadow.local-persistence.enabled");
         details.put("backfillRecordsTotal", totalContador("people.shadow.local.persistence.backfill.records"));
+        details.put("backfillTablesPlannedTotal",
+                totalContador("people.shadow.local.persistence.backfill.tables.planned"));
         details.put("reconciliationDivergencesTotal",
                 totalContador("people.shadow.local.persistence.reconciliation.divergences"));
+        details.put("reconciliationTablesPlannedTotal",
+                totalContador("people.shadow.local.persistence.reconciliation.tables.planned"));
         details.put("failuresTotal", totalContador("people.shadow.local.persistence.failures"));
+        details.put("operationCyclesTotal", totalContador("people.shadow.local.persistence.cycles"));
 
         if (properties.readModelCutoverEnabled()) {
             details.put("reason", "read-model-cutover-not-implemented");
@@ -91,6 +100,22 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         }
 
         return Health.up().withDetails(details).build();
+    }
+
+    private Map<String, Object> diagnosticoBackfill() {
+        Map<String, Object> plano = new LinkedHashMap<>();
+        for (String table : READ_MODEL_TABLES) {
+            Map<String, Object> detalhe = new LinkedHashMap<>();
+            detalhe.put("source", "monolith_proxy");
+            detalhe.put("target", "people_read_model_candidate");
+            detalhe.put("backfillEnabled", properties.backfillEnabled());
+            detalhe.put("reconciliationEnabled", properties.reconciliationEnabled());
+            detalhe.put("writesEnabled", false);
+            detalhe.put("cutoverEnabled", false);
+            detalhe.put("idempotent", true);
+            plano.put(table, detalhe);
+        }
+        return plano;
     }
 
     private Map<String, Object> diagnosticoRotasLeitura() {

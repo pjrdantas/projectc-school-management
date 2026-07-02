@@ -7,5 +7,8 @@ public record PeopleLocalPersistenceProperties(
         boolean enabled,
         boolean migrationEnabled,
         boolean readModelCutoverEnabled,
-        boolean failOnError) {
+        boolean failOnError,
+        boolean backfillEnabled,
+        boolean reconciliationEnabled,
+        int backfillBatchSize) {
 }

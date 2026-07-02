@@ -1222,6 +1222,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   migration, schema fisico, rota nova, BFF/frontend, escrita autoritativa ou
   cutover. A contagem regressiva da macrofase de persistencia controlada do
   `people-service` passa a 2 subfases restantes estimadas.
+- A terceira subfase da Fase 62 adicionou ao `people-service` o primeiro
+  esqueleto controlado de backfill/reconciliacao para o read model de pessoas,
+  ainda sem schema local, adapter de banco, escrita autoritativa ou cutover.
+  Foram criadas as flags
+  `people.shadow.local-persistence.backfill-enabled`,
+  `reconciliation-enabled` e `backfill-batch-size`, todas inertes por padrao,
+  alem de um coordenador que gera relatorio em modo `planned_only` para as seis
+  tabelas candidatas, com chaves idempotentes, origem `monolith_proxy`, destino
+  candidato `people_read_model_candidate`, escrita desligada e cutover
+  desligado. Um runner de startup executa o ciclo somente quando backfill ou
+  reconciliacao forem habilitados explicitamente, e o health
+  `peopleLocalPersistence` passou a expor plano, tamanho de lote e contadores
+  de ciclos/tabelas planejadas. A contagem regressiva da macrofase de
+  persistencia controlada do `people-service` passa a 1 subfase restante
+  estimada.
 
 ## Historico resumido
 

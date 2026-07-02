@@ -2588,12 +2588,36 @@ restantes estimadas: implementar backfill/reconciliacao sem cutover e, depois,
 decidir se alguma leitura interna pode usar o read model local com fallback para
 o monolito.
 
+Entregue na terceira subfase da Fase 62:
+
+- o `people-service` recebeu o primeiro esqueleto controlado de
+  backfill/reconciliacao para o read model de pessoas, ainda sem schema local,
+  sem adapter de banco e sem execucao autoritativa;
+- foram adicionadas as flags
+  `people.shadow.local-persistence.backfill-enabled`,
+  `reconciliation-enabled` e `backfill-batch-size`, todas inertes por padrao,
+  para permitir um ciclo explicito de planejamento operacional;
+- o coordenador de ciclo gera relatorio apenas em modo `planned_only`, com as
+  seis tabelas candidatas, chaves idempotentes, origem `monolith_proxy`,
+  destino candidato `people_read_model_candidate`, escrita desligada e cutover
+  desligado;
+- um runner de startup executa o ciclo somente quando backfill ou reconciliacao
+  forem explicitamente habilitados por configuracao; com as flags padrao, nada
+  e executado em runtime;
+- o health `peopleLocalPersistence` passou a expor o plano de backfill,
+  tamanho de lote, flags de reconciliacao e contadores de ciclos/tabelas
+  planejadas, mantendo o monolito como unica fonte efetiva.
+
+Contagem da macrofase persistencia controlada do `people-service`: 1 subfase
+restante estimada: decidir se alguma leitura interna pode usar o read model
+local com fallback para o monolito, sem abrir escrita.
+
 Proxima subfase pratica:
 
-- implementar o primeiro esqueleto controlado de backfill/reconciliacao para o
-  read model de pessoas, ainda desligado por padrao e sem cutover de rota;
-- manter o monolito como fonte unica, nao mover escrita e nao trocar o proxy
-  read-only pelo banco local.
+- diagnosticar e preparar o primeiro cutover controlado de leitura interna para
+  o read model local, mantendo fallback obrigatorio para o monolito;
+- nao mover escrita, nao alterar BFF/frontend e nao habilitar leitura local sem
+  reconciliacao verde e rollback testado.
 
 ### Fase futura - Desativacao do monolito
 
