@@ -1091,6 +1091,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   object storage real, bucket, dependencia de cloud, migration de arquivos,
   BFF/frontend e alteracao de contratos HTTP. A contagem regressiva desta
   macrofase chega a 0.
+- A macrofase seguinte iniciou object storage real controlado para documentos:
+  o `school-management-service` recebeu a dependencia `software.amazon.awssdk:s3`
+  e passou a selecionar o backend de arquivos por `documento.storage.backend`,
+  mantendo `local` como default. O novo `S3DocumentoArquivoStorage` fica ativo
+  apenas com `documento.storage.backend=s3`, usa configuracao de bucket,
+  prefixo, regiao, endpoint S3-compatible, credenciais opcionais e path-style
+  access, e retorna `DocumentoArquivoReferencia` com `OBJECT_STORAGE` e
+  `s3://bucket/chave`. Nao houve bucket, runtime MinIO/S3, migration,
+  BFF/frontend ou mudanca de contrato HTTP. A contagem regressiva da macrofase
+  object storage real controlado passa a 2 subfases restantes estimadas.
 
 ## Historico resumido
 

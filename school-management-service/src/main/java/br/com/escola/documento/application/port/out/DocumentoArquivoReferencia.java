@@ -19,6 +19,10 @@ public record DocumentoArquivoReferencia(
         return new DocumentoArquivoReferencia(DocumentoArquivoStorageTipo.LOCAL, chave, localizacao);
     }
 
+    public static DocumentoArquivoReferencia objectStorage(String chave, String localizacao) {
+        return new DocumentoArquivoReferencia(DocumentoArquivoStorageTipo.OBJECT_STORAGE, chave, localizacao);
+    }
+
     public String caminhoPersistencia() {
         return localizacao;
     }

@@ -2216,6 +2216,36 @@ Contagem da macrofase documentos/storage: 0. A proxima decisao deve escolher
 entre iniciar uma macrofase backend-only de object storage real ou abrir outro
 bloco funcional sem ampliar BFF/frontend.
 
+### Fase 59 - Object storage real controlado
+
+Objetivo: iniciar a migracao tecnica controlada do armazenamento de binarios de
+documentos para storage S3-compatible, mantendo `LOCAL` como backend padrao,
+sem alterar rotas externas, sem BFF/frontend e sem migrar arquivos existentes
+antes de validacao operacional.
+
+Entregue na primeira subfase da Fase 59:
+
+- foi adicionada a dependencia `software.amazon.awssdk:s3`, reaproveitando o
+  BOM da AWS SDK ja declarado no `school-management-service`;
+- `documento.storage.backend` passou a selecionar o backend de arquivos:
+  `local` por default e `s3` somente quando explicitamente configurado;
+- o storage local ficou condicionado a `documento.storage.backend=local` com
+  `matchIfMissing=true`, preservando o comportamento atual e o rollback
+  imediato;
+- foi criado o adapter `S3DocumentoArquivoStorage`, condicionado a
+  `documento.storage.backend=s3`, com configuracao de bucket, prefixo, regiao,
+  endpoint S3-compatible, credenciais estaticas opcionais e path-style access;
+- o adapter S3 grava por `PutObject`, gera chave por entidade e retorna
+  `DocumentoArquivoReferencia` com `OBJECT_STORAGE` e localizacao persistivel
+  `s3://bucket/chave`;
+- nao houve criacao de bucket, runtime MinIO/S3, migration, BFF, frontend ou
+  mudanca de contrato HTTP.
+
+Contagem da macrofase object storage real controlado: 2 subfases restantes
+estimadas: validacao operacional controlada com storage S3-compatible e
+fechamento/migracao minima dos arquivos existentes somente se a validacao for
+segura.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
