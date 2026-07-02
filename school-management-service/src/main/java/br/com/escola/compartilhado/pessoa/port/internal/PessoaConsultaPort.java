@@ -1,9 +1,12 @@
 package br.com.escola.compartilhado.pessoa.port.internal;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaCatalogoResumo;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaConsultaCadastralPage;
+import br.com.escola.compartilhado.pessoa.dto.internal.PessoaResumo;
 
 public interface PessoaConsultaPort {
 
@@ -18,4 +21,6 @@ public interface PessoaConsultaPort {
     List<PessoaCatalogoResumo> listarTiposPessoa();
 
     List<PessoaCatalogoResumo> listarTiposEndereco();
+
+    Optional<PessoaResumo> buscarPessoaPorIdEEscola(UUID pessoaId, UUID escolaId);
 }

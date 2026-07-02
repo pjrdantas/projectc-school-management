@@ -1142,6 +1142,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   alteracao de payload externo ou movimentacao de escrita. A contagem
   regressiva da macrofase `people-service` passa a 2 subfases restantes
   estimadas.
+- A terceira subfase da Fase 60 aplicou o primeiro consumo interno adicional de
+  baixo risco sobre `PessoaConsultaPort`: a porta passou a expor consulta
+  entity-free de pessoa por `pessoaId` e `escolaId`, retornando `PessoaResumo`,
+  e `FuncionarioProfessorService` passou a montar o resumo de funcionarios
+  elegiveis para professor a partir dessa fronteira em vez de ler nome/escola
+  diretamente de `FuncionarioEntity.getPessoa()`. A criacao de professor
+  permaneceu em `PessoaCadastroPort`, porque ainda depende de `PessoaEntity`
+  para o relacionamento JPA atual. Nao houve BFF/frontend, migration, nova
+  rota, runtime fisico de `people-service`, alteracao de payload externo ou
+  movimentacao de escrita. A contagem regressiva da macrofase `people-service`
+  passa a 1 subfase restante estimada.
 
 ## Historico resumido
 

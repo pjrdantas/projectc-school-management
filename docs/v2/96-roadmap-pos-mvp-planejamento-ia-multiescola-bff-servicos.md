@@ -2360,6 +2360,28 @@ aplicar o primeiro consumo interno adicional de baixo risco sobre
 `PessoaConsultaPort` e, depois, decidir se o modulo fisico pode abrir em modo
 shadow read-only.
 
+Entregue na terceira subfase da Fase 60:
+
+- `PessoaConsultaPort` passou a expor tambem a consulta entity-free de pessoa
+  por `pessoaId` e `escolaId`, retornando `PessoaResumo` sem vazar
+  `PessoaEntity` para consumidores;
+- `PessoaConsultaService` implementou essa leitura sobre o banco atual do
+  monolito, mantendo `school-management-service` como runtime e fonte
+  autoritativa;
+- `FuncionarioProfessorService`, usado pelo contrato interno de funcionarios
+  elegiveis para professor, passou a montar os dados de pessoa via
+  `PessoaConsultaPort` em vez de ler nome/escola diretamente de
+  `FuncionarioEntity.getPessoa()`;
+- a criacao de professor continuou usando `PessoaCadastroPort` porque o
+  relacionamento JPA atual ainda exige `PessoaEntity` enquanto nao houver nova
+  persistencia propria;
+- nao houve nova rota, BFF, frontend, migration, runtime fisico de
+  `people-service`, alteracao de payload externo ou movimentacao de escrita.
+
+Contagem da macrofase `people-service`: 1 subfase restante estimada: decidir se
+o modulo fisico pode abrir em modo shadow/read-only ou se ainda e necessario
+mais um recorte interno antes da extracao fisica.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -20,7 +21,9 @@ import br.com.escola.compartilhado.pessoa.dto.internal.PessoaAlunoResponsaveisRe
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaCatalogoResumo;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaConsultaCadastralPage;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaResponsavelResumo;
+import br.com.escola.compartilhado.pessoa.dto.internal.PessoaResumo;
 import br.com.escola.compartilhado.pessoa.port.internal.PessoaConsultaPort;
+import br.com.escola.compartilhado.pessoa.repository.PessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.repository.TipoPessoaJpaRepository;
 
 @Service
@@ -39,14 +42,17 @@ public class PessoaConsultaService implements PessoaConsultaPort {
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final TipoPessoaJpaRepository tipoPessoaRepository;
     private final TipoEnderecoJpaRepository tipoEnderecoRepository;
+    private final PessoaJpaRepository pessoaRepository;
 
     public PessoaConsultaService(
             NamedParameterJdbcTemplate jdbcTemplate,
             TipoPessoaJpaRepository tipoPessoaRepository,
-            TipoEnderecoJpaRepository tipoEnderecoRepository) {
+            TipoEnderecoJpaRepository tipoEnderecoRepository,
+            PessoaJpaRepository pessoaRepository) {
         this.jdbcTemplate = jdbcTemplate;
         this.tipoPessoaRepository = tipoPessoaRepository;
         this.tipoEnderecoRepository = tipoEnderecoRepository;
+        this.pessoaRepository = pessoaRepository;
     }
 
     @Override
@@ -123,6 +129,21 @@ public class PessoaConsultaService implements PessoaConsultaPort {
         return tipoEnderecoRepository.findAll().stream()
                 .map(tipo -> new PessoaCatalogoResumo(tipo.getId(), tipo.getCodigo(), tipo.getDescricao()))
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<PessoaResumo> buscarPessoaPorIdEEscola(UUID pessoaId, UUID escolaId) {
+        if (pessoaId == null || escolaId == null) {
+            return Optional.empty();
+        }
+        return pessoaRepository.findByIdAndEscola_Id(pessoaId, escolaId)
+                .map(pessoa -> new PessoaResumo(
+                        pessoa.getId(),
+                        pessoa.getNomeCompleto(),
+                        pessoa.getEscola() == null ? null : pessoa.getEscola().getId(),
+                        pessoa.getEscola() == null ? null : pessoa.getEscola().getNome(),
+                        pessoa.isAtivo()));
     }
 
     private MapSqlParameterSource buildParams(
