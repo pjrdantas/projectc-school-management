@@ -2139,6 +2139,17 @@ Entregue na abertura da macrofase seguinte:
   alterado, basta desativar o uso da tabela e voltar ao calculo em memoria,
   mantendo a migration aditiva como dado de auditoria. Contagem da macrofase
   novo historico escolar: 1 subfase restante estimada.
+- o fechamento formal da macrofase confirma que o bloco backend do novo
+  historico escolar fica encerrado neste recorte: existem carregamento de
+  cadastro/edicao, contexto minimo persistido, fronteira interna de pendencias,
+  snapshot persistido das pendencias abertas, fallback calculado para dados
+  legados e testes automatizados cobrindo o fluxo principal. Nao houve
+  substituicao de tela, BFF, frontend, importacao de PDF ou ampliacao para
+  estruturas completas de cabecalho/periodos/estudos realizados.
+- a macrofase novo historico escolar passa a contagem 0 dentro do backend-only.
+  A proxima decisao deve escolher entre iniciar um novo bloco funcional
+  backend-only ou planejar, em macrofase separada, o recorte de BFF/frontend
+  para integrar a nova experiencia visual.
 
 ### Fase 58 - Desativacao do monolito
 

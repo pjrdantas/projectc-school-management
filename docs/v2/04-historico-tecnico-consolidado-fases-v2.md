@@ -1054,6 +1054,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A contagem regressiva da macrofase novo historico escolar passa a 1 subfase
   restante estimada: fechamento formal do bloco backend e decisao sobre quando
   a substituicao de tela podera ser tratada fora desta frente backend-only.
+- O fechamento formal encerrou a macrofase backend-only do novo historico
+  escolar neste recorte. O bloco agora cobre carregamento de cadastro/edicao,
+  contexto minimo persistido, fronteira interna de pendencias, persistencia
+  propria minima das pendencias abertas e fallback calculado para historicos
+  legados. Permanecem fora deste bloco: troca da tela atual, BFF/frontend,
+  importacao de PDF e persistencia das estruturas completas de cabecalho,
+  periodos, estudos realizados e certificados evolutivos.
+- A contagem regressiva desta macrofase chega a 0. A proxima fase deve abrir
+  novo bloco funcional backend-only ou, se a prioridade mudar, iniciar uma
+  macrofase separada para BFF/frontend da nova experiencia.
 
 ## Historico resumido
 
