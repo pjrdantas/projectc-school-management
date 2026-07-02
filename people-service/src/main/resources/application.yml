@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: people-service
+
+server:
+  port: 8093
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+people:
+  shadow:
+    internal-api:
+      token: ${PEOPLE_SHADOW_INTERNAL_API_TOKEN:people-shadow-local-token}
+    monolith:
+      base-url: ${PEOPLE_SHADOW_MONOLITH_BASE_URL:http://localhost:8080}
+      connect-timeout: ${PEOPLE_SHADOW_MONOLITH_CONNECT_TIMEOUT:2s}
+      read-timeout: ${PEOPLE_SHADOW_MONOLITH_READ_TIMEOUT:5s}

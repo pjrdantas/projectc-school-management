@@ -2407,6 +2407,47 @@ por scaffold minimo, health e proxy/cliente interno para os contratos de
 consulta ja estabilizados, sem BFF, frontend, escrita ou persistencia propria
 autoritativa.
 
+### Fase 61 - Abertura fisica do `people-service` shadow/read-only
+
+Objetivo: iniciar o modulo fisico `people-service` pelo menor recorte seguro de
+leitura backend/backend, mantendo o monolito como fonte autoritativa e
+reaproveitando os contratos entity-free ja estabilizados em `PessoaConsultaPort`.
+Esta fase nao abre rota externa no BFF, nao altera frontend, nao move escrita e
+nao cria persistencia propria autoritativa.
+
+Entregue na primeira subfase da Fase 61:
+
+- o monorepo passou a incluir o modulo Maven `people-service`, com runtime
+  Spring Boot proprio, actuator/health e configuracao isolada em
+  `people.shadow.*`;
+- o monolito passou a expor o adaptador interno read-only
+  `GET /internal/pessoas/**`, delegando para `PessoaConsultaPort` e retornando
+  DTOs internos sem `PessoaEntity`;
+- o `people-service` passou a expor rotas internas compativeis em
+  `/internal/v1/pessoas/**` e `/internal/pessoas/**` para catalogos de pessoa,
+  catalogos de endereco, resumo de pessoa por `pessoaId` + `escolaId` e
+  consulta cadastral;
+- todas as leituras do novo runtime ainda sao proxy shadow para o monolito via
+  cliente HTTP interno, com repasse de `Authorization`, `X-Correlation-Id`,
+  `X-Usuario-Id` e `X-Escola-Id`;
+- foi adicionada observabilidade minima com health indicator
+  `peopleShadowMonolith` e metricas `people.shadow.monolith.requests` /
+  `people.shadow.monolith.failures` por operacao;
+- nao houve BFF/frontend, migration, schema proprio, Flyway/JPA no novo modulo,
+  rota externa nova, cutover de escrita ou autoridade local de dados.
+
+Contagem da macrofase `people-service` fisico: 2 subfases restantes estimadas:
+realizar smoke operacional/read-only do runtime e, depois, fechar formalmente a
+macrofase decidindo se a proxima evolucao pode iniciar diagnostico de
+persistencia propria controlada ou se ainda exige mais hardening do proxy.
+
+Proxima subfase pratica:
+
+- consolidar smoke operacional do `people-service` fisico em modo shadow,
+  validando health/metricas e compatibilidade das rotas internas sem tocar BFF;
+- manter escrita, persistencia propria e cutover externo fora do escopo ate o
+  fechamento formal desta macrofase.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

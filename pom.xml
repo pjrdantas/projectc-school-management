@@ -21,6 +21,7 @@
         <module>school-management-bff</module>
         <module>academic-catalog-service</module>
         <module>academic-professor-service</module>
+        <module>people-service</module>
     </modules>
 
     <properties>

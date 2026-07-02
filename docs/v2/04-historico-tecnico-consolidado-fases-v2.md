@@ -1164,6 +1164,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   vinculos JPA ainda dependem do schema e das transacoes locais do
   `school-management-service`. A contagem regressiva da macrofase
   `people-service` chega a 0.
+- A primeira subfase da Fase 61 iniciou o runtime fisico `people-service` em
+  modo backend/backend shadow/read-only. O monorepo passou a ter o modulo Maven
+  `people-service`, sem JPA/Flyway e sem persistencia propria, expondo apenas
+  rotas internas `/internal/v1/pessoas/**` e `/internal/pessoas/**`. O
+  `school-management-service` passou a expor o adaptador interno
+  `/internal/pessoas/**` sobre `PessoaConsultaPort`, e o novo runtime consome
+  esse contrato por proxy HTTP, repassando headers internos e mantendo o
+  monolito como autoridade de leitura/escrita. Foram adicionados health e
+  metricas `people.shadow.monolith.*`. Nao houve BFF/frontend, migration, schema
+  proprio, rota externa nova, cutover de escrita ou autoridade local de dados.
+  A contagem regressiva da macrofase `people-service` fisico passa a 2 subfases
+  restantes estimadas.
 
 ## Historico resumido
 
