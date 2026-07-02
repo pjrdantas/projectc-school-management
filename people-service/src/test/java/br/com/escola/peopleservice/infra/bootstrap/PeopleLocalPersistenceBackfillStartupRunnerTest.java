@@ -16,7 +16,7 @@ class PeopleLocalPersistenceBackfillStartupRunnerTest {
         PeopleLocalPersistenceBackfillCoordinator coordinator = org.mockito.Mockito.mock(
                 PeopleLocalPersistenceBackfillCoordinator.class);
         PeopleLocalPersistenceBackfillStartupRunner runner = new PeopleLocalPersistenceBackfillStartupRunner(
-                new PeopleLocalPersistenceProperties(false, false, false, false, false, false, 500),
+                new PeopleLocalPersistenceProperties(false, false, false, false, false, false, 500, true),
                 coordinator);
 
         runner.run(new DefaultApplicationArguments());
@@ -29,7 +29,7 @@ class PeopleLocalPersistenceBackfillStartupRunnerTest {
         PeopleLocalPersistenceBackfillCoordinator coordinator = org.mockito.Mockito.mock(
                 PeopleLocalPersistenceBackfillCoordinator.class);
         PeopleLocalPersistenceBackfillStartupRunner runner = new PeopleLocalPersistenceBackfillStartupRunner(
-                new PeopleLocalPersistenceProperties(false, false, false, false, true, false, 500),
+                new PeopleLocalPersistenceProperties(false, false, false, false, true, false, 500, true),
                 coordinator);
 
         runner.run(new DefaultApplicationArguments());

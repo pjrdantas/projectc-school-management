@@ -13,7 +13,7 @@ class PeopleLocalPersistenceBackfillCoordinatorTest {
     void deveManterCicloDesligadoPorPadrao() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         PeopleLocalPersistenceBackfillCoordinator coordinator = new PeopleLocalPersistenceBackfillCoordinator(
-                new PeopleLocalPersistenceProperties(false, false, false, false, false, false, 500),
+                new PeopleLocalPersistenceProperties(false, false, false, false, false, false, 500, true),
                 meterRegistry);
 
         var report = coordinator.executarCicloControlado();
@@ -33,7 +33,7 @@ class PeopleLocalPersistenceBackfillCoordinatorTest {
     void devePlanejarBackfillEReconciliacaoSemEscritaLocalOuCutover() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         PeopleLocalPersistenceBackfillCoordinator coordinator = new PeopleLocalPersistenceBackfillCoordinator(
-                new PeopleLocalPersistenceProperties(false, false, false, false, true, true, 100),
+                new PeopleLocalPersistenceProperties(false, false, false, false, true, true, 100, true),
                 meterRegistry);
 
         var report = coordinator.executarCicloControlado();

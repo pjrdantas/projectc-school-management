@@ -10,5 +10,6 @@ public record PeopleLocalPersistenceProperties(
         boolean failOnError,
         boolean backfillEnabled,
         boolean reconciliationEnabled,
-        int backfillBatchSize) {
+        int backfillBatchSize,
+        boolean readModelFallbackEnabled) {
 }

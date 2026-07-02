@@ -28,8 +28,11 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .increment();
 
         PeopleLocalPersistenceHealthIndicator indicator = new PeopleLocalPersistenceHealthIndicator(
-                new PeopleLocalPersistenceProperties(false, false, false, false, false, false, 500),
-                meterRegistry);
+                new PeopleLocalPersistenceProperties(false, false, false, false, false, false, 500, true),
+                meterRegistry,
+                new br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard(
+                        new PeopleLocalPersistenceProperties(false, false, false, false, false, false, 500, true),
+                        meterRegistry));
 
         var health = indicator.health();
 
@@ -41,6 +44,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("backfillEnabled", false)
                 .containsEntry("reconciliationEnabled", false)
                 .containsEntry("backfillBatchSize", 500)
+                .containsEntry("readModelFallbackEnabled", true)
                 .containsEntry("authoritative", false)
                 .containsEntry("writeCutoverAllowed", false)
                 .containsEntry("mode", "read_only_shadow_foundation")
@@ -50,6 +54,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("reconciliationDivergencesTotal", 1.0d)
                 .containsEntry("reconciliationTablesPlannedTotal", 0.0d)
                 .containsEntry("operationCyclesTotal", 0.0d)
+                .containsEntry("readRoutingDecisionsTotal", 0.0d)
                 .containsEntry("failuresTotal", 0.0d);
 
         @SuppressWarnings("unchecked")
@@ -60,7 +65,20 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("shadowRoute", "GET /internal/v1/pessoas/{id}")
                 .containsEntry("candidateSource", "pessoa")
                 .containsEntry("currentSource", "monolith_proxy")
-                .containsEntry("localReadEnabled", false);
+                .containsEntry("localReadEnabled", false)
+                .containsEntry("fallbackRequired", true);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> readRoutingPlan = (Map<String, Object>) health.getDetails().get("readRoutingPlan");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> buscarPorIdRouting = (Map<String, Object>) readRoutingPlan.get("buscarPorId");
+        assertThat(buscarPorIdRouting)
+                .containsEntry("selectedSource", "monolith_proxy")
+                .containsEntry("localReadRequested", false)
+                .containsEntry("localReadEligible", false)
+                .containsEntry("fallbackEnabled", true)
+                .containsEntry("writesEnabled", false)
+                .containsEntry("reason", "read-model-cutover-disabled");
 
         @SuppressWarnings("unchecked")
         java.util.List<String> readModelTables = (java.util.List<String>) health.getDetails().get("readModelTables");
@@ -90,8 +108,11 @@ class PeopleLocalPersistenceHealthIndicatorTest {
     @Test
     void deveReportarOutOfServiceQuandoPersistenciaLocalForLigadaAntesDoSchemaEBackfill() {
         PeopleLocalPersistenceHealthIndicator indicator = new PeopleLocalPersistenceHealthIndicator(
-                new PeopleLocalPersistenceProperties(true, false, false, false, false, false, 500),
-                new SimpleMeterRegistry());
+                new PeopleLocalPersistenceProperties(true, false, false, false, false, false, 500, true),
+                new SimpleMeterRegistry(),
+                new br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard(
+                        new PeopleLocalPersistenceProperties(true, false, false, false, false, false, 500, true),
+                        new SimpleMeterRegistry()));
 
         var health = indicator.health();
 
@@ -104,16 +125,20 @@ class PeopleLocalPersistenceHealthIndicatorTest {
 
     @Test
     void deveReportarOutOfServiceQuandoCutoverLocalForLigadoAntesDaImplementacao() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         PeopleLocalPersistenceHealthIndicator indicator = new PeopleLocalPersistenceHealthIndicator(
-                new PeopleLocalPersistenceProperties(true, true, true, true, true, true, 100),
-                new SimpleMeterRegistry());
+                new PeopleLocalPersistenceProperties(true, true, true, true, true, true, 100, true),
+                meterRegistry,
+                new br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard(
+                        new PeopleLocalPersistenceProperties(true, true, true, true, true, true, 100, true),
+                        meterRegistry));
 
         var health = indicator.health();
 
         assertThat(health.getStatus()).isEqualTo(Status.OUT_OF_SERVICE);
         assertThat(health.getDetails())
                 .containsEntry("readModelCutoverEnabled", true)
-                .containsEntry("reason", "read-model-cutover-not-implemented")
+                .containsEntry("reason", "local-read-adapter-not-configured")
                 .containsEntry("authoritative", false);
     }
 }

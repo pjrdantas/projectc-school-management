@@ -1237,6 +1237,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   de ciclos/tabelas planejadas. A contagem regressiva da macrofase de
   persistencia controlada do `people-service` passa a 1 subfase restante
   estimada.
+- A quarta subfase da Fase 62 fechou a macrofase de persistencia controlada do
+  `people-service` com uma guarda interna de cutover de leitura. A guarda e
+  chamada antes das consultas shadow apenas para decidir e medir roteamento,
+  mantendo o `PessoaReadPort` efetivo apontado para `monolith_proxy`. Foi
+  adicionada a flag
+  `people.shadow.local-persistence.read-model-fallback-enabled`, ligada por
+  padrao, e cada operacao candidata passou a ter decisao observavel com origem
+  candidata, origem selecionada, elegibilidade, motivo de bloqueio e escrita
+  desligada. Mesmo com `read-model-cutover-enabled=true`, a leitura local
+  continua inelegivel sem persistencia local habilitada, reconciliacao verde,
+  ausencia de falhas/divergencias e adapter local implementado. O health
+  `peopleLocalPersistence` expõe o plano de roteamento e retorna
+  `OUT_OF_SERVICE` quando o cutover e solicitado sem cumprir as pre-condicoes.
+  Nao houve schema local fisico, migration, BFF/frontend, escrita ou cutover
+  real. A contagem regressiva da macrofase de persistencia controlada do
+  `people-service` chega a 0.
 
 ## Historico resumido
 

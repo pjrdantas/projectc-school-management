@@ -8,6 +8,8 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
+import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecision;
+import br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard;
 import br.com.escola.peopleservice.infra.config.PeopleLocalPersistenceProperties;
 import io.micrometer.core.instrument.Measurement;
 import io.micrometer.core.instrument.Meter;
@@ -53,12 +55,15 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
 
     private final PeopleLocalPersistenceProperties properties;
     private final MeterRegistry meterRegistry;
+    private final PeopleLocalReadCutoverGuard readCutoverGuard;
 
     public PeopleLocalPersistenceHealthIndicator(
             PeopleLocalPersistenceProperties properties,
-            MeterRegistry meterRegistry) {
+            MeterRegistry meterRegistry,
+            PeopleLocalReadCutoverGuard readCutoverGuard) {
         this.properties = properties;
         this.meterRegistry = meterRegistry;
+        this.readCutoverGuard = readCutoverGuard;
     }
 
     @Override
@@ -71,6 +76,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("backfillEnabled", properties.backfillEnabled());
         details.put("reconciliationEnabled", properties.reconciliationEnabled());
         details.put("backfillBatchSize", properties.backfillBatchSize());
+        details.put("readModelFallbackEnabled", properties.readModelFallbackEnabled());
         details.put("mode", "read_only_shadow_foundation");
         details.put("authoritative", false);
         details.put("writeCutoverAllowed", false);
@@ -78,6 +84,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("excludedAuthoritativeTables", EXCLUDED_AUTHORITATIVE_TABLES);
         details.put("shadowReadRoutes", diagnosticoRotasLeitura());
         details.put("backfillPlan", diagnosticoBackfill());
+        details.put("readRoutingPlan", diagnosticoRoteamentoLeitura());
         details.put("rollbackStrategy", "disable_people.shadow.local-persistence.enabled");
         details.put("backfillRecordsTotal", totalContador("people.shadow.local.persistence.backfill.records"));
         details.put("backfillTablesPlannedTotal",
@@ -88,9 +95,11 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 totalContador("people.shadow.local.persistence.reconciliation.tables.planned"));
         details.put("failuresTotal", totalContador("people.shadow.local.persistence.failures"));
         details.put("operationCyclesTotal", totalContador("people.shadow.local.persistence.cycles"));
+        details.put("readRoutingDecisionsTotal",
+                totalContador("people.shadow.local.persistence.read.routing.decisions"));
 
         if (properties.readModelCutoverEnabled()) {
-            details.put("reason", "read-model-cutover-not-implemented");
+            details.put("reason", primeiraInelegibilidadeRoteamento());
             return Health.outOfService().withDetails(details).build();
         }
 
@@ -100,6 +109,31 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         }
 
         return Health.up().withDetails(details).build();
+    }
+
+    private Map<String, Object> diagnosticoRoteamentoLeitura() {
+        Map<String, Object> plan = new LinkedHashMap<>();
+        readCutoverGuard.avaliarTodas().forEach((operation, decision) -> {
+            Map<String, Object> detalhe = new LinkedHashMap<>();
+            detalhe.put("shadowRoute", decision.shadowRoute());
+            detalhe.put("candidateSource", decision.candidateSource());
+            detalhe.put("selectedSource", decision.selectedSource());
+            detalhe.put("localReadRequested", decision.localReadRequested());
+            detalhe.put("localReadEligible", decision.localReadEligible());
+            detalhe.put("fallbackEnabled", decision.fallbackEnabled());
+            detalhe.put("writesEnabled", decision.writesEnabled());
+            detalhe.put("reason", decision.reason());
+            plan.put(operation, detalhe);
+        });
+        return plan;
+    }
+
+    private String primeiraInelegibilidadeRoteamento() {
+        return readCutoverGuard.avaliarTodas().values().stream()
+                .filter(decision -> !decision.localReadEligible())
+                .map(PeopleLocalReadRoutingDecision::reason)
+                .findFirst()
+                .orElse("read-model-cutover-eligible");
     }
 
     private Map<String, Object> diagnosticoBackfill() {
@@ -126,6 +160,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             detalhe.put("candidateSource", route.candidateSource());
             detalhe.put("currentSource", "monolith_proxy");
             detalhe.put("localReadEnabled", false);
+            detalhe.put("fallbackRequired", true);
             rotas.put(route.operation(), detalhe);
         }
         return rotas;

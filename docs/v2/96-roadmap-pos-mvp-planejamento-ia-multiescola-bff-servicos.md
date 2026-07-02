@@ -2612,12 +2612,37 @@ Contagem da macrofase persistencia controlada do `people-service`: 1 subfase
 restante estimada: decidir se alguma leitura interna pode usar o read model
 local com fallback para o monolito, sem abrir escrita.
 
+Entregue na quarta subfase da Fase 62:
+
+- o `people-service` recebeu uma guarda interna de cutover controlado de
+  leitura, chamada antes das consultas shadow atuais apenas para decidir e
+  medir a origem selecionada, sem trocar o `PessoaReadPort` efetivo;
+- a flag `people.shadow.local-persistence.read-model-fallback-enabled` foi
+  adicionada ligada por padrao, tornando o fallback para `monolith_proxy`
+  obrigatorio para qualquer tentativa futura de leitura local;
+- cada operacao candidata (`listarTiposPessoa`, `listarTiposEndereco`,
+  `buscarPorId` e `consultarCadastro`) agora possui decisao observavel com
+  origem candidata, origem selecionada, elegibilidade, motivo de bloqueio e
+  garantia de escrita desligada;
+- mesmo com `read-model-cutover-enabled=true`, a leitura local permanece
+  inelegivel enquanto nao houver persistencia local habilitada, reconciliacao
+  verde, ausencia de falhas/divergencias e adapter local implementado;
+- o health `peopleLocalPersistence` passou a expor o plano de roteamento de
+  leitura e retorna `OUT_OF_SERVICE` quando o cutover e solicitado sem cumprir
+  as pre-condicoes, preservando o monolito como origem selecionada.
+
+Contagem da macrofase persistencia controlada do `people-service`: 0 subfases
+restantes. A macrofase fica fechada sem mover escrita, sem BFF/frontend, sem
+schema local fisico e sem cutover real de leitura.
+
 Proxima subfase pratica:
 
-- diagnosticar e preparar o primeiro cutover controlado de leitura interna para
-  o read model local, mantendo fallback obrigatorio para o monolito;
-- nao mover escrita, nao alterar BFF/frontend e nao habilitar leitura local sem
-  reconciliacao verde e rollback testado.
+- iniciar a proxima macrofase backend com o menor passo fisico seguro para o
+  `people-service`: diagnosticar se ja cabe criar schema local read-only real
+  para `tipo_pessoa`/`tipo_endereco` ou se ainda e melhor hardening de contrato
+  antes de qualquer migration;
+- manter proibido mover escrita, alterar BFF/frontend ou habilitar leitura local
+  sem adapter, reconciliacao verde e rollback testado.
 
 ### Fase futura - Desativacao do monolito
 
