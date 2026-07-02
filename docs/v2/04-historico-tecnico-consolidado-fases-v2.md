@@ -1153,6 +1153,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   rota, runtime fisico de `people-service`, alteracao de payload externo ou
   movimentacao de escrita. A contagem regressiva da macrofase `people-service`
   passa a 1 subfase restante estimada.
+- O fechamento formal da Fase 60 autorizou a proxima macrofase apenas para
+  abertura fisica do `people-service` em modo backend/backend shadow/read-only,
+  consumindo os contratos entity-free ja estabilizados em `PessoaConsultaPort`.
+  O recorte inicial deve ficar limitado a catalogos de pessoa, consulta
+  cadastral e resumo de pessoa por `pessoaId` e `escolaId`, sem mover escrita,
+  sem BFF/frontend, sem rota externa nova, sem migration de dados e sem
+  persistencia propria autoritativa. A escrita permanece bloqueada porque
+  `PessoaCadastroPort`, aluno, responsavel, professor, funcionario, endereco e
+  vinculos JPA ainda dependem do schema e das transacoes locais do
+  `school-management-service`. A contagem regressiva da macrofase
+  `people-service` chega a 0.
 
 ## Historico resumido
 

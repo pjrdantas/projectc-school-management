@@ -2382,6 +2382,31 @@ Contagem da macrofase `people-service`: 1 subfase restante estimada: decidir se
 o modulo fisico pode abrir em modo shadow/read-only ou se ainda e necessario
 mais um recorte interno antes da extracao fisica.
 
+Fechamento formal da Fase 60:
+
+- a abertura fisica do `people-service` fica autorizada apenas em modo
+  backend/backend shadow/read-only, consumindo os contratos entity-free ja
+  estabilizados em `PessoaConsultaPort`;
+- o primeiro recorte fisico deve ser restrito a leitura de catalogos de pessoa,
+  consulta cadastral e resumo de pessoa por `pessoaId` + `escolaId`, sem mover
+  escrita e sem assumir autoridade sobre `pessoa`, `endereco`, aluno,
+  responsavel, funcionario ou professor;
+- ainda nao e seguro abrir cutover de escrita nem persistencia propria
+  autoritativa, porque `PessoaCadastroPort`, aluno, responsavel, professor,
+  funcionario, endereco e vinculos JPA continuam dependentes do schema e das
+  transacoes locais do `school-management-service`;
+- o modulo fisico futuro deve iniciar sem BFF/frontend, sem rota externa nova,
+  sem migration de dados e sem banco proprio obrigatorio; se houver schema
+  local, ele deve ser opt-in e precedido por backfill/reconciliacao;
+- rollback da proxima macrofase deve ser trivial: desabilitar o runtime shadow
+  e manter o monolito como unica fonte de leitura/escrita.
+
+Contagem da macrofase `people-service`: 0. A proxima macrofase sugerida e abrir
+o modulo fisico `people-service` em shadow/read-only backend/backend, iniciando
+por scaffold minimo, health e proxy/cliente interno para os contratos de
+consulta ja estabilizados, sem BFF, frontend, escrita ou persistencia propria
+autoritativa.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
