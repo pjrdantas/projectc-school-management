@@ -1118,6 +1118,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   migracao de arquivos existentes. A contagem regressiva desta macrofase
   chega a 0; uma evolucao real de ambiente S3-compatible deve abrir macrofase
   propria com migracao, reconciliacao e rollback operacional.
+- A primeira subfase da Fase 60 abriu a macrofase backend-only de
+  `people-service` por diagnostico, sem criar runtime fisico e sem alterar
+  rotas externas. O diagnostico confirmou que o monolito ja tem fronteiras
+  internas iniciais (`PessoaCadastroPort` e `FuncionarioProfessorPort`), mas
+  `PessoaCadastroPort` ainda expoe `PessoaEntity` e mantem acoplamento JPA
+  direto com aluno, responsavel, professor e funcionario. Por isso, o menor
+  proximo recorte seguro foi definido como contrato interno entity-free de
+  consulta cadastral e catalogos de pessoa, reaproveitando os comportamentos
+  atuais de `/api/consulta-cadastral` e `/api/pessoas/catalogos`, sem mover
+  escrita, sem migration, sem BFF/frontend e mantendo o monolito como
+  autoridade. A contagem regressiva da macrofase `people-service` passa a 3
+  subfases restantes estimadas.
 
 ## Historico resumido
 

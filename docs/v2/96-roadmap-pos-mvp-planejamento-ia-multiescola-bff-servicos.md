@@ -2284,6 +2284,57 @@ Fechamento formal da Fase 59:
 Contagem da macrofase object storage real controlado: 0. O bloco fica fechado
 sem cutover de arquivos existentes e sem dependencia operacional externa.
 
+### Fase 60 - Diagnostico de abertura do `people-service`
+
+Objetivo: iniciar a proxima macrofase backend-only apos o fechamento de
+documentos/storage, avaliando o menor recorte seguro para preparar a extracao
+fisica futura do `people-service` sem alterar BFF, frontend, rotas externas ou
+persistencia fora do monolito nesta primeira subfase.
+
+Entregue na primeira subfase da Fase 60:
+
+- o modulo fisico `people-service` ainda nao existe no monorepo, enquanto
+  `academic-catalog-service` e `academic-professor-service` ja possuem runtime
+  proprio;
+- o monolito ja possui fronteiras internas iniciais para pessoas:
+  `PessoaCadastroPort` encapsula cadastro base de pessoa/endereco/tipos para
+  aluno e responsavel, e `FuncionarioProfessorPort` encapsula elegibilidade de
+  funcionario para professor;
+- o primeiro risco identificado e que `PessoaCadastroPort` ainda expoe
+  `PessoaEntity` em operacoes internas, mantendo acoplamento JPA direto entre
+  people e consumidores como aluno, responsavel, professor e funcionario;
+- abrir o runtime fisico começando por writes de aluno, responsavel,
+  funcionario ou professor seria arriscado agora, porque esses fluxos ainda
+  dependem de transacoes locais, relacionamentos JPA e consistencia imediata
+  com matricula, diario, historico, documentos, identidade e tenant;
+- o menor recorte seguro para a proxima subfase e separar um contrato interno
+  entity-free de consulta cadastral e catalogos de pessoa, reaproveitando o
+  que hoje aparece em `/api/consulta-cadastral` e `/api/pessoas/catalogos`,
+  sem mudar as rotas externas e sem mover escrita;
+- a futura abertura fisica do `people-service` deve iniciar em modo
+  backend/backend read-only ou shadow, consumindo esse contrato entity-free e
+  mantendo o monolito como autoridade de escrita ate haver reconciliacao e
+  rollback operacional.
+
+Dependencias e impactos mapeados:
+
+- dados centrais: `pessoa`, `pessoa_tipo_pessoa`, `tipo_pessoa`,
+  `pessoa_endereco`, `endereco`, `tipo_endereco`, alem dos agregados que
+  referenciam pessoa (`aluno`, `responsavel`, `professor`, `funcionario`);
+- consistencia: CPF, escola ativa, vinculo pessoa-tipo, endereco principal e
+  referencias cruzadas com matricula, documentos, diario, historico,
+  planejamento/IA e seguranca;
+- rollback minimo: manter `school-management-service` como runtime e banco
+  autoritativos, introduzindo apenas contrato interno sem entidade JPA na borda;
+- migracao: nenhuma migration nesta subfase; qualquer banco proprio do
+  `people-service` deve ser precedido por inventario de dados, backfill
+  reproduzivel e reconciliacao por escola/CPF.
+
+Contagem da macrofase `people-service`: 3 subfases restantes estimadas:
+criar contrato entity-free de consulta/catalogos, aplicar o primeiro consumo
+interno de baixo risco e, depois, decidir se o modulo fisico pode abrir em modo
+shadow read-only.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
