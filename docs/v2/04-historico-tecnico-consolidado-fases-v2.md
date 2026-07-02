@@ -1293,6 +1293,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   escrita, BFF/frontend, tabela transacional ou `read-model-cutover`. A
   contagem regressiva da macrofase de schema local read-only do
   `people-service` passa a 1 subfase restante estimada.
+- A quarta subfase da Fase 63 fechou a macrofase de schema local read-only do
+  `people-service`. Foi adicionado adapter local de leitura apenas para
+  `tipo_pessoa` e `tipo_endereco`, usando o schema local configurado em
+  `people.shadow.local-persistence.schema-migration.*`, sem datasource
+  automatico e sem JPA. A guarda de leitura so libera fonte local para
+  `listarTiposPessoa` e `listarTiposEndereco` quando a leitura local e
+  explicitamente pedida, o fallback esta ligado, persistencia/backfill/
+  reconciliacao estao habilitados, o ultimo `catalogBackfill` esta `completed`
+  e nao ha divergencias/falhas. `buscarPorId` e `consultarCadastro` continuam
+  em `monolith_proxy`; falha no adapter local registra fallback e retorna ao
+  monolito. Nao houve escrita, BFF/frontend, tabela transacional, mudanca de
+  payload externo ou cutover amplo. A contagem regressiva da macrofase de
+  schema local read-only do `people-service` chega a 0.
 
 ## Historico resumido
 

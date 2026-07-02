@@ -34,7 +34,8 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 meterRegistry,
                 new br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard(
                         new PeopleLocalPersistenceProperties(false, false, false, false, false, false, 500, true),
-                        meterRegistry),
+                        meterRegistry,
+                        new PeopleLocalPersistenceOperationState()),
                 new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner(),
                 new PeopleLocalReadModelSchemaMigrationState(),
                 new PeopleLocalPersistenceOperationState());
@@ -60,6 +61,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("reconciliationTablesPlannedTotal", 0.0d)
                 .containsEntry("operationCyclesTotal", 0.0d)
                 .containsEntry("readRoutingDecisionsTotal", 0.0d)
+                .containsEntry("localCatalogReadsTotal", 0.0d)
                 .containsEntry("failuresTotal", 0.0d);
 
         @SuppressWarnings("unchecked")
@@ -113,9 +115,9 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         Map<String, Object> catalogSchemaPlan =
                 (Map<String, Object>) health.getDetails().get("catalogReadModelSchemaPlan");
         assertThat(catalogSchemaPlan)
-                .containsEntry("status", "opt_in_catalog_backfill_and_reconciliation_prepared")
+                .containsEntry("status", "local_catalog_read_adapter_prepared")
                 .containsEntry("recommendedNextStep",
-                        "evaluate_local_catalog_read_adapter_with_mandatory_monolith_fallback")
+                        "close_phase_63_and_plan_next_people_service_scope")
                 .containsEntry("migrationAllowedNow", true)
                 .containsEntry("physicalSchemaRequiredNext", true)
                 .containsEntry("localReadAdapterRequiredNext", true)
@@ -135,7 +137,8 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 new SimpleMeterRegistry(),
                 new br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard(
                         new PeopleLocalPersistenceProperties(true, false, false, false, false, false, 500, true),
-                        new SimpleMeterRegistry()),
+                        new SimpleMeterRegistry(),
+                        new PeopleLocalPersistenceOperationState()),
                 new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner(),
                 new PeopleLocalReadModelSchemaMigrationState(),
                 new PeopleLocalPersistenceOperationState());
@@ -157,7 +160,8 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 meterRegistry,
                 new br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard(
                         new PeopleLocalPersistenceProperties(true, true, true, true, true, true, 100, true),
-                        meterRegistry),
+                        meterRegistry,
+                        new PeopleLocalPersistenceOperationState()),
                 new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner(),
                 new PeopleLocalReadModelSchemaMigrationState(),
                 new PeopleLocalPersistenceOperationState());
@@ -167,7 +171,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         assertThat(health.getStatus()).isEqualTo(Status.OUT_OF_SERVICE);
         assertThat(health.getDetails())
                 .containsEntry("readModelCutoverEnabled", true)
-                .containsEntry("reason", "local-read-adapter-not-configured")
+                .containsEntry("reason", "catalog-backfill-not-green")
                 .containsEntry("authoritative", false);
     }
 }

@@ -11,28 +11,56 @@ import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageRe
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 import br.com.escola.peopleservice.application.exception.PeopleServiceResourceNotFoundException;
 import br.com.escola.peopleservice.application.port.in.PessoaQueryUseCase;
+import br.com.escola.peopleservice.application.port.out.PeopleCatalogLocalReadPort;
 import br.com.escola.peopleservice.application.port.out.PessoaReadPort;
+import io.micrometer.core.instrument.MeterRegistry;
 
 @Service
 public class PessoaQueryService implements PessoaQueryUseCase {
 
     private final PessoaReadPort pessoaReadPort;
+    private final PeopleCatalogLocalReadPort catalogLocalReadPort;
     private final PeopleLocalReadCutoverGuard readCutoverGuard;
+    private final MeterRegistry meterRegistry;
 
-    public PessoaQueryService(PessoaReadPort pessoaReadPort, PeopleLocalReadCutoverGuard readCutoverGuard) {
+    public PessoaQueryService(
+            PessoaReadPort pessoaReadPort,
+            PeopleCatalogLocalReadPort catalogLocalReadPort,
+            PeopleLocalReadCutoverGuard readCutoverGuard,
+            MeterRegistry meterRegistry) {
         this.pessoaReadPort = pessoaReadPort;
+        this.catalogLocalReadPort = catalogLocalReadPort;
         this.readCutoverGuard = readCutoverGuard;
+        this.meterRegistry = meterRegistry;
     }
 
     @Override
     public List<PessoaCatalogoResponse> listarTiposPessoa(String authorization, InternalRequestContext context) {
-        readCutoverGuard.registrarDecisao("listarTiposPessoa");
+        var decision = readCutoverGuard.registrarDecisao("listarTiposPessoa");
+        if (decision.localReadEligible()) {
+            try {
+                List<PessoaCatalogoResponse> response = catalogLocalReadPort.listarTiposPessoa();
+                registrarLeituraLocal("listarTiposPessoa", "success");
+                return response;
+            } catch (RuntimeException ex) {
+                registrarLeituraLocal("listarTiposPessoa", "fallback");
+            }
+        }
         return pessoaReadPort.listarTiposPessoa(authorization, context);
     }
 
     @Override
     public List<PessoaCatalogoResponse> listarTiposEndereco(String authorization, InternalRequestContext context) {
-        readCutoverGuard.registrarDecisao("listarTiposEndereco");
+        var decision = readCutoverGuard.registrarDecisao("listarTiposEndereco");
+        if (decision.localReadEligible()) {
+            try {
+                List<PessoaCatalogoResponse> response = catalogLocalReadPort.listarTiposEndereco();
+                registrarLeituraLocal("listarTiposEndereco", "success");
+                return response;
+            } catch (RuntimeException ex) {
+                registrarLeituraLocal("listarTiposEndereco", "fallback");
+            }
+        }
         return pessoaReadPort.listarTiposEndereco(authorization, context);
     }
 
@@ -63,5 +91,13 @@ public class PessoaQueryService implements PessoaQueryUseCase {
                 cpfResponsavel,
                 page,
                 size);
+    }
+
+    private void registrarLeituraLocal(String operation, String result) {
+        meterRegistry.counter(
+                "people.shadow.local.persistence.catalog.reads",
+                "operation", operation,
+                "result", result)
+                .increment();
     }
 }

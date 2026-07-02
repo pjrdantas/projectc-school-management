@@ -2726,13 +2726,38 @@ Contagem da macrofase schema local read-only do `people-service`: 1 subfase
 restante estimada: avaliar adapter local de leitura dos catalogos com fallback
 obrigatorio para o monolito, somente depois de backfill/reconciliacao verde.
 
-Proxima subfase pratica:
+Entregue na quarta subfase da Fase 63:
 
-- diagnosticar e, se seguro, preparar o adapter local de leitura apenas para
-  `tipo_pessoa` e `tipo_endereco`, mantendo fallback obrigatorio para o
-  monolito;
-- manter proibido mover escrita, alterar BFF/frontend, incluir tabelas
-  transacionais ou habilitar cutover amplo.
+- o `people-service` recebeu adapter local de leitura apenas para os catalogos
+  `tipo_pessoa` e `tipo_endereco`, usando o schema local configurado em
+  `people.shadow.local-persistence.schema-migration.*`, sem datasource
+  automatico e sem JPA;
+- a guarda de leitura passou a permitir fonte local somente para
+  `listarTiposPessoa` e `listarTiposEndereco`, e apenas quando
+  `read-model-cutover-enabled=true`, `read-model-fallback-enabled=true`,
+  persistencia local, backfill e reconciliacao estiverem habilitados, o ultimo
+  `catalogBackfill` estiver `completed` e nao houver divergencias/falhas;
+- `buscarPorId` e `consultarCadastro` continuam inelegiveis para leitura local
+  e permanecem em `monolith_proxy`;
+- qualquer falha do adapter local dos catalogos registra fallback e retorna ao
+  monolito, mantendo o fallback obrigatorio como contrato operacional;
+- o health `peopleLocalPersistence` passou a expor as decisoes de roteamento
+  para catalogos, leituras locais/fallbacks e o plano final da Fase 63;
+- nao houve escrita, BFF/frontend, tabela transacional, mudanca de payload
+  externo ou cutover amplo.
+
+Contagem da macrofase schema local read-only do `people-service`: 0. A Fase 63
+fica fechada com schema local dos catalogos, backfill/reconciliacao opt-in e
+adapter local de leitura controlado apenas para `tipo_pessoa` e
+`tipo_endereco`, sempre com fallback obrigatorio para o monolito.
+
+Proxima macrofase sugerida:
+
+- iniciar diagnostico da proxima fatia minima do `people-service`, avaliando se
+  cabe avancar para dados cadastrais transacionais (`pessoa`,
+  `pessoa_tipo_pessoa`, `endereco`, `pessoa_endereco`) ou se ainda e melhor
+  endurecer operacao/observabilidade dos catalogos locais antes de ampliar o
+  escopo.
 
 ### Fase futura - Desativacao do monolito
 

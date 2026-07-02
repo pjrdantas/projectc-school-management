@@ -12,9 +12,9 @@ class PeopleCatalogReadModelSchemaPlannerTest {
 
         var plan = planner.planejarSchemaCatalogo();
 
-        assertThat(plan.status()).isEqualTo("opt_in_catalog_backfill_and_reconciliation_prepared");
+        assertThat(plan.status()).isEqualTo("local_catalog_read_adapter_prepared");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("evaluate_local_catalog_read_adapter_with_mandatory_monolith_fallback");
+                .isEqualTo("close_phase_63_and_plan_next_people_service_scope");
         assertThat(plan.migrationAllowedNow()).isTrue();
         assertThat(plan.physicalSchemaRequiredNext()).isTrue();
         assertThat(plan.localReadAdapterRequiredNext()).isTrue();
@@ -37,9 +37,10 @@ class PeopleCatalogReadModelSchemaPlannerTest {
                 "pessoa_endereco",
                 "pessoa_documento");
         assertThat(plan.blockers()).contains(
-                "local-read-adapter-not-implemented",
-                "catalog-backfill-and-reconciliation-must-run-green-before-local-read");
+                "catalog-backfill-and-reconciliation-must-run-green-before-local-read",
+                "fallback-to-monolith-remains-mandatory");
         assertThat(plan.rollbackSteps()).contains(
+                "disable-people.shadow.local-persistence.read-model-cutover-enabled",
                 "disable-people.shadow.local-persistence.backfill-enabled",
                 "disable-people.shadow.local-persistence.reconciliation-enabled");
     }

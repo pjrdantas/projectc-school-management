@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import br.com.escola.peopleservice.application.dto.PeopleLocalPersistenceOperationReport;
 import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecision;
 import br.com.escola.peopleservice.infra.config.PeopleLocalPersistenceProperties;
 import io.micrometer.core.instrument.Counter;
@@ -40,12 +41,15 @@ public class PeopleLocalReadCutoverGuard {
 
     private final PeopleLocalPersistenceProperties properties;
     private final MeterRegistry meterRegistry;
+    private final PeopleLocalPersistenceOperationState operationState;
 
     public PeopleLocalReadCutoverGuard(
             PeopleLocalPersistenceProperties properties,
-            MeterRegistry meterRegistry) {
+            MeterRegistry meterRegistry,
+            PeopleLocalPersistenceOperationState operationState) {
         this.properties = properties;
         this.meterRegistry = meterRegistry;
+        this.operationState = operationState;
     }
 
     public PeopleLocalReadRoutingDecision registrarDecisao(String operation) {
@@ -73,20 +77,22 @@ public class PeopleLocalReadCutoverGuard {
                 .findFirst()
                 .orElse(new ReadRouteDescriptor(operation, "unknown", "unknown"));
 
-        String reason = motivoInelegibilidade();
+        String reason = motivoInelegibilidade(route);
+        boolean localReadEligible = "local-catalog-read-eligible".equals(reason);
+        String selectedSource = localReadEligible ? "people_read_model_catalog" : MONOLITH_SOURCE;
         return new PeopleLocalReadRoutingDecision(
                 route.operation(),
                 route.shadowRoute(),
                 route.candidateSource(),
-                MONOLITH_SOURCE,
+                selectedSource,
                 properties.readModelCutoverEnabled(),
-                false,
+                localReadEligible,
                 properties.readModelFallbackEnabled(),
                 false,
                 reason);
     }
 
-    private String motivoInelegibilidade() {
+    private String motivoInelegibilidade(ReadRouteDescriptor route) {
         if (!properties.readModelCutoverEnabled()) {
             return "read-model-cutover-disabled";
         }
@@ -105,7 +111,18 @@ public class PeopleLocalReadCutoverGuard {
         if (totalContador("people.shadow.local.persistence.failures") > 0.0d) {
             return "local-persistence-has-failures";
         }
+        PeopleLocalPersistenceOperationReport lastReport = operationState.currentReport();
+        if (!"completed".equals(lastReport.status()) || lastReport.divergences() > 0) {
+            return "catalog-backfill-not-green";
+        }
+        if (isCatalogRoute(route.operation())) {
+            return "local-catalog-read-eligible";
+        }
         return "local-read-adapter-not-configured";
+    }
+
+    private boolean isCatalogRoute(String operation) {
+        return "listarTiposPessoa".equals(operation) || "listarTiposEndereco".equals(operation);
     }
 
     private double totalContador(String meterName) {

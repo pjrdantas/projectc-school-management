@@ -113,6 +113,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("operationCyclesTotal", totalContador("people.shadow.local.persistence.cycles"));
         details.put("readRoutingDecisionsTotal",
                 totalContador("people.shadow.local.persistence.read.routing.decisions"));
+        details.put("localCatalogReadsTotal",
+                totalContador("people.shadow.local.persistence.catalog.reads"));
         details.put("schemaMigrationsTotal",
                 totalContador("people.shadow.local.persistence.schema.migrations"));
 
