@@ -17,17 +17,27 @@ import br.com.escola.documento.domain.exception.DocumentoInvalidoException;
 @Component
 public class LocalDocumentoArquivoStorage implements DocumentoArquivoStorage {
 
-    private static final Path DOCUMENTOS_UPLOAD_DIR = Path.of("uploads", "documentos");
+    private final Path documentosUploadDir;
+
+    public LocalDocumentoArquivoStorage(DocumentoStorageProperties properties) {
+        this.documentosUploadDir = properties.normalizedRoot();
+    }
 
     @Override
     public String salvar(EntidadeDocumentalTipo entidadeTipo, UUID entidadeId, MultipartFile arquivo) {
         try {
-            Path diretorioEntidade = DOCUMENTOS_UPLOAD_DIR
+            Path diretorioEntidade = documentosUploadDir
                     .resolve(entidadeTipo.name().toLowerCase())
-                    .resolve(entidadeId.toString());
+                    .resolve(entidadeId.toString())
+                    .normalize();
+            if (!diretorioEntidade.startsWith(documentosUploadDir)) {
+                throw new DocumentoInvalidoException("Diretório de documento inválido");
+            }
             Files.createDirectories(diretorioEntidade);
 
-            String nomeOriginal = arquivo.getOriginalFilename() == null ? "documento" : arquivo.getOriginalFilename();
+            String nomeOriginal = arquivo.getOriginalFilename() == null || arquivo.getOriginalFilename().isBlank()
+                    ? "documento"
+                    : arquivo.getOriginalFilename();
             String nomeSeguro = nomeOriginal.replaceAll("[^A-Za-z0-9._-]", "_");
             Path destino = diretorioEntidade.resolve(UUID.randomUUID() + "-" + nomeSeguro).normalize();
             if (!destino.startsWith(diretorioEntidade)) {

@@ -2151,7 +2151,34 @@ Entregue na abertura da macrofase seguinte:
   backend-only ou planejar, em macrofase separada, o recorte de BFF/frontend
   para integrar a nova experiencia visual.
 
-### Fase 58 - Desativacao do monolito
+### Fase 58 - Documentos e storage controlado
+
+Objetivo: iniciar o proximo bloco backend-only do futuro
+`enrollment-document-service` pelo menor ponto de risco em documentos, preparando
+a troca futura do filesystem local para storage de objetos sem alterar rotas
+externas, BFF, frontend ou persistencia transacional.
+
+Entregue na primeira subfase da Fase 58:
+
+- o storage local de documentos deixou de ter a raiz fixa diretamente na
+  implementacao e passou a usar configuracao propria em
+  `documento.storage.local.root`, preservando o default atual
+  `uploads/documentos`;
+- `LocalDocumentoArquivoStorage` passou a normalizar a raiz configurada e os
+  caminhos por entidade antes da gravacao, mantendo a porta
+  `DocumentoArquivoStorage` como contrato interno unico para upload;
+- o recorte nao muda o contrato HTTP de `/api/documentos` ou
+  `/api/documentos-alunos`, nao altera BFF/frontend e nao introduz storage
+  externo ou runtime novo;
+- rollback permanece simples: remover a propriedade customizada ou voltar ao
+  default local preserva o comportamento anterior enquanto os metadados seguem
+  no PostgreSQL.
+
+Contagem da macrofase documentos/storage: 2 subfases restantes estimadas:
+diagnostico do contrato minimo para object storage e fechamento formal do bloco
+antes de qualquer cutover.
+
+### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
 e rollback testado. Remover gradualmente migrations e codigo ja transferidos.

@@ -1064,6 +1064,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A contagem regressiva desta macrofase chega a 0. A proxima fase deve abrir
   novo bloco funcional backend-only ou, se a prioridade mudar, iniciar uma
   macrofase separada para BFF/frontend da nova experiencia.
+- A fase seguinte abriu o bloco backend-only de documentos/storage pelo menor
+  recorte seguro do futuro `enrollment-document-service`: a raiz do storage
+  local de documentos saiu da implementacao hardcoded e passou a ser
+  configuravel por `documento.storage.local.root`, preservando o default atual
+  `uploads/documentos` e a porta `DocumentoArquivoStorage`.
+- `LocalDocumentoArquivoStorage` passou a normalizar raiz e diretorios por
+  entidade antes da gravacao, sem mudar contratos HTTP, sem BFF/frontend, sem
+  storage externo e sem nova persistencia transacional. A contagem regressiva
+  da macrofase documentos/storage passa a 2 subfases restantes estimadas:
+  diagnostico do contrato minimo para object storage e fechamento formal do
+  bloco antes de qualquer cutover.
 
 ## Historico resumido
 
