@@ -86,7 +86,7 @@ class PeopleLocalReadCutoverGuardTest {
     }
 
     @Test
-    void deveLiberarSomenteCatalogosQuandoRelatorioLocalEstaVerde() {
+    void deveLiberarCatalogosEBuscarPorIdQuandoRelatorioLocalEstaVerde() {
         PeopleLocalReadCutoverGuard guard = new PeopleLocalReadCutoverGuard(
                 new PeopleLocalPersistenceProperties(true, false, true, false, true, true, 500, true),
                 new SimpleMeterRegistry(),
@@ -104,8 +104,9 @@ class PeopleLocalReadCutoverGuardTest {
         assertThat(decisions.get("listarTiposPessoa").reason()).isEqualTo("local-catalog-read-eligible");
         assertThat(decisions.get("listarTiposEndereco").selectedSource()).isEqualTo("people_read_model_catalog");
         assertThat(decisions.get("listarTiposEndereco").localReadEligible()).isTrue();
-        assertThat(decisions.get("buscarPorId").selectedSource()).isEqualTo("monolith_proxy");
-        assertThat(decisions.get("buscarPorId").reason()).isEqualTo("local-read-adapter-not-configured");
+        assertThat(decisions.get("buscarPorId").selectedSource()).isEqualTo("people_read_model_identity");
+        assertThat(decisions.get("buscarPorId").localReadEligible()).isTrue();
+        assertThat(decisions.get("buscarPorId").reason()).isEqualTo("local-identity-read-eligible");
         assertThat(decisions.get("consultarCadastro").selectedSource()).isEqualTo("monolith_proxy");
         assertThat(decisions.get("consultarCadastro").reason()).isEqualTo("local-read-adapter-not-configured");
     }
@@ -121,7 +122,7 @@ class PeopleLocalReadCutoverGuardTest {
 
         assertThat(decision.selectedSource()).isEqualTo("monolith_proxy");
         assertThat(decision.localReadEligible()).isFalse();
-        assertThat(decision.reason()).isEqualTo("catalog-backfill-not-green");
+        assertThat(decision.reason()).isEqualTo("local-read-model-backfill-not-green");
     }
 
     private PeopleLocalPersistenceOperationState greenState() {
@@ -130,13 +131,13 @@ class PeopleLocalReadCutoverGuardTest {
                 true,
                 true,
                 "completed",
-                "catalog-backfill-and-reconciliation-completed",
+                "local-read-model-backfill-and-reconciliation-completed",
                 500,
-                2,
-                2,
-                7,
-                7,
-                7,
+                4,
+                4,
+                12,
+                12,
+                12,
                 0,
                 false,
                 false,

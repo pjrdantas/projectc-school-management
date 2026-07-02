@@ -16,7 +16,9 @@ public class PeopleLocalPersistenceBackfillCoordinator {
 
     private static final List<TableDescriptor> TABLES = List.of(
             new TableDescriptor("tipo_pessoa", "id_tipo_pessoa"),
-            new TableDescriptor("tipo_endereco", "id_tipo_endereco"));
+            new TableDescriptor("tipo_endereco", "id_tipo_endereco"),
+            new TableDescriptor("pessoa", "id_pessoa"),
+            new TableDescriptor("pessoa_tipo_pessoa", "id_pessoa_tipo_pessoa"));
 
     private final PeopleLocalPersistenceProperties properties;
     private final MeterRegistry meterRegistry;
@@ -58,12 +60,12 @@ public class PeopleLocalPersistenceBackfillCoordinator {
                     properties.backfillBatchSize());
         } catch (RuntimeException ex) {
             incrementar("people.shadow.local.persistence.cycles", "status", "failed");
-            incrementar("people.shadow.local.persistence.failures", "reason", "catalog-sync-failed");
+            incrementar("people.shadow.local.persistence.failures", "reason", "local-read-model-sync-failed");
             PeopleLocalPersistenceOperationReport report = report(
                     backfillEnabled,
                     reconciliationEnabled,
                     "failed",
-                    "catalog-sync-failed",
+                    "local-read-model-sync-failed",
                     List.of());
             operationState.update(report);
             if (properties.failOnError()) {
@@ -145,7 +147,7 @@ public class PeopleLocalPersistenceBackfillCoordinator {
 
     private String aggregateReason(String status, List<TableOperationReport> tableReports) {
         if ("completed".equals(status)) {
-            return "catalog-backfill-and-reconciliation-completed";
+            return "local-read-model-backfill-and-reconciliation-completed";
         }
         return tableReports.stream()
                 .filter(table -> !"success".equals(table.status()))

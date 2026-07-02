@@ -63,6 +63,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("operationCyclesTotal", 0.0d)
                 .containsEntry("readRoutingDecisionsTotal", 0.0d)
                 .containsEntry("localCatalogReadsTotal", 0.0d)
+                .containsEntry("localIdentityReadsTotal", 0.0d)
                 .containsEntry("failuresTotal", 0.0d);
 
         @SuppressWarnings("unchecked")
@@ -129,16 +130,19 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         assertThat(schemaMigration).isNotNull();
         Object catalogBackfill = health.getDetails().get("catalogBackfill");
         assertThat(catalogBackfill).isNotNull();
+        Object localReadModelBackfill = health.getDetails().get("localReadModelBackfill");
+        assertThat(localReadModelBackfill).isNotNull();
         @SuppressWarnings("unchecked")
         Map<String, Object> transactionalPlan =
                 (Map<String, Object>) health.getDetails().get("transactionalReadModelExpansionPlan");
         assertThat(transactionalPlan)
-                .containsEntry("status", "diagnostic_transactional_slice_not_ready_for_physical_schema")
-                .containsEntry("recommendedNextStep", "prepare_pessoa_identity_slice_contract_before_migration")
+                .containsEntry("status", "pessoa_identity_local_read_prepared_with_mandatory_fallback")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_64_and_plan_next_people_service_scope")
                 .containsEntry("minimalNextSlice", "pessoa_identity_read_model")
-                .containsEntry("migrationAllowedNow", false)
-                .containsEntry("backfillAllowedNow", false)
-                .containsEntry("localReadCutoverAllowedNow", false);
+                .containsEntry("migrationAllowedNow", true)
+                .containsEntry("backfillAllowedNow", true)
+                .containsEntry("localReadCutoverAllowedNow", true);
     }
 
     @Test
@@ -184,7 +188,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         assertThat(health.getStatus()).isEqualTo(Status.OUT_OF_SERVICE);
         assertThat(health.getDetails())
                 .containsEntry("readModelCutoverEnabled", true)
-                .containsEntry("reason", "catalog-backfill-not-green")
+                .containsEntry("reason", "local-read-model-backfill-not-green")
                 .containsEntry("authoritative", false);
     }
 }

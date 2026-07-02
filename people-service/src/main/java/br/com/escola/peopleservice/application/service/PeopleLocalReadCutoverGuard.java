@@ -78,8 +78,8 @@ public class PeopleLocalReadCutoverGuard {
                 .orElse(new ReadRouteDescriptor(operation, "unknown", "unknown"));
 
         String reason = motivoInelegibilidade(route);
-        boolean localReadEligible = "local-catalog-read-eligible".equals(reason);
-        String selectedSource = localReadEligible ? "people_read_model_catalog" : MONOLITH_SOURCE;
+        boolean localReadEligible = isEligibleReason(reason);
+        String selectedSource = selectedSource(localReadEligible, route.operation());
         return new PeopleLocalReadRoutingDecision(
                 route.operation(),
                 route.shadowRoute(),
@@ -113,12 +113,30 @@ public class PeopleLocalReadCutoverGuard {
         }
         PeopleLocalPersistenceOperationReport lastReport = operationState.currentReport();
         if (!"completed".equals(lastReport.status()) || lastReport.divergences() > 0) {
-            return "catalog-backfill-not-green";
+            return "local-read-model-backfill-not-green";
         }
         if (isCatalogRoute(route.operation())) {
             return "local-catalog-read-eligible";
         }
+        if ("buscarPorId".equals(route.operation())) {
+            return "local-identity-read-eligible";
+        }
         return "local-read-adapter-not-configured";
+    }
+
+    private boolean isEligibleReason(String reason) {
+        return "local-catalog-read-eligible".equals(reason)
+                || "local-identity-read-eligible".equals(reason);
+    }
+
+    private String selectedSource(boolean localReadEligible, String operation) {
+        if (!localReadEligible) {
+            return MONOLITH_SOURCE;
+        }
+        if ("buscarPorId".equals(operation)) {
+            return "people_read_model_identity";
+        }
+        return "people_read_model_catalog";
     }
 
     private boolean isCatalogRoute(String operation) {

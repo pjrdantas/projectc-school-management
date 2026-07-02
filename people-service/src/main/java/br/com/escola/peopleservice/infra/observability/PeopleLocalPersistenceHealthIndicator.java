@@ -106,6 +106,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("catalogReadModelSchemaPlan", diagnosticoSchemaCatalogo());
         details.put("transactionalReadModelExpansionPlan", diagnosticoExpansaoTransacional());
         details.put("schemaMigration", schemaMigrationState.currentReport());
+        details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
         details.put("rollbackStrategy", "disable_people.shadow.local-persistence.enabled");
         details.put("backfillRecordsTotal", totalContador("people.shadow.local.persistence.backfill.records"));
@@ -121,6 +122,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 totalContador("people.shadow.local.persistence.read.routing.decisions"));
         details.put("localCatalogReadsTotal",
                 totalContador("people.shadow.local.persistence.catalog.reads"));
+        details.put("localIdentityReadsTotal",
+                totalContador("people.shadow.local.persistence.identity.reads"));
         details.put("schemaMigrationsTotal",
                 totalContador("people.shadow.local.persistence.schema.migrations"));
 

@@ -18,7 +18,11 @@ import io.micrometer.core.instrument.MeterRegistry;
 @Component
 public class PeopleLocalReadModelSchemaMigrationRunner implements ApplicationRunner {
 
-    private static final List<String> TABLES = List.of("tipo_pessoa", "tipo_endereco");
+    private static final List<String> TABLES = List.of(
+            "tipo_pessoa",
+            "tipo_endereco",
+            "pessoa",
+            "pessoa_tipo_pessoa");
 
     private final PeopleLocalPersistenceProperties localPersistenceProperties;
     private final PeopleLocalReadModelSchemaMigrationProperties migrationProperties;

@@ -29,6 +29,7 @@ class PessoaQueryServiceTest {
         PessoaQueryService service = new PessoaQueryService(
                 new FakePessoaReadPort(monolithCalls, List.of()),
                 new FakeCatalogLocalReadPort(List.of(new PessoaCatalogoResponse(localId, "ALUNO", "Aluno")), List.of(), false),
+                new FakeIdentityLocalReadPort(Optional.empty(), false),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -50,6 +51,7 @@ class PessoaQueryServiceTest {
         PessoaQueryService service = new PessoaQueryService(
                 new FakePessoaReadPort(monolithCalls, List.of(new PessoaCatalogoResponse(monolithId, "ALUNO", "Aluno"))),
                 new FakeCatalogLocalReadPort(List.of(), List.of(), true),
+                new FakeIdentityLocalReadPort(Optional.empty(), false),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -63,19 +65,67 @@ class PessoaQueryServiceTest {
                 "result", "fallback").count()).isEqualTo(1.0d);
     }
 
+    @Test
+    void deveLerPessoaPorIdDoReadModelLocalQuandoGuardaPermite() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        AtomicInteger monolithCalls = new AtomicInteger();
+        UUID pessoaId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+        PessoaResumoResponse local = new PessoaResumoResponse(pessoaId, "Pessoa Local", escolaId, null, true);
+        PessoaQueryService service = new PessoaQueryService(
+                new FakePessoaReadPort(monolithCalls, List.of()),
+                new FakeCatalogLocalReadPort(List.of(), List.of(), false),
+                new FakeIdentityLocalReadPort(Optional.of(local), false),
+                greenGuard(meterRegistry),
+                meterRegistry);
+
+        var response = service.buscarPessoaPorId("Bearer token", context(escolaId), pessoaId);
+
+        assertThat(response).isEqualTo(local);
+        assertThat(monolithCalls).hasValue(0);
+        assertThat(meterRegistry.counter(
+                "people.shadow.local.persistence.identity.reads",
+                "operation", "buscarPorId",
+                "result", "success").count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void deveFazerFallbackParaMonolitoQuandoPessoaLocalNaoExiste() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        AtomicInteger monolithCalls = new AtomicInteger();
+        UUID pessoaId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+        PessoaResumoResponse monolith = new PessoaResumoResponse(pessoaId, "Pessoa Monolito", escolaId, "Escola", true);
+        PessoaQueryService service = new PessoaQueryService(
+                new FakePessoaReadPort(monolithCalls, List.of(), Optional.of(monolith)),
+                new FakeCatalogLocalReadPort(List.of(), List.of(), false),
+                new FakeIdentityLocalReadPort(Optional.empty(), false),
+                greenGuard(meterRegistry),
+                meterRegistry);
+
+        var response = service.buscarPessoaPorId("Bearer token", context(escolaId), pessoaId);
+
+        assertThat(response).isEqualTo(monolith);
+        assertThat(monolithCalls).hasValue(1);
+        assertThat(meterRegistry.counter(
+                "people.shadow.local.persistence.identity.reads",
+                "operation", "buscarPorId",
+                "result", "fallback_not_found").count()).isEqualTo(1.0d);
+    }
+
     private PeopleLocalReadCutoverGuard greenGuard(SimpleMeterRegistry meterRegistry) {
         PeopleLocalPersistenceOperationState state = new PeopleLocalPersistenceOperationState();
         state.update(new PeopleLocalPersistenceOperationReport(
                 true,
                 true,
                 "completed",
-                "catalog-backfill-and-reconciliation-completed",
+                "local-read-model-backfill-and-reconciliation-completed",
                 500,
-                2,
-                2,
-                7,
-                7,
-                7,
+                4,
+                4,
+                12,
+                12,
+                12,
                 0,
                 false,
                 false,
@@ -87,7 +137,11 @@ class PessoaQueryServiceTest {
     }
 
     private InternalRequestContext context() {
-        return new InternalRequestContext("corr", UUID.randomUUID(), UUID.randomUUID());
+        return context(UUID.randomUUID());
+    }
+
+    private InternalRequestContext context(UUID escolaId) {
+        return new InternalRequestContext("corr", UUID.randomUUID(), escolaId);
     }
 
     private record FakeCatalogLocalReadPort(
@@ -112,9 +166,27 @@ class PessoaQueryServiceTest {
         }
     }
 
+    private record FakeIdentityLocalReadPort(
+            Optional<PessoaResumoResponse> response,
+            boolean fail) implements br.com.escola.peopleservice.application.port.out.PeopleIdentityLocalReadPort {
+
+        @Override
+        public Optional<PessoaResumoResponse> buscarPessoaPorId(UUID pessoaId, UUID escolaId) {
+            if (fail) {
+                throw new IllegalStateException("identity-local-failed");
+            }
+            return response;
+        }
+    }
+
     private record FakePessoaReadPort(
             AtomicInteger catalogCalls,
-            List<PessoaCatalogoResponse> tiposPessoa) implements PessoaReadPort {
+            List<PessoaCatalogoResponse> tiposPessoa,
+            Optional<PessoaResumoResponse> pessoa) implements PessoaReadPort {
+
+        private FakePessoaReadPort(AtomicInteger catalogCalls, List<PessoaCatalogoResponse> tiposPessoa) {
+            this(catalogCalls, tiposPessoa, Optional.empty());
+        }
 
         @Override
         public List<PessoaCatalogoResponse> listarTiposPessoa(String authorization, InternalRequestContext context) {
@@ -133,7 +205,8 @@ class PessoaQueryServiceTest {
                 String authorization,
                 InternalRequestContext context,
                 UUID pessoaId) {
-            return Optional.empty();
+            catalogCalls.incrementAndGet();
+            return pessoa;
         }
 
         @Override

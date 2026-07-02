@@ -12,6 +12,7 @@ import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 import br.com.escola.peopleservice.application.exception.PeopleServiceResourceNotFoundException;
 import br.com.escola.peopleservice.application.port.in.PessoaQueryUseCase;
 import br.com.escola.peopleservice.application.port.out.PeopleCatalogLocalReadPort;
+import br.com.escola.peopleservice.application.port.out.PeopleIdentityLocalReadPort;
 import br.com.escola.peopleservice.application.port.out.PessoaReadPort;
 import io.micrometer.core.instrument.MeterRegistry;
 
@@ -20,16 +21,19 @@ public class PessoaQueryService implements PessoaQueryUseCase {
 
     private final PessoaReadPort pessoaReadPort;
     private final PeopleCatalogLocalReadPort catalogLocalReadPort;
+    private final PeopleIdentityLocalReadPort identityLocalReadPort;
     private final PeopleLocalReadCutoverGuard readCutoverGuard;
     private final MeterRegistry meterRegistry;
 
     public PessoaQueryService(
             PessoaReadPort pessoaReadPort,
             PeopleCatalogLocalReadPort catalogLocalReadPort,
+            PeopleIdentityLocalReadPort identityLocalReadPort,
             PeopleLocalReadCutoverGuard readCutoverGuard,
             MeterRegistry meterRegistry) {
         this.pessoaReadPort = pessoaReadPort;
         this.catalogLocalReadPort = catalogLocalReadPort;
+        this.identityLocalReadPort = identityLocalReadPort;
         this.readCutoverGuard = readCutoverGuard;
         this.meterRegistry = meterRegistry;
     }
@@ -66,7 +70,19 @@ public class PessoaQueryService implements PessoaQueryUseCase {
 
     @Override
     public PessoaResumoResponse buscarPessoaPorId(String authorization, InternalRequestContext context, UUID pessoaId) {
-        readCutoverGuard.registrarDecisao("buscarPorId");
+        var decision = readCutoverGuard.registrarDecisao("buscarPorId");
+        if (decision.localReadEligible()) {
+            try {
+                var localResponse = identityLocalReadPort.buscarPessoaPorId(pessoaId, context.escolaId());
+                if (localResponse.isPresent()) {
+                    registrarLeituraIdentidadeLocal("buscarPorId", "success");
+                    return localResponse.get();
+                }
+                registrarLeituraIdentidadeLocal("buscarPorId", "fallback_not_found");
+            } catch (RuntimeException ex) {
+                registrarLeituraIdentidadeLocal("buscarPorId", "fallback_error");
+            }
+        }
         return pessoaReadPort.buscarPessoaPorId(authorization, context, pessoaId)
                 .orElseThrow(() -> new PeopleServiceResourceNotFoundException("Pessoa nao encontrada"));
     }
@@ -96,6 +112,14 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     private void registrarLeituraLocal(String operation, String result) {
         meterRegistry.counter(
                 "people.shadow.local.persistence.catalog.reads",
+                "operation", operation,
+                "result", result)
+                .increment();
+    }
+
+    private void registrarLeituraIdentidadeLocal(String operation, String result) {
+        meterRegistry.counter(
+                "people.shadow.local.persistence.identity.reads",
                 "operation", operation,
                 "result", result)
                 .increment();

@@ -12,18 +12,19 @@ public class PeopleTransactionalReadModelExpansionPlanner {
 
     public PeopleTransactionalReadModelExpansionPlan planejarProximaFatiaTransacional() {
         return new PeopleTransactionalReadModelExpansionPlan(
-                "diagnostic_transactional_slice_not_ready_for_physical_schema",
-                "prepare_pessoa_identity_slice_contract_before_migration",
+                "pessoa_identity_local_read_prepared_with_mandatory_fallback",
+                "close_phase_64_and_plan_next_people_service_scope",
                 "pessoa_identity_read_model",
-                false,
-                false,
-                false,
+                true,
+                true,
+                true,
                 List.of(
                         new TableExpansionDecision(
                                 "pessoa",
                                 "id_pessoa",
                                 List.of(
                                         "id_pessoa",
+                                        "id_escola",
                                         "nome_completo",
                                         "cpf",
                                         "rg",
@@ -42,10 +43,10 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 List.of("catalogo_local_tipo_pessoa_reconciliado"),
                                 List.of("buscarPorId"),
                                 true,
-                                false,
-                                false,
-                                false,
-                                "first_transactional_candidate_but_contains_pii_and_requires_identity_contract"),
+                                true,
+                                true,
+                                true,
+                                "local_identity_read_prepared_for_buscar_por_id_with_mandatory_fallback"),
                         new TableExpansionDecision(
                                 "pessoa_tipo_pessoa",
                                 "id_pessoa_tipo_pessoa",
@@ -53,10 +54,10 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 List.of("pessoa", "tipo_pessoa"),
                                 List.of("buscarPorId"),
                                 true,
-                                false,
-                                false,
-                                false,
-                                "required_to_preserve_person_roles_with_catalog_foreign_key"),
+                                true,
+                                true,
+                                true,
+                                "local_identity_read_dependency_prepared_for_buscar_por_id"),
                         new TableExpansionDecision(
                                 "endereco",
                                 "id_endereco",
@@ -96,9 +97,11 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 false,
                                 "defer_until_identity_slice_and_address_contract_are_defined")),
                 List.of(
-                        "define-pii-field-contract-and-masking-policy",
-                        "define-school-scope-for-person-read-model-without-people-service-owning-tenant",
-                        "define-idempotent-backfill-order-pessoa-before-pessoa_tipo_pessoa",
+                        "run-schema-migration-only-with-explicit-opt-in",
+                        "run-identity-backfill-only-with-explicit-opt-in",
+                        "keep-read-model-cutover-behind-explicit-flag-and-green-reconciliation",
+                        "keep-pii-read-model-without-public-exposure",
+                        "keep-school-scope-as-copied-identifier-without-people-service-owning-tenant",
                         "define-reconciliation-by-id-cpf-and-role",
                         "keep-monolith-as-authority-for-all-writes"),
                 List.of(
@@ -109,9 +112,11 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                         "aluno_responsavel",
                         "pessoa_documento"),
                 List.of(
-                        "do-not-create-transactional-migration-in-this-diagnostic-phase",
+                        "disable-people.shadow.local-persistence.migration-enabled",
+                        "leave-pessoa-identity-read-model-unused-until-backfill-is-green",
                         "keep-read-model-cutover-disabled-for-transactional-routes",
-                        "keep-buscarPorId-and-consultarCadastro-on-monolith-proxy",
+                        "disable-people.shadow.local-persistence.read-model-cutover-enabled",
+                        "keep-consultarCadastro-on-monolith-proxy",
                         "disable-people.shadow.local-persistence.enabled-if-operational-risk-appears"));
     }
 }

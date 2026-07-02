@@ -1319,6 +1319,46 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   transacional. Nao houve migration, backfill, adapter local transacional,
   escrita, BFF/frontend ou cutover. A contagem regressiva da macrofase Fase 64
   passa a 3 subfases restantes estimadas.
+- A segunda subfase da Fase 64 preparou o schema fisico opt-in da fatia de
+  identidade do `people-service`. Foi adicionada a migration
+  `V2__create_people_identity_read_model.sql`, executada apenas pelo runner
+  opt-in existente quando
+  `people.shadow.local-persistence.migration-enabled` esta habilitado com
+  destino explicito em `people.shadow.local-persistence.schema-migration.*`.
+  A migration cria somente `pessoa` e `pessoa_tipo_pessoa`, preservando IDs
+  originais do monolito, `id_escola` como identificador copiado de escopo e o
+  vinculo com o catalogo local `tipo_pessoa`. `endereco`,
+  `pessoa_endereco`, `aluno`, `responsavel`, `funcionario`, `professor` e
+  documentos continuam fora. O health passou a reportar
+  `pessoa_identity_schema_prepared_opt_in`, liberando apenas migration opt-in e
+  mantendo backfill, leitura local transacional, escrita, BFF/frontend e
+  cutover bloqueados. A contagem regressiva da macrofase Fase 64 passa a 2
+  subfases restantes estimadas.
+- A terceira subfase da Fase 64 implementou backfill/reconciliacao opt-in da
+  fatia de identidade do `people-service`. O ciclo controlado passou a
+  sincronizar `tipo_pessoa`, `tipo_endereco`, `pessoa` e
+  `pessoa_tipo_pessoa`, nessa ordem, usando JDBC do monolito para o schema
+  local e upsert idempotente por ID original. A reconciliacao compara
+  ID/CPF/campos de identidade e papeis, reportando divergencias no mesmo
+  `PeopleLocalPersistenceOperationReport`. O health passou a expor
+  `localReadModelBackfill`, mantendo `catalogBackfill` por compatibilidade, e o
+  plano transacional passou a reportar
+  `pessoa_identity_backfill_reconciliation_prepared_opt_in`. Nao houve rota
+  externa, BFF/frontend, escrita, adapter local transacional ou cutover de
+  `buscarPorId`. A contagem regressiva da macrofase Fase 64 passa a 1 subfase
+  restante estimada.
+- A quarta subfase da Fase 64 fechou o primeiro cutover controlado de leitura
+  local de identidade do `people-service`. Foi criada a porta
+  `PeopleIdentityLocalReadPort` e o adapter local
+  `JdbcPeopleIdentityLocalReadAdapter` para `buscarPorId`, consultando
+  `pessoa` por `id_pessoa` e `id_escola` somente quando
+  `PeopleLocalReadCutoverGuard` liberar a rota com read model verde. O read
+  model passou a copiar `escola_nome` como campo desnormalizado de leitura para
+  preservar o contrato de `PessoaResumoResponse` sem tornar o servico
+  autoridade de escola. Em ausencia local ou erro, o fallback obrigatorio para
+  o monolito permanece ativo e observado por metrica propria. `consultarCadastro`,
+  `endereco`, `pessoa_endereco`, escritas, BFF/frontend e cutover amplo
+  continuam fora. A contagem regressiva da macrofase Fase 64 chega a 0.
 
 ## Historico resumido
 

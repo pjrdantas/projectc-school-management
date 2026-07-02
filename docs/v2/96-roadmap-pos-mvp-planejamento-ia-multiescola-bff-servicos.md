@@ -2800,6 +2800,100 @@ Proxima subfase pratica:
 - manter `buscarPorId` e `consultarCadastro` no monolito ate haver backfill,
   reconciliacao verde e rollback testado.
 
+Entregue na segunda subfase da Fase 64:
+
+- o `people-service` recebeu a migration
+  `V2__create_people_identity_read_model.sql`, executada apenas pelo runner
+  opt-in ja existente quando
+  `people.shadow.local-persistence.migration-enabled` e habilitado com destino
+  explicito em `people.shadow.local-persistence.schema-migration.*`;
+- a migration cria somente `pessoa` e `pessoa_tipo_pessoa`, preservando IDs
+  originais do monolito, `id_escola` como identificador copiado de escopo,
+  PII necessaria ao read model de identidade e vinculo com o catalogo local
+  `tipo_pessoa`;
+- `endereco`, `pessoa_endereco`, `aluno`, `responsavel`, `funcionario`,
+  `professor`, documentos e qualquer tabela de escrita continuam fora do schema
+  desta fatia;
+- o plano `transactionalReadModelExpansionPlan` passou a reportar
+  `pessoa_identity_schema_prepared_opt_in`, liberando apenas migration opt-in e
+  mantendo backfill, leitura local transacional, escrita, BFF/frontend e cutover
+  bloqueados;
+- o rollback operacional segue por flag: desabilitar
+  `people.shadow.local-persistence.migration-enabled`, manter
+  `read-model-cutover-enabled` desligado e deixar o schema de identidade sem uso
+  ate backfill/reconciliacao ficarem verdes.
+
+Contagem da macrofase Fase 64: 2 subfases restantes estimadas: implementar
+backfill/reconciliacao da fatia de identidade e, depois, avaliar leitura local
+de `buscarPorId` com fallback obrigatorio para o monolito.
+
+Proxima subfase pratica:
+
+- implementar backfill/reconciliacao opt-in somente para `pessoa` e
+  `pessoa_tipo_pessoa`, respeitando a ordem `pessoa` antes de
+  `pessoa_tipo_pessoa`, comparando por ID/CPF/papel e mantendo cutover
+  transacional desligado.
+
+Entregue na terceira subfase da Fase 64:
+
+- o ciclo opt-in de backfill/reconciliacao do `people-service` deixou de ser
+  limitado aos catalogos e passou a sincronizar, na mesma execucao controlada,
+  `tipo_pessoa`, `tipo_endereco`, `pessoa` e `pessoa_tipo_pessoa`;
+- a ordem operacional fica preservada: catalogos primeiro, depois `pessoa` e
+  por fim `pessoa_tipo_pessoa`, evitando quebra de chave estrangeira no read
+  model local;
+- `pessoa` e `pessoa_tipo_pessoa` sao copiados por JDBC a partir do monolito
+  para o schema local preparado na subfase anterior, com upsert idempotente por
+  ID original e reconciliacao por ID/CPF/campos de identidade/papel;
+- o health passou a expor tambem `localReadModelBackfill`, mantendo
+  `catalogBackfill` por compatibilidade, e o plano
+  `transactionalReadModelExpansionPlan` passou a reportar
+  `pessoa_identity_backfill_reconciliation_prepared_opt_in`;
+- nenhuma rota externa, BFF/frontend, escrita, adapter local transacional ou
+  cutover de `buscarPorId` foi habilitado nesta subfase; o monolito continua
+  sendo a fonte de leitura transacional.
+
+Contagem da macrofase Fase 64: 1 subfase restante estimada: avaliar leitura
+local de `buscarPorId` com fallback obrigatorio para o monolito, somente se o
+read model de identidade estiver verde e sem ampliar para `consultarCadastro`.
+
+Proxima subfase pratica:
+
+- implementar a avaliacao controlada de leitura local para `buscarPorId`, com
+  adapter local restrito a `pessoa`/`pessoa_tipo_pessoa`, fallback obrigatorio
+  para o monolito e sem alterar rota externa no BFF.
+
+Entregue na quarta subfase da Fase 64:
+
+- o `people-service` recebeu a primeira leitura local controlada da fatia de
+  identidade, restrita a `buscarPorId`, atras de `PeopleLocalReadCutoverGuard`
+  e dependente do read model local verde;
+- foi criada a porta `PeopleIdentityLocalReadPort` e o adapter JDBC local
+  `JdbcPeopleIdentityLocalReadAdapter`, consultando `pessoa` por `id_pessoa` e
+  `id_escola` no schema local, sem acessar `endereco`, `pessoa_endereco`,
+  `aluno`, `responsavel`, `funcionario` ou `professor`;
+- o read model de `pessoa` passou a copiar `escola_nome` como campo
+  desnormalizado de leitura para preservar o contrato de
+  `PessoaResumoResponse` sem tornar o `people-service` autoridade de escola;
+- `PessoaQueryService.buscarPessoaPorId` tenta a leitura local somente quando o
+  gate libera `buscarPorId`; em ausencia local ou erro, o fallback obrigatorio
+  para o monolito permanece ativo e observado por metrica propria;
+- `consultarCadastro`, escritas, rotas externas, BFF/frontend e cutover amplo
+  continuam fora do escopo desta macrofase.
+
+Contagem da macrofase Fase 64: 0. A Fase 64 fica fechada com o primeiro
+cutover controlado de leitura local de identidade preparado e protegido por
+fallback obrigatorio para o monolito.
+
+Proxima fase pratica:
+
+- iniciar a proxima macrofase do `people-service` por diagnostico, decidindo se
+  o proximo recorte seguro deve ser endurecimento operacional da leitura local
+  ja criada ou expansao controlada para `consultarCadastro` com
+  `endereco`/`pessoa_endereco`;
+- manter o recorte backend/backend, sem alterar BFF/frontend, sem escrita local
+  e sem remover o monolito como fallback.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -2821,10 +2915,11 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Continuar a Fase 51D com a expansao da escrita controlada do catalogo via BFF,
-rota por rota, com o mesmo gate de relatorio reconciliado, `Idempotency-Key`,
-metricas e health dedicados. O proximo corte de menor risco e
-`POST /api/disciplinas`, ainda sem fallback automatico para o monolito depois
+Iniciar a proxima macrofase do `people-service` por diagnostico, escolhendo
+entre endurecimento operacional da leitura local de identidade ja criada ou
+expansao controlada para `consultarCadastro` com `endereco` e
+`pessoa_endereco`, sem BFF/frontend, sem escrita local e sem remover o monolito
+como fallback.
 que a escrita tenta o `academic-catalog-service`.
 
 Entregue na oitava subfase:

@@ -68,7 +68,7 @@ class PeopleLocalReadModelSchemaMigrationRunnerTest {
     }
 
     @Test
-    void aplicaMigrationReadOnlyDosCatalogosQuandoOptInEstaHabilitado() throws Exception {
+    void aplicaMigrationsReadOnlyDosCatalogosEIdentidadeQuandoOptInEstaHabilitado() throws Exception {
         String url = "jdbc:h2:mem:people_schema_" + UUID.randomUUID()
                 + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1";
         PeopleLocalReadModelSchemaMigrationState state = new PeopleLocalReadModelSchemaMigrationState();
@@ -88,7 +88,8 @@ class PeopleLocalReadModelSchemaMigrationRunnerTest {
 
         assertThat(state.currentReport().status()).isEqualTo("applied");
         assertThat(state.currentReport().success()).isTrue();
-        assertThat(state.currentReport().tables()).containsExactly("tipo_pessoa", "tipo_endereco");
+        assertThat(state.currentReport().tables())
+                .containsExactly("tipo_pessoa", "tipo_endereco", "pessoa", "pessoa_tipo_pessoa");
         assertThat(meterRegistry.counter(
                 "people.shadow.local.persistence.schema.migrations",
                 "status", "success").count()).isEqualTo(1.0d);
@@ -99,6 +100,14 @@ class PeopleLocalReadModelSchemaMigrationRunnerTest {
         }
         try (var connection = DriverManager.getConnection(url, "sa", "");
                 var resultSet = connection.getMetaData().getTables(null, null, "tipo_endereco", null)) {
+            assertThat(resultSet.next()).isTrue();
+        }
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+                var resultSet = connection.getMetaData().getTables(null, null, "pessoa", null)) {
+            assertThat(resultSet.next()).isTrue();
+        }
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+                var resultSet = connection.getMetaData().getTables(null, null, "pessoa_tipo_pessoa", null)) {
             assertThat(resultSet.next()).isTrue();
         }
     }

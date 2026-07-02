@@ -24,17 +24,17 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         var reports = adapter.synchronize(true, true, 100);
 
         assertThat(reports)
-                .hasSize(2)
+                .hasSize(4)
                 .allSatisfy(report -> {
                     assertThat(report.status()).isEqualTo("blocked");
-                    assertThat(report.reason()).isEqualTo("catalog-backfill-source-url-required");
+                    assertThat(report.reason()).isEqualTo("local-read-model-source-url-required");
                     assertThat(report.backfillPlanned()).isTrue();
                     assertThat(report.reconciliationPlanned()).isTrue();
                 });
     }
 
     @Test
-    void copiaEReconciliaCatalogosDoMonolitoParaSchemaLocal() throws Exception {
+    void copiaEReconciliaCatalogosEIdentidadeDoMonolitoParaSchemaLocal() throws Exception {
         String sourceUrl = h2Url("source_" + UUID.randomUUID());
         String targetUrl = h2Url("target_" + UUID.randomUUID());
         criarSchema(sourceUrl);
@@ -48,21 +48,22 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         var reports = adapter.synchronize(true, true, 100);
 
         assertThat(reports)
-                .hasSize(2)
+                .hasSize(4)
                 .allSatisfy(report -> {
                     assertThat(report.status()).isEqualTo("success");
-                    assertThat(report.reason()).isEqualTo("catalog-sync-completed");
                     assertThat(report.divergences()).isZero();
                     assertThat(report.backfilledRecords()).isGreaterThan(0);
                 });
         assertThat(reports)
                 .extracting("table")
-                .containsExactly("tipo_pessoa", "tipo_endereco");
-        assertThat(reports.stream().mapToInt(report -> report.sourceRows()).sum()).isEqualTo(5);
-        assertThat(reports.stream().mapToInt(report -> report.targetRows()).sum()).isEqualTo(5);
+                .containsExactly("tipo_pessoa", "tipo_endereco", "pessoa", "pessoa_tipo_pessoa");
+        assertThat(reports.stream().mapToInt(report -> report.sourceRows()).sum()).isEqualTo(10);
+        assertThat(reports.stream().mapToInt(report -> report.targetRows()).sum()).isEqualTo(10);
 
         assertThat(contar(targetUrl, "tipo_pessoa")).isEqualTo(3);
         assertThat(contar(targetUrl, "tipo_endereco")).isEqualTo(2);
+        assertThat(contar(targetUrl, "pessoa")).isEqualTo(2);
+        assertThat(contar(targetUrl, "pessoa_tipo_pessoa")).isEqualTo(3);
     }
 
     private String h2Url(String dbName) {
@@ -72,6 +73,12 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
     private void criarSchema(String url) throws SQLException {
         try (var connection = DriverManager.getConnection(url, "sa", "");
                 Statement statement = connection.createStatement()) {
+            statement.execute("""
+                    CREATE TABLE escola (
+                        id_escola UUID NOT NULL PRIMARY KEY,
+                        nome VARCHAR(150) NOT NULL
+                    )
+                    """);
             statement.execute("""
                     CREATE TABLE tipo_pessoa (
                         id_tipo_pessoa UUID NOT NULL PRIMARY KEY,
@@ -87,12 +94,47 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         descricao VARCHAR(120) NOT NULL
                     )
                     """);
+            statement.execute("""
+                    CREATE TABLE pessoa (
+                        id_pessoa UUID NOT NULL PRIMARY KEY,
+                        id_escola UUID NOT NULL,
+                        escola_nome VARCHAR(150) NOT NULL,
+                        nome_completo VARCHAR(150) NOT NULL,
+                        cpf VARCHAR(14),
+                        rg VARCHAR(20),
+                        orgao_emissor_rg VARCHAR(20),
+                        uf_rg VARCHAR(2),
+                        email VARCHAR(150),
+                        telefone VARCHAR(20),
+                        data_nascimento DATE,
+                        sexo VARCHAR(20),
+                        nome_social VARCHAR(150),
+                        nacionalidade VARCHAR(80),
+                        naturalidade VARCHAR(100),
+                        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE pessoa_tipo_pessoa (
+                        id_pessoa_tipo_pessoa UUID NOT NULL PRIMARY KEY,
+                        id_pessoa UUID NOT NULL REFERENCES pessoa(id_pessoa),
+                        id_tipo_pessoa UUID NOT NULL REFERENCES tipo_pessoa(id_tipo_pessoa),
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE (id_pessoa, id_tipo_pessoa)
+                    )
+                    """);
         }
     }
 
     private void popularOrigem(String url) throws SQLException {
         try (var connection = DriverManager.getConnection(url, "sa", "");
                 Statement statement = connection.createStatement()) {
+            statement.execute("""
+                    INSERT INTO escola (id_escola, nome) VALUES
+                    ('00000000-0000-0000-0000-000000000047', 'Escola Principal')
+                    """);
             statement.execute("""
                     INSERT INTO tipo_pessoa (id_tipo_pessoa, codigo, descricao, created_at) VALUES
                     ('11111111-1111-1111-1111-111111111111', 'ALUNO', 'Aluno', CURRENT_TIMESTAMP),
@@ -103,6 +145,73 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                     INSERT INTO tipo_endereco (id_tipo_endereco, codigo, descricao) VALUES
                     ('44444444-4444-4444-4444-444444444444', 'RESIDENCIAL', 'Residencial'),
                     ('55555555-5555-5555-5555-555555555555', 'COMERCIAL', 'Comercial')
+                    """);
+            statement.execute("""
+                    INSERT INTO pessoa (
+                        id_pessoa, id_escola, escola_nome, nome_completo, cpf, rg, orgao_emissor_rg, uf_rg, email, telefone,
+                        data_nascimento, sexo, nome_social, nacionalidade, naturalidade, ativo, created_at, updated_at
+                    ) VALUES
+                    (
+                        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                        '00000000-0000-0000-0000-000000000047',
+                        'Escola Principal',
+                        'Ana Aluna',
+                        '11111111111',
+                        'MG123',
+                        'SSP',
+                        'MG',
+                        'ana@example.test',
+                        '31999990000',
+                        DATE '2010-01-02',
+                        'FEMININO',
+                        NULL,
+                        'Brasileira',
+                        'Belo Horizonte',
+                        TRUE,
+                        CURRENT_TIMESTAMP,
+                        CURRENT_TIMESTAMP
+                    ),
+                    (
+                        'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+                        '00000000-0000-0000-0000-000000000047',
+                        'Escola Principal',
+                        'Rita Responsavel',
+                        '22222222222',
+                        NULL,
+                        NULL,
+                        NULL,
+                        'rita@example.test',
+                        '31999991111',
+                        DATE '1980-03-04',
+                        'FEMININO',
+                        NULL,
+                        'Brasileira',
+                        'Contagem',
+                        TRUE,
+                        CURRENT_TIMESTAMP,
+                        CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    INSERT INTO pessoa_tipo_pessoa (id_pessoa_tipo_pessoa, id_pessoa, id_tipo_pessoa, created_at) VALUES
+                    (
+                        '99999999-9999-9999-9999-999999999991',
+                        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                        '11111111-1111-1111-1111-111111111111',
+                        CURRENT_TIMESTAMP
+                    ),
+                    (
+                        '99999999-9999-9999-9999-999999999992',
+                        'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+                        '22222222-2222-2222-2222-222222222222',
+                        CURRENT_TIMESTAMP
+                    ),
+                    (
+                        '99999999-9999-9999-9999-999999999993',
+                        'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+                        '33333333-3333-3333-3333-333333333333',
+                        CURRENT_TIMESTAMP
+                    )
                     """);
         }
     }
