@@ -1130,6 +1130,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   escrita, sem migration, sem BFF/frontend e mantendo o monolito como
   autoridade. A contagem regressiva da macrofase `people-service` passa a 3
   subfases restantes estimadas.
+- A segunda subfase da Fase 60 materializou esse contrato interno entity-free:
+  foi criada a porta `PessoaConsultaPort` com DTOs internos proprios para
+  catalogos e consulta cadastral, e a implementacao `PessoaConsultaService`
+  passou a concentrar a leitura usada por `/api/consulta-cadastral` e
+  `/api/pessoas/catalogos`. `ConsultarCadastroAlunoResponsavelUseCase` e
+  `PessoaCatalogoController` passaram a consumir a nova porta, enquanto
+  `PessoaCadastroPort` ficou restrita ao contrato de cadastro/escrita. O
+  gateway antigo de consulta cadastral em `responsavel` foi removido. Nao houve
+  BFF/frontend, migration, nova rota, runtime fisico de `people-service`,
+  alteracao de payload externo ou movimentacao de escrita. A contagem
+  regressiva da macrofase `people-service` passa a 2 subfases restantes
+  estimadas.
 
 ## Historico resumido
 

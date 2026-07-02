@@ -2,7 +2,6 @@ package br.com.escola.compartilhado.pessoa.service;
 
 import java.util.Locale;
 import java.util.Optional;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -10,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import br.com.escola.compartilhado.pessoa.dto.EnderecoDados;
-import br.com.escola.compartilhado.pessoa.dto.CatalogoPessoaResponse;
 import br.com.escola.compartilhado.pessoa.dto.PessoaCriada;
 import br.com.escola.compartilhado.pessoa.dto.PessoaDados;
 import br.com.escola.compartilhado.endereco.entity.EnderecoEntity;
@@ -154,22 +152,6 @@ public class PessoaFoundationService implements PessoaCadastroPort {
         }
         UUID escolaId = escolaTenantService.obterOuCriarEscolaPadrao().getId();
         return pessoaRepository.findByCpfAndEscola_Id(cpf.trim(), escolaId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<CatalogoPessoaResponse> listarTiposPessoa() {
-        return tipoPessoaRepository.findAll().stream()
-                .map(tipo -> new CatalogoPessoaResponse(tipo.getId(), tipo.getCodigo(), tipo.getDescricao()))
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<CatalogoPessoaResponse> listarTiposEndereco() {
-        return tipoEnderecoRepository.findAll().stream()
-                .map(tipo -> new CatalogoPessoaResponse(tipo.getId(), tipo.getCodigo(), tipo.getDescricao()))
-                .toList();
     }
 
     private void vincularTipoPessoa(PessoaEntity pessoa, TipoPessoaEntity tipoPessoa) {

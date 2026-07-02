@@ -1,10 +1,8 @@
 package br.com.escola.compartilhado.pessoa.port.internal;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import br.com.escola.compartilhado.pessoa.dto.CatalogoPessoaResponse;
 import br.com.escola.compartilhado.pessoa.dto.EnderecoDados;
 import br.com.escola.compartilhado.pessoa.dto.PessoaCriada;
 import br.com.escola.compartilhado.pessoa.dto.PessoaDados;
@@ -27,8 +25,4 @@ public interface PessoaCadastroPort {
     Optional<PessoaEntity> buscarPorIdEEscola(UUID pessoaId, UUID escolaId);
 
     Optional<PessoaEntity> buscarPorCpf(String cpf);
-
-    List<CatalogoPessoaResponse> listarTiposPessoa();
-
-    List<CatalogoPessoaResponse> listarTiposEndereco();
 }

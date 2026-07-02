@@ -2335,6 +2335,31 @@ criar contrato entity-free de consulta/catalogos, aplicar o primeiro consumo
 interno de baixo risco e, depois, decidir se o modulo fisico pode abrir em modo
 shadow read-only.
 
+Entregue na segunda subfase da Fase 60:
+
+- foi criado o contrato interno `PessoaConsultaPort`, separado de
+  `PessoaCadastroPort`, para concentrar leitura cadastral e catalogos de pessoa
+  sem expor `PessoaEntity` na borda;
+- foram adicionados DTOs internos entity-free para catalogos, pagina de
+  consulta cadastral, aluno com responsaveis e resumo de responsavel;
+- a implementacao `PessoaConsultaService` passou a concentrar a consulta
+  cadastral hoje usada por `/api/consulta-cadastral` e os catalogos usados por
+  `/api/pessoas/catalogos`, mantendo o mesmo runtime e banco do monolito;
+- `ConsultarCadastroAlunoResponsavelUseCase` passou a depender da nova porta
+  de pessoa e apenas mapear o resultado para os DTOs externos atuais de
+  responsavel;
+- `PessoaCatalogoController` passou a consumir `PessoaConsultaPort`, e
+  `PessoaCadastroPort` ficou restrita ao contrato de cadastro/escrita;
+- o gateway antigo de consulta cadastral em `responsavel` foi removido para
+  evitar duas fontes de leitura paralelas;
+- nao houve nova rota, BFF, frontend, migration, runtime fisico de
+  `people-service`, mudanca de payload externo ou movimentacao de escrita.
+
+Contagem da macrofase `people-service`: 2 subfases restantes estimadas:
+aplicar o primeiro consumo interno adicional de baixo risco sobre
+`PessoaConsultaPort` e, depois, decidir se o modulo fisico pode abrir em modo
+shadow read-only.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

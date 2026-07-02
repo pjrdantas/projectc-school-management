@@ -1,4 +1,4 @@
-package br.com.escola.responsavel.adapter.out.persistence.consulta;
+package br.com.escola.compartilhado.pessoa.service;
 
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -12,15 +12,19 @@ import java.util.UUID;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import br.com.escola.responsavel.application.dto.consulta.AlunoComResponsaveisOutput;
-import br.com.escola.responsavel.application.dto.consulta.ConsultaCadastralPageOutput;
-import br.com.escola.responsavel.application.dto.consulta.ResponsavelResumoOutput;
-import br.com.escola.responsavel.application.port.out.consulta.ConsultaCadastralGateway;
+import br.com.escola.compartilhado.endereco.repository.TipoEnderecoJpaRepository;
+import br.com.escola.compartilhado.pessoa.dto.internal.PessoaAlunoResponsaveisResumo;
+import br.com.escola.compartilhado.pessoa.dto.internal.PessoaCatalogoResumo;
+import br.com.escola.compartilhado.pessoa.dto.internal.PessoaConsultaCadastralPage;
+import br.com.escola.compartilhado.pessoa.dto.internal.PessoaResponsavelResumo;
+import br.com.escola.compartilhado.pessoa.port.internal.PessoaConsultaPort;
+import br.com.escola.compartilhado.pessoa.repository.TipoPessoaJpaRepository;
 
-@Component
-public class ConsultaCadastralPersistenceGateway implements ConsultaCadastralGateway {
+@Service
+public class PessoaConsultaService implements PessoaConsultaPort {
 
     private static final String FILTERS = """
             FROM aluno a
@@ -33,13 +37,21 @@ public class ConsultaCadastralPersistenceGateway implements ConsultaCadastralGat
             """;
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final TipoPessoaJpaRepository tipoPessoaRepository;
+    private final TipoEnderecoJpaRepository tipoEnderecoRepository;
 
-    public ConsultaCadastralPersistenceGateway(NamedParameterJdbcTemplate jdbcTemplate) {
+    public PessoaConsultaService(
+            NamedParameterJdbcTemplate jdbcTemplate,
+            TipoPessoaJpaRepository tipoPessoaRepository,
+            TipoEnderecoJpaRepository tipoEnderecoRepository) {
         this.jdbcTemplate = jdbcTemplate;
+        this.tipoPessoaRepository = tipoPessoaRepository;
+        this.tipoEnderecoRepository = tipoEnderecoRepository;
     }
 
     @Override
-    public ConsultaCadastralPageOutput consultar(
+    @Transactional(readOnly = true)
+    public PessoaConsultaCadastralPage consultarCadastroAlunoResponsavel(
             String nomeAluno,
             String cpfAluno,
             String nomeResponsavel,
@@ -65,7 +77,7 @@ public class ConsultaCadastralPersistenceGateway implements ConsultaCadastralGat
                 (rs, rowNum) -> rs.getObject("id_aluno", UUID.class));
 
         if (alunoIds.isEmpty()) {
-            return new ConsultaCadastralPageOutput(List.of(), total == null ? 0 : total, safePage, safeSize);
+            return new PessoaConsultaCadastralPage(List.of(), total == null ? 0 : total, safePage, safeSize);
         }
 
         MapSqlParameterSource dataParams = new MapSqlParameterSource().addValue("alunoIds", alunoIds);
@@ -92,9 +104,25 @@ public class ConsultaCadastralPersistenceGateway implements ConsultaCadastralGat
                 """;
 
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(dataSql, dataParams);
-        List<AlunoComResponsaveisOutput> content = aggregate(rows);
+        List<PessoaAlunoResponsaveisResumo> content = aggregate(rows);
 
-        return new ConsultaCadastralPageOutput(content, total == null ? 0 : total, safePage, safeSize);
+        return new PessoaConsultaCadastralPage(content, total == null ? 0 : total, safePage, safeSize);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PessoaCatalogoResumo> listarTiposPessoa() {
+        return tipoPessoaRepository.findAll().stream()
+                .map(tipo -> new PessoaCatalogoResumo(tipo.getId(), tipo.getCodigo(), tipo.getDescricao()))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PessoaCatalogoResumo> listarTiposEndereco() {
+        return tipoEnderecoRepository.findAll().stream()
+                .map(tipo -> new PessoaCatalogoResumo(tipo.getId(), tipo.getCodigo(), tipo.getDescricao()))
+                .toList();
     }
 
     private MapSqlParameterSource buildParams(
@@ -123,7 +151,7 @@ public class ConsultaCadastralPersistenceGateway implements ConsultaCadastralGat
         return value.trim();
     }
 
-    private List<AlunoComResponsaveisOutput> aggregate(List<Map<String, Object>> rows) {
+    private List<PessoaAlunoResponsaveisResumo> aggregate(List<Map<String, Object>> rows) {
         Map<UUID, AlunoAggregate> grouped = new LinkedHashMap<>();
 
         for (Map<String, Object> row : rows) {
@@ -139,7 +167,7 @@ public class ConsultaCadastralPersistenceGateway implements ConsultaCadastralGat
 
             UUID idResponsavel = (UUID) row.get("id_responsavel");
             if (idResponsavel != null) {
-                agg.responsaveis.add(new ResponsavelResumoOutput(
+                agg.responsaveis.add(new PessoaResponsavelResumo(
                         idResponsavel,
                         (String) row.get("responsavel_nome"),
                         (String) row.get("responsavel_cpf"),
@@ -150,7 +178,7 @@ public class ConsultaCadastralPersistenceGateway implements ConsultaCadastralGat
         }
 
         return grouped.values().stream()
-                .map(agg -> new AlunoComResponsaveisOutput(
+                .map(agg -> new PessoaAlunoResponsaveisResumo(
                         agg.idAluno,
                         agg.nomeCompleto,
                         agg.cpf,
@@ -196,7 +224,7 @@ public class ConsultaCadastralPersistenceGateway implements ConsultaCadastralGat
         private final String telefone;
         private final LocalDate dataNascimento;
         private final LocalDateTime createdAt;
-        private final List<ResponsavelResumoOutput> responsaveis = new ArrayList<>();
+        private final List<PessoaResponsavelResumo> responsaveis = new ArrayList<>();
 
         private AlunoAggregate(
                 UUID idAluno,
