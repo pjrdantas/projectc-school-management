@@ -1101,6 +1101,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `s3://bucket/chave`. Nao houve bucket, runtime MinIO/S3, migration,
   BFF/frontend ou mudanca de contrato HTTP. A contagem regressiva da macrofase
   object storage real controlado passa a 2 subfases restantes estimadas.
+- A subfase seguinte validou operacionalmente o modo
+  `documento.storage.backend=s3` no contexto Spring real do backend: o teste
+  executa o upload multipart de `/api/documentos-alunos`, cria o aluno, passa
+  por controller, service, use case e `S3DocumentoArquivoStorage`, e confirma
+  a persistencia de `s3://bucket/chave`. O `S3Client` foi substituido por mock
+  no limite externo para nao iniciar MinIO/S3, criar bucket ou depender de
+  credenciais reais nesta etapa. A contagem regressiva da macrofase object
+  storage real controlado passa a 1 subfase restante estimada.
 
 ## Historico resumido
 

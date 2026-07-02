@@ -2246,6 +2246,25 @@ estimadas: validacao operacional controlada com storage S3-compatible e
 fechamento/migracao minima dos arquivos existentes somente se a validacao for
 segura.
 
+Entregue na segunda subfase da Fase 59:
+
+- foi criada uma validacao operacional backend-only para o modo
+  `documento.storage.backend=s3`, subindo o contexto Spring real do
+  `school-management-service` com o adapter S3 ativo;
+- o teste executa o fluxo HTTP multipart de `/api/documentos-alunos`, cria o
+  aluno, passa pelo controller, service, use case e `S3DocumentoArquivoStorage`
+  e confirma que o metadado persistido permanece como `s3://bucket/chave`;
+- o `S3Client` foi substituido por mock no limite externo para evitar iniciar
+  MinIO/S3, criar bucket, depender de credenciais reais ou alterar runtime local
+  nesta subfase;
+- a validacao confirma que o rollback por `documento.storage.backend=local`
+  continua preservado e que o modo S3 permanece opt-in, sem BFF/frontend,
+  migration ou mudanca de contrato HTTP.
+
+Contagem da macrofase object storage real controlado: 1 subfase restante
+estimada: decidir entre validacao com runtime S3-compatible real em escopo
+opt-in ou fechamento formal sem migrar arquivos existentes.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
