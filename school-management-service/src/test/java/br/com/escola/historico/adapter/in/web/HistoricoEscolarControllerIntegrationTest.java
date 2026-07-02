@@ -1,5 +1,6 @@
 package br.com.escola.historico.adapter.in.web;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,6 +20,8 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import br.com.escola.historico.adapter.out.persistence.repository.HistoricoEscolarPendenciaJpaRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -54,6 +57,9 @@ class HistoricoEscolarControllerIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private HistoricoEscolarPendenciaJpaRepository historicoEscolarPendenciaJpaRepository;
 
     @Test
     @WithMockUser
@@ -192,6 +198,8 @@ class HistoricoEscolarControllerIntegrationTest {
                 .getContentAsString();
 
         UUID historicoId = UUID.fromString(objectMapper.readTree(responseBody).get("id").asText());
+        assertThat(historicoEscolarPendenciaJpaRepository.countByHistoricoEscolar_IdAndResolvidaFalse(historicoId))
+                .isEqualTo(2);
 
         mockMvc.perform(get("/api/historicos-escolares/{id}/carregamento", historicoId))
                 .andExpect(status().isOk())

@@ -1045,6 +1045,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   estimada de 2 subfases restantes: persistencia propria minima de pendencias,
   se confirmada, e fechamento formal do bloco backend antes de qualquer
   substituicao de tela.
+- A subfase seguinte confirmou essa persistencia propria minima de pendencias:
+  `historico_escolar_pendencia` passou a armazenar o snapshot das pendencias
+  abertas no salvamento do historico, com entidade/repository JPA e migration
+  Flyway aditiva. O carregamento da nova tela usa as pendencias persistidas
+  quando disponiveis e preserva fallback calculado para historicos legados, sem
+  criar rota externa, BFF ou frontend.
+- A contagem regressiva da macrofase novo historico escolar passa a 1 subfase
+  restante estimada: fechamento formal do bloco backend e decisao sobre quando
+  a substituicao de tela podera ser tratada fora desta frente backend-only.
 
 ## Historico resumido
 

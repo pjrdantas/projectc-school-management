@@ -2128,6 +2128,17 @@ Entregue na abertura da macrofase seguinte:
   pendencias continuam apenas calculadas ou se passam a ter persistencia propria
   minima em `historico_escolar_pendencia`. Contagem da macrofase novo historico
   escolar: 2 subfases restantes estimadas.
+- a persistencia propria minima das pendencias foi aplicada de forma aditiva no
+  `school-management-service`: foi criada a tabela
+  `historico_escolar_pendencia`, a entidade JPA correspondente e o snapshot das
+  pendencias abertas passou a ser sincronizado nos fluxos atuais de criacao,
+  atualizacao e geracao por boletim. A leitura de carregamento reutiliza as
+  pendencias persistidas quando existirem e mantém fallback calculado para
+  historicos legados, sem rota nova, sem BFF e sem frontend.
+- rollback dessa subfase permanece controlado: como o contrato externo nao foi
+  alterado, basta desativar o uso da tabela e voltar ao calculo em memoria,
+  mantendo a migration aditiva como dado de auditoria. Contagem da macrofase
+  novo historico escolar: 1 subfase restante estimada.
 
 ### Fase 58 - Desativacao do monolito
 

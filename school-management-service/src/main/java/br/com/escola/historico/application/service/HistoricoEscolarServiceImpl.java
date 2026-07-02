@@ -27,6 +27,7 @@ import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarResponse;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarTelaResponse;
 import br.com.escola.historico.adapter.out.persistence.entity.HistoricoEscolar;
 import br.com.escola.historico.adapter.out.persistence.entity.HistoricoEscolarItem;
+import br.com.escola.historico.adapter.out.persistence.entity.HistoricoEscolarPendencia;
 import br.com.escola.historico.adapter.out.persistence.repository.HistoricoEscolarJpaRepository;
 import br.com.escola.historico.application.dto.internal.HistoricoEscolarPendenciaContexto;
 import br.com.escola.historico.application.mapper.HistoricoEscolarMapper;
@@ -74,6 +75,7 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
         var historico = historicoEscolarMapper.toEntity(request);
         historico.setAluno(alunoEscopado(request.alunoId()));
         preencherContextoPersistido(historico);
+        atualizarPendenciasPersistidas(historico);
         var salvo = historicoEscolarJpaRepository.save(historico);
         return historicoEscolarMapper.toResponse(buscarHistoricoEscopado(salvo.getId()));
     }
@@ -87,6 +89,7 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
         historicoEscolarMapper.copyToEntity(request, historico);
         historico.setAluno(alunoEscopado(request.alunoId()));
         preencherContextoPersistido(historico);
+        atualizarPendenciasPersistidas(historico);
         var salvo = historicoEscolarJpaRepository.save(historico);
         return historicoEscolarMapper.toResponse(buscarHistoricoEscopado(salvo.getId()));
     }
@@ -150,6 +153,7 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
 
         HistoricoEscolar historico = historicoEscolarGeracaoFactory.criar(request, boletim, alunoEscopado(alunoId));
         preencherContextoPersistido(historico, matriculaId, null);
+        atualizarPendenciasPersistidas(historico);
 
         var salvo = historicoEscolarJpaRepository.save(historico);
         return historicoEscolarMapper.toResponse(buscarHistoricoEscopado(salvo.getId()));
@@ -231,7 +235,7 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
                 List.of(estudoRealizadoVazio(1)),
                 nullToEmpty(historico.getObservacoes()),
                 certificadoHistorico(historico),
-                historicoEscolarPendenciaPort.calcularParaEdicao(new HistoricoEscolarPendenciaContexto(
+                pendenciasPersistidasOuCalculadas(historico, new HistoricoEscolarPendenciaContexto(
                         firstNonNull(historico.getSerieMatriculaAtual(), serieAtual),
                         firstNonNull(historico.getSerieConcluidaOrigem(), serieConcluidaOrigem),
                         historico.getComponentesCurriculares().stream()
@@ -248,6 +252,48 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
             throw new HistoricoEscolarInvalidoException("Informe ao menos um componente curricular no histórico escolar");
         }
         validarComponentesDuplicados(request.componentesCurriculares());
+    }
+
+    private void atualizarPendenciasPersistidas(HistoricoEscolar historico) {
+        historico.replacePendencias(historicoEscolarPendenciaPort.calcularParaEdicao(contextoPendencias(historico)).stream()
+                .map(this::toPendenciaEntity)
+                .toList());
+    }
+
+    private List<HistoricoEscolarTelaResponse.Pendencia> pendenciasPersistidasOuCalculadas(
+            HistoricoEscolar historico,
+            HistoricoEscolarPendenciaContexto contexto) {
+        List<HistoricoEscolarTelaResponse.Pendencia> persistidas = historico.getPendencias().stream()
+                .filter(pendencia -> !Boolean.TRUE.equals(pendencia.getResolvida()))
+                .map(pendencia -> new HistoricoEscolarTelaResponse.Pendencia(
+                        pendencia.getCodigo(),
+                        pendencia.getSeveridade(),
+                        pendencia.getAba(),
+                        pendencia.getMensagem()))
+                .toList();
+        if (!persistidas.isEmpty()) {
+            return persistidas;
+        }
+        return historicoEscolarPendenciaPort.calcularParaEdicao(contexto);
+    }
+
+    private HistoricoEscolarPendenciaContexto contextoPendencias(HistoricoEscolar historico) {
+        return new HistoricoEscolarPendenciaContexto(
+                historico.getSerieMatriculaAtual(),
+                historico.getSerieConcluidaOrigem(),
+                historico.getComponentesCurriculares().stream()
+                        .map(HistoricoEscolarItem::getSerie)
+                        .toList());
+    }
+
+    private HistoricoEscolarPendencia toPendenciaEntity(HistoricoEscolarTelaResponse.Pendencia pendencia) {
+        return HistoricoEscolarPendencia.builder()
+                .codigo(pendencia.codigo())
+                .severidade(pendencia.severidade())
+                .aba(pendencia.aba())
+                .mensagem(pendencia.mensagem())
+                .resolvida(false)
+                .build();
     }
 
     private void validarComponentesDuplicados(List<HistoricoEscolarItemRequest> itens) {

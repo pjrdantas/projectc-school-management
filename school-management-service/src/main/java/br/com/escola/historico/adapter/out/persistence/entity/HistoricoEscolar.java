@@ -166,6 +166,14 @@ public class HistoricoEscolar {
     @Builder.Default
     private List<HistoricoEscolarItem> componentesCurriculares = new ArrayList<>();
 
+    @OneToMany(
+            mappedBy = "historicoEscolar",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<HistoricoEscolarPendencia> pendencias = new ArrayList<>();
+
     public void addComponenteCurricular(HistoricoEscolarItem item) {
         item.setHistoricoEscolar(this);
         componentesCurriculares.add(item);
@@ -177,6 +185,19 @@ public class HistoricoEscolar {
             return;
         }
         itens.forEach(this::addComponenteCurricular);
+    }
+
+    public void addPendencia(HistoricoEscolarPendencia pendencia) {
+        pendencia.setHistoricoEscolar(this);
+        pendencias.add(pendencia);
+    }
+
+    public void replacePendencias(List<HistoricoEscolarPendencia> novasPendencias) {
+        pendencias.clear();
+        if (novasPendencias == null) {
+            return;
+        }
+        novasPendencias.forEach(this::addPendencia);
     }
 
     @PrePersist
