@@ -1035,6 +1035,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   bloco.
 - A proxima macrofase deve decidir se o diario avanca para BFF/frontend ou se a
   frente continua exclusivamente backend em outra familia funcional.
+- A decisao aplicada foi manter a frente backend-only e retomar o novo
+  `historico escolar`. A primeira subfase dessa macrofase separou o calculo de
+  pendencias em uma fronteira interna propria:
+  `HistoricoEscolarPendenciaPort`, `HistoricoEscolarPendenciaContexto` e
+  `HistoricoEscolarPendenciaService`. O contrato HTTP de carregamento segue
+  inalterado, sem BFF, sem frontend e sem migration.
+- A macrofase de novo historico escolar passa a ter contagem regressiva
+  estimada de 2 subfases restantes: persistencia propria minima de pendencias,
+  se confirmada, e fechamento formal do bloco backend antes de qualquer
+  substituicao de tela.
 
 ## Historico resumido
 

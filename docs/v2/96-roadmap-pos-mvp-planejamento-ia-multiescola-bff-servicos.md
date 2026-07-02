@@ -2115,6 +2115,19 @@ Entregue na abertura da macrofase seguinte:
   BFF/frontend do diario usando os endpoints ja controlados; ou (2) manter a
   frente exclusivamente backend e abrir nova familia funcional, preservando o
   diario como bloco backend fechado.
+- a decisao tomada para a macrofase seguinte foi manter a frente exclusivamente
+  backend e retomar a nova experiencia de `historico escolar`, porque o diario
+  ja esta fechado no recorte backend e o proximo risco ainda deve ser reduzido
+  antes de qualquer BFF/frontend.
+- a primeira subfase dessa macrofase abriu a fronteira interna de pendencias do
+  novo historico escolar no `school-management-service`: o calculo de
+  pendencias de cadastro e edicao saiu de `HistoricoEscolarServiceImpl` e passou
+  para `HistoricoEscolarPendenciaPort`, com implementacao local propria. O
+  contrato HTTP permanece igual, sem migration, sem BFF e sem frontend.
+- essa separacao deixa preparada a proxima evolucao controlada: decidir se as
+  pendencias continuam apenas calculadas ou se passam a ter persistencia propria
+  minima em `historico_escolar_pendencia`. Contagem da macrofase novo historico
+  escolar: 2 subfases restantes estimadas.
 
 ### Fase 58 - Desativacao do monolito
 

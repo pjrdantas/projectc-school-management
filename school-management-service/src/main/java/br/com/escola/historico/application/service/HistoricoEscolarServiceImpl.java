@@ -28,8 +28,10 @@ import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarTelaResponse;
 import br.com.escola.historico.adapter.out.persistence.entity.HistoricoEscolar;
 import br.com.escola.historico.adapter.out.persistence.entity.HistoricoEscolarItem;
 import br.com.escola.historico.adapter.out.persistence.repository.HistoricoEscolarJpaRepository;
-import br.com.escola.historico.application.port.internal.BoletimHistoricoPort;
+import br.com.escola.historico.application.dto.internal.HistoricoEscolarPendenciaContexto;
 import br.com.escola.historico.application.mapper.HistoricoEscolarMapper;
+import br.com.escola.historico.application.port.internal.BoletimHistoricoPort;
+import br.com.escola.historico.application.port.internal.HistoricoEscolarPendenciaPort;
 import br.com.escola.historico.domain.exception.BoletimFechadoNaoEncontradoException;
 import br.com.escola.historico.domain.exception.HistoricoEscolarDuplicadoException;
 import br.com.escola.historico.domain.exception.HistoricoEscolarInvalidoException;
@@ -63,6 +65,7 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
     private final MatriculaJpaRepository matriculaJpaRepository;
     private final TransferenciaAlunoJpaRepository transferenciaAlunoJpaRepository;
     private final EscolaContextoPort escolaContextoPort;
+    private final HistoricoEscolarPendenciaPort historicoEscolarPendenciaPort;
 
     @Override
     @Transactional
@@ -189,7 +192,7 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
                 List.of(estudoRealizadoVazio(1)),
                 "",
                 certificadoNovo(aluno, transferencia),
-                pendenciasNovo(serieAtual, serieConcluidaOrigem));
+                historicoEscolarPendenciaPort.calcularParaCadastro(serieAtual, serieConcluidaOrigem));
     }
 
     @Override
@@ -228,10 +231,12 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
                 List.of(estudoRealizadoVazio(1)),
                 nullToEmpty(historico.getObservacoes()),
                 certificadoHistorico(historico),
-                pendenciasHistorico(
-                        historico,
+                historicoEscolarPendenciaPort.calcularParaEdicao(new HistoricoEscolarPendenciaContexto(
                         firstNonNull(historico.getSerieMatriculaAtual(), serieAtual),
-                        firstNonNull(historico.getSerieConcluidaOrigem(), serieConcluidaOrigem)));
+                        firstNonNull(historico.getSerieConcluidaOrigem(), serieConcluidaOrigem),
+                        historico.getComponentesCurriculares().stream()
+                                .map(HistoricoEscolarItem::getSerie)
+                                .toList())));
     }
 
     private void validarRequest(HistoricoEscolarRequest request) {
@@ -387,35 +392,6 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
                 "");
     }
 
-    private List<HistoricoEscolarTelaResponse.Pendencia> pendenciasNovo(Integer serieAtual, Integer serieConcluidaOrigem) {
-        List<HistoricoEscolarTelaResponse.Pendencia> pendencias = new ArrayList<>();
-        if (serieAtual != null && serieAtual > 1) {
-            pendencias.add(new HistoricoEscolarTelaResponse.Pendencia(
-                    "HISTORICO_SERIE_ANTERIOR_INCOMPLETO",
-                    "AVISO",
-                    "ANOS_COMPONENTES",
-                    "Aluno matriculado em série posterior. O histórico precisa ser preenchido até a série anterior à matrícula."));
-        }
-        pendencias.add(new HistoricoEscolarTelaResponse.Pendencia(
-                "ANOS_COMPONENTES_PENDENTES",
-                "AVISO",
-                "ANOS_COMPONENTES",
-                "Há anos letivos e componentes curriculares pendentes para preenchimento."));
-        pendencias.add(new HistoricoEscolarTelaResponse.Pendencia(
-                "ESTUDOS_REALIZADOS_PENDENTE",
-                "AVISO",
-                "ESTUDOS_REALIZADOS",
-                "Há estudos realizados pendentes para completar o histórico."));
-        if (serieConcluidaOrigem == null) {
-            pendencias.add(new HistoricoEscolarTelaResponse.Pendencia(
-                    "CERTIFICADO_PENDENTE",
-                    "AVISO",
-                    "OBSERVACOES_CERTIFICADO",
-                    "A série concluída na escola de origem ainda precisa ser informada."));
-        }
-        return pendencias;
-    }
-
     private HistoricoEscolarTelaResponse.Cabecalho cabecalhoHistorico(HistoricoEscolar historico) {
         String escolaAtual = historico.getAluno() == null || historico.getAluno().getPessoa() == null || historico.getAluno().getPessoa().getEscola() == null
                 ? ""
@@ -524,43 +500,6 @@ public class HistoricoEscolarServiceImpl implements HistoricoEscolarService {
                 nullToEmpty(historico.getGerenteOrganizacaoRg()),
                 nullToEmpty(historico.getDiretorNome()),
                 nullToEmpty(historico.getDiretorRg()));
-    }
-
-    private List<HistoricoEscolarTelaResponse.Pendencia> pendenciasHistorico(
-            HistoricoEscolar historico,
-            Integer serieAtual,
-            Integer serieConcluidaOrigem) {
-        List<HistoricoEscolarTelaResponse.Pendencia> pendencias = new ArrayList<>();
-        if (historico.getComponentesCurriculares().isEmpty()) {
-            pendencias.add(new HistoricoEscolarTelaResponse.Pendencia(
-                    "ANOS_COMPONENTES_PENDENTES",
-                    "AVISO",
-                    "ANOS_COMPONENTES",
-                    "Há componentes curriculares ou anos letivos pendentes até a série anterior à matrícula."));
-        }
-        if (serieAtual != null && serieAtual > 1 && !cobreSerieAnterior(historico.getComponentesCurriculares(), serieAtual - 1)) {
-            pendencias.add(new HistoricoEscolarTelaResponse.Pendencia(
-                    "HISTORICO_SERIE_ANTERIOR_INCOMPLETO",
-                    "AVISO",
-                    "ANOS_COMPONENTES",
-                    "Aluno matriculado em série posterior. O histórico precisa estar preenchido até a série anterior à matrícula."));
-        }
-        if (serieConcluidaOrigem == null) {
-            pendencias.add(new HistoricoEscolarTelaResponse.Pendencia(
-                    "CERTIFICADO_PENDENTE",
-                    "AVISO",
-                    "OBSERVACOES_CERTIFICADO",
-                    "A série concluída na escola de origem ainda precisa ser informada."));
-        }
-        return pendencias;
-    }
-
-    private boolean cobreSerieAnterior(List<HistoricoEscolarItem> itens, int serieObrigatoriaAte) {
-        return itens.stream()
-                .map(HistoricoEscolarItem::getSerie)
-                .map(HistoricoEscolarServiceImpl::serieOrdem)
-                .filter(java.util.Objects::nonNull)
-                .anyMatch(ordem -> ordem <= serieObrigatoriaAte);
     }
 
     private Integer serieAtual(MatriculaEntity matricula) {
