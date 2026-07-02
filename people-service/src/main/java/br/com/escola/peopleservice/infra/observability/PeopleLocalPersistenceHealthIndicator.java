@@ -9,6 +9,8 @@ import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
 import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecision;
+import br.com.escola.peopleservice.application.dto.PeopleCatalogReadModelSchemaPlan;
+import br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner;
 import br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard;
 import br.com.escola.peopleservice.infra.config.PeopleLocalPersistenceProperties;
 import io.micrometer.core.instrument.Measurement;
@@ -56,14 +58,17 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private final PeopleLocalPersistenceProperties properties;
     private final MeterRegistry meterRegistry;
     private final PeopleLocalReadCutoverGuard readCutoverGuard;
+    private final PeopleCatalogReadModelSchemaPlanner catalogSchemaPlanner;
 
     public PeopleLocalPersistenceHealthIndicator(
             PeopleLocalPersistenceProperties properties,
             MeterRegistry meterRegistry,
-            PeopleLocalReadCutoverGuard readCutoverGuard) {
+            PeopleLocalReadCutoverGuard readCutoverGuard,
+            PeopleCatalogReadModelSchemaPlanner catalogSchemaPlanner) {
         this.properties = properties;
         this.meterRegistry = meterRegistry;
         this.readCutoverGuard = readCutoverGuard;
+        this.catalogSchemaPlanner = catalogSchemaPlanner;
     }
 
     @Override
@@ -85,6 +90,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("shadowReadRoutes", diagnosticoRotasLeitura());
         details.put("backfillPlan", diagnosticoBackfill());
         details.put("readRoutingPlan", diagnosticoRoteamentoLeitura());
+        details.put("catalogReadModelSchemaPlan", diagnosticoSchemaCatalogo());
         details.put("rollbackStrategy", "disable_people.shadow.local-persistence.enabled");
         details.put("backfillRecordsTotal", totalContador("people.shadow.local.persistence.backfill.records"));
         details.put("backfillTablesPlannedTotal",
@@ -109,6 +115,23 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         }
 
         return Health.up().withDetails(details).build();
+    }
+
+    private Map<String, Object> diagnosticoSchemaCatalogo() {
+        PeopleCatalogReadModelSchemaPlan plan = catalogSchemaPlanner.planejarSchemaCatalogo();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("migrationAllowedNow", plan.migrationAllowedNow());
+        details.put("physicalSchemaRequiredNext", plan.physicalSchemaRequiredNext());
+        details.put("localReadAdapterRequiredNext", plan.localReadAdapterRequiredNext());
+        details.put("readCutoverAllowed", plan.readCutoverAllowed());
+        details.put("writeCutoverAllowed", plan.writeCutoverAllowed());
+        details.put("tables", plan.tables());
+        details.put("excludedTables", plan.excludedTables());
+        details.put("blockers", plan.blockers());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        return details;
     }
 
     private Map<String, Object> diagnosticoRoteamentoLeitura() {

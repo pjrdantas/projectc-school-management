@@ -1253,6 +1253,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   Nao houve schema local fisico, migration, BFF/frontend, escrita ou cutover
   real. A contagem regressiva da macrofase de persistencia controlada do
   `people-service` chega a 0.
+- A primeira subfase da Fase 63 iniciou a macrofase de schema local read-only
+  controlado do `people-service`. O diagnostico definiu `tipo_pessoa` e
+  `tipo_endereco` como o menor recorte fisico seguro, por serem catalogos
+  globais simples, com UUID, `codigo` unico e sem dependencia de tenant ou
+  transacao de cadastro. `pessoa`, `pessoa_tipo_pessoa`, `endereco`,
+  `pessoa_endereco`, `pessoa_documento`, `aluno`, `responsavel`, `funcionario`,
+  `professor` e demais tabelas transacionais continuam fora da primeira
+  migration fisica. Foi adicionado ao `people-service` um plano interno de
+  schema de catalogo no health `peopleLocalPersistence`, expondo tabelas
+  candidatas, colunas, chaves, origem de seed, bloqueios, rollback e proximo
+  passo recomendado. Nao houve datasource, Flyway, JPA, migration fisica,
+  adapter local, BFF/frontend, escrita ou cutover. A contagem regressiva da
+  macrofase de schema local read-only do `people-service` passa a 3 subfases
+  restantes estimadas.
 
 ## Historico resumido
 

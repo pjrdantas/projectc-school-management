@@ -2644,6 +2644,48 @@ Proxima subfase pratica:
 - manter proibido mover escrita, alterar BFF/frontend ou habilitar leitura local
   sem adapter, reconciliacao verde e rollback testado.
 
+### Fase 63 - Schema local read-only controlado do `people-service`
+
+Objetivo: iniciar a proxima macrofase backend do `people-service` apos o
+fechamento da Fase 62, decidindo o menor schema fisico seguro para sair do
+diagnostico/health e preparar persistencia local real sem mover escrita, sem
+BFF/frontend e sem cutover de leitura.
+
+Entregue na primeira subfase da Fase 63:
+
+- o menor recorte fisico seguro foi definido como catalogo local read-only de
+  `tipo_pessoa` e `tipo_endereco`, porque sao tabelas globais simples,
+  identificadas por UUID, com `codigo` unico e sem dependencia de tenant ou
+  transacao de cadastro;
+- `pessoa`, `pessoa_tipo_pessoa`, `endereco`, `pessoa_endereco`,
+  `pessoa_documento`, `aluno`, `responsavel`, `funcionario`, `professor` e
+  demais tabelas transacionais continuam fora da primeira migration fisica,
+  porque ainda dependem de backfill por escola, joins e contratos de escrita do
+  monolito;
+- o `people-service` recebeu um plano interno de schema de catalogo no health
+  `peopleLocalPersistence`, expondo tabelas candidatas, colunas, chaves,
+  origem de seed, bloqueios, rollback e recomendacao da proxima subfase;
+- a decisao desta subfase foi nao adicionar ainda datasource, Flyway, JPA,
+  migration fisica, adapter local ou cutover, preservando o runtime apenas em
+  proxy shadow para o monolito;
+- a proxima migration deve ser opt-in/read-only, criar somente
+  `tipo_pessoa`/`tipo_endereco`, manter IDs originais do monolito, usar
+  `codigo` como chave natural de reconciliacao e continuar com fallback
+  obrigatorio para `monolith_proxy`.
+
+Contagem da macrofase schema local read-only do `people-service`: 3 subfases
+restantes estimadas: adicionar dependencias/configuracao opt-in e migration
+fisica dos catalogos, implementar backfill/reconciliacao desses catalogos sem
+cutover e, depois, avaliar adapter local de leitura com fallback obrigatorio.
+
+Proxima subfase pratica:
+
+- adicionar ao `people-service` a preparacao fisica opt-in do schema local
+  read-only para `tipo_pessoa`/`tipo_endereco`, com dependencias e migration
+  controladas por configuracao e sem trocar nenhuma leitura;
+- manter proibido mover escrita, alterar BFF/frontend, incluir tabelas
+  transacionais ou habilitar `read-model-cutover`.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

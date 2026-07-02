@@ -32,7 +32,8 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 meterRegistry,
                 new br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard(
                         new PeopleLocalPersistenceProperties(false, false, false, false, false, false, 500, true),
-                        meterRegistry));
+                        meterRegistry),
+                new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner());
 
         var health = indicator.health();
 
@@ -103,6 +104,19 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("writesEnabled", false)
                 .containsEntry("cutoverEnabled", false)
                 .containsEntry("idempotent", true);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> catalogSchemaPlan =
+                (Map<String, Object>) health.getDetails().get("catalogReadModelSchemaPlan");
+        assertThat(catalogSchemaPlan)
+                .containsEntry("status", "diagnostic_ready_for_next_migration_preparation")
+                .containsEntry("recommendedNextStep",
+                        "prepare_opt_in_read_only_schema_for_tipo_pessoa_and_tipo_endereco")
+                .containsEntry("migrationAllowedNow", false)
+                .containsEntry("physicalSchemaRequiredNext", true)
+                .containsEntry("localReadAdapterRequiredNext", true)
+                .containsEntry("readCutoverAllowed", false)
+                .containsEntry("writeCutoverAllowed", false);
     }
 
     @Test
@@ -112,7 +126,8 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 new SimpleMeterRegistry(),
                 new br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard(
                         new PeopleLocalPersistenceProperties(true, false, false, false, false, false, 500, true),
-                        new SimpleMeterRegistry()));
+                        new SimpleMeterRegistry()),
+                new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner());
 
         var health = indicator.health();
 
@@ -131,7 +146,8 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 meterRegistry,
                 new br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard(
                         new PeopleLocalPersistenceProperties(true, true, true, true, true, true, 100, true),
-                        meterRegistry));
+                        meterRegistry),
+                new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner());
 
         var health = indicator.health();
 
