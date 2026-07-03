@@ -138,9 +138,9 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         Map<String, Object> transactionalPlan =
                 (Map<String, Object>) health.getDetails().get("transactionalReadModelExpansionPlan");
         assertThat(transactionalPlan)
-                .containsEntry("status", "consultar_cadastro_guarded_read_cutover_closed")
+                .containsEntry("status", "address_read_model_deep_diagnostic_closed_no_schema")
                 .containsEntry("recommendedNextStep",
-                        "diagnose_address_read_model_before_any_schema_or_cutover")
+                        "prepare_internal_address_contract_without_local_schema_or_cutover")
                 .containsEntry("minimalNextSlice", "endereco_diagnostic_only_no_cutover")
                 .containsEntry("migrationAllowedNow", false)
                 .containsEntry("backfillAllowedNow", false)
@@ -151,18 +151,42 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 (Map<String, Object>) health.getDetails().get("nextBlockedSliceDiagnostic");
         assertThat(nextBlockedSlice)
                 .containsEntry("slice", "endereco")
-                .containsEntry("status", "diagnostic_required_before_implementation")
+                .containsEntry("status", "deep_diagnostic_closed_implementation_still_blocked")
                 .containsEntry("implementationAllowedNow", false)
                 .containsEntry("schemaAllowedNow", false)
                 .containsEntry("backfillAllowedNow", false)
                 .containsEntry("localReadCutoverAllowedNow", false)
-                .containsEntry("dependsOnClosedSlice", "consultarCadastro");
+                .containsEntry("dependsOnClosedSlice", "consultarCadastro")
+                .containsEntry("firstSafeImplementationSlice", "internal_address_contract_only_no_schema");
         @SuppressWarnings("unchecked")
         java.util.List<String> requiredContractDecisions =
                 (java.util.List<String>) nextBlockedSlice.get("requiredContractDecisions");
         assertThat(requiredContractDecisions).contains(
                 "separate-external-cep-lookup-from-persisted-address-data",
                 "define-reconciliation-key-by-pessoa_endereco-before-backfill");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> writeConsumers = (java.util.List<String>) nextBlockedSlice.get("writeConsumers");
+        assertThat(writeConsumers).contains(
+                "PessoaFoundationService.criarPessoaComTipoEEndereco",
+                "CriarAlunoUseCase",
+                "AtualizarResponsavelUseCase");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> cleanupConsumers = (java.util.List<String>) nextBlockedSlice.get("cleanupConsumers");
+        assertThat(cleanupConsumers).contains(
+                "PessoaEnderecoJpaRepository.deleteByPessoaId",
+                "PessoaEnderecoJpaRepository.countByEnderecoId");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> cepLookupConsumers = (java.util.List<String>) nextBlockedSlice.get("cepLookupConsumers");
+        assertThat(cepLookupConsumers).contains(
+                "EnderecoCepController.GET /enderecos/cep/{cep}",
+                "ViaCepService.consultar");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> greenCriteriaBeforeSchema =
+                (java.util.List<String>) nextBlockedSlice.get("greenCriteriaBeforeSchema");
+        assertThat(greenCriteriaBeforeSchema).contains(
+                "internal-address-contract-defined-without-jpa-entities",
+                "orphan-address-cleanup-strategy-defined",
+                "cep-lookup-kept-as-external-adapter");
 
         @SuppressWarnings("unchecked")
         Map<String, Object> closure =

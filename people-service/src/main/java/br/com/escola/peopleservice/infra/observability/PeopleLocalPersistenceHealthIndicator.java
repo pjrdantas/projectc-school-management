@@ -225,29 +225,54 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private Map<String, Object> diagnosticoProximaFatiaBloqueada() {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("slice", "endereco");
-        details.put("status", "diagnostic_required_before_implementation");
+        details.put("status", "deep_diagnostic_closed_implementation_still_blocked");
         details.put("implementationAllowedNow", false);
         details.put("schemaAllowedNow", false);
         details.put("backfillAllowedNow", false);
         details.put("localReadCutoverAllowedNow", false);
         details.put("dependsOnClosedSlice", "consultarCadastro");
         details.put("tables", List.of("endereco", "pessoa_endereco"));
+        details.put("firstSafeImplementationSlice", "internal_address_contract_only_no_schema");
         details.put("requiredContractDecisions", List.of(
                 "define-if-address-read-model-belongs-to-pessoa-detail-or-own-address-query",
                 "separate-external-cep-lookup-from-persisted-address-data",
                 "define-person-address-principal-selection-and-multiple-address-behavior",
                 "define-reconciliation-key-by-pessoa_endereco-before-backfill"));
+        details.put("writeConsumers", List.of(
+                "PessoaFoundationService.criarPessoaComTipoEEndereco",
+                "PessoaFoundationService.atualizarPessoaEEndereco",
+                "CriarAlunoUseCase",
+                "AtualizarAlunoUseCase",
+                "CriarResponsavelUseCase",
+                "AtualizarResponsavelUseCase"));
+        details.put("cleanupConsumers", List.of(
+                "AlunoPersistenceGateway.removeById",
+                "ResponsavelPersistenceGateway.removeById",
+                "PessoaEnderecoJpaRepository.deleteByPessoaId",
+                "PessoaEnderecoJpaRepository.countByEnderecoId"));
+        details.put("cepLookupConsumers", List.of(
+                "EnderecoCepController.GET /enderecos/cep/{cep}",
+                "ViaCepService.consultar",
+                "TransferenciaAlunoService.preencherEnderecoComViaCep"));
         details.put("monolithDependencies", List.of(
                 "compartilhado.endereco.EnderecoEntity",
                 "compartilhado.endereco.PessoaEnderecoEntity",
                 "compartilhado.endereco.TipoEnderecoEntity",
+                "compartilhado.pessoa.service.PessoaFoundationService",
                 "aluno-responsavel-create-update-use-cases",
                 "via-cep-lookup"));
         details.put("consistencyRisks", List.of(
                 "address-is-written-together-with-student-or-responsible-person",
                 "same-address-can-be-linked-or-cleaned-up-by-person-gateways",
+                "principal-address-is-a-business-rule-not-just-a-table-copy",
                 "cep-lookup-is-external-and-must-not-become-local-read-model-authority",
                 "current-consultarCadastro-response-does-not-expose-address-fields"));
+        details.put("greenCriteriaBeforeSchema", List.of(
+                "internal-address-contract-defined-without-jpa-entities",
+                "principal-address-rule-explicit",
+                "orphan-address-cleanup-strategy-defined",
+                "cep-lookup-kept-as-external-adapter",
+                "no-current-external-route-depends-on-address-local-read"));
         details.put("rollbackSteps", List.of(
                 "do-not-create-address-read-model-tables-without-explicit-opt-in",
                 "keep-endereco-on-monolith-proxy",

@@ -1421,6 +1421,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `localReadCutoverAllowedNow=false`. Nao houve BFF/frontend, escrita local,
   endereco ou mudanca de contrato externo. A contagem regressiva da macrofase
   Fase 66 passa a 1 subfase restante estimada.
+- A terceira subfase da Fase 66 conectou `consultarCadastro` ao adapter local
+  apenas atras do guard de cutover do `people-service`, com fallback obrigatorio
+  para o monolito quando o read model/reconciliacao nao esta verde ou quando a
+  leitura local falha. Em seguida, o bloco foi fechado operacionalmente com o
+  diagnostico `guardedReadCutoverClosure` no health `peopleLocalPersistence`,
+  deixando explicitos fonte selecionada, fallback, criterios verdes, metricas e
+  rollback. A macrofase Fase 66 chega a 0 subfases restantes.
+- A primeira subfase pos-Fase 66 iniciou o diagnostico profundo de `endereco`.
+  O planner do `people-service` passou a reportar
+  `address_read_model_deep_diagnostic_closed_no_schema`, mantendo migration,
+  backfill e cutover bloqueados. O health `peopleLocalPersistence` passou a
+  detalhar `nextBlockedSliceDiagnostic` com consumidores reais do monolito:
+  escrita por `PessoaFoundationService`, criacao/atualizacao de aluno e
+  responsavel, limpeza de vinculos/orfaos nos gateways e separacao obrigatoria
+  da consulta externa ViaCEP. A decisao tecnica e que a proxima subfase segura
+  deve criar apenas contrato interno entity-free de endereco, ainda sem schema
+  local, sem BFF/frontend, sem escrita local e sem cutover.
 
 ## Historico resumido
 

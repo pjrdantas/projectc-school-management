@@ -3080,6 +3080,61 @@ Proxima subfase pratica:
 - manter o escopo backend/backend, sem BFF/frontend, sem escrita local e sem
   ampliar o read model para `endereco` ou outros vinculos fora do payload atual.
 
+Entregue na terceira subfase da Fase 66:
+
+- `consultarCadastro` foi conectado ao adapter local do `people-service` apenas
+  atras do guard de cutover, com fallback obrigatorio para o monolito;
+- a leitura local so fica elegivel quando o read model, o backfill e a
+  reconciliacao estao verdes; quando o guard bloqueia ou a leitura local falha,
+  a rota permanece no proxy do monolito;
+- o health `peopleLocalPersistence` passou a expor
+  `guardedReadCutoverClosure`, consolidando fonte selecionada, fallback,
+  criterios verdes, metricas e rollback da rota;
+- nao houve BFF/frontend, escrita local, rota externa nova ou ampliacao para
+  `endereco`;
+- a macrofase Fase 66 fica fechada com 0 subfases restantes.
+
+### Fase 67 - Diagnostico profundo de `endereco` no `people-service`
+
+Objetivo: mapear o recorte real de `endereco` antes de qualquer schema, backfill
+ou cutover local, separando endereco persistido, vinculo pessoa-endereco,
+endereco principal, limpeza de orfaos e consulta externa ViaCEP.
+
+Entregue na primeira subfase da Fase 67:
+
+- o planner transacional do `people-service` passou a reportar
+  `address_read_model_deep_diagnostic_closed_no_schema`, com
+  `migrationAllowedNow=false`, `backfillAllowedNow=false` e
+  `localReadCutoverAllowedNow=false`;
+- o health `peopleLocalPersistence` aprofundou `nextBlockedSliceDiagnostic`,
+  deixando explicitos consumidores reais de escrita:
+  `PessoaFoundationService.criarPessoaComTipoEEndereco`,
+  `PessoaFoundationService.atualizarPessoaEEndereco`, criacao/atualizacao de
+  aluno e criacao/atualizacao de responsavel;
+- foram mapeados os consumidores de limpeza e consistencia:
+  `PessoaEnderecoJpaRepository.deleteByPessoaId`,
+  `PessoaEnderecoJpaRepository.countByEnderecoId`, `AlunoPersistenceGateway` e
+  `ResponsavelPersistenceGateway`;
+- a consulta ViaCEP foi separada do read model persistido: `EnderecoCepController`
+  e `ViaCepService` continuam sendo adapter externo, nao fonte local de dados;
+- a decisao tecnica foi bloquear schema/backfill/cutover de `endereco` ate
+  existir contrato interno entity-free, regra explicita de endereco principal,
+  estrategia de limpeza de endereco orfao e chave de reconciliacao por
+  `pessoa_endereco`;
+- nao houve BFF/frontend, escrita local, migration, backfill ou cutover.
+
+Contagem da macrofase Fase 67: 1 subfase restante estimada: criar o contrato
+interno entity-free de endereco no monolito/people boundary, ainda sem schema
+local nem rota externa.
+
+Proxima subfase pratica:
+
+- introduzir contrato interno minimo de endereco sem expor entidades JPA,
+  cobrindo endereco principal por pessoa, tipo de endereco e estrategia de
+  limpeza/orfandade;
+- manter ViaCEP como adapter externo separado e manter `endereco` no monolito,
+  sem migration local, sem backfill, sem BFF/frontend e sem cutover.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3101,11 +3156,11 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Avaliar e, se seguro, conectar `consultarCadastro` ao adapter local somente
-atras do guard de cutover, mantendo fallback obrigatorio para o monolito e
-bloqueio operacional quando a reconciliacao/read model nao estiver verde. Manter
-o escopo backend/backend, sem BFF/frontend, sem escrita local e sem ampliar o
-read model para `endereco` ou outros vinculos fora do payload atual.
+Introduzir contrato interno minimo de endereco sem expor entidades JPA,
+cobrindo endereco principal por pessoa, tipo de endereco e estrategia de
+limpeza/orfandade. Manter ViaCEP como adapter externo separado e manter
+`endereco` no monolito, sem migration local, sem backfill, sem BFF/frontend e
+sem cutover.
 
 Entregue na oitava subfase:
 

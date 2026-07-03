@@ -12,8 +12,8 @@ public class PeopleTransactionalReadModelExpansionPlanner {
 
     public PeopleTransactionalReadModelExpansionPlan planejarProximaFatiaTransacional() {
         return new PeopleTransactionalReadModelExpansionPlan(
-                "consultar_cadastro_guarded_read_cutover_closed",
-                "diagnose_address_read_model_before_any_schema_or_cutover",
+                "address_read_model_deep_diagnostic_closed_no_schema",
+                "prepare_internal_address_contract_without_local_schema_or_cutover",
                 "endereco_diagnostic_only_no_cutover",
                 false,
                 false,
@@ -152,8 +152,9 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                 List.of(
                         "keep-consultarCadastro-guarded-local-read-closed",
                         "do-not-add-address-schema-before-contract-diagnostic",
-                        "map-address-consumers-before-local-read-model",
+                        "address-consumers-mapped-in-monolith-before-local-read-model",
                         "separate-cep-lookup-from-persisted-address-read-model",
+                        "keep-address-orphan-cleanup-on-monolith-until-write-authority-is-defined",
                         "define-reconciliation-by-person-address-link-before-backfill",
                         "keep-school-scope-as-copied-identifier-without-people-service-owning-tenant",
                         "keep-pii-read-model-without-public-exposure",
