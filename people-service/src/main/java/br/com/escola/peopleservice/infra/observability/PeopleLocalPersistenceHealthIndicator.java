@@ -106,6 +106,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("guardedReadCutoverClosure", diagnosticoFechamentoCutoverLeitura());
         details.put("catalogReadModelSchemaPlan", diagnosticoSchemaCatalogo());
         details.put("transactionalReadModelExpansionPlan", diagnosticoExpansaoTransacional());
+        details.put("nextBlockedSliceDiagnostic", diagnosticoProximaFatiaBloqueada());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -218,6 +219,40 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("requiredHardening", plan.requiredHardening());
         details.put("blockedTables", plan.blockedTables());
         details.put("rollbackSteps", plan.rollbackSteps());
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoProximaFatiaBloqueada() {
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("slice", "endereco");
+        details.put("status", "diagnostic_required_before_implementation");
+        details.put("implementationAllowedNow", false);
+        details.put("schemaAllowedNow", false);
+        details.put("backfillAllowedNow", false);
+        details.put("localReadCutoverAllowedNow", false);
+        details.put("dependsOnClosedSlice", "consultarCadastro");
+        details.put("tables", List.of("endereco", "pessoa_endereco"));
+        details.put("requiredContractDecisions", List.of(
+                "define-if-address-read-model-belongs-to-pessoa-detail-or-own-address-query",
+                "separate-external-cep-lookup-from-persisted-address-data",
+                "define-person-address-principal-selection-and-multiple-address-behavior",
+                "define-reconciliation-key-by-pessoa_endereco-before-backfill"));
+        details.put("monolithDependencies", List.of(
+                "compartilhado.endereco.EnderecoEntity",
+                "compartilhado.endereco.PessoaEnderecoEntity",
+                "compartilhado.endereco.TipoEnderecoEntity",
+                "aluno-responsavel-create-update-use-cases",
+                "via-cep-lookup"));
+        details.put("consistencyRisks", List.of(
+                "address-is-written-together-with-student-or-responsible-person",
+                "same-address-can-be-linked-or-cleaned-up-by-person-gateways",
+                "cep-lookup-is-external-and-must-not-become-local-read-model-authority",
+                "current-consultarCadastro-response-does-not-expose-address-fields"));
+        details.put("rollbackSteps", List.of(
+                "do-not-create-address-read-model-tables-without-explicit-opt-in",
+                "keep-endereco-on-monolith-proxy",
+                "keep-consultarCadastro-guarded-cutover-independent-from-address",
+                "disable-people.shadow.local-persistence.enabled-if-address-diagnostic-finds-write-risk"));
         return details;
     }
 

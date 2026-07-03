@@ -12,12 +12,12 @@ public class PeopleTransactionalReadModelExpansionPlanner {
 
     public PeopleTransactionalReadModelExpansionPlan planejarProximaFatiaTransacional() {
         return new PeopleTransactionalReadModelExpansionPlan(
-                "consultar_cadastro_local_routing_guarded_with_mandatory_fallback",
-                "close_consultar_cadastro_guarded_read_cutover_and_monitor_local_read_model",
-                "pessoa_student_responsible_local_read_adapter",
-                true,
-                true,
-                true,
+                "consultar_cadastro_guarded_read_cutover_closed",
+                "diagnose_address_read_model_before_any_schema_or_cutover",
+                "endereco_diagnostic_only_no_cutover",
+                false,
+                false,
+                false,
                 List.of(
                         new TableExpansionDecision(
                                 "pessoa",
@@ -47,7 +47,7 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 true,
                                 true,
                                 true,
-                                "identity_local_read_already_prepared_with_mandatory_fallback"),
+                                "identity_local_read_closed_for_current_scope"),
                         new TableExpansionDecision(
                                 "pessoa_tipo_pessoa",
                                 "id_pessoa_tipo_pessoa",
@@ -58,7 +58,7 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 true,
                                 true,
                                 true,
-                                "identity_local_read_dependency_already_prepared"),
+                                "identity_local_read_dependency_closed_for_current_scope"),
                         new TableExpansionDecision(
                                 "aluno",
                                 "id_aluno",
@@ -73,11 +73,11 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                         "id_pessoa"),
                                 List.of("pessoa"),
                                 List.of("consultarCadastro"),
+                                false,
                                 true,
                                 true,
                                 true,
-                                true,
-                                "consultarCadastro_local_routing_guarded_with_mandatory_fallback"),
+                                "consultarCadastro_guarded_read_cutover_closed"),
                         new TableExpansionDecision(
                                 "responsavel",
                                 "id_responsavel",
@@ -91,11 +91,11 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                         "id_pessoa"),
                                 List.of("pessoa"),
                                 List.of("consultarCadastro"),
+                                false,
                                 true,
                                 true,
                                 true,
-                                true,
-                                "consultarCadastro_local_routing_guarded_with_mandatory_fallback"),
+                                "consultarCadastro_guarded_read_cutover_closed"),
                         new TableExpansionDecision(
                                 "aluno_responsavel",
                                 "id_aluno_responsavel",
@@ -106,11 +106,11 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                         "created_at"),
                                 List.of("aluno", "responsavel"),
                                 List.of("consultarCadastro"),
+                                false,
                                 true,
                                 true,
                                 true,
-                                true,
-                                "consultarCadastro_local_routing_guarded_with_mandatory_fallback"),
+                                "consultarCadastro_guarded_read_cutover_closed"),
                         new TableExpansionDecision(
                                 "endereco",
                                 "id_endereco",
@@ -131,7 +131,7 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 false,
                                 false,
                                 false,
-                                "not_exposed_by_current_consultarCadastro_contract"),
+                                "requires_diagnostic_before_address_read_model"),
                         new TableExpansionDecision(
                                 "pessoa_endereco",
                                 "id_pessoa_endereco",
@@ -148,19 +148,16 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 false,
                                 false,
                                 false,
-                                "not_exposed_by_current_consultarCadastro_contract")),
+                                "requires_diagnostic_before_address_read_model")),
                 List.of(
-                        "keep-current-identity-local-read-behind-green-reconciliation",
-                        "keep-consultarCadastro-on-monolith-when-student-responsible-backfill-is-not-green",
-                        "do-not-add-address-schema-for-current-consultarCadastro-contract",
-                        "define-student-responsible-read-model-without-owning-writes",
-                        "run-student-responsible-schema-migration-only-with-explicit-opt-in",
-                        "run-student-responsible-backfill-and-reconciliation-only-with-explicit-opt-in",
-                        "route-consultarCadastro-locally-only-with-mandatory-fallback",
-                        "keep-pii-read-model-without-public-exposure",
+                        "keep-consultarCadastro-guarded-local-read-closed",
+                        "do-not-add-address-schema-before-contract-diagnostic",
+                        "map-address-consumers-before-local-read-model",
+                        "separate-cep-lookup-from-persisted-address-read-model",
+                        "define-reconciliation-by-person-address-link-before-backfill",
                         "keep-school-scope-as-copied-identifier-without-people-service-owning-tenant",
-                        "define-reconciliation-by-student-responsible-link",
-                        "keep-monolith-as-authority-for-all-writes"),
+                        "keep-pii-read-model-without-public-exposure",
+                        "keep-monolith-as-authority-for-all-address-writes"),
                 List.of(
                         "funcionario",
                         "professor",
@@ -171,8 +168,8 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                         "disable-people.shadow.local-persistence.migration-enabled",
                         "keep-pessoa-identity-local-read-on-monolith-fallback",
                         "disable-people.shadow.local-persistence.read-model-cutover-enabled",
-                        "disable-consultarCadastro-local-adapter-if-divergence-appears",
                         "keep-consultarCadastro-on-monolith-proxy-when-guard-is-not-green",
+                        "do-not-create-address-read-model-tables-without-explicit-opt-in",
                         "disable-people.shadow.local-persistence.enabled-if-operational-risk-appears"));
     }
 }

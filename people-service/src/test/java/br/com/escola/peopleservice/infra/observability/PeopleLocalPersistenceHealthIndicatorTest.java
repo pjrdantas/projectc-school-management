@@ -138,13 +138,31 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         Map<String, Object> transactionalPlan =
                 (Map<String, Object>) health.getDetails().get("transactionalReadModelExpansionPlan");
         assertThat(transactionalPlan)
-                .containsEntry("status", "consultar_cadastro_local_routing_guarded_with_mandatory_fallback")
+                .containsEntry("status", "consultar_cadastro_guarded_read_cutover_closed")
                 .containsEntry("recommendedNextStep",
-                        "close_consultar_cadastro_guarded_read_cutover_and_monitor_local_read_model")
-                .containsEntry("minimalNextSlice", "pessoa_student_responsible_local_read_adapter")
-                .containsEntry("migrationAllowedNow", true)
-                .containsEntry("backfillAllowedNow", true)
-                .containsEntry("localReadCutoverAllowedNow", true);
+                        "diagnose_address_read_model_before_any_schema_or_cutover")
+                .containsEntry("minimalNextSlice", "endereco_diagnostic_only_no_cutover")
+                .containsEntry("migrationAllowedNow", false)
+                .containsEntry("backfillAllowedNow", false)
+                .containsEntry("localReadCutoverAllowedNow", false);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> nextBlockedSlice =
+                (Map<String, Object>) health.getDetails().get("nextBlockedSliceDiagnostic");
+        assertThat(nextBlockedSlice)
+                .containsEntry("slice", "endereco")
+                .containsEntry("status", "diagnostic_required_before_implementation")
+                .containsEntry("implementationAllowedNow", false)
+                .containsEntry("schemaAllowedNow", false)
+                .containsEntry("backfillAllowedNow", false)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("dependsOnClosedSlice", "consultarCadastro");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> requiredContractDecisions =
+                (java.util.List<String>) nextBlockedSlice.get("requiredContractDecisions");
+        assertThat(requiredContractDecisions).contains(
+                "separate-external-cep-lookup-from-persisted-address-data",
+                "define-reconciliation-key-by-pessoa_endereco-before-backfill");
 
         @SuppressWarnings("unchecked")
         Map<String, Object> closure =

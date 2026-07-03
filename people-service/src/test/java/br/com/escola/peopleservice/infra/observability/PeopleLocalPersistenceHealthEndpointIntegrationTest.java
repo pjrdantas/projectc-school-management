@@ -58,5 +58,16 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("localCandidateSource", "people_read_model_student_responsible")
                 .containsEntry("fallbackRequired", true)
                 .containsEntry("nextSliceBlocked", "endereco");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> nextBlockedSlice = (Map<String, Object>) details.get("nextBlockedSliceDiagnostic");
+        assertThat(nextBlockedSlice)
+                .containsEntry("slice", "endereco")
+                .containsEntry("status", "diagnostic_required_before_implementation")
+                .containsEntry("implementationAllowedNow", false)
+                .containsEntry("schemaAllowedNow", false)
+                .containsEntry("backfillAllowedNow", false)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("dependsOnClosedSlice", "consultarCadastro");
     }
 }
