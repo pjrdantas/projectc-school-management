@@ -3023,6 +3023,42 @@ Proxima fase pratica:
   ainda sem BFF/cutover externo, ou outra fronteira de pessoas com menor risco,
   decidindo pelo codigo atual e mantendo o monolito como fallback obrigatorio.
 
+### Fase 66 - Adapter local controlado de `consultarCadastro` no `people-service`
+
+Objetivo: avaliar e preparar, de forma incremental, se `consultarCadastro` pode
+ganhar adapter local read-only no `people-service` usando o read model de
+`aluno`, `responsavel` e `aluno_responsavel` ja migrado/reconciliado, ainda sem
+BFF/frontend, sem escrita local, sem rotas externas novas e sem cutover externo.
+
+Entregue na primeira subfase da Fase 66:
+
+- o diagnostico do menor recorte remanescente confirmou que o proximo passo
+  seguro e preparar um adapter local read-only de `consultarCadastro`, porque o
+  schema, backfill e reconciliacao opt-in da fatia `aluno`/`responsavel`/
+  `aluno_responsavel` ja ficaram fechados na Fase 65;
+- `PessoaQueryService` ainda registra a decisao de roteamento de
+  `consultarCadastro` e delega a leitura para o `PessoaReadPort` do monolito;
+- o guard de cutover permanece bloqueando essa rota com
+  `local-read-adapter-not-configured`, mesmo com read model verde, preservando
+  fallback obrigatorio e impedindo leitura local prematura;
+- o planner transacional do `people-service` passou a reportar no health a
+  fatia `pessoa_student_responsible_local_read_adapter`, com migration e
+  backfill ja permitidos por opt-in, mas `localReadCutoverAllowedNow=false`;
+- `endereco`, `pessoa_endereco`, BFF/frontend, escrita local e alteracao de
+  contrato externo continuam fora desta macrofase.
+
+Contagem da macrofase Fase 66: 2 subfases restantes estimadas: implementar o
+adapter local read-only de `consultarCadastro` ainda sem cutover, e depois
+avaliar elegibilidade controlada da rota com fallback obrigatorio.
+
+Proxima subfase pratica:
+
+- implementar o adapter local read-only de `consultarCadastro` no
+  `people-service`, reproduzindo filtros, paginacao, ordenacao e agregacao do
+  monolito sobre `aluno`, `responsavel` e `aluno_responsavel`;
+- manter `PessoaQueryService` retornando pelo monolito ate a subfase seguinte
+  decidir a elegibilidade de roteamento, sem BFF/frontend e sem escrita local.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3044,10 +3080,11 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Iniciar a proxima macrofase backend do `people-service` com diagnostico do menor
-recorte remanescente: ou adapter local controlado de `consultarCadastro` ainda
-sem BFF/cutover externo, ou outra fronteira de pessoas com menor risco,
-decidindo pelo codigo atual e mantendo o monolito como fallback obrigatorio.
+Implementar o adapter local read-only de `consultarCadastro` no `people-service`,
+reproduzindo filtros, paginacao, ordenacao e agregacao do monolito sobre
+`aluno`, `responsavel` e `aluno_responsavel`. Manter `PessoaQueryService`
+retornando pelo monolito ate a subfase seguinte decidir elegibilidade de
+roteamento, sem BFF/frontend e sem escrita local.
 
 Entregue na oitava subfase:
 

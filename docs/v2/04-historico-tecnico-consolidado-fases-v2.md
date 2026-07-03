@@ -1397,6 +1397,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   bloqueando `consultarCadastro` com `local-read-adapter-not-configured`. Nao
   houve BFF/frontend, escrita local, endereco ou cutover. A contagem regressiva
   da macrofase Fase 65 chega a 0.
+- A primeira subfase da Fase 66 abriu a macrofase de adapter local controlado de
+  `consultarCadastro` no `people-service` apenas por diagnostico observavel. O
+  menor recorte remanescente foi definido como adapter local read-only sobre
+  `aluno`, `responsavel` e `aluno_responsavel`, porque schema, backfill e
+  reconciliacao opt-in dessa fatia ja foram fechados na Fase 65. O planner
+  transacional passou a reportar a fatia
+  `pessoa_student_responsible_local_read_adapter` no health, com migration e
+  backfill ja permitidos por opt-in, mas `localReadCutoverAllowedNow=false`.
+  `PessoaQueryService` continua delegando `consultarCadastro` ao monolito e o
+  guard segue bloqueando a rota com `local-read-adapter-not-configured`. Nao
+  houve adapter novo, BFF/frontend, escrita local, endereco ou cutover. A
+  contagem regressiva da macrofase Fase 66 passa a 2 subfases restantes
+  estimadas.
 
 ## Historico resumido
 

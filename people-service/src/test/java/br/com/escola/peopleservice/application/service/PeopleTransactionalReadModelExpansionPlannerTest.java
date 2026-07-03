@@ -12,10 +12,10 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
 
         var plan = planner.planejarProximaFatiaTransacional();
 
-        assertThat(plan.status()).isEqualTo("student_responsible_backfill_reconciliation_prepared_without_cutover");
+        assertThat(plan.status()).isEqualTo("consultar_cadastro_local_adapter_diagnostic_ready_without_cutover");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("close_phase_65_and_plan_next_people_service_scope");
-        assertThat(plan.minimalNextSlice()).isEqualTo("pessoa_student_responsible_read_model");
+                .isEqualTo("implement_consultar_cadastro_local_read_adapter_without_cutover");
+        assertThat(plan.minimalNextSlice()).isEqualTo("pessoa_student_responsible_local_read_adapter");
         assertThat(plan.migrationAllowedNow()).isTrue();
         assertThat(plan.backfillAllowedNow()).isTrue();
         assertThat(plan.localReadCutoverAllowedNow()).isFalse();
@@ -51,6 +51,8 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 "define-student-responsible-read-model-without-owning-writes",
                 "run-student-responsible-schema-migration-only-with-explicit-opt-in",
                 "run-student-responsible-backfill-and-reconciliation-only-with-explicit-opt-in",
+                "implement-local-adapter-before-enabling-consultarCadastro-routing",
+                "keep-consultarCadastro-local-read-ineligible-until-adapter-is-tested",
                 "keep-pii-read-model-without-public-exposure",
                 "define-reconciliation-by-student-responsible-link",
                 "keep-monolith-as-authority-for-all-writes");
