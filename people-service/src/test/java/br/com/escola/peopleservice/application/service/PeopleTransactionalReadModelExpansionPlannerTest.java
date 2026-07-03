@@ -7,18 +7,18 @@ import org.junit.jupiter.api.Test;
 class PeopleTransactionalReadModelExpansionPlannerTest {
 
     @Test
-    void deveMapearContratoDeConsultaCadastroSemCutover() {
+    void deveMapearContratoDeConsultaCadastroComCutoverGuarded() {
         PeopleTransactionalReadModelExpansionPlanner planner = new PeopleTransactionalReadModelExpansionPlanner();
 
         var plan = planner.planejarProximaFatiaTransacional();
 
-        assertThat(plan.status()).isEqualTo("consultar_cadastro_local_adapter_prepared_without_routing");
+        assertThat(plan.status()).isEqualTo("consultar_cadastro_local_routing_guarded_with_mandatory_fallback");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("evaluate_consultar_cadastro_local_read_routing_with_mandatory_fallback");
+                .isEqualTo("close_consultar_cadastro_guarded_read_cutover_and_monitor_local_read_model");
         assertThat(plan.minimalNextSlice()).isEqualTo("pessoa_student_responsible_local_read_adapter");
         assertThat(plan.migrationAllowedNow()).isTrue();
         assertThat(plan.backfillAllowedNow()).isTrue();
-        assertThat(plan.localReadCutoverAllowedNow()).isFalse();
+        assertThat(plan.localReadCutoverAllowedNow()).isTrue();
         assertThat(plan.candidateTables())
                 .hasSize(7)
                 .filteredOn("includeInNextSlice", true)
@@ -46,13 +46,12 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 .containsExactly("endereco", "pessoa_endereco");
         assertThat(plan.requiredHardening()).contains(
                 "keep-current-identity-local-read-behind-green-reconciliation",
-                "keep-consultarCadastro-on-monolith-until-student-responsible-backfill-is-green",
+                "keep-consultarCadastro-on-monolith-when-student-responsible-backfill-is-not-green",
                 "do-not-add-address-schema-for-current-consultarCadastro-contract",
                 "define-student-responsible-read-model-without-owning-writes",
                 "run-student-responsible-schema-migration-only-with-explicit-opt-in",
                 "run-student-responsible-backfill-and-reconciliation-only-with-explicit-opt-in",
-                "keep-consultarCadastro-local-routing-disabled-until-next-subphase",
-                "evaluate-consultarCadastro-local-routing-only-with-mandatory-fallback",
+                "route-consultarCadastro-locally-only-with-mandatory-fallback",
                 "keep-pii-read-model-without-public-exposure",
                 "define-reconciliation-by-student-responsible-link",
                 "keep-monolith-as-authority-for-all-writes");
@@ -61,7 +60,6 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 "disable-people.shadow.local-persistence.migration-enabled",
                 "keep-pessoa-identity-local-read-on-monolith-fallback",
                 "disable-people.shadow.local-persistence.read-model-cutover-enabled",
-                "keep-consultarCadastro-local-adapter-unused",
-                "keep-consultarCadastro-on-monolith-proxy");
+                "keep-consultarCadastro-on-monolith-proxy-when-guard-is-not-green");
     }
 }

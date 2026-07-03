@@ -86,7 +86,7 @@ class PeopleLocalReadCutoverGuardTest {
     }
 
     @Test
-    void deveLiberarCatalogosEBuscarPorIdQuandoRelatorioLocalEstaVerde() {
+    void deveLiberarCatalogosBuscarPorIdEConsultaCadastroQuandoRelatorioLocalEstaVerde() {
         PeopleLocalReadCutoverGuard guard = new PeopleLocalReadCutoverGuard(
                 new PeopleLocalPersistenceProperties(true, false, true, false, true, true, 500, true),
                 new SimpleMeterRegistry(),
@@ -107,8 +107,11 @@ class PeopleLocalReadCutoverGuardTest {
         assertThat(decisions.get("buscarPorId").selectedSource()).isEqualTo("people_read_model_identity");
         assertThat(decisions.get("buscarPorId").localReadEligible()).isTrue();
         assertThat(decisions.get("buscarPorId").reason()).isEqualTo("local-identity-read-eligible");
-        assertThat(decisions.get("consultarCadastro").selectedSource()).isEqualTo("monolith_proxy");
-        assertThat(decisions.get("consultarCadastro").reason()).isEqualTo("local-read-adapter-not-configured");
+        assertThat(decisions.get("consultarCadastro").selectedSource())
+                .isEqualTo("people_read_model_student_responsible");
+        assertThat(decisions.get("consultarCadastro").localReadEligible()).isTrue();
+        assertThat(decisions.get("consultarCadastro").reason())
+                .isEqualTo("local-student-responsible-read-eligible");
     }
 
     @Test

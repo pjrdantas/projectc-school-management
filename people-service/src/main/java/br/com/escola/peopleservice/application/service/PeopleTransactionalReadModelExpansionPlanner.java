@@ -12,12 +12,12 @@ public class PeopleTransactionalReadModelExpansionPlanner {
 
     public PeopleTransactionalReadModelExpansionPlan planejarProximaFatiaTransacional() {
         return new PeopleTransactionalReadModelExpansionPlan(
-                "consultar_cadastro_local_adapter_prepared_without_routing",
-                "evaluate_consultar_cadastro_local_read_routing_with_mandatory_fallback",
+                "consultar_cadastro_local_routing_guarded_with_mandatory_fallback",
+                "close_consultar_cadastro_guarded_read_cutover_and_monitor_local_read_model",
                 "pessoa_student_responsible_local_read_adapter",
                 true,
                 true,
-                false,
+                true,
                 List.of(
                         new TableExpansionDecision(
                                 "pessoa",
@@ -77,7 +77,7 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 true,
                                 true,
                                 true,
-                                "consultarCadastro_local_adapter_prepared_without_routing"),
+                                "consultarCadastro_local_routing_guarded_with_mandatory_fallback"),
                         new TableExpansionDecision(
                                 "responsavel",
                                 "id_responsavel",
@@ -95,7 +95,7 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 true,
                                 true,
                                 true,
-                                "consultarCadastro_local_adapter_prepared_without_routing"),
+                                "consultarCadastro_local_routing_guarded_with_mandatory_fallback"),
                         new TableExpansionDecision(
                                 "aluno_responsavel",
                                 "id_aluno_responsavel",
@@ -110,7 +110,7 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 true,
                                 true,
                                 true,
-                                "consultarCadastro_local_adapter_prepared_without_routing"),
+                                "consultarCadastro_local_routing_guarded_with_mandatory_fallback"),
                         new TableExpansionDecision(
                                 "endereco",
                                 "id_endereco",
@@ -151,13 +151,12 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 "not_exposed_by_current_consultarCadastro_contract")),
                 List.of(
                         "keep-current-identity-local-read-behind-green-reconciliation",
-                        "keep-consultarCadastro-on-monolith-until-student-responsible-backfill-is-green",
+                        "keep-consultarCadastro-on-monolith-when-student-responsible-backfill-is-not-green",
                         "do-not-add-address-schema-for-current-consultarCadastro-contract",
                         "define-student-responsible-read-model-without-owning-writes",
                         "run-student-responsible-schema-migration-only-with-explicit-opt-in",
                         "run-student-responsible-backfill-and-reconciliation-only-with-explicit-opt-in",
-                        "keep-consultarCadastro-local-routing-disabled-until-next-subphase",
-                        "evaluate-consultarCadastro-local-routing-only-with-mandatory-fallback",
+                        "route-consultarCadastro-locally-only-with-mandatory-fallback",
                         "keep-pii-read-model-without-public-exposure",
                         "keep-school-scope-as-copied-identifier-without-people-service-owning-tenant",
                         "define-reconciliation-by-student-responsible-link",
@@ -171,11 +170,9 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                 List.of(
                         "disable-people.shadow.local-persistence.migration-enabled",
                         "keep-pessoa-identity-local-read-on-monolith-fallback",
-                        "keep-read-model-cutover-disabled-for-transactional-routes",
                         "disable-people.shadow.local-persistence.read-model-cutover-enabled",
                         "disable-consultarCadastro-local-adapter-if-divergence-appears",
-                        "keep-consultarCadastro-local-adapter-unused",
-                        "keep-consultarCadastro-on-monolith-proxy",
+                        "keep-consultarCadastro-on-monolith-proxy-when-guard-is-not-green",
                         "disable-people.shadow.local-persistence.enabled-if-operational-risk-appears"));
     }
 }

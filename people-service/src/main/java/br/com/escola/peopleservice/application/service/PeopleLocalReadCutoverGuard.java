@@ -20,6 +20,7 @@ public class PeopleLocalReadCutoverGuard {
 
     private static final String MONOLITH_SOURCE = "monolith_proxy";
     private static final String LOCAL_CANDIDATE_SOURCE = "people_read_model_candidate";
+    private static final String STUDENT_RESPONSIBLE_SOURCE = "people_read_model_student_responsible";
 
     private static final List<ReadRouteDescriptor> READ_ROUTES = List.of(
             new ReadRouteDescriptor(
@@ -121,12 +122,16 @@ public class PeopleLocalReadCutoverGuard {
         if ("buscarPorId".equals(route.operation())) {
             return "local-identity-read-eligible";
         }
+        if ("consultarCadastro".equals(route.operation())) {
+            return "local-student-responsible-read-eligible";
+        }
         return "local-read-adapter-not-configured";
     }
 
     private boolean isEligibleReason(String reason) {
         return "local-catalog-read-eligible".equals(reason)
-                || "local-identity-read-eligible".equals(reason);
+                || "local-identity-read-eligible".equals(reason)
+                || "local-student-responsible-read-eligible".equals(reason);
     }
 
     private String selectedSource(boolean localReadEligible, String operation) {
@@ -135,6 +140,9 @@ public class PeopleLocalReadCutoverGuard {
         }
         if ("buscarPorId".equals(operation)) {
             return "people_read_model_identity";
+        }
+        if ("consultarCadastro".equals(operation)) {
+            return STUDENT_RESPONSIBLE_SOURCE;
         }
         return "people_read_model_catalog";
     }

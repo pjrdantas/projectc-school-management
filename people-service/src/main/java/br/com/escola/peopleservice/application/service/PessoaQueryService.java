@@ -13,6 +13,7 @@ import br.com.escola.peopleservice.application.exception.PeopleServiceResourceNo
 import br.com.escola.peopleservice.application.port.in.PessoaQueryUseCase;
 import br.com.escola.peopleservice.application.port.out.PeopleCatalogLocalReadPort;
 import br.com.escola.peopleservice.application.port.out.PeopleIdentityLocalReadPort;
+import br.com.escola.peopleservice.application.port.out.PeopleStudentResponsibleLocalReadPort;
 import br.com.escola.peopleservice.application.port.out.PessoaReadPort;
 import io.micrometer.core.instrument.MeterRegistry;
 
@@ -22,6 +23,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     private final PessoaReadPort pessoaReadPort;
     private final PeopleCatalogLocalReadPort catalogLocalReadPort;
     private final PeopleIdentityLocalReadPort identityLocalReadPort;
+    private final PeopleStudentResponsibleLocalReadPort studentResponsibleLocalReadPort;
     private final PeopleLocalReadCutoverGuard readCutoverGuard;
     private final MeterRegistry meterRegistry;
 
@@ -29,11 +31,13 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             PessoaReadPort pessoaReadPort,
             PeopleCatalogLocalReadPort catalogLocalReadPort,
             PeopleIdentityLocalReadPort identityLocalReadPort,
+            PeopleStudentResponsibleLocalReadPort studentResponsibleLocalReadPort,
             PeopleLocalReadCutoverGuard readCutoverGuard,
             MeterRegistry meterRegistry) {
         this.pessoaReadPort = pessoaReadPort;
         this.catalogLocalReadPort = catalogLocalReadPort;
         this.identityLocalReadPort = identityLocalReadPort;
+        this.studentResponsibleLocalReadPort = studentResponsibleLocalReadPort;
         this.readCutoverGuard = readCutoverGuard;
         this.meterRegistry = meterRegistry;
     }
@@ -97,7 +101,22 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             String cpfResponsavel,
             int page,
             int size) {
-        readCutoverGuard.registrarDecisao("consultarCadastro");
+        var decision = readCutoverGuard.registrarDecisao("consultarCadastro");
+        if (decision.localReadEligible()) {
+            try {
+                PessoaConsultaCadastralPageResponse response = studentResponsibleLocalReadPort.consultarCadastro(
+                        nomeAluno,
+                        cpfAluno,
+                        nomeResponsavel,
+                        cpfResponsavel,
+                        page,
+                        size);
+                registrarLeituraAlunoResponsavelLocal("consultarCadastro", "success");
+                return response;
+            } catch (RuntimeException ex) {
+                registrarLeituraAlunoResponsavelLocal("consultarCadastro", "fallback_error");
+            }
+        }
         return pessoaReadPort.consultarCadastro(
                 authorization,
                 context,
@@ -112,6 +131,14 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     private void registrarLeituraLocal(String operation, String result) {
         meterRegistry.counter(
                 "people.shadow.local.persistence.catalog.reads",
+                "operation", operation,
+                "result", result)
+                .increment();
+    }
+
+    private void registrarLeituraAlunoResponsavelLocal(String operation, String result) {
+        meterRegistry.counter(
+                "people.shadow.local.persistence.student.responsible.reads",
                 "operation", operation,
                 "result", result)
                 .increment();

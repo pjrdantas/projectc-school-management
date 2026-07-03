@@ -64,6 +64,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("readRoutingDecisionsTotal", 0.0d)
                 .containsEntry("localCatalogReadsTotal", 0.0d)
                 .containsEntry("localIdentityReadsTotal", 0.0d)
+                .containsEntry("localStudentResponsibleReadsTotal", 0.0d)
                 .containsEntry("failuresTotal", 0.0d);
 
         @SuppressWarnings("unchecked")
@@ -137,13 +138,13 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         Map<String, Object> transactionalPlan =
                 (Map<String, Object>) health.getDetails().get("transactionalReadModelExpansionPlan");
         assertThat(transactionalPlan)
-                .containsEntry("status", "consultar_cadastro_local_adapter_prepared_without_routing")
+                .containsEntry("status", "consultar_cadastro_local_routing_guarded_with_mandatory_fallback")
                 .containsEntry("recommendedNextStep",
-                        "evaluate_consultar_cadastro_local_read_routing_with_mandatory_fallback")
+                        "close_consultar_cadastro_guarded_read_cutover_and_monitor_local_read_model")
                 .containsEntry("minimalNextSlice", "pessoa_student_responsible_local_read_adapter")
                 .containsEntry("migrationAllowedNow", true)
                 .containsEntry("backfillAllowedNow", true)
-                .containsEntry("localReadCutoverAllowedNow", false);
+                .containsEntry("localReadCutoverAllowedNow", true);
     }
 
     @Test
@@ -191,5 +192,54 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("readModelCutoverEnabled", true)
                 .containsEntry("reason", "local-read-model-backfill-not-green")
                 .containsEntry("authoritative", false);
+    }
+
+    @Test
+    void deveReportarUpQuandoCutoverLocalEstaHabilitadoComBackfillVerde() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        PeopleLocalPersistenceOperationState operationState = new PeopleLocalPersistenceOperationState();
+        operationState.update(new br.com.escola.peopleservice.application.dto.PeopleLocalPersistenceOperationReport(
+                true,
+                true,
+                "completed",
+                "local-read-model-backfill-and-reconciliation-completed",
+                100,
+                7,
+                7,
+                3,
+                3,
+                3,
+                0,
+                false,
+                false,
+                java.util.List.of()));
+        var properties = new PeopleLocalPersistenceProperties(true, true, true, true, true, true, 100, true);
+        PeopleLocalPersistenceHealthIndicator indicator = new PeopleLocalPersistenceHealthIndicator(
+                properties,
+                meterRegistry,
+                new br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard(
+                        properties,
+                        meterRegistry,
+                        operationState),
+                new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner(),
+                new br.com.escola.peopleservice.application.service.PeopleTransactionalReadModelExpansionPlanner(),
+                new PeopleLocalReadModelSchemaMigrationState(),
+                operationState);
+
+        var health = indicator.health();
+
+        assertThat(health.getStatus()).isEqualTo(Status.UP);
+        assertThat(health.getDetails())
+                .containsEntry("readModelCutoverEnabled", true)
+                .containsEntry("reason", "read-model-cutover-eligible");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> shadowReadRoutes = (Map<String, Object>) health.getDetails().get("shadowReadRoutes");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> consulta = (Map<String, Object>) shadowReadRoutes.get("consultarCadastro");
+        assertThat(consulta)
+                .containsEntry("currentSource", "people_read_model_student_responsible")
+                .containsEntry("localReadEnabled", true)
+                .containsEntry("fallbackRequired", true)
+                .containsEntry("reason", "local-student-responsible-read-eligible");
     }
 }

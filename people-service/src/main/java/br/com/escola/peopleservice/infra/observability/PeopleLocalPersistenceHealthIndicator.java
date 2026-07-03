@@ -124,12 +124,18 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 totalContador("people.shadow.local.persistence.catalog.reads"));
         details.put("localIdentityReadsTotal",
                 totalContador("people.shadow.local.persistence.identity.reads"));
+        details.put("localStudentResponsibleReadsTotal",
+                totalContador("people.shadow.local.persistence.student.responsible.reads"));
         details.put("schemaMigrationsTotal",
                 totalContador("people.shadow.local.persistence.schema.migrations"));
 
         if (properties.readModelCutoverEnabled()) {
-            details.put("reason", primeiraInelegibilidadeRoteamento());
-            return Health.outOfService().withDetails(details).build();
+            String reason = primeiraInelegibilidadeRoteamento();
+            details.put("reason", reason);
+            if (!"read-model-cutover-eligible".equals(reason)) {
+                return Health.outOfService().withDetails(details).build();
+            }
+            return Health.up().withDetails(details).build();
         }
 
         if (properties.enabled()) {
@@ -219,11 +225,13 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         Map<String, Object> rotas = new LinkedHashMap<>();
         for (ReadRouteDescriptor route : READ_ROUTES) {
             Map<String, Object> detalhe = new LinkedHashMap<>();
+            PeopleLocalReadRoutingDecision decision = readCutoverGuard.avaliar(route.operation());
             detalhe.put("shadowRoute", route.shadowRoute());
             detalhe.put("candidateSource", route.candidateSource());
-            detalhe.put("currentSource", "monolith_proxy");
-            detalhe.put("localReadEnabled", false);
-            detalhe.put("fallbackRequired", true);
+            detalhe.put("currentSource", decision.selectedSource());
+            detalhe.put("localReadEnabled", decision.localReadEligible());
+            detalhe.put("fallbackRequired", decision.fallbackEnabled());
+            detalhe.put("reason", decision.reason());
             rotas.put(route.operation(), detalhe);
         }
         return rotas;
