@@ -3274,13 +3274,23 @@ cutover.
 
 Proxima fase pratica:
 
-- fechar formalmente a Fase 68 e decidir o proximo bloco: iniciar uma macrofase
-  separada para contrato de leitura local de endereco ou retornar para outra
-  frente de desacoplamento backend;
+- iniciar uma macrofase separada para diagnosticar o contrato de leitura local
+  de endereco, sem assumir cutover automatico e sem misturar com escrita local;
 - qualquer leitura local futura de endereco deve continuar atras de guard,
   reconciliacao verde e fallback obrigatorio para o monolito;
 - manter sem BFF/frontend, sem escrita local e sem alteracao de rotas externas
   ate decisao explicita da proxima macrofase.
+
+Fechamento formal da Fase 68:
+
+- a Fase 68 fica oficialmente encerrada com tres entregas controladas:
+  diagnostico de schema/backfill, migration opt-in e backfill/reconciliacao
+  opt-in de `endereco`/`pessoa_endereco`;
+- o recorte termina sem leitura local de endereco, sem adapter de rota de
+  negocio, sem BFF/frontend, sem escrita local e sem cutover;
+- a decisao de evoluir para leitura local de endereco foi separada para nova
+  macrofase, exigindo guard, reconciliacao verde, fallback obrigatorio e
+  rollback por flags antes de qualquer uso operacional.
 
 ### Fase futura - Desativacao do monolito
 
@@ -3303,12 +3313,12 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Fechar formalmente a Fase 68 e decidir o proximo bloco: iniciar uma macrofase
-separada para contrato de leitura local de endereco ou retornar para outra
-frente de desacoplamento backend. Qualquer leitura local futura de endereco
-deve continuar atras de guard, reconciliacao verde e fallback obrigatorio para o
-monolito. Manter sem BFF/frontend, sem escrita local e sem alteracao de rotas
-externas ate decisao explicita da proxima macrofase.
+Iniciar a proxima macrofase backend com diagnostico do contrato de leitura local
+de endereco no `people-service`, ainda sem cutover automatico. A fase deve
+separar payload interno, guard, pre-condicoes de reconciliacao verde, fallback
+obrigatorio para o monolito, rollback por flags e impactos sobre
+`consultarCadastro`. Manter sem BFF/frontend, sem escrita local e sem alteracao
+de rotas externas.
 
 Entregue na oitava subfase:
 

@@ -1490,6 +1490,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   rollback por desligamento de flags. Nao houve leitura local de endereco,
   BFF/frontend, rota externa, escrita local ou cutover. A contagem regressiva da
   Fase 68 chega a 0.
+- A Fase 68 foi formalmente encerrada apos o commit/push da terceira subfase.
+  O bloco fica fechado com diagnostico de schema/backfill, migration opt-in e
+  backfill/reconciliacao opt-in de `endereco`/`pessoa_endereco`, sem leitura
+  local de endereco, sem adapter de rota de negocio, sem BFF/frontend, sem
+  escrita local e sem cutover. A proxima macrofase sugerida e diagnosticar o
+  contrato de leitura local de endereco no `people-service`, separando payload
+  interno, guard, reconciliacao verde, fallback obrigatorio para o monolito e
+  rollback por flags antes de qualquer uso operacional.
 
 ## Historico resumido
 
