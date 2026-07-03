@@ -24,7 +24,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         var reports = adapter.synchronize(true, true, 100);
 
         assertThat(reports)
-                .hasSize(4)
+                .hasSize(7)
                 .allSatisfy(report -> {
                     assertThat(report.status()).isEqualTo("blocked");
                     assertThat(report.reason()).isEqualTo("local-read-model-source-url-required");
@@ -48,7 +48,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         var reports = adapter.synchronize(true, true, 100);
 
         assertThat(reports)
-                .hasSize(4)
+                .hasSize(7)
                 .allSatisfy(report -> {
                     assertThat(report.status()).isEqualTo("success");
                     assertThat(report.divergences()).isZero();
@@ -56,14 +56,24 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                 });
         assertThat(reports)
                 .extracting("table")
-                .containsExactly("tipo_pessoa", "tipo_endereco", "pessoa", "pessoa_tipo_pessoa");
-        assertThat(reports.stream().mapToInt(report -> report.sourceRows()).sum()).isEqualTo(10);
-        assertThat(reports.stream().mapToInt(report -> report.targetRows()).sum()).isEqualTo(10);
+                .containsExactly(
+                        "tipo_pessoa",
+                        "tipo_endereco",
+                        "pessoa",
+                        "pessoa_tipo_pessoa",
+                        "aluno",
+                        "responsavel",
+                        "aluno_responsavel");
+        assertThat(reports.stream().mapToInt(report -> report.sourceRows()).sum()).isEqualTo(13);
+        assertThat(reports.stream().mapToInt(report -> report.targetRows()).sum()).isEqualTo(13);
 
         assertThat(contar(targetUrl, "tipo_pessoa")).isEqualTo(3);
         assertThat(contar(targetUrl, "tipo_endereco")).isEqualTo(2);
         assertThat(contar(targetUrl, "pessoa")).isEqualTo(2);
         assertThat(contar(targetUrl, "pessoa_tipo_pessoa")).isEqualTo(3);
+        assertThat(contar(targetUrl, "aluno")).isEqualTo(1);
+        assertThat(contar(targetUrl, "responsavel")).isEqualTo(1);
+        assertThat(contar(targetUrl, "aluno_responsavel")).isEqualTo(1);
     }
 
     private String h2Url(String dbName) {
@@ -123,6 +133,38 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         id_tipo_pessoa UUID NOT NULL REFERENCES tipo_pessoa(id_tipo_pessoa),
                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                         UNIQUE (id_pessoa, id_tipo_pessoa)
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE aluno (
+                        id_aluno UUID NOT NULL PRIMARY KEY,
+                        id_pessoa UUID,
+                        nome_completo VARCHAR(150) NOT NULL,
+                        cpf VARCHAR(14),
+                        email VARCHAR(150),
+                        telefone VARCHAR(20),
+                        data_nascimento DATE,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE responsavel (
+                        id_responsavel UUID NOT NULL PRIMARY KEY,
+                        id_pessoa UUID,
+                        nome_completo VARCHAR(150) NOT NULL,
+                        cpf VARCHAR(14),
+                        email VARCHAR(150),
+                        telefone VARCHAR(20),
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE aluno_responsavel (
+                        id_aluno_responsavel UUID NOT NULL PRIMARY KEY,
+                        id_aluno UUID NOT NULL REFERENCES aluno(id_aluno),
+                        id_responsavel UUID NOT NULL REFERENCES responsavel(id_responsavel),
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE (id_aluno, id_responsavel)
                     )
                     """);
         }
@@ -210,6 +252,43 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         '99999999-9999-9999-9999-999999999993',
                         'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
                         '33333333-3333-3333-3333-333333333333',
+                        CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    INSERT INTO aluno (
+                        id_aluno, id_pessoa, nome_completo, cpf, email, telefone, data_nascimento, created_at
+                    ) VALUES (
+                        'aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa',
+                        NULL,
+                        'Ana Aluna',
+                        '11111111111',
+                        'ana@example.test',
+                        '31999990000',
+                        DATE '2010-01-02',
+                        CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    INSERT INTO responsavel (
+                        id_responsavel, id_pessoa, nome_completo, cpf, email, telefone, created_at
+                    ) VALUES (
+                        'bbbbbbbb-2222-2222-2222-bbbbbbbbbbbb',
+                        NULL,
+                        'Rita Responsavel',
+                        '22222222222',
+                        'rita@example.test',
+                        '31999991111',
+                        CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    INSERT INTO aluno_responsavel (
+                        id_aluno_responsavel, id_aluno, id_responsavel, created_at
+                    ) VALUES (
+                        'cccccccc-3333-3333-3333-cccccccccccc',
+                        'aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa',
+                        'bbbbbbbb-2222-2222-2222-bbbbbbbbbbbb',
                         CURRENT_TIMESTAMP
                     )
                     """);

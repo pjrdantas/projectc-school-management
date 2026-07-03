@@ -1387,6 +1387,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   e cutover seguem bloqueados. `endereco`, `pessoa_endereco` e `tipo_endereco`
   continuam fora porque nao compoem o payload real. A contagem regressiva da
   macrofase Fase 65 passa a 1 subfase restante estimada.
+- A quarta subfase da Fase 65 expandiu o ciclo controlado de
+  backfill/reconciliacao do `people-service` para `aluno`, `responsavel` e
+  `aluno_responsavel`, mantendo no mesmo fluxo opt-in as tabelas ja existentes
+  de catalogo e identidade. O adapter JDBC passou a copiar e reconciliar a fatia
+  `people_read_model_student_responsible` com IDs preservados do monolito e
+  campos usados pelo contrato atual de `consultarCadastro`. A rota continua no
+  proxy do monolito porque ainda nao ha adapter local e o guard de cutover segue
+  bloqueando `consultarCadastro` com `local-read-adapter-not-configured`. Nao
+  houve BFF/frontend, escrita local, endereco ou cutover. A contagem regressiva
+  da macrofase Fase 65 chega a 0.
 
 ## Historico resumido
 

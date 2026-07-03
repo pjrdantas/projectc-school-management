@@ -18,7 +18,10 @@ public class PeopleLocalPersistenceBackfillCoordinator {
             new TableDescriptor("tipo_pessoa", "id_tipo_pessoa"),
             new TableDescriptor("tipo_endereco", "id_tipo_endereco"),
             new TableDescriptor("pessoa", "id_pessoa"),
-            new TableDescriptor("pessoa_tipo_pessoa", "id_pessoa_tipo_pessoa"));
+            new TableDescriptor("pessoa_tipo_pessoa", "id_pessoa_tipo_pessoa"),
+            new TableDescriptor("aluno", "id_aluno"),
+            new TableDescriptor("responsavel", "id_responsavel"),
+            new TableDescriptor("aluno_responsavel", "id_aluno_responsavel"));
 
     private final PeopleLocalPersistenceProperties properties;
     private final MeterRegistry meterRegistry;

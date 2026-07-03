@@ -2992,6 +2992,37 @@ Proxima subfase pratica:
 - nao criar adapter local, nao alterar BFF/frontend, nao habilitar escrita local
   e nao incluir endereco nesta macrofase sem mudanca explicita de contrato.
 
+Entregue na quarta subfase da Fase 65:
+
+- o ciclo controlado de backfill/reconciliacao do `people-service` foi expandido
+  para incluir `aluno`, `responsavel` e `aluno_responsavel`, alem das tabelas ja
+  existentes de catalogo e identidade;
+- o adapter JDBC passou a copiar e reconciliar a fatia
+  `people_read_model_student_responsible` a partir do monolito, preservando
+  `id_aluno`, `id_responsavel` e `id_aluno_responsavel` e comparando os campos
+  efetivamente usados pelo contrato atual de `consultarCadastro`;
+- `consultarCadastro` continua no proxy do monolito porque ainda nao existe
+  adapter local para essa leitura e o guard de cutover segue retornando
+  `local-read-adapter-not-configured` para essa rota;
+- a operacao continua opt-in pelas flags atuais de backfill/reconciliacao, sem
+  escrita local, sem BFF/frontend, sem rota externa nova, sem endereco e sem
+  cutover;
+- rollback permanece por desligamento de
+  `people.shadow.local-persistence.backfill-enabled`,
+  `people.shadow.local-persistence.reconciliation-enabled` e
+  `people.shadow.local-persistence.enabled`.
+
+Contagem da macrofase Fase 65: 0 subfases restantes. O bloco de schema,
+backfill e reconciliacao opt-in do read model minimo de `consultarCadastro`
+fica fechado sem leitura local e sem cutover.
+
+Proxima fase pratica:
+
+- iniciar a proxima macrofase backend do `people-service` com diagnostico do
+  menor recorte remanescente: ou adapter local controlado de `consultarCadastro`
+  ainda sem BFF/cutover externo, ou outra fronteira de pessoas com menor risco,
+  decidindo pelo codigo atual e mantendo o monolito como fallback obrigatorio.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3013,11 +3044,10 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Implementar backfill/reconciliacao opt-in para `aluno`, `responsavel` e
-`aluno_responsavel`, comparando o read model local com o monolito e mantendo
-`consultarCadastro` no proxy ate divergencia zero. Nao criar adapter local, nao
-alterar BFF/frontend, nao habilitar escrita local e nao incluir endereco nesta
-macrofase sem mudanca explicita de contrato.
+Iniciar a proxima macrofase backend do `people-service` com diagnostico do menor
+recorte remanescente: ou adapter local controlado de `consultarCadastro` ainda
+sem BFF/cutover externo, ou outra fronteira de pessoas com menor risco,
+decidindo pelo codigo atual e mantendo o monolito como fallback obrigatorio.
 
 Entregue na oitava subfase:
 

@@ -12,11 +12,11 @@ public class PeopleTransactionalReadModelExpansionPlanner {
 
     public PeopleTransactionalReadModelExpansionPlan planejarProximaFatiaTransacional() {
         return new PeopleTransactionalReadModelExpansionPlan(
-                "student_responsible_schema_prepared_without_cutover",
-                "implement_student_responsible_backfill_reconciliation_opt_in",
+                "student_responsible_backfill_reconciliation_prepared_without_cutover",
+                "close_phase_65_and_plan_next_people_service_scope",
                 "pessoa_student_responsible_read_model",
                 true,
-                false,
+                true,
                 false,
                 List.of(
                         new TableExpansionDecision(
@@ -75,9 +75,9 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 List.of("consultarCadastro"),
                                 true,
                                 true,
+                                true,
                                 false,
-                                false,
-                                "student_responsible_schema_prepared_for_current_consultarCadastro_contract"),
+                                "student_responsible_backfill_reconciliation_prepared_for_current_consultarCadastro_contract"),
                         new TableExpansionDecision(
                                 "responsavel",
                                 "id_responsavel",
@@ -93,9 +93,9 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 List.of("consultarCadastro"),
                                 true,
                                 true,
+                                true,
                                 false,
-                                false,
-                                "student_responsible_schema_prepared_for_current_consultarCadastro_contract"),
+                                "student_responsible_backfill_reconciliation_prepared_for_current_consultarCadastro_contract"),
                         new TableExpansionDecision(
                                 "aluno_responsavel",
                                 "id_aluno_responsavel",
@@ -108,9 +108,9 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 List.of("consultarCadastro"),
                                 true,
                                 true,
+                                true,
                                 false,
-                                false,
-                                "student_responsible_schema_prepared_for_current_consultarCadastro_contract"),
+                                "student_responsible_backfill_reconciliation_prepared_for_current_consultarCadastro_contract"),
                         new TableExpansionDecision(
                                 "endereco",
                                 "id_endereco",
@@ -155,6 +155,7 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                         "do-not-add-address-schema-for-current-consultarCadastro-contract",
                         "define-student-responsible-read-model-without-owning-writes",
                         "run-student-responsible-schema-migration-only-with-explicit-opt-in",
+                        "run-student-responsible-backfill-and-reconciliation-only-with-explicit-opt-in",
                         "keep-pii-read-model-without-public-exposure",
                         "keep-school-scope-as-copied-identifier-without-people-service-owning-tenant",
                         "define-reconciliation-by-student-responsible-link",

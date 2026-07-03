@@ -37,7 +37,7 @@ public class PeopleLocalReadCutoverGuard {
             new ReadRouteDescriptor(
                     "consultarCadastro",
                     "GET /internal/v1/pessoas/consulta-cadastral",
-                    "pessoa,pessoa_tipo_pessoa,endereco,pessoa_endereco"));
+                    "aluno,responsavel,aluno_responsavel"));
 
     private final PeopleLocalPersistenceProperties properties;
     private final MeterRegistry meterRegistry;

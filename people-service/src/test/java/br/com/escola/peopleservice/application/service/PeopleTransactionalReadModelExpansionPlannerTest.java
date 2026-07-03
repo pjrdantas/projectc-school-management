@@ -12,12 +12,12 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
 
         var plan = planner.planejarProximaFatiaTransacional();
 
-        assertThat(plan.status()).isEqualTo("student_responsible_schema_prepared_without_cutover");
+        assertThat(plan.status()).isEqualTo("student_responsible_backfill_reconciliation_prepared_without_cutover");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("implement_student_responsible_backfill_reconciliation_opt_in");
+                .isEqualTo("close_phase_65_and_plan_next_people_service_scope");
         assertThat(plan.minimalNextSlice()).isEqualTo("pessoa_student_responsible_read_model");
         assertThat(plan.migrationAllowedNow()).isTrue();
-        assertThat(plan.backfillAllowedNow()).isFalse();
+        assertThat(plan.backfillAllowedNow()).isTrue();
         assertThat(plan.localReadCutoverAllowedNow()).isFalse();
         assertThat(plan.candidateTables())
                 .hasSize(7)
@@ -31,7 +31,7 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
         assertThat(plan.candidateTables())
                 .filteredOn("includeInNextSlice", true)
                 .extracting("backfillAllowed")
-                .containsExactly(false, false, false);
+                .containsExactly(true, true, true);
         assertThat(plan.candidateTables())
                 .filteredOn("includeInNextSlice", true)
                 .extracting("localReadAllowed")
@@ -50,6 +50,7 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 "do-not-add-address-schema-for-current-consultarCadastro-contract",
                 "define-student-responsible-read-model-without-owning-writes",
                 "run-student-responsible-schema-migration-only-with-explicit-opt-in",
+                "run-student-responsible-backfill-and-reconciliation-only-with-explicit-opt-in",
                 "keep-pii-read-model-without-public-exposure",
                 "define-reconciliation-by-student-responsible-link",
                 "keep-monolith-as-authority-for-all-writes");

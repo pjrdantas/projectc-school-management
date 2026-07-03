@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -96,6 +97,78 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                     VALUES (?, ?, ?, ?)
                     """);
 
+    private static final AlunoTable ALUNO_TABLE = new AlunoTable(
+            """
+                    SELECT id_aluno, CAST(NULL AS UUID) AS id_pessoa, nome_completo, cpf, email, telefone,
+                           data_nascimento, created_at
+                    FROM aluno
+                    ORDER BY nome_completo, id_aluno
+                    LIMIT ?
+                    """,
+            """
+                    SELECT id_aluno, id_pessoa, nome_completo, cpf, email, telefone, data_nascimento, created_at
+                    FROM aluno
+                    ORDER BY nome_completo, id_aluno
+                    """,
+            """
+                    UPDATE aluno
+                    SET id_pessoa = ?, nome_completo = ?, cpf = ?, email = ?, telefone = ?,
+                        data_nascimento = ?, created_at = ?
+                    WHERE id_aluno = ?
+                    """,
+            """
+                    INSERT INTO aluno (
+                        id_aluno, id_pessoa, nome_completo, cpf, email, telefone, data_nascimento, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """);
+
+    private static final ResponsavelTable RESPONSAVEL_TABLE = new ResponsavelTable(
+            """
+                    SELECT id_responsavel, CAST(NULL AS UUID) AS id_pessoa, nome_completo, cpf, email, telefone,
+                           created_at
+                    FROM responsavel
+                    ORDER BY nome_completo, id_responsavel
+                    LIMIT ?
+                    """,
+            """
+                    SELECT id_responsavel, id_pessoa, nome_completo, cpf, email, telefone, created_at
+                    FROM responsavel
+                    ORDER BY nome_completo, id_responsavel
+                    """,
+            """
+                    UPDATE responsavel
+                    SET id_pessoa = ?, nome_completo = ?, cpf = ?, email = ?, telefone = ?, created_at = ?
+                    WHERE id_responsavel = ?
+                    """,
+            """
+                    INSERT INTO responsavel (
+                        id_responsavel, id_pessoa, nome_completo, cpf, email, telefone, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """);
+
+    private static final AlunoResponsavelTable ALUNO_RESPONSAVEL_TABLE = new AlunoResponsavelTable(
+            """
+                    SELECT id_aluno_responsavel, id_aluno, id_responsavel, created_at
+                    FROM aluno_responsavel
+                    ORDER BY id_aluno, id_responsavel
+                    LIMIT ?
+                    """,
+            """
+                    SELECT id_aluno_responsavel, id_aluno, id_responsavel, created_at
+                    FROM aluno_responsavel
+                    ORDER BY id_aluno, id_responsavel
+                    """,
+            """
+                    UPDATE aluno_responsavel
+                    SET id_aluno = ?, id_responsavel = ?, created_at = ?
+                    WHERE id_aluno_responsavel = ?
+                    """,
+            """
+                    INSERT INTO aluno_responsavel (
+                        id_aluno_responsavel, id_aluno, id_responsavel, created_at
+                    ) VALUES (?, ?, ?, ?)
+                    """);
+
     private final PeopleCatalogReadModelBackfillProperties backfillProperties;
     private final PeopleLocalReadModelSchemaMigrationProperties targetProperties;
 
@@ -129,6 +202,9 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
             }
             reports.add(synchronizePessoa(source, target, backfillEnabled, reconciliationEnabled, batchSize));
             reports.add(synchronizePessoaTipoPessoa(source, target, backfillEnabled, reconciliationEnabled, batchSize));
+            reports.add(synchronizeAluno(source, target, backfillEnabled, reconciliationEnabled, batchSize));
+            reports.add(synchronizeResponsavel(source, target, backfillEnabled, reconciliationEnabled, batchSize));
+            reports.add(synchronizeAlunoResponsavel(source, target, backfillEnabled, reconciliationEnabled, batchSize));
             return reports;
         } catch (SQLException ex) {
             throw new IllegalStateException("local-read-model-sync-failed", ex);
@@ -251,6 +327,128 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                 divergences);
     }
 
+    private TableOperationReport synchronizeAluno(
+            Connection source,
+            Connection target,
+            boolean backfillEnabled,
+            boolean reconciliationEnabled,
+            int batchSize) throws SQLException {
+        List<AlunoRow> sourceRows = readAlunoRows(source, ALUNO_TABLE.sourceLimitedQuery(), batchSize);
+        int backfilledRecords = 0;
+
+        if (backfillEnabled) {
+            for (AlunoRow row : sourceRows) {
+                backfilledRecords += upsertAluno(target, row);
+            }
+        }
+
+        List<AlunoRow> targetRows = reconciliationEnabled
+                ? readAlunoRows(target, ALUNO_TABLE.targetQuery(), Integer.MAX_VALUE)
+                : List.of();
+        int divergences = reconciliationEnabled ? countAlunoDivergences(sourceRows, targetRows) : 0;
+        String status = divergences == 0 ? "success" : "diverged";
+        String reason = divergences == 0
+                ? "student-responsible-sync-completed"
+                : "student-responsible-reconciliation-diverged";
+
+        return new TableOperationReport(
+                "aluno",
+                "id_aluno",
+                "monolith_jdbc",
+                "people_read_model_student_responsible",
+                status,
+                reason,
+                backfillEnabled,
+                reconciliationEnabled,
+                true,
+                sourceRows.size(),
+                reconciliationEnabled ? targetRows.size() : 0,
+                backfilledRecords,
+                divergences);
+    }
+
+    private TableOperationReport synchronizeResponsavel(
+            Connection source,
+            Connection target,
+            boolean backfillEnabled,
+            boolean reconciliationEnabled,
+            int batchSize) throws SQLException {
+        List<ResponsavelRow> sourceRows =
+                readResponsavelRows(source, RESPONSAVEL_TABLE.sourceLimitedQuery(), batchSize);
+        int backfilledRecords = 0;
+
+        if (backfillEnabled) {
+            for (ResponsavelRow row : sourceRows) {
+                backfilledRecords += upsertResponsavel(target, row);
+            }
+        }
+
+        List<ResponsavelRow> targetRows = reconciliationEnabled
+                ? readResponsavelRows(target, RESPONSAVEL_TABLE.targetQuery(), Integer.MAX_VALUE)
+                : List.of();
+        int divergences = reconciliationEnabled ? countResponsavelDivergences(sourceRows, targetRows) : 0;
+        String status = divergences == 0 ? "success" : "diverged";
+        String reason = divergences == 0
+                ? "student-responsible-sync-completed"
+                : "student-responsible-reconciliation-diverged";
+
+        return new TableOperationReport(
+                "responsavel",
+                "id_responsavel",
+                "monolith_jdbc",
+                "people_read_model_student_responsible",
+                status,
+                reason,
+                backfillEnabled,
+                reconciliationEnabled,
+                true,
+                sourceRows.size(),
+                reconciliationEnabled ? targetRows.size() : 0,
+                backfilledRecords,
+                divergences);
+    }
+
+    private TableOperationReport synchronizeAlunoResponsavel(
+            Connection source,
+            Connection target,
+            boolean backfillEnabled,
+            boolean reconciliationEnabled,
+            int batchSize) throws SQLException {
+        List<AlunoResponsavelRow> sourceRows =
+                readAlunoResponsavelRows(source, ALUNO_RESPONSAVEL_TABLE.sourceLimitedQuery(), batchSize);
+        int backfilledRecords = 0;
+
+        if (backfillEnabled) {
+            for (AlunoResponsavelRow row : sourceRows) {
+                backfilledRecords += upsertAlunoResponsavel(target, row);
+            }
+        }
+
+        List<AlunoResponsavelRow> targetRows = reconciliationEnabled
+                ? readAlunoResponsavelRows(target, ALUNO_RESPONSAVEL_TABLE.targetQuery(), Integer.MAX_VALUE)
+                : List.of();
+        int divergences = reconciliationEnabled ? countAlunoResponsavelDivergences(sourceRows, targetRows) : 0;
+        String status = divergences == 0 ? "success" : "diverged";
+        String reason = divergences == 0
+                ? "student-responsible-sync-completed"
+                : "student-responsible-reconciliation-diverged";
+
+        return new TableOperationReport(
+                "aluno_responsavel",
+                "id_aluno_responsavel",
+                "monolith_jdbc",
+                "people_read_model_student_responsible",
+                status,
+                reason,
+                backfillEnabled,
+                reconciliationEnabled,
+                true,
+                sourceRows.size(),
+                reconciliationEnabled ? targetRows.size() : 0,
+                backfilledRecords,
+                divergences);
+    }
+
     private List<CatalogRow> readRows(Connection connection, String query, boolean hasCreatedAt, int limit) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             if (query.contains("LIMIT ?")) {
@@ -328,6 +526,76 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         }
     }
 
+    private List<AlunoRow> readAlunoRows(Connection connection, String query, int limit) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            if (query.contains("LIMIT ?")) {
+                statement.setInt(1, Math.max(1, limit));
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<AlunoRow> rows = new ArrayList<>();
+                while (resultSet.next()) {
+                    Timestamp createdAt = resultSet.getTimestamp("created_at");
+                    java.sql.Date dataNascimento = resultSet.getDate("data_nascimento");
+                    rows.add(new AlunoRow(
+                            resultSet.getObject("id_aluno", UUID.class),
+                            resultSet.getObject("id_pessoa", UUID.class),
+                            resultSet.getString("nome_completo"),
+                            resultSet.getString("cpf"),
+                            resultSet.getString("email"),
+                            resultSet.getString("telefone"),
+                            dataNascimento == null ? null : dataNascimento.toLocalDate(),
+                            createdAt == null ? null : createdAt.toInstant()));
+                }
+                return rows;
+            }
+        }
+    }
+
+    private List<ResponsavelRow> readResponsavelRows(Connection connection, String query, int limit)
+            throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            if (query.contains("LIMIT ?")) {
+                statement.setInt(1, Math.max(1, limit));
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<ResponsavelRow> rows = new ArrayList<>();
+                while (resultSet.next()) {
+                    Timestamp createdAt = resultSet.getTimestamp("created_at");
+                    rows.add(new ResponsavelRow(
+                            resultSet.getObject("id_responsavel", UUID.class),
+                            resultSet.getObject("id_pessoa", UUID.class),
+                            resultSet.getString("nome_completo"),
+                            resultSet.getString("cpf"),
+                            resultSet.getString("email"),
+                            resultSet.getString("telefone"),
+                            createdAt == null ? null : createdAt.toInstant()));
+                }
+                return rows;
+            }
+        }
+    }
+
+    private List<AlunoResponsavelRow> readAlunoResponsavelRows(Connection connection, String query, int limit)
+            throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            if (query.contains("LIMIT ?")) {
+                statement.setInt(1, Math.max(1, limit));
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<AlunoResponsavelRow> rows = new ArrayList<>();
+                while (resultSet.next()) {
+                    Timestamp createdAt = resultSet.getTimestamp("created_at");
+                    rows.add(new AlunoResponsavelRow(
+                            resultSet.getObject("id_aluno_responsavel", UUID.class),
+                            resultSet.getObject("id_aluno", UUID.class),
+                            resultSet.getObject("id_responsavel", UUID.class),
+                            createdAt == null ? null : createdAt.toInstant()));
+                }
+                return rows;
+            }
+        }
+    }
+
     private int upsert(Connection target, CatalogTable table, CatalogRow row) throws SQLException {
         try (PreparedStatement update = target.prepareStatement(table.updateSql())) {
             bindUpdate(update, table, row);
@@ -374,6 +642,57 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
             insert.setObject(1, row.id());
             insert.setObject(2, row.pessoaId());
             insert.setObject(3, row.tipoPessoaId());
+            insert.setTimestamp(4, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+            return insert.executeUpdate();
+        }
+    }
+
+    private int upsertAluno(Connection target, AlunoRow row) throws SQLException {
+        try (PreparedStatement update = target.prepareStatement(ALUNO_TABLE.updateSql())) {
+            bindAlunoUpdate(update, row);
+            int updated = update.executeUpdate();
+            if (updated > 0) {
+                return updated;
+            }
+        }
+
+        try (PreparedStatement insert = target.prepareStatement(ALUNO_TABLE.insertSql())) {
+            bindAlunoInsert(insert, row);
+            return insert.executeUpdate();
+        }
+    }
+
+    private int upsertResponsavel(Connection target, ResponsavelRow row) throws SQLException {
+        try (PreparedStatement update = target.prepareStatement(RESPONSAVEL_TABLE.updateSql())) {
+            bindResponsavelUpdate(update, row);
+            int updated = update.executeUpdate();
+            if (updated > 0) {
+                return updated;
+            }
+        }
+
+        try (PreparedStatement insert = target.prepareStatement(RESPONSAVEL_TABLE.insertSql())) {
+            bindResponsavelInsert(insert, row);
+            return insert.executeUpdate();
+        }
+    }
+
+    private int upsertAlunoResponsavel(Connection target, AlunoResponsavelRow row) throws SQLException {
+        try (PreparedStatement update = target.prepareStatement(ALUNO_RESPONSAVEL_TABLE.updateSql())) {
+            update.setObject(1, row.alunoId());
+            update.setObject(2, row.responsavelId());
+            update.setTimestamp(3, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+            update.setObject(4, row.id());
+            int updated = update.executeUpdate();
+            if (updated > 0) {
+                return updated;
+            }
+        }
+
+        try (PreparedStatement insert = target.prepareStatement(ALUNO_RESPONSAVEL_TABLE.insertSql())) {
+            insert.setObject(1, row.id());
+            insert.setObject(2, row.alunoId());
+            insert.setObject(3, row.responsavelId());
             insert.setTimestamp(4, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
             return insert.executeUpdate();
         }
@@ -439,6 +758,48 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         statement.setBoolean(16, row.ativo());
         statement.setTimestamp(17, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
         statement.setTimestamp(18, row.updatedAt() == null ? null : Timestamp.from(row.updatedAt()));
+    }
+
+    private void bindAlunoUpdate(PreparedStatement statement, AlunoRow row) throws SQLException {
+        statement.setObject(1, row.pessoaId());
+        statement.setString(2, row.nomeCompleto());
+        statement.setString(3, row.cpf());
+        statement.setString(4, row.email());
+        statement.setString(5, row.telefone());
+        statement.setDate(6, row.dataNascimento() == null ? null : java.sql.Date.valueOf(row.dataNascimento()));
+        statement.setTimestamp(7, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+        statement.setObject(8, row.id());
+    }
+
+    private void bindAlunoInsert(PreparedStatement statement, AlunoRow row) throws SQLException {
+        statement.setObject(1, row.id());
+        statement.setObject(2, row.pessoaId());
+        statement.setString(3, row.nomeCompleto());
+        statement.setString(4, row.cpf());
+        statement.setString(5, row.email());
+        statement.setString(6, row.telefone());
+        statement.setDate(7, row.dataNascimento() == null ? null : java.sql.Date.valueOf(row.dataNascimento()));
+        statement.setTimestamp(8, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+    }
+
+    private void bindResponsavelUpdate(PreparedStatement statement, ResponsavelRow row) throws SQLException {
+        statement.setObject(1, row.pessoaId());
+        statement.setString(2, row.nomeCompleto());
+        statement.setString(3, row.cpf());
+        statement.setString(4, row.email());
+        statement.setString(5, row.telefone());
+        statement.setTimestamp(6, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+        statement.setObject(7, row.id());
+    }
+
+    private void bindResponsavelInsert(PreparedStatement statement, ResponsavelRow row) throws SQLException {
+        statement.setObject(1, row.id());
+        statement.setObject(2, row.pessoaId());
+        statement.setString(3, row.nomeCompleto());
+        statement.setString(4, row.cpf());
+        statement.setString(5, row.email());
+        statement.setString(6, row.telefone());
+        statement.setTimestamp(7, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
     }
 
     private int countDivergences(List<CatalogRow> sourceRows, List<CatalogRow> targetRows) {
@@ -507,6 +868,65 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         return divergences;
     }
 
+    private int countAlunoDivergences(List<AlunoRow> sourceRows, List<AlunoRow> targetRows) {
+        Map<UUID, AlunoRow> sourceById = byAlunoId(sourceRows);
+        Map<UUID, AlunoRow> targetById = byAlunoId(targetRows);
+        int divergences = 0;
+
+        for (Map.Entry<UUID, AlunoRow> entry : sourceById.entrySet()) {
+            AlunoRow target = targetById.get(entry.getKey());
+            if (target == null || !entry.getValue().matches(target)) {
+                divergences++;
+            }
+        }
+        for (UUID targetId : targetById.keySet()) {
+            if (!sourceById.containsKey(targetId)) {
+                divergences++;
+            }
+        }
+        return divergences;
+    }
+
+    private int countResponsavelDivergences(List<ResponsavelRow> sourceRows, List<ResponsavelRow> targetRows) {
+        Map<UUID, ResponsavelRow> sourceById = byResponsavelId(sourceRows);
+        Map<UUID, ResponsavelRow> targetById = byResponsavelId(targetRows);
+        int divergences = 0;
+
+        for (Map.Entry<UUID, ResponsavelRow> entry : sourceById.entrySet()) {
+            ResponsavelRow target = targetById.get(entry.getKey());
+            if (target == null || !entry.getValue().matches(target)) {
+                divergences++;
+            }
+        }
+        for (UUID targetId : targetById.keySet()) {
+            if (!sourceById.containsKey(targetId)) {
+                divergences++;
+            }
+        }
+        return divergences;
+    }
+
+    private int countAlunoResponsavelDivergences(
+            List<AlunoResponsavelRow> sourceRows,
+            List<AlunoResponsavelRow> targetRows) {
+        Map<UUID, AlunoResponsavelRow> sourceById = byAlunoResponsavelId(sourceRows);
+        Map<UUID, AlunoResponsavelRow> targetById = byAlunoResponsavelId(targetRows);
+        int divergences = 0;
+
+        for (Map.Entry<UUID, AlunoResponsavelRow> entry : sourceById.entrySet()) {
+            AlunoResponsavelRow target = targetById.get(entry.getKey());
+            if (target == null || !entry.getValue().matches(target)) {
+                divergences++;
+            }
+        }
+        for (UUID targetId : targetById.keySet()) {
+            if (!sourceById.containsKey(targetId)) {
+                divergences++;
+            }
+        }
+        return divergences;
+    }
+
     private Map<String, CatalogRow> byCode(List<CatalogRow> rows) {
         Map<String, CatalogRow> byCode = new LinkedHashMap<>();
         for (CatalogRow row : rows) {
@@ -531,6 +951,30 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         return byId;
     }
 
+    private Map<UUID, AlunoRow> byAlunoId(List<AlunoRow> rows) {
+        Map<UUID, AlunoRow> byId = new LinkedHashMap<>();
+        for (AlunoRow row : rows) {
+            byId.put(row.id(), row);
+        }
+        return byId;
+    }
+
+    private Map<UUID, ResponsavelRow> byResponsavelId(List<ResponsavelRow> rows) {
+        Map<UUID, ResponsavelRow> byId = new LinkedHashMap<>();
+        for (ResponsavelRow row : rows) {
+            byId.put(row.id(), row);
+        }
+        return byId;
+    }
+
+    private Map<UUID, AlunoResponsavelRow> byAlunoResponsavelId(List<AlunoResponsavelRow> rows) {
+        Map<UUID, AlunoResponsavelRow> byId = new LinkedHashMap<>();
+        for (AlunoResponsavelRow row : rows) {
+            byId.put(row.id(), row);
+        }
+        return byId;
+    }
+
     private List<TableOperationReport> blockedReports(boolean backfillEnabled, boolean reconciliationEnabled) {
         List<TableOperationReport> reports = new ArrayList<>();
         CATALOG_TABLES.stream()
@@ -540,6 +984,13 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         reports.add(blockedReport(
                 "pessoa_tipo_pessoa",
                 "id_pessoa_tipo_pessoa",
+                backfillEnabled,
+                reconciliationEnabled));
+        reports.add(blockedReport("aluno", "id_aluno", backfillEnabled, reconciliationEnabled));
+        reports.add(blockedReport("responsavel", "id_responsavel", backfillEnabled, reconciliationEnabled));
+        reports.add(blockedReport(
+                "aluno_responsavel",
+                "id_aluno_responsavel",
                 backfillEnabled,
                 reconciliationEnabled));
         return reports;
@@ -630,6 +1081,27 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
             String insertSql) {
     }
 
+    private record AlunoTable(
+            String sourceLimitedQuery,
+            String targetQuery,
+            String updateSql,
+            String insertSql) {
+    }
+
+    private record ResponsavelTable(
+            String sourceLimitedQuery,
+            String targetQuery,
+            String updateSql,
+            String insertSql) {
+    }
+
+    private record AlunoResponsavelTable(
+            String sourceLimitedQuery,
+            String targetQuery,
+            String updateSql,
+            String insertSql) {
+    }
+
     private record PessoaRow(
             UUID id,
             UUID escolaId,
@@ -676,6 +1148,55 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
             return Objects.equals(id, other.id)
                     && Objects.equals(pessoaId, other.pessoaId)
                     && Objects.equals(tipoPessoaId, other.tipoPessoaId);
+        }
+    }
+
+    private record AlunoRow(
+            UUID id,
+            UUID pessoaId,
+            String nomeCompleto,
+            String cpf,
+            String email,
+            String telefone,
+            LocalDate dataNascimento,
+            Instant createdAt) {
+
+        boolean matches(AlunoRow other) {
+            return Objects.equals(id, other.id)
+                    && Objects.equals(pessoaId, other.pessoaId)
+                    && Objects.equals(nomeCompleto, other.nomeCompleto)
+                    && Objects.equals(cpf, other.cpf)
+                    && Objects.equals(email, other.email)
+                    && Objects.equals(telefone, other.telefone)
+                    && Objects.equals(dataNascimento, other.dataNascimento);
+        }
+    }
+
+    private record ResponsavelRow(
+            UUID id,
+            UUID pessoaId,
+            String nomeCompleto,
+            String cpf,
+            String email,
+            String telefone,
+            Instant createdAt) {
+
+        boolean matches(ResponsavelRow other) {
+            return Objects.equals(id, other.id)
+                    && Objects.equals(pessoaId, other.pessoaId)
+                    && Objects.equals(nomeCompleto, other.nomeCompleto)
+                    && Objects.equals(cpf, other.cpf)
+                    && Objects.equals(email, other.email)
+                    && Objects.equals(telefone, other.telefone);
+        }
+    }
+
+    private record AlunoResponsavelRow(UUID id, UUID alunoId, UUID responsavelId, Instant createdAt) {
+
+        boolean matches(AlunoResponsavelRow other) {
+            return Objects.equals(id, other.id)
+                    && Objects.equals(alunoId, other.alunoId)
+                    && Objects.equals(responsavelId, other.responsavelId);
         }
     }
 }
