@@ -12,9 +12,9 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
 
         var plan = planner.planejarProximaFatiaTransacional();
 
-        assertThat(plan.status()).isEqualTo("consultar_cadastro_local_adapter_diagnostic_ready_without_cutover");
+        assertThat(plan.status()).isEqualTo("consultar_cadastro_local_adapter_prepared_without_routing");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("implement_consultar_cadastro_local_read_adapter_without_cutover");
+                .isEqualTo("evaluate_consultar_cadastro_local_read_routing_with_mandatory_fallback");
         assertThat(plan.minimalNextSlice()).isEqualTo("pessoa_student_responsible_local_read_adapter");
         assertThat(plan.migrationAllowedNow()).isTrue();
         assertThat(plan.backfillAllowedNow()).isTrue();
@@ -35,7 +35,7 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
         assertThat(plan.candidateTables())
                 .filteredOn("includeInNextSlice", true)
                 .extracting("localReadAllowed")
-                .containsExactly(false, false, false);
+                .containsExactly(true, true, true);
         assertThat(plan.candidateTables())
                 .filteredOn("includeInNextSlice", false)
                 .extracting("table")
@@ -51,8 +51,8 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 "define-student-responsible-read-model-without-owning-writes",
                 "run-student-responsible-schema-migration-only-with-explicit-opt-in",
                 "run-student-responsible-backfill-and-reconciliation-only-with-explicit-opt-in",
-                "implement-local-adapter-before-enabling-consultarCadastro-routing",
-                "keep-consultarCadastro-local-read-ineligible-until-adapter-is-tested",
+                "keep-consultarCadastro-local-routing-disabled-until-next-subphase",
+                "evaluate-consultarCadastro-local-routing-only-with-mandatory-fallback",
                 "keep-pii-read-model-without-public-exposure",
                 "define-reconciliation-by-student-responsible-link",
                 "keep-monolith-as-authority-for-all-writes");
@@ -61,6 +61,7 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 "disable-people.shadow.local-persistence.migration-enabled",
                 "keep-pessoa-identity-local-read-on-monolith-fallback",
                 "disable-people.shadow.local-persistence.read-model-cutover-enabled",
+                "keep-consultarCadastro-local-adapter-unused",
                 "keep-consultarCadastro-on-monolith-proxy");
     }
 }

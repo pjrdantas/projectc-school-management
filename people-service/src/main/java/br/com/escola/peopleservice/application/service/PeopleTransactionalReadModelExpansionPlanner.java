@@ -12,8 +12,8 @@ public class PeopleTransactionalReadModelExpansionPlanner {
 
     public PeopleTransactionalReadModelExpansionPlan planejarProximaFatiaTransacional() {
         return new PeopleTransactionalReadModelExpansionPlan(
-                "consultar_cadastro_local_adapter_diagnostic_ready_without_cutover",
-                "implement_consultar_cadastro_local_read_adapter_without_cutover",
+                "consultar_cadastro_local_adapter_prepared_without_routing",
+                "evaluate_consultar_cadastro_local_read_routing_with_mandatory_fallback",
                 "pessoa_student_responsible_local_read_adapter",
                 true,
                 true,
@@ -76,8 +76,8 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 true,
                                 true,
                                 true,
-                                false,
-                                "ready_for_consultarCadastro_local_adapter_without_cutover"),
+                                true,
+                                "consultarCadastro_local_adapter_prepared_without_routing"),
                         new TableExpansionDecision(
                                 "responsavel",
                                 "id_responsavel",
@@ -94,8 +94,8 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 true,
                                 true,
                                 true,
-                                false,
-                                "ready_for_consultarCadastro_local_adapter_without_cutover"),
+                                true,
+                                "consultarCadastro_local_adapter_prepared_without_routing"),
                         new TableExpansionDecision(
                                 "aluno_responsavel",
                                 "id_aluno_responsavel",
@@ -109,8 +109,8 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 true,
                                 true,
                                 true,
-                                false,
-                                "ready_for_consultarCadastro_local_adapter_without_cutover"),
+                                true,
+                                "consultarCadastro_local_adapter_prepared_without_routing"),
                         new TableExpansionDecision(
                                 "endereco",
                                 "id_endereco",
@@ -156,8 +156,8 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                         "define-student-responsible-read-model-without-owning-writes",
                         "run-student-responsible-schema-migration-only-with-explicit-opt-in",
                         "run-student-responsible-backfill-and-reconciliation-only-with-explicit-opt-in",
-                        "implement-local-adapter-before-enabling-consultarCadastro-routing",
-                        "keep-consultarCadastro-local-read-ineligible-until-adapter-is-tested",
+                        "keep-consultarCadastro-local-routing-disabled-until-next-subphase",
+                        "evaluate-consultarCadastro-local-routing-only-with-mandatory-fallback",
                         "keep-pii-read-model-without-public-exposure",
                         "keep-school-scope-as-copied-identifier-without-people-service-owning-tenant",
                         "define-reconciliation-by-student-responsible-link",
@@ -174,6 +174,7 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                         "keep-read-model-cutover-disabled-for-transactional-routes",
                         "disable-people.shadow.local-persistence.read-model-cutover-enabled",
                         "disable-consultarCadastro-local-adapter-if-divergence-appears",
+                        "keep-consultarCadastro-local-adapter-unused",
                         "keep-consultarCadastro-on-monolith-proxy",
                         "disable-people.shadow.local-persistence.enabled-if-operational-risk-appears"));
     }

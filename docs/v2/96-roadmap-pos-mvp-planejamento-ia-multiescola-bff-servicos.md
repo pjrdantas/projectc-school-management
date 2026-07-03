@@ -3051,13 +3051,34 @@ Contagem da macrofase Fase 66: 2 subfases restantes estimadas: implementar o
 adapter local read-only de `consultarCadastro` ainda sem cutover, e depois
 avaliar elegibilidade controlada da rota com fallback obrigatorio.
 
+Entregue na segunda subfase da Fase 66:
+
+- foi criado o contrato interno `PeopleStudentResponsibleLocalReadPort` para
+  isolar a leitura local de `consultarCadastro` sem expor nova rota externa;
+- foi implementado o adapter JDBC read-only sobre `aluno`, `responsavel` e
+  `aluno_responsavel`, reproduzindo filtros por aluno/responsavel, paginacao,
+  limite de pagina, ordenacao por nome do aluno e agregacao de responsaveis por
+  aluno;
+- `PessoaQueryService` permaneceu delegando `consultarCadastro` ao monolito, e
+  o adapter local ficou preparado, mas sem roteamento nem cutover nesta subfase;
+- o planner transacional passou a reportar
+  `consultar_cadastro_local_adapter_prepared_without_routing`, mantendo
+  `localReadCutoverAllowedNow=false` e indicando que a proxima decisao deve
+  avaliar roteamento controlado com fallback obrigatorio;
+- nao houve BFF/frontend, escrita local, endereco, mudanca de contrato externo
+  ou cutover externo.
+
+Contagem da macrofase Fase 66: 1 subfase restante estimada: avaliar a
+elegibilidade controlada de roteamento de `consultarCadastro` com fallback
+obrigatorio, mantendo rollback imediato para o monolito.
+
 Proxima subfase pratica:
 
-- implementar o adapter local read-only de `consultarCadastro` no
-  `people-service`, reproduzindo filtros, paginacao, ordenacao e agregacao do
-  monolito sobre `aluno`, `responsavel` e `aluno_responsavel`;
-- manter `PessoaQueryService` retornando pelo monolito ate a subfase seguinte
-  decidir a elegibilidade de roteamento, sem BFF/frontend e sem escrita local.
+- avaliar e, se seguro, conectar `consultarCadastro` ao adapter local somente
+  atras do guard de cutover, mantendo fallback obrigatorio para o monolito e
+  bloqueio operacional quando a reconciliacao/read model nao estiver verde;
+- manter o escopo backend/backend, sem BFF/frontend, sem escrita local e sem
+  ampliar o read model para `endereco` ou outros vinculos fora do payload atual.
 
 ### Fase futura - Desativacao do monolito
 
@@ -3080,11 +3101,11 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Implementar o adapter local read-only de `consultarCadastro` no `people-service`,
-reproduzindo filtros, paginacao, ordenacao e agregacao do monolito sobre
-`aluno`, `responsavel` e `aluno_responsavel`. Manter `PessoaQueryService`
-retornando pelo monolito ate a subfase seguinte decidir elegibilidade de
-roteamento, sem BFF/frontend e sem escrita local.
+Avaliar e, se seguro, conectar `consultarCadastro` ao adapter local somente
+atras do guard de cutover, mantendo fallback obrigatorio para o monolito e
+bloqueio operacional quando a reconciliacao/read model nao estiver verde. Manter
+o escopo backend/backend, sem BFF/frontend, sem escrita local e sem ampliar o
+read model para `endereco` ou outros vinculos fora do payload atual.
 
 Entregue na oitava subfase:
 

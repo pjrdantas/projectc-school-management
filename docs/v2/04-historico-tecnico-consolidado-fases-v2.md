@@ -1410,6 +1410,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   houve adapter novo, BFF/frontend, escrita local, endereco ou cutover. A
   contagem regressiva da macrofase Fase 66 passa a 2 subfases restantes
   estimadas.
+- A segunda subfase da Fase 66 implementou o contrato interno
+  `PeopleStudentResponsibleLocalReadPort` e o adapter JDBC read-only de
+  `consultarCadastro` sobre `aluno`, `responsavel` e `aluno_responsavel`,
+  reproduzindo filtros, paginacao, limite de pagina, ordenacao por nome do
+  aluno e agregacao de responsaveis por aluno. `PessoaQueryService` continua
+  retornando pelo monolito, sem roteamento local nem cutover, e o planner passou
+  a reportar
+  `consultar_cadastro_local_adapter_prepared_without_routing` com
+  `localReadCutoverAllowedNow=false`. Nao houve BFF/frontend, escrita local,
+  endereco ou mudanca de contrato externo. A contagem regressiva da macrofase
+  Fase 66 passa a 1 subfase restante estimada.
 
 ## Historico resumido
 
