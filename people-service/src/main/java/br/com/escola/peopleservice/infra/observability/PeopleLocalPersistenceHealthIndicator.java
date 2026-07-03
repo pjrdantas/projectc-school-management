@@ -30,15 +30,15 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             "tipo_endereco",
             "pessoa",
             "pessoa_tipo_pessoa",
-            "endereco",
-            "pessoa_endereco");
-
-    private static final List<String> EXCLUDED_AUTHORITATIVE_TABLES = List.of(
             "aluno",
             "responsavel",
+            "aluno_responsavel");
+
+    private static final List<String> EXCLUDED_AUTHORITATIVE_TABLES = List.of(
             "funcionario",
             "professor",
-            "aluno_responsavel",
+            "endereco",
+            "pessoa_endereco",
             "pessoa_documento");
 
     private static final List<ReadRouteDescriptor> READ_ROUTES = List.of(
@@ -57,7 +57,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             new ReadRouteDescriptor(
                     "consultarCadastro",
                     "GET /internal/v1/pessoas/consulta-cadastral",
-                    "pessoa,pessoa_tipo_pessoa,endereco,pessoa_endereco"));
+                    "aluno,responsavel,aluno_responsavel"));
 
     private final PeopleLocalPersistenceProperties properties;
     private final MeterRegistry meterRegistry;

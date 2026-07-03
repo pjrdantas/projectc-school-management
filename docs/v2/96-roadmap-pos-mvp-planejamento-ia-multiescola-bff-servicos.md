@@ -2961,6 +2961,37 @@ Proxima subfase pratica:
 - nao incluir `endereco`, `pessoa_endereco` ou `tipo_endereco` enquanto o
   contrato externo dessa consulta nao expuser esses campos.
 
+Entregue na terceira subfase da Fase 65:
+
+- foi criada a migration opt-in `V3__create_people_student_responsible_read_model.sql`
+  no `people-service`, preparando as tabelas locais `aluno`, `responsavel` e
+  `aluno_responsavel` para o read model minimo de `consultarCadastro`;
+- o schema preserva os IDs do monolito (`id_aluno`, `id_responsavel` e
+  `id_aluno_responsavel`), os campos hoje retornados pela consulta e a
+  referencia opcional `id_pessoa` para compatibilidade com a evolucao atual do
+  monolito;
+- `endereco`, `pessoa_endereco` e `tipo_endereco` continuam fora desse recorte,
+  porque nao aparecem no payload real de `consultarCadastro`;
+- o health e o planner do `people-service` passaram a reportar a fatia
+  `pessoa_student_responsible_read_model` com migration permitida somente por
+  opt-in, mantendo backfill, adapter local, BFF/frontend, escrita e cutover
+  bloqueados;
+- rollback permanece por desligamento de
+  `people.shadow.local-persistence.migration-enabled`, preservando
+  `consultarCadastro` no proxy do monolito.
+
+Contagem da macrofase Fase 65: 1 subfase restante estimada: implementar
+backfill/reconciliacao opt-in de `aluno`, `responsavel` e
+`aluno_responsavel`, ainda sem leitura local ou cutover.
+
+Proxima subfase pratica:
+
+- implementar backfill/reconciliacao opt-in para `aluno`, `responsavel` e
+  `aluno_responsavel`, comparando o read model local com o monolito e mantendo
+  `consultarCadastro` no proxy ate divergencia zero;
+- nao criar adapter local, nao alterar BFF/frontend, nao habilitar escrita local
+  e nao incluir endereco nesta macrofase sem mudanca explicita de contrato.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -2982,11 +3013,11 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Preparar o schema opt-in do read model de `consultarCadastro` com `aluno`,
-`responsavel` e `aluno_responsavel`, preservando IDs do monolito e mantendo
-`consultarCadastro` no proxy do monolito. Nao incluir `endereco`,
-`pessoa_endereco` ou `tipo_endereco` enquanto o contrato dessa consulta nao
-expuser esses campos.
+Implementar backfill/reconciliacao opt-in para `aluno`, `responsavel` e
+`aluno_responsavel`, comparando o read model local com o monolito e mantendo
+`consultarCadastro` no proxy ate divergencia zero. Nao criar adapter local, nao
+alterar BFF/frontend, nao habilitar escrita local e nao incluir endereco nesta
+macrofase sem mudanca explicita de contrato.
 
 Entregue na oitava subfase:
 

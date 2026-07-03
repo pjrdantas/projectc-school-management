@@ -12,11 +12,11 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
 
         var plan = planner.planejarProximaFatiaTransacional();
 
-        assertThat(plan.status()).isEqualTo("consultar_cadastro_contract_mapped_without_cutover");
+        assertThat(plan.status()).isEqualTo("student_responsible_schema_prepared_without_cutover");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("prepare_student_responsible_schema_opt_in_for_consultar_cadastro");
+                .isEqualTo("implement_student_responsible_backfill_reconciliation_opt_in");
         assertThat(plan.minimalNextSlice()).isEqualTo("pessoa_student_responsible_read_model");
-        assertThat(plan.migrationAllowedNow()).isFalse();
+        assertThat(plan.migrationAllowedNow()).isTrue();
         assertThat(plan.backfillAllowedNow()).isFalse();
         assertThat(plan.localReadCutoverAllowedNow()).isFalse();
         assertThat(plan.candidateTables())
@@ -27,7 +27,7 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
         assertThat(plan.candidateTables())
                 .filteredOn("includeInNextSlice", true)
                 .extracting("migrationAllowed")
-                .containsExactly(false, false, false);
+                .containsExactly(true, true, true);
         assertThat(plan.candidateTables())
                 .filteredOn("includeInNextSlice", true)
                 .extracting("backfillAllowed")
@@ -49,7 +49,7 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 "keep-consultarCadastro-on-monolith-until-student-responsible-backfill-is-green",
                 "do-not-add-address-schema-for-current-consultarCadastro-contract",
                 "define-student-responsible-read-model-without-owning-writes",
-                "keep-student-responsible-schema-migration-for-next-subphase",
+                "run-student-responsible-schema-migration-only-with-explicit-opt-in",
                 "keep-pii-read-model-without-public-exposure",
                 "define-reconciliation-by-student-responsible-link",
                 "keep-monolith-as-authority-for-all-writes");

@@ -97,8 +97,9 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                         "tipo_endereco",
                         "pessoa",
                         "pessoa_tipo_pessoa",
-                        "endereco",
-                        "pessoa_endereco");
+                        "aluno",
+                        "responsavel",
+                        "aluno_responsavel");
 
         @SuppressWarnings("unchecked")
         Map<String, Object> backfillPlan = (Map<String, Object>) health.getDetails().get("backfillPlan");
@@ -136,11 +137,11 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         Map<String, Object> transactionalPlan =
                 (Map<String, Object>) health.getDetails().get("transactionalReadModelExpansionPlan");
         assertThat(transactionalPlan)
-                .containsEntry("status", "consultar_cadastro_contract_mapped_without_cutover")
+                .containsEntry("status", "student_responsible_schema_prepared_without_cutover")
                 .containsEntry("recommendedNextStep",
-                        "prepare_student_responsible_schema_opt_in_for_consultar_cadastro")
+                        "implement_student_responsible_backfill_reconciliation_opt_in")
                 .containsEntry("minimalNextSlice", "pessoa_student_responsible_read_model")
-                .containsEntry("migrationAllowedNow", false)
+                .containsEntry("migrationAllowedNow", true)
                 .containsEntry("backfillAllowedNow", false)
                 .containsEntry("localReadCutoverAllowedNow", false);
     }

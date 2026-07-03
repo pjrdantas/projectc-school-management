@@ -68,7 +68,8 @@ class PeopleLocalReadModelSchemaMigrationRunnerTest {
     }
 
     @Test
-    void aplicaMigrationsReadOnlyDosCatalogosEIdentidadeQuandoOptInEstaHabilitado() throws Exception {
+    void aplicaMigrationsReadOnlyDosCatalogosIdentidadeEConsultaCadastroQuandoOptInEstaHabilitado()
+            throws Exception {
         String url = "jdbc:h2:mem:people_schema_" + UUID.randomUUID()
                 + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1";
         PeopleLocalReadModelSchemaMigrationState state = new PeopleLocalReadModelSchemaMigrationState();
@@ -89,7 +90,14 @@ class PeopleLocalReadModelSchemaMigrationRunnerTest {
         assertThat(state.currentReport().status()).isEqualTo("applied");
         assertThat(state.currentReport().success()).isTrue();
         assertThat(state.currentReport().tables())
-                .containsExactly("tipo_pessoa", "tipo_endereco", "pessoa", "pessoa_tipo_pessoa");
+                .containsExactly(
+                        "tipo_pessoa",
+                        "tipo_endereco",
+                        "pessoa",
+                        "pessoa_tipo_pessoa",
+                        "aluno",
+                        "responsavel",
+                        "aluno_responsavel");
         assertThat(meterRegistry.counter(
                 "people.shadow.local.persistence.schema.migrations",
                 "status", "success").count()).isEqualTo(1.0d);
@@ -108,6 +116,18 @@ class PeopleLocalReadModelSchemaMigrationRunnerTest {
         }
         try (var connection = DriverManager.getConnection(url, "sa", "");
                 var resultSet = connection.getMetaData().getTables(null, null, "pessoa_tipo_pessoa", null)) {
+            assertThat(resultSet.next()).isTrue();
+        }
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+                var resultSet = connection.getMetaData().getTables(null, null, "aluno", null)) {
+            assertThat(resultSet.next()).isTrue();
+        }
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+                var resultSet = connection.getMetaData().getTables(null, null, "responsavel", null)) {
+            assertThat(resultSet.next()).isTrue();
+        }
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+                var resultSet = connection.getMetaData().getTables(null, null, "aluno_responsavel", null)) {
             assertThat(resultSet.next()).isTrue();
         }
     }

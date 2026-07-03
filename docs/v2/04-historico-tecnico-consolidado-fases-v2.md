@@ -1377,6 +1377,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   passou a indicar `pessoa_student_responsible_read_model` como proximo recorte
   minimo, ainda sem migration, backfill, adapter local ou cutover. A contagem
   regressiva da macrofase Fase 65 passa a 2 subfases restantes estimadas.
+- A terceira subfase da Fase 65 preparou o schema opt-in do read model minimo de
+  `consultarCadastro` no `people-service`. Foi adicionada a migration
+  `V3__create_people_student_responsible_read_model.sql` com as tabelas locais
+  `aluno`, `responsavel` e `aluno_responsavel`, preservando os IDs do monolito e
+  os campos hoje retornados pela consulta. O health, o runner de migration e o
+  planner transacional passaram a reportar essa fatia como schema preparado por
+  opt-in, mas backfill, reconciliacao, adapter local, BFF/frontend, escrita local
+  e cutover seguem bloqueados. `endereco`, `pessoa_endereco` e `tipo_endereco`
+  continuam fora porque nao compoem o payload real. A contagem regressiva da
+  macrofase Fase 65 passa a 1 subfase restante estimada.
 
 ## Historico resumido
 
