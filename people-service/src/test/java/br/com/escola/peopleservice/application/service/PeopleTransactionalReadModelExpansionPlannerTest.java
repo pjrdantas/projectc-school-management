@@ -12,10 +12,10 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
 
         var plan = planner.planejarProximaFatiaTransacional();
 
-        assertThat(plan.status()).isEqualTo("address_read_model_deep_diagnostic_closed_no_schema");
+        assertThat(plan.status()).isEqualTo("address_internal_contract_prepared_no_schema");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("prepare_internal_address_contract_without_local_schema_or_cutover");
-        assertThat(plan.minimalNextSlice()).isEqualTo("endereco_diagnostic_only_no_cutover");
+                .isEqualTo("diagnose_address_schema_and_backfill_before_any_cutover");
+        assertThat(plan.minimalNextSlice()).isEqualTo("endereco_schema_diagnostic_only_no_cutover");
         assertThat(plan.migrationAllowedNow()).isFalse();
         assertThat(plan.backfillAllowedNow()).isFalse();
         assertThat(plan.localReadCutoverAllowedNow()).isFalse();
@@ -61,8 +61,9 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 .containsExactly("endereco", "pessoa_endereco");
         assertThat(plan.requiredHardening()).contains(
                 "keep-consultarCadastro-guarded-local-read-closed",
-                "do-not-add-address-schema-before-contract-diagnostic",
+                "do-not-add-address-schema-before-schema-diagnostic",
                 "address-consumers-mapped-in-monolith-before-local-read-model",
+                "internal-address-contract-defined-without-jpa-entities",
                 "separate-cep-lookup-from-persisted-address-read-model",
                 "keep-address-orphan-cleanup-on-monolith-until-write-authority-is-defined",
                 "keep-pii-read-model-without-public-exposure",

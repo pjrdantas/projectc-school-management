@@ -138,10 +138,10 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         Map<String, Object> transactionalPlan =
                 (Map<String, Object>) health.getDetails().get("transactionalReadModelExpansionPlan");
         assertThat(transactionalPlan)
-                .containsEntry("status", "address_read_model_deep_diagnostic_closed_no_schema")
+                .containsEntry("status", "address_internal_contract_prepared_no_schema")
                 .containsEntry("recommendedNextStep",
-                        "prepare_internal_address_contract_without_local_schema_or_cutover")
-                .containsEntry("minimalNextSlice", "endereco_diagnostic_only_no_cutover")
+                        "diagnose_address_schema_and_backfill_before_any_cutover")
+                .containsEntry("minimalNextSlice", "endereco_schema_diagnostic_only_no_cutover")
                 .containsEntry("migrationAllowedNow", false)
                 .containsEntry("backfillAllowedNow", false)
                 .containsEntry("localReadCutoverAllowedNow", false);
@@ -151,13 +151,20 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 (Map<String, Object>) health.getDetails().get("nextBlockedSliceDiagnostic");
         assertThat(nextBlockedSlice)
                 .containsEntry("slice", "endereco")
-                .containsEntry("status", "deep_diagnostic_closed_implementation_still_blocked")
+                .containsEntry("status", "internal_contract_prepared_schema_still_blocked")
                 .containsEntry("implementationAllowedNow", false)
                 .containsEntry("schemaAllowedNow", false)
                 .containsEntry("backfillAllowedNow", false)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("dependsOnClosedSlice", "consultarCadastro")
-                .containsEntry("firstSafeImplementationSlice", "internal_address_contract_only_no_schema");
+                .containsEntry("firstSafeImplementationSlice", "address_schema_diagnostic_only_no_cutover");
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> preparedInternalContract =
+                (java.util.Map<String, Object>) nextBlockedSlice.get("preparedInternalContract");
+        assertThat(preparedInternalContract)
+                .containsEntry("port", "PessoaEnderecoPort")
+                .containsEntry("summary", "PessoaEnderecoResumo")
+                .containsEntry("jpaEntityExposure", false);
         @SuppressWarnings("unchecked")
         java.util.List<String> requiredContractDecisions =
                 (java.util.List<String>) nextBlockedSlice.get("requiredContractDecisions");

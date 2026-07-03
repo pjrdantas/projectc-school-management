@@ -3127,13 +3127,39 @@ Contagem da macrofase Fase 67: 1 subfase restante estimada: criar o contrato
 interno entity-free de endereco no monolito/people boundary, ainda sem schema
 local nem rota externa.
 
-Proxima subfase pratica:
+Entregue na segunda subfase da Fase 67:
 
-- introduzir contrato interno minimo de endereco sem expor entidades JPA,
-  cobrindo endereco principal por pessoa, tipo de endereco e estrategia de
-  limpeza/orfandade;
-- manter ViaCEP como adapter externo separado e manter `endereco` no monolito,
-  sem migration local, sem backfill, sem BFF/frontend e sem cutover.
+- foi introduzido o contrato interno `PessoaEnderecoPort`, sem expor entidades
+  JPA, cobrindo busca do endereco principal por pessoa e remocao dos vinculos de
+  endereco com limpeza de endereco orfao;
+- foi criado o DTO interno `PessoaEnderecoResumo`, usado como fronteira
+  entity-free para `id_pessoa_endereco`, `id_endereco`, campos de endereco,
+  tipo de endereco e flag `principal`;
+- `PessoaFoundationService` passou a implementar tambem essa porta, mantendo a
+  autoridade de escrita e limpeza no monolito atual;
+- `AlunoPersistenceGateway` e `ResponsavelPersistenceGateway` deixaram de
+  consultar `PessoaEnderecoJpaRepository`, `EnderecoJpaRepository`,
+  `PessoaEnderecoEntity` e `EnderecoEntity` diretamente para leitura do endereco
+  principal e limpeza de vinculos/orfaos;
+- o health `peopleLocalPersistence` passou a expor `preparedInternalContract`
+  com `PessoaEnderecoPort`, `PessoaEnderecoResumo` e `jpaEntityExposure=false`;
+- ViaCEP continua separado como adapter externo e nao foi transformado em fonte
+  do read model;
+- nao houve migration local, backfill, BFF/frontend, rota externa nova, escrita
+  local ou cutover.
+
+Contagem da macrofase Fase 67: 0 subfases restantes. A Fase 67 fica fechada com
+contrato interno de endereco preparado e schema local ainda bloqueado.
+
+Proxima fase pratica:
+
+- iniciar diagnostico de schema/backfill local de `endereco` e
+  `pessoa_endereco` no `people-service`, agora partindo do contrato interno ja
+  estabilizado;
+- definir colunas minimas, chave de reconciliacao por `pessoa_endereco`, regra
+  de endereco principal e estrategia de rollback;
+- manter `endereco` no monolito como autoridade, sem BFF/frontend, sem escrita
+  local e sem cutover.
 
 ### Fase futura - Desativacao do monolito
 
@@ -3156,11 +3182,11 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Introduzir contrato interno minimo de endereco sem expor entidades JPA,
-cobrindo endereco principal por pessoa, tipo de endereco e estrategia de
-limpeza/orfandade. Manter ViaCEP como adapter externo separado e manter
-`endereco` no monolito, sem migration local, sem backfill, sem BFF/frontend e
-sem cutover.
+Iniciar diagnostico de schema/backfill local de `endereco` e `pessoa_endereco`
+no `people-service`, partindo do contrato interno ja estabilizado. Definir
+colunas minimas, chave de reconciliacao por `pessoa_endereco`, regra de endereco
+principal e estrategia de rollback. Manter `endereco` no monolito como
+autoridade, sem BFF/frontend, sem escrita local e sem cutover.
 
 Entregue na oitava subfase:
 

@@ -28,13 +28,11 @@ import br.com.escola.transferencia.adapter.out.persistence.repository.Transferen
 import br.com.escola.compartilhado.pessoa.dto.EnderecoDados;
 import br.com.escola.compartilhado.pessoa.dto.PessoaCriada;
 import br.com.escola.compartilhado.pessoa.dto.PessoaDados;
-import br.com.escola.compartilhado.endereco.entity.EnderecoEntity;
-import br.com.escola.compartilhado.endereco.entity.PessoaEnderecoEntity;
-import br.com.escola.compartilhado.endereco.repository.EnderecoJpaRepository;
-import br.com.escola.compartilhado.endereco.repository.PessoaEnderecoJpaRepository;
+import br.com.escola.compartilhado.pessoa.dto.internal.PessoaEnderecoResumo;
 import br.com.escola.compartilhado.pessoa.repository.PessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.repository.PessoaTipoPessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.port.internal.PessoaCadastroPort;
+import br.com.escola.compartilhado.pessoa.port.internal.PessoaEnderecoPort;
 import br.com.escola.institucional.application.service.EscolaTenantService;
 
 @Component
@@ -44,9 +42,8 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     private final StatusAlunoJpaRepository statusAlunoJpaRepository;
     private final PessoaJpaRepository pessoaJpaRepository;
     private final PessoaTipoPessoaJpaRepository pessoaTipoPessoaJpaRepository;
-    private final EnderecoJpaRepository enderecoJpaRepository;
-    private final PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository;
     private final PessoaCadastroPort pessoaCadastroPort;
+    private final PessoaEnderecoPort pessoaEnderecoPort;
     private final AlunoResponsavelJpaRepository alunoResponsavelJpaRepository;
     private final ResponsavelJpaRepository responsavelJpaRepository;
     private final HistoricoEscolarJpaRepository historicoEscolarJpaRepository;
@@ -60,9 +57,8 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
             StatusAlunoJpaRepository statusAlunoJpaRepository,
             PessoaJpaRepository pessoaJpaRepository,
             PessoaTipoPessoaJpaRepository pessoaTipoPessoaJpaRepository,
-            EnderecoJpaRepository enderecoJpaRepository,
-            PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository,
             PessoaCadastroPort pessoaCadastroPort,
+            PessoaEnderecoPort pessoaEnderecoPort,
             AlunoResponsavelJpaRepository alunoResponsavelJpaRepository,
             ResponsavelJpaRepository responsavelJpaRepository,
             HistoricoEscolarJpaRepository historicoEscolarJpaRepository,
@@ -74,9 +70,8 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
         this.statusAlunoJpaRepository = statusAlunoJpaRepository;
         this.pessoaJpaRepository = pessoaJpaRepository;
         this.pessoaTipoPessoaJpaRepository = pessoaTipoPessoaJpaRepository;
-        this.enderecoJpaRepository = enderecoJpaRepository;
-        this.pessoaEnderecoJpaRepository = pessoaEnderecoJpaRepository;
         this.pessoaCadastroPort = pessoaCadastroPort;
+        this.pessoaEnderecoPort = pessoaEnderecoPort;
         this.alunoResponsavelJpaRepository = alunoResponsavelJpaRepository;
         this.responsavelJpaRepository = responsavelJpaRepository;
         this.historicoEscolarJpaRepository = historicoEscolarJpaRepository;
@@ -160,17 +155,9 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     }
 
     private void cleanupPessoa(UUID pessoaId) {
-        List<UUID> enderecoIds = pessoaEnderecoJpaRepository.findByPessoaId(pessoaId).stream()
-                .map(PessoaEnderecoEntity::getEndereco)
-                .map(EnderecoEntity::getId)
-                .toList();
-
         documentoJpaRepository.deletePessoaDocumentoByPessoaId(pessoaId);
         documentoJpaRepository.deleteDocumentosSemVinculo();
-        pessoaEnderecoJpaRepository.deleteByPessoaId(pessoaId);
-        enderecoIds.stream()
-                .filter(enderecoId -> pessoaEnderecoJpaRepository.countByEnderecoId(enderecoId) == 0)
-                .forEach(enderecoJpaRepository::deleteById);
+        pessoaEnderecoPort.removerEnderecosDaPessoaRemovendoOrfaos(pessoaId);
         pessoaTipoPessoaJpaRepository.deleteByPessoaId(pessoaId);
         pessoaJpaRepository.deleteById(pessoaId);
     }
@@ -191,9 +178,8 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
     }
 
     private AlunoOutput toOutput(AlunoEntity entity) {
-        EnderecoEntity endereco = pessoaEnderecoJpaRepository
-                .findPrincipalByPessoaId(entity.getPessoa().getId())
-                .map(PessoaEnderecoEntity::getEndereco)
+        PessoaEnderecoResumo endereco = pessoaEnderecoPort
+                .buscarEnderecoPrincipalPorPessoa(entity.getPessoa().getId())
                 .orElse(null);
 
         return new AlunoOutput(
@@ -210,13 +196,13 @@ public class AlunoPersistenceGateway implements AlunoCommandGateway, AlunoQueryG
                 entity.getNaturalidade(),
                 entity.getSexo(),
                 entity.getNomeSocial(),
-                endereco != null ? endereco.getCep() : null,
-                endereco != null ? endereco.getLogradouro() : null,
-                endereco != null ? endereco.getNumero() : null,
-                endereco != null ? endereco.getComplemento() : null,
-                endereco != null ? endereco.getBairro() : null,
-                endereco != null ? endereco.getCidade() : null,
-                endereco != null ? endereco.getUf() : null,
+                endereco != null ? endereco.cep() : null,
+                endereco != null ? endereco.logradouro() : null,
+                endereco != null ? endereco.numero() : null,
+                endereco != null ? endereco.complemento() : null,
+                endereco != null ? endereco.bairro() : null,
+                endereco != null ? endereco.cidade() : null,
+                endereco != null ? endereco.uf() : null,
                 entity.getStatusAluno(),
                 entity.getPessoa().getEscola().getId(),
                 entity.getPessoa().getEscola().getNome(),

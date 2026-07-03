@@ -12,9 +12,9 @@ public class PeopleTransactionalReadModelExpansionPlanner {
 
     public PeopleTransactionalReadModelExpansionPlan planejarProximaFatiaTransacional() {
         return new PeopleTransactionalReadModelExpansionPlan(
-                "address_read_model_deep_diagnostic_closed_no_schema",
-                "prepare_internal_address_contract_without_local_schema_or_cutover",
-                "endereco_diagnostic_only_no_cutover",
+                "address_internal_contract_prepared_no_schema",
+                "diagnose_address_schema_and_backfill_before_any_cutover",
+                "endereco_schema_diagnostic_only_no_cutover",
                 false,
                 false,
                 false,
@@ -151,8 +151,9 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 "requires_diagnostic_before_address_read_model")),
                 List.of(
                         "keep-consultarCadastro-guarded-local-read-closed",
-                        "do-not-add-address-schema-before-contract-diagnostic",
+                        "do-not-add-address-schema-before-schema-diagnostic",
                         "address-consumers-mapped-in-monolith-before-local-read-model",
+                        "internal-address-contract-defined-without-jpa-entities",
                         "separate-cep-lookup-from-persisted-address-read-model",
                         "keep-address-orphan-cleanup-on-monolith-until-write-authority-is-defined",
                         "define-reconciliation-by-person-address-link-before-backfill",

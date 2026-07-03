@@ -225,19 +225,27 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private Map<String, Object> diagnosticoProximaFatiaBloqueada() {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("slice", "endereco");
-        details.put("status", "deep_diagnostic_closed_implementation_still_blocked");
+        details.put("status", "internal_contract_prepared_schema_still_blocked");
         details.put("implementationAllowedNow", false);
         details.put("schemaAllowedNow", false);
         details.put("backfillAllowedNow", false);
         details.put("localReadCutoverAllowedNow", false);
         details.put("dependsOnClosedSlice", "consultarCadastro");
         details.put("tables", List.of("endereco", "pessoa_endereco"));
-        details.put("firstSafeImplementationSlice", "internal_address_contract_only_no_schema");
+        details.put("firstSafeImplementationSlice", "address_schema_diagnostic_only_no_cutover");
         details.put("requiredContractDecisions", List.of(
                 "define-if-address-read-model-belongs-to-pessoa-detail-or-own-address-query",
+                "define-address-schema-columns-preserving-monolith-identifiers",
                 "separate-external-cep-lookup-from-persisted-address-data",
                 "define-person-address-principal-selection-and-multiple-address-behavior",
                 "define-reconciliation-key-by-pessoa_endereco-before-backfill"));
+        details.put("preparedInternalContract", Map.of(
+                "port", "PessoaEnderecoPort",
+                "summary", "PessoaEnderecoResumo",
+                "operations", List.of(
+                        "buscarEnderecoPrincipalPorPessoa",
+                        "removerEnderecosDaPessoaRemovendoOrfaos"),
+                "jpaEntityExposure", false));
         details.put("writeConsumers", List.of(
                 "PessoaFoundationService.criarPessoaComTipoEEndereco",
                 "PessoaFoundationService.atualizarPessoaEEndereco",

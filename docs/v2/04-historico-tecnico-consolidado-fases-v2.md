@@ -1438,6 +1438,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   da consulta externa ViaCEP. A decisao tecnica e que a proxima subfase segura
   deve criar apenas contrato interno entity-free de endereco, ainda sem schema
   local, sem BFF/frontend, sem escrita local e sem cutover.
+- A segunda subfase da Fase 67 preparou esse contrato interno entity-free de
+  endereco dentro do monolito, ainda sem schema local e sem rota externa. Foram
+  criados `PessoaEnderecoPort` e `PessoaEnderecoResumo` para expor endereco
+  principal por pessoa e limpeza de vinculos/endereco orfao sem vazar
+  `EnderecoEntity`, `PessoaEnderecoEntity` ou repositorios JPA para os
+  consumidores. `AlunoPersistenceGateway` e `ResponsavelPersistenceGateway`
+  passaram a consultar endereco principal e remover enderecos via essa porta,
+  preservando comportamento externo. O health do `people-service` passou a
+  reportar `preparedInternalContract`, enquanto schema, backfill, BFF/frontend,
+  escrita local e cutover continuam bloqueados. A contagem regressiva da Fase
+  67 chega a 0.
 
 ## Historico resumido
 

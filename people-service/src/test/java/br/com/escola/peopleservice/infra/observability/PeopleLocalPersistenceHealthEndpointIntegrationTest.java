@@ -63,13 +63,19 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         Map<String, Object> nextBlockedSlice = (Map<String, Object>) details.get("nextBlockedSliceDiagnostic");
         assertThat(nextBlockedSlice)
                 .containsEntry("slice", "endereco")
-                .containsEntry("status", "deep_diagnostic_closed_implementation_still_blocked")
+                .containsEntry("status", "internal_contract_prepared_schema_still_blocked")
                 .containsEntry("implementationAllowedNow", false)
                 .containsEntry("schemaAllowedNow", false)
                 .containsEntry("backfillAllowedNow", false)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("dependsOnClosedSlice", "consultarCadastro")
-                .containsEntry("firstSafeImplementationSlice", "internal_address_contract_only_no_schema");
+                .containsEntry("firstSafeImplementationSlice", "address_schema_diagnostic_only_no_cutover");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> preparedInternalContract =
+                (Map<String, Object>) nextBlockedSlice.get("preparedInternalContract");
+        assertThat(preparedInternalContract)
+                .containsEntry("port", "PessoaEnderecoPort")
+                .containsEntry("jpaEntityExposure", false);
         @SuppressWarnings("unchecked")
         java.util.List<String> writeConsumers = (java.util.List<String>) nextBlockedSlice.get("writeConsumers");
         assertThat(writeConsumers).contains("PessoaFoundationService.atualizarPessoaEEndereco");
