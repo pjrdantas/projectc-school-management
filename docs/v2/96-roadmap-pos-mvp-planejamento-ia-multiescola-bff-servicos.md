@@ -2929,6 +2929,38 @@ Proxima subfase pratica:
 - manter o recorte em diagnostico backend/backend, sem migration nova, sem
   adapter local de `consultarCadastro`, sem BFF/frontend e sem escrita.
 
+Entregue na segunda subfase da Fase 65:
+
+- o contrato real de `consultarCadastro` foi mapeado diretamente no monolito e
+  no espelho do `people-service`;
+- a rota atual `GET /internal/pessoas/consulta-cadastral` recebe filtros
+  `nomeAluno`, `cpfAluno`, `nomeResponsavel`, `cpfResponsavel`, `page` e
+  `size`, normaliza strings em branco para `null`, limita `size` a 100 e ordena
+  a pagina por nome do aluno;
+- o payload atual retorna somente `content`, `totalElements`, `page` e `size`;
+  cada item de `content` contem aluno com `idAluno`, `nomeCompleto`, `cpf`,
+  `email`, `telefone`, `dataNascimento`, `createdAt` e lista de responsaveis
+  com `id`, `nomeCompleto`, `cpf`, `email`, `telefone`, `createdAt`;
+- a consulta real usa `aluno`, `responsavel` e `aluno_responsavel`; apesar do
+  nome da macrofase ter iniciado pela hipotese de endereco, `endereco`,
+  `pessoa_endereco` e `tipo_endereco` nao fazem parte do payload atual de
+  `consultarCadastro` e ficam explicitamente fora do proximo schema;
+- o planner interno passou a classificar o proximo recorte minimo como
+  `pessoa_student_responsible_read_model`, ainda sem autorizar migration,
+  backfill, adapter local, BFF/frontend, escrita ou cutover.
+
+Contagem da macrofase Fase 65: 2 subfases restantes estimadas: preparar schema
+opt-in para `aluno`, `responsavel` e `aluno_responsavel`, e depois avaliar
+backfill/reconciliacao antes de qualquer leitura local.
+
+Proxima subfase pratica:
+
+- preparar o schema opt-in do read model de `consultarCadastro` com
+  `aluno`, `responsavel` e `aluno_responsavel`, preservando IDs do monolito e
+  mantendo `consultarCadastro` no proxy do monolito;
+- nao incluir `endereco`, `pessoa_endereco` ou `tipo_endereco` enquanto o
+  contrato externo dessa consulta nao expuser esses campos.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -2950,11 +2982,11 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Iniciar a proxima macrofase do `people-service` por diagnostico, escolhendo
-entre endurecimento operacional da leitura local de identidade ja criada ou
-expansao controlada para `consultarCadastro` com `endereco` e
-`pessoa_endereco`, sem BFF/frontend, sem escrita local e sem remover o monolito
-como fallback.
+Preparar o schema opt-in do read model de `consultarCadastro` com `aluno`,
+`responsavel` e `aluno_responsavel`, preservando IDs do monolito e mantendo
+`consultarCadastro` no proxy do monolito. Nao incluir `endereco`,
+`pessoa_endereco` ou `tipo_endereco` enquanto o contrato dessa consulta nao
+expuser esses campos.
 
 Entregue na oitava subfase:
 

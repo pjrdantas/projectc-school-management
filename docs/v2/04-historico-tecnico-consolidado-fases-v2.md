@@ -1368,6 +1368,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `endereco` e `pessoa_endereco` sao candidatas da proxima fatia, ainda sem
   autorizacao de migration, backfill ou leitura local. A contagem regressiva da
   macrofase Fase 65 passa a 3 subfases restantes estimadas.
+- A segunda subfase da Fase 65 mapeou o contrato real de `consultarCadastro`.
+  A rota atual filtra por aluno/responsavel e pagina o resultado, mas o payload
+  nao expõe endereco. Cada item retorna dados do aluno e sua lista de
+  responsaveis; a consulta do monolito usa `aluno`, `responsavel` e
+  `aluno_responsavel`. Com isso, a hipotese inicial de preparar
+  `endereco`/`pessoa_endereco` foi bloqueada para este contrato, e o planner
+  passou a indicar `pessoa_student_responsible_read_model` como proximo recorte
+  minimo, ainda sem migration, backfill, adapter local ou cutover. A contagem
+  regressiva da macrofase Fase 65 passa a 2 subfases restantes estimadas.
 
 ## Historico resumido
 
