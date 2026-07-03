@@ -12,11 +12,11 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
 
         var plan = planner.planejarProximaFatiaTransacional();
 
-        assertThat(plan.status()).isEqualTo("address_schema_backfill_diagnostic_closed_no_migration");
+        assertThat(plan.status()).isEqualTo("address_schema_migration_opt_in_prepared_no_backfill");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("prepare_address_schema_migration_opt_in_without_backfill_or_cutover");
-        assertThat(plan.minimalNextSlice()).isEqualTo("address_schema_migration_opt_in_no_backfill");
-        assertThat(plan.migrationAllowedNow()).isFalse();
+                .isEqualTo("diagnose_address_backfill_and_reconciliation_before_read_cutover");
+        assertThat(plan.minimalNextSlice()).isEqualTo("address_backfill_reconciliation_diagnostic_no_cutover");
+        assertThat(plan.migrationAllowedNow()).isTrue();
         assertThat(plan.backfillAllowedNow()).isFalse();
         assertThat(plan.localReadCutoverAllowedNow()).isFalse();
         assertThat(plan.candidateTables())
@@ -56,11 +56,16 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 .extracting("table")
                 .isEmpty();
         assertThat(plan.candidateTables())
-                .filteredOn("reason", "schema_backfill_diagnostic_closed_migration_not_created")
+                .filteredOn("reason", "schema_migration_opt_in_prepared_backfill_not_created")
                 .extracting("table")
                 .containsExactly("endereco", "pessoa_endereco");
+        assertThat(plan.candidateTables())
+                .filteredOn("reason", "schema_migration_opt_in_prepared_backfill_not_created")
+                .extracting("migrationAllowed")
+                .containsExactly(true, true);
         assertThat(plan.requiredHardening()).contains(
                 "keep-consultarCadastro-guarded-local-read-closed",
+                "address-schema-migration-opt-in-prepared",
                 "address-schema-columns-defined",
                 "reconciliation-key-by-pessoa-endereco-defined",
                 "principal-address-rule-defined",
@@ -77,6 +82,6 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 "keep-pessoa-identity-local-read-on-monolith-fallback",
                 "disable-people.shadow.local-persistence.read-model-cutover-enabled",
                 "keep-consultarCadastro-on-monolith-proxy-when-guard-is-not-green",
-                "do-not-create-address-read-model-tables-without-explicit-opt-in");
+                "do-not-run-address-backfill-without-explicit-opt-in");
     }
 }

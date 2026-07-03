@@ -3205,6 +3205,43 @@ Proxima fase pratica:
   `endereco` no monolito como autoridade;
 - nao alterar BFF/frontend, rotas externas ou escrita local.
 
+Entregue na segunda subfase da Fase 68:
+
+- foi criada a migration opt-in `V4__create_people_address_read_model.sql` no
+  `people-service`, adicionando as tabelas read-only candidatas `endereco` e
+  `pessoa_endereco` ao schema local de people;
+- a migration preserva os IDs originais do monolito (`id_endereco` e
+  `id_pessoa_endereco`) e mantém as dependencias para `pessoa` e
+  `tipo_endereco`, sem criar escrita local nem alterar rotas externas;
+- o runner de schema passou a reportar `endereco` e `pessoa_endereco` no
+  conjunto de tabelas migraveis quando
+  `people.shadow.local-persistence.migration-enabled=true`, mas a flag continua
+  desligada por padrao;
+- o planner transacional passou a reportar
+  `address_schema_migration_opt_in_prepared_no_backfill`, liberando apenas a
+  migration opt-in e mantendo `backfillAllowedNow=false` e
+  `localReadCutoverAllowedNow=false`;
+- o health `peopleLocalPersistence` passou a indicar
+  `schema_migration_opt_in_prepared_backfill_still_blocked`, com referencia
+  explicita a `V4__create_people_address_read_model.sql`,
+  `enabledByDefault=false` e `automaticBackfill=false`;
+- nao houve backfill, reconciliacao, adapter de leitura local de endereco,
+  BFF/frontend, rota externa nova, escrita local ou cutover.
+
+Contagem da macrofase Fase 68: 1 subfase restante estimada: diagnosticar e
+preparar o backfill/reconciliacao de `endereco` e `pessoa_endereco`, ainda sem
+cutover externo.
+
+Proxima fase pratica:
+
+- diagnosticar e preparar o menor backfill/reconciliacao opt-in para
+  `endereco` e `pessoa_endereco`, usando `pessoa_endereco.id_pessoa_endereco`
+  como chave principal de reconciliacao;
+- bloquear qualquer leitura local quando houver multiplos enderecos principais
+  por pessoa ou divergencia em campos normalizados de endereco;
+- manter `endereco` no monolito como autoridade, sem BFF/frontend, sem escrita
+  local e sem cutover.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3226,11 +3263,12 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Preparar a migration opt-in de schema local para `endereco` e
-`pessoa_endereco` no `people-service`, preservando IDs do monolito e sem
-backfill automatico. Manter as flags de migration, backfill e cutover desligadas
-por padrao, manter `endereco` no monolito como autoridade e nao alterar
-BFF/frontend, rotas externas ou escrita local.
+Diagnosticar e preparar o menor backfill/reconciliacao opt-in para `endereco` e
+`pessoa_endereco`, usando `pessoa_endereco.id_pessoa_endereco` como chave
+principal de reconciliacao. Bloquear qualquer leitura local quando houver
+multiplos enderecos principais por pessoa ou divergencia em campos normalizados
+de endereco. Manter `endereco` no monolito como autoridade, sem BFF/frontend,
+sem escrita local e sem cutover.
 
 Entregue na oitava subfase:
 

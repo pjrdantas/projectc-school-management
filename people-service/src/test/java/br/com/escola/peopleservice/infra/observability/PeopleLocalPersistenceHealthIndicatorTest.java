@@ -138,11 +138,11 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         Map<String, Object> transactionalPlan =
                 (Map<String, Object>) health.getDetails().get("transactionalReadModelExpansionPlan");
         assertThat(transactionalPlan)
-                .containsEntry("status", "address_schema_backfill_diagnostic_closed_no_migration")
+                .containsEntry("status", "address_schema_migration_opt_in_prepared_no_backfill")
                 .containsEntry("recommendedNextStep",
-                        "prepare_address_schema_migration_opt_in_without_backfill_or_cutover")
-                .containsEntry("minimalNextSlice", "address_schema_migration_opt_in_no_backfill")
-                .containsEntry("migrationAllowedNow", false)
+                        "diagnose_address_backfill_and_reconciliation_before_read_cutover")
+                .containsEntry("minimalNextSlice", "address_backfill_reconciliation_diagnostic_no_cutover")
+                .containsEntry("migrationAllowedNow", true)
                 .containsEntry("backfillAllowedNow", false)
                 .containsEntry("localReadCutoverAllowedNow", false);
 
@@ -151,13 +151,13 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 (Map<String, Object>) health.getDetails().get("nextBlockedSliceDiagnostic");
         assertThat(nextBlockedSlice)
                 .containsEntry("slice", "endereco")
-                .containsEntry("status", "schema_backfill_diagnostic_closed_migration_still_blocked")
+                .containsEntry("status", "schema_migration_opt_in_prepared_backfill_still_blocked")
                 .containsEntry("implementationAllowedNow", false)
-                .containsEntry("schemaAllowedNow", false)
+                .containsEntry("schemaAllowedNow", true)
                 .containsEntry("backfillAllowedNow", false)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("dependsOnClosedSlice", "consultarCadastro")
-                .containsEntry("firstSafeImplementationSlice", "address_schema_migration_opt_in_no_backfill");
+                .containsEntry("firstSafeImplementationSlice", "address_backfill_reconciliation_diagnostic_no_cutover");
         @SuppressWarnings("unchecked")
         java.util.Map<String, Object> preparedInternalContract =
                 (java.util.Map<String, Object>) nextBlockedSlice.get("preparedInternalContract");
@@ -200,12 +200,18 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 (Map<String, Object>) health.getDetails().get("addressSchemaBackfillDiagnostic");
         assertThat(addressDiagnostic)
                 .containsEntry("slice", "endereco_pessoa_endereco")
-                .containsEntry("status", "schema_backfill_diagnostic_closed_migration_still_blocked")
-                .containsEntry("migrationAllowedNow", false)
+                .containsEntry("status", "schema_migration_opt_in_prepared_backfill_still_blocked")
+                .containsEntry("migrationAllowedNow", true)
                 .containsEntry("backfillAllowedNow", false)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("reconciliationKey", "pessoa_endereco.id_pessoa_endereco")
-                .containsEntry("nextImplementationSlice", "address_schema_migration_opt_in_no_backfill");
+                .containsEntry("nextImplementationSlice", "address_backfill_reconciliation_diagnostic_no_cutover");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> addressSchemaMigration = (Map<String, Object>) addressDiagnostic.get("schemaMigration");
+        assertThat(addressSchemaMigration)
+                .containsEntry("version", "V4__create_people_address_read_model.sql")
+                .containsEntry("enabledByDefault", false)
+                .containsEntry("automaticBackfill", false);
         @SuppressWarnings("unchecked")
         Map<String, java.util.List<String>> minimalColumns =
                 (Map<String, java.util.List<String>>) addressDiagnostic.get("minimalColumns");

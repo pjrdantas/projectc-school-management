@@ -1461,6 +1461,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   apenas migration opt-in de schema para `endereco`/`pessoa_endereco`, sem
   backfill automatico, sem BFF/frontend, sem escrita local e sem cutover. A
   contagem regressiva da Fase 68 passa a 2 subfases restantes estimadas.
+- A segunda subfase da Fase 68 preparou a migration opt-in
+  `V4__create_people_address_read_model.sql` no `people-service`, criando as
+  tabelas read-only candidatas `endereco` e `pessoa_endereco` com IDs
+  preservados do monolito, dependencias para `pessoa` e `tipo_endereco`, e
+  indices de apoio. O runner de schema passou a reportar essas tabelas no
+  conjunto migravel quando a flag de migration for habilitada, mas a flag
+  continua desligada por padrao. O planner passou a reportar
+  `address_schema_migration_opt_in_prepared_no_backfill`, liberando apenas a
+  migration opt-in e mantendo backfill/cutover bloqueados. O health
+  `peopleLocalPersistence` passou a indicar
+  `schema_migration_opt_in_prepared_backfill_still_blocked`, com referencia
+  explicita a V4, `enabledByDefault=false` e `automaticBackfill=false`. Nao
+  houve backfill, reconciliacao, leitura local de endereco, BFF/frontend,
+  escrita local ou cutover. A contagem regressiva da Fase 68 passa a 1 subfase
+  restante estimada.
 
 ## Historico resumido
 

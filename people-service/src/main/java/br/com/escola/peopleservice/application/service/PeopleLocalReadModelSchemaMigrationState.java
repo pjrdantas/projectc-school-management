@@ -18,7 +18,16 @@ public class PeopleLocalReadModelSchemaMigrationState {
                     "disabled",
                     "schema-migration-disabled",
                     List.of("classpath:db/people-readmodel/migration"),
-                    List.of("tipo_pessoa", "tipo_endereco"),
+                    List.of(
+                            "tipo_pessoa",
+                            "tipo_endereco",
+                            "pessoa",
+                            "pessoa_tipo_pessoa",
+                            "aluno",
+                            "responsavel",
+                            "aluno_responsavel",
+                            "endereco",
+                            "pessoa_endereco"),
                     0));
 
     public PeopleLocalReadModelSchemaMigrationReport currentReport() {

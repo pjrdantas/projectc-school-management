@@ -63,13 +63,13 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         Map<String, Object> nextBlockedSlice = (Map<String, Object>) details.get("nextBlockedSliceDiagnostic");
         assertThat(nextBlockedSlice)
                 .containsEntry("slice", "endereco")
-                .containsEntry("status", "schema_backfill_diagnostic_closed_migration_still_blocked")
+                .containsEntry("status", "schema_migration_opt_in_prepared_backfill_still_blocked")
                 .containsEntry("implementationAllowedNow", false)
-                .containsEntry("schemaAllowedNow", false)
+                .containsEntry("schemaAllowedNow", true)
                 .containsEntry("backfillAllowedNow", false)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("dependsOnClosedSlice", "consultarCadastro")
-                .containsEntry("firstSafeImplementationSlice", "address_schema_migration_opt_in_no_backfill");
+                .containsEntry("firstSafeImplementationSlice", "address_backfill_reconciliation_diagnostic_no_cutover");
         @SuppressWarnings("unchecked")
         Map<String, Object> preparedInternalContract =
                 (Map<String, Object>) nextBlockedSlice.get("preparedInternalContract");
@@ -85,11 +85,16 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 (Map<String, Object>) details.get("addressSchemaBackfillDiagnostic");
         assertThat(addressDiagnostic)
                 .containsEntry("slice", "endereco_pessoa_endereco")
-                .containsEntry("status", "schema_backfill_diagnostic_closed_migration_still_blocked")
-                .containsEntry("migrationAllowedNow", false)
+                .containsEntry("status", "schema_migration_opt_in_prepared_backfill_still_blocked")
+                .containsEntry("migrationAllowedNow", true)
                 .containsEntry("backfillAllowedNow", false)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("reconciliationKey", "pessoa_endereco.id_pessoa_endereco")
-                .containsEntry("nextImplementationSlice", "address_schema_migration_opt_in_no_backfill");
+                .containsEntry("nextImplementationSlice", "address_backfill_reconciliation_diagnostic_no_cutover");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> schemaMigration = (Map<String, Object>) addressDiagnostic.get("schemaMigration");
+        assertThat(schemaMigration)
+                .containsEntry("version", "V4__create_people_address_read_model.sql")
+                .containsEntry("automaticBackfill", false);
     }
 }

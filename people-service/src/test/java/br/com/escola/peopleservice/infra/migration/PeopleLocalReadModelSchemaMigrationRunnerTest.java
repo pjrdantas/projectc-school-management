@@ -97,7 +97,9 @@ class PeopleLocalReadModelSchemaMigrationRunnerTest {
                         "pessoa_tipo_pessoa",
                         "aluno",
                         "responsavel",
-                        "aluno_responsavel");
+                        "aluno_responsavel",
+                        "endereco",
+                        "pessoa_endereco");
         assertThat(meterRegistry.counter(
                 "people.shadow.local.persistence.schema.migrations",
                 "status", "success").count()).isEqualTo(1.0d);
@@ -128,6 +130,14 @@ class PeopleLocalReadModelSchemaMigrationRunnerTest {
         }
         try (var connection = DriverManager.getConnection(url, "sa", "");
                 var resultSet = connection.getMetaData().getTables(null, null, "aluno_responsavel", null)) {
+            assertThat(resultSet.next()).isTrue();
+        }
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+                var resultSet = connection.getMetaData().getTables(null, null, "endereco", null)) {
+            assertThat(resultSet.next()).isTrue();
+        }
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+                var resultSet = connection.getMetaData().getTables(null, null, "pessoa_endereco", null)) {
             assertThat(resultSet.next()).isTrue();
         }
     }
