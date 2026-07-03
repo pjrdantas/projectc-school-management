@@ -1476,6 +1476,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   houve backfill, reconciliacao, leitura local de endereco, BFF/frontend,
   escrita local ou cutover. A contagem regressiva da Fase 68 passa a 1 subfase
   restante estimada.
+- A terceira subfase da Fase 68 preparou o backfill/reconciliacao opt-in de
+  `endereco` e `pessoa_endereco` no `people-service`, mantendo os IDs originais
+  do monolito como chaves idempotentes (`id_endereco` e
+  `id_pessoa_endereco`) e execucao desligada por padrao via flags. A
+  reconciliacao de endereco compara campos normalizados, a de
+  `pessoa_endereco` valida pessoa/endereco/tipo/principal, e a origem com mais
+  de um endereco principal para a mesma pessoa bloqueia o relatorio com
+  `address-principal-rule-violated`. O planner passou a reportar
+  `address_backfill_reconciliation_prepared_no_read_cutover` e o health passou
+  a reportar `backfill_reconciliation_prepared_read_cutover_still_blocked`,
+  incluindo alvo `people_read_model_address`, blockers de reconciliacao verde e
+  rollback por desligamento de flags. Nao houve leitura local de endereco,
+  BFF/frontend, rota externa, escrita local ou cutover. A contagem regressiva da
+  Fase 68 chega a 0.
 
 ## Historico resumido
 

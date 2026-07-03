@@ -17,7 +17,7 @@ public class PeopleLocalPersistenceOperationState {
                     "disabled",
                     "operation-flags-disabled",
                     0,
-                    2,
+                    9,
                     0,
                     0,
                     0,

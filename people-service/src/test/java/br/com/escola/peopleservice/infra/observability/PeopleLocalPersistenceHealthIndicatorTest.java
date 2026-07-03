@@ -100,7 +100,9 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                         "pessoa_tipo_pessoa",
                         "aluno",
                         "responsavel",
-                        "aluno_responsavel");
+                        "aluno_responsavel",
+                        "endereco",
+                        "pessoa_endereco");
 
         @SuppressWarnings("unchecked")
         Map<String, Object> backfillPlan = (Map<String, Object>) health.getDetails().get("backfillPlan");
@@ -138,12 +140,12 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         Map<String, Object> transactionalPlan =
                 (Map<String, Object>) health.getDetails().get("transactionalReadModelExpansionPlan");
         assertThat(transactionalPlan)
-                .containsEntry("status", "address_schema_migration_opt_in_prepared_no_backfill")
+                .containsEntry("status", "address_backfill_reconciliation_prepared_no_read_cutover")
                 .containsEntry("recommendedNextStep",
-                        "diagnose_address_backfill_and_reconciliation_before_read_cutover")
-                .containsEntry("minimalNextSlice", "address_backfill_reconciliation_diagnostic_no_cutover")
+                        "close_phase_68_before_address_read_cutover_decision")
+                .containsEntry("minimalNextSlice", "phase_68_closure_no_cutover")
                 .containsEntry("migrationAllowedNow", true)
-                .containsEntry("backfillAllowedNow", false)
+                .containsEntry("backfillAllowedNow", true)
                 .containsEntry("localReadCutoverAllowedNow", false);
 
         @SuppressWarnings("unchecked")
@@ -151,13 +153,13 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 (Map<String, Object>) health.getDetails().get("nextBlockedSliceDiagnostic");
         assertThat(nextBlockedSlice)
                 .containsEntry("slice", "endereco")
-                .containsEntry("status", "schema_migration_opt_in_prepared_backfill_still_blocked")
+                .containsEntry("status", "backfill_reconciliation_prepared_read_cutover_still_blocked")
                 .containsEntry("implementationAllowedNow", false)
                 .containsEntry("schemaAllowedNow", true)
-                .containsEntry("backfillAllowedNow", false)
+                .containsEntry("backfillAllowedNow", true)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("dependsOnClosedSlice", "consultarCadastro")
-                .containsEntry("firstSafeImplementationSlice", "address_backfill_reconciliation_diagnostic_no_cutover");
+                .containsEntry("firstSafeImplementationSlice", "phase_68_closure_no_cutover");
         @SuppressWarnings("unchecked")
         java.util.Map<String, Object> preparedInternalContract =
                 (java.util.Map<String, Object>) nextBlockedSlice.get("preparedInternalContract");
@@ -200,18 +202,25 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 (Map<String, Object>) health.getDetails().get("addressSchemaBackfillDiagnostic");
         assertThat(addressDiagnostic)
                 .containsEntry("slice", "endereco_pessoa_endereco")
-                .containsEntry("status", "schema_migration_opt_in_prepared_backfill_still_blocked")
+                .containsEntry("status", "backfill_reconciliation_prepared_read_cutover_still_blocked")
                 .containsEntry("migrationAllowedNow", true)
-                .containsEntry("backfillAllowedNow", false)
+                .containsEntry("backfillAllowedNow", true)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("reconciliationKey", "pessoa_endereco.id_pessoa_endereco")
-                .containsEntry("nextImplementationSlice", "address_backfill_reconciliation_diagnostic_no_cutover");
+                .containsEntry("nextImplementationSlice", "phase_68_closure_no_cutover");
         @SuppressWarnings("unchecked")
         Map<String, Object> addressSchemaMigration = (Map<String, Object>) addressDiagnostic.get("schemaMigration");
         assertThat(addressSchemaMigration)
                 .containsEntry("version", "V4__create_people_address_read_model.sql")
                 .containsEntry("enabledByDefault", false)
                 .containsEntry("automaticBackfill", false);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> backfillReconciliation =
+                (Map<String, Object>) addressDiagnostic.get("backfillReconciliation");
+        assertThat(backfillReconciliation)
+                .containsEntry("enabledByDefault", false)
+                .containsEntry("source", "monolith_jdbc")
+                .containsEntry("target", "people_read_model_address");
         @SuppressWarnings("unchecked")
         Map<String, java.util.List<String>> minimalColumns =
                 (Map<String, java.util.List<String>>) addressDiagnostic.get("minimalColumns");

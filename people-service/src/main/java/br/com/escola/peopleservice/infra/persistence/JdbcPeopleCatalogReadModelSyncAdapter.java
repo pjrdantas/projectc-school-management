@@ -169,6 +169,53 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                     ) VALUES (?, ?, ?, ?)
                     """);
 
+    private static final EnderecoTable ENDERECO_TABLE = new EnderecoTable(
+            """
+                    SELECT id_endereco, cep, logradouro, numero, complemento, bairro, cidade, uf, created_at, updated_at
+                    FROM endereco
+                    ORDER BY id_endereco
+                    LIMIT ?
+                    """,
+            """
+                    SELECT id_endereco, cep, logradouro, numero, complemento, bairro, cidade, uf, created_at, updated_at
+                    FROM endereco
+                    ORDER BY id_endereco
+                    """,
+            """
+                    UPDATE endereco
+                    SET cep = ?, logradouro = ?, numero = ?, complemento = ?, bairro = ?, cidade = ?, uf = ?,
+                        created_at = ?, updated_at = ?
+                    WHERE id_endereco = ?
+                    """,
+            """
+                    INSERT INTO endereco (
+                        id_endereco, cep, logradouro, numero, complemento, bairro, cidade, uf, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """);
+
+    private static final PessoaEnderecoTable PESSOA_ENDERECO_TABLE = new PessoaEnderecoTable(
+            """
+                    SELECT id_pessoa_endereco, id_pessoa, id_endereco, id_tipo_endereco, principal, created_at
+                    FROM pessoa_endereco
+                    ORDER BY id_pessoa, id_pessoa_endereco
+                    LIMIT ?
+                    """,
+            """
+                    SELECT id_pessoa_endereco, id_pessoa, id_endereco, id_tipo_endereco, principal, created_at
+                    FROM pessoa_endereco
+                    ORDER BY id_pessoa, id_pessoa_endereco
+                    """,
+            """
+                    UPDATE pessoa_endereco
+                    SET id_pessoa = ?, id_endereco = ?, id_tipo_endereco = ?, principal = ?, created_at = ?
+                    WHERE id_pessoa_endereco = ?
+                    """,
+            """
+                    INSERT INTO pessoa_endereco (
+                        id_pessoa_endereco, id_pessoa, id_endereco, id_tipo_endereco, principal, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                    """);
+
     private final PeopleCatalogReadModelBackfillProperties backfillProperties;
     private final PeopleLocalReadModelSchemaMigrationProperties targetProperties;
 
@@ -205,6 +252,8 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
             reports.add(synchronizeAluno(source, target, backfillEnabled, reconciliationEnabled, batchSize));
             reports.add(synchronizeResponsavel(source, target, backfillEnabled, reconciliationEnabled, batchSize));
             reports.add(synchronizeAlunoResponsavel(source, target, backfillEnabled, reconciliationEnabled, batchSize));
+            reports.add(synchronizeEndereco(source, target, backfillEnabled, reconciliationEnabled, batchSize));
+            reports.add(synchronizePessoaEndereco(source, target, backfillEnabled, reconciliationEnabled, batchSize));
             return reports;
         } catch (SQLException ex) {
             throw new IllegalStateException("local-read-model-sync-failed", ex);
@@ -449,6 +498,99 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                 divergences);
     }
 
+    private TableOperationReport synchronizeEndereco(
+            Connection source,
+            Connection target,
+            boolean backfillEnabled,
+            boolean reconciliationEnabled,
+            int batchSize) throws SQLException {
+        List<EnderecoRow> sourceRows = readEnderecoRows(source, ENDERECO_TABLE.sourceLimitedQuery(), batchSize);
+        int backfilledRecords = 0;
+
+        if (backfillEnabled) {
+            for (EnderecoRow row : sourceRows) {
+                backfilledRecords += upsertEndereco(target, row);
+            }
+        }
+
+        List<EnderecoRow> targetRows = reconciliationEnabled
+                ? readEnderecoRows(target, ENDERECO_TABLE.targetQuery(), Integer.MAX_VALUE)
+                : List.of();
+        int divergences = reconciliationEnabled ? countEnderecoDivergences(sourceRows, targetRows) : 0;
+        String status = divergences == 0 ? "success" : "diverged";
+        String reason = divergences == 0 ? "address-sync-completed" : "address-reconciliation-diverged";
+
+        return new TableOperationReport(
+                "endereco",
+                "id_endereco",
+                "monolith_jdbc",
+                "people_read_model_address",
+                status,
+                reason,
+                backfillEnabled,
+                reconciliationEnabled,
+                true,
+                sourceRows.size(),
+                reconciliationEnabled ? targetRows.size() : 0,
+                backfilledRecords,
+                divergences);
+    }
+
+    private TableOperationReport synchronizePessoaEndereco(
+            Connection source,
+            Connection target,
+            boolean backfillEnabled,
+            boolean reconciliationEnabled,
+            int batchSize) throws SQLException {
+        List<PessoaEnderecoRow> sourceRows =
+                readPessoaEnderecoRows(source, PESSOA_ENDERECO_TABLE.sourceLimitedQuery(), batchSize);
+        if (hasMultiplePrincipalAddresses(sourceRows)) {
+            return new TableOperationReport(
+                    "pessoa_endereco",
+                    "id_pessoa_endereco",
+                    "monolith_jdbc",
+                    "people_read_model_address",
+                    "blocked",
+                    "address-principal-rule-violated",
+                    backfillEnabled,
+                    reconciliationEnabled,
+                    true,
+                    sourceRows.size(),
+                    0,
+                    0,
+                    1);
+        }
+
+        int backfilledRecords = 0;
+        if (backfillEnabled) {
+            for (PessoaEnderecoRow row : sourceRows) {
+                backfilledRecords += upsertPessoaEndereco(target, row);
+            }
+        }
+
+        List<PessoaEnderecoRow> targetRows = reconciliationEnabled
+                ? readPessoaEnderecoRows(target, PESSOA_ENDERECO_TABLE.targetQuery(), Integer.MAX_VALUE)
+                : List.of();
+        int divergences = reconciliationEnabled ? countPessoaEnderecoDivergences(sourceRows, targetRows) : 0;
+        String status = divergences == 0 ? "success" : "diverged";
+        String reason = divergences == 0 ? "address-sync-completed" : "address-reconciliation-diverged";
+
+        return new TableOperationReport(
+                "pessoa_endereco",
+                "id_pessoa_endereco",
+                "monolith_jdbc",
+                "people_read_model_address",
+                status,
+                reason,
+                backfillEnabled,
+                reconciliationEnabled,
+                true,
+                sourceRows.size(),
+                reconciliationEnabled ? targetRows.size() : 0,
+                backfilledRecords,
+                divergences);
+    }
+
     private List<CatalogRow> readRows(Connection connection, String query, boolean hasCreatedAt, int limit) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             if (query.contains("LIMIT ?")) {
@@ -596,6 +738,56 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         }
     }
 
+    private List<EnderecoRow> readEnderecoRows(Connection connection, String query, int limit) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            if (query.contains("LIMIT ?")) {
+                statement.setInt(1, Math.max(1, limit));
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<EnderecoRow> rows = new ArrayList<>();
+                while (resultSet.next()) {
+                    Timestamp createdAt = resultSet.getTimestamp("created_at");
+                    Timestamp updatedAt = resultSet.getTimestamp("updated_at");
+                    rows.add(new EnderecoRow(
+                            resultSet.getObject("id_endereco", UUID.class),
+                            resultSet.getString("cep"),
+                            resultSet.getString("logradouro"),
+                            resultSet.getString("numero"),
+                            resultSet.getString("complemento"),
+                            resultSet.getString("bairro"),
+                            resultSet.getString("cidade"),
+                            resultSet.getString("uf"),
+                            createdAt == null ? null : createdAt.toInstant(),
+                            updatedAt == null ? null : updatedAt.toInstant()));
+                }
+                return rows;
+            }
+        }
+    }
+
+    private List<PessoaEnderecoRow> readPessoaEnderecoRows(Connection connection, String query, int limit)
+            throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            if (query.contains("LIMIT ?")) {
+                statement.setInt(1, Math.max(1, limit));
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<PessoaEnderecoRow> rows = new ArrayList<>();
+                while (resultSet.next()) {
+                    Timestamp createdAt = resultSet.getTimestamp("created_at");
+                    rows.add(new PessoaEnderecoRow(
+                            resultSet.getObject("id_pessoa_endereco", UUID.class),
+                            resultSet.getObject("id_pessoa", UUID.class),
+                            resultSet.getObject("id_endereco", UUID.class),
+                            resultSet.getObject("id_tipo_endereco", UUID.class),
+                            resultSet.getBoolean("principal"),
+                            createdAt == null ? null : createdAt.toInstant()));
+                }
+                return rows;
+            }
+        }
+    }
+
     private int upsert(Connection target, CatalogTable table, CatalogRow row) throws SQLException {
         try (PreparedStatement update = target.prepareStatement(table.updateSql())) {
             bindUpdate(update, table, row);
@@ -694,6 +886,46 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
             insert.setObject(2, row.alunoId());
             insert.setObject(3, row.responsavelId());
             insert.setTimestamp(4, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+            return insert.executeUpdate();
+        }
+    }
+
+    private int upsertEndereco(Connection target, EnderecoRow row) throws SQLException {
+        try (PreparedStatement update = target.prepareStatement(ENDERECO_TABLE.updateSql())) {
+            bindEnderecoUpdate(update, row);
+            int updated = update.executeUpdate();
+            if (updated > 0) {
+                return updated;
+            }
+        }
+
+        try (PreparedStatement insert = target.prepareStatement(ENDERECO_TABLE.insertSql())) {
+            bindEnderecoInsert(insert, row);
+            return insert.executeUpdate();
+        }
+    }
+
+    private int upsertPessoaEndereco(Connection target, PessoaEnderecoRow row) throws SQLException {
+        try (PreparedStatement update = target.prepareStatement(PESSOA_ENDERECO_TABLE.updateSql())) {
+            update.setObject(1, row.pessoaId());
+            update.setObject(2, row.enderecoId());
+            update.setObject(3, row.tipoEnderecoId());
+            update.setBoolean(4, row.principal());
+            update.setTimestamp(5, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+            update.setObject(6, row.id());
+            int updated = update.executeUpdate();
+            if (updated > 0) {
+                return updated;
+            }
+        }
+
+        try (PreparedStatement insert = target.prepareStatement(PESSOA_ENDERECO_TABLE.insertSql())) {
+            insert.setObject(1, row.id());
+            insert.setObject(2, row.pessoaId());
+            insert.setObject(3, row.enderecoId());
+            insert.setObject(4, row.tipoEnderecoId());
+            insert.setBoolean(5, row.principal());
+            insert.setTimestamp(6, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
             return insert.executeUpdate();
         }
     }
@@ -800,6 +1032,32 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         statement.setString(5, row.email());
         statement.setString(6, row.telefone());
         statement.setTimestamp(7, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+    }
+
+    private void bindEnderecoUpdate(PreparedStatement statement, EnderecoRow row) throws SQLException {
+        statement.setString(1, row.cep());
+        statement.setString(2, row.logradouro());
+        statement.setString(3, row.numero());
+        statement.setString(4, row.complemento());
+        statement.setString(5, row.bairro());
+        statement.setString(6, row.cidade());
+        statement.setString(7, row.uf());
+        statement.setTimestamp(8, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+        statement.setTimestamp(9, row.updatedAt() == null ? null : Timestamp.from(row.updatedAt()));
+        statement.setObject(10, row.id());
+    }
+
+    private void bindEnderecoInsert(PreparedStatement statement, EnderecoRow row) throws SQLException {
+        statement.setObject(1, row.id());
+        statement.setString(2, row.cep());
+        statement.setString(3, row.logradouro());
+        statement.setString(4, row.numero());
+        statement.setString(5, row.complemento());
+        statement.setString(6, row.bairro());
+        statement.setString(7, row.cidade());
+        statement.setString(8, row.uf());
+        statement.setTimestamp(9, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+        statement.setTimestamp(10, row.updatedAt() == null ? null : Timestamp.from(row.updatedAt()));
     }
 
     private int countDivergences(List<CatalogRow> sourceRows, List<CatalogRow> targetRows) {
@@ -927,6 +1185,46 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         return divergences;
     }
 
+    private int countEnderecoDivergences(List<EnderecoRow> sourceRows, List<EnderecoRow> targetRows) {
+        Map<UUID, EnderecoRow> sourceById = byEnderecoId(sourceRows);
+        Map<UUID, EnderecoRow> targetById = byEnderecoId(targetRows);
+        int divergences = 0;
+
+        for (Map.Entry<UUID, EnderecoRow> entry : sourceById.entrySet()) {
+            EnderecoRow target = targetById.get(entry.getKey());
+            if (target == null || !entry.getValue().matches(target)) {
+                divergences++;
+            }
+        }
+        for (UUID targetId : targetById.keySet()) {
+            if (!sourceById.containsKey(targetId)) {
+                divergences++;
+            }
+        }
+        return divergences;
+    }
+
+    private int countPessoaEnderecoDivergences(
+            List<PessoaEnderecoRow> sourceRows,
+            List<PessoaEnderecoRow> targetRows) {
+        Map<UUID, PessoaEnderecoRow> sourceById = byPessoaEnderecoId(sourceRows);
+        Map<UUID, PessoaEnderecoRow> targetById = byPessoaEnderecoId(targetRows);
+        int divergences = 0;
+
+        for (Map.Entry<UUID, PessoaEnderecoRow> entry : sourceById.entrySet()) {
+            PessoaEnderecoRow target = targetById.get(entry.getKey());
+            if (target == null || !entry.getValue().matches(target)) {
+                divergences++;
+            }
+        }
+        for (UUID targetId : targetById.keySet()) {
+            if (!sourceById.containsKey(targetId)) {
+                divergences++;
+            }
+        }
+        return divergences;
+    }
+
     private Map<String, CatalogRow> byCode(List<CatalogRow> rows) {
         Map<String, CatalogRow> byCode = new LinkedHashMap<>();
         for (CatalogRow row : rows) {
@@ -975,22 +1273,77 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         return byId;
     }
 
+    private Map<UUID, EnderecoRow> byEnderecoId(List<EnderecoRow> rows) {
+        Map<UUID, EnderecoRow> byId = new LinkedHashMap<>();
+        for (EnderecoRow row : rows) {
+            byId.put(row.id(), row);
+        }
+        return byId;
+    }
+
+    private Map<UUID, PessoaEnderecoRow> byPessoaEnderecoId(List<PessoaEnderecoRow> rows) {
+        Map<UUID, PessoaEnderecoRow> byId = new LinkedHashMap<>();
+        for (PessoaEnderecoRow row : rows) {
+            byId.put(row.id(), row);
+        }
+        return byId;
+    }
+
+    private boolean hasMultiplePrincipalAddresses(List<PessoaEnderecoRow> rows) {
+        Map<UUID, Integer> principalCountByPessoa = new LinkedHashMap<>();
+        for (PessoaEnderecoRow row : rows) {
+            if (row.principal()) {
+                principalCountByPessoa.merge(row.pessoaId(), 1, Integer::sum);
+            }
+        }
+        return principalCountByPessoa.values().stream().anyMatch(count -> count > 1);
+    }
+
     private List<TableOperationReport> blockedReports(boolean backfillEnabled, boolean reconciliationEnabled) {
         List<TableOperationReport> reports = new ArrayList<>();
         CATALOG_TABLES.stream()
                 .map(table -> blockedReport(table, backfillEnabled, reconciliationEnabled))
                 .forEach(reports::add);
-        reports.add(blockedReport("pessoa", "id_pessoa", backfillEnabled, reconciliationEnabled));
+        reports.add(blockedReport(
+                "pessoa",
+                "id_pessoa",
+                "people_read_model_identity",
+                backfillEnabled,
+                reconciliationEnabled));
         reports.add(blockedReport(
                 "pessoa_tipo_pessoa",
                 "id_pessoa_tipo_pessoa",
+                "people_read_model_identity",
                 backfillEnabled,
                 reconciliationEnabled));
-        reports.add(blockedReport("aluno", "id_aluno", backfillEnabled, reconciliationEnabled));
-        reports.add(blockedReport("responsavel", "id_responsavel", backfillEnabled, reconciliationEnabled));
+        reports.add(blockedReport(
+                "aluno",
+                "id_aluno",
+                "people_read_model_identity",
+                backfillEnabled,
+                reconciliationEnabled));
+        reports.add(blockedReport(
+                "responsavel",
+                "id_responsavel",
+                "people_read_model_identity",
+                backfillEnabled,
+                reconciliationEnabled));
         reports.add(blockedReport(
                 "aluno_responsavel",
                 "id_aluno_responsavel",
+                "people_read_model_identity",
+                backfillEnabled,
+                reconciliationEnabled));
+        reports.add(blockedReport(
+                "endereco",
+                "id_endereco",
+                "people_read_model_address",
+                backfillEnabled,
+                reconciliationEnabled));
+        reports.add(blockedReport(
+                "pessoa_endereco",
+                "id_pessoa_endereco",
+                "people_read_model_address",
                 backfillEnabled,
                 reconciliationEnabled));
         return reports;
@@ -1022,6 +1375,7 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
     private TableOperationReport blockedReport(
             String table,
             String keyColumn,
+            String target,
             boolean backfillEnabled,
             boolean reconciliationEnabled) {
         String reason = !StringUtils.hasText(backfillProperties.sourceUrl())
@@ -1031,7 +1385,7 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                 table,
                 keyColumn,
                 "monolith_jdbc",
-                "people_read_model_identity",
+                target,
                 "blocked",
                 reason,
                 backfillEnabled,
@@ -1096,6 +1450,20 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
     }
 
     private record AlunoResponsavelTable(
+            String sourceLimitedQuery,
+            String targetQuery,
+            String updateSql,
+            String insertSql) {
+    }
+
+    private record EnderecoTable(
+            String sourceLimitedQuery,
+            String targetQuery,
+            String updateSql,
+            String insertSql) {
+    }
+
+    private record PessoaEnderecoTable(
             String sourceLimitedQuery,
             String targetQuery,
             String updateSql,
@@ -1197,6 +1565,51 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
             return Objects.equals(id, other.id)
                     && Objects.equals(alunoId, other.alunoId)
                     && Objects.equals(responsavelId, other.responsavelId);
+        }
+    }
+
+    private record EnderecoRow(
+            UUID id,
+            String cep,
+            String logradouro,
+            String numero,
+            String complemento,
+            String bairro,
+            String cidade,
+            String uf,
+            Instant createdAt,
+            Instant updatedAt) {
+
+        boolean matches(EnderecoRow other) {
+            return Objects.equals(id, other.id)
+                    && Objects.equals(normalize(cep), normalize(other.cep))
+                    && Objects.equals(normalize(logradouro), normalize(other.logradouro))
+                    && Objects.equals(normalize(numero), normalize(other.numero))
+                    && Objects.equals(normalize(complemento), normalize(other.complemento))
+                    && Objects.equals(normalize(bairro), normalize(other.bairro))
+                    && Objects.equals(normalize(cidade), normalize(other.cidade))
+                    && Objects.equals(normalize(uf), normalize(other.uf));
+        }
+
+        private static String normalize(String value) {
+            return value == null ? null : value.trim();
+        }
+    }
+
+    private record PessoaEnderecoRow(
+            UUID id,
+            UUID pessoaId,
+            UUID enderecoId,
+            UUID tipoEnderecoId,
+            boolean principal,
+            Instant createdAt) {
+
+        boolean matches(PessoaEnderecoRow other) {
+            return Objects.equals(id, other.id)
+                    && Objects.equals(pessoaId, other.pessoaId)
+                    && Objects.equals(enderecoId, other.enderecoId)
+                    && Objects.equals(tipoEnderecoId, other.tipoEnderecoId)
+                    && principal == other.principal;
         }
     }
 }

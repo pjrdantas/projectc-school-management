@@ -32,13 +32,13 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             "pessoa_tipo_pessoa",
             "aluno",
             "responsavel",
-            "aluno_responsavel");
+            "aluno_responsavel",
+            "endereco",
+            "pessoa_endereco");
 
     private static final List<String> EXCLUDED_AUTHORITATIVE_TABLES = List.of(
             "funcionario",
             "professor",
-            "endereco",
-            "pessoa_endereco",
             "pessoa_documento");
 
     private static final List<ReadRouteDescriptor> READ_ROUTES = List.of(
@@ -226,14 +226,14 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private Map<String, Object> diagnosticoProximaFatiaBloqueada() {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("slice", "endereco");
-        details.put("status", "schema_migration_opt_in_prepared_backfill_still_blocked");
+        details.put("status", "backfill_reconciliation_prepared_read_cutover_still_blocked");
         details.put("implementationAllowedNow", false);
         details.put("schemaAllowedNow", true);
-        details.put("backfillAllowedNow", false);
+        details.put("backfillAllowedNow", true);
         details.put("localReadCutoverAllowedNow", false);
         details.put("dependsOnClosedSlice", "consultarCadastro");
         details.put("tables", List.of("endereco", "pessoa_endereco"));
-        details.put("firstSafeImplementationSlice", "address_backfill_reconciliation_diagnostic_no_cutover");
+        details.put("firstSafeImplementationSlice", "phase_68_closure_no_cutover");
         details.put("requiredContractDecisions", List.of(
                 "define-if-address-read-model-belongs-to-pessoa-detail-or-own-address-query",
                 "define-address-schema-columns-preserving-monolith-identifiers",
@@ -284,7 +284,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "no-current-external-route-depends-on-address-local-read"));
         details.put("rollbackSteps", List.of(
                 "disable-people.shadow.local-persistence.migration-enabled",
-                "drop-address-read-model-tables-only-if-opt-in-migration-was-applied-and-no-backfill-ran",
+                "disable-people.shadow.local-persistence.backfill-enabled",
+                "disable-people.shadow.local-persistence.reconciliation-enabled",
                 "keep-endereco-on-monolith-proxy",
                 "keep-consultarCadastro-guarded-cutover-independent-from-address",
                 "disable-people.shadow.local-persistence.enabled-if-address-diagnostic-finds-write-risk"));
@@ -294,15 +295,27 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private Map<String, Object> diagnosticoSchemaBackfillEndereco() {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("slice", "endereco_pessoa_endereco");
-        details.put("status", "schema_migration_opt_in_prepared_backfill_still_blocked");
+        details.put("status", "backfill_reconciliation_prepared_read_cutover_still_blocked");
         details.put("migrationAllowedNow", true);
-        details.put("backfillAllowedNow", false);
+        details.put("backfillAllowedNow", true);
         details.put("localReadCutoverAllowedNow", false);
         details.put("schemaMigration", Map.of(
                 "version", "V4__create_people_address_read_model.sql",
                 "enabledByDefault", false,
                 "optInFlag", "people.shadow.local-persistence.migration-enabled",
                 "automaticBackfill", false));
+        details.put("backfillReconciliation", Map.of(
+                "enabledByDefault", false,
+                "optInFlags", List.of(
+                        "people.shadow.local-persistence.backfill-enabled",
+                        "people.shadow.local-persistence.reconciliation-enabled"),
+                "source", "monolith_jdbc",
+                "target", "people_read_model_address",
+                "idempotencyKeys", List.of("endereco.id_endereco", "pessoa_endereco.id_pessoa_endereco"),
+                "greenBlockers", List.of(
+                        "multiple-principal-addresses-per-person",
+                        "normalized-address-field-divergence",
+                        "missing-person-or-address-reference")));
         details.put("candidateTables", List.of("endereco", "pessoa_endereco"));
         details.put("referenceTables", List.of("pessoa", "tipo_endereco"));
         details.put("minimalColumns", Map.of(
@@ -338,13 +351,12 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("rollbackSteps", List.of(
                 "disable-people.shadow.local-persistence.migration-enabled",
                 "disable-people.shadow.local-persistence.backfill-enabled",
+                "disable-people.shadow.local-persistence.reconciliation-enabled",
                 "disable-people.shadow.local-persistence.read-model-cutover-enabled",
-                "drop-address-read-model-tables-only-if-opt-in-migration-was-applied-and-no-backfill-ran",
                 "keep-endereco-on-monolith-proxy",
                 "keep-consultarCadastro-independent-from-address-local-read"));
-        details.put("nextImplementationSlice", "address_backfill_reconciliation_diagnostic_no_cutover");
+        details.put("nextImplementationSlice", "phase_68_closure_no_cutover");
         details.put("explicitlyOutOfScope", List.of(
-                "address-backfill",
                 "address-local-read-cutover",
                 "address-write-cutover",
                 "bff-or-frontend-route-change"));

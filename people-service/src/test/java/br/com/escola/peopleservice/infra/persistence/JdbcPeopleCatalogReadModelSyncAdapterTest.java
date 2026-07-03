@@ -24,7 +24,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         var reports = adapter.synchronize(true, true, 100);
 
         assertThat(reports)
-                .hasSize(7)
+                .hasSize(9)
                 .allSatisfy(report -> {
                     assertThat(report.status()).isEqualTo("blocked");
                     assertThat(report.reason()).isEqualTo("local-read-model-source-url-required");
@@ -48,7 +48,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         var reports = adapter.synchronize(true, true, 100);
 
         assertThat(reports)
-                .hasSize(7)
+                .hasSize(9)
                 .allSatisfy(report -> {
                     assertThat(report.status()).isEqualTo("success");
                     assertThat(report.divergences()).isZero();
@@ -63,9 +63,11 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         "pessoa_tipo_pessoa",
                         "aluno",
                         "responsavel",
-                        "aluno_responsavel");
-        assertThat(reports.stream().mapToInt(report -> report.sourceRows()).sum()).isEqualTo(13);
-        assertThat(reports.stream().mapToInt(report -> report.targetRows()).sum()).isEqualTo(13);
+                        "aluno_responsavel",
+                        "endereco",
+                        "pessoa_endereco");
+        assertThat(reports.stream().mapToInt(report -> report.sourceRows()).sum()).isEqualTo(17);
+        assertThat(reports.stream().mapToInt(report -> report.targetRows()).sum()).isEqualTo(17);
 
         assertThat(contar(targetUrl, "tipo_pessoa")).isEqualTo(3);
         assertThat(contar(targetUrl, "tipo_endereco")).isEqualTo(2);
@@ -74,6 +76,34 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         assertThat(contar(targetUrl, "aluno")).isEqualTo(1);
         assertThat(contar(targetUrl, "responsavel")).isEqualTo(1);
         assertThat(contar(targetUrl, "aluno_responsavel")).isEqualTo(1);
+        assertThat(contar(targetUrl, "endereco")).isEqualTo(2);
+        assertThat(contar(targetUrl, "pessoa_endereco")).isEqualTo(2);
+    }
+
+    @Test
+    void bloqueiaPessoaEnderecoQuandoOrigemTemMultiplosEnderecosPrincipaisPorPessoa() throws Exception {
+        String sourceUrl = h2Url("source_" + UUID.randomUUID());
+        String targetUrl = h2Url("target_" + UUID.randomUUID());
+        criarSchema(sourceUrl);
+        criarSchema(targetUrl);
+        popularOrigem(sourceUrl);
+        popularEnderecoPrincipalDuplicado(sourceUrl);
+
+        JdbcPeopleCatalogReadModelSyncAdapter adapter = new JdbcPeopleCatalogReadModelSyncAdapter(
+                new PeopleCatalogReadModelBackfillProperties(sourceUrl, "sa", "", "org.h2.Driver"),
+                new PeopleLocalReadModelSchemaMigrationProperties(targetUrl, "sa", "", "org.h2.Driver", List.of()));
+
+        var reports = adapter.synchronize(true, true, 100);
+
+        assertThat(reports)
+                .filteredOn("table", "pessoa_endereco")
+                .singleElement()
+                .satisfies(report -> {
+                    assertThat(report.status()).isEqualTo("blocked");
+                    assertThat(report.reason()).isEqualTo("address-principal-rule-violated");
+                    assertThat(report.backfilledRecords()).isZero();
+                    assertThat(report.divergences()).isEqualTo(1);
+                });
     }
 
     private String h2Url(String dbName) {
@@ -165,6 +195,30 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         id_responsavel UUID NOT NULL REFERENCES responsavel(id_responsavel),
                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                         UNIQUE (id_aluno, id_responsavel)
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE endereco (
+                        id_endereco UUID NOT NULL PRIMARY KEY,
+                        cep VARCHAR(10),
+                        logradouro VARCHAR(150),
+                        numero VARCHAR(20),
+                        complemento VARCHAR(100),
+                        bairro VARCHAR(100),
+                        cidade VARCHAR(100),
+                        uf VARCHAR(2),
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE pessoa_endereco (
+                        id_pessoa_endereco UUID NOT NULL PRIMARY KEY,
+                        id_pessoa UUID NOT NULL REFERENCES pessoa(id_pessoa),
+                        id_endereco UUID NOT NULL REFERENCES endereco(id_endereco),
+                        id_tipo_endereco UUID REFERENCES tipo_endereco(id_tipo_endereco),
+                        principal BOOLEAN NOT NULL DEFAULT TRUE,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                     )
                     """);
         }
@@ -289,6 +343,90 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         'cccccccc-3333-3333-3333-cccccccccccc',
                         'aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa',
                         'bbbbbbbb-2222-2222-2222-bbbbbbbbbbbb',
+                        CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    INSERT INTO endereco (
+                        id_endereco, cep, logradouro, numero, complemento, bairro, cidade, uf, created_at, updated_at
+                    ) VALUES
+                    (
+                        'dddddddd-4444-4444-4444-dddddddddddd',
+                        '30110000',
+                        'Rua Principal',
+                        '100',
+                        NULL,
+                        'Centro',
+                        'Belo Horizonte',
+                        'MG',
+                        CURRENT_TIMESTAMP,
+                        CURRENT_TIMESTAMP
+                    ),
+                    (
+                        'eeeeeeee-5555-5555-5555-eeeeeeeeeeee',
+                        '32220000',
+                        'Avenida Responsavel',
+                        '200',
+                        'Casa',
+                        'Industrial',
+                        'Contagem',
+                        'MG',
+                        CURRENT_TIMESTAMP,
+                        CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    INSERT INTO pessoa_endereco (
+                        id_pessoa_endereco, id_pessoa, id_endereco, id_tipo_endereco, principal, created_at
+                    ) VALUES
+                    (
+                        'abababab-1111-1111-1111-abababababab',
+                        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                        'dddddddd-4444-4444-4444-dddddddddddd',
+                        '44444444-4444-4444-4444-444444444444',
+                        TRUE,
+                        CURRENT_TIMESTAMP
+                    ),
+                    (
+                        'bcbcbcbc-2222-2222-2222-bcbcbcbcbcbc',
+                        'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+                        'eeeeeeee-5555-5555-5555-eeeeeeeeeeee',
+                        '44444444-4444-4444-4444-444444444444',
+                        TRUE,
+                        CURRENT_TIMESTAMP
+                    )
+                    """);
+        }
+    }
+
+    private void popularEnderecoPrincipalDuplicado(String url) throws SQLException {
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+                Statement statement = connection.createStatement()) {
+            statement.execute("""
+                    INSERT INTO endereco (
+                        id_endereco, cep, logradouro, numero, complemento, bairro, cidade, uf, created_at, updated_at
+                    ) VALUES (
+                        'ffffffff-6666-6666-6666-ffffffffffff',
+                        '30110001',
+                        'Rua Duplicada',
+                        '101',
+                        NULL,
+                        'Centro',
+                        'Belo Horizonte',
+                        'MG',
+                        CURRENT_TIMESTAMP,
+                        CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    INSERT INTO pessoa_endereco (
+                        id_pessoa_endereco, id_pessoa, id_endereco, id_tipo_endereco, principal, created_at
+                    ) VALUES (
+                        'cdcdcdcd-3333-3333-3333-cdcdcdcdcdcd',
+                        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                        'ffffffff-6666-6666-6666-ffffffffffff',
+                        '44444444-4444-4444-4444-444444444444',
+                        TRUE,
                         CURRENT_TIMESTAMP
                     )
                     """);

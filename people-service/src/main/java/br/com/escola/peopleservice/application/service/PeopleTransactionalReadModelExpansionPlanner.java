@@ -12,11 +12,11 @@ public class PeopleTransactionalReadModelExpansionPlanner {
 
     public PeopleTransactionalReadModelExpansionPlan planejarProximaFatiaTransacional() {
         return new PeopleTransactionalReadModelExpansionPlan(
-                "address_schema_migration_opt_in_prepared_no_backfill",
-                "diagnose_address_backfill_and_reconciliation_before_read_cutover",
-                "address_backfill_reconciliation_diagnostic_no_cutover",
+                "address_backfill_reconciliation_prepared_no_read_cutover",
+                "close_phase_68_before_address_read_cutover_decision",
+                "phase_68_closure_no_cutover",
                 true,
-                false,
+                true,
                 false,
                 List.of(
                         new TableExpansionDecision(
@@ -129,9 +129,9 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 List.of(),
                                 false,
                                 true,
+                                true,
                                 false,
-                                false,
-                                "schema_migration_opt_in_prepared_backfill_not_created"),
+                                "address_backfill_reconciliation_prepared_no_read_cutover"),
                         new TableExpansionDecision(
                                 "pessoa_endereco",
                                 "id_pessoa_endereco",
@@ -146,15 +146,17 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 List.of(),
                                 false,
                                 true,
+                                true,
                                 false,
-                                false,
-                                "schema_migration_opt_in_prepared_backfill_not_created")),
+                                "address_backfill_reconciliation_prepared_no_read_cutover")),
                 List.of(
                         "keep-consultarCadastro-guarded-local-read-closed",
                         "address-schema-migration-opt-in-prepared",
+                        "address-backfill-reconciliation-opt-in-prepared",
                         "address-schema-columns-defined",
                         "reconciliation-key-by-pessoa-endereco-defined",
                         "principal-address-rule-defined",
+                        "multiple-principal-addresses-block-green-reconciliation",
                         "address-consumers-mapped-in-monolith-before-local-read-model",
                         "internal-address-contract-defined-without-jpa-entities",
                         "separate-cep-lookup-from-persisted-address-read-model",
@@ -175,7 +177,8 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                         "keep-pessoa-identity-local-read-on-monolith-fallback",
                         "disable-people.shadow.local-persistence.read-model-cutover-enabled",
                         "keep-consultarCadastro-on-monolith-proxy-when-guard-is-not-green",
-                        "do-not-run-address-backfill-without-explicit-opt-in",
+                        "disable-people.shadow.local-persistence.backfill-enabled",
+                        "disable-people.shadow.local-persistence.reconciliation-enabled",
                         "disable-people.shadow.local-persistence.enabled-if-operational-risk-appears"));
     }
 }

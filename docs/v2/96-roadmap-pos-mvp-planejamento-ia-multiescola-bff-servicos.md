@@ -3242,6 +3242,46 @@ Proxima fase pratica:
 - manter `endereco` no monolito como autoridade, sem BFF/frontend, sem escrita
   local e sem cutover.
 
+Entregue na terceira subfase da Fase 68:
+
+- o backfill/reconciliacao opt-in do read model local do `people-service` foi
+  estendido para `endereco` e `pessoa_endereco`, mantendo os IDs originais do
+  monolito como chaves idempotentes (`id_endereco` e
+  `id_pessoa_endereco`);
+- a sincronizacao continua desligada por padrao e so executa quando
+  `people.shadow.local-persistence.backfill-enabled` e/ou
+  `people.shadow.local-persistence.reconciliation-enabled` forem habilitadas;
+- a reconciliacao de `endereco` compara campos normalizados de endereco e a de
+  `pessoa_endereco` usa `id_pessoa_endereco`, `id_pessoa`, `id_endereco`,
+  `id_tipo_endereco` e a flag `principal`;
+- a regra de consistencia bloqueia `pessoa_endereco` quando a origem possuir
+  mais de um endereco principal para a mesma pessoa, reportando
+  `address-principal-rule-violated`;
+- o planner passou a reportar
+  `address_backfill_reconciliation_prepared_no_read_cutover`, com migration e
+  backfill permitidos apenas em modo controlado e
+  `localReadCutoverAllowedNow=false`;
+- o health `peopleLocalPersistence` passou a indicar
+  `backfill_reconciliation_prepared_read_cutover_still_blocked`, incluindo
+  diagnostico de `backfillReconciliation`, alvo `people_read_model_address`,
+  blockers de green reconciliation e rollback por desligamento das flags;
+- nao houve leitura local de endereco, adapter de consulta local para rotas de
+  negocio, BFF/frontend, rota externa nova, escrita local ou cutover.
+
+Contagem da macrofase Fase 68: 0 subfases restantes. O bloco de diagnostico,
+schema opt-in e backfill/reconciliacao opt-in de endereco esta fechado sem
+cutover.
+
+Proxima fase pratica:
+
+- fechar formalmente a Fase 68 e decidir o proximo bloco: iniciar uma macrofase
+  separada para contrato de leitura local de endereco ou retornar para outra
+  frente de desacoplamento backend;
+- qualquer leitura local futura de endereco deve continuar atras de guard,
+  reconciliacao verde e fallback obrigatorio para o monolito;
+- manter sem BFF/frontend, sem escrita local e sem alteracao de rotas externas
+  ate decisao explicita da proxima macrofase.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3263,12 +3303,12 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Diagnosticar e preparar o menor backfill/reconciliacao opt-in para `endereco` e
-`pessoa_endereco`, usando `pessoa_endereco.id_pessoa_endereco` como chave
-principal de reconciliacao. Bloquear qualquer leitura local quando houver
-multiplos enderecos principais por pessoa ou divergencia em campos normalizados
-de endereco. Manter `endereco` no monolito como autoridade, sem BFF/frontend,
-sem escrita local e sem cutover.
+Fechar formalmente a Fase 68 e decidir o proximo bloco: iniciar uma macrofase
+separada para contrato de leitura local de endereco ou retornar para outra
+frente de desacoplamento backend. Qualquer leitura local futura de endereco
+deve continuar atras de guard, reconciliacao verde e fallback obrigatorio para o
+monolito. Manter sem BFF/frontend, sem escrita local e sem alteracao de rotas
+externas ate decisao explicita da proxima macrofase.
 
 Entregue na oitava subfase:
 
