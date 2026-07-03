@@ -178,6 +178,9 @@ npm run build
 ## Observacoes tecnicas
 
 - A sessao usa `localStorage` para tokens e dados do usuario autenticado.
+- O destino padrao apos login bem-sucedido e `/dashboard`. A rota antiga
+  `/home` nao existe mais no host federado e nao deve ser usada em manuais ou
+  scripts de validacao.
 - O host publica o contrato de shell para os remotos na chave `school-management.shell.context.v1` e no evento `school-management:shell-context-changed`.
 - As rotas e menus federados do MVP sao definidos pelo contrato declarativo do shell no host.
 - A rota marcador `/microfrontend`, o expose `./Component` e o carregamento dinamico antigo por `AplicativosService` foram removidos.

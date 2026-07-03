@@ -77,7 +77,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         permissoes: response.permissoes ?? [],
       });
 
-      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/home';
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
       await this.router.navigateByUrl(returnUrl);
     } catch (error) {
       const httpError = error as HttpErrorResponse;

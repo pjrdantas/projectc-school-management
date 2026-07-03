@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS usuario_escola (
 );
 
 INSERT INTO usuario_escola (id_usuario_escola, id_usuario, id_escola, created_at)
-SELECT RANDOM_UUID(), u.id_usuario, u.id_escola, CURRENT_TIMESTAMP
+SELECT gen_random_uuid(), u.id_usuario, u.id_escola, CURRENT_TIMESTAMP
 FROM usuario u
 WHERE u.id_escola IS NOT NULL
   AND NOT EXISTS (

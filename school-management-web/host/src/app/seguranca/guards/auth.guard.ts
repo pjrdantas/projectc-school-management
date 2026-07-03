@@ -24,5 +24,5 @@ export const guestGuard: CanMatchFn = () => {
     return true;
   }
 
-  return router.createUrlTree(['/home']);
+  return router.createUrlTree(['/dashboard']);
 };

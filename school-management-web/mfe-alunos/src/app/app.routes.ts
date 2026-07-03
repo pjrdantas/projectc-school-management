@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { STUDENT_INTERNAL_ROUTES } from './aluno/student-domain';
+import { STUDENT_INTERNAL_ROUTES } from './aluno/student-domain.manifest';
 
 export const routes: Routes = [
   {
