@@ -107,6 +107,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("catalogReadModelSchemaPlan", diagnosticoSchemaCatalogo());
         details.put("transactionalReadModelExpansionPlan", diagnosticoExpansaoTransacional());
         details.put("nextBlockedSliceDiagnostic", diagnosticoProximaFatiaBloqueada());
+        details.put("addressSchemaBackfillDiagnostic", diagnosticoSchemaBackfillEndereco());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -225,14 +226,14 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private Map<String, Object> diagnosticoProximaFatiaBloqueada() {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("slice", "endereco");
-        details.put("status", "internal_contract_prepared_schema_still_blocked");
+        details.put("status", "schema_backfill_diagnostic_closed_migration_still_blocked");
         details.put("implementationAllowedNow", false);
         details.put("schemaAllowedNow", false);
         details.put("backfillAllowedNow", false);
         details.put("localReadCutoverAllowedNow", false);
         details.put("dependsOnClosedSlice", "consultarCadastro");
         details.put("tables", List.of("endereco", "pessoa_endereco"));
-        details.put("firstSafeImplementationSlice", "address_schema_diagnostic_only_no_cutover");
+        details.put("firstSafeImplementationSlice", "address_schema_migration_opt_in_no_backfill");
         details.put("requiredContractDecisions", List.of(
                 "define-if-address-read-model-belongs-to-pessoa-detail-or-own-address-query",
                 "define-address-schema-columns-preserving-monolith-identifiers",
@@ -286,6 +287,60 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "keep-endereco-on-monolith-proxy",
                 "keep-consultarCadastro-guarded-cutover-independent-from-address",
                 "disable-people.shadow.local-persistence.enabled-if-address-diagnostic-finds-write-risk"));
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoSchemaBackfillEndereco() {
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("slice", "endereco_pessoa_endereco");
+        details.put("status", "schema_backfill_diagnostic_closed_migration_still_blocked");
+        details.put("migrationAllowedNow", false);
+        details.put("backfillAllowedNow", false);
+        details.put("localReadCutoverAllowedNow", false);
+        details.put("candidateTables", List.of("endereco", "pessoa_endereco"));
+        details.put("referenceTables", List.of("pessoa", "tipo_endereco"));
+        details.put("minimalColumns", Map.of(
+                "endereco", List.of(
+                        "id_endereco",
+                        "cep",
+                        "logradouro",
+                        "numero",
+                        "complemento",
+                        "bairro",
+                        "cidade",
+                        "uf",
+                        "created_at",
+                        "updated_at"),
+                "pessoa_endereco", List.of(
+                        "id_pessoa_endereco",
+                        "id_pessoa",
+                        "id_endereco",
+                        "id_tipo_endereco",
+                        "principal",
+                        "created_at")));
+        details.put("reconciliationKey", "pessoa_endereco.id_pessoa_endereco");
+        details.put("secondaryReconciliationChecks", List.of(
+                "id_pessoa",
+                "id_endereco",
+                "id_tipo_endereco",
+                "principal",
+                "normalized_cep_logradouro_numero_bairro_cidade_uf"));
+        details.put("principalAddressRule",
+                "principal=true is the only address exposed by the internal contract; multiple principal records block green reconciliation");
+        details.put("cepLookupPolicy",
+                "ViaCEP remains an external lookup adapter and is not local read-model authority");
+        details.put("rollbackSteps", List.of(
+                "disable-people.shadow.local-persistence.migration-enabled",
+                "disable-people.shadow.local-persistence.backfill-enabled",
+                "disable-people.shadow.local-persistence.read-model-cutover-enabled",
+                "keep-endereco-on-monolith-proxy",
+                "keep-consultarCadastro-independent-from-address-local-read"));
+        details.put("nextImplementationSlice", "address_schema_migration_opt_in_no_backfill");
+        details.put("explicitlyOutOfScope", List.of(
+                "address-backfill",
+                "address-local-read-cutover",
+                "address-write-cutover",
+                "bff-or-frontend-route-change"));
         return details;
     }
 

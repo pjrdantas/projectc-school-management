@@ -63,13 +63,13 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         Map<String, Object> nextBlockedSlice = (Map<String, Object>) details.get("nextBlockedSliceDiagnostic");
         assertThat(nextBlockedSlice)
                 .containsEntry("slice", "endereco")
-                .containsEntry("status", "internal_contract_prepared_schema_still_blocked")
+                .containsEntry("status", "schema_backfill_diagnostic_closed_migration_still_blocked")
                 .containsEntry("implementationAllowedNow", false)
                 .containsEntry("schemaAllowedNow", false)
                 .containsEntry("backfillAllowedNow", false)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("dependsOnClosedSlice", "consultarCadastro")
-                .containsEntry("firstSafeImplementationSlice", "address_schema_diagnostic_only_no_cutover");
+                .containsEntry("firstSafeImplementationSlice", "address_schema_migration_opt_in_no_backfill");
         @SuppressWarnings("unchecked")
         Map<String, Object> preparedInternalContract =
                 (Map<String, Object>) nextBlockedSlice.get("preparedInternalContract");
@@ -79,5 +79,17 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         @SuppressWarnings("unchecked")
         java.util.List<String> writeConsumers = (java.util.List<String>) nextBlockedSlice.get("writeConsumers");
         assertThat(writeConsumers).contains("PessoaFoundationService.atualizarPessoaEEndereco");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> addressDiagnostic =
+                (Map<String, Object>) details.get("addressSchemaBackfillDiagnostic");
+        assertThat(addressDiagnostic)
+                .containsEntry("slice", "endereco_pessoa_endereco")
+                .containsEntry("status", "schema_backfill_diagnostic_closed_migration_still_blocked")
+                .containsEntry("migrationAllowedNow", false)
+                .containsEntry("backfillAllowedNow", false)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("reconciliationKey", "pessoa_endereco.id_pessoa_endereco")
+                .containsEntry("nextImplementationSlice", "address_schema_migration_opt_in_no_backfill");
     }
 }

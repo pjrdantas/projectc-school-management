@@ -12,9 +12,9 @@ public class PeopleTransactionalReadModelExpansionPlanner {
 
     public PeopleTransactionalReadModelExpansionPlan planejarProximaFatiaTransacional() {
         return new PeopleTransactionalReadModelExpansionPlan(
-                "address_internal_contract_prepared_no_schema",
-                "diagnose_address_schema_and_backfill_before_any_cutover",
-                "endereco_schema_diagnostic_only_no_cutover",
+                "address_schema_backfill_diagnostic_closed_no_migration",
+                "prepare_address_schema_migration_opt_in_without_backfill_or_cutover",
+                "address_schema_migration_opt_in_no_backfill",
                 false,
                 false,
                 false,
@@ -131,7 +131,7 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 false,
                                 false,
                                 false,
-                                "requires_diagnostic_before_address_read_model"),
+                                "schema_backfill_diagnostic_closed_migration_not_created"),
                         new TableExpansionDecision(
                                 "pessoa_endereco",
                                 "id_pessoa_endereco",
@@ -148,13 +148,16 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 false,
                                 false,
                                 false,
-                                "requires_diagnostic_before_address_read_model")),
+                                "schema_backfill_diagnostic_closed_migration_not_created")),
                 List.of(
                         "keep-consultarCadastro-guarded-local-read-closed",
-                        "do-not-add-address-schema-before-schema-diagnostic",
+                        "address-schema-columns-defined",
+                        "reconciliation-key-by-pessoa-endereco-defined",
+                        "principal-address-rule-defined",
                         "address-consumers-mapped-in-monolith-before-local-read-model",
                         "internal-address-contract-defined-without-jpa-entities",
                         "separate-cep-lookup-from-persisted-address-read-model",
+                        "viacep-excluded-from-local-read-model-authority",
                         "keep-address-orphan-cleanup-on-monolith-until-write-authority-is-defined",
                         "define-reconciliation-by-person-address-link-before-backfill",
                         "keep-school-scope-as-copied-identifier-without-people-service-owning-tenant",

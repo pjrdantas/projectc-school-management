@@ -138,10 +138,10 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         Map<String, Object> transactionalPlan =
                 (Map<String, Object>) health.getDetails().get("transactionalReadModelExpansionPlan");
         assertThat(transactionalPlan)
-                .containsEntry("status", "address_internal_contract_prepared_no_schema")
+                .containsEntry("status", "address_schema_backfill_diagnostic_closed_no_migration")
                 .containsEntry("recommendedNextStep",
-                        "diagnose_address_schema_and_backfill_before_any_cutover")
-                .containsEntry("minimalNextSlice", "endereco_schema_diagnostic_only_no_cutover")
+                        "prepare_address_schema_migration_opt_in_without_backfill_or_cutover")
+                .containsEntry("minimalNextSlice", "address_schema_migration_opt_in_no_backfill")
                 .containsEntry("migrationAllowedNow", false)
                 .containsEntry("backfillAllowedNow", false)
                 .containsEntry("localReadCutoverAllowedNow", false);
@@ -151,13 +151,13 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 (Map<String, Object>) health.getDetails().get("nextBlockedSliceDiagnostic");
         assertThat(nextBlockedSlice)
                 .containsEntry("slice", "endereco")
-                .containsEntry("status", "internal_contract_prepared_schema_still_blocked")
+                .containsEntry("status", "schema_backfill_diagnostic_closed_migration_still_blocked")
                 .containsEntry("implementationAllowedNow", false)
                 .containsEntry("schemaAllowedNow", false)
                 .containsEntry("backfillAllowedNow", false)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("dependsOnClosedSlice", "consultarCadastro")
-                .containsEntry("firstSafeImplementationSlice", "address_schema_diagnostic_only_no_cutover");
+                .containsEntry("firstSafeImplementationSlice", "address_schema_migration_opt_in_no_backfill");
         @SuppressWarnings("unchecked")
         java.util.Map<String, Object> preparedInternalContract =
                 (java.util.Map<String, Object>) nextBlockedSlice.get("preparedInternalContract");
@@ -194,6 +194,52 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 "internal-address-contract-defined-without-jpa-entities",
                 "orphan-address-cleanup-strategy-defined",
                 "cep-lookup-kept-as-external-adapter");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> addressDiagnostic =
+                (Map<String, Object>) health.getDetails().get("addressSchemaBackfillDiagnostic");
+        assertThat(addressDiagnostic)
+                .containsEntry("slice", "endereco_pessoa_endereco")
+                .containsEntry("status", "schema_backfill_diagnostic_closed_migration_still_blocked")
+                .containsEntry("migrationAllowedNow", false)
+                .containsEntry("backfillAllowedNow", false)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("reconciliationKey", "pessoa_endereco.id_pessoa_endereco")
+                .containsEntry("nextImplementationSlice", "address_schema_migration_opt_in_no_backfill");
+        @SuppressWarnings("unchecked")
+        Map<String, java.util.List<String>> minimalColumns =
+                (Map<String, java.util.List<String>>) addressDiagnostic.get("minimalColumns");
+        assertThat(minimalColumns.get("endereco")).containsExactly(
+                "id_endereco",
+                "cep",
+                "logradouro",
+                "numero",
+                "complemento",
+                "bairro",
+                "cidade",
+                "uf",
+                "created_at",
+                "updated_at");
+        assertThat(minimalColumns.get("pessoa_endereco")).containsExactly(
+                "id_pessoa_endereco",
+                "id_pessoa",
+                "id_endereco",
+                "id_tipo_endereco",
+                "principal",
+                "created_at");
+        assertThat((String) addressDiagnostic.get("principalAddressRule"))
+                .contains("multiple principal records block green reconciliation");
+        assertThat((String) addressDiagnostic.get("cepLookupPolicy"))
+                .contains("ViaCEP remains an external lookup adapter");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> secondaryChecks =
+                (java.util.List<String>) addressDiagnostic.get("secondaryReconciliationChecks");
+        assertThat(secondaryChecks).contains(
+                "id_pessoa",
+                "id_endereco",
+                "id_tipo_endereco",
+                "principal",
+                "normalized_cep_logradouro_numero_bairro_cidade_uf");
 
         @SuppressWarnings("unchecked")
         Map<String, Object> closure =

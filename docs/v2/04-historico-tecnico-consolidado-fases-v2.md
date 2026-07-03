@@ -1449,6 +1449,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   reportar `preparedInternalContract`, enquanto schema, backfill, BFF/frontend,
   escrita local e cutover continuam bloqueados. A contagem regressiva da Fase
   67 chega a 0.
+- A primeira subfase da Fase 68 fechou o diagnostico de schema/backfill local de
+  `endereco` e `pessoa_endereco` no `people-service`, ainda sem criar migration
+  nem executar backfill. O planner passou a reportar
+  `address_schema_backfill_diagnostic_closed_no_migration`, mantendo migration,
+  backfill e cutover desligados. O health `peopleLocalPersistence` passou a
+  expor `addressSchemaBackfillDiagnostic`, com colunas minimas, tabelas
+  candidatas, tabelas de referencia, chave de reconciliacao por
+  `pessoa_endereco.id_pessoa_endereco`, checks secundarios, regra de endereco
+  principal, politica ViaCEP e rollback. A proxima subfase segura e preparar
+  apenas migration opt-in de schema para `endereco`/`pessoa_endereco`, sem
+  backfill automatico, sem BFF/frontend, sem escrita local e sem cutover. A
+  contagem regressiva da Fase 68 passa a 2 subfases restantes estimadas.
 
 ## Historico resumido
 

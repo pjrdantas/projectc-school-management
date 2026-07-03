@@ -12,10 +12,10 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
 
         var plan = planner.planejarProximaFatiaTransacional();
 
-        assertThat(plan.status()).isEqualTo("address_internal_contract_prepared_no_schema");
+        assertThat(plan.status()).isEqualTo("address_schema_backfill_diagnostic_closed_no_migration");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("diagnose_address_schema_and_backfill_before_any_cutover");
-        assertThat(plan.minimalNextSlice()).isEqualTo("endereco_schema_diagnostic_only_no_cutover");
+                .isEqualTo("prepare_address_schema_migration_opt_in_without_backfill_or_cutover");
+        assertThat(plan.minimalNextSlice()).isEqualTo("address_schema_migration_opt_in_no_backfill");
         assertThat(plan.migrationAllowedNow()).isFalse();
         assertThat(plan.backfillAllowedNow()).isFalse();
         assertThat(plan.localReadCutoverAllowedNow()).isFalse();
@@ -56,15 +56,18 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 .extracting("table")
                 .isEmpty();
         assertThat(plan.candidateTables())
-                .filteredOn("reason", "requires_diagnostic_before_address_read_model")
+                .filteredOn("reason", "schema_backfill_diagnostic_closed_migration_not_created")
                 .extracting("table")
                 .containsExactly("endereco", "pessoa_endereco");
         assertThat(plan.requiredHardening()).contains(
                 "keep-consultarCadastro-guarded-local-read-closed",
-                "do-not-add-address-schema-before-schema-diagnostic",
+                "address-schema-columns-defined",
+                "reconciliation-key-by-pessoa-endereco-defined",
+                "principal-address-rule-defined",
                 "address-consumers-mapped-in-monolith-before-local-read-model",
                 "internal-address-contract-defined-without-jpa-entities",
                 "separate-cep-lookup-from-persisted-address-read-model",
+                "viacep-excluded-from-local-read-model-authority",
                 "keep-address-orphan-cleanup-on-monolith-until-write-authority-is-defined",
                 "keep-pii-read-model-without-public-exposure",
                 "keep-monolith-as-authority-for-all-address-writes");
