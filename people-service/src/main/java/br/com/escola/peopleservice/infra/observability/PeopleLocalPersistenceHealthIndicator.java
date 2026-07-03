@@ -103,6 +103,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("shadowReadRoutes", diagnosticoRotasLeitura());
         details.put("backfillPlan", diagnosticoBackfill());
         details.put("readRoutingPlan", diagnosticoRoteamentoLeitura());
+        details.put("guardedReadCutoverClosure", diagnosticoFechamentoCutoverLeitura());
         details.put("catalogReadModelSchemaPlan", diagnosticoSchemaCatalogo());
         details.put("transactionalReadModelExpansionPlan", diagnosticoExpansaoTransacional());
         details.put("schemaMigration", schemaMigrationState.currentReport());
@@ -144,6 +145,46 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         }
 
         return Health.up().withDetails(details).build();
+    }
+
+    private Map<String, Object> diagnosticoFechamentoCutoverLeitura() {
+        PeopleLocalReadRoutingDecision decision = readCutoverGuard.avaliar("consultarCadastro");
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("operation", "consultarCadastro");
+        details.put("shadowRoute", decision.shadowRoute());
+        details.put("status", decision.localReadEligible()
+                ? "guarded_local_read_enabled"
+                : "guarded_local_read_blocked");
+        details.put("selectedSource", decision.selectedSource());
+        details.put("localCandidateSource", "people_read_model_student_responsible");
+        details.put("fallbackSource", "monolith_proxy");
+        details.put("fallbackRequired", true);
+        details.put("fallbackEnabled", decision.fallbackEnabled());
+        details.put("writesEnabled", decision.writesEnabled());
+        details.put("reason", decision.reason());
+        details.put("greenCriteria", List.of(
+                "people.shadow.local-persistence.read-model-cutover-enabled=true",
+                "people.shadow.local-persistence.read-model-fallback-enabled=true",
+                "people.shadow.local-persistence.enabled=true",
+                "people.shadow.local-persistence.backfill-enabled=true",
+                "people.shadow.local-persistence.reconciliation-enabled=true",
+                "localReadModelBackfill.status=completed",
+                "localReadModelBackfill.divergences=0",
+                "people.shadow.local.persistence.reconciliation.divergences=0",
+                "people.shadow.local.persistence.failures=0"));
+        details.put("metrics", Map.of(
+                "routingDecisions", "people.shadow.local.persistence.read.routing.decisions",
+                "localReads", "people.shadow.local.persistence.student.responsible.reads",
+                "reconciliationDivergences", "people.shadow.local.persistence.reconciliation.divergences",
+                "localPersistenceFailures", "people.shadow.local.persistence.failures"));
+        details.put("rollbackSteps", List.of(
+                "disable-people.shadow.local-persistence.read-model-cutover-enabled",
+                "keep-people.shadow.local-persistence.read-model-fallback-enabled=true",
+                "investigate-people.shadow.local.persistence.student.responsible.reads{result=fallback_error}",
+                "rerun-student-responsible-backfill-and-reconciliation-before-reenable",
+                "keep-consultarCadastro-on-monolith-proxy-when-guard-is-not-green"));
+        details.put("nextSliceBlocked", "endereco");
+        return details;
     }
 
     private Map<String, Object> diagnosticoSchemaCatalogo() {

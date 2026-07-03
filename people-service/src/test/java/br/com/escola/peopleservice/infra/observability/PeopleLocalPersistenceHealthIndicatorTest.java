@@ -145,6 +145,24 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("migrationAllowedNow", true)
                 .containsEntry("backfillAllowedNow", true)
                 .containsEntry("localReadCutoverAllowedNow", true);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> closure =
+                (Map<String, Object>) health.getDetails().get("guardedReadCutoverClosure");
+        assertThat(closure)
+                .containsEntry("operation", "consultarCadastro")
+                .containsEntry("status", "guarded_local_read_blocked")
+                .containsEntry("selectedSource", "monolith_proxy")
+                .containsEntry("localCandidateSource", "people_read_model_student_responsible")
+                .containsEntry("fallbackSource", "monolith_proxy")
+                .containsEntry("fallbackRequired", true)
+                .containsEntry("nextSliceBlocked", "endereco")
+                .containsEntry("reason", "read-model-cutover-disabled");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> rollbackSteps = (java.util.List<String>) closure.get("rollbackSteps");
+        assertThat(rollbackSteps).contains(
+                "disable-people.shadow.local-persistence.read-model-cutover-enabled",
+                "keep-consultarCadastro-on-monolith-proxy-when-guard-is-not-green");
     }
 
     @Test
@@ -241,5 +259,21 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("localReadEnabled", true)
                 .containsEntry("fallbackRequired", true)
                 .containsEntry("reason", "local-student-responsible-read-eligible");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> closure =
+                (Map<String, Object>) health.getDetails().get("guardedReadCutoverClosure");
+        assertThat(closure)
+                .containsEntry("operation", "consultarCadastro")
+                .containsEntry("status", "guarded_local_read_enabled")
+                .containsEntry("selectedSource", "people_read_model_student_responsible")
+                .containsEntry("fallbackRequired", true)
+                .containsEntry("fallbackEnabled", true)
+                .containsEntry("writesEnabled", false)
+                .containsEntry("nextSliceBlocked", "endereco");
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, String> metrics = (java.util.Map<String, String>) closure.get("metrics");
+        assertThat(metrics)
+                .containsEntry("localReads", "people.shadow.local.persistence.student.responsible.reads")
+                .containsEntry("routingDecisions", "people.shadow.local.persistence.read.routing.decisions");
     }
 }

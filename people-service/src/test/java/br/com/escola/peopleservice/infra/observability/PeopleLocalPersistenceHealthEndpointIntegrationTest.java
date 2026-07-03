@@ -49,5 +49,14 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 "listarTiposEndereco",
                 "buscarPorId",
                 "consultarCadastro");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> closure = (Map<String, Object>) details.get("guardedReadCutoverClosure");
+        assertThat(closure)
+                .containsEntry("operation", "consultarCadastro")
+                .containsEntry("selectedSource", "monolith_proxy")
+                .containsEntry("localCandidateSource", "people_read_model_student_responsible")
+                .containsEntry("fallbackRequired", true)
+                .containsEntry("nextSliceBlocked", "endereco");
     }
 }
