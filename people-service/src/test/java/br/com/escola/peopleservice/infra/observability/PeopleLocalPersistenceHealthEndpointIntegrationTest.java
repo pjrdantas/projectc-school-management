@@ -63,13 +63,13 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         Map<String, Object> nextBlockedSlice = (Map<String, Object>) details.get("nextBlockedSliceDiagnostic");
         assertThat(nextBlockedSlice)
                 .containsEntry("slice", "endereco")
-                .containsEntry("status", "address_local_read_adapter_prepared_no_cutover")
+                .containsEntry("status", "address_local_read_cutover_eligibility_diagnostic_started")
                 .containsEntry("implementationAllowedNow", false)
                 .containsEntry("schemaAllowedNow", true)
                 .containsEntry("backfillAllowedNow", true)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("dependsOnClosedSlice", "consultarCadastro")
-                .containsEntry("firstSafeImplementationSlice", "phase_69_closure_no_cutover");
+                .containsEntry("firstSafeImplementationSlice", "address_read_cutover_eligibility_diagnostic_no_connection");
         @SuppressWarnings("unchecked")
         Map<String, Object> preparedInternalContract =
                 (Map<String, Object>) nextBlockedSlice.get("preparedInternalContract");
@@ -119,7 +119,7 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("candidateSource", "people_read_model_address")
                 .containsEntry("fallbackSource", "monolith_proxy")
-                .containsEntry("nextImplementationSlice", "phase_69_closure_no_cutover");
+                .containsEntry("nextImplementationSlice", "address_read_cutover_eligibility_diagnostic_no_connection");
         @SuppressWarnings("unchecked")
         Map<String, Object> preparedArtifacts =
                 (Map<String, Object>) addressLocalReadContract.get("preparedArtifacts");
@@ -129,5 +129,20 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("adapter", "JdbcPeopleAddressLocalReadAdapter")
                 .containsEntry("adapterCreated", true)
                 .containsEntry("queryServiceConnected", false);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> addressCutoverEligibility =
+                (Map<String, Object>) details.get("addressLocalReadCutoverEligibilityDiagnostic");
+        assertThat(addressCutoverEligibility)
+                .containsEntry("slice", "endereco_read_cutover_eligibility")
+                .containsEntry("phase", "Fase 70")
+                .containsEntry("status", "diagnostic_started_no_connection_no_route")
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("adapterPrepared", true)
+                .containsEntry("queryServiceConnected", false)
+                .containsEntry("routeCreated", false)
+                .containsEntry("bffFrontendChangeAllowedNow", false)
+                .containsEntry("writeCutoverAllowedNow", false)
+                .containsEntry("fallbackRequired", true);
     }
 }

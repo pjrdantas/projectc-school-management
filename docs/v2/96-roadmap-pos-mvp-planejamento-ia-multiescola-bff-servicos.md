@@ -3437,6 +3437,56 @@ Proxima fase pratica:
 - preservar o monolito como fallback obrigatorio ate que guard, reconciliacao,
   metricas e rollback estejam comprovados.
 
+### Fase 70 - Diagnostico de elegibilidade do cutover de leitura local de endereco no `people-service`
+
+Objetivo: iniciar uma fase backend-only para diagnosticar se a leitura local de
+endereco pode evoluir para cutover guardado em fase futura, partindo do adapter
+JDBC preparado na Fase 69, ainda sem conectar o adapter ao `PessoaQueryService`,
+sem rota REST nova, sem BFF/frontend, sem escrita local e sem cutover.
+
+Entregue na primeira subfase da Fase 70:
+
+- o planner transacional passou a reportar
+  `address_local_read_cutover_eligibility_diagnostic_started`, com proxima
+  etapa `define_address_read_cutover_guard_criteria_no_route_change` e fatia
+  minima `address_read_cutover_eligibility_diagnostic_no_connection`;
+- `endereco` e `pessoa_endereco` continuam com migration/backfill permitidos
+  apenas em modo controlado, mas `localReadAllowed=false` e
+  `localReadCutoverAllowedNow=false`;
+- o health `peopleLocalPersistence` passou a expor
+  `addressLocalReadCutoverEligibilityDiagnostic`, marcando
+  `adapterPrepared=true`, `queryServiceConnected=false`, `routeCreated=false`,
+  `fallbackRequired=true`, `bffFrontendChangeAllowedNow=false` e
+  `writeCutoverAllowedNow=false`;
+- foram explicitados os criterios minimos de guard para qualquer ativacao
+  futura: flags de persistencia local ligadas, fallback habilitado, backfill
+  concluido, divergencias/falhas zeradas, nenhuma violacao de endereco
+  principal, nenhuma divergencia de campos normalizados e nenhuma referencia
+  ausente de pessoa/endereco;
+- ficaram como blockers antes de qualquer conexao operacional: ausencia de
+  operacao de roteamento especifica para endereco, ausencia de metricas
+  especificas de leitura local de endereco, ausencia de contrato de rota
+  selecionado, `consultarCadastro` sem campos de endereco e autoridade de
+  escrita ainda no monolito;
+- ficaram explicitamente fora do recorte: conectar
+  `JdbcPeopleAddressLocalReadAdapter` ao `PessoaQueryService`, criar rota REST
+  de endereco, alterar payload de `consultarCadastro`, BFF/frontend, escrita
+  local e cutover.
+
+Contagem da macrofase Fase 70: 2 subfases restantes estimadas: definir a
+operacao interna/metricas de roteamento de leitura de endereco; depois avaliar
+uma conexao controlada do adapter apenas atras de guard, se os criterios
+estiverem verdes.
+
+Proxima fase pratica:
+
+- definir a operacao interna de roteamento de leitura local de endereco e as
+  metricas necessarias para observabilidade, ainda sem conectar o adapter ao
+  fluxo operacional;
+- manter o cutover bloqueado ate existir guard especifico de endereco,
+  reconciliacao verde, fallback obrigatorio e rollback por flags;
+- nao alterar BFF/frontend, escrita local, rotas externas ou payloads atuais.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3458,12 +3508,12 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Iniciar uma fase separada de decisao sobre o proximo recorte backend apos o
-fechamento formal da Fase 69: diagnosticar cutover guardado de leitura local de
-endereco ou escolher outra familia de API. Se o recorte escolhido for endereco,
-a primeira subfase deve ser apenas diagnostico de elegibilidade do cutover, sem
-BFF/frontend, sem escrita local, sem rota externa nova e sem conectar payloads
-existentes.
+Definir a operacao interna de roteamento de leitura local de endereco e as
+metricas necessarias para observabilidade, ainda sem conectar o adapter ao fluxo
+operacional. O cutover deve continuar bloqueado ate existir guard especifico de
+endereco, reconciliacao verde, fallback obrigatorio e rollback por flags, sem
+BFF/frontend, sem escrita local, sem rota externa nova e sem alterar payloads
+atuais.
 
 Entregue na oitava subfase:
 

@@ -1548,6 +1548,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   antes de qualquer ativacao. A proxima fase sugerida e decidir, em recorte
   separado, se o proximo passo sera diagnosticar cutover guardado de leitura
   local de endereco ou escolher outra familia backend.
+- A primeira subfase da Fase 70 iniciou o diagnostico backend-only de
+  elegibilidade do cutover de leitura local de endereco no `people-service`.
+  O planner passou a reportar
+  `address_local_read_cutover_eligibility_diagnostic_started`, com fatia minima
+  `address_read_cutover_eligibility_diagnostic_no_connection`, mantendo
+  `localReadCutoverAllowedNow=false`. O health passou a expor
+  `addressLocalReadCutoverEligibilityDiagnostic`, marcando
+  `adapterPrepared=true`, `queryServiceConnected=false`, `routeCreated=false`,
+  fallback obrigatorio, bloqueio de BFF/frontend e bloqueio de escrita local.
+  O diagnostico registrou criterios minimos de guard, blockers antes de qualquer
+  conexao operacional, rollback por flags e out-of-scope explicito para rota
+  REST, `consultarCadastro`, frontend e write cutover. Nao houve conexao do
+  adapter ao fluxo operacional, rota nova, BFF/frontend, escrita local ou
+  cutover. A contagem regressiva da Fase 70 passa a 2 subfases restantes
+  estimadas.
 
 ## Historico resumido
 

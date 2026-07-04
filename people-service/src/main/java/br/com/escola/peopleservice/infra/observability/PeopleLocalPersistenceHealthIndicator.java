@@ -109,6 +109,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("nextBlockedSliceDiagnostic", diagnosticoProximaFatiaBloqueada());
         details.put("addressSchemaBackfillDiagnostic", diagnosticoSchemaBackfillEndereco());
         details.put("addressLocalReadContractDiagnostic", diagnosticoContratoLeituraLocalEndereco());
+        details.put("addressLocalReadCutoverEligibilityDiagnostic", diagnosticoElegibilidadeCutoverEndereco());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -227,14 +228,14 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private Map<String, Object> diagnosticoProximaFatiaBloqueada() {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("slice", "endereco");
-        details.put("status", "address_local_read_adapter_prepared_no_cutover");
+        details.put("status", "address_local_read_cutover_eligibility_diagnostic_started");
         details.put("implementationAllowedNow", false);
         details.put("schemaAllowedNow", true);
         details.put("backfillAllowedNow", true);
         details.put("localReadCutoverAllowedNow", false);
         details.put("dependsOnClosedSlice", "consultarCadastro");
         details.put("tables", List.of("endereco", "pessoa_endereco"));
-        details.put("firstSafeImplementationSlice", "phase_69_closure_no_cutover");
+        details.put("firstSafeImplementationSlice", "address_read_cutover_eligibility_diagnostic_no_connection");
         details.put("requiredContractDecisions", List.of(
                 "define-internal-address-read-payload-before-adapter",
                 "keep-address-read-independent-from-consultarCadastro-until-contract-is-explicit",
@@ -291,6 +292,59 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "keep-endereco-on-monolith-proxy",
                 "keep-consultarCadastro-guarded-cutover-independent-from-address",
                 "disable-people.shadow.local-persistence.enabled-if-address-diagnostic-finds-write-risk"));
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoElegibilidadeCutoverEndereco() {
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("slice", "endereco_read_cutover_eligibility");
+        details.put("phase", "Fase 70");
+        details.put("status", "diagnostic_started_no_connection_no_route");
+        details.put("localReadCutoverAllowedNow", false);
+        details.put("adapterPrepared", true);
+        details.put("queryServiceConnected", false);
+        details.put("routeCreated", false);
+        details.put("bffFrontendChangeAllowedNow", false);
+        details.put("writeCutoverAllowedNow", false);
+        details.put("candidateSource", "people_read_model_address");
+        details.put("fallbackSource", "monolith_proxy");
+        details.put("fallbackRequired", true);
+        details.put("candidateOperations", List.of(
+                "buscarEnderecoPrincipalPorPessoa",
+                "listarEnderecosPorPessoa"));
+        details.put("minimumGuardCriteria", List.of(
+                "people.shadow.local-persistence.enabled=true",
+                "people.shadow.local-persistence.migration-enabled=true",
+                "people.shadow.local-persistence.backfill-enabled=true",
+                "people.shadow.local-persistence.reconciliation-enabled=true",
+                "people.shadow.local-persistence.read-model-fallback-enabled=true",
+                "localReadModelBackfill.status=completed",
+                "localReadModelBackfill.divergences=0",
+                "people.shadow.local.persistence.reconciliation.divergences=0",
+                "people.shadow.local.persistence.failures=0",
+                "address-reconciliation-has-no-multiple-principal-addresses",
+                "address-reconciliation-has-no-normalized-field-divergence",
+                "address-reconciliation-has-no-missing-person-or-address-reference"));
+        details.put("blockersBeforeAnyConnection", List.of(
+                "no-address-specific-read-routing-operation-yet",
+                "no-address-specific-observability-metric-yet",
+                "no-address-route-contract-selected",
+                "consultarCadastro-current-payload-does-not-expose-address",
+                "address-write-authority-remains-on-monolith"));
+        details.put("explicitlyOutOfScope", List.of(
+                "connect-JdbcPeopleAddressLocalReadAdapter-to-PessoaQueryService",
+                "create-new-address-rest-route",
+                "change-consultarCadastro-payload",
+                "bff-route-change",
+                "frontend-change",
+                "address-write-cutover"));
+        details.put("rollbackSteps", List.of(
+                "disable-people.shadow.local-persistence.read-model-cutover-enabled",
+                "keep-people.shadow.local-persistence.read-model-fallback-enabled=true",
+                "keep-address-read-on-monolith-proxy",
+                "disconnect-address-adapter-from-query-service-if-added-in-future-phase",
+                "rerun-address-backfill-and-reconciliation-before-reactivation"));
+        details.put("recommendedNextStep", "define_address_read_routing_operation_and_metrics_before_connection");
         return details;
     }
 
@@ -435,7 +489,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "keep-address-read-on-monolith-proxy",
                 "rerun-address-backfill-and-reconciliation-before-any-adapter-activation",
                 "block-adapter-activation-when-address-principal-rule-is-violated"));
-        details.put("nextImplementationSlice", "phase_69_closure_no_cutover");
+        details.put("nextImplementationSlice", "address_read_cutover_eligibility_diagnostic_no_connection");
         return details;
     }
 
