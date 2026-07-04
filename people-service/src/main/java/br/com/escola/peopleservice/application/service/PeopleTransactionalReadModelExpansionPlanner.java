@@ -12,9 +12,9 @@ public class PeopleTransactionalReadModelExpansionPlanner {
 
     public PeopleTransactionalReadModelExpansionPlan planejarProximaFatiaTransacional() {
         return new PeopleTransactionalReadModelExpansionPlan(
-                "address_local_read_contract_diagnostic_started_no_cutover",
-                "define_address_local_read_contract_before_adapter",
-                "address_local_read_contract_diagnostic_no_route_change",
+                "address_local_read_port_contract_prepared_no_adapter",
+                "evaluate_address_local_read_adapter_behind_guard",
+                "address_local_read_adapter_diagnostic_no_route_change",
                 true,
                 true,
                 false,
@@ -131,7 +131,7 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 true,
                                 true,
                                 false,
-                                "address_local_read_contract_required_before_cutover"),
+                                "address_local_read_port_contract_prepared_no_adapter"),
                         new TableExpansionDecision(
                                 "pessoa_endereco",
                                 "id_pessoa_endereco",
@@ -148,13 +148,14 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 true,
                                 true,
                                 false,
-                                "address_local_read_contract_required_before_cutover")),
+                                "address_local_read_port_contract_prepared_no_adapter")),
                 List.of(
                         "keep-consultarCadastro-guarded-local-read-closed",
                         "phase-68-formally-closed",
                         "address-schema-migration-opt-in-prepared",
                         "address-backfill-reconciliation-opt-in-prepared",
                         "address-local-read-contract-diagnostic-started",
+                        "address-local-read-port-and-dto-prepared",
                         "address-local-read-payload-must-be-internal-only",
                         "address-local-read-guard-must-stay-independent-from-consultarCadastro",
                         "address-schema-columns-defined",

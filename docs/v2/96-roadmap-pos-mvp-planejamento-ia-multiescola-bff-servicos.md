@@ -3338,6 +3338,39 @@ Proxima fase pratica:
   estiver verde;
 - nao alterar BFF/frontend, escrita local, rotas externas ou payloads atuais.
 
+Entregue na segunda subfase da Fase 69:
+
+- foi criado o contrato interno `PeopleAddressLocalReadPort` no
+  `people-service`, ainda sem implementacao JDBC, sem injecao em use case e sem
+  rota REST;
+- foi criado o DTO interno `PessoaEnderecoLocalReadResponse`, limitado ao
+  payload definido na primeira subfase: identificadores de `pessoa_endereco`,
+  pessoa, endereco, tipo de endereco, flag `principal` e campos persistidos de
+  endereco;
+- o planner passou a reportar
+  `address_local_read_port_contract_prepared_no_adapter`, mantendo
+  `localReadCutoverAllowedNow=false` e indicando como proxima etapa
+  `evaluate_address_local_read_adapter_behind_guard`;
+- o health `peopleLocalPersistence` passou a expor os artefatos preparados em
+  `addressLocalReadContractDiagnostic.preparedArtifacts`, com
+  `routeCreated=false`, `adapterCreated=false` e `queryServiceConnected=false`;
+- nao houve adapter operacional, rota interna nova, alteracao de
+  `consultarCadastro`, BFF/frontend, escrita local ou cutover.
+
+Contagem da macrofase Fase 69: 1 subfase restante estimada: avaliar o adapter
+local de leitura de endereco atras de guard e fallback, ainda sem rota externa e
+sem conectar payloads existentes.
+
+Proxima fase pratica:
+
+- avaliar e, se seguro, criar o primeiro adapter local JDBC de leitura de
+  endereco implementando `PeopleAddressLocalReadPort`, ainda sem rota REST nova
+  e sem conectar `consultarCadastro`;
+- o adapter deve ler apenas `people_read_model_address`, respeitar endereco
+  principal, bloquear quando houver divergencia/violacao de reconciliacao e
+  manter fallback obrigatorio para o monolito;
+- nao alterar BFF/frontend, escrita local, rotas externas ou payloads atuais.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3359,11 +3392,13 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Criar a porta e os DTOs internos para leitura local de endereco no
-`people-service`, sem rota REST nova e sem conectar `consultarCadastro`. Manter
-o contrato limitado a `people_read_model_address`, com fallback obrigatorio para
-o monolito e bloqueio quando a reconciliacao de endereco nao estiver verde. Nao
-alterar BFF/frontend, escrita local, rotas externas ou payloads atuais.
+Avaliar e, se seguro, criar o primeiro adapter local JDBC de leitura de endereco
+implementando `PeopleAddressLocalReadPort`, ainda sem rota REST nova e sem
+conectar `consultarCadastro`. O adapter deve ler apenas
+`people_read_model_address`, respeitar endereco principal, bloquear quando
+houver divergencia/violacao de reconciliacao e manter fallback obrigatorio para
+o monolito. Nao alterar BFF/frontend, escrita local, rotas externas ou payloads
+atuais.
 
 Entregue na oitava subfase:
 

@@ -12,10 +12,10 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
 
         var plan = planner.planejarProximaFatiaTransacional();
 
-        assertThat(plan.status()).isEqualTo("address_local_read_contract_diagnostic_started_no_cutover");
+        assertThat(plan.status()).isEqualTo("address_local_read_port_contract_prepared_no_adapter");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("define_address_local_read_contract_before_adapter");
-        assertThat(plan.minimalNextSlice()).isEqualTo("address_local_read_contract_diagnostic_no_route_change");
+                .isEqualTo("evaluate_address_local_read_adapter_behind_guard");
+        assertThat(plan.minimalNextSlice()).isEqualTo("address_local_read_adapter_diagnostic_no_route_change");
         assertThat(plan.migrationAllowedNow()).isTrue();
         assertThat(plan.backfillAllowedNow()).isTrue();
         assertThat(plan.localReadCutoverAllowedNow()).isFalse();
@@ -56,21 +56,21 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 .extracting("table")
                 .isEmpty();
         assertThat(plan.candidateTables())
-                .filteredOn("reason", "address_local_read_contract_required_before_cutover")
+                .filteredOn("reason", "address_local_read_port_contract_prepared_no_adapter")
                 .extracting("table")
                 .containsExactly("endereco", "pessoa_endereco");
         assertThat(plan.candidateTables())
-                .filteredOn("reason", "address_local_read_contract_required_before_cutover")
+                .filteredOn("reason", "address_local_read_port_contract_prepared_no_adapter")
                 .extracting("supportedOperations")
                 .containsExactly(
                         java.util.List.of("addressLocalReadContract"),
                         java.util.List.of("addressLocalReadContract"));
         assertThat(plan.candidateTables())
-                .filteredOn("reason", "address_local_read_contract_required_before_cutover")
+                .filteredOn("reason", "address_local_read_port_contract_prepared_no_adapter")
                 .extracting("migrationAllowed")
                 .containsExactly(true, true);
         assertThat(plan.candidateTables())
-                .filteredOn("reason", "address_local_read_contract_required_before_cutover")
+                .filteredOn("reason", "address_local_read_port_contract_prepared_no_adapter")
                 .extracting("backfillAllowed")
                 .containsExactly(true, true);
         assertThat(plan.requiredHardening()).contains(
@@ -79,6 +79,7 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 "address-schema-migration-opt-in-prepared",
                 "address-backfill-reconciliation-opt-in-prepared",
                 "address-local-read-contract-diagnostic-started",
+                "address-local-read-port-and-dto-prepared",
                 "address-local-read-payload-must-be-internal-only",
                 "address-local-read-guard-must-stay-independent-from-consultarCadastro",
                 "address-schema-columns-defined",

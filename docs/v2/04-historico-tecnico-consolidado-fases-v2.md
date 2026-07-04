@@ -1510,6 +1510,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   rota REST nova, adapter operacional, alteracao de `consultarCadastro`,
   BFF/frontend, escrita local ou cutover. A contagem regressiva da Fase 69 passa
   a 2 subfases restantes estimadas.
+- A segunda subfase da Fase 69 criou o contrato interno
+  `PeopleAddressLocalReadPort` e o DTO `PessoaEnderecoLocalReadResponse` no
+  `people-service`, ainda sem implementacao JDBC, sem injecao em use case, sem
+  rota REST e sem conectar `consultarCadastro`. O planner passou a reportar
+  `address_local_read_port_contract_prepared_no_adapter`, apontando a proxima
+  etapa para avaliar um adapter local atras de guard. O health passou a expor
+  `preparedArtifacts` dentro de `addressLocalReadContractDiagnostic`, marcando
+  `routeCreated=false`, `adapterCreated=false` e `queryServiceConnected=false`.
+  Nao houve BFF/frontend, escrita local, rota externa, adapter operacional ou
+  cutover. A contagem regressiva da Fase 69 passa a 1 subfase restante
+  estimada.
 
 ## Historico resumido
 
