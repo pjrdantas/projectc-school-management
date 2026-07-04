@@ -63,13 +63,13 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         Map<String, Object> nextBlockedSlice = (Map<String, Object>) details.get("nextBlockedSliceDiagnostic");
         assertThat(nextBlockedSlice)
                 .containsEntry("slice", "endereco")
-                .containsEntry("status", "backfill_reconciliation_prepared_read_cutover_still_blocked")
+                .containsEntry("status", "address_local_read_contract_diagnostic_started_no_cutover")
                 .containsEntry("implementationAllowedNow", false)
                 .containsEntry("schemaAllowedNow", true)
                 .containsEntry("backfillAllowedNow", true)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("dependsOnClosedSlice", "consultarCadastro")
-                .containsEntry("firstSafeImplementationSlice", "phase_68_closure_no_cutover");
+                .containsEntry("firstSafeImplementationSlice", "address_local_read_contract_diagnostic_no_route_change");
         @SuppressWarnings("unchecked")
         Map<String, Object> preparedInternalContract =
                 (Map<String, Object>) nextBlockedSlice.get("preparedInternalContract");
@@ -102,5 +102,19 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         assertThat(backfillReconciliation)
                 .containsEntry("source", "monolith_jdbc")
                 .containsEntry("target", "people_read_model_address");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> addressLocalReadContract =
+                (Map<String, Object>) details.get("addressLocalReadContractDiagnostic");
+        assertThat(addressLocalReadContract)
+                .containsEntry("slice", "endereco_local_read_contract")
+                .containsEntry("status", "diagnostic_started_no_adapter_no_cutover")
+                .containsEntry("phase", "Fase 69")
+                .containsEntry("contractAllowedNow", true)
+                .containsEntry("localReadAdapterAllowedNow", false)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("candidateSource", "people_read_model_address")
+                .containsEntry("fallbackSource", "monolith_proxy")
+                .containsEntry("nextImplementationSlice", "define_address_local_read_port_and_dto_no_route");
     }
 }

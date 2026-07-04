@@ -140,10 +140,10 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         Map<String, Object> transactionalPlan =
                 (Map<String, Object>) health.getDetails().get("transactionalReadModelExpansionPlan");
         assertThat(transactionalPlan)
-                .containsEntry("status", "address_backfill_reconciliation_prepared_no_read_cutover")
+                .containsEntry("status", "address_local_read_contract_diagnostic_started_no_cutover")
                 .containsEntry("recommendedNextStep",
-                        "close_phase_68_before_address_read_cutover_decision")
-                .containsEntry("minimalNextSlice", "phase_68_closure_no_cutover")
+                        "define_address_local_read_contract_before_adapter")
+                .containsEntry("minimalNextSlice", "address_local_read_contract_diagnostic_no_route_change")
                 .containsEntry("migrationAllowedNow", true)
                 .containsEntry("backfillAllowedNow", true)
                 .containsEntry("localReadCutoverAllowedNow", false);
@@ -153,13 +153,13 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 (Map<String, Object>) health.getDetails().get("nextBlockedSliceDiagnostic");
         assertThat(nextBlockedSlice)
                 .containsEntry("slice", "endereco")
-                .containsEntry("status", "backfill_reconciliation_prepared_read_cutover_still_blocked")
+                .containsEntry("status", "address_local_read_contract_diagnostic_started_no_cutover")
                 .containsEntry("implementationAllowedNow", false)
                 .containsEntry("schemaAllowedNow", true)
                 .containsEntry("backfillAllowedNow", true)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("dependsOnClosedSlice", "consultarCadastro")
-                .containsEntry("firstSafeImplementationSlice", "phase_68_closure_no_cutover");
+                .containsEntry("firstSafeImplementationSlice", "address_local_read_contract_diagnostic_no_route_change");
         @SuppressWarnings("unchecked")
         java.util.Map<String, Object> preparedInternalContract =
                 (java.util.Map<String, Object>) nextBlockedSlice.get("preparedInternalContract");
@@ -171,8 +171,9 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         java.util.List<String> requiredContractDecisions =
                 (java.util.List<String>) nextBlockedSlice.get("requiredContractDecisions");
         assertThat(requiredContractDecisions).contains(
+                "define-internal-address-read-payload-before-adapter",
                 "separate-external-cep-lookup-from-persisted-address-data",
-                "define-reconciliation-key-by-pessoa_endereco-before-backfill");
+                "keep-read-cutover-blocked-until-address-reconciliation-is-green");
         @SuppressWarnings("unchecked")
         java.util.List<String> writeConsumers = (java.util.List<String>) nextBlockedSlice.get("writeConsumers");
         assertThat(writeConsumers).contains(
@@ -255,6 +256,53 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 "id_tipo_endereco",
                 "principal",
                 "normalized_cep_logradouro_numero_bairro_cidade_uf");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> addressLocalReadContract =
+                (Map<String, Object>) health.getDetails().get("addressLocalReadContractDiagnostic");
+        assertThat(addressLocalReadContract)
+                .containsEntry("slice", "endereco_local_read_contract")
+                .containsEntry("status", "diagnostic_started_no_adapter_no_cutover")
+                .containsEntry("phase", "Fase 69")
+                .containsEntry("contractAllowedNow", true)
+                .containsEntry("localReadAdapterAllowedNow", false)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("externalRouteChangeAllowedNow", false)
+                .containsEntry("bffFrontendChangeAllowedNow", false)
+                .containsEntry("writeCutoverAllowedNow", false)
+                .containsEntry("candidateSource", "people_read_model_address")
+                .containsEntry("fallbackSource", "monolith_proxy")
+                .containsEntry("fallbackRequired", true)
+                .containsEntry("nextImplementationSlice", "define_address_local_read_port_and_dto_no_route");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> minimalInternalPayload =
+                (java.util.List<String>) addressLocalReadContract.get("minimalInternalPayload");
+        assertThat(minimalInternalPayload).contains(
+                "id_pessoa_endereco",
+                "id_pessoa",
+                "id_endereco",
+                "id_tipo_endereco",
+                "tipo_endereco_codigo",
+                "principal",
+                "cep",
+                "logradouro",
+                "cidade",
+                "uf");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> guardPreconditions =
+                (java.util.List<String>) addressLocalReadContract.get("guardPreconditions");
+        assertThat(guardPreconditions).contains(
+                "people.shadow.local-persistence.read-model-fallback-enabled=true",
+                "address-reconciliation-has-no-multiple-principal-addresses",
+                "address-reconciliation-has-no-normalized-field-divergence");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> outOfScope = (java.util.List<String>) addressLocalReadContract.get("outOfScope");
+        assertThat(outOfScope).contains(
+                "new-internal-rest-route",
+                "bff-route-change",
+                "frontend-change",
+                "consultarCadastro-payload-change",
+                "address-write-cutover");
 
         @SuppressWarnings("unchecked")
         Map<String, Object> closure =

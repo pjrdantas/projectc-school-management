@@ -3292,6 +3292,52 @@ Fechamento formal da Fase 68:
   macrofase, exigindo guard, reconciliacao verde, fallback obrigatorio e
   rollback por flags antes de qualquer uso operacional.
 
+### Fase 69 - Diagnostico do contrato de leitura local de endereco no `people-service`
+
+Objetivo: iniciar uma nova macrofase backend-only para definir o contrato de
+leitura local de endereco no `people-service`, partindo do schema e
+backfill/reconciliacao opt-in ja preparados na Fase 68, ainda sem adapter
+operacional, sem cutover, sem BFF/frontend, sem escrita local e sem alteracao de
+rotas externas.
+
+Entregue na primeira subfase da Fase 69:
+
+- o planner transacional passou a reportar
+  `address_local_read_contract_diagnostic_started_no_cutover`, com proxima
+  etapa `define_address_local_read_contract_before_adapter` e fatia minima
+  `address_local_read_contract_diagnostic_no_route_change`;
+- `endereco` e `pessoa_endereco` continuam com migration/backfill permitidos
+  apenas em modo opt-in, mas `localReadAllowed=false` ate existir contrato de
+  leitura local explicito e validado;
+- o health `peopleLocalPersistence` passou a expor
+  `addressLocalReadContractDiagnostic`, separando origem candidata
+  `people_read_model_address`, fallback obrigatorio para `monolith_proxy`,
+  operacoes candidatas internas (`buscarEnderecoPrincipalPorPessoa` e
+  `listarEnderecosPorPessoa`), payload interno minimo e pre-condicoes do guard;
+- o payload interno minimo ficou restrito a identificadores de
+  `pessoa_endereco`, `pessoa`, `endereco`, tipo de endereco, flag `principal` e
+  campos persistidos de endereco, sem incluir ViaCEP como autoridade do read
+  model;
+- ficaram explicitamente fora do recorte: nova rota interna REST, alteracao de
+  payload de `consultarCadastro`, BFF/frontend, escrita local, cutover de
+  endereco e qualquer leitura local sem fallback;
+- o rollback da macrofase fica limitado a manter endereco no proxy do monolito,
+  desligar cutover de read model e bloquear qualquer adapter quando houver
+  violacao da regra de endereco principal ou divergencia de reconciliacao.
+
+Contagem da macrofase Fase 69: 2 subfases restantes estimadas: definir porta e
+DTO internos de leitura local de endereco sem rota; depois avaliar adapter local
+controlado ainda atras de guard e fallback.
+
+Proxima fase pratica:
+
+- criar a porta e os DTOs internos para leitura local de endereco no
+  `people-service`, sem rota REST nova e sem conectar `consultarCadastro`;
+- manter o contrato limitado a `people_read_model_address`, com fallback
+  obrigatorio para o monolito e bloqueio quando a reconciliacao de endereco nao
+  estiver verde;
+- nao alterar BFF/frontend, escrita local, rotas externas ou payloads atuais.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3313,12 +3359,11 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Iniciar a proxima macrofase backend com diagnostico do contrato de leitura local
-de endereco no `people-service`, ainda sem cutover automatico. A fase deve
-separar payload interno, guard, pre-condicoes de reconciliacao verde, fallback
-obrigatorio para o monolito, rollback por flags e impactos sobre
-`consultarCadastro`. Manter sem BFF/frontend, sem escrita local e sem alteracao
-de rotas externas.
+Criar a porta e os DTOs internos para leitura local de endereco no
+`people-service`, sem rota REST nova e sem conectar `consultarCadastro`. Manter
+o contrato limitado a `people_read_model_address`, com fallback obrigatorio para
+o monolito e bloqueio quando a reconciliacao de endereco nao estiver verde. Nao
+alterar BFF/frontend, escrita local, rotas externas ou payloads atuais.
 
 Entregue na oitava subfase:
 

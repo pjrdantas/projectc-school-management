@@ -108,6 +108,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("transactionalReadModelExpansionPlan", diagnosticoExpansaoTransacional());
         details.put("nextBlockedSliceDiagnostic", diagnosticoProximaFatiaBloqueada());
         details.put("addressSchemaBackfillDiagnostic", diagnosticoSchemaBackfillEndereco());
+        details.put("addressLocalReadContractDiagnostic", diagnosticoContratoLeituraLocalEndereco());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -226,20 +227,20 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private Map<String, Object> diagnosticoProximaFatiaBloqueada() {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("slice", "endereco");
-        details.put("status", "backfill_reconciliation_prepared_read_cutover_still_blocked");
+        details.put("status", "address_local_read_contract_diagnostic_started_no_cutover");
         details.put("implementationAllowedNow", false);
         details.put("schemaAllowedNow", true);
         details.put("backfillAllowedNow", true);
         details.put("localReadCutoverAllowedNow", false);
         details.put("dependsOnClosedSlice", "consultarCadastro");
         details.put("tables", List.of("endereco", "pessoa_endereco"));
-        details.put("firstSafeImplementationSlice", "phase_68_closure_no_cutover");
+        details.put("firstSafeImplementationSlice", "address_local_read_contract_diagnostic_no_route_change");
         details.put("requiredContractDecisions", List.of(
-                "define-if-address-read-model-belongs-to-pessoa-detail-or-own-address-query",
-                "define-address-schema-columns-preserving-monolith-identifiers",
+                "define-internal-address-read-payload-before-adapter",
+                "keep-address-read-independent-from-consultarCadastro-until-contract-is-explicit",
                 "separate-external-cep-lookup-from-persisted-address-data",
                 "define-person-address-principal-selection-and-multiple-address-behavior",
-                "define-reconciliation-key-by-pessoa_endereco-before-backfill"));
+                "keep-read-cutover-blocked-until-address-reconciliation-is-green"));
         details.put("preparedInternalContract", Map.of(
                 "port", "PessoaEnderecoPort",
                 "summary", "PessoaEnderecoResumo",
@@ -360,6 +361,71 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "address-local-read-cutover",
                 "address-write-cutover",
                 "bff-or-frontend-route-change"));
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoContratoLeituraLocalEndereco() {
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("slice", "endereco_local_read_contract");
+        details.put("status", "diagnostic_started_no_adapter_no_cutover");
+        details.put("phase", "Fase 69");
+        details.put("contractAllowedNow", true);
+        details.put("localReadAdapterAllowedNow", false);
+        details.put("localReadCutoverAllowedNow", false);
+        details.put("externalRouteChangeAllowedNow", false);
+        details.put("bffFrontendChangeAllowedNow", false);
+        details.put("writeCutoverAllowedNow", false);
+        details.put("candidateSource", "people_read_model_address");
+        details.put("fallbackSource", "monolith_proxy");
+        details.put("fallbackRequired", true);
+        details.put("candidateOperations", List.of(
+                "buscarEnderecoPrincipalPorPessoa",
+                "listarEnderecosPorPessoa"));
+        details.put("minimalInternalPayload", List.of(
+                "id_pessoa_endereco",
+                "id_pessoa",
+                "id_endereco",
+                "id_tipo_endereco",
+                "tipo_endereco_codigo",
+                "tipo_endereco_descricao",
+                "principal",
+                "cep",
+                "logradouro",
+                "numero",
+                "complemento",
+                "bairro",
+                "cidade",
+                "uf"));
+        details.put("guardPreconditions", List.of(
+                "people.shadow.local-persistence.enabled=true",
+                "people.shadow.local-persistence.migration-enabled=true",
+                "people.shadow.local-persistence.backfill-enabled=true",
+                "people.shadow.local-persistence.reconciliation-enabled=true",
+                "people.shadow.local-persistence.read-model-fallback-enabled=true",
+                "localReadModelBackfill.status=completed",
+                "localReadModelBackfill.divergences=0",
+                "address-reconciliation-has-no-multiple-principal-addresses",
+                "address-reconciliation-has-no-normalized-field-divergence",
+                "address-reconciliation-has-no-missing-person-or-address-reference"));
+        details.put("consistencyRules", List.of(
+                "only-principal-address-can-feed-single-address-contract",
+                "multiple-principal-addresses-per-person-block-local-read",
+                "cep-lookup-is-not-authority-for-persisted-address-read",
+                "address-cleanup-and-orphan-removal-remain-on-monolith-until-write-authority"));
+        details.put("outOfScope", List.of(
+                "new-internal-rest-route",
+                "bff-route-change",
+                "frontend-change",
+                "consultarCadastro-payload-change",
+                "address-write-cutover",
+                "using-local-address-read-without-fallback"));
+        details.put("rollbackSteps", List.of(
+                "disable-people.shadow.local-persistence.read-model-cutover-enabled",
+                "keep-people.shadow.local-persistence.read-model-fallback-enabled=true",
+                "keep-address-read-on-monolith-proxy",
+                "rerun-address-backfill-and-reconciliation-before-any-adapter",
+                "block-adapter-activation-when-address-principal-rule-is-violated"));
+        details.put("nextImplementationSlice", "define_address_local_read_port_and_dto_no_route");
         return details;
     }
 

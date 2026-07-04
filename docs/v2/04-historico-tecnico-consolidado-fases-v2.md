@@ -1498,6 +1498,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   contrato de leitura local de endereco no `people-service`, separando payload
   interno, guard, reconciliacao verde, fallback obrigatorio para o monolito e
   rollback por flags antes de qualquer uso operacional.
+- A primeira subfase da Fase 69 iniciou a macrofase backend-only do contrato de
+  leitura local de endereco no `people-service`. O planner passou a reportar
+  `address_local_read_contract_diagnostic_started_no_cutover`, mantendo
+  `localReadCutoverAllowedNow=false` e deixando `endereco`/`pessoa_endereco`
+  apenas como candidatos dependentes de contrato. O health
+  `peopleLocalPersistence` passou a expor `addressLocalReadContractDiagnostic`,
+  com origem candidata `people_read_model_address`, fallback obrigatorio para
+  `monolith_proxy`, operacoes internas candidatas, payload minimo, pre-condicoes
+  de guard, regras de consistencia, out-of-scope e rollback por flags. Nao houve
+  rota REST nova, adapter operacional, alteracao de `consultarCadastro`,
+  BFF/frontend, escrita local ou cutover. A contagem regressiva da Fase 69 passa
+  a 2 subfases restantes estimadas.
 
 ## Historico resumido
 
