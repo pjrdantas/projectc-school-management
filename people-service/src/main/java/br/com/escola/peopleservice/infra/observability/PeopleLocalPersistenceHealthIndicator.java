@@ -227,14 +227,14 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private Map<String, Object> diagnosticoProximaFatiaBloqueada() {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("slice", "endereco");
-        details.put("status", "address_local_read_port_contract_prepared_no_adapter");
+        details.put("status", "address_local_read_adapter_prepared_no_cutover");
         details.put("implementationAllowedNow", false);
         details.put("schemaAllowedNow", true);
         details.put("backfillAllowedNow", true);
         details.put("localReadCutoverAllowedNow", false);
         details.put("dependsOnClosedSlice", "consultarCadastro");
         details.put("tables", List.of("endereco", "pessoa_endereco"));
-        details.put("firstSafeImplementationSlice", "address_local_read_adapter_diagnostic_no_route_change");
+        details.put("firstSafeImplementationSlice", "phase_69_closure_no_cutover");
         details.put("requiredContractDecisions", List.of(
                 "define-internal-address-read-payload-before-adapter",
                 "keep-address-read-independent-from-consultarCadastro-until-contract-is-explicit",
@@ -244,6 +244,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("preparedInternalContract", Map.of(
                 "port", "PeopleAddressLocalReadPort",
                 "response", "PessoaEnderecoLocalReadResponse",
+                "adapter", "JdbcPeopleAddressLocalReadAdapter",
                 "operations", List.of(
                         "buscarEnderecoPrincipalPorPessoa",
                         "listarEnderecosPorPessoa"),
@@ -367,10 +368,12 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private Map<String, Object> diagnosticoContratoLeituraLocalEndereco() {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("slice", "endereco_local_read_contract");
-        details.put("status", "port_contract_prepared_no_adapter_no_cutover");
+        details.put("status", "adapter_prepared_no_route_no_cutover");
         details.put("phase", "Fase 69");
         details.put("contractAllowedNow", true);
         details.put("localReadAdapterAllowedNow", false);
+        details.put("localReadAdapterPrepared", true);
+        details.put("localReadAdapterConnected", false);
         details.put("localReadCutoverAllowedNow", false);
         details.put("externalRouteChangeAllowedNow", false);
         details.put("bffFrontendChangeAllowedNow", false);
@@ -384,8 +387,9 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("preparedArtifacts", Map.of(
                 "port", "PeopleAddressLocalReadPort",
                 "response", "PessoaEnderecoLocalReadResponse",
+                "adapter", "JdbcPeopleAddressLocalReadAdapter",
                 "routeCreated", false,
-                "adapterCreated", false,
+                "adapterCreated", true,
                 "queryServiceConnected", false));
         details.put("minimalInternalPayload", List.of(
                 "id_pessoa_endereco",
@@ -429,9 +433,9 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "disable-people.shadow.local-persistence.read-model-cutover-enabled",
                 "keep-people.shadow.local-persistence.read-model-fallback-enabled=true",
                 "keep-address-read-on-monolith-proxy",
-                "rerun-address-backfill-and-reconciliation-before-any-adapter",
+                "rerun-address-backfill-and-reconciliation-before-any-adapter-activation",
                 "block-adapter-activation-when-address-principal-rule-is-violated"));
-        details.put("nextImplementationSlice", "evaluate_address_local_read_adapter_behind_guard_no_route");
+        details.put("nextImplementationSlice", "phase_69_closure_no_cutover");
         return details;
     }
 

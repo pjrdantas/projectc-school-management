@@ -1521,6 +1521,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   Nao houve BFF/frontend, escrita local, rota externa, adapter operacional ou
   cutover. A contagem regressiva da Fase 69 passa a 1 subfase restante
   estimada.
+- A terceira subfase da Fase 69 criou o adapter
+  `JdbcPeopleAddressLocalReadAdapter`, implementando
+  `PeopleAddressLocalReadPort` sobre o read model local de endereco. O adapter
+  le apenas `pessoa`, `pessoa_endereco`, `endereco` e `tipo_endereco`, aplica
+  escopo por escola via `pessoa.id_escola`, retorna o payload interno
+  `PessoaEnderecoLocalReadResponse`, lista enderecos com principal primeiro e
+  bloqueia `buscarEnderecoPrincipalPorPessoa` com
+  `address-principal-rule-violated` quando houver mais de um endereco principal
+  para a mesma pessoa. O planner passou a reportar
+  `address_local_read_adapter_prepared_no_route_no_cutover`, e o health passou
+  a indicar `adapterCreated=true`, `queryServiceConnected=false`,
+  `localReadAdapterConnected=false`, fallback obrigatorio para o monolito e
+  cutover bloqueado. Nao houve rota REST nova, alteracao de
+  `consultarCadastro`, BFF/frontend, escrita local ou cutover. A contagem
+  regressiva da Fase 69 chega a 0, restando fechamento formal antes de decidir
+  qualquer proximo recorte de leitura local de endereco.
 
 ## Historico resumido
 

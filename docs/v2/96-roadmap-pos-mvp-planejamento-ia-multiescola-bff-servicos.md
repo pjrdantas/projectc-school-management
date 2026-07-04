@@ -3371,6 +3371,44 @@ Proxima fase pratica:
   manter fallback obrigatorio para o monolito;
 - nao alterar BFF/frontend, escrita local, rotas externas ou payloads atuais.
 
+Entregue na terceira subfase da Fase 69:
+
+- foi criado o adapter `JdbcPeopleAddressLocalReadAdapter`, implementando
+  `PeopleAddressLocalReadPort` sobre o read model local de endereco, ainda sem
+  injecao em use case, sem rota REST e sem conectar `consultarCadastro`;
+- o adapter le apenas `pessoa`, `pessoa_endereco`, `endereco` e
+  `tipo_endereco`, aplica escopo por escola via `pessoa.id_escola` e mantem o
+  payload limitado ao DTO interno `PessoaEnderecoLocalReadResponse`;
+- `buscarEnderecoPrincipalPorPessoa` retorna vazio quando nao ha endereco
+  principal no escopo da escola e bloqueia a leitura local com
+  `address-principal-rule-violated` quando houver mais de um principal para a
+  mesma pessoa;
+- `listarEnderecosPorPessoa` usa ordenacao deterministica com principal
+  primeiro, sem expor nova rota externa e sem transformar ViaCEP em autoridade
+  do read model;
+- o planner passou a reportar
+  `address_local_read_adapter_prepared_no_route_no_cutover`, mantendo
+  `localReadCutoverAllowedNow=false` e indicando fechamento formal da Fase 69
+  antes de qualquer decisao de cutover de leitura de endereco;
+- o health `peopleLocalPersistence` passou a indicar
+  `addressLocalReadContractDiagnostic.status=adapter_prepared_no_route_no_cutover`,
+  com `adapterCreated=true`, `queryServiceConnected=false`,
+  `localReadAdapterConnected=false`, fallback obrigatorio para o monolito e
+  bloqueio de BFF/frontend, escrita local, rota externa e cutover.
+
+Contagem da macrofase Fase 69: 0 subfases restantes. O contrato interno e o
+adapter local JDBC de leitura de endereco estao preparados sem uso operacional,
+sem rota REST, sem BFF/frontend, sem escrita local e sem cutover.
+
+Proxima fase pratica:
+
+- fechar formalmente a Fase 69 apos commit/push da terceira subfase;
+- decidir em fase separada se o proximo recorte sera diagnosticar cutover
+  guardado de leitura local de endereco ou iniciar outra familia backend;
+- qualquer cutover futuro de endereco deve exigir guard, reconciliacao verde,
+  fallback obrigatorio para o monolito, rollback por flags e nenhuma mudanca de
+  BFF/frontend sem decisao explicita.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

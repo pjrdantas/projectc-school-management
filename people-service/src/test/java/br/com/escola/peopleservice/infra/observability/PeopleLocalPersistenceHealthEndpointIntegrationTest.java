@@ -63,19 +63,20 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         Map<String, Object> nextBlockedSlice = (Map<String, Object>) details.get("nextBlockedSliceDiagnostic");
         assertThat(nextBlockedSlice)
                 .containsEntry("slice", "endereco")
-                .containsEntry("status", "address_local_read_port_contract_prepared_no_adapter")
+                .containsEntry("status", "address_local_read_adapter_prepared_no_cutover")
                 .containsEntry("implementationAllowedNow", false)
                 .containsEntry("schemaAllowedNow", true)
                 .containsEntry("backfillAllowedNow", true)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("dependsOnClosedSlice", "consultarCadastro")
-                .containsEntry("firstSafeImplementationSlice", "address_local_read_adapter_diagnostic_no_route_change");
+                .containsEntry("firstSafeImplementationSlice", "phase_69_closure_no_cutover");
         @SuppressWarnings("unchecked")
         Map<String, Object> preparedInternalContract =
                 (Map<String, Object>) nextBlockedSlice.get("preparedInternalContract");
         assertThat(preparedInternalContract)
                 .containsEntry("port", "PeopleAddressLocalReadPort")
                 .containsEntry("response", "PessoaEnderecoLocalReadResponse")
+                .containsEntry("adapter", "JdbcPeopleAddressLocalReadAdapter")
                 .containsEntry("jpaEntityExposure", false);
         @SuppressWarnings("unchecked")
         java.util.List<String> writeConsumers = (java.util.List<String>) nextBlockedSlice.get("writeConsumers");
@@ -109,21 +110,24 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 (Map<String, Object>) details.get("addressLocalReadContractDiagnostic");
         assertThat(addressLocalReadContract)
                 .containsEntry("slice", "endereco_local_read_contract")
-                .containsEntry("status", "port_contract_prepared_no_adapter_no_cutover")
+                .containsEntry("status", "adapter_prepared_no_route_no_cutover")
                 .containsEntry("phase", "Fase 69")
                 .containsEntry("contractAllowedNow", true)
                 .containsEntry("localReadAdapterAllowedNow", false)
+                .containsEntry("localReadAdapterPrepared", true)
+                .containsEntry("localReadAdapterConnected", false)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("candidateSource", "people_read_model_address")
                 .containsEntry("fallbackSource", "monolith_proxy")
-                .containsEntry("nextImplementationSlice", "evaluate_address_local_read_adapter_behind_guard_no_route");
+                .containsEntry("nextImplementationSlice", "phase_69_closure_no_cutover");
         @SuppressWarnings("unchecked")
         Map<String, Object> preparedArtifacts =
                 (Map<String, Object>) addressLocalReadContract.get("preparedArtifacts");
         assertThat(preparedArtifacts)
                 .containsEntry("port", "PeopleAddressLocalReadPort")
                 .containsEntry("response", "PessoaEnderecoLocalReadResponse")
-                .containsEntry("adapterCreated", false)
+                .containsEntry("adapter", "JdbcPeopleAddressLocalReadAdapter")
+                .containsEntry("adapterCreated", true)
                 .containsEntry("queryServiceConnected", false);
     }
 }
