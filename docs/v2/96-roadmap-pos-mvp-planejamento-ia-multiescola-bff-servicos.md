@@ -3409,6 +3409,34 @@ Proxima fase pratica:
   fallback obrigatorio para o monolito, rollback por flags e nenhuma mudanca de
   BFF/frontend sem decisao explicita.
 
+Fechamento formal da Fase 69:
+
+- a Fase 69 fica oficialmente encerrada com tres entregas controladas:
+  diagnostico do contrato de leitura local de endereco, criacao de porta/DTO
+  internos e adapter JDBC local preparado sobre `people_read_model_address`;
+- o recorte termina sem rota REST nova, sem alteracao de `consultarCadastro`,
+  sem BFF/frontend, sem escrita local, sem leitura operacional de endereco e
+  sem cutover;
+- o adapter `JdbcPeopleAddressLocalReadAdapter` permanece apenas como artefato
+  preparado, com `queryServiceConnected=false`, fallback obrigatorio para o
+  monolito e bloqueio quando houver violacao de endereco principal ou
+  reconciliacao nao verde;
+- a decisao de ativar leitura local de endereco fica separada para uma nova
+  fase, exigindo diagnostico explicito de guard, reconciliacao verde,
+  observabilidade, fallback e rollback por flags antes de qualquer uso
+  operacional.
+
+Proxima fase pratica:
+
+- iniciar uma fase separada de decisao sobre o proximo recorte backend:
+  diagnosticar cutover guardado de leitura local de endereco ou escolher outra
+  familia de API;
+- se o recorte escolhido for endereco, manter a primeira subfase apenas como
+  diagnostico de elegibilidade do cutover, sem BFF/frontend, sem escrita local,
+  sem rota externa nova e sem conectar payloads existentes;
+- preservar o monolito como fallback obrigatorio ate que guard, reconciliacao,
+  metricas e rollback estejam comprovados.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3430,13 +3458,12 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Avaliar e, se seguro, criar o primeiro adapter local JDBC de leitura de endereco
-implementando `PeopleAddressLocalReadPort`, ainda sem rota REST nova e sem
-conectar `consultarCadastro`. O adapter deve ler apenas
-`people_read_model_address`, respeitar endereco principal, bloquear quando
-houver divergencia/violacao de reconciliacao e manter fallback obrigatorio para
-o monolito. Nao alterar BFF/frontend, escrita local, rotas externas ou payloads
-atuais.
+Iniciar uma fase separada de decisao sobre o proximo recorte backend apos o
+fechamento formal da Fase 69: diagnosticar cutover guardado de leitura local de
+endereco ou escolher outra familia de API. Se o recorte escolhido for endereco,
+a primeira subfase deve ser apenas diagnostico de elegibilidade do cutover, sem
+BFF/frontend, sem escrita local, sem rota externa nova e sem conectar payloads
+existentes.
 
 Entregue na oitava subfase:
 

@@ -1537,6 +1537,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `consultarCadastro`, BFF/frontend, escrita local ou cutover. A contagem
   regressiva da Fase 69 chega a 0, restando fechamento formal antes de decidir
   qualquer proximo recorte de leitura local de endereco.
+- A Fase 69 foi formalmente encerrada apos o commit/push da terceira subfase.
+  O bloco fica fechado com diagnostico do contrato de leitura local de
+  endereco, porta/DTO internos e adapter JDBC local preparado sobre
+  `people_read_model_address`, ainda sem rota REST nova, sem alteracao de
+  `consultarCadastro`, sem BFF/frontend, sem escrita local, sem leitura
+  operacional de endereco e sem cutover. O adapter permanece como artefato
+  preparado, com fallback obrigatorio para o monolito, bloqueio por
+  `address-principal-rule-violated` e dependencia de guard/reconciliacao verde
+  antes de qualquer ativacao. A proxima fase sugerida e decidir, em recorte
+  separado, se o proximo passo sera diagnosticar cutover guardado de leitura
+  local de endereco ou escolher outra familia backend.
 
 ## Historico resumido
 
