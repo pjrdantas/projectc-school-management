@@ -3800,13 +3800,45 @@ diagnostico e preparacao do adapter backend/backend de escrita de endereco esta
 fechado sem ativar o adapter por padrao e sem retirar a autoridade de escrita do
 monolito.
 
+### Fase 73 - Fechamento do recorte pessoa/endereco antes da proxima familia
+
+Objetivo: registrar explicitamente o que ja ficou fechado no `people-service`
+para pessoa/endereco, o que continua bloqueado para ativacao operacional e qual
+e a proxima familia minima que pode ser diagnosticada sem reabrir esse escopo.
+
+Entregue na primeira subfase da Fase 73:
+
+- foi criado no actuator `peopleLocalPersistence` o diagnostico
+  `peopleAddressScopeClosureDiagnostic`, consolidando que o bloco atual ja
+  fechou leitura local de catalogo/identidade, `consultarCadastro` guardado com
+  fallback obrigatorio, contrato interno de leitura de endereco e preparacao do
+  adapter backend/backend de escrita sem cutover;
+- o diagnostico deixa explicito que nao ha necessidade de ativacao agora:
+  `readScopeClosed=true`, `writeScopePreparedWithoutCutover=true`,
+  `activationRequiredNow=false` e `safeToStartNextFamilyDiagnostic=true`;
+- os bloqueios restantes ficaram formalizados apenas como criterio para fases
+  futuras de ativacao, sem reabrir escopo nesta etapa: criacao de
+  pessoa-com-endereco ainda acoplada a transacao do monolito, modelo local sem
+  autoridade de escrita e guarda
+  `people.shadow.monolith.address-write-adapter-enabled` mantida desligada por
+  padrao;
+- a proxima familia candidata minima ficou registrada como `pessoa_documento`,
+  antes de `funcionario`, enquanto `professor` permanece fora deste recorte por
+  ja estar tratado no `academic-professor-service`.
+
+Contagem da macrofase Fase 73: 2 subfases restantes estimadas: primeiro
+diagnosticar o contrato minimo de `pessoa_documento` no `people-service`; depois
+decidir a primeira preparacao pratica dessa nova familia sem reabrir
+endereco/pessoa.
+
 Proxima fase pratica:
 
-- iniciar a proxima macrofase backend de `people-service` revisando o que falta
-  para encerrar o recorte de endereco/pessoa antes de qualquer decisao de
-  ativacao operacional;
-- manter fora do escopo BFF/frontend, rota externa de escrita, persistencia
-  local autoritativa e remocao dos fluxos atuais do monolito.
+- iniciar o diagnostico do contrato interno minimo de `pessoa_documento` no
+  `people-service`, separando leitura, escrita, dependencias no monolito,
+  impacto de PII e estrategia minima de rollback;
+- manter fora do escopo reativacao de endereco, rota externa nova,
+  persistencia local autoritativa, BFF/frontend e remocao dos fluxos atuais do
+  monolito.
 
 ### Fase futura - Desativacao do monolito
 

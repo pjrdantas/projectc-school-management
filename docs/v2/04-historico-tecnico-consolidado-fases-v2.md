@@ -1689,6 +1689,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   externa, BFF/frontend, migration, persistencia local, ativacao do adapter por
   padrao, escrita local ou remocao dos fluxos atuais do monolito. A contagem
   regressiva da Fase 72 chega a 0.
+- A primeira subfase da Fase 73 formalizou no `people-service` o fechamento do
+  recorte pessoa/endereco antes da proxima familia. Foi criado no health
+  `peopleLocalPersistence` o diagnostico
+  `peopleAddressScopeClosureDiagnostic`, consolidando que catalogos, identidade,
+  `consultarCadastro` guardado com fallback obrigatorio, contrato interno de
+  leitura de endereco e preparacao do adapter backend/backend de escrita ja
+  estao fechados para o escopo atual sem exigir ativacao operacional. O
+  diagnostico passou a expor `readScopeClosed=true`,
+  `writeScopePreparedWithoutCutover=true`, `activationRequiredNow=false` e
+  `safeToStartNextFamilyDiagnostic=true`, alem de registrar os bloqueios que
+  seguem apenas para fases futuras de ativacao: criacao de pessoa com endereco
+  ainda acoplada a transacao do monolito, read model local sem autoridade de
+  escrita e guarda `people.shadow.monolith.address-write-adapter-enabled`
+  mantida desligada por padrao. A proxima familia candidata minima foi marcada
+  como `pessoa_documento`, antes de `funcionario`, enquanto `professor`
+  permanece fora deste recorte por ja estar coberto no
+  `academic-professor-service`. Nao houve reativacao de endereco, rota externa,
+  BFF/frontend, persistencia local autoritativa nem remocao de fluxos atuais do
+  monolito. A contagem regressiva da Fase 73 passa a 2 subfases restantes
+  estimadas.
 
 ## Historico resumido
 

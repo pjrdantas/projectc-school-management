@@ -627,5 +627,34 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         assertThat(metrics)
                 .containsEntry("localReads", "people.shadow.local.persistence.student.responsible.reads")
                 .containsEntry("routingDecisions", "people.shadow.local.persistence.read.routing.decisions");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> addressScopeClosure =
+                (Map<String, Object>) health.getDetails().get("peopleAddressScopeClosureDiagnostic");
+        assertThat(addressScopeClosure)
+                .containsEntry("phase", "Fase 73")
+                .containsEntry("slice", "people_address_scope_closure_review")
+                .containsEntry("status", "people_address_scope_review_closed_ready_for_next_family_diagnostic")
+                .containsEntry("recommendedNextStep",
+                        "start_people_document_scope_diagnostic_without_reopening_address_cutover")
+                .containsEntry("minimalNextSlice", "people_document_contract_diagnostic")
+                .containsEntry("readScopeClosed", true)
+                .containsEntry("writeScopePreparedWithoutCutover", true)
+                .containsEntry("activationRequiredNow", false)
+                .containsEntry("safeToStartNextFamilyDiagnostic", true);
+        @SuppressWarnings("unchecked")
+        java.util.List<String> remainingActivationBlockers =
+                (java.util.List<String>) addressScopeClosure.get("remainingActivationBlockers");
+        assertThat(remainingActivationBlockers).contains(
+                "create-person-with-address remains inside monolith person transaction",
+                "funcionario, professor and pessoa_documento are still outside current people-service scope");
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> currentRecommendation =
+                (java.util.Map<String, Object>) addressScopeClosure.get("currentRecommendation");
+        assertThat(currentRecommendation)
+                .containsEntry("keepAddressGuardDisabled", true)
+                .containsEntry("keepAddressWritesOnMonolith", true)
+                .containsEntry("nextPreferredFamily", "pessoa_documento")
+                .containsEntry("reopenAddressInThisPhase", false);
     }
 }
