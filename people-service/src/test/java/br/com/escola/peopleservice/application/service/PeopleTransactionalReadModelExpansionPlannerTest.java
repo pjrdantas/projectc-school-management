@@ -12,10 +12,10 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
 
         var plan = planner.planejarProximaFatiaTransacional();
 
-        assertThat(plan.status()).isEqualTo("address_local_read_cutover_eligibility_diagnostic_started");
+        assertThat(plan.status()).isEqualTo("address_local_read_routing_operation_defined_no_connection");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("define_address_read_cutover_guard_criteria_no_route_change");
-        assertThat(plan.minimalNextSlice()).isEqualTo("address_read_cutover_eligibility_diagnostic_no_connection");
+                .isEqualTo("evaluate_address_adapter_connection_behind_guard_no_route_change");
+        assertThat(plan.minimalNextSlice()).isEqualTo("address_adapter_connection_guarded_diagnostic_no_external_route");
         assertThat(plan.migrationAllowedNow()).isTrue();
         assertThat(plan.backfillAllowedNow()).isTrue();
         assertThat(plan.localReadCutoverAllowedNow()).isFalse();
@@ -56,21 +56,21 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 .extracting("table")
                 .isEmpty();
         assertThat(plan.candidateTables())
-                .filteredOn("reason", "address_local_read_cutover_eligibility_diagnostic_started")
+                .filteredOn("reason", "address_local_read_routing_operation_defined_no_connection")
                 .extracting("table")
                 .containsExactly("endereco", "pessoa_endereco");
         assertThat(plan.candidateTables())
-                .filteredOn("reason", "address_local_read_cutover_eligibility_diagnostic_started")
+                .filteredOn("reason", "address_local_read_routing_operation_defined_no_connection")
                 .extracting("supportedOperations")
                 .containsExactly(
-                        java.util.List.of("addressLocalReadCutoverEligibility"),
-                        java.util.List.of("addressLocalReadCutoverEligibility"));
+                        java.util.List.of("addressLocalRead"),
+                        java.util.List.of("addressLocalRead"));
         assertThat(plan.candidateTables())
-                .filteredOn("reason", "address_local_read_cutover_eligibility_diagnostic_started")
+                .filteredOn("reason", "address_local_read_routing_operation_defined_no_connection")
                 .extracting("migrationAllowed")
                 .containsExactly(true, true);
         assertThat(plan.candidateTables())
-                .filteredOn("reason", "address_local_read_cutover_eligibility_diagnostic_started")
+                .filteredOn("reason", "address_local_read_routing_operation_defined_no_connection")
                 .extracting("backfillAllowed")
                 .containsExactly(true, true);
         assertThat(plan.requiredHardening()).contains(
@@ -83,6 +83,8 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 "address-local-read-jdbc-adapter-prepared",
                 "phase-69-formally-closed",
                 "address-read-cutover-eligibility-diagnostic-started",
+                "address-local-read-routing-operation-defined",
+                "address-local-read-routing-metrics-defined",
                 "address-read-cutover-must-not-connect-query-service-yet",
                 "address-local-read-payload-must-be-internal-only",
                 "address-local-read-guard-must-stay-independent-from-consultarCadastro",

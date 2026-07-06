@@ -21,6 +21,11 @@ public class PeopleLocalReadCutoverGuard {
     private static final String MONOLITH_SOURCE = "monolith_proxy";
     private static final String LOCAL_CANDIDATE_SOURCE = "people_read_model_candidate";
     private static final String STUDENT_RESPONSIBLE_SOURCE = "people_read_model_student_responsible";
+    private static final String ADDRESS_SOURCE = "people_read_model_address";
+    private static final ReadRouteDescriptor ADDRESS_READ_ROUTE = new ReadRouteDescriptor(
+            "addressLocalRead",
+            "internal-operation:PeopleAddressLocalReadPort",
+            ADDRESS_SOURCE);
 
     private static final List<ReadRouteDescriptor> READ_ROUTES = List.of(
             new ReadRouteDescriptor(
@@ -55,13 +60,28 @@ public class PeopleLocalReadCutoverGuard {
 
     public PeopleLocalReadRoutingDecision registrarDecisao(String operation) {
         PeopleLocalReadRoutingDecision decision = avaliar(operation);
+        registrarMetricaDecisao(decision);
+        return decision;
+    }
+
+    public PeopleLocalReadRoutingDecision registrarDecisaoLeituraEndereco() {
+        PeopleLocalReadRoutingDecision decision = avaliarLeituraEndereco();
+        registrarMetricaDecisao(decision);
+        Counter.builder("people.shadow.local.persistence.address.read.routing.decisions")
+                .tag("selected_source", decision.selectedSource())
+                .tag("reason", decision.reason())
+                .register(meterRegistry)
+                .increment();
+        return decision;
+    }
+
+    private void registrarMetricaDecisao(PeopleLocalReadRoutingDecision decision) {
         Counter.builder("people.shadow.local.persistence.read.routing.decisions")
                 .tag("operation", decision.operation())
                 .tag("selected_source", decision.selectedSource())
                 .tag("reason", decision.reason())
                 .register(meterRegistry)
                 .increment();
-        return decision;
     }
 
     public Map<String, PeopleLocalReadRoutingDecision> avaliarTodas() {
@@ -88,6 +108,23 @@ public class PeopleLocalReadCutoverGuard {
                 selectedSource,
                 properties.readModelCutoverEnabled(),
                 localReadEligible,
+                properties.readModelFallbackEnabled(),
+                false,
+                reason);
+    }
+
+    public PeopleLocalReadRoutingDecision avaliarLeituraEndereco() {
+        String reason = motivoInelegibilidade(ADDRESS_READ_ROUTE);
+        if (isEligibleReason(reason) || "local-read-adapter-not-configured".equals(reason)) {
+            reason = "address-local-read-connection-disabled";
+        }
+        return new PeopleLocalReadRoutingDecision(
+                ADDRESS_READ_ROUTE.operation(),
+                ADDRESS_READ_ROUTE.shadowRoute(),
+                ADDRESS_READ_ROUTE.candidateSource(),
+                MONOLITH_SOURCE,
+                properties.readModelCutoverEnabled(),
+                false,
                 properties.readModelFallbackEnabled(),
                 false,
                 reason);

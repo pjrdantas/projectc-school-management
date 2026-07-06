@@ -1563,6 +1563,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   adapter ao fluxo operacional, rota nova, BFF/frontend, escrita local ou
   cutover. A contagem regressiva da Fase 70 passa a 2 subfases restantes
   estimadas.
+- A segunda subfase da Fase 70 definiu a operacao interna de roteamento
+  `addressLocalRead` no `PeopleLocalReadCutoverGuard`, com candidato
+  `people_read_model_address` e shadow route
+  `internal-operation:PeopleAddressLocalReadPort`. A operacao ficou isolada de
+  `avaliarTodas()` para nao alterar catalogo, identidade ou `consultarCadastro`,
+  registra metricas em
+  `people.shadow.local.persistence.read.routing.decisions{operation=addressLocalRead}`
+  e `people.shadow.local.persistence.address.read.routing.decisions`, mas
+  continua selecionando `monolith_proxy` com
+  `address-local-read-connection-disabled` mesmo quando o read model geral esta
+  verde. O health passou a expor a decisao de `addressLocalRead`, os nomes das
+  metricas e `addressReadRoutingDecisionsTotal`, mantendo
+  `queryServiceConnected=false`, `routeCreated=false`,
+  `localReadCutoverAllowedNow=false` e fallback obrigatorio. Nao houve conexao
+  do adapter ao fluxo operacional, rota nova, BFF/frontend, escrita local,
+  alteracao de payload ou cutover. A contagem regressiva da Fase 70 passa a 1
+  subfase restante estimada.
 
 ## Historico resumido
 

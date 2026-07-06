@@ -3487,6 +3487,46 @@ Proxima fase pratica:
   reconciliacao verde, fallback obrigatorio e rollback por flags;
 - nao alterar BFF/frontend, escrita local, rotas externas ou payloads atuais.
 
+Entregue na segunda subfase da Fase 70:
+
+- foi definida a operacao interna de roteamento `addressLocalRead` no
+  `PeopleLocalReadCutoverGuard`, apontando para
+  `internal-operation:PeopleAddressLocalReadPort` e candidato
+  `people_read_model_address`;
+- a operacao de endereco ficou isolada do conjunto global `avaliarTodas()`,
+  para nao alterar o comportamento ja estabilizado de catalogo, identidade e
+  `consultarCadastro`;
+- `addressLocalRead` registra decisao de roteamento geral em
+  `people.shadow.local.persistence.read.routing.decisions{operation=addressLocalRead}`
+  e decisao especifica em
+  `people.shadow.local.persistence.address.read.routing.decisions`;
+- mesmo com read model verde, a operacao de endereco continua selecionando
+  `monolith_proxy` e bloqueando leitura local com
+  `address-local-read-connection-disabled` ate uma fase futura decidir a
+  conexao do adapter;
+- o health `peopleLocalPersistence` passou a expor a decisao de
+  `addressLocalRead`, os nomes das metricas de roteamento e o contador
+  `addressReadRoutingDecisionsTotal`, mantendo `queryServiceConnected=false`,
+  `routeCreated=false`, `localReadCutoverAllowedNow=false` e
+  `fallbackRequired=true`;
+- nao houve conexao do `JdbcPeopleAddressLocalReadAdapter` ao
+  `PessoaQueryService`, rota REST nova, BFF/frontend, escrita local, alteracao
+  de payload ou cutover.
+
+Contagem da macrofase Fase 70: 1 subfase restante estimada: avaliar uma conexao
+controlada do adapter apenas atras de guard, sem rota externa e mantendo
+fallback obrigatorio para o monolito.
+
+Proxima fase pratica:
+
+- avaliar se e seguro conectar o adapter de endereco ao fluxo interno apenas
+  atras do guard `addressLocalRead`, ainda sem rota REST nova e sem alterar
+  `consultarCadastro`;
+- manter fallback obrigatorio para o monolito e bloquear a conexao quando
+  backfill/reconciliacao nao estiverem verdes ou houver violacao da regra de
+  endereco principal;
+- nao alterar BFF/frontend, escrita local, rotas externas ou payloads atuais.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3508,12 +3548,12 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Definir a operacao interna de roteamento de leitura local de endereco e as
-metricas necessarias para observabilidade, ainda sem conectar o adapter ao fluxo
-operacional. O cutover deve continuar bloqueado ate existir guard especifico de
-endereco, reconciliacao verde, fallback obrigatorio e rollback por flags, sem
-BFF/frontend, sem escrita local, sem rota externa nova e sem alterar payloads
-atuais.
+Avaliar se e seguro conectar o adapter de endereco ao fluxo interno apenas atras
+do guard `addressLocalRead`, ainda sem rota REST nova e sem alterar
+`consultarCadastro`. Manter fallback obrigatorio para o monolito e bloquear a
+conexao quando backfill/reconciliacao nao estiverem verdes ou houver violacao da
+regra de endereco principal, sem BFF/frontend, sem escrita local, sem rota
+externa nova e sem alterar payloads atuais.
 
 Entregue na oitava subfase:
 
