@@ -155,5 +155,22 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("bffFrontendChangeAllowedNow", false)
                 .containsEntry("writeCutoverAllowedNow", false)
                 .containsEntry("fallbackRequired", true);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> addressWriteAuthority =
+                (Map<String, Object>) details.get("addressWriteAuthorityDiagnostic");
+        assertThat(addressWriteAuthority)
+                .containsEntry("phase", "Fase 71")
+                .containsEntry("slice", "endereco_write_authority")
+                .containsEntry("status", "diagnostic_started_no_write_cutover")
+                .containsEntry("writeCutoverAllowedNow", false)
+                .containsEntry("localReadPrerequisiteClosed", true)
+                .containsEntry("recommendedNextStep", "define_address_write_command_contract_no_external_route");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> consistencyBlockers =
+                (java.util.List<String>) addressWriteAuthority.get("consistencyBlockers");
+        assertThat(consistencyBlockers).contains(
+                "address-write-is-coupled-to-person-create-update-transaction",
+                "local-read-model-is-not-write-authority");
     }
 }

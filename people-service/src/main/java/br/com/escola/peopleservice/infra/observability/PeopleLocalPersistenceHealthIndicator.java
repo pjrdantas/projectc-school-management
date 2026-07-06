@@ -10,7 +10,9 @@ import org.springframework.stereotype.Component;
 
 import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecision;
 import br.com.escola.peopleservice.application.dto.PeopleCatalogReadModelSchemaPlan;
+import br.com.escola.peopleservice.application.dto.PeopleAddressWriteAuthorityPlan;
 import br.com.escola.peopleservice.application.dto.PeopleTransactionalReadModelExpansionPlan;
+import br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthorityPlanner;
 import br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner;
 import br.com.escola.peopleservice.application.service.PeopleLocalPersistenceOperationState;
 import br.com.escola.peopleservice.application.service.PeopleLocalReadModelSchemaMigrationState;
@@ -64,6 +66,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private final PeopleLocalReadCutoverGuard readCutoverGuard;
     private final PeopleCatalogReadModelSchemaPlanner catalogSchemaPlanner;
     private final PeopleTransactionalReadModelExpansionPlanner transactionalExpansionPlanner;
+    private final PeopleAddressWriteAuthorityPlanner addressWriteAuthorityPlanner;
     private final PeopleLocalReadModelSchemaMigrationState schemaMigrationState;
     private final PeopleLocalPersistenceOperationState operationState;
 
@@ -73,6 +76,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             PeopleLocalReadCutoverGuard readCutoverGuard,
             PeopleCatalogReadModelSchemaPlanner catalogSchemaPlanner,
             PeopleTransactionalReadModelExpansionPlanner transactionalExpansionPlanner,
+            PeopleAddressWriteAuthorityPlanner addressWriteAuthorityPlanner,
             PeopleLocalReadModelSchemaMigrationState schemaMigrationState,
             PeopleLocalPersistenceOperationState operationState) {
         this.properties = properties;
@@ -80,6 +84,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         this.readCutoverGuard = readCutoverGuard;
         this.catalogSchemaPlanner = catalogSchemaPlanner;
         this.transactionalExpansionPlanner = transactionalExpansionPlanner;
+        this.addressWriteAuthorityPlanner = addressWriteAuthorityPlanner;
         this.schemaMigrationState = schemaMigrationState;
         this.operationState = operationState;
     }
@@ -110,6 +115,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("addressSchemaBackfillDiagnostic", diagnosticoSchemaBackfillEndereco());
         details.put("addressLocalReadContractDiagnostic", diagnosticoContratoLeituraLocalEndereco());
         details.put("addressLocalReadCutoverEligibilityDiagnostic", diagnosticoElegibilidadeCutoverEndereco());
+        details.put("addressWriteAuthorityDiagnostic", diagnosticoAutoridadeEscritaEndereco());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -226,6 +232,27 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("requiredHardening", plan.requiredHardening());
         details.put("blockedTables", plan.blockedTables());
         details.put("rollbackSteps", plan.rollbackSteps());
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoAutoridadeEscritaEndereco() {
+        PeopleAddressWriteAuthorityPlan plan = addressWriteAuthorityPlanner.planejarAutoridadeEscritaEndereco();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("writeCutoverAllowedNow", plan.writeCutoverAllowedNow());
+        details.put("migrationAllowedNow", plan.migrationAllowedNow());
+        details.put("backfillAllowedNow", plan.backfillAllowedNow());
+        details.put("localReadPrerequisiteClosed", plan.localReadPrerequisiteClosed());
+        details.put("candidateOperations", plan.candidateOperations());
+        details.put("monolithWriteAuthorities", plan.monolithWriteAuthorities());
+        details.put("requiredContracts", plan.requiredContracts());
+        details.put("consistencyBlockers", plan.consistencyBlockers());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
         return details;
     }
 

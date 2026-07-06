@@ -38,6 +38,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                         new PeopleLocalPersistenceOperationState()),
                 new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner(),
                 new br.com.escola.peopleservice.application.service.PeopleTransactionalReadModelExpansionPlanner(),
+                new br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthorityPlanner(),
                 new PeopleLocalReadModelSchemaMigrationState(),
                 new PeopleLocalPersistenceOperationState());
 
@@ -380,6 +381,47 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 "address-write-cutover");
 
         @SuppressWarnings("unchecked")
+        Map<String, Object> addressWriteAuthority =
+                (Map<String, Object>) health.getDetails().get("addressWriteAuthorityDiagnostic");
+        assertThat(addressWriteAuthority)
+                .containsEntry("phase", "Fase 71")
+                .containsEntry("slice", "endereco_write_authority")
+                .containsEntry("status", "diagnostic_started_no_write_cutover")
+                .containsEntry("recommendedNextStep", "define_address_write_command_contract_no_external_route")
+                .containsEntry("minimalNextSlice",
+                        "address_write_command_contract_diagnostic_no_persistence_change")
+                .containsEntry("writeCutoverAllowedNow", false)
+                .containsEntry("migrationAllowedNow", false)
+                .containsEntry("backfillAllowedNow", false)
+                .containsEntry("localReadPrerequisiteClosed", true);
+        @SuppressWarnings("unchecked")
+        java.util.List<Object> candidateOperations =
+                (java.util.List<Object>) addressWriteAuthority.get("candidateOperations");
+        assertThat(candidateOperations).hasSize(4);
+        @SuppressWarnings("unchecked")
+        java.util.List<String> monolithWriteAuthorities =
+                (java.util.List<String>) addressWriteAuthority.get("monolithWriteAuthorities");
+        assertThat(monolithWriteAuthorities).contains(
+                "PessoaFoundationService.criarPessoaComTipoEEndereco",
+                "PessoaFoundationService.atualizarPessoaEEndereco",
+                "PessoaEnderecoPort.removerEnderecosDaPessoaRemovendoOrfaos",
+                "ViaCepService");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> requiredContracts =
+                (java.util.List<String>) addressWriteAuthority.get("requiredContracts");
+        assertThat(requiredContracts).contains(
+                "PeopleAddressWritePort command payload without JPA entities",
+                "orphan cleanup contract with shared-address safeguard");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> writeOutOfScope =
+                (java.util.List<String>) addressWriteAuthority.get("explicitlyOutOfScope");
+        assertThat(writeOutOfScope).contains(
+                "create-address-write-rest-route",
+                "bff-route-change",
+                "frontend-change",
+                "write-to-local-address-tables");
+
+        @SuppressWarnings("unchecked")
         Map<String, Object> closure =
                 (Map<String, Object>) health.getDetails().get("guardedReadCutoverClosure");
         assertThat(closure)
@@ -409,6 +451,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                         new PeopleLocalPersistenceOperationState()),
                 new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner(),
                 new br.com.escola.peopleservice.application.service.PeopleTransactionalReadModelExpansionPlanner(),
+                new br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthorityPlanner(),
                 new PeopleLocalReadModelSchemaMigrationState(),
                 new PeopleLocalPersistenceOperationState());
 
@@ -433,6 +476,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                         new PeopleLocalPersistenceOperationState()),
                 new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner(),
                 new br.com.escola.peopleservice.application.service.PeopleTransactionalReadModelExpansionPlanner(),
+                new br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthorityPlanner(),
                 new PeopleLocalReadModelSchemaMigrationState(),
                 new PeopleLocalPersistenceOperationState());
 
@@ -474,6 +518,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                         operationState),
                 new br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner(),
                 new br.com.escola.peopleservice.application.service.PeopleTransactionalReadModelExpansionPlanner(),
+                new br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthorityPlanner(),
                 new PeopleLocalReadModelSchemaMigrationState(),
                 operationState);
 

@@ -1598,6 +1598,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   e sem escrita local. O planner passou a recomendar
   `close_phase_70_and_plan_address_write_authority_diagnostic`. A contagem
   regressiva da Fase 70 chega a 0.
+- A primeira subfase da Fase 71 iniciou o diagnostico backend-only de autoridade
+  de escrita de endereco no `people-service`, sem mover escrita do monolito.
+  Foram criados `PeopleAddressWriteAuthorityPlanner` e
+  `PeopleAddressWriteAuthorityPlan`, e o health `peopleLocalPersistence` passou
+  a expor `addressWriteAuthorityDiagnostic` com estado
+  `diagnostic_started_no_write_cutover`. O diagnostico separa as operacoes
+  candidatas `create-person-with-principal-address`,
+  `update-person-principal-address`,
+  `remove-person-address-links-and-orphans` e `cep-lookup-for-address-input`,
+  todas com `allowedNow=false`. Foram registrados como autoridades atuais do
+  monolito `PessoaFoundationService`, `PessoaEnderecoPort`, repositorios JPA de
+  endereco e `ViaCepService`, alem de contratos exigidos, blockers de
+  consistencia, rollback e out-of-scope. Nao houve rota REST nova,
+  BFF/frontend, escrita local, remocao do caminho do monolito ou alteracao de
+  payload. A contagem regressiva da Fase 71 passa a 2 subfases restantes
+  estimadas.
 
 ## Historico resumido
 

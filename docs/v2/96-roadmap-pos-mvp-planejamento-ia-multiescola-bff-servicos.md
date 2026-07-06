@@ -3565,6 +3565,58 @@ Proxima fase pratica:
 - nao abrir PR para `Master` ainda, porque o criterio combinado e
   `people-service` 100% desacoplado do monolito.
 
+Fechamento formal da Fase 70:
+
+- o recorte de leitura local interna de endereco fica encerrado com guard
+  dedicado, adapter JDBC preparado, servico interno guardado e observabilidade
+  propria;
+- o fechamento manteve `queryServiceConnected=false`, `routeCreated=false`,
+  `writeCutoverAllowedNow=false`, `bffFrontendChangeAllowedNow=false` e nenhum
+  payload externo alterado;
+- a decisao de evoluir para escrita local de endereco foi separada para nova
+  fase, porque leitura local guardada nao torna o read model autoridade de
+  escrita.
+
+### Fase 71 - Diagnostico de autoridade de escrita de endereco no `people-service`
+
+Objetivo: iniciar uma fase backend-only para mapear o menor recorte futuro de
+escrita de endereco que poderia sair do monolito, partindo da leitura local
+interna fechada na Fase 70, sem criar rota REST, sem BFF/frontend, sem escrever
+nas tabelas locais e sem remover o caminho atual do monolito.
+
+Entregue na primeira subfase da Fase 71:
+
+- foi criado o planner `PeopleAddressWriteAuthorityPlanner` e o contrato
+  `PeopleAddressWriteAuthorityPlan`, expondo no health
+  `peopleLocalPersistence.addressWriteAuthorityDiagnostic` o estado
+  `diagnostic_started_no_write_cutover`;
+- o diagnostico separa quatro operacoes candidatas: criar pessoa com endereco
+  principal, atualizar endereco principal da pessoa, remover vinculos/endereco
+  orfao e consulta ViaCEP para enriquecimento de entrada;
+- cada operacao continua com `allowedNow=false`, porque a escrita de endereco
+  ainda esta acoplada a transacao de pessoa/aluno/responsavel no monolito,
+  limpeza de orfaos exige salvaguarda por contagem de referencias e ViaCEP nao
+  e autoridade de persistencia;
+- o health passou a registrar autoridades atuais no monolito
+  (`PessoaFoundationService`, `PessoaEnderecoPort`, repositorios JPA de
+  endereco e `ViaCepService`), contratos exigidos antes de qualquer write
+  routing, blockers de consistencia, rollback e out-of-scope;
+- ficaram fora do recorte: criar rota REST de escrita de endereco, alterar BFF
+  ou frontend, escrever nas tabelas locais, remover o caminho do monolito e
+  alterar payload de `consultarCadastro`.
+
+Contagem da macrofase Fase 71: 2 subfases restantes estimadas: definir o
+contrato de comando de escrita de endereco sem entidades JPA; depois avaliar
+um piloto backend/backend shadow de comando sem persistir localmente.
+
+Proxima fase pratica:
+
+- definir `PeopleAddressWritePort`/DTOs internos para comando de endereco,
+  incluindo idempotencia, regra de endereco principal, rollback e contrato de
+  fallback para o monolito;
+- manter `writeCutoverAllowedNow=false`, sem rota REST nova, sem BFF/frontend,
+  sem escrita local e sem alterar os fluxos atuais de aluno/responsavel.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3586,12 +3638,11 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Fechar formalmente a Fase 70 e iniciar o diagnostico de autoridade de escrita de
-endereco no `people-service`, separando criacao/atualizacao de endereco, limpeza
-de vinculos/orfaos, uso de ViaCEP e rollback. O monolito continua autoridade de
-escrita ate existir contrato, migracao, reconciliacao e plano de rollback
-especificos para escrita. Nao abrir PR para `Master` ainda, pois o criterio
-combinado e `people-service` 100% desacoplado do monolito.
+Definir `PeopleAddressWritePort`/DTOs internos para comando de endereco,
+incluindo idempotencia, regra de endereco principal, rollback e contrato de
+fallback para o monolito. Manter `writeCutoverAllowedNow=false`, sem rota REST
+nova, sem BFF/frontend, sem escrita local e sem alterar os fluxos atuais de
+aluno/responsavel.
 
 Entregue na oitava subfase:
 
