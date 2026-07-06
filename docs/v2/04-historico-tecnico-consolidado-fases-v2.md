@@ -1629,6 +1629,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   adapter JDBC de escrita, escrita local, remocao do caminho do monolito ou
   alteracao dos fluxos atuais. A contagem regressiva da Fase 71 passa a 1
   subfase restante estimada.
+- A terceira subfase da Fase 71 criou o piloto shadow interno de comando de
+  endereco no `people-service`, ainda sem persistencia local e sem rota externa.
+  O novo `PeopleAddressWriteShadowService` implementa
+  `PeopleAddressWritePort`, recebe comandos de escrita/cleanup, valida
+  `commandId`, `pessoaId`, `escolaId` e `idempotencyKey`, registra a metrica
+  `people.shadow.local.persistence.address.write.shadow.commands` e devolve
+  sempre `selectedSource=monolith_proxy`, `persistedLocally=false` e
+  `fallbackRequired=true`. O health `peopleLocalPersistence` passou a expor o
+  servico em `preparedCommandArtifacts` e `shadowCommandExecution`, mantendo
+  `writeCutoverAllowedNow=false`, `routeCreated=false` e
+  `localPersistenceConnected=false`. Nao houve chamada ao monolito, adapter JDBC
+  de escrita, migration, BFF/frontend, rota REST ou alteracao dos fluxos atuais.
+  A contagem regressiva da Fase 71 chega a 0.
 
 ## Historico resumido
 

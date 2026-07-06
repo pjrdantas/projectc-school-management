@@ -3651,6 +3651,43 @@ Proxima fase pratica:
 - manter o monolito como unica autoridade de escrita e bloquear qualquer rota,
   BFF/frontend, adapter JDBC de escrita ou alteracao dos fluxos atuais.
 
+Entregue na terceira subfase da Fase 71:
+
+- foi criado o servico interno `PeopleAddressWriteShadowService`, implementando
+  `PeopleAddressWritePort` apenas para receber comandos de escrita/cleanup de
+  endereco e registrar a decisao shadow, sem chamar monolito, sem adapter JDBC e
+  sem persistir nas tabelas locais;
+- os comandos passam por uma validacao minima de seguranca operacional
+  (`commandId`, `pessoaId`, `escolaId` e `idempotencyKey`) antes de qualquer
+  registro de decisao, evitando piloto sem chave de idempotencia;
+- o resultado de ambos os comandos permanece explicito:
+  `selectedSource=monolith_proxy`, `persistedLocally=false`,
+  `fallbackRequired=true` e status
+  `shadow_command_received_no_local_persistence`;
+- foi adicionada a metrica
+  `people.shadow.local.persistence.address.write.shadow.commands`, etiquetada
+  por operacao, resultado e fonte selecionada, para comprovar que o comando foi
+  recebido sem simular persistencia;
+- o health `peopleLocalPersistence.addressWriteAuthorityDiagnostic` passou a
+  expor `PeopleAddressWriteShadowService` em `preparedCommandArtifacts` e
+  `shadowCommandExecution`, mantendo `writeCutoverAllowedNow=false`,
+  `routeCreated=false` e `localPersistenceConnected=false`;
+- nao houve rota REST nova, BFF/frontend, escrita local, migration, chamada ao
+  monolito ou alteracao dos fluxos atuais de aluno/responsavel.
+
+Contagem da macrofase Fase 71: 0 subfases restantes estimadas. O recorte de
+diagnostico, contrato e piloto shadow interno de autoridade de escrita de
+endereco fica fechado sem cutover.
+
+Proxima fase pratica:
+
+- iniciar diagnostico pontual de um adapter backend/backend de escrita para o
+  monolito atras de guard, ainda sem rota externa e sem persistencia local, para
+  decidir se os comandos shadow podem virar chamada controlada ao caminho atual
+  do `school-management-service`;
+- manter o rollback por desligamento do adapter e o monolito como unica
+  autoridade de escrita ate existir reconciliacao verde de write/read model.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3672,10 +3709,12 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Criar um servico shadow interno para receber `PeopleAddressWritePort`/DTOs e
-registrar decisao/metricas de comando sem executar persistencia local. Manter o
-monolito como unica autoridade de escrita e bloquear qualquer rota, BFF/frontend,
-adapter JDBC de escrita ou alteracao dos fluxos atuais.
+Iniciar diagnostico pontual de um adapter backend/backend de escrita para o
+monolito atras de guard, ainda sem rota externa e sem persistencia local, para
+decidir se os comandos shadow de endereco podem virar chamada controlada ao
+caminho atual do `school-management-service`. Manter o rollback por desligamento
+do adapter e o monolito como unica autoridade de escrita ate existir
+reconciliacao verde de write/read model.
 
 Entregue na oitava subfase:
 

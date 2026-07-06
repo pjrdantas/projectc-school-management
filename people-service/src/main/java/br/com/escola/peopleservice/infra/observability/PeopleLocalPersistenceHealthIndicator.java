@@ -141,6 +141,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 totalContador("people.shadow.local.persistence.address.read.routing.decisions"));
         details.put("localAddressReadsTotal",
                 totalContador("people.shadow.local.persistence.address.reads"));
+        details.put("addressWriteShadowCommandsTotal",
+                totalContador("people.shadow.local.persistence.address.write.shadow.commands"));
         details.put("schemaMigrationsTotal",
                 totalContador("people.shadow.local.persistence.schema.migrations"));
 
@@ -252,9 +254,17 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "writeCommand", "PessoaEnderecoWriteCommand",
                 "cleanupCommand", "PessoaEnderecoCleanupCommand",
                 "result", "PessoaEnderecoWriteResult",
-                "adapterCreated", false,
+                "shadowService", "PeopleAddressWriteShadowService",
+                "adapterCreated", true,
                 "routeCreated", false,
                 "localPersistenceConnected", false));
+        details.put("shadowCommandExecution", Map.of(
+                "service", "PeopleAddressWriteShadowService",
+                "metric", "people.shadow.local.persistence.address.write.shadow.commands",
+                "selectedSource", "monolith_proxy",
+                "persistedLocally", false,
+                "fallbackRequired", true,
+                "localWriteEnabled", false));
         details.put("candidateOperations", plan.candidateOperations());
         details.put("monolithWriteAuthorities", plan.monolithWriteAuthorities());
         details.put("requiredContracts", plan.requiredContracts());

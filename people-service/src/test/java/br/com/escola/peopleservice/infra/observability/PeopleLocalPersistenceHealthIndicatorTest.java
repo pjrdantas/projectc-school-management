@@ -68,6 +68,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("localStudentResponsibleReadsTotal", 0.0d)
                 .containsEntry("addressReadRoutingDecisionsTotal", 0.0d)
                 .containsEntry("localAddressReadsTotal", 0.0d)
+                .containsEntry("addressWriteShadowCommandsTotal", 0.0d)
                 .containsEntry("failuresTotal", 0.0d);
 
         @SuppressWarnings("unchecked")
@@ -386,10 +387,10 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         assertThat(addressWriteAuthority)
                 .containsEntry("phase", "Fase 71")
                 .containsEntry("slice", "endereco_write_authority")
-                .containsEntry("status", "command_contract_defined_no_write_cutover")
-                .containsEntry("recommendedNextStep", "evaluate_backend_shadow_command_without_local_persistence")
+                .containsEntry("status", "backend_shadow_command_service_prepared_no_write_cutover")
+                .containsEntry("recommendedNextStep", "close_phase_71_or_plan_monolith_write_adapter_diagnostic")
                 .containsEntry("minimalNextSlice",
-                        "address_write_backend_shadow_command_no_local_persistence")
+                        "address_write_shadow_command_service_no_local_persistence")
                 .containsEntry("writeCutoverAllowedNow", false)
                 .containsEntry("migrationAllowedNow", false)
                 .containsEntry("backfillAllowedNow", false)
@@ -402,9 +403,20 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("writeCommand", "PessoaEnderecoWriteCommand")
                 .containsEntry("cleanupCommand", "PessoaEnderecoCleanupCommand")
                 .containsEntry("result", "PessoaEnderecoWriteResult")
-                .containsEntry("adapterCreated", false)
+                .containsEntry("shadowService", "PeopleAddressWriteShadowService")
+                .containsEntry("adapterCreated", true)
                 .containsEntry("routeCreated", false)
                 .containsEntry("localPersistenceConnected", false);
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> shadowCommandExecution =
+                (java.util.Map<String, Object>) addressWriteAuthority.get("shadowCommandExecution");
+        assertThat(shadowCommandExecution)
+                .containsEntry("service", "PeopleAddressWriteShadowService")
+                .containsEntry("metric", "people.shadow.local.persistence.address.write.shadow.commands")
+                .containsEntry("selectedSource", "monolith_proxy")
+                .containsEntry("persistedLocally", false)
+                .containsEntry("fallbackRequired", true)
+                .containsEntry("localWriteEnabled", false);
         @SuppressWarnings("unchecked")
         java.util.List<Object> candidateOperations =
                 (java.util.List<Object>) addressWriteAuthority.get("candidateOperations");
@@ -424,7 +436,8 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 "PeopleAddressWritePort command payload without JPA entities defined",
                 "PessoaEnderecoWriteCommand carries idempotency key for write attempts",
                 "PessoaEnderecoCleanupCommand carries orphan cleanup intent",
-                "PessoaEnderecoWriteResult exposes selected source, local persistence flag and fallback requirement");
+                "PessoaEnderecoWriteResult exposes selected source, local persistence flag and fallback requirement",
+                "PeopleAddressWriteShadowService records shadow decisions without writing local tables");
         @SuppressWarnings("unchecked")
         java.util.List<String> writeOutOfScope =
                 (java.util.List<String>) addressWriteAuthority.get("explicitlyOutOfScope");

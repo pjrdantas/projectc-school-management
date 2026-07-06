@@ -14,9 +14,9 @@ public class PeopleAddressWriteAuthorityPlanner {
         return new PeopleAddressWriteAuthorityPlan(
                 "Fase 71",
                 "endereco_write_authority",
-                "command_contract_defined_no_write_cutover",
-                "evaluate_backend_shadow_command_without_local_persistence",
-                "address_write_backend_shadow_command_no_local_persistence",
+                "backend_shadow_command_service_prepared_no_write_cutover",
+                "close_phase_71_or_plan_monolith_write_adapter_diagnostic",
+                "address_write_shadow_command_service_no_local_persistence",
                 false,
                 false,
                 false,
@@ -73,6 +73,7 @@ public class PeopleAddressWriteAuthorityPlanner {
                         "PessoaEnderecoWriteCommand carries idempotency key for write attempts",
                         "PessoaEnderecoCleanupCommand carries orphan cleanup intent",
                         "PessoaEnderecoWriteResult exposes selected source, local persistence flag and fallback requirement",
+                        "PeopleAddressWriteShadowService records shadow decisions without writing local tables",
                         "monolith fallback contract before any write routing",
                         "reconciliation report for writes before and after activation"),
                 List.of(

@@ -162,10 +162,10 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         assertThat(addressWriteAuthority)
                 .containsEntry("phase", "Fase 71")
                 .containsEntry("slice", "endereco_write_authority")
-                .containsEntry("status", "command_contract_defined_no_write_cutover")
+                .containsEntry("status", "backend_shadow_command_service_prepared_no_write_cutover")
                 .containsEntry("writeCutoverAllowedNow", false)
                 .containsEntry("localReadPrerequisiteClosed", true)
-                .containsEntry("recommendedNextStep", "evaluate_backend_shadow_command_without_local_persistence");
+                .containsEntry("recommendedNextStep", "close_phase_71_or_plan_monolith_write_adapter_diagnostic");
         @SuppressWarnings("unchecked")
         java.util.Map<String, Object> preparedCommandArtifacts =
                 (java.util.Map<String, Object>) addressWriteAuthority.get("preparedCommandArtifacts");
@@ -174,7 +174,18 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("writeCommand", "PessoaEnderecoWriteCommand")
                 .containsEntry("cleanupCommand", "PessoaEnderecoCleanupCommand")
                 .containsEntry("result", "PessoaEnderecoWriteResult")
+                .containsEntry("shadowService", "PeopleAddressWriteShadowService")
+                .containsEntry("adapterCreated", true)
                 .containsEntry("localPersistenceConnected", false);
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> shadowCommandExecution =
+                (java.util.Map<String, Object>) addressWriteAuthority.get("shadowCommandExecution");
+        assertThat(shadowCommandExecution)
+                .containsEntry("service", "PeopleAddressWriteShadowService")
+                .containsEntry("selectedSource", "monolith_proxy")
+                .containsEntry("persistedLocally", false)
+                .containsEntry("fallbackRequired", true)
+                .containsEntry("localWriteEnabled", false);
         @SuppressWarnings("unchecked")
         java.util.List<String> consistencyBlockers =
                 (java.util.List<String>) addressWriteAuthority.get("consistencyBlockers");
