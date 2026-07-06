@@ -14,9 +14,9 @@ public class PeopleAddressWriteMonolithAdapterPlanner {
         return new PeopleAddressWriteMonolithAdapterPlan(
                 "Fase 72",
                 "address_write_monolith_adapter_diagnostic",
-                "monolith_http_write_contract_defined_adapter_not_connected",
-                "evaluate_people_service_monolith_write_adapter_behind_guard",
-                "people_service_monolith_write_adapter_guarded_no_local_persistence",
+                "monolith_write_adapter_prepared_guard_disabled_no_cutover",
+                "close_phase_72_and_plan_next_people_backend_scope",
+                "phase_72_closure_no_write_cutover",
                 true,
                 true,
                 false,
@@ -27,15 +27,15 @@ public class PeopleAddressWriteMonolithAdapterPlanner {
                                 "PessoaEnderecoWriteCommand",
                                 "PUT /internal/pessoas/{pessoaId}/endereco-principal",
                                 "school-management-service:PessoaEnderecoPort.atualizarEnderecoPrincipalDaPessoa",
-                                true,
-                                "monolith-internal-http-contract-available-adapter-still-not-created"),
+                                false,
+                                "adapter-implemented-but-guard-disabled-by-default"),
                         new AdapterCandidateOperation(
                                 "cleanup-person-address-links-and-orphans",
                                 "PessoaEnderecoCleanupCommand",
                                 "DELETE /internal/pessoas/{pessoaId}/enderecos",
                                 "school-management-service:PessoaEnderecoPort.removerEnderecosDaPessoaRemovendoOrfaos",
-                                true,
-                                "monolith-internal-http-contract-available-reference-count-safeguard-remains-in-monolith")),
+                                false,
+                                "adapter-implemented-but-guard-disabled-by-default")),
                 List.of(
                         "PUT /internal/pessoas/{pessoaId}/endereco-principal",
                         "DELETE /internal/pessoas/{pessoaId}/enderecos",
@@ -46,8 +46,9 @@ public class PeopleAddressWriteMonolithAdapterPlanner {
                 List.of(
                         "people-service shadow command already validates commandId, pessoaId, escolaId and idempotencyKey",
                         "monolith internal write route exists and is covered by integration tests",
+                        "MonolithPessoaAddressWriteClient implemented with HTTP PUT and DELETE contracts",
                         "monolith route keeps PessoaFoundationService and PessoaEnderecoPort as the only write authorities",
-                        "adapter feature flag defaults to disabled",
+                        "people.shadow.monolith.address-write-adapter-enabled defaults to false",
                         "adapter failure returns fallback-required result without local persistence",
                         "write/read-model reconciliation remains green before any future activation"),
                 List.of(
@@ -60,7 +61,7 @@ public class PeopleAddressWriteMonolithAdapterPlanner {
                         "keep-PeopleAddressWriteShadowService-returning-monolith_proxy",
                         "do-not-create-people-service-write-route",
                         "do-not-write-to-local-address-tables",
-                        "disable-future-monolith-address-write-adapter-flag",
+                        "disable-people.shadow.monolith.address-write-adapter-enabled",
                         "keep-student-and-responsible-flows-on-school-management-service"),
                 List.of(
                         "activate-address-write-cutover",

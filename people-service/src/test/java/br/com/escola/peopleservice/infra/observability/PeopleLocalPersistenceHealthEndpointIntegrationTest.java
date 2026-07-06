@@ -199,13 +199,13 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         assertThat(addressWriteMonolithAdapter)
                 .containsEntry("phase", "Fase 72")
                 .containsEntry("slice", "address_write_monolith_adapter_diagnostic")
-                .containsEntry("status", "monolith_http_write_contract_defined_adapter_not_connected")
+                .containsEntry("status", "monolith_write_adapter_prepared_guard_disabled_no_cutover")
                 .containsEntry("monolithHttpWriteContractAvailable", true)
                 .containsEntry("adapterImplementationAllowedNow", true)
                 .containsEntry("writeCutoverAllowedNow", false)
                 .containsEntry("localPersistenceAllowedNow", false)
                 .containsEntry("recommendedNextStep",
-                        "evaluate_people_service_monolith_write_adapter_behind_guard");
+                        "close_phase_72_and_plan_next_people_backend_scope");
         @SuppressWarnings("unchecked")
         java.util.List<String> requiredMonolithContracts =
                 (java.util.List<String>) addressWriteMonolithAdapter.get("requiredMonolithContracts");
@@ -217,7 +217,10 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 (java.util.Map<String, Object>) addressWriteMonolithAdapter.get("currentPeopleServiceState");
         assertThat(currentPeopleServiceState)
                 .containsEntry("shadowService", "PeopleAddressWriteShadowService")
-                .containsEntry("monolithWriteClientCreated", false)
+                .containsEntry("monolithWriteClientCreated", true)
+                .containsEntry("monolithWriteClient", "MonolithPessoaAddressWriteClient")
+                .containsEntry("monolithWriteClientEnabledByDefault", false)
+                .containsEntry("guardProperty", "people.shadow.monolith.address-write-adapter-enabled")
                 .containsEntry("localPersistenceConnected", false)
                 .containsEntry("routeCreated", false);
     }

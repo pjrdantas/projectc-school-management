@@ -1674,6 +1674,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   houve cliente HTTP de escrita no `people-service`, rota externa, BFF/frontend,
   migration, persistencia local, escrita local ou alteracao dos fluxos atuais.
   A contagem regressiva da Fase 72 passa a 1 subfase restante estimada.
+- A terceira subfase da Fase 72 criou o adapter backend/backend
+  `MonolithPessoaAddressWriteClient` no `people-service`, implementando
+  `PeopleAddressWritePort` para chamar os contratos internos do monolito de
+  atualizacao de endereco principal e cleanup de enderecos. O adapter propaga
+  `X-Escola-Id`, `X-Usuario-Id`, `X-Correlation-Id` e `Idempotency-Key`, mapeia
+  a resposta para `PessoaEnderecoWriteResult` e registra metricas
+  `people.shadow.monolith.address.write.requests` e
+  `people.shadow.monolith.address.write.failures`. O bean fica atras da flag
+  `people.shadow.monolith.address-write-adapter-enabled`, desligada por padrao;
+  em falha do monolito, retorna `fallbackRequired=true` sem persistencia local.
+  O health passou para
+  `monolith_write_adapter_prepared_guard_disabled_no_cutover`. Nao houve rota
+  externa, BFF/frontend, migration, persistencia local, ativacao do adapter por
+  padrao, escrita local ou remocao dos fluxos atuais do monolito. A contagem
+  regressiva da Fase 72 chega a 0.
 
 ## Historico resumido
 

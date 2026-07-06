@@ -148,6 +148,10 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 totalContador("people.shadow.local.persistence.address.reads"));
         details.put("addressWriteShadowCommandsTotal",
                 totalContador("people.shadow.local.persistence.address.write.shadow.commands"));
+        details.put("monolithAddressWriteRequestsTotal",
+                totalContador("people.shadow.monolith.address.write.requests"));
+        details.put("monolithAddressWriteFailuresTotal",
+                totalContador("people.shadow.monolith.address.write.failures"));
         details.put("schemaMigrationsTotal",
                 totalContador("people.shadow.local.persistence.schema.migrations"));
 
@@ -301,7 +305,10 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("currentPeopleServiceState", Map.of(
                 "shadowService", "PeopleAddressWriteShadowService",
                 "writePort", "PeopleAddressWritePort",
-                "monolithWriteClientCreated", false,
+                "monolithWriteClientCreated", true,
+                "monolithWriteClient", "MonolithPessoaAddressWriteClient",
+                "monolithWriteClientEnabledByDefault", false,
+                "guardProperty", "people.shadow.monolith.address-write-adapter-enabled",
                 "localPersistenceConnected", false,
                 "routeCreated", false));
         return details;

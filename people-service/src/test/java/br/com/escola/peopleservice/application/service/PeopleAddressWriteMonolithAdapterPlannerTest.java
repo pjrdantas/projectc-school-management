@@ -7,24 +7,24 @@ import org.junit.jupiter.api.Test;
 class PeopleAddressWriteMonolithAdapterPlannerTest {
 
     @Test
-    void deveLiberarDiagnosticoDoAdapterAposContratoHttpInternoDoMonolito() {
+    void deveReportarAdapterPreparadoComGuardDesligadoSemCutover() {
         PeopleAddressWriteMonolithAdapterPlanner planner = new PeopleAddressWriteMonolithAdapterPlanner();
 
         var plan = planner.planejarAdapterEscritaMonolito();
 
         assertThat(plan.phase()).isEqualTo("Fase 72");
         assertThat(plan.slice()).isEqualTo("address_write_monolith_adapter_diagnostic");
-        assertThat(plan.status()).isEqualTo("monolith_http_write_contract_defined_adapter_not_connected");
+        assertThat(plan.status()).isEqualTo("monolith_write_adapter_prepared_guard_disabled_no_cutover");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("evaluate_people_service_monolith_write_adapter_behind_guard");
-        assertThat(plan.minimalNextSlice()).isEqualTo("people_service_monolith_write_adapter_guarded_no_local_persistence");
+                .isEqualTo("close_phase_72_and_plan_next_people_backend_scope");
+        assertThat(plan.minimalNextSlice()).isEqualTo("phase_72_closure_no_write_cutover");
         assertThat(plan.monolithHttpWriteContractAvailable()).isTrue();
         assertThat(plan.adapterImplementationAllowedNow()).isTrue();
         assertThat(plan.writeCutoverAllowedNow()).isFalse();
         assertThat(plan.localPersistenceAllowedNow()).isFalse();
         assertThat(plan.candidateOperations())
                 .hasSize(2)
-                .allSatisfy(operation -> assertThat(operation.adapterAllowedNow()).isTrue());
+                .allSatisfy(operation -> assertThat(operation.adapterAllowedNow()).isFalse());
         assertThat(plan.candidateOperations())
                 .extracting("operation")
                 .containsExactly(
@@ -34,6 +34,9 @@ class PeopleAddressWriteMonolithAdapterPlannerTest {
                 "PUT /internal/pessoas/{pessoaId}/endereco-principal",
                 "DELETE /internal/pessoas/{pessoaId}/enderecos",
                 "Idempotency-Key header required");
+        assertThat(plan.guardPreconditions()).contains(
+                "MonolithPessoaAddressWriteClient implemented with HTTP PUT and DELETE contracts",
+                "people.shadow.monolith.address-write-adapter-enabled defaults to false");
         assertThat(plan.consistencyBlockers()).contains(
                 "address-write-is-still-coupled-to-person-update-transaction",
                 "people-service-local-read-model-is-not-write-authority");

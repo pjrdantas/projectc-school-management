@@ -51,7 +51,8 @@ class PeopleShadowMonolithHealthIndicatorTest {
                 new MonolithPeopleClientProperties(
                         java.net.URI.create("http://localhost:8080"),
                         Duration.ofSeconds(2),
-                        Duration.ofSeconds(5)),
+                        Duration.ofSeconds(5),
+                        false),
                 meterRegistry);
 
         var health = indicator.health();
@@ -97,7 +98,8 @@ class PeopleShadowMonolithHealthIndicatorTest {
                 new MonolithPeopleClientProperties(
                         java.net.URI.create("http:///"),
                         Duration.ofSeconds(2),
-                        Duration.ofSeconds(5)),
+                        Duration.ofSeconds(5),
+                        false),
                 new SimpleMeterRegistry());
 
         var health = indicator.health();

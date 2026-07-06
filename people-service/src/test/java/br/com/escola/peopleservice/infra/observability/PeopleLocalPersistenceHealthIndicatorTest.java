@@ -69,6 +69,8 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("addressReadRoutingDecisionsTotal", 0.0d)
                 .containsEntry("localAddressReadsTotal", 0.0d)
                 .containsEntry("addressWriteShadowCommandsTotal", 0.0d)
+                .containsEntry("monolithAddressWriteRequestsTotal", 0.0d)
+                .containsEntry("monolithAddressWriteFailuresTotal", 0.0d)
                 .containsEntry("failuresTotal", 0.0d);
 
         @SuppressWarnings("unchecked")
@@ -453,10 +455,10 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         assertThat(addressWriteMonolithAdapter)
                 .containsEntry("phase", "Fase 72")
                 .containsEntry("slice", "address_write_monolith_adapter_diagnostic")
-                .containsEntry("status", "monolith_http_write_contract_defined_adapter_not_connected")
+                .containsEntry("status", "monolith_write_adapter_prepared_guard_disabled_no_cutover")
                 .containsEntry("recommendedNextStep",
-                        "evaluate_people_service_monolith_write_adapter_behind_guard")
-                .containsEntry("minimalNextSlice", "people_service_monolith_write_adapter_guarded_no_local_persistence")
+                        "close_phase_72_and_plan_next_people_backend_scope")
+                .containsEntry("minimalNextSlice", "phase_72_closure_no_write_cutover")
                 .containsEntry("monolithHttpWriteContractAvailable", true)
                 .containsEntry("adapterImplementationAllowedNow", true)
                 .containsEntry("writeCutoverAllowedNow", false)
@@ -478,7 +480,10 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         assertThat(currentPeopleServiceState)
                 .containsEntry("shadowService", "PeopleAddressWriteShadowService")
                 .containsEntry("writePort", "PeopleAddressWritePort")
-                .containsEntry("monolithWriteClientCreated", false)
+                .containsEntry("monolithWriteClientCreated", true)
+                .containsEntry("monolithWriteClient", "MonolithPessoaAddressWriteClient")
+                .containsEntry("monolithWriteClientEnabledByDefault", false)
+                .containsEntry("guardProperty", "people.shadow.monolith.address-write-adapter-enabled")
                 .containsEntry("localPersistenceConnected", false)
                 .containsEntry("routeCreated", false);
         @SuppressWarnings("unchecked")

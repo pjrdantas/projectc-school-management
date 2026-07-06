@@ -19,6 +19,7 @@ people:
       base-url: ${PEOPLE_SHADOW_MONOLITH_BASE_URL:http://localhost:8080}
       connect-timeout: ${PEOPLE_SHADOW_MONOLITH_CONNECT_TIMEOUT:2s}
       read-timeout: ${PEOPLE_SHADOW_MONOLITH_READ_TIMEOUT:5s}
+      address-write-adapter-enabled: ${PEOPLE_SHADOW_MONOLITH_ADDRESS_WRITE_ADAPTER_ENABLED:false}
     local-persistence:
       enabled: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_ENABLED:false}
       migration-enabled: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_MIGRATION_ENABLED:false}

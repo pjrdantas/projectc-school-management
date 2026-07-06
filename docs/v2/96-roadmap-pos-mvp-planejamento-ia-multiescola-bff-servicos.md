@@ -3771,6 +3771,43 @@ Proxima fase pratica:
 - preservar `writeCutoverAllowedNow=false`, nao criar rota externa e nao
   transformar o read model de endereco em autoridade de escrita.
 
+Entregue na terceira subfase da Fase 72:
+
+- foi criado o adapter `MonolithPessoaAddressWriteClient` no `people-service`,
+  implementando `PeopleAddressWritePort` para chamar os contratos internos do
+  monolito:
+  `PUT /internal/pessoas/{pessoaId}/endereco-principal` e
+  `DELETE /internal/pessoas/{pessoaId}/enderecos`;
+- o adapter propaga `X-Escola-Id`, `X-Usuario-Id`, `X-Correlation-Id` e
+  `Idempotency-Key`, mapeia a resposta do monolito para
+  `PessoaEnderecoWriteResult` e registra metricas
+  `people.shadow.monolith.address.write.requests` e
+  `people.shadow.monolith.address.write.failures`;
+- o bean do adapter fica condicionado a
+  `people.shadow.monolith.address-write-adapter-enabled=true`, que permanece
+  `false` por padrao. Assim, o `PeopleAddressWriteShadowService` continua sendo
+  o caminho operacional de comando shadow;
+- em falha HTTP/indisponibilidade do monolito, o adapter retorna resultado com
+  `fallbackRequired=true`, `selectedSource=monolith_proxy` e sem persistir
+  localmente;
+- o health `peopleLocalPersistence.addressWriteMonolithAdapterDiagnostic`
+  passou para `monolith_write_adapter_prepared_guard_disabled_no_cutover`,
+  indicando adapter implementado, guard desligado, sem rota externa, sem
+  persistencia local e sem cutover de escrita.
+
+Contagem da macrofase Fase 72: 0 subfases restantes estimadas. O bloco de
+diagnostico e preparacao do adapter backend/backend de escrita de endereco esta
+fechado sem ativar o adapter por padrao e sem retirar a autoridade de escrita do
+monolito.
+
+Proxima fase pratica:
+
+- iniciar a proxima macrofase backend de `people-service` revisando o que falta
+  para encerrar o recorte de endereco/pessoa antes de qualquer decisao de
+  ativacao operacional;
+- manter fora do escopo BFF/frontend, rota externa de escrita, persistencia
+  local autoritativa e remocao dos fluxos atuais do monolito.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

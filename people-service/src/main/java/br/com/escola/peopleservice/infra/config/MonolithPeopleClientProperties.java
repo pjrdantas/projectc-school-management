@@ -9,7 +9,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record MonolithPeopleClientProperties(
         URI baseUrl,
         Duration connectTimeout,
-        Duration readTimeout) {
+        Duration readTimeout,
+        boolean addressWriteAdapterEnabled) {
 
     public MonolithPeopleClientProperties {
         if (baseUrl == null) {
