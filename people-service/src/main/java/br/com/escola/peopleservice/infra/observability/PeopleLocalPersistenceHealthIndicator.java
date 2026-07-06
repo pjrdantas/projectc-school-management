@@ -10,9 +10,11 @@ import org.springframework.stereotype.Component;
 
 import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecision;
 import br.com.escola.peopleservice.application.dto.PeopleCatalogReadModelSchemaPlan;
+import br.com.escola.peopleservice.application.dto.PeopleAddressWriteMonolithAdapterPlan;
 import br.com.escola.peopleservice.application.dto.PeopleAddressWriteAuthorityPlan;
 import br.com.escola.peopleservice.application.dto.PeopleTransactionalReadModelExpansionPlan;
 import br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthorityPlanner;
+import br.com.escola.peopleservice.application.service.PeopleAddressWriteMonolithAdapterPlanner;
 import br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner;
 import br.com.escola.peopleservice.application.service.PeopleLocalPersistenceOperationState;
 import br.com.escola.peopleservice.application.service.PeopleLocalReadModelSchemaMigrationState;
@@ -67,6 +69,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private final PeopleCatalogReadModelSchemaPlanner catalogSchemaPlanner;
     private final PeopleTransactionalReadModelExpansionPlanner transactionalExpansionPlanner;
     private final PeopleAddressWriteAuthorityPlanner addressWriteAuthorityPlanner;
+    private final PeopleAddressWriteMonolithAdapterPlanner addressWriteMonolithAdapterPlanner =
+            new PeopleAddressWriteMonolithAdapterPlanner();
     private final PeopleLocalReadModelSchemaMigrationState schemaMigrationState;
     private final PeopleLocalPersistenceOperationState operationState;
 
@@ -116,6 +120,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("addressLocalReadContractDiagnostic", diagnosticoContratoLeituraLocalEndereco());
         details.put("addressLocalReadCutoverEligibilityDiagnostic", diagnosticoElegibilidadeCutoverEndereco());
         details.put("addressWriteAuthorityDiagnostic", diagnosticoAutoridadeEscritaEndereco());
+        details.put("addressWriteMonolithAdapterDiagnostic", diagnosticoAdapterEscritaMonolito());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -271,6 +276,34 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("consistencyBlockers", plan.consistencyBlockers());
         details.put("rollbackSteps", plan.rollbackSteps());
         details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoAdapterEscritaMonolito() {
+        PeopleAddressWriteMonolithAdapterPlan plan =
+                addressWriteMonolithAdapterPlanner.planejarAdapterEscritaMonolito();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("monolithHttpWriteContractAvailable", plan.monolithHttpWriteContractAvailable());
+        details.put("adapterImplementationAllowedNow", plan.adapterImplementationAllowedNow());
+        details.put("writeCutoverAllowedNow", plan.writeCutoverAllowedNow());
+        details.put("localPersistenceAllowedNow", plan.localPersistenceAllowedNow());
+        details.put("candidateOperations", plan.candidateOperations());
+        details.put("requiredMonolithContracts", plan.requiredMonolithContracts());
+        details.put("guardPreconditions", plan.guardPreconditions());
+        details.put("consistencyBlockers", plan.consistencyBlockers());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        details.put("currentPeopleServiceState", Map.of(
+                "shadowService", "PeopleAddressWriteShadowService",
+                "writePort", "PeopleAddressWritePort",
+                "monolithWriteClientCreated", false,
+                "localPersistenceConnected", false,
+                "routeCreated", false));
         return details;
     }
 

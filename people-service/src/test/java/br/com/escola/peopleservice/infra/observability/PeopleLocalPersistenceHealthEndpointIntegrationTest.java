@@ -192,5 +192,33 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         assertThat(consistencyBlockers).contains(
                 "address-write-is-coupled-to-person-create-update-transaction",
                 "local-read-model-is-not-write-authority");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> addressWriteMonolithAdapter =
+                (Map<String, Object>) details.get("addressWriteMonolithAdapterDiagnostic");
+        assertThat(addressWriteMonolithAdapter)
+                .containsEntry("phase", "Fase 72")
+                .containsEntry("slice", "address_write_monolith_adapter_diagnostic")
+                .containsEntry("status", "monolith_http_write_contract_missing_adapter_blocked")
+                .containsEntry("monolithHttpWriteContractAvailable", false)
+                .containsEntry("adapterImplementationAllowedNow", false)
+                .containsEntry("writeCutoverAllowedNow", false)
+                .containsEntry("localPersistenceAllowedNow", false)
+                .containsEntry("recommendedNextStep",
+                        "define_monolith_internal_address_write_http_contract_before_adapter");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> requiredMonolithContracts =
+                (java.util.List<String>) addressWriteMonolithAdapter.get("requiredMonolithContracts");
+        assertThat(requiredMonolithContracts).contains(
+                "PUT /internal/pessoas/{pessoaId}/endereco-principal",
+                "DELETE /internal/pessoas/{pessoaId}/enderecos");
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> currentPeopleServiceState =
+                (java.util.Map<String, Object>) addressWriteMonolithAdapter.get("currentPeopleServiceState");
+        assertThat(currentPeopleServiceState)
+                .containsEntry("shadowService", "PeopleAddressWriteShadowService")
+                .containsEntry("monolithWriteClientCreated", false)
+                .containsEntry("localPersistenceConnected", false)
+                .containsEntry("routeCreated", false);
     }
 }

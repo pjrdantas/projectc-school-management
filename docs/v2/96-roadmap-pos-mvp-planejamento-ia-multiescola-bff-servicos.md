@@ -3688,6 +3688,53 @@ Proxima fase pratica:
 - manter o rollback por desligamento do adapter e o monolito como unica
   autoridade de escrita ate existir reconciliacao verde de write/read model.
 
+### Fase 72 - Diagnostico do adapter de escrita de endereco para o monolito
+
+Objetivo: avaliar se os comandos shadow de endereco do `people-service` podem
+evoluir para uma chamada backend/backend ao monolito, sem criar rota externa,
+sem BFF/frontend, sem escrita local e sem transformar o read model em autoridade
+de escrita.
+
+Entregue na primeira subfase da Fase 72:
+
+- foi criado o diagnostico `PeopleAddressWriteMonolithAdapterPlanner` e o
+  contrato `PeopleAddressWriteMonolithAdapterPlan`, expondo no health
+  `peopleLocalPersistence.addressWriteMonolithAdapterDiagnostic` o estado
+  `monolith_http_write_contract_missing_adapter_blocked`;
+- o diagnostico confirmou que o `school-management-service` ainda possui apenas
+  portas internas Java para escrita/cleanup de endereco
+  (`PessoaFoundationService` e `PessoaEnderecoPort`), sem contrato HTTP interno
+  equivalente para o `people-service` chamar;
+- foram mapeadas duas operacoes candidatas para um futuro adapter:
+  `create-or-update-principal-address` e
+  `cleanup-person-address-links-and-orphans`, ambas com
+  `adapterAllowedNow=false`;
+- ficaram definidos os contratos HTTP internos minimos que precisariam existir
+  antes de qualquer adapter no `people-service`:
+  `PUT /internal/pessoas/{pessoaId}/endereco-principal` e
+  `DELETE /internal/pessoas/{pessoaId}/enderecos`, com `Idempotency-Key` e
+  propagacao de `X-Correlation-Id`, `X-Usuario-Id` e `X-Escola-Id`;
+- o health tambem passou a expor o estado atual do `people-service`:
+  `PeopleAddressWriteShadowService` existe, mas
+  `monolithWriteClientCreated=false`, `localPersistenceConnected=false` e
+  `routeCreated=false`;
+- nao houve implementacao de cliente HTTP de escrita, rota REST, BFF/frontend,
+  migration, persistencia local, chamada ao monolito ou alteracao dos fluxos
+  atuais de aluno/responsavel.
+
+Contagem da macrofase Fase 72: 2 subfases restantes estimadas: primeiro definir
+o contrato HTTP interno minimo no monolito sem adapter no `people-service`;
+depois avaliar a conexao do adapter atras de guard, ainda sem persistencia local.
+
+Proxima fase pratica:
+
+- criar no `school-management-service` apenas o contrato HTTP interno minimo de
+  escrita/cleanup de endereco, delegando para as autoridades atuais
+  (`PessoaFoundationService`/`PessoaEnderecoPort`), com idempotencia,
+  contexto interno e testes;
+- manter o `people-service` apenas em modo shadow/diagnostico nesta subfase,
+  sem implementar cliente de escrita nem alterar rotas externas.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3709,12 +3756,11 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Iniciar diagnostico pontual de um adapter backend/backend de escrita para o
-monolito atras de guard, ainda sem rota externa e sem persistencia local, para
-decidir se os comandos shadow de endereco podem virar chamada controlada ao
-caminho atual do `school-management-service`. Manter o rollback por desligamento
-do adapter e o monolito como unica autoridade de escrita ate existir
-reconciliacao verde de write/read model.
+Criar no `school-management-service` apenas o contrato HTTP interno minimo de
+escrita/cleanup de endereco, delegando para as autoridades atuais
+(`PessoaFoundationService`/`PessoaEnderecoPort`), com idempotencia, contexto
+interno e testes. Manter o `people-service` apenas em modo shadow/diagnostico
+nesta subfase, sem implementar cliente de escrita nem alterar rotas externas.
 
 Entregue na oitava subfase:
 

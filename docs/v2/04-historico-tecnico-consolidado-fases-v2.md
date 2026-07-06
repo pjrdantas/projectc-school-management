@@ -1642,6 +1642,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `localPersistenceConnected=false`. Nao houve chamada ao monolito, adapter JDBC
   de escrita, migration, BFF/frontend, rota REST ou alteracao dos fluxos atuais.
   A contagem regressiva da Fase 71 chega a 0.
+- A primeira subfase da Fase 72 iniciou o diagnostico do adapter
+  backend/backend de escrita de endereco para o monolito. Foram criados
+  `PeopleAddressWriteMonolithAdapterPlanner` e
+  `PeopleAddressWriteMonolithAdapterPlan`, expondo no health
+  `addressWriteMonolithAdapterDiagnostic` o estado
+  `monolith_http_write_contract_missing_adapter_blocked`. O diagnostico
+  confirmou que o monolito ainda possui apenas autoridades Java internas
+  (`PessoaFoundationService` e `PessoaEnderecoPort`) para escrita/cleanup de
+  endereco, sem contrato HTTP interno para o `people-service` chamar. Foram
+  mapeadas as operacoes candidatas `create-or-update-principal-address` e
+  `cleanup-person-address-links-and-orphans`, ambas bloqueadas para adapter, e
+  definidos os contratos minimos futuros
+  `PUT /internal/pessoas/{pessoaId}/endereco-principal` e
+  `DELETE /internal/pessoas/{pessoaId}/enderecos`, com `Idempotency-Key` e
+  propagacao de contexto interno. Nao houve cliente HTTP de escrita, rota REST
+  externa, BFF/frontend, migration, persistencia local, chamada ao monolito ou
+  alteracao dos fluxos atuais. A contagem regressiva da Fase 72 passa a 2
+  subfases restantes estimadas.
 
 ## Historico resumido
 

@@ -448,6 +448,49 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 "write-to-local-address-tables");
 
         @SuppressWarnings("unchecked")
+        Map<String, Object> addressWriteMonolithAdapter =
+                (Map<String, Object>) health.getDetails().get("addressWriteMonolithAdapterDiagnostic");
+        assertThat(addressWriteMonolithAdapter)
+                .containsEntry("phase", "Fase 72")
+                .containsEntry("slice", "address_write_monolith_adapter_diagnostic")
+                .containsEntry("status", "monolith_http_write_contract_missing_adapter_blocked")
+                .containsEntry("recommendedNextStep",
+                        "define_monolith_internal_address_write_http_contract_before_adapter")
+                .containsEntry("minimalNextSlice", "monolith_internal_address_write_contract_no_people_adapter")
+                .containsEntry("monolithHttpWriteContractAvailable", false)
+                .containsEntry("adapterImplementationAllowedNow", false)
+                .containsEntry("writeCutoverAllowedNow", false)
+                .containsEntry("localPersistenceAllowedNow", false);
+        @SuppressWarnings("unchecked")
+        java.util.List<Object> adapterCandidateOperations =
+                (java.util.List<Object>) addressWriteMonolithAdapter.get("candidateOperations");
+        assertThat(adapterCandidateOperations).hasSize(2);
+        @SuppressWarnings("unchecked")
+        java.util.List<String> requiredMonolithContracts =
+                (java.util.List<String>) addressWriteMonolithAdapter.get("requiredMonolithContracts");
+        assertThat(requiredMonolithContracts).contains(
+                "PUT /internal/pessoas/{pessoaId}/endereco-principal",
+                "DELETE /internal/pessoas/{pessoaId}/enderecos",
+                "Idempotency-Key header required");
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> currentPeopleServiceState =
+                (java.util.Map<String, Object>) addressWriteMonolithAdapter.get("currentPeopleServiceState");
+        assertThat(currentPeopleServiceState)
+                .containsEntry("shadowService", "PeopleAddressWriteShadowService")
+                .containsEntry("writePort", "PeopleAddressWritePort")
+                .containsEntry("monolithWriteClientCreated", false)
+                .containsEntry("localPersistenceConnected", false)
+                .containsEntry("routeCreated", false);
+        @SuppressWarnings("unchecked")
+        java.util.List<String> adapterOutOfScope =
+                (java.util.List<String>) addressWriteMonolithAdapter.get("explicitlyOutOfScope");
+        assertThat(adapterOutOfScope).contains(
+                "implement-people-service-monolith-write-client",
+                "bff-route-change",
+                "frontend-change",
+                "local-address-write-persistence");
+
+        @SuppressWarnings("unchecked")
         Map<String, Object> closure =
                 (Map<String, Object>) health.getDetails().get("guardedReadCutoverClosure");
         assertThat(closure)
