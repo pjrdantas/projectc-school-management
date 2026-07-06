@@ -199,13 +199,13 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         assertThat(addressWriteMonolithAdapter)
                 .containsEntry("phase", "Fase 72")
                 .containsEntry("slice", "address_write_monolith_adapter_diagnostic")
-                .containsEntry("status", "monolith_http_write_contract_missing_adapter_blocked")
-                .containsEntry("monolithHttpWriteContractAvailable", false)
-                .containsEntry("adapterImplementationAllowedNow", false)
+                .containsEntry("status", "monolith_http_write_contract_defined_adapter_not_connected")
+                .containsEntry("monolithHttpWriteContractAvailable", true)
+                .containsEntry("adapterImplementationAllowedNow", true)
                 .containsEntry("writeCutoverAllowedNow", false)
                 .containsEntry("localPersistenceAllowedNow", false)
                 .containsEntry("recommendedNextStep",
-                        "define_monolith_internal_address_write_http_contract_before_adapter");
+                        "evaluate_people_service_monolith_write_adapter_behind_guard");
         @SuppressWarnings("unchecked")
         java.util.List<String> requiredMonolithContracts =
                 (java.util.List<String>) addressWriteMonolithAdapter.get("requiredMonolithContracts");

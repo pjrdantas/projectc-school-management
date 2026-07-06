@@ -1660,6 +1660,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   externa, BFF/frontend, migration, persistencia local, chamada ao monolito ou
   alteracao dos fluxos atuais. A contagem regressiva da Fase 72 passa a 2
   subfases restantes estimadas.
+- A segunda subfase da Fase 72 criou no `school-management-service` os
+  contratos HTTP internos minimos de escrita/cleanup de endereco:
+  `PUT /internal/pessoas/{pessoaId}/endereco-principal` e
+  `DELETE /internal/pessoas/{pessoaId}/enderecos`. Os endpoints exigem
+  `X-Escola-Id`, `X-Usuario-Id`, `X-Correlation-Id` e `Idempotency-Key`, e
+  continuam delegando a autoridade de escrita ao monolito por
+  `PessoaEnderecoPort`/`PessoaFoundationService`, incluindo a nova operacao
+  `atualizarEnderecoPrincipalDaPessoa`. O diagnostico do `people-service`
+  passou para `monolith_http_write_contract_defined_adapter_not_connected`,
+  indicando contrato do monolito disponivel, adapter ainda nao conectado,
+  `writeCutoverAllowedNow=false` e `localPersistenceAllowedNow=false`. Nao
+  houve cliente HTTP de escrita no `people-service`, rota externa, BFF/frontend,
+  migration, persistencia local, escrita local ou alteracao dos fluxos atuais.
+  A contagem regressiva da Fase 72 passa a 1 subfase restante estimada.
 
 ## Historico resumido
 

@@ -3735,6 +3735,42 @@ Proxima fase pratica:
 - manter o `people-service` apenas em modo shadow/diagnostico nesta subfase,
   sem implementar cliente de escrita nem alterar rotas externas.
 
+Entregue na segunda subfase da Fase 72:
+
+- o `school-management-service` passou a expor os contratos HTTP internos
+  minimos para escrita/cleanup de endereco:
+  `PUT /internal/pessoas/{pessoaId}/endereco-principal` e
+  `DELETE /internal/pessoas/{pessoaId}/enderecos`;
+- os endpoints internos exigem `X-Escola-Id`, `X-Usuario-Id`,
+  `X-Correlation-Id` e `Idempotency-Key`, devolvendo resposta com `commandId`,
+  `pessoaId`, ids de endereco quando aplicavel, fonte selecionada e flags de
+  persistencia/fallback;
+- a escrita continua delegada ao monolito por `PessoaEnderecoPort` e
+  `PessoaFoundationService`, que agora tambem expõem
+  `atualizarEnderecoPrincipalDaPessoa` sem transferir autoridade para o
+  `people-service`;
+- o diagnostico do `people-service` foi atualizado para
+  `monolith_http_write_contract_defined_adapter_not_connected`, com
+  `monolithHttpWriteContractAvailable=true`,
+  `adapterImplementationAllowedNow=true`, `writeCutoverAllowedNow=false` e
+  `localPersistenceAllowedNow=false`;
+- nao houve cliente HTTP de escrita no `people-service`, rota externa,
+  BFF/frontend, migration, persistencia local, escrita local ou alteracao dos
+  fluxos atuais de aluno/responsavel.
+
+Contagem da macrofase Fase 72: 1 subfase restante estimada: avaliar e, se
+seguro, implementar o adapter backend/backend do `people-service` para esses
+contratos internos, sempre atras de guard, sem rota externa e sem persistencia
+local.
+
+Proxima fase pratica:
+
+- criar o cliente/adaptador de escrita do `people-service` para chamar os
+  contratos internos do monolito somente atras de guard e mantendo fallback
+  obrigatorio para o comando shadow;
+- preservar `writeCutoverAllowedNow=false`, nao criar rota externa e nao
+  transformar o read model de endereco em autoridade de escrita.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

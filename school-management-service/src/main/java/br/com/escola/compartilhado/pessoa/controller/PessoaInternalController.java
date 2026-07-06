@@ -5,25 +5,34 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import br.com.escola.compartilhado.pessoa.dto.EnderecoDados;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaAlunoResponsaveisInternalResponse;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaAlunoResponsaveisResumo;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaCatalogoInternalResponse;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaCatalogoResumo;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaConsultaCadastralPage;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaConsultaCadastralPageInternalResponse;
+import br.com.escola.compartilhado.pessoa.dto.internal.PessoaEnderecoResumo;
+import br.com.escola.compartilhado.pessoa.dto.internal.PessoaEnderecoWriteInternalRequest;
+import br.com.escola.compartilhado.pessoa.dto.internal.PessoaEnderecoWriteInternalResponse;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaResponsavelResumo;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaResponsavelResumoInternalResponse;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaResumo;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaResumoInternalResponse;
 import br.com.escola.compartilhado.pessoa.port.internal.PessoaConsultaPort;
+import br.com.escola.compartilhado.pessoa.port.internal.PessoaEnderecoPort;
 import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
@@ -31,11 +40,16 @@ import io.swagger.v3.oas.annotations.Operation;
 public class PessoaInternalController {
 
     private static final String ESCOLA_HEADER = "X-Escola-Id";
+    private static final String USUARIO_HEADER = "X-Usuario-Id";
+    private static final String CORRELATION_HEADER = "X-Correlation-Id";
+    private static final String IDEMPOTENCY_HEADER = "Idempotency-Key";
 
     private final PessoaConsultaPort pessoaConsultaPort;
+    private final PessoaEnderecoPort pessoaEnderecoPort;
 
-    public PessoaInternalController(PessoaConsultaPort pessoaConsultaPort) {
+    public PessoaInternalController(PessoaConsultaPort pessoaConsultaPort, PessoaEnderecoPort pessoaEnderecoPort) {
         this.pessoaConsultaPort = pessoaConsultaPort;
+        this.pessoaEnderecoPort = pessoaEnderecoPort;
     }
 
     @GetMapping("/catalogos/tipos-pessoa")
@@ -62,6 +76,61 @@ public class PessoaInternalController {
         return pessoaConsultaPort.buscarPessoaPorIdEEscola(id, escolaId)
                 .map(this::toResponse)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pessoa nao encontrada."));
+    }
+
+    @PutMapping("/{id}/endereco-principal")
+    @Operation(summary = "Atualiza o endereco principal de uma pessoa para uso interno entre backends")
+    public PessoaEnderecoWriteInternalResponse atualizarEnderecoPrincipal(
+            @RequestHeader(name = ESCOLA_HEADER, required = false) UUID escolaId,
+            @RequestHeader(name = USUARIO_HEADER, required = false) UUID usuarioId,
+            @RequestHeader(name = CORRELATION_HEADER, required = false) String correlationId,
+            @RequestHeader(name = IDEMPOTENCY_HEADER, required = false) String idempotencyKey,
+            @PathVariable @NonNull UUID id,
+            @RequestBody PessoaEnderecoWriteInternalRequest request) {
+        validarContextoInterno(escolaId, usuarioId, correlationId, idempotencyKey);
+        try {
+            PessoaEnderecoResumo endereco = pessoaEnderecoPort.atualizarEnderecoPrincipalDaPessoa(
+                    id,
+                    escolaId,
+                    toEnderecoDados(request));
+            return new PessoaEnderecoWriteInternalResponse(
+                    idempotencyKey,
+                    id,
+                    endereco.enderecoId(),
+                    endereco.pessoaEnderecoId(),
+                    "monolith_address_write_completed",
+                    "school_management_service",
+                    false,
+                    false,
+                    List.of("monolith-remains-write-authority"));
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
+        }
+    }
+
+    @DeleteMapping("/{id}/enderecos")
+    @Operation(summary = "Remove vinculos de endereco da pessoa para uso interno entre backends")
+    public PessoaEnderecoWriteInternalResponse removerEnderecosDaPessoa(
+            @RequestHeader(name = ESCOLA_HEADER, required = false) UUID escolaId,
+            @RequestHeader(name = USUARIO_HEADER, required = false) UUID usuarioId,
+            @RequestHeader(name = CORRELATION_HEADER, required = false) String correlationId,
+            @RequestHeader(name = IDEMPOTENCY_HEADER, required = false) String idempotencyKey,
+            @PathVariable @NonNull UUID id) {
+        validarContextoInterno(escolaId, usuarioId, correlationId, idempotencyKey);
+        if (pessoaConsultaPort.buscarPessoaPorIdEEscola(id, escolaId).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pessoa nao encontrada.");
+        }
+        pessoaEnderecoPort.removerEnderecosDaPessoaRemovendoOrfaos(id);
+        return new PessoaEnderecoWriteInternalResponse(
+                idempotencyKey,
+                id,
+                null,
+                null,
+                "monolith_address_cleanup_completed",
+                "school_management_service",
+                false,
+                false,
+                List.of("monolith-remains-write-authority"));
     }
 
     @GetMapping("/consulta-cadastral")
@@ -101,6 +170,33 @@ public class PessoaInternalController {
                 page.totalElements(),
                 page.page(),
                 page.size());
+    }
+
+    private EnderecoDados toEnderecoDados(PessoaEnderecoWriteInternalRequest request) {
+        if (request == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Payload de endereco e obrigatorio.");
+        }
+        return new EnderecoDados(
+                request.cep(),
+                request.logradouro(),
+                request.numero(),
+                request.complemento(),
+                request.bairro(),
+                request.cidade(),
+                request.uf(),
+                request.tipoEnderecoCodigo(),
+                request.principal());
+    }
+
+    private void validarContextoInterno(UUID escolaId, UUID usuarioId, String correlationId, String idempotencyKey) {
+        if (escolaId == null
+                || usuarioId == null
+                || !StringUtils.hasText(correlationId)
+                || !StringUtils.hasText(idempotencyKey)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "X-Escola-Id, X-Usuario-Id, X-Correlation-Id e Idempotency-Key sao obrigatorios.");
+        }
     }
 
     private PessoaAlunoResponsaveisInternalResponse toResponse(PessoaAlunoResponsaveisResumo resumo) {

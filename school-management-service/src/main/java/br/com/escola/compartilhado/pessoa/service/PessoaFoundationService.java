@@ -169,6 +169,33 @@ public class PessoaFoundationService implements PessoaCadastroPort, PessoaEndere
 
     @Override
     @Transactional
+    public PessoaEnderecoResumo atualizarEnderecoPrincipalDaPessoa(UUID pessoaId, UUID escolaId, EnderecoDados enderecoDados) {
+        if (pessoaId == null || escolaId == null) {
+            throw new IllegalArgumentException("Pessoa e escola sao obrigatorias.");
+        }
+        if (enderecoDados == null || isEnderecoVazio(enderecoDados)) {
+            throw new IllegalArgumentException("Endereco principal e obrigatorio.");
+        }
+        PessoaEntity pessoa = buscarPorIdEEscola(pessoaId, escolaId)
+                .orElseThrow(() -> new IllegalArgumentException("Pessoa nao encontrada para a escola informada."));
+
+        PessoaEnderecoEntity vinculo = pessoaEnderecoRepository.findPrincipalByPessoaId(pessoa.getId())
+                .orElse(null);
+        if (vinculo == null) {
+            EnderecoEntity endereco = enderecoRepository.save(toEnderecoEntity(enderecoDados));
+            return toEnderecoResumo(vincularEndereco(pessoa, endereco, enderecoDados));
+        }
+
+        EnderecoEntity endereco = vinculo.getEndereco();
+        preencherEndereco(endereco, enderecoDados);
+        enderecoRepository.save(endereco);
+        vinculo.setTipoEndereco(buscarTipoEndereco(enderecoDados.tipoEnderecoCodigo()));
+        vinculo.setPrincipal(enderecoDados.principal() == null || enderecoDados.principal());
+        return toEnderecoResumo(pessoaEnderecoRepository.save(vinculo));
+    }
+
+    @Override
+    @Transactional
     public void removerEnderecosDaPessoaRemovendoOrfaos(UUID pessoaId) {
         if (pessoaId == null) {
             return;

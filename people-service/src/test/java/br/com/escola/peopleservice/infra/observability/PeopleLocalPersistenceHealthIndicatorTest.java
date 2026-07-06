@@ -453,12 +453,12 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         assertThat(addressWriteMonolithAdapter)
                 .containsEntry("phase", "Fase 72")
                 .containsEntry("slice", "address_write_monolith_adapter_diagnostic")
-                .containsEntry("status", "monolith_http_write_contract_missing_adapter_blocked")
+                .containsEntry("status", "monolith_http_write_contract_defined_adapter_not_connected")
                 .containsEntry("recommendedNextStep",
-                        "define_monolith_internal_address_write_http_contract_before_adapter")
-                .containsEntry("minimalNextSlice", "monolith_internal_address_write_contract_no_people_adapter")
-                .containsEntry("monolithHttpWriteContractAvailable", false)
-                .containsEntry("adapterImplementationAllowedNow", false)
+                        "evaluate_people_service_monolith_write_adapter_behind_guard")
+                .containsEntry("minimalNextSlice", "people_service_monolith_write_adapter_guarded_no_local_persistence")
+                .containsEntry("monolithHttpWriteContractAvailable", true)
+                .containsEntry("adapterImplementationAllowedNow", true)
                 .containsEntry("writeCutoverAllowedNow", false)
                 .containsEntry("localPersistenceAllowedNow", false);
         @SuppressWarnings("unchecked")
@@ -485,7 +485,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         java.util.List<String> adapterOutOfScope =
                 (java.util.List<String>) addressWriteMonolithAdapter.get("explicitlyOutOfScope");
         assertThat(adapterOutOfScope).contains(
-                "implement-people-service-monolith-write-client",
+                "activate-address-write-cutover",
                 "bff-route-change",
                 "frontend-change",
                 "local-address-write-persistence");

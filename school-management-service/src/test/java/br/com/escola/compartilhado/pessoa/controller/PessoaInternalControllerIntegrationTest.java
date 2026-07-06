@@ -1,7 +1,10 @@
 package br.com.escola.compartilhado.pessoa.controller;
 
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -15,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,9 +26,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaAlunoResponsaveisResumo;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaCatalogoResumo;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaConsultaCadastralPage;
+import br.com.escola.compartilhado.pessoa.dto.internal.PessoaEnderecoResumo;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaResponsavelResumo;
 import br.com.escola.compartilhado.pessoa.dto.internal.PessoaResumo;
+import br.com.escola.compartilhado.pessoa.dto.EnderecoDados;
 import br.com.escola.compartilhado.pessoa.port.internal.PessoaConsultaPort;
+import br.com.escola.compartilhado.pessoa.service.PessoaFoundationService;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -37,6 +44,9 @@ class PessoaInternalControllerIntegrationTest {
 
     @MockitoBean
     private PessoaConsultaPort pessoaConsultaPort;
+
+    @MockitoBean
+    private PessoaFoundationService pessoaEnderecoPort;
 
     @Test
     @WithMockUser
@@ -116,6 +126,104 @@ class PessoaInternalControllerIntegrationTest {
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.content[0].idAluno").value(alunoId.toString()))
                 .andExpect(jsonPath("$.content[0].responsaveis[0].id").value(responsavelId.toString()));
+    }
+
+    @Test
+    @WithMockUser
+    void deveExporAtualizacaoInternaDeEnderecoPrincipalComContextoEIdempotencia() throws Exception {
+        UUID pessoaId = UUID.randomUUID();
+        UUID enderecoId = UUID.randomUUID();
+        UUID pessoaEnderecoId = UUID.randomUUID();
+        when(pessoaEnderecoPort.atualizarEnderecoPrincipalDaPessoa(pessoaId, ESCOLA_ID, new EnderecoDados(
+                "01001000",
+                "Praca da Se",
+                "100",
+                "Apto 10",
+                "Se",
+                "Sao Paulo",
+                "SP",
+                "RESIDENCIAL",
+                true)))
+                .thenReturn(new PessoaEnderecoResumo(
+                        pessoaEnderecoId,
+                        enderecoId,
+                        "01001000",
+                        "Praca da Se",
+                        "100",
+                        "Apto 10",
+                        "Se",
+                        "Sao Paulo",
+                        "SP",
+                        "RESIDENCIAL",
+                        true));
+
+        mockMvc.perform(put("/internal/pessoas/{id}/endereco-principal", pessoaId)
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Correlation-Id", "corr-address-write")
+                        .header("Idempotency-Key", "address-write:" + pessoaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "tipoEnderecoCodigo": "RESIDENCIAL",
+                                  "principal": true,
+                                  "cep": "01001000",
+                                  "logradouro": "Praca da Se",
+                                  "numero": "100",
+                                  "complemento": "Apto 10",
+                                  "bairro": "Se",
+                                  "cidade": "Sao Paulo",
+                                  "uf": "SP"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.commandId").value("address-write:" + pessoaId))
+                .andExpect(jsonPath("$.pessoaId").value(pessoaId.toString()))
+                .andExpect(jsonPath("$.enderecoId").value(enderecoId.toString()))
+                .andExpect(jsonPath("$.pessoaEnderecoId").value(pessoaEnderecoId.toString()))
+                .andExpect(jsonPath("$.status").value("monolith_address_write_completed"))
+                .andExpect(jsonPath("$.selectedSource").value("school_management_service"))
+                .andExpect(jsonPath("$.persistedLocally").value(false))
+                .andExpect(jsonPath("$.fallbackRequired").value(false));
+    }
+
+    @Test
+    @WithMockUser
+    void deveExporCleanupInternoDeEnderecosComContextoEIdempotencia() throws Exception {
+        UUID pessoaId = UUID.randomUUID();
+        when(pessoaConsultaPort.buscarPessoaPorIdEEscola(pessoaId, ESCOLA_ID))
+                .thenReturn(Optional.of(new PessoaResumo(
+                        pessoaId,
+                        "Pessoa Cleanup",
+                        ESCOLA_ID,
+                        "Escola Padrao",
+                        true)));
+
+        mockMvc.perform(delete("/internal/pessoas/{id}/enderecos", pessoaId)
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Correlation-Id", "corr-address-cleanup")
+                        .header("Idempotency-Key", "address-cleanup:" + pessoaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.commandId").value("address-cleanup:" + pessoaId))
+                .andExpect(jsonPath("$.pessoaId").value(pessoaId.toString()))
+                .andExpect(jsonPath("$.status").value("monolith_address_cleanup_completed"))
+                .andExpect(jsonPath("$.selectedSource").value("school_management_service"))
+                .andExpect(jsonPath("$.persistedLocally").value(false))
+                .andExpect(jsonPath("$.fallbackRequired").value(false));
+        verify(pessoaEnderecoPort).removerEnderecosDaPessoaRemovendoOrfaos(pessoaId);
+    }
+
+    @Test
+    @WithMockUser
+    void deveRejeitarEscritaInternaSemIdempotencyKey() throws Exception {
+        mockMvc.perform(put("/internal/pessoas/{id}/endereco-principal", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Correlation-Id", "corr-address-write")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

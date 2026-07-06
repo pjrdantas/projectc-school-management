@@ -22,6 +22,8 @@ import br.com.escola.compartilhado.endereco.entity.TipoEnderecoEntity;
 import br.com.escola.compartilhado.endereco.repository.EnderecoJpaRepository;
 import br.com.escola.compartilhado.endereco.repository.PessoaEnderecoJpaRepository;
 import br.com.escola.compartilhado.endereco.repository.TipoEnderecoJpaRepository;
+import br.com.escola.compartilhado.pessoa.dto.EnderecoDados;
+import br.com.escola.compartilhado.pessoa.entity.PessoaEntity;
 import br.com.escola.compartilhado.pessoa.repository.PessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.repository.PessoaTipoPessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.repository.TipoPessoaJpaRepository;
@@ -81,6 +83,48 @@ class PessoaFoundationServiceEnderecoPortTest {
         assertThat(resumo.get().logradouro()).isEqualTo("Praca da Se");
         assertThat(resumo.get().tipoEnderecoCodigo()).isEqualTo("RESIDENCIAL");
         assertThat(resumo.get().principal()).isTrue();
+    }
+
+    @Test
+    void deveAtualizarEnderecoPrincipalExistenteDaPessoaNaEscola() {
+        UUID pessoaId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+        UUID enderecoId = UUID.randomUUID();
+        UUID pessoaEnderecoId = UUID.randomUUID();
+        PessoaEntity pessoa = new PessoaEntity();
+        ReflectionTestUtils.setField(pessoa, "id", pessoaId);
+        EnderecoEntity endereco = endereco(enderecoId);
+        TipoEnderecoEntity tipoEndereco = tipoEndereco("COMERCIAL");
+        PessoaEnderecoEntity vinculo = new PessoaEnderecoEntity();
+        ReflectionTestUtils.setField(vinculo, "id", pessoaEnderecoId);
+        vinculo.setEndereco(endereco);
+        vinculo.setTipoEndereco(tipoEndereco);
+        vinculo.setPrincipal(true);
+        EnderecoDados dados = new EnderecoDados(
+                "01310930",
+                "Avenida Paulista",
+                "1000",
+                "Conjunto 10",
+                "Bela Vista",
+                "Sao Paulo",
+                "SP",
+                "COMERCIAL",
+                true);
+
+        when(pessoaRepository.findByIdAndEscola_Id(pessoaId, escolaId)).thenReturn(Optional.of(pessoa));
+        when(pessoaEnderecoRepository.findPrincipalByPessoaId(pessoaId)).thenReturn(Optional.of(vinculo));
+        when(tipoEnderecoRepository.findByCodigo("COMERCIAL")).thenReturn(Optional.of(tipoEndereco));
+        when(pessoaEnderecoRepository.save(vinculo)).thenReturn(vinculo);
+
+        var resumo = service.atualizarEnderecoPrincipalDaPessoa(pessoaId, escolaId, dados);
+
+        assertThat(resumo.pessoaEnderecoId()).isEqualTo(pessoaEnderecoId);
+        assertThat(resumo.enderecoId()).isEqualTo(enderecoId);
+        assertThat(resumo.cep()).isEqualTo("01310930");
+        assertThat(resumo.logradouro()).isEqualTo("Avenida Paulista");
+        assertThat(resumo.tipoEnderecoCodigo()).isEqualTo("COMERCIAL");
+        verify(enderecoRepository).save(endereco);
+        verify(pessoaEnderecoRepository).save(vinculo);
     }
 
     @Test
