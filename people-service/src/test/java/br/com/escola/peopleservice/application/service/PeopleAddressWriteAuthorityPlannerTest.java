@@ -14,9 +14,9 @@ class PeopleAddressWriteAuthorityPlannerTest {
 
         assertThat(plan.phase()).isEqualTo("Fase 71");
         assertThat(plan.slice()).isEqualTo("endereco_write_authority");
-        assertThat(plan.status()).isEqualTo("diagnostic_started_no_write_cutover");
-        assertThat(plan.recommendedNextStep()).isEqualTo("define_address_write_command_contract_no_external_route");
-        assertThat(plan.minimalNextSlice()).isEqualTo("address_write_command_contract_diagnostic_no_persistence_change");
+        assertThat(plan.status()).isEqualTo("command_contract_defined_no_write_cutover");
+        assertThat(plan.recommendedNextStep()).isEqualTo("evaluate_backend_shadow_command_without_local_persistence");
+        assertThat(plan.minimalNextSlice()).isEqualTo("address_write_backend_shadow_command_no_local_persistence");
         assertThat(plan.writeCutoverAllowedNow()).isFalse();
         assertThat(plan.localReadPrerequisiteClosed()).isTrue();
         assertThat(plan.candidateOperations())
@@ -35,8 +35,10 @@ class PeopleAddressWriteAuthorityPlannerTest {
                 "PessoaEnderecoPort.removerEnderecosDaPessoaRemovendoOrfaos",
                 "ViaCepService");
         assertThat(plan.requiredContracts()).contains(
-                "PeopleAddressWritePort command payload without JPA entities",
-                "orphan cleanup contract with shared-address safeguard",
+                "PeopleAddressWritePort command payload without JPA entities defined",
+                "PessoaEnderecoWriteCommand carries idempotency key for write attempts",
+                "PessoaEnderecoCleanupCommand carries orphan cleanup intent",
+                "PessoaEnderecoWriteResult exposes selected source, local persistence flag and fallback requirement",
                 "monolith fallback contract before any write routing");
         assertThat(plan.consistencyBlockers()).contains(
                 "address-write-is-coupled-to-person-create-update-transaction",

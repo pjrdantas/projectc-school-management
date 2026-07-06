@@ -1614,6 +1614,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   BFF/frontend, escrita local, remocao do caminho do monolito ou alteracao de
   payload. A contagem regressiva da Fase 71 passa a 2 subfases restantes
   estimadas.
+- A segunda subfase da Fase 71 definiu o contrato interno de comando de escrita
+  de endereco no `people-service`, ainda sem execucao operacional. Foram
+  criados `PeopleAddressWritePort`, `PessoaEnderecoWriteCommand`,
+  `PessoaEnderecoCleanupCommand` e `PessoaEnderecoWriteResult`, separando
+  criacao/atualizacao de endereco principal e cleanup de vinculos/orfaos com
+  `commandId`, `pessoaId`, `escolaId`, campos persistidos de endereco,
+  `idempotencyKey`, `requestedBy`, `selectedSource`, `persistedLocally` e
+  `fallbackRequired`. O planner passou a reportar
+  `command_contract_defined_no_write_cutover` e o health passou a expor
+  `preparedCommandArtifacts`, mantendo `writeCutoverAllowedNow=false`,
+  `adapterCreated=false`, `routeCreated=false` e
+  `localPersistenceConnected=false`. Nao houve rota REST, BFF/frontend,
+  adapter JDBC de escrita, escrita local, remocao do caminho do monolito ou
+  alteracao dos fluxos atuais. A contagem regressiva da Fase 71 passa a 1
+  subfase restante estimada.
 
 ## Historico resumido
 

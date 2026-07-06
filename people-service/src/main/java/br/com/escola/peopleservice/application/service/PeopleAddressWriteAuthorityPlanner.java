@@ -14,9 +14,9 @@ public class PeopleAddressWriteAuthorityPlanner {
         return new PeopleAddressWriteAuthorityPlan(
                 "Fase 71",
                 "endereco_write_authority",
-                "diagnostic_started_no_write_cutover",
-                "define_address_write_command_contract_no_external_route",
-                "address_write_command_contract_diagnostic_no_persistence_change",
+                "command_contract_defined_no_write_cutover",
+                "evaluate_backend_shadow_command_without_local_persistence",
+                "address_write_backend_shadow_command_no_local_persistence",
                 false,
                 false,
                 false,
@@ -25,7 +25,7 @@ public class PeopleAddressWriteAuthorityPlanner {
                         new WriteAuthorityDecision(
                                 "create-person-with-principal-address",
                                 "school-management-service:PessoaFoundationService.criarPessoaComTipoEEndereco",
-                                "people-service:future PeopleAddressWritePort",
+                                "people-service:PeopleAddressWritePort",
                                 List.of("CriarAlunoUseCase", "CriarResponsavelUseCase"),
                                 List.of("pessoa", "pessoa_tipo_pessoa", "endereco", "pessoa_endereco"),
                                 false,
@@ -33,7 +33,7 @@ public class PeopleAddressWriteAuthorityPlanner {
                         new WriteAuthorityDecision(
                                 "update-person-principal-address",
                                 "school-management-service:PessoaFoundationService.atualizarPessoaEEndereco",
-                                "people-service:future PeopleAddressWritePort",
+                                "people-service:PeopleAddressWritePort",
                                 List.of("AtualizarAlunoUseCase", "AtualizarResponsavelUseCase"),
                                 List.of("pessoa", "endereco", "pessoa_endereco"),
                                 false,
@@ -41,7 +41,7 @@ public class PeopleAddressWriteAuthorityPlanner {
                         new WriteAuthorityDecision(
                                 "remove-person-address-links-and-orphans",
                                 "school-management-service:PessoaEnderecoPort.removerEnderecosDaPessoaRemovendoOrfaos",
-                                "people-service:future PeopleAddressCleanupPort",
+                                "people-service:PeopleAddressWritePort.removerEnderecosDaPessoa",
                                 List.of("AlunoPersistenceGateway.removeById", "ResponsavelPersistenceGateway.removeById"),
                                 List.of("pessoa_endereco", "endereco"),
                                 false,
@@ -69,10 +69,10 @@ public class PeopleAddressWriteAuthorityPlanner {
                         "TipoEnderecoJpaRepository",
                         "ViaCepService"),
                 List.of(
-                        "PeopleAddressWritePort command payload without JPA entities",
-                        "idempotency key for pessoa_endereco write attempts",
-                        "principal address invariant: at most one principal address per person",
-                        "orphan cleanup contract with shared-address safeguard",
+                        "PeopleAddressWritePort command payload without JPA entities defined",
+                        "PessoaEnderecoWriteCommand carries idempotency key for write attempts",
+                        "PessoaEnderecoCleanupCommand carries orphan cleanup intent",
+                        "PessoaEnderecoWriteResult exposes selected source, local persistence flag and fallback requirement",
                         "monolith fallback contract before any write routing",
                         "reconciliation report for writes before and after activation"),
                 List.of(

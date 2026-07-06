@@ -247,6 +247,14 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("migrationAllowedNow", plan.migrationAllowedNow());
         details.put("backfillAllowedNow", plan.backfillAllowedNow());
         details.put("localReadPrerequisiteClosed", plan.localReadPrerequisiteClosed());
+        details.put("preparedCommandArtifacts", Map.of(
+                "port", "PeopleAddressWritePort",
+                "writeCommand", "PessoaEnderecoWriteCommand",
+                "cleanupCommand", "PessoaEnderecoCleanupCommand",
+                "result", "PessoaEnderecoWriteResult",
+                "adapterCreated", false,
+                "routeCreated", false,
+                "localPersistenceConnected", false));
         details.put("candidateOperations", plan.candidateOperations());
         details.put("monolithWriteAuthorities", plan.monolithWriteAuthorities());
         details.put("requiredContracts", plan.requiredContracts());

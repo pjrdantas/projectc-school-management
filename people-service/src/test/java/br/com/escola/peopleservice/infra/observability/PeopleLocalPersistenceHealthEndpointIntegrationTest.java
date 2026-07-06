@@ -162,10 +162,19 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         assertThat(addressWriteAuthority)
                 .containsEntry("phase", "Fase 71")
                 .containsEntry("slice", "endereco_write_authority")
-                .containsEntry("status", "diagnostic_started_no_write_cutover")
+                .containsEntry("status", "command_contract_defined_no_write_cutover")
                 .containsEntry("writeCutoverAllowedNow", false)
                 .containsEntry("localReadPrerequisiteClosed", true)
-                .containsEntry("recommendedNextStep", "define_address_write_command_contract_no_external_route");
+                .containsEntry("recommendedNextStep", "evaluate_backend_shadow_command_without_local_persistence");
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> preparedCommandArtifacts =
+                (java.util.Map<String, Object>) addressWriteAuthority.get("preparedCommandArtifacts");
+        assertThat(preparedCommandArtifacts)
+                .containsEntry("port", "PeopleAddressWritePort")
+                .containsEntry("writeCommand", "PessoaEnderecoWriteCommand")
+                .containsEntry("cleanupCommand", "PessoaEnderecoCleanupCommand")
+                .containsEntry("result", "PessoaEnderecoWriteResult")
+                .containsEntry("localPersistenceConnected", false);
         @SuppressWarnings("unchecked")
         java.util.List<String> consistencyBlockers =
                 (java.util.List<String>) addressWriteAuthority.get("consistencyBlockers");

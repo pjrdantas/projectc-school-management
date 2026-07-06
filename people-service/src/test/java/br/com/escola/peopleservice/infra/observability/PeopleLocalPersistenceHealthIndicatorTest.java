@@ -386,14 +386,25 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         assertThat(addressWriteAuthority)
                 .containsEntry("phase", "Fase 71")
                 .containsEntry("slice", "endereco_write_authority")
-                .containsEntry("status", "diagnostic_started_no_write_cutover")
-                .containsEntry("recommendedNextStep", "define_address_write_command_contract_no_external_route")
+                .containsEntry("status", "command_contract_defined_no_write_cutover")
+                .containsEntry("recommendedNextStep", "evaluate_backend_shadow_command_without_local_persistence")
                 .containsEntry("minimalNextSlice",
-                        "address_write_command_contract_diagnostic_no_persistence_change")
+                        "address_write_backend_shadow_command_no_local_persistence")
                 .containsEntry("writeCutoverAllowedNow", false)
                 .containsEntry("migrationAllowedNow", false)
                 .containsEntry("backfillAllowedNow", false)
                 .containsEntry("localReadPrerequisiteClosed", true);
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> preparedCommandArtifacts =
+                (java.util.Map<String, Object>) addressWriteAuthority.get("preparedCommandArtifacts");
+        assertThat(preparedCommandArtifacts)
+                .containsEntry("port", "PeopleAddressWritePort")
+                .containsEntry("writeCommand", "PessoaEnderecoWriteCommand")
+                .containsEntry("cleanupCommand", "PessoaEnderecoCleanupCommand")
+                .containsEntry("result", "PessoaEnderecoWriteResult")
+                .containsEntry("adapterCreated", false)
+                .containsEntry("routeCreated", false)
+                .containsEntry("localPersistenceConnected", false);
         @SuppressWarnings("unchecked")
         java.util.List<Object> candidateOperations =
                 (java.util.List<Object>) addressWriteAuthority.get("candidateOperations");
@@ -410,8 +421,10 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         java.util.List<String> requiredContracts =
                 (java.util.List<String>) addressWriteAuthority.get("requiredContracts");
         assertThat(requiredContracts).contains(
-                "PeopleAddressWritePort command payload without JPA entities",
-                "orphan cleanup contract with shared-address safeguard");
+                "PeopleAddressWritePort command payload without JPA entities defined",
+                "PessoaEnderecoWriteCommand carries idempotency key for write attempts",
+                "PessoaEnderecoCleanupCommand carries orphan cleanup intent",
+                "PessoaEnderecoWriteResult exposes selected source, local persistence flag and fallback requirement");
         @SuppressWarnings("unchecked")
         java.util.List<String> writeOutOfScope =
                 (java.util.List<String>) addressWriteAuthority.get("explicitlyOutOfScope");

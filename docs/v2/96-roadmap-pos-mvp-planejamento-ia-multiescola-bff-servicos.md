@@ -3617,6 +3617,40 @@ Proxima fase pratica:
 - manter `writeCutoverAllowedNow=false`, sem rota REST nova, sem BFF/frontend,
   sem escrita local e sem alterar os fluxos atuais de aluno/responsavel.
 
+Entregue na segunda subfase da Fase 71:
+
+- foram criados os contratos internos `PeopleAddressWritePort`,
+  `PessoaEnderecoWriteCommand`, `PessoaEnderecoCleanupCommand` e
+  `PessoaEnderecoWriteResult`, sem adapter, sem bean operacional e sem chamada
+  por use case;
+- o contrato de comando de escrita de endereco carrega `commandId`, `pessoaId`,
+  `escolaId`, tipo de endereco, flag `principal`, campos persistidos de
+  endereco, `idempotencyKey` e `requestedBy`;
+- o contrato de cleanup separa a intencao de remover vinculos/endereco orfao
+  por pessoa, tambem com `idempotencyKey`, mantendo a salvaguarda de endereco
+  compartilhado como requisito antes de qualquer execucao real;
+- o resultado explicita `selectedSource`, `persistedLocally=false`,
+  `fallbackRequired=true`, status e avisos, para permitir piloto shadow futuro
+  sem persistir localmente;
+- o health `peopleLocalPersistence.addressWriteAuthorityDiagnostic` passou a
+  expor `preparedCommandArtifacts` e o estado
+  `command_contract_defined_no_write_cutover`, mantendo
+  `writeCutoverAllowedNow=false`, `adapterCreated=false`,
+  `routeCreated=false` e `localPersistenceConnected=false`;
+- nao houve rota REST nova, BFF/frontend, escrita local, implementacao JDBC,
+  remocao do caminho do monolito ou alteracao de fluxos atuais.
+
+Contagem da macrofase Fase 71: 1 subfase restante estimada: avaliar um piloto
+backend/backend shadow de comando de endereco sem persistencia local, apenas
+observavel e com fallback obrigatorio para o monolito.
+
+Proxima fase pratica:
+
+- criar um servico shadow interno para receber `PeopleAddressWritePort`/DTOs e
+  registrar decisao/metricas de comando sem executar persistencia local;
+- manter o monolito como unica autoridade de escrita e bloquear qualquer rota,
+  BFF/frontend, adapter JDBC de escrita ou alteracao dos fluxos atuais.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3638,11 +3672,10 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Definir `PeopleAddressWritePort`/DTOs internos para comando de endereco,
-incluindo idempotencia, regra de endereco principal, rollback e contrato de
-fallback para o monolito. Manter `writeCutoverAllowedNow=false`, sem rota REST
-nova, sem BFF/frontend, sem escrita local e sem alterar os fluxos atuais de
-aluno/responsavel.
+Criar um servico shadow interno para receber `PeopleAddressWritePort`/DTOs e
+registrar decisao/metricas de comando sem executar persistencia local. Manter o
+monolito como unica autoridade de escrita e bloquear qualquer rota, BFF/frontend,
+adapter JDBC de escrita ou alteracao dos fluxos atuais.
 
 Entregue na oitava subfase:
 
