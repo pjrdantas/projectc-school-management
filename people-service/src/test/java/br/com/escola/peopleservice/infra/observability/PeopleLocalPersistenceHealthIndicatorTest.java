@@ -66,6 +66,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("localIdentityReadsTotal", 0.0d)
                 .containsEntry("localStudentResponsibleReadsTotal", 0.0d)
                 .containsEntry("addressReadRoutingDecisionsTotal", 0.0d)
+                .containsEntry("localAddressReadsTotal", 0.0d)
                 .containsEntry("failuresTotal", 0.0d);
 
         @SuppressWarnings("unchecked")
@@ -141,10 +142,10 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         Map<String, Object> transactionalPlan =
                 (Map<String, Object>) health.getDetails().get("transactionalReadModelExpansionPlan");
         assertThat(transactionalPlan)
-                .containsEntry("status", "address_local_read_routing_operation_defined_no_connection")
+                .containsEntry("status", "address_local_read_internal_guard_connection_prepared_no_route")
                 .containsEntry("recommendedNextStep",
-                        "evaluate_address_adapter_connection_behind_guard_no_route_change")
-                .containsEntry("minimalNextSlice", "address_adapter_connection_guarded_diagnostic_no_external_route")
+                        "close_phase_70_and_plan_address_write_authority_diagnostic")
+                .containsEntry("minimalNextSlice", "address_adapter_connected_internal_guard_no_external_route")
                 .containsEntry("migrationAllowedNow", true)
                 .containsEntry("backfillAllowedNow", true)
                 .containsEntry("localReadCutoverAllowedNow", false);
@@ -154,14 +155,14 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 (Map<String, Object>) health.getDetails().get("nextBlockedSliceDiagnostic");
         assertThat(nextBlockedSlice)
                 .containsEntry("slice", "endereco")
-                .containsEntry("status", "address_local_read_routing_operation_defined_no_connection")
-                .containsEntry("implementationAllowedNow", false)
+                .containsEntry("status", "address_local_read_internal_guard_connection_prepared_no_route")
+                .containsEntry("implementationAllowedNow", true)
                 .containsEntry("schemaAllowedNow", true)
                 .containsEntry("backfillAllowedNow", true)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("dependsOnClosedSlice", "consultarCadastro")
                 .containsEntry("firstSafeImplementationSlice",
-                        "address_adapter_connection_guarded_diagnostic_no_external_route");
+                        "address_adapter_connected_internal_guard_no_external_route");
         @SuppressWarnings("unchecked")
         java.util.Map<String, Object> preparedInternalContract =
                 (java.util.Map<String, Object>) nextBlockedSlice.get("preparedInternalContract");
@@ -169,6 +170,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("port", "PeopleAddressLocalReadPort")
                 .containsEntry("response", "PessoaEnderecoLocalReadResponse")
                 .containsEntry("adapter", "JdbcPeopleAddressLocalReadAdapter")
+                .containsEntry("internalService", "PeopleAddressLocalReadService")
                 .containsEntry("routingOperation", "addressLocalRead")
                 .containsEntry("jpaEntityExposure", false);
         @SuppressWarnings("unchecked")
@@ -266,12 +268,12 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 (Map<String, Object>) health.getDetails().get("addressLocalReadContractDiagnostic");
         assertThat(addressLocalReadContract)
                 .containsEntry("slice", "endereco_local_read_contract")
-                .containsEntry("status", "adapter_prepared_no_route_no_cutover")
+                .containsEntry("status", "adapter_connected_to_internal_guard_no_route")
                 .containsEntry("phase", "Fase 69")
                 .containsEntry("contractAllowedNow", true)
                 .containsEntry("localReadAdapterAllowedNow", false)
                 .containsEntry("localReadAdapterPrepared", true)
-                .containsEntry("localReadAdapterConnected", false)
+                .containsEntry("localReadAdapterConnected", true)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("externalRouteChangeAllowedNow", false)
                 .containsEntry("bffFrontendChangeAllowedNow", false)
@@ -280,7 +282,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("fallbackSource", "monolith_proxy")
                 .containsEntry("fallbackRequired", true)
                 .containsEntry("nextImplementationSlice",
-                        "address_adapter_connection_guarded_diagnostic_no_external_route");
+                        "address_adapter_connected_internal_guard_no_external_route");
         @SuppressWarnings("unchecked")
         java.util.Map<String, Object> preparedArtifacts =
                 (java.util.Map<String, Object>) addressLocalReadContract.get("preparedArtifacts");
@@ -288,6 +290,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("port", "PeopleAddressLocalReadPort")
                 .containsEntry("response", "PessoaEnderecoLocalReadResponse")
                 .containsEntry("adapter", "JdbcPeopleAddressLocalReadAdapter")
+                .containsEntry("internalService", "PeopleAddressLocalReadService")
                 .containsEntry("routeCreated", false)
                 .containsEntry("adapterCreated", true)
                 .containsEntry("queryServiceConnected", false);
@@ -327,7 +330,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         assertThat(addressCutoverEligibility)
                 .containsEntry("slice", "endereco_read_cutover_eligibility")
                 .containsEntry("phase", "Fase 70")
-                .containsEntry("status", "routing_operation_defined_no_connection_no_route")
+                .containsEntry("status", "adapter_connected_to_internal_guard_no_route")
                 .containsEntry("routingOperation", "addressLocalRead")
                 .containsEntry("shadowRoute", "internal-operation:PeopleAddressLocalReadPort")
                 .containsEntry("selectedSource", "monolith_proxy")
@@ -335,6 +338,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("reason", "read-model-cutover-disabled")
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("adapterPrepared", true)
+                .containsEntry("internalGuardedServiceConnected", true)
                 .containsEntry("queryServiceConnected", false)
                 .containsEntry("routeCreated", false)
                 .containsEntry("bffFrontendChangeAllowedNow", false)
@@ -343,7 +347,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("fallbackSource", "monolith_proxy")
                 .containsEntry("fallbackRequired", true)
                 .containsEntry("recommendedNextStep",
-                        "evaluate_address_adapter_connection_behind_guard_no_route_change");
+                        "close_phase_70_and_plan_address_write_authority_diagnostic");
         @SuppressWarnings("unchecked")
         java.util.List<String> minimumGuardCriteria =
                 (java.util.List<String>) addressCutoverEligibility.get("minimumGuardCriteria");
@@ -352,11 +356,11 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 "localReadModelBackfill.status=completed",
                 "address-reconciliation-has-no-multiple-principal-addresses");
         @SuppressWarnings("unchecked")
-        java.util.List<String> blockersBeforeAnyConnection =
-                (java.util.List<String>) addressCutoverEligibility.get("blockersBeforeAnyConnection");
-        assertThat(blockersBeforeAnyConnection).contains(
+        java.util.List<String> blockersBeforeExternalExposure =
+                (java.util.List<String>) addressCutoverEligibility.get("blockersBeforeExternalExposure");
+        assertThat(blockersBeforeExternalExposure).contains(
                 "consultarCadastro-current-payload-does-not-expose-address");
-        assertThat(blockersBeforeAnyConnection)
+        assertThat(blockersBeforeExternalExposure)
                 .doesNotContain("no-address-specific-read-routing-operation-yet")
                 .doesNotContain("no-address-specific-observability-metric-yet");
         @SuppressWarnings("unchecked")
@@ -365,12 +369,11 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         assertThat(addressMetrics)
                 .containsEntry("addressRoutingDecisions",
                         "people.shadow.local.persistence.address.read.routing.decisions")
-                .containsEntry("futureLocalReads", "people.shadow.local.persistence.address.reads");
+                .containsEntry("localReads", "people.shadow.local.persistence.address.reads");
         @SuppressWarnings("unchecked")
         java.util.List<String> eligibilityOutOfScope =
                 (java.util.List<String>) addressCutoverEligibility.get("explicitlyOutOfScope");
         assertThat(eligibilityOutOfScope).contains(
-                "connect-JdbcPeopleAddressLocalReadAdapter-to-PessoaQueryService",
                 "create-new-address-rest-route",
                 "bff-route-change",
                 "frontend-change",

@@ -12,10 +12,10 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
 
         var plan = planner.planejarProximaFatiaTransacional();
 
-        assertThat(plan.status()).isEqualTo("address_local_read_routing_operation_defined_no_connection");
+        assertThat(plan.status()).isEqualTo("address_local_read_internal_guard_connection_prepared_no_route");
         assertThat(plan.recommendedNextStep())
-                .isEqualTo("evaluate_address_adapter_connection_behind_guard_no_route_change");
-        assertThat(plan.minimalNextSlice()).isEqualTo("address_adapter_connection_guarded_diagnostic_no_external_route");
+                .isEqualTo("close_phase_70_and_plan_address_write_authority_diagnostic");
+        assertThat(plan.minimalNextSlice()).isEqualTo("address_adapter_connected_internal_guard_no_external_route");
         assertThat(plan.migrationAllowedNow()).isTrue();
         assertThat(plan.backfillAllowedNow()).isTrue();
         assertThat(plan.localReadCutoverAllowedNow()).isFalse();
@@ -56,21 +56,21 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 .extracting("table")
                 .isEmpty();
         assertThat(plan.candidateTables())
-                .filteredOn("reason", "address_local_read_routing_operation_defined_no_connection")
+                .filteredOn("reason", "address_local_read_internal_guard_connection_prepared_no_route")
                 .extracting("table")
                 .containsExactly("endereco", "pessoa_endereco");
         assertThat(plan.candidateTables())
-                .filteredOn("reason", "address_local_read_routing_operation_defined_no_connection")
+                .filteredOn("reason", "address_local_read_internal_guard_connection_prepared_no_route")
                 .extracting("supportedOperations")
                 .containsExactly(
                         java.util.List.of("addressLocalRead"),
                         java.util.List.of("addressLocalRead"));
         assertThat(plan.candidateTables())
-                .filteredOn("reason", "address_local_read_routing_operation_defined_no_connection")
+                .filteredOn("reason", "address_local_read_internal_guard_connection_prepared_no_route")
                 .extracting("migrationAllowed")
                 .containsExactly(true, true);
         assertThat(plan.candidateTables())
-                .filteredOn("reason", "address_local_read_routing_operation_defined_no_connection")
+                .filteredOn("reason", "address_local_read_internal_guard_connection_prepared_no_route")
                 .extracting("backfillAllowed")
                 .containsExactly(true, true);
         assertThat(plan.requiredHardening()).contains(
@@ -85,7 +85,8 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
                 "address-read-cutover-eligibility-diagnostic-started",
                 "address-local-read-routing-operation-defined",
                 "address-local-read-routing-metrics-defined",
-                "address-read-cutover-must-not-connect-query-service-yet",
+                "address-local-read-internal-service-connected-behind-guard",
+                "address-read-cutover-must-not-connect-query-service-or-route-yet",
                 "address-local-read-payload-must-be-internal-only",
                 "address-local-read-guard-must-stay-independent-from-consultarCadastro",
                 "address-schema-columns-defined",
@@ -102,7 +103,7 @@ class PeopleTransactionalReadModelExpansionPlannerTest {
         assertThat(plan.blockedTables()).contains("endereco", "pessoa_endereco");
         assertThat(plan.rollbackSteps()).contains(
                 "do-not-add-address-route-or-bff-cutover-in-this-phase",
-                "do-not-connect-address-adapter-to-query-service-in-this-phase",
+                "disconnect-people-address-local-read-service-if-operational-risk-appears",
                 "disable-people.shadow.local-persistence.migration-enabled",
                 "keep-pessoa-identity-local-read-on-monolith-fallback",
                 "disable-people.shadow.local-persistence.read-model-cutover-enabled",

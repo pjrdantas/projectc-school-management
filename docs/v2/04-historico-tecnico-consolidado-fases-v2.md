@@ -1580,6 +1580,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   do adapter ao fluxo operacional, rota nova, BFF/frontend, escrita local,
   alteracao de payload ou cutover. A contagem regressiva da Fase 70 passa a 1
   subfase restante estimada.
+- A terceira subfase da Fase 70 conectou a leitura local de endereco apenas ao
+  fluxo interno guardado. `PeopleLocalReadCutoverGuard` passou a permitir
+  `addressLocalRead` como elegivel para `people_read_model_address` somente
+  quando o mesmo conjunto de criterios verdes estiver satisfeito: cutover de
+  leitura habilitado, fallback ligado, persistencia/backfill/reconciliacao
+  ligados, relatorio local concluido, divergencias zeradas e falhas zeradas.
+  Foi criado `PeopleAddressLocalReadService`, que chama
+  `PeopleAddressLocalReadPort` somente atras do guard e registra
+  `people.shadow.local.persistence.address.reads`, retornando vazio para manter
+  fallback quando o guard bloqueia, quando nao ha endereco ou quando o adapter
+  falha. O health passou a expor `localAddressReadsTotal`,
+  `internalGuardedServiceConnected=true` e
+  `adapter_connected_to_internal_guard_no_route`, mantendo
+  `queryServiceConnected=false`, `routeCreated=false`, sem rota REST, sem
+  BFF/frontend, sem alteracao de `consultarCadastro`, sem payload externo novo
+  e sem escrita local. O planner passou a recomendar
+  `close_phase_70_and_plan_address_write_authority_diagnostic`. A contagem
+  regressiva da Fase 70 chega a 0.
 
 ## Historico resumido
 

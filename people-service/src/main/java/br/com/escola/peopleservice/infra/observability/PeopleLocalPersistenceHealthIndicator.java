@@ -133,6 +133,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 totalContador("people.shadow.local.persistence.student.responsible.reads"));
         details.put("addressReadRoutingDecisionsTotal",
                 totalContador("people.shadow.local.persistence.address.read.routing.decisions"));
+        details.put("localAddressReadsTotal",
+                totalContador("people.shadow.local.persistence.address.reads"));
         details.put("schemaMigrationsTotal",
                 totalContador("people.shadow.local.persistence.schema.migrations"));
 
@@ -230,14 +232,14 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private Map<String, Object> diagnosticoProximaFatiaBloqueada() {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("slice", "endereco");
-        details.put("status", "address_local_read_routing_operation_defined_no_connection");
-        details.put("implementationAllowedNow", false);
+        details.put("status", "address_local_read_internal_guard_connection_prepared_no_route");
+        details.put("implementationAllowedNow", true);
         details.put("schemaAllowedNow", true);
         details.put("backfillAllowedNow", true);
         details.put("localReadCutoverAllowedNow", false);
         details.put("dependsOnClosedSlice", "consultarCadastro");
         details.put("tables", List.of("endereco", "pessoa_endereco"));
-        details.put("firstSafeImplementationSlice", "address_adapter_connection_guarded_diagnostic_no_external_route");
+        details.put("firstSafeImplementationSlice", "address_adapter_connected_internal_guard_no_external_route");
         details.put("requiredContractDecisions", List.of(
                 "define-internal-address-read-payload-before-adapter",
                 "keep-address-read-independent-from-consultarCadastro-until-contract-is-explicit",
@@ -248,6 +250,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "port", "PeopleAddressLocalReadPort",
                 "response", "PessoaEnderecoLocalReadResponse",
                 "adapter", "JdbcPeopleAddressLocalReadAdapter",
+                "internalService", "PeopleAddressLocalReadService",
                 "routingOperation", "addressLocalRead",
                 "operations", List.of(
                         "buscarEnderecoPrincipalPorPessoa",
@@ -303,7 +306,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         PeopleLocalReadRoutingDecision decision = readCutoverGuard.avaliarLeituraEndereco();
         details.put("slice", "endereco_read_cutover_eligibility");
         details.put("phase", "Fase 70");
-        details.put("status", "routing_operation_defined_no_connection_no_route");
+        details.put("status", "adapter_connected_to_internal_guard_no_route");
         details.put("routingOperation", decision.operation());
         details.put("shadowRoute", decision.shadowRoute());
         details.put("candidateSource", decision.candidateSource());
@@ -311,8 +314,9 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("localReadRequested", decision.localReadRequested());
         details.put("localReadEligible", decision.localReadEligible());
         details.put("reason", decision.reason());
-        details.put("localReadCutoverAllowedNow", false);
+        details.put("localReadCutoverAllowedNow", decision.localReadEligible());
         details.put("adapterPrepared", true);
+        details.put("internalGuardedServiceConnected", true);
         details.put("queryServiceConnected", false);
         details.put("routeCreated", false);
         details.put("bffFrontendChangeAllowedNow", false);
@@ -336,18 +340,17 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "address-reconciliation-has-no-multiple-principal-addresses",
                 "address-reconciliation-has-no-normalized-field-divergence",
                 "address-reconciliation-has-no-missing-person-or-address-reference"));
-        details.put("blockersBeforeAnyConnection", List.of(
-                "no-address-route-contract-selected",
+        details.put("blockersBeforeExternalExposure", List.of(
+                "no-address-external-route-contract-selected",
                 "consultarCadastro-current-payload-does-not-expose-address",
                 "address-write-authority-remains-on-monolith"));
         details.put("metrics", Map.of(
                 "routingDecisions", "people.shadow.local.persistence.read.routing.decisions{operation=addressLocalRead}",
                 "addressRoutingDecisions", "people.shadow.local.persistence.address.read.routing.decisions",
-                "futureLocalReads", "people.shadow.local.persistence.address.reads",
+                "localReads", "people.shadow.local.persistence.address.reads",
                 "reconciliationDivergences", "people.shadow.local.persistence.reconciliation.divergences",
                 "localPersistenceFailures", "people.shadow.local.persistence.failures"));
         details.put("explicitlyOutOfScope", List.of(
-                "connect-JdbcPeopleAddressLocalReadAdapter-to-PessoaQueryService",
                 "create-new-address-rest-route",
                 "change-consultarCadastro-payload",
                 "bff-route-change",
@@ -359,7 +362,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "keep-address-read-on-monolith-proxy",
                 "disconnect-address-adapter-from-query-service-if-added-in-future-phase",
                 "rerun-address-backfill-and-reconciliation-before-reactivation"));
-        details.put("recommendedNextStep", "evaluate_address_adapter_connection_behind_guard_no_route_change");
+        details.put("recommendedNextStep", "close_phase_70_and_plan_address_write_authority_diagnostic");
         return details;
     }
 
@@ -437,13 +440,13 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private Map<String, Object> diagnosticoContratoLeituraLocalEndereco() {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("slice", "endereco_local_read_contract");
-        details.put("status", "adapter_prepared_no_route_no_cutover");
+        details.put("status", "adapter_connected_to_internal_guard_no_route");
         details.put("phase", "Fase 69");
         details.put("contractAllowedNow", true);
         details.put("localReadAdapterAllowedNow", false);
         details.put("localReadAdapterPrepared", true);
-        details.put("localReadAdapterConnected", false);
-        details.put("localReadCutoverAllowedNow", false);
+        details.put("localReadAdapterConnected", true);
+        details.put("localReadCutoverAllowedNow", readCutoverGuard.avaliarLeituraEndereco().localReadEligible());
         details.put("externalRouteChangeAllowedNow", false);
         details.put("bffFrontendChangeAllowedNow", false);
         details.put("writeCutoverAllowedNow", false);
@@ -457,6 +460,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "port", "PeopleAddressLocalReadPort",
                 "response", "PessoaEnderecoLocalReadResponse",
                 "adapter", "JdbcPeopleAddressLocalReadAdapter",
+                "internalService", "PeopleAddressLocalReadService",
                 "routeCreated", false,
                 "adapterCreated", true,
                 "queryServiceConnected", false));
@@ -504,7 +508,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "keep-address-read-on-monolith-proxy",
                 "rerun-address-backfill-and-reconciliation-before-any-adapter-activation",
                 "block-adapter-activation-when-address-principal-rule-is-violated"));
-        details.put("nextImplementationSlice", "address_adapter_connection_guarded_diagnostic_no_external_route");
+        details.put("nextImplementationSlice", "address_adapter_connected_internal_guard_no_external_route");
         return details;
     }
 

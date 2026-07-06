@@ -3527,6 +3527,44 @@ Proxima fase pratica:
   endereco principal;
 - nao alterar BFF/frontend, escrita local, rotas externas ou payloads atuais.
 
+Entregue na terceira subfase da Fase 70:
+
+- `addressLocalRead` passou a ficar elegivel para `people_read_model_address`
+  quando o guard ja estiver verde: cutover de leitura habilitado, fallback
+  ligado, persistencia local/backfill/reconciliacao ligados, relatorio local
+  concluido, divergencias zeradas e falhas zeradas;
+- foi criado o servico interno `PeopleAddressLocalReadService`, conectando
+  `PeopleAddressLocalReadPort` ao guard de cutover de endereco sem expor rota
+  REST, sem conectar ao `PessoaQueryService`, sem alterar `consultarCadastro`
+  e sem mudar payload externo;
+- o servico interno so consulta o adapter local quando `addressLocalRead` esta
+  elegivel; quando o guard bloqueia, quando o endereco nao e encontrado ou
+  quando o adapter falha, o resultado fica vazio para manter o fallback
+  operacional fora desse recorte;
+- a observabilidade passou a registrar leituras internas de endereco em
+  `people.shadow.local.persistence.address.reads` e o health passou a expor
+  `localAddressReadsTotal`, `internalGuardedServiceConnected=true`,
+  `adapter_connected_to_internal_guard_no_route`, `queryServiceConnected=false`
+  e `routeCreated=false`;
+- o planner transacional passou a marcar o recorte como
+  `address_local_read_internal_guard_connection_prepared_no_route`, com proxima
+  etapa `close_phase_70_and_plan_address_write_authority_diagnostic`;
+- nao houve rota REST nova, BFF/frontend, escrita local, conexao de endereco ao
+  `consultarCadastro`, alteracao de payload externo ou cutover de escrita.
+
+Contagem da macrofase Fase 70: 0 subfases restantes. O recorte de leitura local
+interna de endereco fica fechado em modo guardado, sem exposicao externa.
+
+Proxima fase pratica:
+
+- fechar formalmente a Fase 70 e iniciar o diagnostico de autoridade de escrita
+  de endereco no `people-service`, separando criacao/atualizacao de endereco,
+  limpeza de vinculos/orfaos, uso de ViaCEP e rollback;
+- manter o monolito como autoridade de escrita ate existir contrato, migracao,
+  reconciliacao e plano de rollback especificos para escrita;
+- nao abrir PR para `Master` ainda, porque o criterio combinado e
+  `people-service` 100% desacoplado do monolito.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
@@ -3548,12 +3586,12 @@ e rollback testado. Remover gradualmente migrations e codigo ja transferidos.
 
 ## Proxima fase pratica
 
-Avaliar se e seguro conectar o adapter de endereco ao fluxo interno apenas atras
-do guard `addressLocalRead`, ainda sem rota REST nova e sem alterar
-`consultarCadastro`. Manter fallback obrigatorio para o monolito e bloquear a
-conexao quando backfill/reconciliacao nao estiverem verdes ou houver violacao da
-regra de endereco principal, sem BFF/frontend, sem escrita local, sem rota
-externa nova e sem alterar payloads atuais.
+Fechar formalmente a Fase 70 e iniciar o diagnostico de autoridade de escrita de
+endereco no `people-service`, separando criacao/atualizacao de endereco, limpeza
+de vinculos/orfaos, uso de ViaCEP e rollback. O monolito continua autoridade de
+escrita ate existir contrato, migracao, reconciliacao e plano de rollback
+especificos para escrita. Nao abrir PR para `Master` ainda, pois o criterio
+combinado e `people-service` 100% desacoplado do monolito.
 
 Entregue na oitava subfase:
 

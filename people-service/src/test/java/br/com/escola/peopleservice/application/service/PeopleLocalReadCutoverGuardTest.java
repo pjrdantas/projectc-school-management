@@ -116,7 +116,7 @@ class PeopleLocalReadCutoverGuardTest {
     }
 
     @Test
-    void deveDefinirOperacaoEnderecoSemLiberarCutoverMesmoComRelatorioVerde() {
+    void deveLiberarOperacaoEnderecoQuandoRelatorioLocalEstaVerde() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         PeopleLocalReadCutoverGuard guard = new PeopleLocalReadCutoverGuard(
                 new PeopleLocalPersistenceProperties(true, false, true, false, true, true, 500, true),
@@ -128,21 +128,21 @@ class PeopleLocalReadCutoverGuardTest {
         assertThat(decision.operation()).isEqualTo("addressLocalRead");
         assertThat(decision.shadowRoute()).isEqualTo("internal-operation:PeopleAddressLocalReadPort");
         assertThat(decision.candidateSource()).isEqualTo("people_read_model_address");
-        assertThat(decision.selectedSource()).isEqualTo("monolith_proxy");
+        assertThat(decision.selectedSource()).isEqualTo("people_read_model_address");
         assertThat(decision.localReadRequested()).isTrue();
-        assertThat(decision.localReadEligible()).isFalse();
+        assertThat(decision.localReadEligible()).isTrue();
         assertThat(decision.fallbackEnabled()).isTrue();
         assertThat(decision.writesEnabled()).isFalse();
-        assertThat(decision.reason()).isEqualTo("address-local-read-connection-disabled");
+        assertThat(decision.reason()).isEqualTo("local-address-read-eligible");
         assertThat(meterRegistry.counter(
                 "people.shadow.local.persistence.read.routing.decisions",
                 "operation", "addressLocalRead",
-                "selected_source", "monolith_proxy",
-                "reason", "address-local-read-connection-disabled").count()).isEqualTo(1.0d);
+                "selected_source", "people_read_model_address",
+                "reason", "local-address-read-eligible").count()).isEqualTo(1.0d);
         assertThat(meterRegistry.counter(
                 "people.shadow.local.persistence.address.read.routing.decisions",
-                "selected_source", "monolith_proxy",
-                "reason", "address-local-read-connection-disabled").count()).isEqualTo(1.0d);
+                "selected_source", "people_read_model_address",
+                "reason", "local-address-read-eligible").count()).isEqualTo(1.0d);
     }
 
     @Test

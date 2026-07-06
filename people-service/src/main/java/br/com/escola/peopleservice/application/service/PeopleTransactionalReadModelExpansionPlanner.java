@@ -12,9 +12,9 @@ public class PeopleTransactionalReadModelExpansionPlanner {
 
     public PeopleTransactionalReadModelExpansionPlan planejarProximaFatiaTransacional() {
         return new PeopleTransactionalReadModelExpansionPlan(
-                "address_local_read_routing_operation_defined_no_connection",
-                "evaluate_address_adapter_connection_behind_guard_no_route_change",
-                "address_adapter_connection_guarded_diagnostic_no_external_route",
+                "address_local_read_internal_guard_connection_prepared_no_route",
+                "close_phase_70_and_plan_address_write_authority_diagnostic",
+                "address_adapter_connected_internal_guard_no_external_route",
                 true,
                 true,
                 false,
@@ -130,8 +130,8 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 false,
                                 true,
                                 true,
-                                false,
-                                "address_local_read_routing_operation_defined_no_connection"),
+                                true,
+                                "address_local_read_internal_guard_connection_prepared_no_route"),
                         new TableExpansionDecision(
                                 "pessoa_endereco",
                                 "id_pessoa_endereco",
@@ -147,8 +147,8 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                                 false,
                                 true,
                                 true,
-                                false,
-                                "address_local_read_routing_operation_defined_no_connection")),
+                                true,
+                                "address_local_read_internal_guard_connection_prepared_no_route")),
                 List.of(
                         "keep-consultarCadastro-guarded-local-read-closed",
                         "phase-68-formally-closed",
@@ -161,7 +161,8 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                         "address-read-cutover-eligibility-diagnostic-started",
                         "address-local-read-routing-operation-defined",
                         "address-local-read-routing-metrics-defined",
-                        "address-read-cutover-must-not-connect-query-service-yet",
+                        "address-local-read-internal-service-connected-behind-guard",
+                        "address-read-cutover-must-not-connect-query-service-or-route-yet",
                         "address-local-read-payload-must-be-internal-only",
                         "address-local-read-guard-must-stay-independent-from-consultarCadastro",
                         "address-schema-columns-defined",
@@ -185,7 +186,7 @@ public class PeopleTransactionalReadModelExpansionPlanner {
                         "pessoa_documento"),
                 List.of(
                         "do-not-add-address-route-or-bff-cutover-in-this-phase",
-                        "do-not-connect-address-adapter-to-query-service-in-this-phase",
+                        "disconnect-people-address-local-read-service-if-operational-risk-appears",
                         "disable-people.shadow.local-persistence.migration-enabled",
                         "keep-pessoa-identity-local-read-on-monolith-fallback",
                         "disable-people.shadow.local-persistence.read-model-cutover-enabled",

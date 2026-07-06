@@ -115,16 +115,17 @@ public class PeopleLocalReadCutoverGuard {
 
     public PeopleLocalReadRoutingDecision avaliarLeituraEndereco() {
         String reason = motivoInelegibilidade(ADDRESS_READ_ROUTE);
-        if (isEligibleReason(reason) || "local-read-adapter-not-configured".equals(reason)) {
+        if ("local-read-adapter-not-configured".equals(reason)) {
             reason = "address-local-read-connection-disabled";
         }
+        boolean localReadEligible = isEligibleReason(reason);
         return new PeopleLocalReadRoutingDecision(
                 ADDRESS_READ_ROUTE.operation(),
                 ADDRESS_READ_ROUTE.shadowRoute(),
                 ADDRESS_READ_ROUTE.candidateSource(),
-                MONOLITH_SOURCE,
+                selectedSource(localReadEligible, ADDRESS_READ_ROUTE.operation()),
                 properties.readModelCutoverEnabled(),
-                false,
+                localReadEligible,
                 properties.readModelFallbackEnabled(),
                 false,
                 reason);
@@ -162,13 +163,17 @@ public class PeopleLocalReadCutoverGuard {
         if ("consultarCadastro".equals(route.operation())) {
             return "local-student-responsible-read-eligible";
         }
+        if (ADDRESS_READ_ROUTE.operation().equals(route.operation())) {
+            return "local-address-read-eligible";
+        }
         return "local-read-adapter-not-configured";
     }
 
     private boolean isEligibleReason(String reason) {
         return "local-catalog-read-eligible".equals(reason)
                 || "local-identity-read-eligible".equals(reason)
-                || "local-student-responsible-read-eligible".equals(reason);
+                || "local-student-responsible-read-eligible".equals(reason)
+                || "local-address-read-eligible".equals(reason);
     }
 
     private String selectedSource(boolean localReadEligible, String operation) {
@@ -180,6 +185,9 @@ public class PeopleLocalReadCutoverGuard {
         }
         if ("consultarCadastro".equals(operation)) {
             return STUDENT_RESPONSIBLE_SOURCE;
+        }
+        if (ADDRESS_READ_ROUTE.operation().equals(operation)) {
+            return ADDRESS_SOURCE;
         }
         return "people_read_model_catalog";
     }
