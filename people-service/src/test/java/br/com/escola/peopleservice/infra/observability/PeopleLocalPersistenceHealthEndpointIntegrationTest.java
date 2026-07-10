@@ -381,5 +381,22 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("fallbackSource", "monolith_proxy")
                 .containsEntry("routingOperation", "documentMetadataLocalRead")
                 .containsEntry("schemaVersion", "V5__create_people_document_metadata_read_model.sql");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> documentBackfillReconciliation =
+                (Map<String, Object>) details.get("peopleDocumentBackfillReconciliationDiagnostic");
+        assertThat(documentBackfillReconciliation)
+                .containsEntry("phase", "Fase 76")
+                .containsEntry("slice", "people_document_backfill_reconciliation_preparation")
+                .containsEntry("status", "document_metadata_backfill_reconciliation_prepared_no_read_cutover")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_76_and_keep_document_local_read_blocked_until_green")
+                .containsEntry("minimalNextSlice", "people_document_local_read_activation_eligibility")
+                .containsEntry("migrationAllowedNow", true)
+                .containsEntry("backfillAllowedNow", true)
+                .containsEntry("reconciliationAllowedNow", true)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("source", "monolith_jdbc")
+                .containsEntry("target", "people_documento_read_model")
+                .containsEntry("reconciliationKey", "people_documento_read_model.id_pessoa_documento");
     }
 }

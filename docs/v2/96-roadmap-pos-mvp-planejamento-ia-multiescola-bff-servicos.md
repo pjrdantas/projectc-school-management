@@ -4061,6 +4061,43 @@ Proxima fase pratica sugerida:
 - se quiser reduzir o risco antes de entrar em dados de documento, abrir o
   diagnostico minimo de `funcionario`.
 
+### Fase 76 - Preparacao do backfill/reconciliacao de pessoa_documento
+
+Objetivo: estender o ciclo opt-in de backfill/reconciliacao do `people-service`
+para `people_documento_read_model`, sem ativar leitura local real e sem alterar
+rotas externas.
+
+Entregue na primeira subfase da Fase 76:
+
+- o ciclo JDBC opt-in de sincronizacao do `people-service` foi estendido para
+  `people_documento_read_model`, usando fonte `monolith_jdbc` com join entre
+  `pessoa_documento`, `documento`, `tipo_documento` e `pessoa`;
+- o backfill continua desligado por padrao e so executa quando
+  `people.shadow.local-persistence.backfill-enabled` e/ou
+  `people.shadow.local-persistence.reconciliation-enabled` forem habilitadas;
+- a reconciliacao usa `people_documento_read_model.id_pessoa_documento` como
+  chave principal e compara `id_pessoa`, `id_documento`, `id_tipo_documento`,
+  codigo/descricao do tipo, `numero_documento`, `caminho_arquivo`,
+  `observacao`, `data_upload` e `id_escola`;
+- a regra de consistencia bloqueia o relatorio quando a origem trouxer o mesmo
+  `id_documento` repetido em mais de um vinculo, reportando
+  `document-metadata-duplicate-document-id-in-source`;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleDocumentBackfillReconciliationDiagnostic`, registrando
+  `backfillAllowedNow=true`, `reconciliationAllowedNow=true` e
+  `localReadCutoverAllowedNow=false`;
+- nao houve ativacao de leitura local de documento, BFF/frontend, rota externa,
+  escrita local, upload local, delete local ou cutover.
+
+Contagem da macrofase Fase 76: 0 subfases restantes estimadas.
+
+Proxima fase pratica sugerida:
+
+- avaliar a elegibilidade de ativacao interna da leitura local de metadados de
+  `pessoa_documento`, ainda mantendo fallback obrigatorio e sem rota externa; ou
+- se quiser segurar documentos por agora, abrir o diagnostico minimo de
+  `funcionario`.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

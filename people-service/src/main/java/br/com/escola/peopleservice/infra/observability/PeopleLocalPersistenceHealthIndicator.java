@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecision;
 import br.com.escola.peopleservice.application.dto.PeopleCatalogReadModelSchemaPlan;
 import br.com.escola.peopleservice.application.dto.PeopleAddressScopeClosurePlan;
+import br.com.escola.peopleservice.application.dto.PeopleDocumentBackfillReconciliationPreparationPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentLocalReadCandidatePlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentMetadataLocalAdapterPreparationPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentMetadataSchemaDiagnosticPlan;
@@ -23,6 +24,7 @@ import br.com.escola.peopleservice.application.service.PeopleAddressScopeClosure
 import br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthorityPlanner;
 import br.com.escola.peopleservice.application.service.PeopleAddressWriteMonolithAdapterPlanner;
 import br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner;
+import br.com.escola.peopleservice.application.service.PeopleDocumentBackfillReconciliationPreparationPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentLocalReadCandidatePlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentMetadataLocalAdapterPreparationPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentMetadataSchemaDiagnosticPlanner;
@@ -50,7 +52,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             "responsavel",
             "aluno_responsavel",
             "endereco",
-            "pessoa_endereco");
+            "pessoa_endereco",
+            "people_documento_read_model");
 
     private static final List<String> EXCLUDED_AUTHORITATIVE_TABLES = List.of(
             "funcionario",
@@ -91,6 +94,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             new PeopleDocumentInternalMetadataReadContractPlanner();
     private final PeopleDocumentLocalReadCandidatePlanner documentLocalReadCandidatePlanner =
             new PeopleDocumentLocalReadCandidatePlanner();
+    private final PeopleDocumentBackfillReconciliationPreparationPlanner documentBackfillReconciliationPreparationPlanner =
+            new PeopleDocumentBackfillReconciliationPreparationPlanner();
     private final PeopleDocumentMetadataLocalAdapterPreparationPlanner documentMetadataLocalAdapterPreparationPlanner =
             new PeopleDocumentMetadataLocalAdapterPreparationPlanner();
     private final PeopleDocumentMetadataSchemaDiagnosticPlanner documentMetadataSchemaDiagnosticPlanner =
@@ -155,6 +160,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoSchemaMetadadosDocumento());
         details.put("peopleDocumentMetadataLocalAdapterPreparationDiagnostic",
                 diagnosticoPreparacaoAdapterLocalMetadadosDocumento());
+        details.put("peopleDocumentBackfillReconciliationDiagnostic",
+                diagnosticoBackfillReconciliacaoDocumento());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -521,6 +528,29 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("schemaVersion", plan.schemaVersion());
         details.put("preparedArtifacts", plan.preparedArtifacts());
         details.put("blockerBeforeActivation", plan.blockerBeforeActivation());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoBackfillReconciliacaoDocumento() {
+        PeopleDocumentBackfillReconciliationPreparationPlan plan =
+                documentBackfillReconciliationPreparationPlanner.planejarBackfillReconciliacao();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("migrationAllowedNow", plan.migrationAllowedNow());
+        details.put("backfillAllowedNow", plan.backfillAllowedNow());
+        details.put("reconciliationAllowedNow", plan.reconciliationAllowedNow());
+        details.put("localReadCutoverAllowedNow", plan.localReadCutoverAllowedNow());
+        details.put("source", plan.source());
+        details.put("target", plan.target());
+        details.put("reconciliationKey", plan.reconciliationKey());
+        details.put("sourceTables", plan.sourceTables());
+        details.put("consistencyBlockers", plan.consistencyBlockers());
         details.put("rollbackSteps", plan.rollbackSteps());
         details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
         return details;

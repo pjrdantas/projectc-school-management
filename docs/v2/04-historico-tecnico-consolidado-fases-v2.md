@@ -1814,6 +1814,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   verde e sem rota externa. Nao houve BFF/frontend, upload local, delete local
   nem alteracao funcional no `school-management-service`. A contagem regressiva
   da Fase 75 chega a 0.
+- A primeira subfase da Fase 76 estendeu o ciclo opt-in de
+  backfill/reconciliacao do `people-service` para
+  `people_documento_read_model`. O sync JDBC passou a ler do monolito via join
+  entre `pessoa_documento`, `documento`, `tipo_documento` e `pessoa`, mantendo
+  `id_pessoa_documento` como chave idempotente e de reconciliacao. A
+  reconciliacao compara pessoa/documento/tipo, codigo/descricao do tipo,
+  `numero_documento`, `caminho_arquivo`, `observacao`, `data_upload` e
+  `id_escola`, e o relatorio bloqueia quando a origem trouxer o mesmo
+  `id_documento` repetido em mais de um vinculo, com motivo
+  `document-metadata-duplicate-document-id-in-source`. O health
+  `peopleLocalPersistence` passou a expor
+  `peopleDocumentBackfillReconciliationDiagnostic`, registrando
+  `backfillAllowedNow=true`, `reconciliationAllowedNow=true` e
+  `localReadCutoverAllowedNow=false`. Nao houve ativacao de leitura local,
+  BFF/frontend, rota externa, escrita local, upload local, delete local ou
+  cutover. A contagem regressiva da Fase 76 chega a 0.
 
 ## Historico resumido
 

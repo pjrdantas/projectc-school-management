@@ -216,6 +216,41 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                     ) VALUES (?, ?, ?, ?, ?, ?)
                     """);
 
+    private static final DocumentoMetadataTable DOCUMENTO_METADATA_TABLE = new DocumentoMetadataTable(
+            """
+                    SELECT pd.id_pessoa_documento, pd.id_pessoa, pd.id_documento, d.id_tipo_documento,
+                           td.codigo AS tipo_documento_codigo, td.descricao AS tipo_documento_descricao,
+                           d.numero_documento, d.caminho_arquivo, d.observacao, d.data_upload, p.id_escola,
+                           pd.created_at
+                    FROM pessoa_documento pd
+                    JOIN documento d ON d.id_documento = pd.id_documento
+                    JOIN tipo_documento td ON td.id_tipo_documento = d.id_tipo_documento
+                    JOIN pessoa p ON p.id_pessoa = pd.id_pessoa
+                    ORDER BY pd.id_pessoa_documento
+                    LIMIT ?
+                    """,
+            """
+                    SELECT id_pessoa_documento, id_pessoa, id_documento, id_tipo_documento,
+                           tipo_documento_codigo, tipo_documento_descricao, numero_documento, caminho_arquivo,
+                           observacao, data_upload, id_escola, created_at
+                    FROM people_documento_read_model
+                    ORDER BY id_pessoa_documento
+                    """,
+            """
+                    UPDATE people_documento_read_model
+                    SET id_pessoa = ?, id_documento = ?, id_tipo_documento = ?, tipo_documento_codigo = ?,
+                        tipo_documento_descricao = ?, numero_documento = ?, caminho_arquivo = ?, observacao = ?,
+                        data_upload = ?, id_escola = ?, created_at = ?
+                    WHERE id_pessoa_documento = ?
+                    """,
+            """
+                    INSERT INTO people_documento_read_model (
+                        id_pessoa_documento, id_pessoa, id_documento, id_tipo_documento, tipo_documento_codigo,
+                        tipo_documento_descricao, numero_documento, caminho_arquivo, observacao, data_upload,
+                        id_escola, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """);
+
     private final PeopleCatalogReadModelBackfillProperties backfillProperties;
     private final PeopleLocalReadModelSchemaMigrationProperties targetProperties;
 
@@ -254,6 +289,7 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
             reports.add(synchronizeAlunoResponsavel(source, target, backfillEnabled, reconciliationEnabled, batchSize));
             reports.add(synchronizeEndereco(source, target, backfillEnabled, reconciliationEnabled, batchSize));
             reports.add(synchronizePessoaEndereco(source, target, backfillEnabled, reconciliationEnabled, batchSize));
+            reports.add(synchronizeDocumentoMetadata(source, target, backfillEnabled, reconciliationEnabled, batchSize));
             return reports;
         } catch (SQLException ex) {
             throw new IllegalStateException("local-read-model-sync-failed", ex);
@@ -591,6 +627,63 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                 divergences);
     }
 
+    private TableOperationReport synchronizeDocumentoMetadata(
+            Connection source,
+            Connection target,
+            boolean backfillEnabled,
+            boolean reconciliationEnabled,
+            int batchSize) throws SQLException {
+        List<DocumentoMetadataRow> sourceRows =
+                readDocumentoMetadataRows(source, DOCUMENTO_METADATA_TABLE.sourceLimitedQuery(), batchSize);
+        if (hasDuplicateDocumentIds(sourceRows)) {
+            return new TableOperationReport(
+                    "people_documento_read_model",
+                    "id_pessoa_documento",
+                    "monolith_jdbc",
+                    "people_documento_read_model",
+                    "blocked",
+                    "document-metadata-duplicate-document-id-in-source",
+                    backfillEnabled,
+                    reconciliationEnabled,
+                    true,
+                    sourceRows.size(),
+                    0,
+                    0,
+                    1);
+        }
+
+        int backfilledRecords = 0;
+        if (backfillEnabled) {
+            for (DocumentoMetadataRow row : sourceRows) {
+                backfilledRecords += upsertDocumentoMetadata(target, row);
+            }
+        }
+
+        List<DocumentoMetadataRow> targetRows = reconciliationEnabled
+                ? readDocumentoMetadataRows(target, DOCUMENTO_METADATA_TABLE.targetQuery(), Integer.MAX_VALUE)
+                : List.of();
+        int divergences = reconciliationEnabled ? countDocumentoMetadataDivergences(sourceRows, targetRows) : 0;
+        String status = divergences == 0 ? "success" : "diverged";
+        String reason = divergences == 0
+                ? "document-metadata-sync-completed"
+                : "document-metadata-reconciliation-diverged";
+
+        return new TableOperationReport(
+                "people_documento_read_model",
+                "id_pessoa_documento",
+                "monolith_jdbc",
+                "people_documento_read_model",
+                status,
+                reason,
+                backfillEnabled,
+                reconciliationEnabled,
+                true,
+                sourceRows.size(),
+                reconciliationEnabled ? targetRows.size() : 0,
+                backfilledRecords,
+                divergences);
+    }
+
     private List<CatalogRow> readRows(Connection connection, String query, boolean hasCreatedAt, int limit) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             if (query.contains("LIMIT ?")) {
@@ -788,6 +881,36 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         }
     }
 
+    private List<DocumentoMetadataRow> readDocumentoMetadataRows(Connection connection, String query, int limit)
+            throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            if (query.contains("LIMIT ?")) {
+                statement.setInt(1, Math.max(1, limit));
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<DocumentoMetadataRow> rows = new ArrayList<>();
+                while (resultSet.next()) {
+                    Timestamp dataUpload = resultSet.getTimestamp("data_upload");
+                    Timestamp createdAt = resultSet.getTimestamp("created_at");
+                    rows.add(new DocumentoMetadataRow(
+                            resultSet.getObject("id_pessoa_documento", UUID.class),
+                            resultSet.getObject("id_pessoa", UUID.class),
+                            resultSet.getObject("id_documento", UUID.class),
+                            resultSet.getObject("id_tipo_documento", UUID.class),
+                            resultSet.getString("tipo_documento_codigo"),
+                            resultSet.getString("tipo_documento_descricao"),
+                            resultSet.getString("numero_documento"),
+                            resultSet.getString("caminho_arquivo"),
+                            resultSet.getString("observacao"),
+                            dataUpload == null ? null : dataUpload.toInstant(),
+                            resultSet.getObject("id_escola", UUID.class),
+                            createdAt == null ? null : createdAt.toInstant()));
+                }
+                return rows;
+            }
+        }
+    }
+
     private int upsert(Connection target, CatalogTable table, CatalogRow row) throws SQLException {
         try (PreparedStatement update = target.prepareStatement(table.updateSql())) {
             bindUpdate(update, table, row);
@@ -930,6 +1053,21 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         }
     }
 
+    private int upsertDocumentoMetadata(Connection target, DocumentoMetadataRow row) throws SQLException {
+        try (PreparedStatement update = target.prepareStatement(DOCUMENTO_METADATA_TABLE.updateSql())) {
+            bindDocumentoMetadataUpdate(update, row);
+            int updated = update.executeUpdate();
+            if (updated > 0) {
+                return updated;
+            }
+        }
+
+        try (PreparedStatement insert = target.prepareStatement(DOCUMENTO_METADATA_TABLE.insertSql())) {
+            bindDocumentoMetadataInsert(insert, row);
+            return insert.executeUpdate();
+        }
+    }
+
     private void bindUpdate(PreparedStatement statement, CatalogTable table, CatalogRow row) throws SQLException {
         statement.setString(1, row.codigo());
         statement.setString(2, row.descricao());
@@ -1058,6 +1196,36 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         statement.setString(8, row.uf());
         statement.setTimestamp(9, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
         statement.setTimestamp(10, row.updatedAt() == null ? null : Timestamp.from(row.updatedAt()));
+    }
+
+    private void bindDocumentoMetadataUpdate(PreparedStatement statement, DocumentoMetadataRow row) throws SQLException {
+        statement.setObject(1, row.pessoaId());
+        statement.setObject(2, row.documentoId());
+        statement.setObject(3, row.tipoDocumentoId());
+        statement.setString(4, row.tipoDocumentoCodigo());
+        statement.setString(5, row.tipoDocumentoDescricao());
+        statement.setString(6, row.numeroDocumento());
+        statement.setString(7, row.caminhoArquivo());
+        statement.setString(8, row.observacao());
+        statement.setTimestamp(9, row.dataUpload() == null ? null : Timestamp.from(row.dataUpload()));
+        statement.setObject(10, row.escolaId());
+        statement.setTimestamp(11, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+        statement.setObject(12, row.id());
+    }
+
+    private void bindDocumentoMetadataInsert(PreparedStatement statement, DocumentoMetadataRow row) throws SQLException {
+        statement.setObject(1, row.id());
+        statement.setObject(2, row.pessoaId());
+        statement.setObject(3, row.documentoId());
+        statement.setObject(4, row.tipoDocumentoId());
+        statement.setString(5, row.tipoDocumentoCodigo());
+        statement.setString(6, row.tipoDocumentoDescricao());
+        statement.setString(7, row.numeroDocumento());
+        statement.setString(8, row.caminhoArquivo());
+        statement.setString(9, row.observacao());
+        statement.setTimestamp(10, row.dataUpload() == null ? null : Timestamp.from(row.dataUpload()));
+        statement.setObject(11, row.escolaId());
+        statement.setTimestamp(12, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
     }
 
     private int countDivergences(List<CatalogRow> sourceRows, List<CatalogRow> targetRows) {
@@ -1225,6 +1393,27 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         return divergences;
     }
 
+    private int countDocumentoMetadataDivergences(
+            List<DocumentoMetadataRow> sourceRows,
+            List<DocumentoMetadataRow> targetRows) {
+        Map<UUID, DocumentoMetadataRow> sourceById = byDocumentoMetadataId(sourceRows);
+        Map<UUID, DocumentoMetadataRow> targetById = byDocumentoMetadataId(targetRows);
+        int divergences = 0;
+
+        for (Map.Entry<UUID, DocumentoMetadataRow> entry : sourceById.entrySet()) {
+            DocumentoMetadataRow target = targetById.get(entry.getKey());
+            if (target == null || !entry.getValue().matches(target)) {
+                divergences++;
+            }
+        }
+        for (UUID targetId : targetById.keySet()) {
+            if (!sourceById.containsKey(targetId)) {
+                divergences++;
+            }
+        }
+        return divergences;
+    }
+
     private Map<String, CatalogRow> byCode(List<CatalogRow> rows) {
         Map<String, CatalogRow> byCode = new LinkedHashMap<>();
         for (CatalogRow row : rows) {
@@ -1289,6 +1478,14 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         return byId;
     }
 
+    private Map<UUID, DocumentoMetadataRow> byDocumentoMetadataId(List<DocumentoMetadataRow> rows) {
+        Map<UUID, DocumentoMetadataRow> byId = new LinkedHashMap<>();
+        for (DocumentoMetadataRow row : rows) {
+            byId.put(row.id(), row);
+        }
+        return byId;
+    }
+
     private boolean hasMultiplePrincipalAddresses(List<PessoaEnderecoRow> rows) {
         Map<UUID, Integer> principalCountByPessoa = new LinkedHashMap<>();
         for (PessoaEnderecoRow row : rows) {
@@ -1297,6 +1494,14 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
             }
         }
         return principalCountByPessoa.values().stream().anyMatch(count -> count > 1);
+    }
+
+    private boolean hasDuplicateDocumentIds(List<DocumentoMetadataRow> rows) {
+        Map<UUID, Integer> countByDocumentoId = new LinkedHashMap<>();
+        for (DocumentoMetadataRow row : rows) {
+            countByDocumentoId.merge(row.documentoId(), 1, Integer::sum);
+        }
+        return countByDocumentoId.values().stream().anyMatch(count -> count > 1);
     }
 
     private List<TableOperationReport> blockedReports(boolean backfillEnabled, boolean reconciliationEnabled) {
@@ -1344,6 +1549,12 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                 "pessoa_endereco",
                 "id_pessoa_endereco",
                 "people_read_model_address",
+                backfillEnabled,
+                reconciliationEnabled));
+        reports.add(blockedReport(
+                "people_documento_read_model",
+                "id_pessoa_documento",
+                "people_documento_read_model",
                 backfillEnabled,
                 reconciliationEnabled));
         return reports;
@@ -1464,6 +1675,13 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
     }
 
     private record PessoaEnderecoTable(
+            String sourceLimitedQuery,
+            String targetQuery,
+            String updateSql,
+            String insertSql) {
+    }
+
+    private record DocumentoMetadataTable(
             String sourceLimitedQuery,
             String targetQuery,
             String updateSql,
@@ -1610,6 +1828,39 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                     && Objects.equals(enderecoId, other.enderecoId)
                     && Objects.equals(tipoEnderecoId, other.tipoEnderecoId)
                     && principal == other.principal;
+        }
+    }
+
+    private record DocumentoMetadataRow(
+            UUID id,
+            UUID pessoaId,
+            UUID documentoId,
+            UUID tipoDocumentoId,
+            String tipoDocumentoCodigo,
+            String tipoDocumentoDescricao,
+            String numeroDocumento,
+            String caminhoArquivo,
+            String observacao,
+            Instant dataUpload,
+            UUID escolaId,
+            Instant createdAt) {
+
+        boolean matches(DocumentoMetadataRow other) {
+            return Objects.equals(id, other.id)
+                    && Objects.equals(pessoaId, other.pessoaId)
+                    && Objects.equals(documentoId, other.documentoId)
+                    && Objects.equals(tipoDocumentoId, other.tipoDocumentoId)
+                    && Objects.equals(normalize(tipoDocumentoCodigo), normalize(other.tipoDocumentoCodigo))
+                    && Objects.equals(normalize(tipoDocumentoDescricao), normalize(other.tipoDocumentoDescricao))
+                    && Objects.equals(normalize(numeroDocumento), normalize(other.numeroDocumento))
+                    && Objects.equals(normalize(caminhoArquivo), normalize(other.caminhoArquivo))
+                    && Objects.equals(normalize(observacao), normalize(other.observacao))
+                    && Objects.equals(dataUpload, other.dataUpload)
+                    && Objects.equals(escolaId, other.escolaId);
+        }
+
+        private static String normalize(String value) {
+            return value == null ? null : value.trim();
         }
     }
 }

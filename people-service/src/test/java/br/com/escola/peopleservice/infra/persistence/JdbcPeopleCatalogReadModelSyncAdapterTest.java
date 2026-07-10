@@ -24,7 +24,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         var reports = adapter.synchronize(true, true, 100);
 
         assertThat(reports)
-                .hasSize(9)
+                .hasSize(10)
                 .allSatisfy(report -> {
                     assertThat(report.status()).isEqualTo("blocked");
                     assertThat(report.reason()).isEqualTo("local-read-model-source-url-required");
@@ -48,7 +48,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         var reports = adapter.synchronize(true, true, 100);
 
         assertThat(reports)
-                .hasSize(9)
+                .hasSize(10)
                 .allSatisfy(report -> {
                     assertThat(report.status()).isEqualTo("success");
                     assertThat(report.divergences()).isZero();
@@ -65,9 +65,10 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         "responsavel",
                         "aluno_responsavel",
                         "endereco",
-                        "pessoa_endereco");
-        assertThat(reports.stream().mapToInt(report -> report.sourceRows()).sum()).isEqualTo(17);
-        assertThat(reports.stream().mapToInt(report -> report.targetRows()).sum()).isEqualTo(17);
+                        "pessoa_endereco",
+                        "people_documento_read_model");
+        assertThat(reports.stream().mapToInt(report -> report.sourceRows()).sum()).isEqualTo(19);
+        assertThat(reports.stream().mapToInt(report -> report.targetRows()).sum()).isEqualTo(19);
 
         assertThat(contar(targetUrl, "tipo_pessoa")).isEqualTo(3);
         assertThat(contar(targetUrl, "tipo_endereco")).isEqualTo(2);
@@ -78,6 +79,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         assertThat(contar(targetUrl, "aluno_responsavel")).isEqualTo(1);
         assertThat(contar(targetUrl, "endereco")).isEqualTo(2);
         assertThat(contar(targetUrl, "pessoa_endereco")).isEqualTo(2);
+        assertThat(contar(targetUrl, "people_documento_read_model")).isEqualTo(2);
     }
 
     @Test
@@ -218,6 +220,48 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         id_endereco UUID NOT NULL REFERENCES endereco(id_endereco),
                         id_tipo_endereco UUID REFERENCES tipo_endereco(id_tipo_endereco),
                         principal BOOLEAN NOT NULL DEFAULT TRUE,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE documento (
+                        id_documento UUID NOT NULL PRIMARY KEY,
+                        id_tipo_documento UUID NOT NULL,
+                        numero_documento VARCHAR(50),
+                        caminho_arquivo VARCHAR(255) NOT NULL,
+                        observacao VARCHAR(255),
+                        data_upload TIMESTAMP,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE tipo_documento (
+                        id_tipo_documento UUID NOT NULL PRIMARY KEY,
+                        codigo VARCHAR(50) NOT NULL,
+                        descricao VARCHAR(150) NOT NULL
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE pessoa_documento (
+                        id_pessoa_documento UUID NOT NULL PRIMARY KEY,
+                        id_pessoa UUID NOT NULL,
+                        id_documento UUID NOT NULL,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE people_documento_read_model (
+                        id_pessoa_documento UUID NOT NULL PRIMARY KEY,
+                        id_pessoa UUID NOT NULL,
+                        id_documento UUID NOT NULL,
+                        id_tipo_documento UUID NOT NULL,
+                        tipo_documento_codigo VARCHAR(50) NOT NULL,
+                        tipo_documento_descricao VARCHAR(150) NOT NULL,
+                        numero_documento VARCHAR(50),
+                        caminho_arquivo VARCHAR(255) NOT NULL,
+                        observacao VARCHAR(255),
+                        data_upload TIMESTAMP,
+                        id_escola UUID NOT NULL,
                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                     )
                     """);
@@ -393,6 +437,51 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         'eeeeeeee-5555-5555-5555-eeeeeeeeeeee',
                         '44444444-4444-4444-4444-444444444444',
                         TRUE,
+                        CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    INSERT INTO tipo_documento (id_tipo_documento, codigo, descricao) VALUES
+                    ('12121212-1212-1212-1212-121212121212', 'CPF', 'CPF'),
+                    ('34343434-3434-3434-3434-343434343434', 'RG', 'Registro Geral')
+                    """);
+            statement.execute("""
+                    INSERT INTO documento (
+                        id_documento, id_tipo_documento, numero_documento, caminho_arquivo, observacao, data_upload, created_at
+                    ) VALUES
+                    (
+                        '56565656-5656-5656-5656-565656565656',
+                        '12121212-1212-1212-1212-121212121212',
+                        '11111111111',
+                        '/docs/cpf-ana.pdf',
+                        'Frente',
+                        CURRENT_TIMESTAMP,
+                        CURRENT_TIMESTAMP
+                    ),
+                    (
+                        '78787878-7878-7878-7878-787878787878',
+                        '34343434-3434-3434-3434-343434343434',
+                        'MG123456',
+                        '/docs/rg-rita.pdf',
+                        'Verso',
+                        CURRENT_TIMESTAMP,
+                        CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    INSERT INTO pessoa_documento (
+                        id_pessoa_documento, id_pessoa, id_documento, created_at
+                    ) VALUES
+                    (
+                        '90909090-9090-9090-9090-909090909090',
+                        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                        '56565656-5656-5656-5656-565656565656',
+                        CURRENT_TIMESTAMP
+                    ),
+                    (
+                        'a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0',
+                        'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+                        '78787878-7878-7878-7878-787878787878',
                         CURRENT_TIMESTAMP
                     )
                     """);

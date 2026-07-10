@@ -30,7 +30,7 @@ class PeopleLocalPersistenceBackfillCoordinatorTest {
         assertThat(report.backfillEnabled()).isFalse();
         assertThat(report.reconciliationEnabled()).isFalse();
         assertThat(report.batchSize()).isEqualTo(500);
-        assertThat(report.plannedTables()).isEqualTo(9);
+        assertThat(report.plannedTables()).isEqualTo(10);
         assertThat(report.successfulTables()).isZero();
         assertThat(report.backfilledRecords()).isZero();
         assertThat(report.divergences()).isZero();
@@ -172,6 +172,20 @@ class PeopleLocalPersistenceBackfillCoordinatorTest {
                                 2,
                                 2,
                                 2,
+                                0),
+                        new TableOperationReport(
+                                "people_documento_read_model",
+                                "id_pessoa_documento",
+                                "monolith_jdbc",
+                                "people_documento_read_model",
+                                "success",
+                                "document-metadata-sync-completed",
+                                backfillEnabled,
+                                reconciliationEnabled,
+                                true,
+                                2,
+                                2,
+                                2,
                                 0)),
                 state);
 
@@ -182,15 +196,15 @@ class PeopleLocalPersistenceBackfillCoordinatorTest {
         assertThat(report.backfillEnabled()).isTrue();
         assertThat(report.reconciliationEnabled()).isTrue();
         assertThat(report.batchSize()).isEqualTo(100);
-        assertThat(report.successfulTables()).isEqualTo(9);
-        assertThat(report.backfilledRecords()).isEqualTo(19);
-        assertThat(report.sourceRows()).isEqualTo(19);
-        assertThat(report.targetRows()).isEqualTo(19);
+        assertThat(report.successfulTables()).isEqualTo(10);
+        assertThat(report.backfilledRecords()).isEqualTo(21);
+        assertThat(report.sourceRows()).isEqualTo(21);
+        assertThat(report.targetRows()).isEqualTo(21);
         assertThat(report.divergences()).isZero();
         assertThat(report.writesEnabled()).isFalse();
         assertThat(report.cutoverEnabled()).isFalse();
         assertThat(report.tables())
-                .hasSize(9)
+                .hasSize(10)
                 .allSatisfy(table -> {
                     assertThat(table.source()).isEqualTo("monolith_jdbc");
                     assertThat(table.status()).isEqualTo("success");
@@ -209,15 +223,16 @@ class PeopleLocalPersistenceBackfillCoordinatorTest {
                         "responsavel",
                         "aluno_responsavel",
                         "endereco",
-                        "pessoa_endereco");
+                        "pessoa_endereco",
+                        "people_documento_read_model");
         assertThat(state.currentReport()).isEqualTo(report);
         assertThat(meterRegistry.counter("people.shadow.local.persistence.cycles", "status", "completed").count())
                 .isEqualTo(1.0d);
         assertThat(meterRegistry.counter("people.shadow.local.persistence.backfill.tables.planned").count())
-                .isEqualTo(9.0d);
+                .isEqualTo(10.0d);
         assertThat(meterRegistry.counter("people.shadow.local.persistence.backfill.records").count())
-                .isEqualTo(19.0d);
+                .isEqualTo(21.0d);
         assertThat(meterRegistry.counter("people.shadow.local.persistence.reconciliation.tables.planned").count())
-                .isEqualTo(9.0d);
+                .isEqualTo(10.0d);
     }
 }
