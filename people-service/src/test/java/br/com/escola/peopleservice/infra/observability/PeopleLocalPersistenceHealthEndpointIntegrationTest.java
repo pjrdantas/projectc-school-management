@@ -525,5 +525,19 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("selectedSource", "monolith_internal_rh")
                 .containsEntry("fallbackSource", "monolith_internal_rh")
                 .containsEntry("reason", "read-model-cutover-disabled");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> funcionarioInternalUsageCandidate =
+                (Map<String, Object>) details.get("peopleFuncionarioInternalUsageCandidateDiagnostic");
+        assertThat(funcionarioInternalUsageCandidate)
+                .containsEntry("phase", "Fase 84")
+                .containsEntry("slice", "funcionario_internal_summary_internal_usage_candidate_diagnostic")
+                .containsEntry("status", "no_safe_internal_funcionario_consumer_without_route_or_monolith_contract_change")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_84_and_keep_funcionario_internal_summary_prepared_without_forced_consumer")
+                .containsEntry("minimalNextSlice", "funcionario_internal_summary_block_closure")
+                .containsEntry("internalUsageCandidateFound", false)
+                .containsEntry("safeToConnectNow", false)
+                .containsEntry("externalRouteChangeRequired", false)
+                .containsEntry("fallbackRequired", true);
     }
 }

@@ -4315,6 +4315,32 @@ Proxima fase pratica sugerida:
 - se nao houver consumidor justificavel agora, fechar formalmente o bloco e
   manter o service apenas preparado e protegido por guard.
 
+### Fase 84 - Diagnostico de consumidor interno de funcionario
+
+Objetivo: confirmar se existe algum primeiro consumidor interno real e seguro
+para `funcionario_internal_summary` no `people-service`, sem criar rota nova e
+sem ampliar escopo para RH/autenticacao.
+
+Entregue na primeira subfase da Fase 84:
+
+- foi formalizado o diagnostico de uso interno minimo de
+  `funcionario_internal_summary`, verificando que o `people-service` ainda nao
+  possui fluxo nativo que justifique consumir esse read local fora da propria
+  preparacao tecnica;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleFuncionarioInternalUsageCandidateDiagnostic`, deixando explicito que
+  nao ha consumidor seguro a conectar agora sem abrir superficie fora da fase;
+- a recomendacao da fase passa a ser fechar o bloco de funcionario preparado,
+  sem inventar consumidor artificial e sem mudar rota, BFF, frontend ou writes.
+
+Contagem da macrofase Fase 84: 0 subfases restantes estimadas.
+
+Proxima fase pratica sugerida:
+
+- fechar formalmente o bloco backend/backend de `funcionario_internal_summary`
+  como preparado e sem consumidor real nesta etapa; ou
+- iniciar outro recorte backend menor fora da familia de funcionario.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

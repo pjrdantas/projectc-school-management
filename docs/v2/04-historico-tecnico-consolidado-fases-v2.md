@@ -1893,6 +1893,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   deixando explicito quando o read model pode ser considerado verde para uso
   interno controlado. A fase termina sem alteracao funcional oficial no
   `school-management-service`, com a contagem regressiva da Fase 83 em 0.
+- A primeira subfase da Fase 84 fechou o diagnostico de consumidor interno de
+  `funcionario_internal_summary` no `people-service`, confirmando que ainda nao
+  existe fluxo nativo que justifique conectar esse read local fora da propria
+  preparacao tecnica. O actuator `peopleLocalPersistence` passou a expor
+  `peopleFuncionarioInternalUsageCandidateDiagnostic`, registrando a ausencia de
+  consumidor seguro sem abrir nova rota ou ampliar escopo para RH/autenticacao.
+  A fase termina sem alteracao funcional oficial no
+  `school-management-service`, com a contagem regressiva da Fase 84 em 0.
 
 ## Historico resumido
 

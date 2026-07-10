@@ -24,6 +24,7 @@ import br.com.escola.peopleservice.application.dto.PeopleAddressWriteAuthorityPl
 import br.com.escola.peopleservice.application.dto.PeopleFuncionarioInternalSummaryAdapterPreparationPlan;
 import br.com.escola.peopleservice.application.dto.PeopleFuncionarioInternalSummaryBackfillReconciliationPreparationPlan;
 import br.com.escola.peopleservice.application.dto.PeopleFuncionarioInternalSummaryLocalReadActivationEligibilityPlan;
+import br.com.escola.peopleservice.application.dto.PeopleFuncionarioInternalUsageCandidatePlan;
 import br.com.escola.peopleservice.application.dto.PeopleFuncionarioScopeDiagnosticPlan;
 import br.com.escola.peopleservice.application.dto.PeopleFuncionarioInternalSummaryContractPlan;
 import br.com.escola.peopleservice.application.dto.PeopleTransactionalReadModelExpansionPlan;
@@ -42,6 +43,7 @@ import br.com.escola.peopleservice.application.service.PeopleDocumentScopeDiagno
 import br.com.escola.peopleservice.application.service.PeopleFuncionarioInternalSummaryAdapterPreparationPlanner;
 import br.com.escola.peopleservice.application.service.PeopleFuncionarioInternalSummaryBackfillReconciliationPreparationPlanner;
 import br.com.escola.peopleservice.application.service.PeopleFuncionarioInternalSummaryLocalReadActivationEligibilityPlanner;
+import br.com.escola.peopleservice.application.service.PeopleFuncionarioInternalUsageCandidatePlanner;
 import br.com.escola.peopleservice.application.service.PeopleFuncionarioInternalSummaryContractPlanner;
 import br.com.escola.peopleservice.application.service.PeopleFuncionarioScopeDiagnosticPlanner;
 import br.com.escola.peopleservice.application.service.PeopleLocalPersistenceOperationState;
@@ -115,6 +117,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             new PeopleFuncionarioInternalSummaryBackfillReconciliationPreparationPlanner();
     private final PeopleFuncionarioInternalSummaryLocalReadActivationEligibilityPlanner funcionarioInternalSummaryLocalReadActivationEligibilityPlanner =
             new PeopleFuncionarioInternalSummaryLocalReadActivationEligibilityPlanner();
+    private final PeopleFuncionarioInternalUsageCandidatePlanner funcionarioInternalUsageCandidatePlanner =
+            new PeopleFuncionarioInternalUsageCandidatePlanner();
     private final PeopleDocumentInternalMetadataReadContractPlanner documentInternalMetadataReadContractPlanner =
             new PeopleDocumentInternalMetadataReadContractPlanner();
     private final PeopleDocumentLocalReadCandidatePlanner documentLocalReadCandidatePlanner =
@@ -204,6 +208,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoBackfillReconciliacaoResumoFuncionario());
         details.put("peopleFuncionarioInternalSummaryLocalReadActivationEligibilityDiagnostic",
                 diagnosticoElegibilidadeAtivacaoLeituraLocalResumoFuncionario());
+        details.put("peopleFuncionarioInternalUsageCandidateDiagnostic",
+                diagnosticoUsoInternoMinimoResumoFuncionario());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -784,6 +790,25 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("guardPreconditions", plan.guardPreconditions());
         details.put("rollbackSteps", plan.rollbackSteps());
         details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoUsoInternoMinimoResumoFuncionario() {
+        PeopleFuncionarioInternalUsageCandidatePlan plan =
+                funcionarioInternalUsageCandidatePlanner.planejarUsoInternoMinimo();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("internalUsageCandidateFound", plan.internalUsageCandidateFound());
+        details.put("safeToConnectNow", plan.safeToConnectNow());
+        details.put("externalRouteChangeRequired", plan.externalRouteChangeRequired());
+        details.put("fallbackRequired", plan.fallbackRequired());
+        details.put("currentBlockers", plan.currentBlockers());
+        details.put("preservedBoundaries", plan.preservedBoundaries());
+        details.put("rollbackSteps", plan.rollbackSteps());
         return details;
     }
 
