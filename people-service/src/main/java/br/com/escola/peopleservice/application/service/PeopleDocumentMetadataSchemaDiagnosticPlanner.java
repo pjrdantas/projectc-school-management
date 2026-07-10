@@ -12,17 +12,18 @@ public class PeopleDocumentMetadataSchemaDiagnosticPlanner {
 
     public PeopleDocumentMetadataSchemaDiagnosticPlan planejarSchemaMinimoDeMetadados() {
         return new PeopleDocumentMetadataSchemaDiagnosticPlan(
-                "Fase 74",
+                "Fase 75",
                 "people_document_local_metadata_schema_diagnostic",
-                "schema_backfill_reconciliation_diagnosed_adapter_still_blocked",
-                "close_phase_74_and_plan_people_document_local_adapter_preparation",
-                "people_document_local_metadata_adapter_preparation",
+                "schema_preserved_and_jdbc_adapter_prepared_still_not_activated",
+                "close_phase_75_and_plan_people_document_backfill_reconciliation_preparation",
+                "people_document_backfill_reconciliation_preparation",
                 true,
                 true,
-                false,
+                true,
+                true,
                 false,
                 "people_documento_read_model.id_pessoa_documento",
-                "phase_74_closure_no_local_adapter",
+                "phase_75_closure_adapter_prepared_no_activation",
                 Map.of(
                         "people_documento_read_model", List.of(
                                 "id_pessoa_documento",
@@ -45,6 +46,15 @@ public class PeopleDocumentMetadataSchemaDiagnosticPlanner {
                         "enabledByDefault", false,
                         "source", "monolith_jdbc",
                         "target", "people_documento_read_model"),
+                Map.of(
+                        "port", "PeopleDocumentMetadataLocalReadPort",
+                        "response", "PessoaDocumentoMetadataLocalReadResponse",
+                        "adapter", "JdbcPeopleDocumentMetadataLocalReadAdapter",
+                        "internalService", "PeopleDocumentMetadataLocalReadService",
+                        "adapterCreated", true,
+                        "internalServiceConnected", true,
+                        "queryServiceConnected", false,
+                        "routeCreated", false),
                 "document ownership remains valid only when id_escola is copied from pessoa and kept aligned",
                 "caminho_arquivo must be copied as metadata only; no binary ownership transfer is allowed",
                 List.of(
@@ -58,7 +68,7 @@ public class PeopleDocumentMetadataSchemaDiagnosticPlanner {
                         "id_escola"),
                 List.of(
                         "tipo_documento code drift must be zero before adapter",
-                        "caminho_arquivo normalization must be defined before adapter",
+                        "caminho_arquivo normalization must be defined before runtime activation",
                         "orphaned documento rows without pessoa_documento must stay outside local read model",
                         "ownership divergence by pessoa.id_escola blocks green reconciliation"),
                 List.of(

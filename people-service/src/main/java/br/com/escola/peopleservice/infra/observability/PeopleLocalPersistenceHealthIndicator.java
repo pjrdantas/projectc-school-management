@@ -12,6 +12,7 @@ import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecisio
 import br.com.escola.peopleservice.application.dto.PeopleCatalogReadModelSchemaPlan;
 import br.com.escola.peopleservice.application.dto.PeopleAddressScopeClosurePlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentLocalReadCandidatePlan;
+import br.com.escola.peopleservice.application.dto.PeopleDocumentMetadataLocalAdapterPreparationPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentMetadataSchemaDiagnosticPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentScopeDiagnosticPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentInternalMetadataReadContractPlan;
@@ -23,6 +24,7 @@ import br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthori
 import br.com.escola.peopleservice.application.service.PeopleAddressWriteMonolithAdapterPlanner;
 import br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentLocalReadCandidatePlanner;
+import br.com.escola.peopleservice.application.service.PeopleDocumentMetadataLocalAdapterPreparationPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentMetadataSchemaDiagnosticPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentInternalMetadataReadContractPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentScopeDiagnosticPlanner;
@@ -89,6 +91,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             new PeopleDocumentInternalMetadataReadContractPlanner();
     private final PeopleDocumentLocalReadCandidatePlanner documentLocalReadCandidatePlanner =
             new PeopleDocumentLocalReadCandidatePlanner();
+    private final PeopleDocumentMetadataLocalAdapterPreparationPlanner documentMetadataLocalAdapterPreparationPlanner =
+            new PeopleDocumentMetadataLocalAdapterPreparationPlanner();
     private final PeopleDocumentMetadataSchemaDiagnosticPlanner documentMetadataSchemaDiagnosticPlanner =
             new PeopleDocumentMetadataSchemaDiagnosticPlanner();
     private final PeopleLocalReadModelSchemaMigrationState schemaMigrationState;
@@ -149,6 +153,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoCandidatoLeituraLocalDocumento());
         details.put("peopleDocumentMetadataSchemaDiagnostic",
                 diagnosticoSchemaMetadadosDocumento());
+        details.put("peopleDocumentMetadataLocalAdapterPreparationDiagnostic",
+                diagnosticoPreparacaoAdapterLocalMetadadosDocumento());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -174,6 +180,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 totalContador("people.shadow.local.persistence.address.read.routing.decisions"));
         details.put("localAddressReadsTotal",
                 totalContador("people.shadow.local.persistence.address.reads"));
+        details.put("localDocumentMetadataReadsTotal",
+                totalContador("people.shadow.local.persistence.document.metadata.reads"));
         details.put("addressWriteShadowCommandsTotal",
                 totalContador("people.shadow.local.persistence.address.write.shadow.commands"));
         details.put("monolithAddressWriteRequestsTotal",
@@ -476,16 +484,43 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("migrationAllowedNow", plan.migrationAllowedNow());
         details.put("backfillAllowedNow", plan.backfillAllowedNow());
         details.put("localReadAdapterAllowedNow", plan.localReadAdapterAllowedNow());
+        details.put("localReadAdapterPrepared", plan.localReadAdapterPrepared());
         details.put("localReadCutoverAllowedNow", plan.localReadCutoverAllowedNow());
         details.put("reconciliationKey", plan.reconciliationKey());
         details.put("nextImplementationSlice", plan.nextImplementationSlice());
         details.put("minimalColumns", plan.minimalColumns());
         details.put("schemaMigration", plan.schemaMigration());
         details.put("backfillReconciliation", plan.backfillReconciliation());
+        details.put("preparedArtifacts", plan.preparedArtifacts());
         details.put("ownershipRule", plan.ownershipRule());
         details.put("caminhoArquivoPolicy", plan.caminhoArquivoPolicy());
         details.put("secondaryReconciliationChecks", plan.secondaryReconciliationChecks());
         details.put("blockersBeforeAdapter", plan.blockersBeforeAdapter());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoPreparacaoAdapterLocalMetadadosDocumento() {
+        PeopleDocumentMetadataLocalAdapterPreparationPlan plan =
+                documentMetadataLocalAdapterPreparationPlanner.planejarPreparacaoDoAdapterLocal();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("adapterImplementationAllowedNow", plan.adapterImplementationAllowedNow());
+        details.put("adapterPrepared", plan.adapterPrepared());
+        details.put("internalServiceConnected", plan.internalServiceConnected());
+        details.put("externalRouteCreated", plan.externalRouteCreated());
+        details.put("localReadCutoverAllowedNow", plan.localReadCutoverAllowedNow());
+        details.put("candidateSource", plan.candidateSource());
+        details.put("fallbackSource", plan.fallbackSource());
+        details.put("routingOperation", plan.routingOperation());
+        details.put("schemaVersion", plan.schemaVersion());
+        details.put("preparedArtifacts", plan.preparedArtifacts());
+        details.put("blockerBeforeActivation", plan.blockerBeforeActivation());
         details.put("rollbackSteps", plan.rollbackSteps());
         details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
         return details;

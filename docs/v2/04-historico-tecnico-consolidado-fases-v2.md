@@ -1798,6 +1798,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `pessoa.id_escola`. Nao houve migration executada, adapter JDBC, rota
   externa, BFF/frontend, escrita local ou alteracao funcional no
   `school-management-service`. A contagem regressiva da Fase 74 chega a 0.
+- A primeira subfase da Fase 75 materializou a primeira preparacao concreta do
+  adapter local de metadados de `pessoa_documento` no `people-service`. Foi
+  criado o adapter JDBC `JdbcPeopleDocumentMetadataLocalReadAdapter`, ligado ao
+  contrato interno `PeopleDocumentMetadataLocalReadPort`, lendo
+  `people_documento_read_model` por `id_escola` e mantendo fallback seguro
+  quando nao houver schema local configurado. Tambem foi criada a migration
+  opt-in `V5__create_people_document_metadata_read_model.sql` e o health
+  `peopleLocalPersistence` passou a expor o diagnostico
+  `peopleDocumentMetadataLocalAdapterPreparationDiagnostic`, registrando
+  `adapterPrepared=true`, `internalServiceConnected=true`,
+  `externalRouteCreated=false` e `localReadCutoverAllowedNow=false`. O
+  diagnostico de schema foi atualizado para refletir que o adapter esta
+  preparado, mas ainda sem ativacao, sem backfill executado, sem reconciliacao
+  verde e sem rota externa. Nao houve BFF/frontend, upload local, delete local
+  nem alteracao funcional no `school-management-service`. A contagem regressiva
+  da Fase 75 chega a 0.
 
 ## Historico resumido
 

@@ -334,18 +334,19 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         Map<String, Object> peopleDocumentSchema =
                 (Map<String, Object>) details.get("peopleDocumentMetadataSchemaDiagnostic");
         assertThat(peopleDocumentSchema)
-                .containsEntry("phase", "Fase 74")
+                .containsEntry("phase", "Fase 75")
                 .containsEntry("slice", "people_document_local_metadata_schema_diagnostic")
-                .containsEntry("status", "schema_backfill_reconciliation_diagnosed_adapter_still_blocked")
+                .containsEntry("status", "schema_preserved_and_jdbc_adapter_prepared_still_not_activated")
                 .containsEntry("recommendedNextStep",
-                        "close_phase_74_and_plan_people_document_local_adapter_preparation")
-                .containsEntry("minimalNextSlice", "people_document_local_metadata_adapter_preparation")
+                        "close_phase_75_and_plan_people_document_backfill_reconciliation_preparation")
+                .containsEntry("minimalNextSlice", "people_document_backfill_reconciliation_preparation")
                 .containsEntry("migrationAllowedNow", true)
                 .containsEntry("backfillAllowedNow", true)
-                .containsEntry("localReadAdapterAllowedNow", false)
+                .containsEntry("localReadAdapterAllowedNow", true)
+                .containsEntry("localReadAdapterPrepared", true)
                 .containsEntry("localReadCutoverAllowedNow", false)
                 .containsEntry("reconciliationKey", "people_documento_read_model.id_pessoa_documento")
-                .containsEntry("nextImplementationSlice", "phase_74_closure_no_local_adapter");
+                .containsEntry("nextImplementationSlice", "phase_75_closure_adapter_prepared_no_activation");
         @SuppressWarnings("unchecked")
         java.util.Map<String, Object> documentSchemaMigration =
                 (java.util.Map<String, Object>) peopleDocumentSchema.get("schemaMigration");
@@ -353,5 +354,32 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("version", "V5__create_people_document_metadata_read_model.sql")
                 .containsEntry("enabledByDefault", false)
                 .containsEntry("automaticBackfill", false);
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> documentPreparedArtifacts =
+                (java.util.Map<String, Object>) peopleDocumentSchema.get("preparedArtifacts");
+        assertThat(documentPreparedArtifacts)
+                .containsEntry("adapter", "JdbcPeopleDocumentMetadataLocalReadAdapter")
+                .containsEntry("adapterCreated", true)
+                .containsEntry("internalServiceConnected", true)
+                .containsEntry("routeCreated", false);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> documentAdapterPreparation =
+                (Map<String, Object>) details.get("peopleDocumentMetadataLocalAdapterPreparationDiagnostic");
+        assertThat(documentAdapterPreparation)
+                .containsEntry("phase", "Fase 75")
+                .containsEntry("slice", "people_document_local_metadata_adapter_preparation")
+                .containsEntry("status", "jdbc_local_adapter_prepared_internal_fallback_only")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_75_and_plan_people_document_backfill_reconciliation_preparation")
+                .containsEntry("minimalNextSlice", "people_document_backfill_reconciliation_preparation")
+                .containsEntry("adapterImplementationAllowedNow", true)
+                .containsEntry("adapterPrepared", true)
+                .containsEntry("internalServiceConnected", true)
+                .containsEntry("externalRouteCreated", false)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("candidateSource", "people_documento_read_model")
+                .containsEntry("fallbackSource", "monolith_proxy")
+                .containsEntry("routingOperation", "documentMetadataLocalRead")
+                .containsEntry("schemaVersion", "V5__create_people_document_metadata_read_model.sql");
     }
 }

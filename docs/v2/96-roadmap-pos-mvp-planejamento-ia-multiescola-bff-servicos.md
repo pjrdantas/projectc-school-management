@@ -4026,6 +4026,41 @@ Proxima fase pratica:
 - manter fora do escopo upload, escrita autoritativa, cleanup documental,
   storage binario, BFF e frontend.
 
+### Fase 75 - Preparacao do adapter local de metadados de pessoa_documento
+
+Objetivo: materializar o primeiro adapter JDBC local de metadados de
+`pessoa_documento` no `people-service`, com migration opt-in e sem ativar rota,
+cutover, backfill ou reconciliacao operacional.
+
+Entregue na primeira subfase da Fase 75:
+
+- foi criado o adapter `JdbcPeopleDocumentMetadataLocalReadAdapter`, ligado ao
+  contrato interno `PeopleDocumentMetadataLocalReadPort`, usando leitura direta
+  sobre `people_documento_read_model` filtrada por `id_escola`;
+- a migration opt-in
+  `V5__create_people_document_metadata_read_model.sql` passou a existir no
+  pacote de read model do `people-service`, formalizando a estrutura minima
+  fisica antes de qualquer execucao operacional;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleDocumentMetadataLocalAdapterPreparationDiagnostic`, registrando
+  `adapterPrepared=true`, `internalServiceConnected=true`,
+  `externalRouteCreated=false` e `localReadCutoverAllowedNow=false`;
+- o diagnostico de schema `peopleDocumentMetadataSchemaDiagnostic` foi
+  atualizado para refletir que o adapter JDBC ja esta preparado, mas continua
+  sem ativacao, sem backfill e sem reconciliacao verde;
+- nao houve rota externa nova, nao houve uso do adapter por query publica, nao
+  houve BFF/frontend, nao houve upload local, delete local, backfill executado,
+  reconciliacao executada ou alteracao funcional no `school-management-service`.
+
+Contagem da macrofase Fase 75: 0 subfases restantes estimadas.
+
+Proxima fase pratica sugerida:
+
+- preparar o recorte minimo de backfill e reconciliacao de
+  `people_documento_read_model`, ainda sem ativar leitura local real; ou
+- se quiser reduzir o risco antes de entrar em dados de documento, abrir o
+  diagnostico minimo de `funcionario`.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
