@@ -1839,6 +1839,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   fase/status, precondicoes do guard, source selecionada e rollback. Nenhum
   contrato externo foi alterado, `PessoaQueryService` nao foi conectado e a
   contagem regressiva da Fase 77 chega a 0.
+- A primeira subfase da Fase 78 fechou o diagnostico do consumidor interno
+  minimo de `pessoa_documento`. A conclusao foi que o `people-service` ainda nao
+  possui fluxo interno documental real alem da observabilidade e do proprio
+  adapter local, enquanto upload/listagem/cleanup continuam no
+  `school-management-service`. O actuator `peopleLocalPersistence` passou a
+  expor `peopleDocumentInternalUsageCandidateDiagnostic`, registrando que nao ha
+  consumidor interno seguro neste ponto sem abrir rota, mexer em
+  `consultarCadastro` ou criar acoplamento artificial. A fase termina sem
+  conexao funcional nova e com a contagem regressiva da Fase 78 em 0.
 
 ## Historico resumido
 

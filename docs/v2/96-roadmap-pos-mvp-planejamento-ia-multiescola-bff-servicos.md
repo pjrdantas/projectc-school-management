@@ -4131,6 +4131,34 @@ Proxima fase pratica sugerida:
 - se preferir manter documentos estacionados neste ponto, abrir o diagnostico
   minimo de `funcionario`.
 
+### Fase 78 - Diagnostico do consumidor interno minimo de pessoa_documento
+
+Objetivo: decidir se existe algum consumidor interno real e seguro para usar
+`PeopleDocumentMetadataLocalReadService` agora, sem criar rota nova, sem tocar
+`consultarCadastro` e sem acoplamento artificial ao monolito.
+
+Entregue na primeira subfase da Fase 78:
+
+- o diagnostico formal mostrou que o `people-service` ainda nao possui fluxo
+  interno nativo de documento alem da propria observabilidade e da validacao do
+  adapter local;
+- os fluxos reais de upload/listagem/cleanup documental continuam no
+  `school-management-service`, entao forcar um consumidor agora criaria rota
+  nova, alteracao indevida de contrato ou acoplamento artificial;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleDocumentInternalUsageCandidateDiagnostic`, registrando que nao existe
+  consumidor interno seguro neste ponto e que o fallback continua obrigatorio;
+- a decisao desta fase foi nao conectar `PessoaQueryService`, nao criar rota
+  interna adicional e nao inventar um uso tecnico sem necessidade funcional.
+
+Contagem da macrofase Fase 78: 0 subfases restantes estimadas.
+
+Proxima fase pratica sugerida:
+
+- abrir o diagnostico minimo de `funcionario` como proxima familia backend; ou
+- manter `pessoa_documento` estacionado ate existir um consumidor interno real
+  justificado por fase futura.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

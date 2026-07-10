@@ -419,5 +419,19 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("selectedSource", "monolith_proxy")
                 .containsEntry("fallbackSource", "monolith_proxy")
                 .containsEntry("reason", "read-model-cutover-disabled");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> documentInternalUsageCandidate =
+                (Map<String, Object>) details.get("peopleDocumentInternalUsageCandidateDiagnostic");
+        assertThat(documentInternalUsageCandidate)
+                .containsEntry("phase", "Fase 78")
+                .containsEntry("slice", "people_document_internal_usage_candidate_diagnostic")
+                .containsEntry("status", "no_safe_internal_consumer_without_route_or_monolith_contract_change")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_78_and_start_funcionario_diagnostic_instead_of_forcing_document_usage")
+                .containsEntry("minimalNextSlice", "funcionario_minimal_diagnostic")
+                .containsEntry("internalUsageCandidateFound", false)
+                .containsEntry("safeToConnectNow", false)
+                .containsEntry("externalRouteChangeRequired", false)
+                .containsEntry("fallbackRequired", true);
     }
 }
