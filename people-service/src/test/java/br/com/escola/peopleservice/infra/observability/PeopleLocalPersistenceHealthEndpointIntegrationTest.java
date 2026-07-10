@@ -504,5 +504,26 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("source", "monolith_jdbc")
                 .containsEntry("target", "people_funcionario_read_model")
                 .containsEntry("reconciliationKey", "people_funcionario_read_model.id_funcionario");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> funcionarioInternalSummaryActivationEligibility =
+                (Map<String, Object>) details.get("peopleFuncionarioInternalSummaryLocalReadActivationEligibilityDiagnostic");
+        assertThat(funcionarioInternalSummaryActivationEligibility)
+                .containsEntry("phase", "Fase 83")
+                .containsEntry("slice", "funcionario_internal_summary_local_read_activation_eligibility")
+                .containsEntry("status", "internal_funcionario_local_read_guarded_without_external_route")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_83_and_only_consider_funcionario_internal_usage_when_guard_is_green")
+                .containsEntry("minimalNextSlice", "funcionario_internal_summary_internal_usage_candidate")
+                .containsEntry("internalServiceConnected", true)
+                .containsEntry("localReadGuardPrepared", true)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("externalRouteCreated", false)
+                .containsEntry("fallbackRequired", true)
+                .containsEntry("routingOperation", "funcionarioInternalSummaryLocalRead")
+                .containsEntry("shadowRoute", "internal-operation:PeopleFuncionarioInternalSummaryPort")
+                .containsEntry("candidateSource", "people_funcionario_read_model")
+                .containsEntry("selectedSource", "monolith_internal_rh")
+                .containsEntry("fallbackSource", "monolith_internal_rh")
+                .containsEntry("reason", "read-model-cutover-disabled");
     }
 }

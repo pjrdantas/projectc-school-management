@@ -19,10 +19,12 @@ import io.micrometer.core.instrument.Statistic;
 public class PeopleLocalReadCutoverGuard {
 
     private static final String MONOLITH_SOURCE = "monolith_proxy";
+    private static final String MONOLITH_INTERNAL_RH_SOURCE = "monolith_internal_rh";
     private static final String LOCAL_CANDIDATE_SOURCE = "people_read_model_candidate";
     private static final String STUDENT_RESPONSIBLE_SOURCE = "people_read_model_student_responsible";
     private static final String ADDRESS_SOURCE = "people_read_model_address";
     private static final String DOCUMENT_METADATA_SOURCE = "people_documento_read_model";
+    private static final String FUNCIONARIO_INTERNAL_SUMMARY_SOURCE = "people_funcionario_read_model";
     private static final ReadRouteDescriptor ADDRESS_READ_ROUTE = new ReadRouteDescriptor(
             "addressLocalRead",
             "internal-operation:PeopleAddressLocalReadPort",
@@ -31,6 +33,10 @@ public class PeopleLocalReadCutoverGuard {
             "documentMetadataLocalRead",
             "internal-operation:PeopleDocumentMetadataLocalReadPort",
             DOCUMENT_METADATA_SOURCE);
+    private static final ReadRouteDescriptor FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE = new ReadRouteDescriptor(
+            "funcionarioInternalSummaryLocalRead",
+            "internal-operation:PeopleFuncionarioInternalSummaryPort",
+            FUNCIONARIO_INTERNAL_SUMMARY_SOURCE);
 
     private static final List<ReadRouteDescriptor> READ_ROUTES = List.of(
             new ReadRouteDescriptor(
@@ -84,6 +90,17 @@ public class PeopleLocalReadCutoverGuard {
         PeopleLocalReadRoutingDecision decision = avaliarLeituraDocumentoMetadata();
         registrarMetricaDecisao(decision);
         Counter.builder("people.shadow.local.persistence.document.metadata.read.routing.decisions")
+                .tag("selected_source", decision.selectedSource())
+                .tag("reason", decision.reason())
+                .register(meterRegistry)
+                .increment();
+        return decision;
+    }
+
+    public PeopleLocalReadRoutingDecision registrarDecisaoLeituraFuncionarioInternalSummary() {
+        PeopleLocalReadRoutingDecision decision = avaliarLeituraFuncionarioInternalSummary();
+        registrarMetricaDecisao(decision);
+        Counter.builder("people.shadow.local.persistence.funcionario.internal.summary.read.routing.decisions")
                 .tag("selected_source", decision.selectedSource())
                 .tag("reason", decision.reason())
                 .register(meterRegistry)
@@ -165,6 +182,24 @@ public class PeopleLocalReadCutoverGuard {
                 reason);
     }
 
+    public PeopleLocalReadRoutingDecision avaliarLeituraFuncionarioInternalSummary() {
+        String reason = motivoInelegibilidade(FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE);
+        if ("local-read-adapter-not-configured".equals(reason)) {
+            reason = "funcionario-internal-summary-local-read-connection-disabled";
+        }
+        boolean localReadEligible = isEligibleReason(reason);
+        return new PeopleLocalReadRoutingDecision(
+                FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.operation(),
+                FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.shadowRoute(),
+                FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.candidateSource(),
+                selectedSource(localReadEligible, FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.operation()),
+                properties.readModelCutoverEnabled(),
+                localReadEligible,
+                properties.readModelFallbackEnabled(),
+                false,
+                reason);
+    }
+
     private String motivoInelegibilidade(ReadRouteDescriptor route) {
         if (!properties.readModelCutoverEnabled()) {
             return "read-model-cutover-disabled";
@@ -203,6 +238,9 @@ public class PeopleLocalReadCutoverGuard {
         if (DOCUMENT_METADATA_READ_ROUTE.operation().equals(route.operation())) {
             return "local-document-metadata-read-eligible";
         }
+        if (FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(route.operation())) {
+            return "local-funcionario-internal-summary-read-eligible";
+        }
         return "local-read-adapter-not-configured";
     }
 
@@ -211,11 +249,15 @@ public class PeopleLocalReadCutoverGuard {
                 || "local-identity-read-eligible".equals(reason)
                 || "local-student-responsible-read-eligible".equals(reason)
                 || "local-address-read-eligible".equals(reason)
-                || "local-document-metadata-read-eligible".equals(reason);
+                || "local-document-metadata-read-eligible".equals(reason)
+                || "local-funcionario-internal-summary-read-eligible".equals(reason);
     }
 
     private String selectedSource(boolean localReadEligible, String operation) {
         if (!localReadEligible) {
+            if (FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(operation)) {
+                return MONOLITH_INTERNAL_RH_SOURCE;
+            }
             return MONOLITH_SOURCE;
         }
         if ("buscarPorId".equals(operation)) {
@@ -229,6 +271,9 @@ public class PeopleLocalReadCutoverGuard {
         }
         if (DOCUMENT_METADATA_READ_ROUTE.operation().equals(operation)) {
             return DOCUMENT_METADATA_SOURCE;
+        }
+        if (FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(operation)) {
+            return FUNCIONARIO_INTERNAL_SUMMARY_SOURCE;
         }
         return "people_read_model_catalog";
     }

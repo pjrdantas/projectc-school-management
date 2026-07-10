@@ -1883,6 +1883,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   consistencia enquanto RH, professor e autenticacao continuam preservados no
   monolito. A fase termina sem alteracao funcional no
   `school-management-service`, com a contagem regressiva da Fase 82 em 0.
+- A primeira subfase da Fase 83 preparou a elegibilidade de leitura local
+  interna de `funcionario_internal_summary` no `people-service`, conectando o
+  `PeopleFuncionarioInternalSummaryService` ao guard de leitura local com
+  fallback obrigatorio para `monolith_internal_rh` e metricas dedicadas, ainda
+  sem rota externa e sem consumidor novo. O actuator `peopleLocalPersistence`
+  passou a expor
+  `peopleFuncionarioInternalSummaryLocalReadActivationEligibilityDiagnostic`,
+  deixando explicito quando o read model pode ser considerado verde para uso
+  interno controlado. A fase termina sem alteracao funcional oficial no
+  `school-management-service`, com a contagem regressiva da Fase 83 em 0.
 
 ## Historico resumido
 

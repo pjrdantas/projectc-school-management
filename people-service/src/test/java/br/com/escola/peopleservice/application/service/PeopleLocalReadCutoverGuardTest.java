@@ -176,6 +176,36 @@ class PeopleLocalReadCutoverGuardTest {
     }
 
     @Test
+    void deveLiberarOperacaoFuncionarioQuandoRelatorioLocalEstaVerde() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        PeopleLocalReadCutoverGuard guard = new PeopleLocalReadCutoverGuard(
+                new PeopleLocalPersistenceProperties(true, false, true, false, true, true, 500, true),
+                meterRegistry,
+                greenState());
+
+        var decision = guard.registrarDecisaoLeituraFuncionarioInternalSummary();
+
+        assertThat(decision.operation()).isEqualTo("funcionarioInternalSummaryLocalRead");
+        assertThat(decision.shadowRoute()).isEqualTo("internal-operation:PeopleFuncionarioInternalSummaryPort");
+        assertThat(decision.candidateSource()).isEqualTo("people_funcionario_read_model");
+        assertThat(decision.selectedSource()).isEqualTo("people_funcionario_read_model");
+        assertThat(decision.localReadRequested()).isTrue();
+        assertThat(decision.localReadEligible()).isTrue();
+        assertThat(decision.fallbackEnabled()).isTrue();
+        assertThat(decision.writesEnabled()).isFalse();
+        assertThat(decision.reason()).isEqualTo("local-funcionario-internal-summary-read-eligible");
+        assertThat(meterRegistry.counter(
+                "people.shadow.local.persistence.read.routing.decisions",
+                "operation", "funcionarioInternalSummaryLocalRead",
+                "selected_source", "people_funcionario_read_model",
+                "reason", "local-funcionario-internal-summary-read-eligible").count()).isEqualTo(1.0d);
+        assertThat(meterRegistry.counter(
+                "people.shadow.local.persistence.funcionario.internal.summary.read.routing.decisions",
+                "selected_source", "people_funcionario_read_model",
+                "reason", "local-funcionario-internal-summary-read-eligible").count()).isEqualTo(1.0d);
+    }
+
+    @Test
     void deveBloquearCatalogosQuandoRelatorioLocalAindaNaoEstaVerde() {
         PeopleLocalReadCutoverGuard guard = new PeopleLocalReadCutoverGuard(
                 new PeopleLocalPersistenceProperties(true, false, true, false, true, true, 500, true),

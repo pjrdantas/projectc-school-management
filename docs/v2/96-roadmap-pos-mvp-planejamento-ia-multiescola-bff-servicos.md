@@ -4285,6 +4285,36 @@ Proxima fase pratica sugerida:
 - se aparecer risco de consistencia em RH/autenticacao, abrir um diagnostico
   interno complementar antes de qualquer ativacao.
 
+### Fase 83 - Elegibilidade de leitura local interna de funcionario
+
+Objetivo: preparar a ativacao elegivel da leitura local interna de
+`funcionario_internal_summary`, ainda sem rota externa, sem BFF e sem mudar a
+autoridade funcional de RH/autenticacao no monolito.
+
+Entregue na primeira subfase da Fase 83:
+
+- o `PeopleLocalReadCutoverGuard` passou a reconhecer a operacao interna
+  `funcionarioInternalSummaryLocalRead`, com decisao dedicada e fallback
+  obrigatorio para `monolith_internal_rh`;
+- o `PeopleFuncionarioInternalSummaryService` foi conectado ao guard de leitura
+  local, registrando metricas de sucesso e fallback, mas sem criar consumidor
+  novo nem expor rota externa;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleFuncionarioInternalSummaryLocalReadActivationEligibilityDiagnostic`,
+  deixando explicito quando o read model esta verde para eventual uso interno
+  controlado;
+- a fase segue sem BFF, sem frontend, sem cutover externo, sem write cutover e
+  sem alterar comportamento funcional oficial de RH, professor ou autenticacao.
+
+Contagem da macrofase Fase 83: 0 subfases restantes estimadas.
+
+Proxima fase pratica sugerida:
+
+- diagnosticar se existe um primeiro consumidor interno real e seguro para
+  `funcionario_internal_summary`, sem abrir rota nova; ou
+- se nao houver consumidor justificavel agora, fechar formalmente o bloco e
+  manter o service apenas preparado e protegido por guard.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
