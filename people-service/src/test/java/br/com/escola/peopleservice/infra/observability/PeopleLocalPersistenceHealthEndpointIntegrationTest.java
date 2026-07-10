@@ -329,5 +329,29 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("continueWithSchemaDiagnostic", true)
                 .containsEntry("switchToFuncionarioAfterThisDiagnostic", false)
                 .containsEntry("prepareRouteNow", false);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> peopleDocumentSchema =
+                (Map<String, Object>) details.get("peopleDocumentMetadataSchemaDiagnostic");
+        assertThat(peopleDocumentSchema)
+                .containsEntry("phase", "Fase 74")
+                .containsEntry("slice", "people_document_local_metadata_schema_diagnostic")
+                .containsEntry("status", "schema_backfill_reconciliation_diagnosed_adapter_still_blocked")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_74_and_plan_people_document_local_adapter_preparation")
+                .containsEntry("minimalNextSlice", "people_document_local_metadata_adapter_preparation")
+                .containsEntry("migrationAllowedNow", true)
+                .containsEntry("backfillAllowedNow", true)
+                .containsEntry("localReadAdapterAllowedNow", false)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("reconciliationKey", "people_documento_read_model.id_pessoa_documento")
+                .containsEntry("nextImplementationSlice", "phase_74_closure_no_local_adapter");
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> documentSchemaMigration =
+                (java.util.Map<String, Object>) peopleDocumentSchema.get("schemaMigration");
+        assertThat(documentSchemaMigration)
+                .containsEntry("version", "V5__create_people_document_metadata_read_model.sql")
+                .containsEntry("enabledByDefault", false)
+                .containsEntry("automaticBackfill", false);
     }
 }

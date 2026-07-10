@@ -1779,6 +1779,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   externa, BFF/frontend, escrita local nem alteracao funcional no
   `school-management-service`. A contagem regressiva da Fase 74 passa a 1
   subfase restante estimada.
+- A segunda subfase da Fase 74 fechou o diagnostico de schema fisico minimo de
+  metadados de `pessoa_documento`. Foi criado no health
+  `peopleLocalPersistence` o diagnostico
+  `peopleDocumentMetadataSchemaDiagnostic`, registrando
+  `migrationAllowedNow=true`, `backfillAllowedNow=true`,
+  `localReadAdapterAllowedNow=false` e `localReadCutoverAllowedNow=false`. O
+  read model candidato ficou consolidado em uma tabela minima
+  `people_documento_read_model` com reconciliacao por
+  `id_pessoa_documento` e colunas de metadata/ownership estritamente
+  necessarias: ids de pessoa/documento/tipo, codigo/descricao do tipo,
+  `numero_documento`, `caminho_arquivo`, `observacao`, `data_upload`,
+  `id_escola` e `created_at`. Tambem ficaram formalizados a migration opt-in
+  `V5__create_people_document_metadata_read_model.sql`, o backfill futuro de
+  `monolith_jdbc` para o read model local e os blockers antes de qualquer
+  adapter: drift de `tipo_documento`, definicao de normalizacao de
+  `caminho_arquivo`, documentos orfaos fora do modelo e ownership divergente por
+  `pessoa.id_escola`. Nao houve migration executada, adapter JDBC, rota
+  externa, BFF/frontend, escrita local ou alteracao funcional no
+  `school-management-service`. A contagem regressiva da Fase 74 chega a 0.
 
 ## Historico resumido
 

@@ -12,6 +12,7 @@ import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecisio
 import br.com.escola.peopleservice.application.dto.PeopleCatalogReadModelSchemaPlan;
 import br.com.escola.peopleservice.application.dto.PeopleAddressScopeClosurePlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentLocalReadCandidatePlan;
+import br.com.escola.peopleservice.application.dto.PeopleDocumentMetadataSchemaDiagnosticPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentScopeDiagnosticPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentInternalMetadataReadContractPlan;
 import br.com.escola.peopleservice.application.dto.PeopleAddressWriteMonolithAdapterPlan;
@@ -22,6 +23,7 @@ import br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthori
 import br.com.escola.peopleservice.application.service.PeopleAddressWriteMonolithAdapterPlanner;
 import br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentLocalReadCandidatePlanner;
+import br.com.escola.peopleservice.application.service.PeopleDocumentMetadataSchemaDiagnosticPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentInternalMetadataReadContractPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentScopeDiagnosticPlanner;
 import br.com.escola.peopleservice.application.service.PeopleLocalPersistenceOperationState;
@@ -87,6 +89,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             new PeopleDocumentInternalMetadataReadContractPlanner();
     private final PeopleDocumentLocalReadCandidatePlanner documentLocalReadCandidatePlanner =
             new PeopleDocumentLocalReadCandidatePlanner();
+    private final PeopleDocumentMetadataSchemaDiagnosticPlanner documentMetadataSchemaDiagnosticPlanner =
+            new PeopleDocumentMetadataSchemaDiagnosticPlanner();
     private final PeopleLocalReadModelSchemaMigrationState schemaMigrationState;
     private final PeopleLocalPersistenceOperationState operationState;
 
@@ -143,6 +147,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoContratoInternoLeituraMetadadosDocumento());
         details.put("peopleDocumentLocalReadCandidateDiagnostic",
                 diagnosticoCandidatoLeituraLocalDocumento());
+        details.put("peopleDocumentMetadataSchemaDiagnostic",
+                diagnosticoSchemaMetadadosDocumento());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -455,6 +461,33 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "continueWithSchemaDiagnostic", true,
                 "switchToFuncionarioAfterThisDiagnostic", false,
                 "prepareRouteNow", false));
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoSchemaMetadadosDocumento() {
+        PeopleDocumentMetadataSchemaDiagnosticPlan plan =
+                documentMetadataSchemaDiagnosticPlanner.planejarSchemaMinimoDeMetadados();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("migrationAllowedNow", plan.migrationAllowedNow());
+        details.put("backfillAllowedNow", plan.backfillAllowedNow());
+        details.put("localReadAdapterAllowedNow", plan.localReadAdapterAllowedNow());
+        details.put("localReadCutoverAllowedNow", plan.localReadCutoverAllowedNow());
+        details.put("reconciliationKey", plan.reconciliationKey());
+        details.put("nextImplementationSlice", plan.nextImplementationSlice());
+        details.put("minimalColumns", plan.minimalColumns());
+        details.put("schemaMigration", plan.schemaMigration());
+        details.put("backfillReconciliation", plan.backfillReconciliation());
+        details.put("ownershipRule", plan.ownershipRule());
+        details.put("caminhoArquivoPolicy", plan.caminhoArquivoPolicy());
+        details.put("secondaryReconciliationChecks", plan.secondaryReconciliationChecks());
+        details.put("blockersBeforeAdapter", plan.blockersBeforeAdapter());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
         return details;
     }
 

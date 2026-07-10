@@ -3984,11 +3984,45 @@ Contagem da macrofase Fase 74: 1 subfase restante estimada: preparar o
 diagnostico do schema fisico minimo de metadados de `pessoa_documento` antes de
 qualquer adapter local.
 
+Entregue na segunda subfase da Fase 74:
+
+- foi criado no actuator `peopleLocalPersistence` o diagnostico
+  `peopleDocumentMetadataSchemaDiagnostic`, formalizando o schema fisico
+  minimo, a estrategia de backfill e as regras de reconciliacao do candidato
+  local de metadados de `pessoa_documento`;
+- o diagnostico registrou
+  `migrationAllowedNow=true`,
+  `backfillAllowedNow=true`,
+  `localReadAdapterAllowedNow=false` e
+  `localReadCutoverAllowedNow=false`, deixando explicito que a fase fecha o
+  planejamento de schema sem liberar adapter local nem cutover;
+- o read model candidato ficou consolidado em uma tabela minima
+  `people_documento_read_model`, com chave primaria de reconciliacao
+  `id_pessoa_documento` e colunas estritamente necessarias para metadata e
+  ownership: ids de pessoa/documento/tipo, codigo/descricao do tipo,
+  `numero_documento`, `caminho_arquivo`, `observacao`, `data_upload`,
+  `id_escola` e `created_at`;
+- a estrategia minima futura ficou amarrada a migration opt-in
+  `V5__create_people_document_metadata_read_model.sql` e backfill
+  `monolith_jdbc -> people_documento_read_model`, ambos desligados por padrao;
+- os blockers antes de qualquer adapter ficaram registrados: drift de
+  `tipo_documento`, definicao de normalizacao de `caminho_arquivo`, exclusao de
+  documentos orfaos fora do read model e divergencia de ownership por
+  `pessoa.id_escola`;
+- nao houve migration executavel nova, adapter JDBC, rota externa, BFF,
+  frontend, escrita local, upload, delete ou cleanup fora do monolito.
+
+Contagem da macrofase Fase 74: 0 subfases restantes estimadas. A familia
+`pessoa_documento` ficou fechada no nivel de diagnostico e preparacao de
+fronteira/schema, ainda sem adapter local e sem rota externa.
+
 Proxima fase pratica:
 
-- diagnosticar no `people-service` o schema fisico minimo e a estrategia de
-  backfill/reconciliacao do read model de metadados de `pessoa_documento`,
-  ainda sem criar adapter JDBC e sem criar rota externa;
+- iniciar a proxima macrofase backend decidindo entre:
+  diagnosticar a primeira preparacao real do adapter local de metadados de
+  `pessoa_documento`; ou
+  encerrar essa familia como suficientemente planejada por agora e abrir o
+  diagnostico minimo de `funcionario`;
 - manter fora do escopo upload, escrita autoritativa, cleanup documental,
   storage binario, BFF e frontend.
 
