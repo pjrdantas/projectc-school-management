@@ -251,6 +251,32 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """);
 
+    private static final FuncionarioInternalSummaryTable FUNCIONARIO_INTERNAL_SUMMARY_TABLE = new FuncionarioInternalSummaryTable(
+            """
+                    SELECT f.id_funcionario, f.id_pessoa, p.id_escola, p.nome_completo,
+                           c.descricao AS cargo_descricao, f.ativo, f.created_at
+                    FROM funcionario f
+                    JOIN pessoa p ON p.id_pessoa = f.id_pessoa
+                    LEFT JOIN cargo c ON c.id_cargo = f.id_cargo
+                    ORDER BY f.id_funcionario
+                    LIMIT ?
+                    """,
+            """
+                    SELECT id_funcionario, id_pessoa, id_escola, nome_completo, cargo_descricao, ativo, created_at
+                    FROM people_funcionario_read_model
+                    ORDER BY id_funcionario
+                    """,
+            """
+                    UPDATE people_funcionario_read_model
+                    SET id_pessoa = ?, id_escola = ?, nome_completo = ?, cargo_descricao = ?, ativo = ?, created_at = ?
+                    WHERE id_funcionario = ?
+                    """,
+            """
+                    INSERT INTO people_funcionario_read_model (
+                        id_funcionario, id_pessoa, id_escola, nome_completo, cargo_descricao, ativo, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """);
+
     private final PeopleCatalogReadModelBackfillProperties backfillProperties;
     private final PeopleLocalReadModelSchemaMigrationProperties targetProperties;
 
@@ -290,6 +316,12 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
             reports.add(synchronizeEndereco(source, target, backfillEnabled, reconciliationEnabled, batchSize));
             reports.add(synchronizePessoaEndereco(source, target, backfillEnabled, reconciliationEnabled, batchSize));
             reports.add(synchronizeDocumentoMetadata(source, target, backfillEnabled, reconciliationEnabled, batchSize));
+            reports.add(synchronizeFuncionarioInternalSummary(
+                    source,
+                    target,
+                    backfillEnabled,
+                    reconciliationEnabled,
+                    batchSize));
             return reports;
         } catch (SQLException ex) {
             throw new IllegalStateException("local-read-model-sync-failed", ex);
@@ -684,6 +716,70 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                 divergences);
     }
 
+    private TableOperationReport synchronizeFuncionarioInternalSummary(
+            Connection source,
+            Connection target,
+            boolean backfillEnabled,
+            boolean reconciliationEnabled,
+            int batchSize) throws SQLException {
+        List<FuncionarioInternalSummaryRow> sourceRows = readFuncionarioInternalSummaryRows(
+                source,
+                FUNCIONARIO_INTERNAL_SUMMARY_TABLE.sourceLimitedQuery(),
+                batchSize);
+        if (hasDuplicateFuncionarioPessoaIds(sourceRows)) {
+            return new TableOperationReport(
+                    "people_funcionario_read_model",
+                    "id_funcionario",
+                    "monolith_jdbc",
+                    "people_funcionario_read_model",
+                    "blocked",
+                    "funcionario-internal-summary-duplicate-pessoa-id-in-source",
+                    backfillEnabled,
+                    reconciliationEnabled,
+                    true,
+                    sourceRows.size(),
+                    0,
+                    0,
+                    1);
+        }
+
+        int backfilledRecords = 0;
+        if (backfillEnabled) {
+            for (FuncionarioInternalSummaryRow row : sourceRows) {
+                backfilledRecords += upsertFuncionarioInternalSummary(target, row);
+            }
+        }
+
+        List<FuncionarioInternalSummaryRow> targetRows = reconciliationEnabled
+                ? readFuncionarioInternalSummaryRows(
+                        target,
+                        FUNCIONARIO_INTERNAL_SUMMARY_TABLE.targetQuery(),
+                        Integer.MAX_VALUE)
+                : List.of();
+        int divergences = reconciliationEnabled
+                ? countFuncionarioInternalSummaryDivergences(sourceRows, targetRows)
+                : 0;
+        String status = divergences == 0 ? "success" : "diverged";
+        String reason = divergences == 0
+                ? "funcionario-internal-summary-sync-completed"
+                : "funcionario-internal-summary-reconciliation-diverged";
+
+        return new TableOperationReport(
+                "people_funcionario_read_model",
+                "id_funcionario",
+                "monolith_jdbc",
+                "people_funcionario_read_model",
+                status,
+                reason,
+                backfillEnabled,
+                reconciliationEnabled,
+                true,
+                sourceRows.size(),
+                reconciliationEnabled ? targetRows.size() : 0,
+                backfilledRecords,
+                divergences);
+    }
+
     private List<CatalogRow> readRows(Connection connection, String query, boolean hasCreatedAt, int limit) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             if (query.contains("LIMIT ?")) {
@@ -911,6 +1007,32 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         }
     }
 
+    private List<FuncionarioInternalSummaryRow> readFuncionarioInternalSummaryRows(
+            Connection connection,
+            String query,
+            int limit) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            if (query.contains("LIMIT ?")) {
+                statement.setInt(1, Math.max(1, limit));
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<FuncionarioInternalSummaryRow> rows = new ArrayList<>();
+                while (resultSet.next()) {
+                    Timestamp createdAt = resultSet.getTimestamp("created_at");
+                    rows.add(new FuncionarioInternalSummaryRow(
+                            resultSet.getObject("id_funcionario", UUID.class),
+                            resultSet.getObject("id_pessoa", UUID.class),
+                            resultSet.getObject("id_escola", UUID.class),
+                            resultSet.getString("nome_completo"),
+                            resultSet.getString("cargo_descricao"),
+                            resultSet.getBoolean("ativo"),
+                            createdAt == null ? null : createdAt.toInstant()));
+                }
+                return rows;
+            }
+        }
+    }
+
     private int upsert(Connection target, CatalogTable table, CatalogRow row) throws SQLException {
         try (PreparedStatement update = target.prepareStatement(table.updateSql())) {
             bindUpdate(update, table, row);
@@ -1064,6 +1186,22 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
 
         try (PreparedStatement insert = target.prepareStatement(DOCUMENTO_METADATA_TABLE.insertSql())) {
             bindDocumentoMetadataInsert(insert, row);
+            return insert.executeUpdate();
+        }
+    }
+
+    private int upsertFuncionarioInternalSummary(Connection target, FuncionarioInternalSummaryRow row)
+            throws SQLException {
+        try (PreparedStatement update = target.prepareStatement(FUNCIONARIO_INTERNAL_SUMMARY_TABLE.updateSql())) {
+            bindFuncionarioInternalSummaryUpdate(update, row);
+            int updated = update.executeUpdate();
+            if (updated > 0) {
+                return updated;
+            }
+        }
+
+        try (PreparedStatement insert = target.prepareStatement(FUNCIONARIO_INTERNAL_SUMMARY_TABLE.insertSql())) {
+            bindFuncionarioInternalSummaryInsert(insert, row);
             return insert.executeUpdate();
         }
     }
@@ -1226,6 +1364,28 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         statement.setTimestamp(10, row.dataUpload() == null ? null : Timestamp.from(row.dataUpload()));
         statement.setObject(11, row.escolaId());
         statement.setTimestamp(12, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+    }
+
+    private void bindFuncionarioInternalSummaryUpdate(PreparedStatement statement, FuncionarioInternalSummaryRow row)
+            throws SQLException {
+        statement.setObject(1, row.pessoaId());
+        statement.setObject(2, row.escolaId());
+        statement.setString(3, row.nomeCompleto());
+        statement.setString(4, row.cargoDescricao());
+        statement.setBoolean(5, row.ativo());
+        statement.setTimestamp(6, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+        statement.setObject(7, row.id());
+    }
+
+    private void bindFuncionarioInternalSummaryInsert(PreparedStatement statement, FuncionarioInternalSummaryRow row)
+            throws SQLException {
+        statement.setObject(1, row.id());
+        statement.setObject(2, row.pessoaId());
+        statement.setObject(3, row.escolaId());
+        statement.setString(4, row.nomeCompleto());
+        statement.setString(5, row.cargoDescricao());
+        statement.setBoolean(6, row.ativo());
+        statement.setTimestamp(7, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
     }
 
     private int countDivergences(List<CatalogRow> sourceRows, List<CatalogRow> targetRows) {
@@ -1414,6 +1574,27 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         return divergences;
     }
 
+    private int countFuncionarioInternalSummaryDivergences(
+            List<FuncionarioInternalSummaryRow> sourceRows,
+            List<FuncionarioInternalSummaryRow> targetRows) {
+        Map<UUID, FuncionarioInternalSummaryRow> sourceById = byFuncionarioInternalSummaryId(sourceRows);
+        Map<UUID, FuncionarioInternalSummaryRow> targetById = byFuncionarioInternalSummaryId(targetRows);
+        int divergences = 0;
+
+        for (Map.Entry<UUID, FuncionarioInternalSummaryRow> entry : sourceById.entrySet()) {
+            FuncionarioInternalSummaryRow target = targetById.get(entry.getKey());
+            if (target == null || !entry.getValue().matches(target)) {
+                divergences++;
+            }
+        }
+        for (UUID targetId : targetById.keySet()) {
+            if (!sourceById.containsKey(targetId)) {
+                divergences++;
+            }
+        }
+        return divergences;
+    }
+
     private Map<String, CatalogRow> byCode(List<CatalogRow> rows) {
         Map<String, CatalogRow> byCode = new LinkedHashMap<>();
         for (CatalogRow row : rows) {
@@ -1486,6 +1667,15 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         return byId;
     }
 
+    private Map<UUID, FuncionarioInternalSummaryRow> byFuncionarioInternalSummaryId(
+            List<FuncionarioInternalSummaryRow> rows) {
+        Map<UUID, FuncionarioInternalSummaryRow> byId = new LinkedHashMap<>();
+        for (FuncionarioInternalSummaryRow row : rows) {
+            byId.put(row.id(), row);
+        }
+        return byId;
+    }
+
     private boolean hasMultiplePrincipalAddresses(List<PessoaEnderecoRow> rows) {
         Map<UUID, Integer> principalCountByPessoa = new LinkedHashMap<>();
         for (PessoaEnderecoRow row : rows) {
@@ -1502,6 +1692,14 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
             countByDocumentoId.merge(row.documentoId(), 1, Integer::sum);
         }
         return countByDocumentoId.values().stream().anyMatch(count -> count > 1);
+    }
+
+    private boolean hasDuplicateFuncionarioPessoaIds(List<FuncionarioInternalSummaryRow> rows) {
+        Map<UUID, Integer> countByPessoaId = new LinkedHashMap<>();
+        for (FuncionarioInternalSummaryRow row : rows) {
+            countByPessoaId.merge(row.pessoaId(), 1, Integer::sum);
+        }
+        return countByPessoaId.values().stream().anyMatch(count -> count > 1);
     }
 
     private List<TableOperationReport> blockedReports(boolean backfillEnabled, boolean reconciliationEnabled) {
@@ -1555,6 +1753,12 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                 "people_documento_read_model",
                 "id_pessoa_documento",
                 "people_documento_read_model",
+                backfillEnabled,
+                reconciliationEnabled));
+        reports.add(blockedReport(
+                "people_funcionario_read_model",
+                "id_funcionario",
+                "people_funcionario_read_model",
                 backfillEnabled,
                 reconciliationEnabled));
         return reports;
@@ -1682,6 +1886,13 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
     }
 
     private record DocumentoMetadataTable(
+            String sourceLimitedQuery,
+            String targetQuery,
+            String updateSql,
+            String insertSql) {
+    }
+
+    private record FuncionarioInternalSummaryTable(
             String sourceLimitedQuery,
             String targetQuery,
             String updateSql,
@@ -1857,6 +2068,29 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                     && Objects.equals(normalize(observacao), normalize(other.observacao))
                     && Objects.equals(dataUpload, other.dataUpload)
                     && Objects.equals(escolaId, other.escolaId);
+        }
+
+        private static String normalize(String value) {
+            return value == null ? null : value.trim();
+        }
+    }
+
+    private record FuncionarioInternalSummaryRow(
+            UUID id,
+            UUID pessoaId,
+            UUID escolaId,
+            String nomeCompleto,
+            String cargoDescricao,
+            boolean ativo,
+            Instant createdAt) {
+
+        boolean matches(FuncionarioInternalSummaryRow other) {
+            return Objects.equals(id, other.id)
+                    && Objects.equals(pessoaId, other.pessoaId)
+                    && Objects.equals(escolaId, other.escolaId)
+                    && Objects.equals(normalize(nomeCompleto), normalize(other.nomeCompleto))
+                    && Objects.equals(normalize(cargoDescricao), normalize(other.cargoDescricao))
+                    && ativo == other.ativo;
         }
 
         private static String normalize(String value) {

@@ -1873,6 +1873,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   deixando explicito que professor, autenticacao e writes de funcionario
   continuam preservados no monolito. A fase termina sem alteracao funcional no
   `school-management-service`, com a contagem regressiva da Fase 81 em 0.
+- A primeira subfase da Fase 82 preparou o backfill e a reconciliacao minima de
+  `funcionario_internal_summary` no `people-service`, incluindo a tabela
+  `people_funcionario_read_model` no pipeline local de sincronizacao JDBC e no
+  coordenador de backfill, ainda sem ativacao de leitura local. O actuator
+  `peopleLocalPersistence` passou a expor
+  `peopleFuncionarioInternalSummaryBackfillReconciliationDiagnostic`,
+  registrando fonte, alvo, chave de reconciliacao e bloqueadores de
+  consistencia enquanto RH, professor e autenticacao continuam preservados no
+  monolito. A fase termina sem alteracao funcional no
+  `school-management-service`, com a contagem regressiva da Fase 82 em 0.
 
 ## Historico resumido
 

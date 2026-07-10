@@ -4253,6 +4253,38 @@ Proxima fase pratica sugerida:
 - se aparecer dependencia oculta em RH/autenticacao, abrir antes um diagnostico
   complementar estritamente interno.
 
+### Fase 82 - Backfill e reconciliacao minima de funcionario
+
+Objetivo: incluir `funcionario_internal_summary` no pipeline local de backfill e
+reconciliacao do `people-service`, ainda sem ativar leitura local, sem rota
+externa e sem deslocar regras de professor/autenticacao.
+
+Entregue na primeira subfase da Fase 82:
+
+- o pipeline `JdbcPeopleCatalogReadModelSyncAdapter` passou a sincronizar
+  `people_funcionario_read_model` a partir de `funcionario + pessoa + cargo`,
+  usando `id_funcionario` como chave de reconciliacao e preservando `id_escola`
+  derivado da `pessoa`;
+- o coordenador de backfill local passou a considerar
+  `people_funcionario_read_model` nas tabelas planejadas, sem ativar qualquer
+  leitura local oficial;
+- foi formalizado no actuator `peopleLocalPersistence` o diagnostico
+  `peopleFuncionarioInternalSummaryBackfillReconciliationDiagnostic`,
+  registrando fonte, alvo, chave de reconciliacao, bloqueadores de consistencia
+  e rollback;
+- a fase segue sem BFF, sem frontend, sem rota nova, sem cutover e sem mudar o
+  comportamento funcional de RH, professor ou autenticacao no monolito.
+
+Contagem da macrofase Fase 82: 0 subfases restantes estimadas.
+
+Proxima fase pratica sugerida:
+
+- preparar a elegibilidade de ativacao da leitura local de
+  `funcionario_internal_summary`, ainda bloqueada ate backfill/reconciliacao
+  verde e sem rota externa; ou
+- se aparecer risco de consistencia em RH/autenticacao, abrir um diagnostico
+  interno complementar antes de qualquer ativacao.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

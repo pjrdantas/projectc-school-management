@@ -24,7 +24,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         var reports = adapter.synchronize(true, true, 100);
 
         assertThat(reports)
-                .hasSize(10)
+                .hasSize(11)
                 .allSatisfy(report -> {
                     assertThat(report.status()).isEqualTo("blocked");
                     assertThat(report.reason()).isEqualTo("local-read-model-source-url-required");
@@ -48,7 +48,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         var reports = adapter.synchronize(true, true, 100);
 
         assertThat(reports)
-                .hasSize(10)
+                .hasSize(11)
                 .allSatisfy(report -> {
                     assertThat(report.status()).isEqualTo("success");
                     assertThat(report.divergences()).isZero();
@@ -66,9 +66,10 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         "aluno_responsavel",
                         "endereco",
                         "pessoa_endereco",
-                        "people_documento_read_model");
-        assertThat(reports.stream().mapToInt(report -> report.sourceRows()).sum()).isEqualTo(19);
-        assertThat(reports.stream().mapToInt(report -> report.targetRows()).sum()).isEqualTo(19);
+                        "people_documento_read_model",
+                        "people_funcionario_read_model");
+        assertThat(reports.stream().mapToInt(report -> report.sourceRows()).sum()).isEqualTo(20);
+        assertThat(reports.stream().mapToInt(report -> report.targetRows()).sum()).isEqualTo(20);
 
         assertThat(contar(targetUrl, "tipo_pessoa")).isEqualTo(3);
         assertThat(contar(targetUrl, "tipo_endereco")).isEqualTo(2);
@@ -80,6 +81,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         assertThat(contar(targetUrl, "endereco")).isEqualTo(2);
         assertThat(contar(targetUrl, "pessoa_endereco")).isEqualTo(2);
         assertThat(contar(targetUrl, "people_documento_read_model")).isEqualTo(2);
+        assertThat(contar(targetUrl, "people_funcionario_read_model")).isEqualTo(1);
     }
 
     @Test
@@ -265,6 +267,32 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                     )
                     """);
+            statement.execute("""
+                    CREATE TABLE cargo (
+                        id_cargo UUID NOT NULL PRIMARY KEY,
+                        descricao VARCHAR(120) NOT NULL
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE funcionario (
+                        id_funcionario UUID NOT NULL PRIMARY KEY,
+                        id_pessoa UUID NOT NULL,
+                        id_cargo UUID,
+                        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE people_funcionario_read_model (
+                        id_funcionario UUID NOT NULL PRIMARY KEY,
+                        id_pessoa UUID NOT NULL,
+                        id_escola UUID NOT NULL,
+                        nome_completo VARCHAR(200) NOT NULL,
+                        cargo_descricao VARCHAR(120),
+                        ativo BOOLEAN NOT NULL,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """);
         }
     }
 
@@ -446,6 +474,10 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                     ('34343434-3434-3434-3434-343434343434', 'RG', 'Registro Geral')
                     """);
             statement.execute("""
+                    INSERT INTO cargo (id_cargo, descricao) VALUES
+                    ('45454545-4545-4545-4545-454545454545', 'Coordenadora')
+                    """);
+            statement.execute("""
                     INSERT INTO documento (
                         id_documento, id_tipo_documento, numero_documento, caminho_arquivo, observacao, data_upload, created_at
                     ) VALUES
@@ -482,6 +514,17 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         'a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0',
                         'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
                         '78787878-7878-7878-7878-787878787878',
+                        CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    INSERT INTO funcionario (
+                        id_funcionario, id_pessoa, id_cargo, ativo, created_at
+                    ) VALUES (
+                        'f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1',
+                        'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+                        '45454545-4545-4545-4545-454545454545',
+                        TRUE,
                         CURRENT_TIMESTAMP
                     )
                     """);

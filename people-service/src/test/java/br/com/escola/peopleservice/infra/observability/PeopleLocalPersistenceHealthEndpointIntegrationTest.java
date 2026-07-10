@@ -486,5 +486,23 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("fallbackSource", "monolith_internal_rh")
                 .containsEntry("routingOperation", "funcionarioInternalSummaryLocalRead")
                 .containsEntry("schemaVersion", "V6__create_people_funcionario_internal_summary_read_model.sql");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> funcionarioInternalSummaryBackfillReconciliation =
+                (Map<String, Object>) details.get("peopleFuncionarioInternalSummaryBackfillReconciliationDiagnostic");
+        assertThat(funcionarioInternalSummaryBackfillReconciliation)
+                .containsEntry("phase", "Fase 82")
+                .containsEntry("slice", "funcionario_internal_summary_backfill_reconciliation_preparation")
+                .containsEntry("status",
+                        "funcionario_internal_summary_backfill_reconciliation_prepared_no_read_cutover")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_82_and_keep_funcionario_internal_summary_local_read_blocked_until_green")
+                .containsEntry("minimalNextSlice", "funcionario_internal_summary_local_read_activation_eligibility")
+                .containsEntry("migrationAllowedNow", true)
+                .containsEntry("backfillAllowedNow", true)
+                .containsEntry("reconciliationAllowedNow", true)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("source", "monolith_jdbc")
+                .containsEntry("target", "people_funcionario_read_model")
+                .containsEntry("reconciliationKey", "people_funcionario_read_model.id_funcionario");
     }
 }

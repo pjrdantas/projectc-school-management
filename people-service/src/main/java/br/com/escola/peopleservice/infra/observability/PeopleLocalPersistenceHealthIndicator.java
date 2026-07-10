@@ -22,6 +22,7 @@ import br.com.escola.peopleservice.application.dto.PeopleDocumentInternalMetadat
 import br.com.escola.peopleservice.application.dto.PeopleAddressWriteMonolithAdapterPlan;
 import br.com.escola.peopleservice.application.dto.PeopleAddressWriteAuthorityPlan;
 import br.com.escola.peopleservice.application.dto.PeopleFuncionarioInternalSummaryAdapterPreparationPlan;
+import br.com.escola.peopleservice.application.dto.PeopleFuncionarioInternalSummaryBackfillReconciliationPreparationPlan;
 import br.com.escola.peopleservice.application.dto.PeopleFuncionarioScopeDiagnosticPlan;
 import br.com.escola.peopleservice.application.dto.PeopleFuncionarioInternalSummaryContractPlan;
 import br.com.escola.peopleservice.application.dto.PeopleTransactionalReadModelExpansionPlan;
@@ -38,6 +39,7 @@ import br.com.escola.peopleservice.application.service.PeopleDocumentMetadataSch
 import br.com.escola.peopleservice.application.service.PeopleDocumentInternalMetadataReadContractPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentScopeDiagnosticPlanner;
 import br.com.escola.peopleservice.application.service.PeopleFuncionarioInternalSummaryAdapterPreparationPlanner;
+import br.com.escola.peopleservice.application.service.PeopleFuncionarioInternalSummaryBackfillReconciliationPreparationPlanner;
 import br.com.escola.peopleservice.application.service.PeopleFuncionarioInternalSummaryContractPlanner;
 import br.com.escola.peopleservice.application.service.PeopleFuncionarioScopeDiagnosticPlanner;
 import br.com.escola.peopleservice.application.service.PeopleLocalPersistenceOperationState;
@@ -107,6 +109,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             new PeopleFuncionarioInternalSummaryContractPlanner();
     private final PeopleFuncionarioInternalSummaryAdapterPreparationPlanner funcionarioInternalSummaryAdapterPreparationPlanner =
             new PeopleFuncionarioInternalSummaryAdapterPreparationPlanner();
+    private final PeopleFuncionarioInternalSummaryBackfillReconciliationPreparationPlanner funcionarioInternalSummaryBackfillReconciliationPreparationPlanner =
+            new PeopleFuncionarioInternalSummaryBackfillReconciliationPreparationPlanner();
     private final PeopleDocumentInternalMetadataReadContractPlanner documentInternalMetadataReadContractPlanner =
             new PeopleDocumentInternalMetadataReadContractPlanner();
     private final PeopleDocumentLocalReadCandidatePlanner documentLocalReadCandidatePlanner =
@@ -192,6 +196,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoContratoInternoResumoFuncionario());
         details.put("peopleFuncionarioInternalSummaryAdapterPreparationDiagnostic",
                 diagnosticoPreparacaoAdapterResumoFuncionario());
+        details.put("peopleFuncionarioInternalSummaryBackfillReconciliationDiagnostic",
+                diagnosticoBackfillReconciliacaoResumoFuncionario());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -720,6 +726,29 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("schemaVersion", plan.schemaVersion());
         details.put("preparedArtifacts", plan.preparedArtifacts());
         details.put("blockerBeforeActivation", plan.blockerBeforeActivation());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoBackfillReconciliacaoResumoFuncionario() {
+        PeopleFuncionarioInternalSummaryBackfillReconciliationPreparationPlan plan =
+                funcionarioInternalSummaryBackfillReconciliationPreparationPlanner.planejarBackfillReconciliacao();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("migrationAllowedNow", plan.migrationAllowedNow());
+        details.put("backfillAllowedNow", plan.backfillAllowedNow());
+        details.put("reconciliationAllowedNow", plan.reconciliationAllowedNow());
+        details.put("localReadCutoverAllowedNow", plan.localReadCutoverAllowedNow());
+        details.put("source", plan.source());
+        details.put("target", plan.target());
+        details.put("reconciliationKey", plan.reconciliationKey());
+        details.put("sourceTables", plan.sourceTables());
+        details.put("consistencyBlockers", plan.consistencyBlockers());
         details.put("rollbackSteps", plan.rollbackSteps());
         details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
         return details;
