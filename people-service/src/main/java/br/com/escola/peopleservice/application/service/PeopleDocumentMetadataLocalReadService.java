@@ -15,16 +15,24 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class PeopleDocumentMetadataLocalReadService {
 
     private final ObjectProvider<PeopleDocumentMetadataLocalReadPort> documentLocalReadPortProvider;
+    private final PeopleLocalReadCutoverGuard readCutoverGuard;
     private final MeterRegistry meterRegistry;
 
     public PeopleDocumentMetadataLocalReadService(
             ObjectProvider<PeopleDocumentMetadataLocalReadPort> documentLocalReadPortProvider,
+            PeopleLocalReadCutoverGuard readCutoverGuard,
             MeterRegistry meterRegistry) {
         this.documentLocalReadPortProvider = documentLocalReadPortProvider;
+        this.readCutoverGuard = readCutoverGuard;
         this.meterRegistry = meterRegistry;
     }
 
     public Optional<PessoaDocumentoMetadataLocalReadResponse> buscarDocumentoPorId(UUID documentoId, UUID escolaId) {
+        var decision = readCutoverGuard.registrarDecisaoLeituraDocumentoMetadata();
+        if (!decision.localReadEligible()) {
+            registrarLeituraDocumentoLocal("buscarDocumentoPorId", "fallback_guard_blocked");
+            return Optional.empty();
+        }
         PeopleDocumentMetadataLocalReadPort port = documentLocalReadPortProvider.getIfAvailable();
         if (port == null) {
             registrarLeituraDocumentoLocal("buscarDocumentoPorId", "fallback_adapter_missing");
@@ -43,6 +51,11 @@ public class PeopleDocumentMetadataLocalReadService {
     }
 
     public List<PessoaDocumentoMetadataLocalReadResponse> listarDocumentosPorPessoa(UUID pessoaId, UUID escolaId) {
+        var decision = readCutoverGuard.registrarDecisaoLeituraDocumentoMetadata();
+        if (!decision.localReadEligible()) {
+            registrarLeituraDocumentoLocal("listarDocumentosPorPessoa", "fallback_guard_blocked");
+            return List.of();
+        }
         PeopleDocumentMetadataLocalReadPort port = documentLocalReadPortProvider.getIfAvailable();
         if (port == null) {
             registrarLeituraDocumentoLocal("listarDocumentosPorPessoa", "fallback_adapter_missing");

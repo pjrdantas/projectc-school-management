@@ -398,5 +398,26 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("source", "monolith_jdbc")
                 .containsEntry("target", "people_documento_read_model")
                 .containsEntry("reconciliationKey", "people_documento_read_model.id_pessoa_documento");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> documentActivationEligibility =
+                (Map<String, Object>) details.get("peopleDocumentLocalReadActivationEligibilityDiagnostic");
+        assertThat(documentActivationEligibility)
+                .containsEntry("phase", "Fase 77")
+                .containsEntry("slice", "people_document_local_read_activation_eligibility")
+                .containsEntry("status", "internal_document_local_read_guarded_without_external_route")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_77_and_only_consider_internal_document_usage_when_guard_is_green")
+                .containsEntry("minimalNextSlice", "people_document_internal_usage_candidate")
+                .containsEntry("internalServiceConnected", true)
+                .containsEntry("localReadGuardPrepared", true)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("externalRouteCreated", false)
+                .containsEntry("fallbackRequired", true)
+                .containsEntry("routingOperation", "documentMetadataLocalRead")
+                .containsEntry("shadowRoute", "internal-operation:PeopleDocumentMetadataLocalReadPort")
+                .containsEntry("candidateSource", "people_documento_read_model")
+                .containsEntry("selectedSource", "monolith_proxy")
+                .containsEntry("fallbackSource", "monolith_proxy")
+                .containsEntry("reason", "read-model-cutover-disabled");
     }
 }

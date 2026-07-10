@@ -4098,6 +4098,39 @@ Proxima fase pratica sugerida:
 - se quiser segurar documentos por agora, abrir o diagnostico minimo de
   `funcionario`.
 
+### Fase 77 - Elegibilidade de ativacao interna da leitura local de pessoa_documento
+
+Objetivo: aplicar o mesmo padrao interno de guard/fallback ao servico de
+metadados de `pessoa_documento`, sem criar rota nova, sem ligar
+`consultarCadastro` e sem mudar qualquer contrato externo.
+
+Entregue na primeira subfase da Fase 77:
+
+- `PeopleDocumentMetadataLocalReadService` passou a consultar o guard interno
+  antes de usar o adapter JDBC local, retornando vazio/lista vazia quando o
+  guard bloquear e preservando fallback obrigatorio;
+- `PeopleLocalReadCutoverGuard` passou a expor a operacao interna
+  `documentMetadataLocalRead`, com decisao observavel, source candidata
+  `people_documento_read_model` e metrica dedicada de roteamento;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleDocumentLocalReadActivationEligibilityDiagnostic`, consolidando fase,
+  status, precondicoes do guard, source selecionada e rollback;
+- a elegibilidade fica dinamica: quando o estado local esta verde, o health
+  reporta o recorte como internamente elegivel; quando nao esta verde, o
+  fallback para `monolith_proxy` continua sendo o comportamento esperado;
+- nao houve rota REST nova, alteracao em `PessoaQueryService`, mudanca de BFF,
+  frontend, escrita local, upload local ou cutover externo.
+
+Contagem da macrofase Fase 77: 0 subfases restantes estimadas.
+
+Proxima fase pratica sugerida:
+
+- avaliar se existe algum uso interno minimo e seguro para consumir
+  `PeopleDocumentMetadataLocalReadService` sem alterar rotas externas e sem
+  tocar `consultarCadastro`; ou
+- se preferir manter documentos estacionados neste ponto, abrir o diagnostico
+  minimo de `funcionario`.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

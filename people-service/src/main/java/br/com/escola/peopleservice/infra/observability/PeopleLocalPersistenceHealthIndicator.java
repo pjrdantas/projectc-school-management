@@ -12,6 +12,7 @@ import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecisio
 import br.com.escola.peopleservice.application.dto.PeopleCatalogReadModelSchemaPlan;
 import br.com.escola.peopleservice.application.dto.PeopleAddressScopeClosurePlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentBackfillReconciliationPreparationPlan;
+import br.com.escola.peopleservice.application.dto.PeopleDocumentLocalReadActivationEligibilityPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentLocalReadCandidatePlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentMetadataLocalAdapterPreparationPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentMetadataSchemaDiagnosticPlan;
@@ -25,6 +26,7 @@ import br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthori
 import br.com.escola.peopleservice.application.service.PeopleAddressWriteMonolithAdapterPlanner;
 import br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentBackfillReconciliationPreparationPlanner;
+import br.com.escola.peopleservice.application.service.PeopleDocumentLocalReadActivationEligibilityPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentLocalReadCandidatePlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentMetadataLocalAdapterPreparationPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentMetadataSchemaDiagnosticPlanner;
@@ -96,6 +98,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             new PeopleDocumentLocalReadCandidatePlanner();
     private final PeopleDocumentBackfillReconciliationPreparationPlanner documentBackfillReconciliationPreparationPlanner =
             new PeopleDocumentBackfillReconciliationPreparationPlanner();
+    private final PeopleDocumentLocalReadActivationEligibilityPlanner documentLocalReadActivationEligibilityPlanner =
+            new PeopleDocumentLocalReadActivationEligibilityPlanner();
     private final PeopleDocumentMetadataLocalAdapterPreparationPlanner documentMetadataLocalAdapterPreparationPlanner =
             new PeopleDocumentMetadataLocalAdapterPreparationPlanner();
     private final PeopleDocumentMetadataSchemaDiagnosticPlanner documentMetadataSchemaDiagnosticPlanner =
@@ -162,6 +166,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoPreparacaoAdapterLocalMetadadosDocumento());
         details.put("peopleDocumentBackfillReconciliationDiagnostic",
                 diagnosticoBackfillReconciliacaoDocumento());
+        details.put("peopleDocumentLocalReadActivationEligibilityDiagnostic",
+                diagnosticoElegibilidadeAtivacaoLeituraLocalDocumento());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -187,6 +193,10 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 totalContador("people.shadow.local.persistence.address.read.routing.decisions"));
         details.put("localAddressReadsTotal",
                 totalContador("people.shadow.local.persistence.address.reads"));
+        details.put("documentMetadataReadRoutingDecisionsTotal",
+                totalContador("people.shadow.local.persistence.document.metadata.read.routing.decisions"));
+        details.put("localDocumentMetadataReadsTotal",
+                totalContador("people.shadow.local.persistence.document.metadata.reads"));
         details.put("localDocumentMetadataReadsTotal",
                 totalContador("people.shadow.local.persistence.document.metadata.reads"));
         details.put("addressWriteShadowCommandsTotal",
@@ -551,6 +561,33 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("reconciliationKey", plan.reconciliationKey());
         details.put("sourceTables", plan.sourceTables());
         details.put("consistencyBlockers", plan.consistencyBlockers());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoElegibilidadeAtivacaoLeituraLocalDocumento() {
+        PeopleDocumentLocalReadActivationEligibilityPlan plan =
+                documentLocalReadActivationEligibilityPlanner.planejarElegibilidadeDeAtivacao();
+        PeopleLocalReadRoutingDecision decision = readCutoverGuard.avaliarLeituraDocumentoMetadata();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("internalServiceConnected", plan.internalServiceConnected());
+        details.put("localReadGuardPrepared", plan.localReadGuardPrepared());
+        details.put("localReadCutoverAllowedNow", decision.localReadEligible());
+        details.put("externalRouteCreated", plan.externalRouteCreated());
+        details.put("fallbackRequired", plan.fallbackRequired());
+        details.put("routingOperation", decision.operation());
+        details.put("shadowRoute", decision.shadowRoute());
+        details.put("candidateSource", decision.candidateSource());
+        details.put("selectedSource", decision.selectedSource());
+        details.put("fallbackSource", plan.fallbackSource());
+        details.put("reason", decision.reason());
+        details.put("guardPreconditions", plan.guardPreconditions());
         details.put("rollbackSteps", plan.rollbackSteps());
         details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
         return details;

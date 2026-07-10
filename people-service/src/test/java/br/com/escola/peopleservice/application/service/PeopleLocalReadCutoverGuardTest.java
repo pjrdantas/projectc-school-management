@@ -146,6 +146,36 @@ class PeopleLocalReadCutoverGuardTest {
     }
 
     @Test
+    void deveLiberarOperacaoDocumentoQuandoRelatorioLocalEstaVerde() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        PeopleLocalReadCutoverGuard guard = new PeopleLocalReadCutoverGuard(
+                new PeopleLocalPersistenceProperties(true, false, true, false, true, true, 500, true),
+                meterRegistry,
+                greenState());
+
+        var decision = guard.registrarDecisaoLeituraDocumentoMetadata();
+
+        assertThat(decision.operation()).isEqualTo("documentMetadataLocalRead");
+        assertThat(decision.shadowRoute()).isEqualTo("internal-operation:PeopleDocumentMetadataLocalReadPort");
+        assertThat(decision.candidateSource()).isEqualTo("people_documento_read_model");
+        assertThat(decision.selectedSource()).isEqualTo("people_documento_read_model");
+        assertThat(decision.localReadRequested()).isTrue();
+        assertThat(decision.localReadEligible()).isTrue();
+        assertThat(decision.fallbackEnabled()).isTrue();
+        assertThat(decision.writesEnabled()).isFalse();
+        assertThat(decision.reason()).isEqualTo("local-document-metadata-read-eligible");
+        assertThat(meterRegistry.counter(
+                "people.shadow.local.persistence.read.routing.decisions",
+                "operation", "documentMetadataLocalRead",
+                "selected_source", "people_documento_read_model",
+                "reason", "local-document-metadata-read-eligible").count()).isEqualTo(1.0d);
+        assertThat(meterRegistry.counter(
+                "people.shadow.local.persistence.document.metadata.read.routing.decisions",
+                "selected_source", "people_documento_read_model",
+                "reason", "local-document-metadata-read-eligible").count()).isEqualTo(1.0d);
+    }
+
+    @Test
     void deveBloquearCatalogosQuandoRelatorioLocalAindaNaoEstaVerde() {
         PeopleLocalReadCutoverGuard guard = new PeopleLocalReadCutoverGuard(
                 new PeopleLocalPersistenceProperties(true, false, true, false, true, true, 500, true),

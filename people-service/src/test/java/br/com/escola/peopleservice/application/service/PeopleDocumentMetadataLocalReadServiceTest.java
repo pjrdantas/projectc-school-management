@@ -10,17 +10,40 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 
+import br.com.escola.peopleservice.application.dto.PeopleLocalPersistenceOperationReport;
 import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataLocalReadResponse;
 import br.com.escola.peopleservice.application.port.out.PeopleDocumentMetadataLocalReadPort;
+import br.com.escola.peopleservice.infra.config.PeopleLocalPersistenceProperties;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 class PeopleDocumentMetadataLocalReadServiceTest {
+
+    @Test
+    void retornaVazioQuandoGuardBloqueiaLeitura() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        CountingDocumentLocalReadPort port = new CountingDocumentLocalReadPort(documento());
+        PeopleDocumentMetadataLocalReadService service = new PeopleDocumentMetadataLocalReadService(
+                provider(port),
+                guard(new PeopleLocalPersistenceOperationState(), meterRegistry),
+                meterRegistry);
+
+        Optional<PessoaDocumentoMetadataLocalReadResponse> response =
+                service.buscarDocumentoPorId(UUID.randomUUID(), UUID.randomUUID());
+
+        assertThat(response).isEmpty();
+        assertThat(port.getByIdCalls).isZero();
+        assertThat(meterRegistry.counter(
+                "people.shadow.local.persistence.document.metadata.reads",
+                "operation", "buscarDocumentoPorId",
+                "result", "fallback_guard_blocked").count()).isEqualTo(1.0d);
+    }
 
     @Test
     void retornaVazioQuandoAdapterNaoExiste() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         PeopleDocumentMetadataLocalReadService service = new PeopleDocumentMetadataLocalReadService(
                 provider(null),
+                guard(greenState(), meterRegistry),
                 meterRegistry);
 
         Optional<PessoaDocumentoMetadataLocalReadResponse> response =
@@ -40,6 +63,7 @@ class PeopleDocumentMetadataLocalReadServiceTest {
         CountingDocumentLocalReadPort port = new CountingDocumentLocalReadPort(documento);
         PeopleDocumentMetadataLocalReadService service = new PeopleDocumentMetadataLocalReadService(
                 provider(port),
+                guard(greenState(), meterRegistry),
                 meterRegistry);
 
         List<PessoaDocumentoMetadataLocalReadResponse> response =
@@ -58,6 +82,7 @@ class PeopleDocumentMetadataLocalReadServiceTest {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         PeopleDocumentMetadataLocalReadService service = new PeopleDocumentMetadataLocalReadService(
                 provider(new FailingDocumentLocalReadPort()),
+                guard(greenState(), meterRegistry),
                 meterRegistry);
 
         List<PessoaDocumentoMetadataLocalReadResponse> response =
@@ -94,6 +119,35 @@ class PeopleDocumentMetadataLocalReadServiceTest {
         };
     }
 
+    private PeopleLocalReadCutoverGuard guard(
+            PeopleLocalPersistenceOperationState state,
+            SimpleMeterRegistry meterRegistry) {
+        return new PeopleLocalReadCutoverGuard(
+                new PeopleLocalPersistenceProperties(true, true, true, false, true, true, 500, true),
+                meterRegistry,
+                state);
+    }
+
+    private PeopleLocalPersistenceOperationState greenState() {
+        PeopleLocalPersistenceOperationState state = new PeopleLocalPersistenceOperationState();
+        state.update(new PeopleLocalPersistenceOperationReport(
+                true,
+                true,
+                "completed",
+                "local-read-model-backfill-and-reconciliation-completed",
+                500,
+                10,
+                10,
+                27,
+                27,
+                27,
+                0,
+                false,
+                false,
+                List.of()));
+        return state;
+    }
+
     private PessoaDocumentoMetadataLocalReadResponse documento() {
         return new PessoaDocumentoMetadataLocalReadResponse(
                 UUID.randomUUID(),
@@ -111,6 +165,7 @@ class PeopleDocumentMetadataLocalReadServiceTest {
     private static class CountingDocumentLocalReadPort implements PeopleDocumentMetadataLocalReadPort {
 
         private final PessoaDocumentoMetadataLocalReadResponse documento;
+        private int getByIdCalls;
         private int listCalls;
 
         private CountingDocumentLocalReadPort(PessoaDocumentoMetadataLocalReadResponse documento) {
@@ -119,6 +174,7 @@ class PeopleDocumentMetadataLocalReadServiceTest {
 
         @Override
         public Optional<PessoaDocumentoMetadataLocalReadResponse> buscarDocumentoPorId(UUID documentoId, UUID escolaId) {
+            getByIdCalls++;
             return Optional.of(documento);
         }
 

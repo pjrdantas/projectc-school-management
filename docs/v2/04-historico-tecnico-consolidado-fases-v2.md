@@ -1830,6 +1830,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `localReadCutoverAllowedNow=false`. Nao houve ativacao de leitura local,
   BFF/frontend, rota externa, escrita local, upload local, delete local ou
   cutover. A contagem regressiva da Fase 76 chega a 0.
+- A primeira subfase da Fase 77 conectou `PeopleDocumentMetadataLocalReadService`
+  ao guard interno do `people-service`, preservando fallback obrigatorio e sem
+  criar rota REST. `PeopleLocalReadCutoverGuard` passou a expor a operacao
+  `documentMetadataLocalRead`, source candidata `people_documento_read_model` e
+  metrica dedicada de roteamento. O actuator `peopleLocalPersistence` passou a
+  publicar `peopleDocumentLocalReadActivationEligibilityDiagnostic`, mostrando
+  fase/status, precondicoes do guard, source selecionada e rollback. Nenhum
+  contrato externo foi alterado, `PessoaQueryService` nao foi conectado e a
+  contagem regressiva da Fase 77 chega a 0.
 
 ## Historico resumido
 
