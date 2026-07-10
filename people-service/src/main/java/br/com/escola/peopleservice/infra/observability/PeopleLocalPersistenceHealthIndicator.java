@@ -22,6 +22,7 @@ import br.com.escola.peopleservice.application.dto.PeopleDocumentInternalMetadat
 import br.com.escola.peopleservice.application.dto.PeopleAddressWriteMonolithAdapterPlan;
 import br.com.escola.peopleservice.application.dto.PeopleAddressWriteAuthorityPlan;
 import br.com.escola.peopleservice.application.dto.PeopleFuncionarioScopeDiagnosticPlan;
+import br.com.escola.peopleservice.application.dto.PeopleFuncionarioInternalSummaryContractPlan;
 import br.com.escola.peopleservice.application.dto.PeopleTransactionalReadModelExpansionPlan;
 import br.com.escola.peopleservice.application.service.PeopleAddressScopeClosurePlanner;
 import br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthorityPlanner;
@@ -35,6 +36,7 @@ import br.com.escola.peopleservice.application.service.PeopleDocumentMetadataLoc
 import br.com.escola.peopleservice.application.service.PeopleDocumentMetadataSchemaDiagnosticPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentInternalMetadataReadContractPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentScopeDiagnosticPlanner;
+import br.com.escola.peopleservice.application.service.PeopleFuncionarioInternalSummaryContractPlanner;
 import br.com.escola.peopleservice.application.service.PeopleFuncionarioScopeDiagnosticPlanner;
 import br.com.escola.peopleservice.application.service.PeopleLocalPersistenceOperationState;
 import br.com.escola.peopleservice.application.service.PeopleLocalReadModelSchemaMigrationState;
@@ -98,6 +100,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             new PeopleDocumentScopeDiagnosticPlanner();
     private final PeopleFuncionarioScopeDiagnosticPlanner funcionarioScopeDiagnosticPlanner =
             new PeopleFuncionarioScopeDiagnosticPlanner();
+    private final PeopleFuncionarioInternalSummaryContractPlanner funcionarioInternalSummaryContractPlanner =
+            new PeopleFuncionarioInternalSummaryContractPlanner();
     private final PeopleDocumentInternalMetadataReadContractPlanner documentInternalMetadataReadContractPlanner =
             new PeopleDocumentInternalMetadataReadContractPlanner();
     private final PeopleDocumentLocalReadCandidatePlanner documentLocalReadCandidatePlanner =
@@ -179,6 +183,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("peopleDocumentInternalUsageCandidateDiagnostic",
                 diagnosticoUsoInternoMinimoDocumento());
         details.put("peopleFuncionarioScopeDiagnostic", diagnosticoEscopoFuncionario());
+        details.put("peopleFuncionarioInternalSummaryContractDiagnostic",
+                diagnosticoContratoInternoResumoFuncionario());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -650,6 +656,40 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "keepProfessorAndAuthOnMonolith", true,
                 "prepareExternalRouteNow", false,
                 "advanceToPersistenceNow", false));
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoContratoInternoResumoFuncionario() {
+        PeopleFuncionarioInternalSummaryContractPlan plan =
+                funcionarioInternalSummaryContractPlanner.planejarContratoInternoResumoFuncionario();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("contractPrepared", plan.contractPrepared());
+        details.put("internalServicePrepared", plan.internalServicePrepared());
+        details.put("adapterCreated", plan.adapterCreated());
+        details.put("localPersistenceConnected", plan.localPersistenceConnected());
+        details.put("externalRouteCreated", plan.externalRouteCreated());
+        details.put("bffFrontendChangeAllowedNow", plan.bffFrontendChangeAllowedNow());
+        details.put("writeCutoverAllowedNow", plan.writeCutoverAllowedNow());
+        details.put("candidateSource", plan.candidateSource());
+        details.put("fallbackSource", plan.fallbackSource());
+        details.put("fallbackRequired", plan.fallbackRequired());
+        details.put("minimalInternalPayload", plan.minimalInternalPayload());
+        details.put("firstConsumers", plan.firstConsumers());
+        details.put("guardrails", plan.guardrails());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        details.put("preparedArtifacts", Map.of(
+                "port", "PeopleFuncionarioInternalSummaryPort",
+                "response", "PessoaFuncionarioInternalSummaryResponse",
+                "internalService", "PeopleFuncionarioInternalSummaryService",
+                "adapterCreated", false,
+                "routeCreated", false,
+                "localPersistenceConnected", false));
         return details;
     }
 

@@ -449,5 +449,23 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("localPersistenceAllowedNow", false)
                 .containsEntry("externalRouteChangeAllowedNow", false)
                 .containsEntry("fallbackToCurrentMonolithRequired", true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> funcionarioInternalSummaryContract =
+                (Map<String, Object>) details.get("peopleFuncionarioInternalSummaryContractDiagnostic");
+        assertThat(funcionarioInternalSummaryContract)
+                .containsEntry("phase", "Fase 80")
+                .containsEntry("slice", "funcionario_internal_summary_contract")
+                .containsEntry("status", "internal_contract_prepared_no_adapter_no_route")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_80_and_plan_funcionario_internal_summary_adapter_preparation")
+                .containsEntry("minimalNextSlice", "funcionario_internal_summary_adapter_preparation")
+                .containsEntry("contractPrepared", true)
+                .containsEntry("internalServicePrepared", true)
+                .containsEntry("adapterCreated", false)
+                .containsEntry("localPersistenceConnected", false)
+                .containsEntry("externalRouteCreated", false)
+                .containsEntry("fallbackRequired", true)
+                .containsEntry("candidateSource", "people_funcionario_read_model_candidate")
+                .containsEntry("fallbackSource", "monolith_internal_rh");
     }
 }

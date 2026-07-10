@@ -1856,6 +1856,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   monolito. A fase termina sem rota nova, sem persistencia local e sem alteracao
   funcional no `school-management-service`, com a contagem regressiva da Fase 79
   em 0.
+- A primeira subfase da Fase 80 preparou a fronteira interna minima de resumo de
+  `funcionario` no `people-service`, com DTO, port e service read-only ainda sem
+  adapter local e sem rota. O actuator `peopleLocalPersistence` passou a expor
+  `peopleFuncionarioInternalSummaryContractDiagnostic`, registrando que o
+  contrato interno cobre apenas `id_funcionario`, `id_pessoa`, `id_escola`,
+  `nome_completo`, `cargo_descricao` e `ativo`, preservando no monolito as
+  regras de professor, autenticacao e qualquer write de funcionario. A fase
+  termina sem alteracao funcional no `school-management-service`, com a
+  contagem regressiva da Fase 80 em 0.
 
 ## Historico resumido
 

@@ -4191,6 +4191,36 @@ Proxima fase pratica sugerida:
 - se preferir segurar `funcionario`, abrir o proximo diagnostico backend de
   outra familia ainda acoplada.
 
+### Fase 80 - Contrato interno minimo de resumo de funcionario
+
+Objetivo: preparar a fronteira interna minima de leitura para `funcionario` no
+`people-service`, ainda sem adapter local, sem persistencia propria, sem rota
+externa e sem deslocar para este servico a regra de elegibilidade de professor.
+
+Entregue na primeira subfase da Fase 80:
+
+- foram criados os artefatos internos minimos do contrato de resumo de
+  `funcionario`: DTO de resposta, port de leitura e service interno read-only,
+  todos sem adapter conectado nesta etapa;
+- o payload minimo ficou reduzido a `id_funcionario`, `id_pessoa`, `id_escola`,
+  `nome_completo`, `cargo_descricao` e `ativo`, evitando puxar regra de
+  professor, autenticacao ou entidades JPA de RH para dentro do contrato;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleFuncionarioInternalSummaryContractDiagnostic`, registrando que o
+  contrato e o service interno estao preparados, mas que adapter, persistencia
+  local e rota continuam desligados;
+- a fase preserva o `school-management-service` como fonte funcional unica para
+  RH interno, professor e autenticacao, sem qualquer mudanca de comportamento.
+
+Contagem da macrofase Fase 80: 0 subfases restantes estimadas.
+
+Proxima fase pratica sugerida:
+
+- preparar o adapter local minimo do resumo interno de `funcionario`, ainda sem
+  rota externa e sem write; ou
+- se o risco aumentar, parar em diagnostico adicional antes de qualquer conexao
+  com persistencia local.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
