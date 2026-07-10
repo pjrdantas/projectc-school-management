@@ -303,5 +303,31 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("adapterCreated", false)
                 .containsEntry("routeCreated", false)
                 .containsEntry("localPersistenceConnected", false);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> peopleDocumentLocalCandidate =
+                (Map<String, Object>) details.get("peopleDocumentLocalReadCandidateDiagnostic");
+        assertThat(peopleDocumentLocalCandidate)
+                .containsEntry("phase", "Fase 74")
+                .containsEntry("slice", "people_document_local_metadata_adapter_diagnostic")
+                .containsEntry("status",
+                        "metadata_local_read_candidate_diagnostic_started_continue_document_family")
+                .containsEntry("recommendedNextStep",
+                        "prepare_people_document_local_metadata_schema_diagnostic_without_route_or_upload_migration")
+                .containsEntry("minimalNextSlice", "people_document_local_metadata_schema_diagnostic")
+                .containsEntry("schemaDiagnosticAllowedNow", true)
+                .containsEntry("adapterDiagnosticAllowedNow", true)
+                .containsEntry("continueWithDocumentFamilyNow", true)
+                .containsEntry("switchToFuncionarioNow", false)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("reconciliationKey", "pessoa_documento.id_pessoa_documento");
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> documentDecision =
+                (java.util.Map<String, Object>) peopleDocumentLocalCandidate.get("currentDecision");
+        assertThat(documentDecision)
+                .containsEntry("preferredNextFamily", "pessoa_documento")
+                .containsEntry("continueWithSchemaDiagnostic", true)
+                .containsEntry("switchToFuncionarioAfterThisDiagnostic", false)
+                .containsEntry("prepareRouteNow", false);
     }
 }

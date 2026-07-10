@@ -3949,6 +3949,49 @@ Proxima fase pratica:
 - manter fora do escopo qualquer migracao de upload, escrita autoritativa,
   cleanup documental, BFF ou frontend.
 
+### Fase 74 - Diagnostico do candidato local de metadados de pessoa_documento
+
+Objetivo: decidir, com base em schema minimo, reconciliacao e ownership, se a
+familia `pessoa_documento` ainda comporta o proximo recorte backend seguro ou
+se deve ceder lugar a `funcionario`.
+
+Entregue na primeira subfase da Fase 74:
+
+- foi criado no actuator `peopleLocalPersistence` o diagnostico
+  `peopleDocumentLocalReadCandidateDiagnostic`, abrindo formalmente a nova
+  macrofase para o candidato local de leitura de metadados de
+  `pessoa_documento`;
+- o diagnostico registrou a decisao de seguir na familia
+  `pessoa_documento` antes de `funcionario`:
+  `continueWithDocumentFamilyNow=true`,
+  `switchToFuncionarioNow=false`,
+  `schemaDiagnosticAllowedNow=true`,
+  `adapterDiagnosticAllowedNow=true` e
+  `localReadCutoverAllowedNow=false`;
+- ficaram separados como fontes minimas do candidato local os joins entre
+  `pessoa_documento`, `documento`, `tipo_documento` e `pessoa`, com chave de
+  reconciliacao primaria `pessoa_documento.id_pessoa_documento` e checagens
+  secundarias por `id_pessoa`, `id_documento`, `id_tipo_documento`,
+  `data_upload` e `id_escola`;
+- o diagnostico formalizou que o read model candidato ainda depende de regras
+  de ownership por escola via `pessoa.id_escola`, de normalizacao da coluna
+  `caminho_arquivo` e da manutencao do monolito como autoridade para upload e
+  delete;
+- nao houve migration, adapter JDBC novo, rota externa, BFF/frontend, escrita
+  local, cleanup local nem alteracao funcional no monolito.
+
+Contagem da macrofase Fase 74: 1 subfase restante estimada: preparar o
+diagnostico do schema fisico minimo de metadados de `pessoa_documento` antes de
+qualquer adapter local.
+
+Proxima fase pratica:
+
+- diagnosticar no `people-service` o schema fisico minimo e a estrategia de
+  backfill/reconciliacao do read model de metadados de `pessoa_documento`,
+  ainda sem criar adapter JDBC e sem criar rota externa;
+- manter fora do escopo upload, escrita autoritativa, cleanup documental,
+  storage binario, BFF e frontend.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

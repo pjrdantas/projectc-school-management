@@ -1759,6 +1759,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   cleanup e storage binario. Nao houve BFF/frontend, persistencia local,
   migration, rota publica nem alteracao funcional no `school-management-service`.
   A contagem regressiva da Fase 73 chega a 0.
+- A primeira subfase da Fase 74 iniciou a nova macrofase backend de
+  `pessoa_documento` com diagnostico do candidato local de leitura de
+  metadados. Foi criado no health `peopleLocalPersistence` o diagnostico
+  `peopleDocumentLocalReadCandidateDiagnostic`, registrando a decisao de seguir
+  na familia `pessoa_documento` antes de abrir `funcionario`:
+  `continueWithDocumentFamilyNow=true`,
+  `switchToFuncionarioNow=false`,
+  `schemaDiagnosticAllowedNow=true`,
+  `adapterDiagnosticAllowedNow=true` e
+  `localReadCutoverAllowedNow=false`. O diagnostico separou como fontes minimas
+  `pessoa_documento`, `documento`, `tipo_documento` e `pessoa`, definiu
+  `pessoa_documento.id_pessoa_documento` como chave primaria de reconciliacao e
+  listou checagens secundarias por `id_pessoa`, `id_documento`,
+  `id_tipo_documento`, `data_upload` e `pessoa.id_escola`. Tambem formalizou os
+  blockers para seguir: ownership por escola ainda dependente de join com
+  `pessoa`, normalizacao de `caminho_arquivo`, e manutencao do monolito como
+  autoridade de upload e delete. Nao houve migration, adapter JDBC, rota
+  externa, BFF/frontend, escrita local nem alteracao funcional no
+  `school-management-service`. A contagem regressiva da Fase 74 passa a 1
+  subfase restante estimada.
 
 ## Historico resumido
 
