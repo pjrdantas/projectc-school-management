@@ -3914,13 +3914,40 @@ implementacao pratica do contrato interno read-only de metadados de
 `pessoa_documento`, ainda sem rota externa, sem BFF e sem mover escrita do
 monolito.
 
+Entregue na terceira subfase da Fase 73:
+
+- foram criados no `people-service` os artefatos internos minimos de leitura
+  read-only de metadados de documento: `PessoaDocumentoMetadataLocalReadResponse`,
+  `PeopleDocumentMetadataLocalReadPort` e
+  `PeopleDocumentMetadataLocalReadService`, sem rota externa, sem entidade JPA
+  e sem adapter JDBC conectado nesta subfase;
+- o actuator `peopleLocalPersistence` passou a expor o diagnostico
+  `peopleDocumentInternalMetadataReadContractDiagnostic`, registrando
+  `contractPrepared=true`, `internalServicePrepared=true`,
+  `adapterCreated=false`, `localPersistenceConnected=false`,
+  `externalRouteCreated=false` e `fallbackRequired=true`;
+- o contrato interno foi limitado aos metadados minimos
+  (`id_pessoa_documento`, `id_pessoa`, `id_documento`, `id_tipo_documento`,
+  `tipo_documento_codigo`, `tipo_documento_descricao`, `numero_documento`,
+  `caminho_arquivo`, `observacao`, `data_upload`) e aos consumidores internos
+  `listarDocumentosPorPessoa` e `buscarDocumentoPorId`;
+- o servico interno foi preparado para fallback seguro quando nao houver adapter
+  local, registrando metrica de leitura de metadados sem ativar cutover, sem
+  alterar BFF/frontend e sem mover upload, exclusao, cleanup ou storage binario
+  do monolito.
+
+Contagem da macrofase Fase 73: 0 subfases restantes estimadas. O bloco
+`pessoa/endereco` foi fechado e a primeira fronteira interna de
+`pessoa_documento` ficou preparada sem rota externa, sem persistencia local e
+sem reabrir os recortes anteriores.
+
 Proxima fase pratica:
 
-- preparar no `people-service` apenas o contrato interno minimo read-only para
-  metadados de `pessoa_documento` por pessoa, sem expor entidades JPA e sem
-  alterar rotas externas;
-- manter upload, exclusao, cleanup, persistencia autoritativa e qualquer
-  storage de arquivo no monolito nesta etapa.
+- iniciar a proxima macrofase backend com o diagnostico do adapter/local read
+  candidate de metadados de `pessoa_documento`, decidindo se vale criar schema
+  minimo proprio ou se o proximo recorte mais seguro passa a ser `funcionario`;
+- manter fora do escopo qualquer migracao de upload, escrita autoritativa,
+  cleanup documental, BFF ou frontend.
 
 ### Fase futura - Desativacao do monolito
 

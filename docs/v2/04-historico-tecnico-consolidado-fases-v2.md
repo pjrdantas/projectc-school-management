@@ -1740,6 +1740,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   e `caminhoArquivo` nesta subfase. Nao houve rota externa, BFF/frontend,
   storage binario, escrita local nem mudanca funcional no monolito. A contagem
   regressiva da Fase 73 passa a 1 subfase restante estimada.
+- A terceira subfase da Fase 73 fechou a primeira preparacao pratica de
+  `pessoa_documento` no `people-service`. Foram criados os artefatos internos
+  minimos `PessoaDocumentoMetadataLocalReadResponse`,
+  `PeopleDocumentMetadataLocalReadPort` e
+  `PeopleDocumentMetadataLocalReadService`, limitados a leitura read-only de
+  metadados por pessoa e por documento, sem rota externa, sem entidade JPA e
+  sem adapter JDBC conectado. O health `peopleLocalPersistence` passou a expor
+  `peopleDocumentInternalMetadataReadContractDiagnostic`, registrando
+  `contractPrepared=true`, `internalServicePrepared=true`,
+  `adapterCreated=false`, `localPersistenceConnected=false`,
+  `externalRouteCreated=false` e `fallbackRequired=true`, com payload minimo de
+  `id_pessoa_documento`, `id_pessoa`, `id_documento`, `id_tipo_documento`,
+  codigos/descricoes de tipo, `numero_documento`, `caminho_arquivo`,
+  `observacao` e `data_upload`. O servico interno foi preparado para fallback
+  seguro quando ainda nao houver adapter local, registrando apenas metrica
+  interna e preservando o monolito como fonte unica para upload, exclusao,
+  cleanup e storage binario. Nao houve BFF/frontend, persistencia local,
+  migration, rota publica nem alteracao funcional no `school-management-service`.
+  A contagem regressiva da Fase 73 chega a 0.
 
 ## Historico resumido
 

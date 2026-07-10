@@ -691,5 +691,32 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("keepWritesOnMonolith", true)
                 .containsEntry("keepCleanupOnMonolith", true)
                 .containsEntry("prepareExternalRouteNow", false);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> peopleDocumentInternalContract =
+                (Map<String, Object>) health.getDetails().get("peopleDocumentInternalMetadataReadContractDiagnostic");
+        assertThat(peopleDocumentInternalContract)
+                .containsEntry("phase", "Fase 73")
+                .containsEntry("slice", "people_document_internal_metadata_read_contract")
+                .containsEntry("status", "internal_contract_prepared_no_adapter_no_route")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_73_and_plan_people_document_local_adapter_diagnostic")
+                .containsEntry("minimalNextSlice", "people_document_local_metadata_adapter_diagnostic")
+                .containsEntry("contractPrepared", true)
+                .containsEntry("internalServicePrepared", true)
+                .containsEntry("adapterCreated", false)
+                .containsEntry("localPersistenceConnected", false)
+                .containsEntry("externalRouteCreated", false)
+                .containsEntry("fallbackRequired", true);
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> preparedDocumentArtifacts =
+                (java.util.Map<String, Object>) peopleDocumentInternalContract.get("preparedArtifacts");
+        assertThat(preparedDocumentArtifacts)
+                .containsEntry("port", "PeopleDocumentMetadataLocalReadPort")
+                .containsEntry("response", "PessoaDocumentoMetadataLocalReadResponse")
+                .containsEntry("internalService", "PeopleDocumentMetadataLocalReadService")
+                .containsEntry("adapterCreated", false)
+                .containsEntry("routeCreated", false)
+                .containsEntry("localPersistenceConnected", false);
     }
 }
