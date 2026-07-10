@@ -4341,6 +4341,31 @@ Proxima fase pratica sugerida:
   como preparado e sem consumidor real nesta etapa; ou
 - iniciar outro recorte backend menor fora da familia de funcionario.
 
+### Fase 85 - Fechamento formal do bloco de funcionario
+
+Objetivo: encerrar formalmente o bloco backend/backend de
+`funcionario_internal_summary` como preparado neste estagio, sem reabrir rota,
+sem forcar consumidor artificial e sem mudar autoridade do monolito.
+
+Entregue na primeira subfase da Fase 85:
+
+- foi consolidado o fechamento formal do bloco de
+  `funcionario_internal_summary`, registrando contrato, adapter, read model,
+  backfill/reconciliacao e guard de leitura local como capacidades prontas;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleFuncionarioScopeClosureDiagnostic`, deixando explicito que o bloco pode
+  ser considerado encerrado neste estagio sem ativacao adicional;
+- a fase conclui que a proxima evolucao deve sair para outra familia backend,
+  sem reabrir `funcionario_internal_summary` nesta mesma linha.
+
+Contagem da macrofase Fase 85: 0 subfases restantes estimadas.
+
+Proxima fase pratica sugerida:
+
+- iniciar um novo recorte backend minimo fora da familia de funcionario; ou
+- se houver necessidade objetiva futura, reabrir funcionario apenas com novo
+  consumidor real ou nova fronteira tecnica justificada.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

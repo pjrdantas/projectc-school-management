@@ -539,5 +539,27 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("safeToConnectNow", false)
                 .containsEntry("externalRouteChangeRequired", false)
                 .containsEntry("fallbackRequired", true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> funcionarioScopeClosure =
+                (Map<String, Object>) details.get("peopleFuncionarioScopeClosureDiagnostic");
+        assertThat(funcionarioScopeClosure)
+                .containsEntry("phase", "Fase 85")
+                .containsEntry("slice", "funcionario_internal_summary_scope_closure_review")
+                .containsEntry("status", "funcionario_internal_summary_scope_review_closed_ready_for_next_family_diagnostic")
+                .containsEntry("recommendedNextStep",
+                        "start_next_backend_family_without_reopening_funcionario_internal_summary")
+                .containsEntry("minimalNextSlice", "next_backend_family_diagnostic")
+                .containsEntry("readScopeClosed", true)
+                .containsEntry("writeScopePreparedWithoutCutover", false)
+                .containsEntry("activationRequiredNow", false)
+                .containsEntry("safeToStartNextFamilyDiagnostic", true);
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> funcionarioCurrentRecommendation =
+                (java.util.Map<String, Object>) funcionarioScopeClosure.get("currentRecommendation");
+        assertThat(funcionarioCurrentRecommendation)
+                .containsEntry("keepFuncionarioGuardPreparedButUnused", true)
+                .containsEntry("keepFuncionarioAuthorityOnMonolith", true)
+                .containsEntry("nextPreferredFamily", "next_backend_family")
+                .containsEntry("reopenFuncionarioInThisPhase", false);
     }
 }

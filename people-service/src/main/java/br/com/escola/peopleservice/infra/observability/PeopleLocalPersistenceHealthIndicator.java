@@ -25,6 +25,7 @@ import br.com.escola.peopleservice.application.dto.PeopleFuncionarioInternalSumm
 import br.com.escola.peopleservice.application.dto.PeopleFuncionarioInternalSummaryBackfillReconciliationPreparationPlan;
 import br.com.escola.peopleservice.application.dto.PeopleFuncionarioInternalSummaryLocalReadActivationEligibilityPlan;
 import br.com.escola.peopleservice.application.dto.PeopleFuncionarioInternalUsageCandidatePlan;
+import br.com.escola.peopleservice.application.dto.PeopleFuncionarioScopeClosurePlan;
 import br.com.escola.peopleservice.application.dto.PeopleFuncionarioScopeDiagnosticPlan;
 import br.com.escola.peopleservice.application.dto.PeopleFuncionarioInternalSummaryContractPlan;
 import br.com.escola.peopleservice.application.dto.PeopleTransactionalReadModelExpansionPlan;
@@ -44,6 +45,7 @@ import br.com.escola.peopleservice.application.service.PeopleFuncionarioInternal
 import br.com.escola.peopleservice.application.service.PeopleFuncionarioInternalSummaryBackfillReconciliationPreparationPlanner;
 import br.com.escola.peopleservice.application.service.PeopleFuncionarioInternalSummaryLocalReadActivationEligibilityPlanner;
 import br.com.escola.peopleservice.application.service.PeopleFuncionarioInternalUsageCandidatePlanner;
+import br.com.escola.peopleservice.application.service.PeopleFuncionarioScopeClosurePlanner;
 import br.com.escola.peopleservice.application.service.PeopleFuncionarioInternalSummaryContractPlanner;
 import br.com.escola.peopleservice.application.service.PeopleFuncionarioScopeDiagnosticPlanner;
 import br.com.escola.peopleservice.application.service.PeopleLocalPersistenceOperationState;
@@ -119,6 +121,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             new PeopleFuncionarioInternalSummaryLocalReadActivationEligibilityPlanner();
     private final PeopleFuncionarioInternalUsageCandidatePlanner funcionarioInternalUsageCandidatePlanner =
             new PeopleFuncionarioInternalUsageCandidatePlanner();
+    private final PeopleFuncionarioScopeClosurePlanner funcionarioScopeClosurePlanner =
+            new PeopleFuncionarioScopeClosurePlanner();
     private final PeopleDocumentInternalMetadataReadContractPlanner documentInternalMetadataReadContractPlanner =
             new PeopleDocumentInternalMetadataReadContractPlanner();
     private final PeopleDocumentLocalReadCandidatePlanner documentLocalReadCandidatePlanner =
@@ -210,6 +214,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoElegibilidadeAtivacaoLeituraLocalResumoFuncionario());
         details.put("peopleFuncionarioInternalUsageCandidateDiagnostic",
                 diagnosticoUsoInternoMinimoResumoFuncionario());
+        details.put("peopleFuncionarioScopeClosureDiagnostic",
+                diagnosticoFechamentoEscopoFuncionario());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -809,6 +815,32 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("currentBlockers", plan.currentBlockers());
         details.put("preservedBoundaries", plan.preservedBoundaries());
         details.put("rollbackSteps", plan.rollbackSteps());
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoFechamentoEscopoFuncionario() {
+        PeopleFuncionarioScopeClosurePlan plan =
+                funcionarioScopeClosurePlanner.planejarFechamentoEscopoFuncionario();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("readScopeClosed", plan.readScopeClosed());
+        details.put("writeScopePreparedWithoutCutover", plan.writeScopePreparedWithoutCutover());
+        details.put("activationRequiredNow", plan.activationRequiredNow());
+        details.put("safeToStartNextFamilyDiagnostic", plan.safeToStartNextFamilyDiagnostic());
+        details.put("closedCapabilities", plan.closedCapabilities());
+        details.put("remainingActivationBlockers", plan.remainingActivationBlockers());
+        details.put("nextFamilyCandidates", plan.nextFamilyCandidates());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        details.put("currentRecommendation", Map.of(
+                "keepFuncionarioGuardPreparedButUnused", true,
+                "keepFuncionarioAuthorityOnMonolith", true,
+                "nextPreferredFamily", "next_backend_family",
+                "reopenFuncionarioInThisPhase", false));
         return details;
     }
 
