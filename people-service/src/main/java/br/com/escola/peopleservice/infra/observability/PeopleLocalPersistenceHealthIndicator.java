@@ -12,6 +12,7 @@ import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecisio
 import br.com.escola.peopleservice.application.dto.PeopleCatalogReadModelSchemaPlan;
 import br.com.escola.peopleservice.application.dto.PeopleAddressScopeClosurePlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentBackfillReconciliationPreparationPlan;
+import br.com.escola.peopleservice.application.dto.PeopleDocumentScopeClosurePlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentLocalReadActivationEligibilityPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentInternalUsageCandidatePlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentLocalReadCandidatePlan;
@@ -34,6 +35,7 @@ import br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthori
 import br.com.escola.peopleservice.application.service.PeopleAddressWriteMonolithAdapterPlanner;
 import br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentBackfillReconciliationPreparationPlanner;
+import br.com.escola.peopleservice.application.service.PeopleDocumentScopeClosurePlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentLocalReadActivationEligibilityPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentInternalUsageCandidatePlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentLocalReadCandidatePlanner;
@@ -107,6 +109,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             new PeopleAddressWriteMonolithAdapterPlanner();
     private final PeopleAddressScopeClosurePlanner addressScopeClosurePlanner =
             new PeopleAddressScopeClosurePlanner();
+    private final PeopleDocumentScopeClosurePlanner documentScopeClosurePlanner =
+            new PeopleDocumentScopeClosurePlanner();
     private final PeopleDocumentScopeDiagnosticPlanner documentScopeDiagnosticPlanner =
             new PeopleDocumentScopeDiagnosticPlanner();
     private final PeopleFuncionarioScopeDiagnosticPlanner funcionarioScopeDiagnosticPlanner =
@@ -203,6 +207,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoElegibilidadeAtivacaoLeituraLocalDocumento());
         details.put("peopleDocumentInternalUsageCandidateDiagnostic",
                 diagnosticoUsoInternoMinimoDocumento());
+        details.put("peopleDocumentScopeClosureDiagnostic",
+                diagnosticoFechamentoEscopoPessoaDocumento());
         details.put("peopleFuncionarioScopeDiagnostic", diagnosticoEscopoFuncionario());
         details.put("peopleFuncionarioInternalSummaryContractDiagnostic",
                 diagnosticoContratoInternoResumoFuncionario());
@@ -657,6 +663,32 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("currentBlockers", plan.currentBlockers());
         details.put("preservedBoundaries", plan.preservedBoundaries());
         details.put("rollbackSteps", plan.rollbackSteps());
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoFechamentoEscopoPessoaDocumento() {
+        PeopleDocumentScopeClosurePlan plan =
+                documentScopeClosurePlanner.planejarFechamentoEscopoPessoaDocumento();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("readScopeClosed", plan.readScopeClosed());
+        details.put("writeScopePreparedWithoutCutover", plan.writeScopePreparedWithoutCutover());
+        details.put("activationRequiredNow", plan.activationRequiredNow());
+        details.put("safeToStartNextFamilyDiagnostic", plan.safeToStartNextFamilyDiagnostic());
+        details.put("closedCapabilities", plan.closedCapabilities());
+        details.put("remainingActivationBlockers", plan.remainingActivationBlockers());
+        details.put("nextFamilyCandidates", plan.nextFamilyCandidates());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        details.put("currentRecommendation", Map.of(
+                "keepDocumentGuardPreparedButUnused", true,
+                "keepDocumentAuthorityOnMonolith", true,
+                "nextPreferredFamily", "next_backend_family",
+                "reopenPessoaDocumentoInThisPhase", false));
         return details;
     }
 

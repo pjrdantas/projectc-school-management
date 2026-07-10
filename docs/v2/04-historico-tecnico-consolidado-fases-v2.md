@@ -1910,6 +1910,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   seguinte deve sair para outra familia backend sem reabrir esse bloco agora. A
   fase termina sem alteracao funcional oficial no
   `school-management-service`, com a contagem regressiva da Fase 85 em 0.
+- A primeira subfase da Fase 86 consolidou o fechamento formal do bloco de
+  metadados de `pessoa_documento` no `people-service`, registrando como
+  fechadas neste estagio as capacidades de diagnostico de escopo, contrato
+  interno, candidato local de leitura, schema, adapter JDBC,
+  backfill/reconciliacao, guard e diagnostico de ausencia de consumidor interno
+  real. O actuator `peopleLocalPersistence` passou a expor
+  `peopleDocumentScopeClosureDiagnostic`, deixando explicito que a evolucao
+  seguinte deve sair para outra familia backend sem reabrir esse bloco agora. A
+  fase termina sem alteracao funcional oficial no
+  `school-management-service`, com a contagem regressiva da Fase 86 em 0.
 
 ## Historico resumido
 

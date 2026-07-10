@@ -4366,6 +4366,35 @@ Proxima fase pratica sugerida:
 - se houver necessidade objetiva futura, reabrir funcionario apenas com novo
   consumidor real ou nova fronteira tecnica justificada.
 
+### Fase 86 - Fechamento formal do bloco de pessoa_documento
+
+Objetivo: encerrar formalmente o bloco backend/backend de
+`people_documento_read_model` como preparado neste estagio, sem reabrir rota,
+sem forcar consumidor artificial e sem mover upload, listagem ou cleanup
+documental para fora do monolito.
+
+Entregue na primeira subfase da Fase 86:
+
+- foi consolidado o fechamento formal do bloco de metadados de
+  `pessoa_documento`, registrando como capacidades prontas o diagnostico de
+  escopo, o contrato interno, o candidato local de leitura, o schema,
+  o adapter JDBC, o backfill/reconciliacao, o guard de leitura local e o
+  diagnostico de ausencia de consumidor interno real;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleDocumentScopeClosureDiagnostic`, deixando explicito que o bloco pode
+  ser considerado encerrado neste estagio sem ativacao adicional;
+- a fase conclui que a proxima evolucao deve sair para outra familia backend,
+  sem reabrir `pessoa_documento` nesta mesma linha.
+
+Contagem da macrofase Fase 86: 0 subfases restantes estimadas.
+
+Proxima fase pratica sugerida:
+
+- iniciar um novo recorte backend minimo fora das familias `funcionario` e
+  `pessoa_documento`; ou
+- se houver necessidade objetiva futura, reabrir `pessoa_documento` apenas com
+  novo consumidor real ou nova fronteira tecnica justificada.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

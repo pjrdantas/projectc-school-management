@@ -852,6 +852,28 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("externalRouteChangeRequired", false)
                 .containsEntry("fallbackRequired", true);
         @SuppressWarnings("unchecked")
+        Map<String, Object> documentScopeClosure =
+                (Map<String, Object>) health.getDetails().get("peopleDocumentScopeClosureDiagnostic");
+        assertThat(documentScopeClosure)
+                .containsEntry("phase", "Fase 86")
+                .containsEntry("slice", "people_document_metadata_scope_closure_review")
+                .containsEntry("status", "people_document_metadata_scope_review_closed_ready_for_next_family_diagnostic")
+                .containsEntry("recommendedNextStep",
+                        "start_next_backend_family_without_reopening_people_document_metadata")
+                .containsEntry("minimalNextSlice", "next_backend_family_diagnostic")
+                .containsEntry("readScopeClosed", true)
+                .containsEntry("writeScopePreparedWithoutCutover", false)
+                .containsEntry("activationRequiredNow", false)
+                .containsEntry("safeToStartNextFamilyDiagnostic", true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> documentScopeClosureRecommendation =
+                (Map<String, Object>) documentScopeClosure.get("currentRecommendation");
+        assertThat(documentScopeClosureRecommendation)
+                .containsEntry("keepDocumentGuardPreparedButUnused", true)
+                .containsEntry("keepDocumentAuthorityOnMonolith", true)
+                .containsEntry("nextPreferredFamily", "next_backend_family")
+                .containsEntry("reopenPessoaDocumentoInThisPhase", false);
+        @SuppressWarnings("unchecked")
         Map<String, Object> funcionarioScopeDiagnostic =
                 (Map<String, Object>) health.getDetails().get("peopleFuncionarioScopeDiagnostic");
         assertThat(funcionarioScopeDiagnostic)
