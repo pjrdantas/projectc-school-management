@@ -1848,6 +1848,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   consumidor interno seguro neste ponto sem abrir rota, mexer em
   `consultarCadastro` ou criar acoplamento artificial. A fase termina sem
   conexao funcional nova e com a contagem regressiva da Fase 78 em 0.
+- A primeira subfase da Fase 79 abriu o diagnostico minimo de `funcionario` no
+  `people-service`. O actuator `peopleLocalPersistence` passou a expor
+  `peopleFuncionarioScopeDiagnostic`, registrando que o primeiro recorte seguro
+  e somente um resumo interno read-only por escola, enquanto elegibilidade de
+  professor, autenticacao, cargo, usuario e writes de funcionario permanecem no
+  monolito. A fase termina sem rota nova, sem persistencia local e sem alteracao
+  funcional no `school-management-service`, com a contagem regressiva da Fase 79
+  em 0.
 
 ## Historico resumido
 

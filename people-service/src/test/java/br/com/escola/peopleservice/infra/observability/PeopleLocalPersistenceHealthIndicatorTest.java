@@ -850,5 +850,21 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("safeToConnectNow", false)
                 .containsEntry("externalRouteChangeRequired", false)
                 .containsEntry("fallbackRequired", true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> funcionarioScopeDiagnostic =
+                (Map<String, Object>) health.getDetails().get("peopleFuncionarioScopeDiagnostic");
+        assertThat(funcionarioScopeDiagnostic)
+                .containsEntry("phase", "Fase 79")
+                .containsEntry("slice", "funcionario_contract_diagnostic")
+                .containsEntry("status",
+                        "employee_summary_contract_preferred_professor_and_auth_dependencies_preserved_on_monolith")
+                .containsEntry("recommendedNextStep",
+                        "prepare_minimal_funcionario_internal_summary_contract_without_route_or_persistence_cutover")
+                .containsEntry("minimalNextSlice", "funcionario_internal_summary_contract")
+                .containsEntry("diagnosticReadyNow", true)
+                .containsEntry("internalContractSeparationAllowedNow", true)
+                .containsEntry("localPersistenceAllowedNow", false)
+                .containsEntry("externalRouteChangeAllowedNow", false)
+                .containsEntry("fallbackToCurrentMonolithRequired", true);
     }
 }

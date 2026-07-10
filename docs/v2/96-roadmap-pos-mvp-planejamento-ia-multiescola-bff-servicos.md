@@ -4159,6 +4159,38 @@ Proxima fase pratica sugerida:
 - manter `pessoa_documento` estacionado ate existir um consumidor interno real
   justificado por fase futura.
 
+### Fase 79 - Diagnostico minimo de funcionario
+
+Objetivo: mapear o menor recorte seguro de `funcionario` para o
+`people-service`, ainda sem rota externa, sem persistencia local, sem tocar
+autenticacao e sem mexer no fluxo funcional de professor.
+
+Entregue na primeira subfase da Fase 79:
+
+- foi formalizado o diagnostico de `funcionario` no actuator
+  `peopleLocalPersistence`, deixando explicito que o primeiro recorte seguro e
+  apenas um resumo interno read-only por escola;
+- o diagnostico registrou como dependencias atuais do monolito o contrato
+  interno de elegibilidade de professor (`GET /internal/funcionarios/{id}/professor`
+  e `GET /internal/funcionarios/professor-elegiveis`), o
+  `FuncionarioProfessorService` e o uso indireto de professor/autenticacao em
+  `IdentidadeTenantService`;
+- tambem ficou explicito que write de funcionario, cargo, usuario, autenticacao
+  e qualquer alteracao no cadastro de professor permanecem fora de escopo nesta
+  macrofase;
+- a recomendacao objetiva da fase ficou registrada como
+  `funcionario_internal_summary_read_only`, sem criar rota nova, sem BFF e sem
+  cutover.
+
+Contagem da macrofase Fase 79: 0 subfases restantes estimadas.
+
+Proxima fase pratica sugerida:
+
+- preparar o contrato interno minimo de resumo read-only de `funcionario` no
+  `people-service`, ainda sem persistencia local e sem rota externa; ou
+- se preferir segurar `funcionario`, abrir o proximo diagnostico backend de
+  outra familia ainda acoplada.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
