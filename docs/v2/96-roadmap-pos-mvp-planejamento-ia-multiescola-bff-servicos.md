@@ -84,6 +84,56 @@ portas HTTP/eventos com contratos explicitos.
 16. MongoDB nao substitui PostgreSQL em invariantes transacionais.
 17. Contratos externos sao versionados e retrocompativeis durante a migracao.
 
+## Regra operacional para fases internas, shadow e cutover
+
+Antes de introduzir complexidade operacional, a fase precisa ser classificada
+corretamente.
+
+Quando a fase estiver restrita ao backend atual/monolito, sem novo runtime
+recebendo trafego, sem BFF redirecionando rota, sem migracao fisica de banco,
+sem alteracao de contrato externo e sem troca real de caminho da aplicacao, nao
+criar cutover, modo shadow, feature flag operacional, smoke distribuido ou
+infraestrutura adicional.
+
+Para essas fases internas, seguir apenas este fluxo:
+
+1. diagnosticar o menor acoplamento;
+2. implementar a fronteira interna;
+3. preservar o contrato REST existente;
+4. preservar comportamento funcional;
+5. criar ou ajustar testes necessarios;
+6. executar testes;
+7. registrar objetivamente a entrega no roadmap.
+
+Cutover so deve ser introduzido quando uma rota real passar a ser redirecionada
+para outro runtime, por exemplo:
+
+- BFF deixando de chamar o monolito e passando a chamar um servico novo;
+- frontend passando a consumir o BFF no lugar do monolito;
+- escrita oficial saindo do monolito e indo para outro servico;
+- leitura oficial deixando de vir do monolito e passando a vir de servico
+  extraido.
+
+Shadow so deve ser introduzido quando ja existir um novo runtime executando em
+paralelo para leitura, comparacao, observabilidade ou validacao de
+comportamento, sem assumir trafego oficial.
+
+Mesmo nesses casos, `shadow` e modo operacional e nao deve aparecer como nome
+de classe, controller, service, use case, porta, DTO, package ou teste de
+negocio. Esse vocabulario deve ficar em documentacao, roadmap, configuracao,
+profile, metrica, log e plano operacional.
+
+Resumo da regra:
+
+- fase interna no monolito: desenvolver, testar e registrar;
+- novo servico read-only sem trafego oficial: health/smoke simples; shadow
+  apenas se houver comparacao real;
+- rota migrada para BFF/servico novo: cutover obrigatorio com feature flag e
+  rollback;
+- escrita migrada para servico novo: cutover obrigatorio com reconciliacao,
+  idempotencia e rollback planejado;
+- producao final: plano operacional de cutover obrigatorio.
+
 ## Estrutura DDD obrigatoria por servico
 
 ```text

@@ -22,11 +22,11 @@ import br.com.escola.peopleservice.application.port.in.PessoaQueryUseCase;
 
 @RestController
 @RequestMapping({ "/internal/v1", "/internal" })
-public class PessoaShadowQueryController {
+public class PessoaInternalQueryController {
 
     private final PessoaQueryUseCase pessoaQueryUseCase;
 
-    public PessoaShadowQueryController(PessoaQueryUseCase pessoaQueryUseCase) {
+    public PessoaInternalQueryController(PessoaQueryUseCase pessoaQueryUseCase) {
         this.pessoaQueryUseCase = pessoaQueryUseCase;
     }
 

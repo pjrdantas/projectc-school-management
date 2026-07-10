@@ -40,6 +40,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   bloqueio por papeis. A necessidade de impedir alteracoes apos assinatura do
   professor e validacao posterior por coordenacao e direcao ainda nao existe no
   backend atual e deve ser tratada como evolucao propria.
+- Fica explicito para as proximas fases que `shadow` e `cutover` nao devem ser
+  introduzidos em toda etapa. Quando o trabalho permanecer restrito ao backend
+  atual/monolito, sem novo runtime recebendo trafego, sem BFF redirecionando
+  rota, sem migracao fisica de banco, sem alteracao de contrato externo e sem
+  troca real de caminho da aplicacao, a execucao deve ficar limitada a:
+  diagnosticar o menor acoplamento, implementar a fronteira interna, preservar
+  contrato REST e comportamento funcional, ajustar testes, executar testes e
+  registrar objetivamente a entrega. `Cutover` fica reservado para migracao
+  real de rota/trafego e `shadow` fica reservado para runtime paralelo com
+  comparacao/observabilidade real; em ambos os casos, esses termos nao devem
+  aparecer como nome de classe de negocio.
 - A nova tela de `historico escolar` foi classificada como substituta funcional
   do fluxo atual em `historico`, exigindo evolucao do contrato hoje exposto em
   `/api/historicos-escolares`: cadastro inicial incompleto, pendencias

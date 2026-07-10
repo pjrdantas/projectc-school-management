@@ -25,7 +25,7 @@ import okhttp3.mockwebserver.RecordedRequest;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class PessoaShadowQueryControllerIntegrationTest {
+class PessoaInternalQueryControllerIntegrationTest {
 
     private static MockWebServer mockWebServer;
 
