@@ -3881,14 +3881,46 @@ diagnosticar o contrato minimo de `pessoa_documento` no `people-service`; depois
 decidir a primeira preparacao pratica dessa nova familia sem reabrir
 endereco/pessoa.
 
+Entregue na segunda subfase da Fase 73:
+
+- foi criado no actuator `peopleLocalPersistence` o diagnostico
+  `peopleDocumentScopeDiagnostic`, separando o menor recorte seguro de
+  `pessoa_documento` sem reabrir `pessoa/endereco` e sem antecipar
+  `cutover/shadow` operacional;
+- o diagnostico registrou que o primeiro recorte preferido e leitura interna
+  read-only de metadados por pessoa, mantendo upload, exclusao e cleanup no
+  monolito: `diagnosticReadyNow=true`,
+  `internalContractSeparationAllowedNow=true`,
+  `localPersistenceAllowedNow=false`,
+  `externalRouteChangeAllowedNow=false` e
+  `fallbackToCurrentMonolithRequired=true`;
+- as dependencias minimas no monolito ficaram explicitadas em
+  `DocumentoController`, `DocumentoAlunoController`,
+  `DocumentoPersistenceGateway`, `DocumentoJpaRepository` e nos cleanups de
+  `AlunoPersistenceGateway`/`ResponsavelPersistenceGateway`, deixando claro que
+  `pessoa_documento` depende tambem de `documento`, `tipo_documento` e do join
+  com `pessoa.id_escola`;
+- os impactos de consistencia e PII ficaram formalizados: exclusao exige
+  remover vinculos antes de apagar documentos orfaos, qualquer leitura futura
+  precisa reconciliar `pessoa_documento` com `documento`, e campos como
+  `numeroDocumento` e `caminhoArquivo` nao devem ampliar exposicao nesta
+  subfase;
+- a migracao minima futura ficou restrita a eventual read model de metadados e
+  vinculos, sem storage binario, sem escrita local autoritativa, sem BFF e sem
+  nova rota externa.
+
+Contagem da macrofase Fase 73: 1 subfase restante estimada: preparar a primeira
+implementacao pratica do contrato interno read-only de metadados de
+`pessoa_documento`, ainda sem rota externa, sem BFF e sem mover escrita do
+monolito.
+
 Proxima fase pratica:
 
-- iniciar o diagnostico do contrato interno minimo de `pessoa_documento` no
-  `people-service`, separando leitura, escrita, dependencias no monolito,
-  impacto de PII e estrategia minima de rollback;
-- manter fora do escopo reativacao de endereco, rota externa nova,
-  persistencia local autoritativa, BFF/frontend e remocao dos fluxos atuais do
-  monolito.
+- preparar no `people-service` apenas o contrato interno minimo read-only para
+  metadados de `pessoa_documento` por pessoa, sem expor entidades JPA e sem
+  alterar rotas externas;
+- manter upload, exclusao, cleanup, persistencia autoritativa e qualquer
+  storage de arquivo no monolito nesta etapa.
 
 ### Fase futura - Desativacao do monolito
 

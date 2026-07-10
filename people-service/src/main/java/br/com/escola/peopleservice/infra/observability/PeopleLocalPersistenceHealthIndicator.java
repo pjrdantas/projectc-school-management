@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecision;
 import br.com.escola.peopleservice.application.dto.PeopleCatalogReadModelSchemaPlan;
 import br.com.escola.peopleservice.application.dto.PeopleAddressScopeClosurePlan;
+import br.com.escola.peopleservice.application.dto.PeopleDocumentScopeDiagnosticPlan;
 import br.com.escola.peopleservice.application.dto.PeopleAddressWriteMonolithAdapterPlan;
 import br.com.escola.peopleservice.application.dto.PeopleAddressWriteAuthorityPlan;
 import br.com.escola.peopleservice.application.dto.PeopleTransactionalReadModelExpansionPlan;
@@ -18,6 +19,7 @@ import br.com.escola.peopleservice.application.service.PeopleAddressScopeClosure
 import br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthorityPlanner;
 import br.com.escola.peopleservice.application.service.PeopleAddressWriteMonolithAdapterPlanner;
 import br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner;
+import br.com.escola.peopleservice.application.service.PeopleDocumentScopeDiagnosticPlanner;
 import br.com.escola.peopleservice.application.service.PeopleLocalPersistenceOperationState;
 import br.com.escola.peopleservice.application.service.PeopleLocalReadModelSchemaMigrationState;
 import br.com.escola.peopleservice.application.service.PeopleLocalReadCutoverGuard;
@@ -75,6 +77,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             new PeopleAddressWriteMonolithAdapterPlanner();
     private final PeopleAddressScopeClosurePlanner addressScopeClosurePlanner =
             new PeopleAddressScopeClosurePlanner();
+    private final PeopleDocumentScopeDiagnosticPlanner documentScopeDiagnosticPlanner =
+            new PeopleDocumentScopeDiagnosticPlanner();
     private final PeopleLocalReadModelSchemaMigrationState schemaMigrationState;
     private final PeopleLocalPersistenceOperationState operationState;
 
@@ -126,6 +130,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         details.put("addressWriteAuthorityDiagnostic", diagnosticoAutoridadeEscritaEndereco());
         details.put("addressWriteMonolithAdapterDiagnostic", diagnosticoAdapterEscritaMonolito());
         details.put("peopleAddressScopeClosureDiagnostic", diagnosticoFechamentoEscopoPessoaEndereco());
+        details.put("peopleDocumentScopeDiagnostic", diagnosticoEscopoPessoaDocumento());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -342,6 +347,37 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "keepAddressWritesOnMonolith", true,
                 "nextPreferredFamily", "pessoa_documento",
                 "reopenAddressInThisPhase", false));
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoEscopoPessoaDocumento() {
+        PeopleDocumentScopeDiagnosticPlan plan =
+                documentScopeDiagnosticPlanner.planejarDiagnosticoEscopoPessoaDocumento();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("diagnosticReadyNow", plan.diagnosticReadyNow());
+        details.put("internalContractSeparationAllowedNow", plan.internalContractSeparationAllowedNow());
+        details.put("localPersistenceAllowedNow", plan.localPersistenceAllowedNow());
+        details.put("externalRouteChangeAllowedNow", plan.externalRouteChangeAllowedNow());
+        details.put("fallbackToCurrentMonolithRequired", plan.fallbackToCurrentMonolithRequired());
+        details.put("minimalReadCandidates", plan.minimalReadCandidates());
+        details.put("minimalWriteCandidates", plan.minimalWriteCandidates());
+        details.put("monolithDependencies", plan.monolithDependencies());
+        details.put("consistencyImpacts", plan.consistencyImpacts());
+        details.put("piiImpacts", plan.piiImpacts());
+        details.put("minimalMigrationRequirements", plan.minimalMigrationRequirements());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("firstImplementationGuardrails", plan.firstImplementationGuardrails());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        details.put("currentRecommendation", Map.of(
+                "preferFirstImplementation", "internal_metadata_read_only",
+                "keepWritesOnMonolith", true,
+                "keepCleanupOnMonolith", true,
+                "prepareExternalRouteNow", false));
         return details;
     }
 

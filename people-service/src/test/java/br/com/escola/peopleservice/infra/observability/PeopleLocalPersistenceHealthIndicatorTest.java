@@ -656,5 +656,40 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("keepAddressWritesOnMonolith", true)
                 .containsEntry("nextPreferredFamily", "pessoa_documento")
                 .containsEntry("reopenAddressInThisPhase", false);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> peopleDocumentScope =
+                (Map<String, Object>) health.getDetails().get("peopleDocumentScopeDiagnostic");
+        assertThat(peopleDocumentScope)
+                .containsEntry("phase", "Fase 73")
+                .containsEntry("slice", "people_document_contract_diagnostic")
+                .containsEntry("status", "document_metadata_read_contract_preferred_write_cleanup_stays_on_monolith")
+                .containsEntry("recommendedNextStep",
+                        "prepare_internal_people_document_metadata_read_contract_without_bff_or_write_cutover")
+                .containsEntry("minimalNextSlice", "people_document_internal_metadata_read_contract")
+                .containsEntry("diagnosticReadyNow", true)
+                .containsEntry("internalContractSeparationAllowedNow", true)
+                .containsEntry("localPersistenceAllowedNow", false)
+                .containsEntry("externalRouteChangeAllowedNow", false)
+                .containsEntry("fallbackToCurrentMonolithRequired", true);
+        @SuppressWarnings("unchecked")
+        java.util.List<String> minimalReadCandidates =
+                (java.util.List<String>) peopleDocumentScope.get("minimalReadCandidates");
+        assertThat(minimalReadCandidates).contains(
+                "listar metadados de documentos por pessoa para aluno/responsavel sem mover upload");
+        @SuppressWarnings("unchecked")
+        java.util.List<String> monolithDependencies =
+                (java.util.List<String>) peopleDocumentScope.get("monolithDependencies");
+        assertThat(monolithDependencies).contains(
+                "DocumentoPersistenceGateway.findByEntidade/findById/deleteByEntidade",
+                "AlunoPersistenceGateway.deleteById e ResponsavelPersistenceGateway.deleteById");
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> peopleDocumentRecommendation =
+                (java.util.Map<String, Object>) peopleDocumentScope.get("currentRecommendation");
+        assertThat(peopleDocumentRecommendation)
+                .containsEntry("preferFirstImplementation", "internal_metadata_read_only")
+                .containsEntry("keepWritesOnMonolith", true)
+                .containsEntry("keepCleanupOnMonolith", true)
+                .containsEntry("prepareExternalRouteNow", false);
     }
 }

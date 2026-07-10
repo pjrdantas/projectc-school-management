@@ -1720,6 +1720,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   BFF/frontend, persistencia local autoritativa nem remocao de fluxos atuais do
   monolito. A contagem regressiva da Fase 73 passa a 2 subfases restantes
   estimadas.
+- A segunda subfase da Fase 73 abriu o diagnostico minimo de
+  `pessoa_documento` no `people-service` sem reabrir `pessoa/endereco`. Foi
+  criado no health `peopleLocalPersistence` o diagnostico
+  `peopleDocumentScopeDiagnostic`, registrando que o menor recorte seguro e um
+  contrato interno read-only de metadados por pessoa, enquanto upload,
+  exclusao, cleanup e persistencia autoritativa seguem no monolito. O
+  diagnostico expõe `diagnosticReadyNow=true`,
+  `internalContractSeparationAllowedNow=true`,
+  `localPersistenceAllowedNow=false`,
+  `externalRouteChangeAllowedNow=false` e
+  `fallbackToCurrentMonolithRequired=true`, alem de mapear como dependencias
+  atuais `DocumentoController`, `DocumentoAlunoController`,
+  `DocumentoPersistenceGateway`, `DocumentoJpaRepository` e os cleanups em
+  `AlunoPersistenceGateway`/`ResponsavelPersistenceGateway`. Tambem ficaram
+  formalizados os impactos de consistencia e PII: reconciliacao futura entre
+  `pessoa_documento` e `documento`, dependencia de ownership por
+  `pessoa.id_escola` e nao ampliacao de campos sensiveis como `numeroDocumento`
+  e `caminhoArquivo` nesta subfase. Nao houve rota externa, BFF/frontend,
+  storage binario, escrita local nem mudanca funcional no monolito. A contagem
+  regressiva da Fase 73 passa a 1 subfase restante estimada.
 
 ## Historico resumido
 
