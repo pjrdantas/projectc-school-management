@@ -27,7 +27,8 @@ public class PeopleLocalReadModelSchemaMigrationState {
                             "responsavel",
                             "aluno_responsavel",
                             "endereco",
-                            "pessoa_endereco"),
+                            "pessoa_endereco",
+                            "people_funcionario_read_model"),
                     0));
 
     public PeopleLocalReadModelSchemaMigrationReport currentReport() {

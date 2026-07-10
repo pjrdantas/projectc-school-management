@@ -1865,6 +1865,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   regras de professor, autenticacao e qualquer write de funcionario. A fase
   termina sem alteracao funcional no `school-management-service`, com a
   contagem regressiva da Fase 80 em 0.
+- A primeira subfase da Fase 81 preparou o adapter local minimo do resumo de
+  `funcionario` no `people-service`, com migration V6 do read model e adapter
+  JDBC isolado para `people_funcionario_read_model`, ainda sem backfill,
+  reconciliacao, rota externa ou cutover. O actuator `peopleLocalPersistence`
+  passou a expor `peopleFuncionarioInternalSummaryAdapterPreparationDiagnostic`,
+  deixando explicito que professor, autenticacao e writes de funcionario
+  continuam preservados no monolito. A fase termina sem alteracao funcional no
+  `school-management-service`, com a contagem regressiva da Fase 81 em 0.
 
 ## Historico resumido
 

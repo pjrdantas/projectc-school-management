@@ -27,7 +27,8 @@ public class PeopleLocalReadModelSchemaMigrationRunner implements ApplicationRun
             "responsavel",
             "aluno_responsavel",
             "endereco",
-            "pessoa_endereco");
+            "pessoa_endereco",
+            "people_funcionario_read_model");
 
     private final PeopleLocalPersistenceProperties localPersistenceProperties;
     private final PeopleLocalReadModelSchemaMigrationProperties migrationProperties;

@@ -110,7 +110,8 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                         "aluno_responsavel",
                         "endereco",
                         "pessoa_endereco",
-                        "people_documento_read_model");
+                        "people_documento_read_model",
+                        "people_funcionario_read_model");
 
         @SuppressWarnings("unchecked")
         Map<String, Object> backfillPlan = (Map<String, Object>) health.getDetails().get("backfillPlan");
@@ -884,5 +885,24 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("fallbackRequired", true)
                 .containsEntry("candidateSource", "people_funcionario_read_model_candidate")
                 .containsEntry("fallbackSource", "monolith_internal_rh");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> funcionarioInternalSummaryAdapterPreparation =
+                (Map<String, Object>) health.getDetails().get("peopleFuncionarioInternalSummaryAdapterPreparationDiagnostic");
+        assertThat(funcionarioInternalSummaryAdapterPreparation)
+                .containsEntry("phase", "Fase 81")
+                .containsEntry("slice", "funcionario_internal_summary_adapter_preparation")
+                .containsEntry("status", "jdbc_local_adapter_prepared_internal_fallback_only")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_81_and_plan_funcionario_internal_summary_backfill_reconciliation_preparation")
+                .containsEntry("minimalNextSlice", "funcionario_internal_summary_backfill_reconciliation_preparation")
+                .containsEntry("adapterImplementationAllowedNow", true)
+                .containsEntry("adapterPrepared", true)
+                .containsEntry("internalServiceConnected", true)
+                .containsEntry("externalRouteCreated", false)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("candidateSource", "people_funcionario_read_model")
+                .containsEntry("fallbackSource", "monolith_internal_rh")
+                .containsEntry("routingOperation", "funcionarioInternalSummaryLocalRead")
+                .containsEntry("schemaVersion", "V6__create_people_funcionario_internal_summary_read_model.sql");
     }
 }

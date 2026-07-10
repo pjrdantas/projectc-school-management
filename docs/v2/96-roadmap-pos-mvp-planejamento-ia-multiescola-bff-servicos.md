@@ -4221,6 +4221,38 @@ Proxima fase pratica sugerida:
 - se o risco aumentar, parar em diagnostico adicional antes de qualquer conexao
   com persistencia local.
 
+### Fase 81 - Preparacao do adapter local minimo de funcionario
+
+Objetivo: deixar pronto o adapter JDBC minimo do resumo interno de
+`funcionario` no `people-service`, incluindo schema opt-in, sem ativar rota,
+sem backfill/reconciliacao e sem deslocar para este servico a regra funcional
+de professor ou autenticacao.
+
+Entregue na primeira subfase da Fase 81:
+
+- foi criado o adapter JDBC `JdbcPeopleFuncionarioInternalSummaryAdapter`,
+  lendo o read model `people_funcionario_read_model` apenas por `id_escola` e
+  `id_funcionario`, com fallback funcional ainda preservado no RH interno do
+  monolito;
+- foi adicionada a migration opt-in
+  `V6__create_people_funcionario_internal_summary_read_model.sql`, com schema
+  minimo alinhado ao contrato interno ja fechado na Fase 80;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleFuncionarioInternalSummaryAdapterPreparationDiagnostic`, deixando
+  explicito que adapter e schema estao preparados, mas backfill, reconciliacao,
+  cutover, rota externa e writes continuam fora de escopo;
+- a fase continua sem qualquer alteracao funcional no fluxo de professor,
+  autenticacao, BFF ou frontend.
+
+Contagem da macrofase Fase 81: 0 subfases restantes estimadas.
+
+Proxima fase pratica sugerida:
+
+- preparar o backfill/reconciliacao minimo de `funcionario_internal_summary`,
+  ainda sem rota externa e sem ativacao de leitura local; ou
+- se aparecer dependencia oculta em RH/autenticacao, abrir antes um diagnostico
+  complementar estritamente interno.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
