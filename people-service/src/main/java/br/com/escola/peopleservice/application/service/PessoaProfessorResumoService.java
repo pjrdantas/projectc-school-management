@@ -15,18 +15,26 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class PessoaProfessorResumoService {
 
     private final ObjectProvider<PessoaProfessorResumoPort> professorPortProvider;
+    private final PeopleReadSourcePolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
     public PessoaProfessorResumoService(
             ObjectProvider<PessoaProfessorResumoPort> professorPortProvider,
+            PeopleReadSourcePolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
         this.professorPortProvider = professorPortProvider;
+        this.readRoutingPolicy = readRoutingPolicy;
         this.meterRegistry = meterRegistry;
     }
 
     public Optional<PessoaProfessorResumoResponse> buscarProfessorPorId(
             UUID professorId,
             UUID escolaId) {
+        var decision = readRoutingPolicy.registrarDecisaoLeituraProfessorResumo();
+        if (!decision.localReadEligible()) {
+            registrarLeituraProfessorLocal("buscarProfessorPorId", "fallback_guard_blocked");
+            return Optional.empty();
+        }
         PessoaProfessorResumoPort port = professorPortProvider.getIfAvailable();
         if (port == null) {
             registrarLeituraProfessorLocal("buscarProfessorPorId", "fallback_adapter_missing");
@@ -45,6 +53,11 @@ public class PessoaProfessorResumoService {
     }
 
     public List<PessoaProfessorResumoResponse> listarProfessoresPorEscola(UUID escolaId) {
+        var decision = readRoutingPolicy.registrarDecisaoLeituraProfessorResumo();
+        if (!decision.localReadEligible()) {
+            registrarLeituraProfessorLocal("listarProfessoresPorEscola", "fallback_guard_blocked");
+            return List.of();
+        }
         PessoaProfessorResumoPort port = professorPortProvider.getIfAvailable();
         if (port == null) {
             registrarLeituraProfessorLocal("listarProfessoresPorEscola", "fallback_adapter_missing");

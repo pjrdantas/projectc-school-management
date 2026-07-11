@@ -4821,6 +4821,32 @@ Proxima fase pratica sugerida:
 - se houver consumidor interno imediato, conectar esse resumo local ao primeiro
   fluxo controlado dentro do proprio `people-service`, ainda sem rota externa.
 
+Entregue na segunda subfase da Fase 98:
+
+- `PessoaProfessorResumoService` passou a aplicar o mesmo guard interno ja
+  usado nas leituras locais de `endereco`, `documento` e `funcionario`,
+  consultando `PeopleReadSourcePolicy` antes de acessar
+  `PessoaProfessorResumoPort`;
+- `PeopleReadSourcePolicy` passou a reconhecer explicitamente a operacao
+  `professorResumo`, liberando `people_professor_read_model` apenas quando o
+  estado local estiver verde e mantendo fallback para `monolith_internal_rh`
+  quando a leitura local nao estiver elegivel;
+- testes de policy e service foram estendidos para cobrir o bloqueio do guard,
+  a liberacao da leitura local e as metricas de roteamento/leitura do resumo de
+  `professor`, sem criar rota nova e sem tocar o legado.
+
+Contagem da macrofase Fase 98: 0 subfases restantes estimadas. O bloco de
+`professor` fica fechado com schema local, sync, adapter e primeiro consumidor
+interno protegido pelo mesmo criterio de elegibilidade das demais leituras
+locais do `people-service`.
+
+Proxima fase pratica sugerida:
+
+- iniciar a proxima macrofase backend pelo menor recorte ainda faltante da
+  familia de `professor` ou por outro agregado remanescente do `people-service`,
+  sempre preservando o criterio de primeiro contrato interno, depois adapter
+  local e so entao consumidor interno.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

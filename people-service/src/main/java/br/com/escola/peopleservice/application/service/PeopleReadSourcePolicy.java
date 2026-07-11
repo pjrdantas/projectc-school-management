@@ -23,6 +23,7 @@ public class PeopleReadSourcePolicy {
     private static final String ADDRESS_SOURCE = "people_read_model_address";
     private static final String DOCUMENT_METADATA_SOURCE = "people_documento_read_model";
     private static final String FUNCIONARIO_INTERNAL_SUMMARY_SOURCE = "people_funcionario_read_model";
+    private static final String PROFESSOR_INTERNAL_SUMMARY_SOURCE = "people_professor_read_model";
     private static final ReadRouteDescriptor ADDRESS_READ_ROUTE = new ReadRouteDescriptor(
             "endereco",
             "internal-operation:PessoaEnderecoPort",
@@ -35,6 +36,10 @@ public class PeopleReadSourcePolicy {
             "funcionarioResumo",
             "internal-operation:PessoaFuncionarioResumoPort",
             FUNCIONARIO_INTERNAL_SUMMARY_SOURCE);
+    private static final ReadRouteDescriptor PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE = new ReadRouteDescriptor(
+            "professorResumo",
+            "internal-operation:PessoaProfessorResumoPort",
+            PROFESSOR_INTERNAL_SUMMARY_SOURCE);
 
     private static final List<ReadRouteDescriptor> READ_ROUTES = List.of(
             new ReadRouteDescriptor(
@@ -99,6 +104,17 @@ public class PeopleReadSourcePolicy {
         PeopleReadSourceDecision decision = avaliarLeituraFuncionarioResumo();
         registrarMetricaDecisao(decision);
         Counter.builder("people.funcionario.read.routing.decisions")
+                .tag("selected_source", decision.selectedSource())
+                .tag("reason", decision.reason())
+                .register(meterRegistry)
+                .increment();
+        return decision;
+    }
+
+    public PeopleReadSourceDecision registrarDecisaoLeituraProfessorResumo() {
+        PeopleReadSourceDecision decision = avaliarLeituraProfessorResumo();
+        registrarMetricaDecisao(decision);
+        Counter.builder("people.professor.read.routing.decisions")
                 .tag("selected_source", decision.selectedSource())
                 .tag("reason", decision.reason())
                 .register(meterRegistry)
@@ -198,6 +214,24 @@ public class PeopleReadSourcePolicy {
                 reason);
     }
 
+    public PeopleReadSourceDecision avaliarLeituraProfessorResumo() {
+        String reason = motivoInelegibilidade(PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE);
+        if ("local-read-adapter-not-configured".equals(reason)) {
+            reason = "professor-internal-summary-local-read-connection-disabled";
+        }
+        boolean localReadEligible = isEligibleReason(reason);
+        return new PeopleReadSourceDecision(
+                PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE.operation(),
+                PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE.route(),
+                PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE.candidateSource(),
+                selectedSource(localReadEligible, PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE.operation()),
+                properties.localReadRoutingEnabled(),
+                localReadEligible,
+                properties.fallbackEnabled(),
+                false,
+                reason);
+    }
+
     private String motivoInelegibilidade(ReadRouteDescriptor route) {
         if (!properties.localReadRoutingEnabled()) {
             return "local-read-routing-disabled";
@@ -239,6 +273,9 @@ public class PeopleReadSourcePolicy {
         if (FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(route.operation())) {
             return "local-funcionario-internal-summary-read-eligible";
         }
+        if (PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(route.operation())) {
+            return "local-professor-internal-summary-read-eligible";
+        }
         return "local-read-adapter-not-configured";
     }
 
@@ -248,12 +285,16 @@ public class PeopleReadSourcePolicy {
                 || "local-student-responsible-read-eligible".equals(reason)
                 || "local-address-read-eligible".equals(reason)
                 || "local-document-metadata-read-eligible".equals(reason)
-                || "local-funcionario-internal-summary-read-eligible".equals(reason);
+                || "local-funcionario-internal-summary-read-eligible".equals(reason)
+                || "local-professor-internal-summary-read-eligible".equals(reason);
     }
 
     private String selectedSource(boolean localReadEligible, String operation) {
         if (!localReadEligible) {
             if (FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(operation)) {
+                return MONOLITH_INTERNAL_RH_SOURCE;
+            }
+            if (PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(operation)) {
                 return MONOLITH_INTERNAL_RH_SOURCE;
             }
             return MONOLITH_SOURCE;
@@ -272,6 +313,9 @@ public class PeopleReadSourcePolicy {
         }
         if (FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(operation)) {
             return FUNCIONARIO_INTERNAL_SUMMARY_SOURCE;
+        }
+        if (PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(operation)) {
+            return PROFESSOR_INTERNAL_SUMMARY_SOURCE;
         }
         return "people_read_model_catalog";
     }

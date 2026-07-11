@@ -2011,6 +2011,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   sync coordinator, health e testes foram atualizados sem criar rota externa,
   sem BFF e sem alteracao no `school-management-service`. A contagem
   regressiva da Fase 98 passa a 1 subfase restante estimada.
+- A segunda subfase da Fase 98 conectou o primeiro consumidor interno real do
+  resumo de `professor` no `people-service`. `PessoaProfessorResumoService`
+  passou a consultar `PeopleReadSourcePolicy` antes de acessar
+  `PessoaProfessorResumoPort`; a policy passou a reconhecer a operacao
+  `professorResumo`, liberando `people_professor_read_model` apenas com
+  backfill/reconciliacao verdes e fallback para `monolith_internal_rh` quando
+  a leitura local nao estiver elegivel; e os testes foram estendidos para
+  cobrir guard, liberacao e metricas. A contagem regressiva da Fase 98 chega a
+  0.
 
 ## Historico resumido
 

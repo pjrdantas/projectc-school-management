@@ -206,6 +206,36 @@ class PeopleReadSourcePolicyTest {
     }
 
     @Test
+    void deveLiberarOperacaoProfessorQuandoRelatorioLocalEstaVerde() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        PeopleReadSourcePolicy guard = new PeopleReadSourcePolicy(
+                new PeopleReadModelProperties(true, false, true, false, true, true, 500, true),
+                meterRegistry,
+                greenState());
+
+        var decision = guard.registrarDecisaoLeituraProfessorResumo();
+
+        assertThat(decision.operation()).isEqualTo("professorResumo");
+        assertThat(decision.route()).isEqualTo("internal-operation:PessoaProfessorResumoPort");
+        assertThat(decision.candidateSource()).isEqualTo("people_professor_read_model");
+        assertThat(decision.selectedSource()).isEqualTo("people_professor_read_model");
+        assertThat(decision.localReadRequested()).isTrue();
+        assertThat(decision.localReadEligible()).isTrue();
+        assertThat(decision.fallbackEnabled()).isTrue();
+        assertThat(decision.writesEnabled()).isFalse();
+        assertThat(decision.reason()).isEqualTo("local-professor-internal-summary-read-eligible");
+        assertThat(meterRegistry.counter(
+                "people.read.routing.decisions",
+                "operation", "professorResumo",
+                "selected_source", "people_professor_read_model",
+                "reason", "local-professor-internal-summary-read-eligible").count()).isEqualTo(1.0d);
+        assertThat(meterRegistry.counter(
+                "people.professor.read.routing.decisions",
+                "selected_source", "people_professor_read_model",
+                "reason", "local-professor-internal-summary-read-eligible").count()).isEqualTo(1.0d);
+    }
+
+    @Test
     void deveBloquearCatalogosQuandoRelatorioLocalAindaNaoEstaVerde() {
         PeopleReadSourcePolicy guard = new PeopleReadSourcePolicy(
                 new PeopleReadModelProperties(true, false, true, false, true, true, 500, true),
