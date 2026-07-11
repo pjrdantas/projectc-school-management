@@ -456,6 +456,34 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("nextPreferredFamily", "next_backend_family")
                 .containsEntry("reopenPessoaDocumentoInThisPhase", false);
         @SuppressWarnings("unchecked")
+        Map<String, Object> documentAlunoConsumerContract =
+                (Map<String, Object>) details.get("peopleDocumentAlunoConsumerContractDiagnostic");
+        assertThat(documentAlunoConsumerContract)
+                .containsEntry("phase", "Fase 88")
+                .containsEntry("slice", "people_document_aluno_consumer_contract")
+                .containsEntry("status", "future_aluno_consumer_contract_prepared_without_route_or_legacy_change")
+                .containsEntry("recommendedNextStep",
+                        "prepare_people_document_aluno_consumer_connection_strategy_in_people_service_only")
+                .containsEntry("minimalNextSlice", "people_document_aluno_consumer_connection_strategy")
+                .containsEntry("firstFutureConsumer", "documento_aluno_listar_por_aluno")
+                .containsEntry("consumerOperation", "listarDocumentosPorPessoa")
+                .containsEntry("candidateSource", "people_document_read_model_candidate")
+                .containsEntry("fallbackSource", "monolith_proxy")
+                .containsEntry("contractPrepared", true)
+                .containsEntry("localReadServiceReusable", true)
+                .containsEntry("safeToConnectNow", false)
+                .containsEntry("routeChangeRequiredNow", false)
+                .containsEntry("monolithChangeRequiredNow", false)
+                .containsEntry("fallbackRequired", true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> documentAlunoConsumerRecommendation =
+                (Map<String, Object>) documentAlunoConsumerContract.get("currentRecommendation");
+        assertThat(documentAlunoConsumerRecommendation)
+                .containsEntry("keepConnectionInsidePeopleServicePlanning", true)
+                .containsEntry("keepLegacyUntouched", true)
+                .containsEntry("nextPreferredFamily", "people_document_aluno_consumer_connection_strategy")
+                .containsEntry("connectConsumerNow", false);
+        @SuppressWarnings("unchecked")
         Map<String, Object> funcionarioScopeDiagnostic =
                 (Map<String, Object>) details.get("peopleFuncionarioScopeDiagnostic");
         assertThat(funcionarioScopeDiagnostic)

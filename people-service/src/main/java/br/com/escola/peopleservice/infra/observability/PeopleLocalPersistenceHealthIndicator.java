@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecision;
 import br.com.escola.peopleservice.application.dto.PeopleCatalogReadModelSchemaPlan;
 import br.com.escola.peopleservice.application.dto.PeopleAddressScopeClosurePlan;
+import br.com.escola.peopleservice.application.dto.PeopleDocumentAlunoConsumerContractPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentBackfillReconciliationPreparationPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentScopeClosurePlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentLocalReadActivationEligibilityPlan;
@@ -34,6 +35,7 @@ import br.com.escola.peopleservice.application.service.PeopleAddressScopeClosure
 import br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthorityPlanner;
 import br.com.escola.peopleservice.application.service.PeopleAddressWriteMonolithAdapterPlanner;
 import br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner;
+import br.com.escola.peopleservice.application.service.PeopleDocumentAlunoConsumerContractPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentBackfillReconciliationPreparationPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentScopeClosurePlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentLocalReadActivationEligibilityPlanner;
@@ -109,6 +111,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             new PeopleAddressWriteMonolithAdapterPlanner();
     private final PeopleAddressScopeClosurePlanner addressScopeClosurePlanner =
             new PeopleAddressScopeClosurePlanner();
+    private final PeopleDocumentAlunoConsumerContractPlanner documentAlunoConsumerContractPlanner =
+            new PeopleDocumentAlunoConsumerContractPlanner();
     private final PeopleDocumentScopeClosurePlanner documentScopeClosurePlanner =
             new PeopleDocumentScopeClosurePlanner();
     private final PeopleDocumentScopeDiagnosticPlanner documentScopeDiagnosticPlanner =
@@ -209,6 +213,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoUsoInternoMinimoDocumento());
         details.put("peopleDocumentScopeClosureDiagnostic",
                 diagnosticoFechamentoEscopoPessoaDocumento());
+        details.put("peopleDocumentAlunoConsumerContractDiagnostic",
+                diagnosticoContratoConsumidorAlunoDocumento());
         details.put("peopleFuncionarioScopeDiagnostic", diagnosticoEscopoFuncionario());
         details.put("peopleFuncionarioInternalSummaryContractDiagnostic",
                 diagnosticoContratoInternoResumoFuncionario());
@@ -689,6 +695,45 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "keepDocumentAuthorityOnMonolith", true,
                 "nextPreferredFamily", "next_backend_family",
                 "reopenPessoaDocumentoInThisPhase", false));
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoContratoConsumidorAlunoDocumento() {
+        PeopleDocumentAlunoConsumerContractPlan plan =
+                documentAlunoConsumerContractPlanner.planejarContratoDoConsumidorAluno();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("firstFutureConsumer", plan.firstFutureConsumer());
+        details.put("consumerOperation", plan.consumerOperation());
+        details.put("candidateSource", plan.candidateSource());
+        details.put("fallbackSource", plan.fallbackSource());
+        details.put("contractPrepared", plan.contractPrepared());
+        details.put("localReadServiceReusable", plan.localReadServiceReusable());
+        details.put("safeToConnectNow", plan.safeToConnectNow());
+        details.put("routeChangeRequiredNow", plan.routeChangeRequiredNow());
+        details.put("monolithChangeRequiredNow", plan.monolithChangeRequiredNow());
+        details.put("fallbackRequired", plan.fallbackRequired());
+        details.put("consumerInputKeys", plan.consumerInputKeys());
+        details.put("consumerOutputExpectations", plan.consumerOutputExpectations());
+        details.put("preservedBoundaries", plan.preservedBoundaries());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        details.put("preparedConsumerArtifacts", Map.of(
+                "port", "PeopleDocumentMetadataLocalReadPort",
+                "response", "PessoaDocumentoMetadataLocalReadResponse",
+                "internalService", "PeopleDocumentMetadataLocalReadService",
+                "firstFutureConsumer", "documento_aluno_listar_por_aluno",
+                "routeCreated", false,
+                "legacyChangeRequiredNow", false));
+        details.put("currentRecommendation", Map.of(
+                "keepConnectionInsidePeopleServicePlanning", true,
+                "keepLegacyUntouched", true,
+                "nextPreferredFamily", "people_document_aluno_consumer_connection_strategy",
+                "connectConsumerNow", false));
         return details;
     }
 

@@ -2053,6 +2053,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 | `143-fase-49f-consolidacao-escola-contexto-avaliacoes.md` | Fase 49F - Consolidacao de EscolaContextoPort em avaliacoes | Consolidar o uso de `EscolaContextoPort` em `AvaliacaoService`, confirmando o estado do fluxo de avaliacoes e notas apos a aplicacao pontual da Fase 49E. Esta fase e documental e de verificacao. Ela nao cria BFF, microservico, fila, banco adicional, novo co... | Avaliacoes e notas estao documentadas como consumidoras de `EscolaContextoPort` e `EstruturaTurmaPort`, preservando comportamento externo e contratos HTTP. |
 | `144-fase-49g-diagnostico-atualizado-usos-remanescentes-escola-tenant-service.md` | Fase 49G - Diagnostico atualizado dos usos remanescentes de EscolaTenantService | Reclassificar os usos remanescentes de `EscolaTenantService` apos as aplicacoes pontuais de `EscolaContextoPort` em catalogo interno, dashboards, matricula leitura, planejamento bimestral, diario de aula e avaliacoes. Esta fase e documental e de verificacao... | Os usos remanescentes de `EscolaTenantService` foram reclassificados apos o ciclo de `EscolaContextoPort` em planejamento, diario de aula e avaliacoes. O proximo passo seguro e diagnosticar `DisciplinaService` de forma pontual antes de qualquer alteracao de... |
 
+- A Fase 88 retomou a evolucao exclusivamente no codigo novo do
+  `people-service`, sem qualquer alteracao no `school-management-service`,
+  formalizando o contrato do primeiro consumidor futuro de metadados de
+  documento por aluno (`documento_aluno_listar_por_aluno`) e publicando esse
+  diagnostico no actuator `peopleLocalPersistence`.
+- O novo diagnostico deixa explicito que `PeopleDocumentMetadataLocalReadService`
+  e reutilizavel pelo lado novo, mas que a conexao real ainda depende de uma
+  estrategia interna de resolucao `alunoId -> pessoaId`, mantendo fallback
+  obrigatorio para `monolith_proxy` e sem abrir rota nova nesta etapa.
+- Contagem da macrofase Fase 88: 1 subfase restante estimada para decidir a
+  estrategia de conexao desse consumidor inteiramente no `people-service`,
+  ainda sem tocar o legado.
+
 ## Diretriz para documentacao futura
 
 - Nao criar um arquivo novo por fase de implementacao.

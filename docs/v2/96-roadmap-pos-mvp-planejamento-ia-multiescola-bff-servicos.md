@@ -4428,6 +4428,36 @@ Proxima fase pratica sugerida:
 - se o recorte de aluno precisar ser segurado, manter `documento` somente em
   diagnostico e escolher outra familia backend menor.
 
+### Fase 88 - Contrato do consumidor futuro de documento por aluno no `people-service`
+
+Objetivo: preparar exclusivamente no `people-service` o contrato do primeiro
+consumidor futuro de metadados de documento por aluno, sem criar rota, sem BFF,
+sem frontend e sem tocar o legado `school-management-service`.
+
+Entregue na primeira subfase da Fase 88:
+
+- foi formalizado no `people-service` o contrato do consumidor futuro
+  `documento_aluno_listar_por_aluno`, reaproveitando como operacao-alvo
+  `listarDocumentosPorPessoa` do read model local ja preparado;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleDocumentAlunoConsumerContractDiagnostic`, deixando explicito que o
+  contrato esta preparado mas ainda nao deve ser conectado a fluxo real;
+- a fase registra como fronteiras preservadas: nenhuma rota nova, nenhuma
+  mudanca em BFF/frontend, nenhuma migracao de binario e nenhuma alteracao no
+  `school-management-service`.
+
+Contagem da macrofase Fase 88: 1 subfase restante estimada: preparar a
+estrategia de conexao desse consumidor inteiramente no `people-service`,
+validando dependencias `alunoId -> pessoaId` sem tocar o legado.
+
+Proxima fase pratica sugerida:
+
+- preparar a estrategia de conexao do consumidor futuro
+  `documento_aluno_listar_por_aluno` inteiramente no `people-service`, ainda
+  sem conectar fluxo real e sem alterar o `school-management-service`; ou
+- se aparecer dependencia estrutural escondida de `aluno -> pessoa`, fechar a
+  fase como diagnostico suficiente e trocar para outra familia nova.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
