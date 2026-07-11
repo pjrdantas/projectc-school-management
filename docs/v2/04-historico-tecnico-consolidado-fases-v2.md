@@ -2078,6 +2078,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Contagem da macrofase Fase 89: 0 subfases restantes estimadas. O bloco do
   consumidor futuro de documento por aluno fica fechado no codigo novo, pronto
   para eventual reutilizacao futura.
+- A Fase 90 abriu o recorte simetrico de criacao para responsavel no
+  `people-service`, formalizando o contrato do futuro consumidor
+  `documento_responsavel_listar_por_responsavel` e publicando esse estado no
+  actuator `peopleLocalPersistence`, ainda sem rota nova e sem qualquer toque
+  no `school-management-service`.
+- A Fase 91 fechou a subfase restante desse bloco, criando a fronteira interna
+  `PeopleResponsiblePessoaLocalReadPort`, o service
+  `PeopleResponsiblePessoaLocalReadService` e o adapter
+  `JdbcPeopleResponsiblePessoaLocalReadAdapter` para resolver
+  `responsavelId -> pessoaId` sobre o read model local.
+- O actuator `peopleLocalPersistence` passou a expor
+  `peopleDocumentResponsavelConsumerConnectionStrategyDiagnostic`, deixando
+  explicito que a resolucao local necessaria ao futuro consumidor de documentos
+  de responsavel esta preparada, mas ainda sem conexao a fluxo real e sem
+  qualquer alteracao no `school-management-service`.
+- Contagem da macrofase Fase 91: 0 subfases restantes estimadas. O bloco do
+  consumidor futuro de documento por responsavel fica fechado no codigo novo,
+  pronto para eventual reutilizacao futura.
 
 ## Diretriz para documentacao futura
 

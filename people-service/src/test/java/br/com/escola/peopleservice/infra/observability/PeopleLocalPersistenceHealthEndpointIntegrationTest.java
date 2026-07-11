@@ -509,6 +509,59 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("nextPreferredFamily", "people_document_aluno_consumer_connection_closure")
                 .containsEntry("realFlowConnectionAllowedNow", false);
         @SuppressWarnings("unchecked")
+        Map<String, Object> documentResponsavelConsumerContract =
+                (Map<String, Object>) details.get("peopleDocumentResponsavelConsumerContractDiagnostic");
+        assertThat(documentResponsavelConsumerContract)
+                .containsEntry("phase", "Fase 90")
+                .containsEntry("slice", "people_document_responsavel_consumer_contract")
+                .containsEntry("status", "future_responsavel_consumer_contract_prepared_without_route_or_legacy_change")
+                .containsEntry("recommendedNextStep",
+                        "prepare_people_document_responsavel_consumer_connection_strategy_in_people_service_only")
+                .containsEntry("minimalNextSlice", "people_document_responsavel_consumer_connection_strategy")
+                .containsEntry("firstFutureConsumer", "documento_responsavel_listar_por_responsavel")
+                .containsEntry("consumerOperation", "listarDocumentosPorPessoa")
+                .containsEntry("candidateSource", "people_document_read_model_candidate")
+                .containsEntry("fallbackSource", "monolith_proxy")
+                .containsEntry("contractPrepared", true)
+                .containsEntry("localReadServiceReusable", true)
+                .containsEntry("safeToConnectNow", false)
+                .containsEntry("routeChangeRequiredNow", false)
+                .containsEntry("legacyChangeRequiredNow", false)
+                .containsEntry("fallbackRequired", true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> documentResponsavelConsumerRecommendation =
+                (Map<String, Object>) documentResponsavelConsumerContract.get("currentRecommendation");
+        assertThat(documentResponsavelConsumerRecommendation)
+                .containsEntry("keepConnectionInsidePeopleServicePlanning", true)
+                .containsEntry("keepLegacyUntouched", true)
+                .containsEntry("nextPreferredFamily", "people_document_responsavel_consumer_connection_strategy")
+                .containsEntry("connectConsumerNow", false);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> documentResponsavelConsumerConnectionStrategy =
+                (Map<String, Object>) details.get("peopleDocumentResponsavelConsumerConnectionStrategyDiagnostic");
+        assertThat(documentResponsavelConsumerConnectionStrategy)
+                .containsEntry("phase", "Fase 91")
+                .containsEntry("slice", "people_document_responsavel_consumer_connection_strategy")
+                .containsEntry("status", "responsavel_pessoa_local_resolution_prepared_without_real_consumer_connection")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_91_and_keep_responsavel_consumer_unconnected_until_a_new_service_flow_justifies_it")
+                .containsEntry("minimalNextSlice", "people_document_responsavel_consumer_connection_closure")
+                .containsEntry("responsavelPessoaLookupContractPrepared", true)
+                .containsEntry("responsavelPessoaLookupAdapterPrepared", true)
+                .containsEntry("localResolutionReadyForConnection", true)
+                .containsEntry("realConsumerConnected", false)
+                .containsEntry("routeChangeRequiredNow", false)
+                .containsEntry("legacyChangeRequiredNow", false)
+                .containsEntry("fallbackRequired", true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> documentResponsavelConsumerConnectionRecommendation =
+                (Map<String, Object>) documentResponsavelConsumerConnectionStrategy.get("currentRecommendation");
+        assertThat(documentResponsavelConsumerConnectionRecommendation)
+                .containsEntry("closeCurrentMacroPhaseAfterThisStep", true)
+                .containsEntry("keepConsumerUnconnected", true)
+                .containsEntry("nextPreferredFamily", "people_document_responsavel_consumer_connection_closure")
+                .containsEntry("realFlowConnectionAllowedNow", false);
+        @SuppressWarnings("unchecked")
         Map<String, Object> funcionarioScopeDiagnostic =
                 (Map<String, Object>) details.get("peopleFuncionarioScopeDiagnostic");
         assertThat(funcionarioScopeDiagnostic)

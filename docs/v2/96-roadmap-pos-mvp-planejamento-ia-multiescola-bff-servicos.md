@@ -4489,6 +4489,68 @@ Proxima fase pratica sugerida:
 - se surgir um consumidor real em outro servico novo, reabrir esse recorte
   apenas para integrar a fronteira ja preparada, sem tocar o legado.
 
+### Fase 90 - Contrato do consumidor futuro de documento por responsavel
+
+Objetivo: preparar exclusivamente no `people-service` o contrato do primeiro
+consumidor futuro de metadados de documento por responsavel, sem criar rota,
+sem BFF, sem frontend e sem tocar o legado `school-management-service`.
+
+Entregue na primeira subfase da Fase 90:
+
+- foi formalizado no `people-service` o contrato do consumidor futuro
+  `documento_responsavel_listar_por_responsavel`, reaproveitando como
+  operacao-alvo `listarDocumentosPorPessoa` do read model local ja preparado;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleDocumentResponsavelConsumerContractDiagnostic`, deixando explicito que
+  o contrato esta preparado mas ainda nao deve ser conectado a fluxo real;
+- a fase preserva o mesmo escopo novo-only: nenhuma rota nova, nenhuma mudanca
+  em BFF/frontend e nenhuma alteracao no `school-management-service`.
+
+Contagem da macrofase Fase 90: 1 subfase restante estimada: preparar a
+estrategia de conexao desse consumidor inteiramente no `people-service`,
+validando dependencias `responsavelId -> pessoaId` sem tocar o legado.
+
+Proxima fase pratica sugerida:
+
+- preparar a estrategia de conexao do consumidor futuro
+  `documento_responsavel_listar_por_responsavel` inteiramente no
+  `people-service`, ainda sem conectar fluxo real e sem alterar o
+  `school-management-service`; ou
+- se aparecer dependencia estrutural escondida de `responsavel -> pessoa`,
+  fechar a fase como diagnostico suficiente e trocar para outra familia nova.
+
+### Fase 91 - Estrategia de conexao do consumidor futuro de documento por responsavel
+
+Objetivo: fechar exclusivamente no `people-service` a estrategia interna de
+resolucao `responsavelId -> pessoaId` necessaria para o futuro consumidor de
+metadados de documento por responsavel, sem criar rota, sem ligar fluxo real e
+sem tocar o legado `school-management-service`.
+
+Entregue na primeira subfase da Fase 91:
+
+- foi criada a fronteira interna minima `PeopleResponsiblePessoaLocalReadPort`
+  com service e adapter JDBC locais para resolver `responsavelId -> pessoaId` a
+  partir do read model do proprio `people-service`;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleDocumentResponsavelConsumerConnectionStrategyDiagnostic`,
+  registrando que a estrategia local esta pronta para futura conexao mas
+  continua desligada de qualquer fluxo real;
+- a fase preserva o escopo novo-only: nenhuma rota nova, nenhuma mudanca de
+  `consultarCadastro`, nenhuma alteracao em BFF/frontend e nenhuma mudanca no
+  `school-management-service`.
+
+Contagem da macrofase Fase 91: 0 subfases restantes estimadas. O bloco do
+consumidor futuro de documento por responsavel fica fechado como preparado no
+codigo novo, ainda sem conexao a fluxo real.
+
+Proxima fase pratica sugerida:
+
+- fazer o fechamento formal desse bloco de consumidor futuro de documento por
+  responsavel e escolher a proxima familia exclusivamente dentro do codigo
+  novo; ou
+- se surgir um consumidor real em outro servico novo, reabrir esse recorte
+  apenas para integrar a fronteira ja preparada, sem tocar o legado.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

@@ -14,6 +14,8 @@ import br.com.escola.peopleservice.application.dto.PeopleAddressScopeClosurePlan
 import br.com.escola.peopleservice.application.dto.PeopleDocumentAlunoConsumerConnectionStrategyPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentAlunoConsumerContractPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentBackfillReconciliationPreparationPlan;
+import br.com.escola.peopleservice.application.dto.PeopleDocumentResponsavelConsumerConnectionStrategyPlan;
+import br.com.escola.peopleservice.application.dto.PeopleDocumentResponsavelConsumerContractPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentScopeClosurePlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentLocalReadActivationEligibilityPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentInternalUsageCandidatePlan;
@@ -39,6 +41,8 @@ import br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSch
 import br.com.escola.peopleservice.application.service.PeopleDocumentAlunoConsumerConnectionStrategyPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentAlunoConsumerContractPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentBackfillReconciliationPreparationPlanner;
+import br.com.escola.peopleservice.application.service.PeopleDocumentResponsavelConsumerConnectionStrategyPlanner;
+import br.com.escola.peopleservice.application.service.PeopleDocumentResponsavelConsumerContractPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentScopeClosurePlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentLocalReadActivationEligibilityPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentInternalUsageCandidatePlanner;
@@ -117,6 +121,10 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             new PeopleDocumentAlunoConsumerContractPlanner();
     private final PeopleDocumentAlunoConsumerConnectionStrategyPlanner documentAlunoConsumerConnectionStrategyPlanner =
             new PeopleDocumentAlunoConsumerConnectionStrategyPlanner();
+    private final PeopleDocumentResponsavelConsumerContractPlanner documentResponsavelConsumerContractPlanner =
+            new PeopleDocumentResponsavelConsumerContractPlanner();
+    private final PeopleDocumentResponsavelConsumerConnectionStrategyPlanner documentResponsavelConsumerConnectionStrategyPlanner =
+            new PeopleDocumentResponsavelConsumerConnectionStrategyPlanner();
     private final PeopleDocumentScopeClosurePlanner documentScopeClosurePlanner =
             new PeopleDocumentScopeClosurePlanner();
     private final PeopleDocumentScopeDiagnosticPlanner documentScopeDiagnosticPlanner =
@@ -221,6 +229,10 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoContratoConsumidorAlunoDocumento());
         details.put("peopleDocumentAlunoConsumerConnectionStrategyDiagnostic",
                 diagnosticoEstrategiaConexaoConsumidorAlunoDocumento());
+        details.put("peopleDocumentResponsavelConsumerContractDiagnostic",
+                diagnosticoContratoConsumidorResponsavelDocumento());
+        details.put("peopleDocumentResponsavelConsumerConnectionStrategyDiagnostic",
+                diagnosticoEstrategiaConexaoConsumidorResponsavelDocumento());
         details.put("peopleFuncionarioScopeDiagnostic", diagnosticoEscopoFuncionario());
         details.put("peopleFuncionarioInternalSummaryContractDiagnostic",
                 diagnosticoContratoInternoResumoFuncionario());
@@ -775,6 +787,81 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "closeCurrentMacroPhaseAfterThisStep", true,
                 "keepConsumerUnconnected", true,
                 "nextPreferredFamily", "people_document_aluno_consumer_connection_closure",
+                "realFlowConnectionAllowedNow", false));
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoContratoConsumidorResponsavelDocumento() {
+        PeopleDocumentResponsavelConsumerContractPlan plan =
+                documentResponsavelConsumerContractPlanner.planejarContratoDoConsumidorResponsavel();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("firstFutureConsumer", plan.firstFutureConsumer());
+        details.put("consumerOperation", plan.consumerOperation());
+        details.put("candidateSource", plan.candidateSource());
+        details.put("fallbackSource", plan.fallbackSource());
+        details.put("contractPrepared", plan.contractPrepared());
+        details.put("localReadServiceReusable", plan.localReadServiceReusable());
+        details.put("safeToConnectNow", plan.safeToConnectNow());
+        details.put("routeChangeRequiredNow", plan.routeChangeRequiredNow());
+        details.put("legacyChangeRequiredNow", plan.legacyChangeRequiredNow());
+        details.put("fallbackRequired", plan.fallbackRequired());
+        details.put("consumerInputKeys", plan.consumerInputKeys());
+        details.put("consumerOutputExpectations", plan.consumerOutputExpectations());
+        details.put("preservedBoundaries", plan.preservedBoundaries());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        details.put("preparedConsumerArtifacts", Map.of(
+                "port", "PeopleDocumentMetadataLocalReadPort",
+                "response", "PessoaDocumentoMetadataLocalReadResponse",
+                "internalService", "PeopleDocumentMetadataLocalReadService",
+                "firstFutureConsumer", "documento_responsavel_listar_por_responsavel",
+                "routeCreated", false,
+                "legacyChangeRequiredNow", false));
+        details.put("currentRecommendation", Map.of(
+                "keepConnectionInsidePeopleServicePlanning", true,
+                "keepLegacyUntouched", true,
+                "nextPreferredFamily", "people_document_responsavel_consumer_connection_strategy",
+                "connectConsumerNow", false));
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoEstrategiaConexaoConsumidorResponsavelDocumento() {
+        PeopleDocumentResponsavelConsumerConnectionStrategyPlan plan =
+                documentResponsavelConsumerConnectionStrategyPlanner.planejarEstrategiaDeConexao();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("responsavelPessoaLookupContractPrepared", plan.responsavelPessoaLookupContractPrepared());
+        details.put("responsavelPessoaLookupAdapterPrepared", plan.responsavelPessoaLookupAdapterPrepared());
+        details.put("localResolutionReadyForConnection", plan.localResolutionReadyForConnection());
+        details.put("realConsumerConnected", plan.realConsumerConnected());
+        details.put("routeChangeRequiredNow", plan.routeChangeRequiredNow());
+        details.put("legacyChangeRequiredNow", plan.legacyChangeRequiredNow());
+        details.put("fallbackRequired", plan.fallbackRequired());
+        details.put("preparedArtifacts", plan.preparedArtifacts());
+        details.put("resolutionFlow", plan.resolutionFlow());
+        details.put("guardrails", plan.guardrails());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        details.put("preparedLookupArtifacts", Map.of(
+                "port", "PeopleResponsiblePessoaLocalReadPort",
+                "response", "PessoaResponsavelVinculoResponse",
+                "internalService", "PeopleResponsiblePessoaLocalReadService",
+                "adapter", "JdbcPeopleResponsiblePessoaLocalReadAdapter",
+                "routeCreated", false,
+                "legacyChangeRequiredNow", false));
+        details.put("currentRecommendation", Map.of(
+                "closeCurrentMacroPhaseAfterThisStep", true,
+                "keepConsumerUnconnected", true,
+                "nextPreferredFamily", "people_document_responsavel_consumer_connection_closure",
                 "realFlowConnectionAllowedNow", false));
         return details;
     }
