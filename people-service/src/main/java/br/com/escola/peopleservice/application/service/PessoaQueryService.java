@@ -11,6 +11,7 @@ import br.com.escola.peopleservice.application.dto.PessoaContatoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
 import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataResponse;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
+import br.com.escola.peopleservice.application.dto.PessoaFuncionarioResumoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 import br.com.escola.peopleservice.application.exception.PeopleServiceResourceNotFoundException;
 import br.com.escola.peopleservice.application.port.in.PessoaQueryUseCase;
@@ -31,6 +32,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     private final PessoaEnderecoService pessoaEnderecoService;
     private final PessoaContatoService pessoaContatoService;
     private final PessoaDocumentoMetadataService pessoaDocumentoMetadataService;
+    private final PessoaFuncionarioResumoService pessoaFuncionarioResumoService;
     private final PeopleReadSourcePolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
@@ -43,6 +45,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             PessoaEnderecoService pessoaEnderecoService,
             PessoaContatoService pessoaContatoService,
             PessoaDocumentoMetadataService pessoaDocumentoMetadataService,
+            PessoaFuncionarioResumoService pessoaFuncionarioResumoService,
             PeopleReadSourcePolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
         this.pessoaReadPort = pessoaReadPort;
@@ -53,6 +56,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
         this.pessoaEnderecoService = pessoaEnderecoService;
         this.pessoaContatoService = pessoaContatoService;
         this.pessoaDocumentoMetadataService = pessoaDocumentoMetadataService;
+        this.pessoaFuncionarioResumoService = pessoaFuncionarioResumoService;
         this.readRoutingPolicy = readRoutingPolicy;
         this.meterRegistry = meterRegistry;
     }
@@ -138,6 +142,22 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             InternalRequestContext context,
             UUID pessoaId) {
         return pessoaDocumentoMetadataService.listarDocumentosPorPessoa(pessoaId, context.escolaId());
+    }
+
+    @Override
+    public PessoaFuncionarioResumoResponse buscarFuncionarioPorId(
+            String authorization,
+            InternalRequestContext context,
+            UUID funcionarioId) {
+        return pessoaFuncionarioResumoService.buscarFuncionarioPorId(funcionarioId, context.escolaId())
+                .orElseThrow(() -> new PeopleServiceResourceNotFoundException("Funcionario nao encontrado"));
+    }
+
+    @Override
+    public List<PessoaFuncionarioResumoResponse> listarFuncionariosAtivosPorEscola(
+            String authorization,
+            InternalRequestContext context) {
+        return pessoaFuncionarioResumoService.listarFuncionariosAtivosPorEscola(context.escolaId());
     }
 
     @Override

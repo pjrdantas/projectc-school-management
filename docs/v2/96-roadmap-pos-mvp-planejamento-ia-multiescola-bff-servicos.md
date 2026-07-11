@@ -6038,3 +6038,19 @@ Entregue nesta fase:
 
 Contagem da macrofase Fase 106: 0 subfases restantes estimadas. O bloco interno
 de documento metadata ficou fechado.
+
+### Fase 107 - Contrato interno visivel de funcionario resumo
+
+Entregue nesta fase:
+
+- o `people-service` passou a expor no contrato interno o bloco de resumo de
+  funcionario por id e a listagem de ativos da escola;
+- `PessoaQueryUseCase`, `PessoaQueryService` e
+  `PessoaInternalQueryController` passaram a cobrir
+  `GET /internal/v1/funcionarios/{funcionarioId}` e
+  `GET /internal/v1/funcionarios`;
+- a fase permaneceu restrita ao codigo novo, sem BFF, sem frontend e sem tocar
+  no legado.
+
+Contagem da macrofase Fase 107: 0 subfases restantes estimadas. O bloco interno
+de funcionario resumo ficou fechado.

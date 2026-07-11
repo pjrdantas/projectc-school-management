@@ -27,10 +27,12 @@ import br.com.escola.peopleservice.application.service.PeopleReadModelSyncState;
 import br.com.escola.peopleservice.application.service.PessoaContatoService;
 import br.com.escola.peopleservice.application.service.PessoaDocumentoMetadataService;
 import br.com.escola.peopleservice.application.service.PessoaEnderecoService;
+import br.com.escola.peopleservice.application.service.PessoaFuncionarioResumoService;
 import br.com.escola.peopleservice.application.dto.PessoaContatoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataResponse;
 import br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
+import br.com.escola.peopleservice.application.dto.PessoaFuncionarioResumoResponse;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -58,6 +60,9 @@ class PessoaInternalQueryControllerIntegrationTest {
 
     @MockBean
     private PessoaDocumentoMetadataService pessoaDocumentoMetadataService;
+
+    @MockBean
+    private PessoaFuncionarioResumoService pessoaFuncionarioResumoService;
 
     @BeforeAll
     static void beforeAll() throws IOException {
@@ -325,6 +330,36 @@ class PessoaInternalQueryControllerIntegrationTest {
                 .andExpect(jsonPath("$.tipoDocumentoCodigo").value("CPF"));
     }
 
+    @Test
+    void deveExporLeiturasInternasDeFuncionarioResumo() throws Exception {
+        marcarReadModelComoVerde();
+        PessoaFuncionarioResumoResponse funcionario = funcionario();
+        when(pessoaFuncionarioResumoService.buscarFuncionarioPorId(funcionario.funcionarioId(), ESCOLA_ID))
+                .thenReturn(java.util.Optional.of(funcionario));
+        when(pessoaFuncionarioResumoService.listarFuncionariosAtivosPorEscola(ESCOLA_ID))
+                .thenReturn(List.of(funcionario));
+
+        mockMvc.perform(get("/internal/v1/funcionarios/{funcionarioId}", funcionario.funcionarioId())
+                        .header("X-Internal-Token", "internal-token")
+                        .header("X-Correlation-Id", "corr-people-9a")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", "Bearer internal-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.funcionarioId").value(funcionario.funcionarioId().toString()))
+                .andExpect(jsonPath("$.nomeCompleto").value("Funcionario Interno"));
+
+        mockMvc.perform(get("/internal/v1/funcionarios")
+                        .header("X-Internal-Token", "internal-token")
+                        .header("X-Correlation-Id", "corr-people-9b")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", "Bearer internal-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].funcionarioId").value(funcionario.funcionarioId().toString()))
+                .andExpect(jsonPath("$[0].cargoDescricao").value("Secretaria"));
+    }
+
     private void marcarReadModelComoVerde() {
         peopleReadModelSyncState.update(new PeopleReadModelSyncSummary(
                 true,
@@ -532,6 +567,16 @@ class PessoaInternalQueryControllerIntegrationTest {
                 "/tmp/cpf.pdf",
                 "Documento principal",
                 java.time.OffsetDateTime.parse("2026-01-02T10:15:30Z"));
+    }
+
+    private PessoaFuncionarioResumoResponse funcionario() {
+        return new PessoaFuncionarioResumoResponse(
+                UUID.fromString("99999999-9999-9999-9999-999999999999"),
+                PESSOA_ID,
+                ESCOLA_ID,
+                "Funcionario Interno",
+                "Secretaria",
+                true);
     }
 
     private RecordedRequest aguardarRequisicao(String method, String path) throws InterruptedException {

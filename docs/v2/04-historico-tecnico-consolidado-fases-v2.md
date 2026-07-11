@@ -2272,3 +2272,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   ou legado.
 - A validacao foi ampliada com testes de servico e integracao HTTP desse
   contrato interno.
+
+### Fase 107
+
+- O `people-service` passou a expor no contrato interno o resumo de
+  funcionario, reaproveitando `PessoaFuncionarioResumoService`.
+- Foram abertas as rotas internas `GET /internal/v1/funcionarios/{funcionarioId}`
+  e `GET /internal/v1/funcionarios`, sem alteracao em BFF, frontend ou legado.
+- A validacao foi ampliada com testes de servico e integracao HTTP desse
+  contrato interno.
