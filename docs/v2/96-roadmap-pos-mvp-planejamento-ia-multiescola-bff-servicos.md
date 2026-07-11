@@ -4667,17 +4667,36 @@ Entregue na primeira subfase da Fase 95:
 - a fase preserva o foco novo-only: nenhuma rota nova, nenhuma migration,
   nenhuma mudanca em BFF/frontend e nenhuma alteracao no legado.
 
-Contagem da macrofase Fase 95: 2 subfases restantes estimadas: primeiro
-formalizar o contrato interno minimo de resumo de professor; depois fechar o
-bloco inicial da familia antes de decidir persistencia propria.
+Entregue na segunda subfase da Fase 95:
+
+- foram criados no `people-service` o DTO
+  `PessoaProfessorInternalSummaryResponse`, a porta
+  `PeopleProfessorInternalSummaryPort`, o service
+  `PeopleProfessorInternalSummaryService` e o planner
+  `PeopleProfessorInternalSummaryContractPlanner`, materializando a fronteira
+  interna minima de resumo de `professor` sem criar adapter, rota ou
+  persistencia local;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleProfessorInternalSummaryContractDiagnostic`, deixando explicito que o
+  contrato existe e que a proxima subfase, se seguir, deve decidir apenas a
+  preparacao do adapter/local read, ainda sem ampliar para alocacao academica,
+  write ou cutover;
+- a fase continua novo-only e backend-only: nenhuma alteracao em
+  `school-management-service`, nenhuma mudanca em BFF/frontend e nenhuma
+  migration de `professor`.
+
+Contagem da macrofase Fase 95: 1 subfase restante estimada: decidir se a
+familia de `professor` avanca para preparacao de adapter/local read ou se deve
+ser fechada ainda neste bloco sem persistencia propria.
 
 Proxima fase pratica sugerida:
 
-- preparar no `people-service` o contrato interno minimo de resumo de
-  `professor`, ainda read-only, sem persistencia propria e sem alocacao
-  `professor_turma_disciplina`; ou
-- se o diagnostico de dependencia mostrar risco maior que o esperado, encerrar
-  formalmente este bloco diagnostico sem ampliar escopo.
+- preparar no `people-service` apenas o diagnostico/planejamento do primeiro
+  adapter local read de resumo de `professor`, ainda sem persistencia propria
+  ativa, sem alocacao `professor_turma_disciplina` e sem rota externa; ou
+- se a dependencia de `funcionario` e composicao academica mostrar risco maior
+  que o esperado, encerrar formalmente este bloco de `professor` sem ampliar
+  escopo.
 
 ### Fase futura - Desativacao do monolito
 

@@ -1192,5 +1192,33 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("keepAcademicAllocationOutOfPeopleService", true)
                 .containsEntry("prepareExternalRouteNow", false)
                 .containsEntry("advanceToPersistenceNow", false);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> professorInternalSummaryContract =
+                (Map<String, Object>) health.getDetails().get("peopleProfessorInternalSummaryContractDiagnostic");
+        assertThat(professorInternalSummaryContract)
+                .containsEntry("phase", "Fase 95")
+                .containsEntry("slice", "professor_internal_summary_contract")
+                .containsEntry("status", "internal_contract_prepared_no_adapter_no_route")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_95_and_plan_professor_internal_summary_adapter_preparation")
+                .containsEntry("minimalNextSlice", "professor_internal_summary_adapter_preparation")
+                .containsEntry("contractPrepared", true)
+                .containsEntry("internalServicePrepared", true)
+                .containsEntry("adapterCreated", false)
+                .containsEntry("localPersistenceConnected", false)
+                .containsEntry("externalRouteCreated", false)
+                .containsEntry("fallbackRequired", true)
+                .containsEntry("candidateSource", "people_professor_read_model_candidate")
+                .containsEntry("fallbackSource", "monolith_internal_professor");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> preparedProfessorArtifacts =
+                (Map<String, Object>) professorInternalSummaryContract.get("preparedArtifacts");
+        assertThat(preparedProfessorArtifacts)
+                .containsEntry("port", "PeopleProfessorInternalSummaryPort")
+                .containsEntry("response", "PessoaProfessorInternalSummaryResponse")
+                .containsEntry("internalService", "PeopleProfessorInternalSummaryService")
+                .containsEntry("adapterCreated", false)
+                .containsEntry("routeCreated", false)
+                .containsEntry("localPersistenceConnected", false);
     }
 }

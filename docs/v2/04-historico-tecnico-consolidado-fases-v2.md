@@ -1961,6 +1961,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   preservando no monolito as dependencias atuais de `funcionario`, `pessoa`,
   autenticacao e alocacao academica. A contagem regressiva da Fase 95 passa a
   2 subfases restantes estimadas.
+- A segunda subfase da Fase 95 materializou esse contrato interno minimo de
+  `professor` no codigo novo do `people-service`, ainda sem adapter, sem rota e
+  sem persistencia local. Foram criados `PessoaProfessorInternalSummaryResponse`,
+  `PeopleProfessorInternalSummaryPort`,
+  `PeopleProfessorInternalSummaryService` e
+  `PeopleProfessorInternalSummaryContractPlanner`, enquanto o actuator passou a
+  expor `peopleProfessorInternalSummaryContractDiagnostic`. A contagem
+  regressiva da Fase 95 passa a 1 subfase restante estimada.
 
 ## Historico resumido
 

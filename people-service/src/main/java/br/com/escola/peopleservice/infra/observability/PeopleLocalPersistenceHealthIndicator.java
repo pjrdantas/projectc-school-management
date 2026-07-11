@@ -173,6 +173,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoFechamentoEscopoContato());
         details.put("peopleProfessorScopeDiagnostic",
                 diagnosticoEscopoProfessor());
+        details.put("peopleProfessorInternalSummaryContractDiagnostic",
+                diagnosticoContratoInternoResumoProfessor());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -412,6 +414,10 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
 
     private Map<String, Object> diagnosticoEscopoProfessor() {
         return professorDiagnostics.diagnosticoEscopoProfessor();
+    }
+
+    private Map<String, Object> diagnosticoContratoInternoResumoProfessor() {
+        return professorDiagnostics.diagnosticoContratoInternoResumoProfessor();
     }
 
     private Map<String, Object> diagnosticoProximaFatiaBloqueada() {
