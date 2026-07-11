@@ -4458,6 +4458,37 @@ Proxima fase pratica sugerida:
 - se aparecer dependencia estrutural escondida de `aluno -> pessoa`, fechar a
   fase como diagnostico suficiente e trocar para outra familia nova.
 
+### Fase 89 - Estrategia de conexao do consumidor futuro de documento por aluno
+
+Objetivo: fechar exclusivamente no `people-service` a estrategia interna de
+resolucao `alunoId -> pessoaId` necessaria para o futuro consumidor de
+metadados de documento por aluno, sem criar rota, sem ligar fluxo real e sem
+tocar o legado `school-management-service`.
+
+Entregue na primeira subfase da Fase 89:
+
+- foi criada a fronteira interna minima `PeopleStudentPessoaLocalReadPort` com
+  service e adapter JDBC locais para resolver `alunoId -> pessoaId` a partir do
+  read model do proprio `people-service`;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleDocumentAlunoConsumerConnectionStrategyDiagnostic`, registrando que a
+  estrategia local esta pronta para futura conexao mas continua desligada de
+  qualquer fluxo real;
+- a fase preserva o escopo novo-only: nenhuma rota nova, nenhuma mudanca de
+  `consultarCadastro`, nenhuma alteracao em BFF/frontend e nenhuma mudanca no
+  `school-management-service`.
+
+Contagem da macrofase Fase 89: 0 subfases restantes estimadas. O bloco do
+consumidor futuro de documento por aluno fica fechado como preparado no codigo
+novo, ainda sem conexao a fluxo real.
+
+Proxima fase pratica sugerida:
+
+- fazer o fechamento formal desse bloco de consumidor futuro de documento por
+  aluno e escolher a proxima familia exclusivamente dentro do codigo novo; ou
+- se surgir um consumidor real em outro servico novo, reabrir esse recorte
+  apenas para integrar a fronteira ja preparada, sem tocar o legado.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

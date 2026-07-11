@@ -484,6 +484,31 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("nextPreferredFamily", "people_document_aluno_consumer_connection_strategy")
                 .containsEntry("connectConsumerNow", false);
         @SuppressWarnings("unchecked")
+        Map<String, Object> documentAlunoConsumerConnectionStrategy =
+                (Map<String, Object>) details.get("peopleDocumentAlunoConsumerConnectionStrategyDiagnostic");
+        assertThat(documentAlunoConsumerConnectionStrategy)
+                .containsEntry("phase", "Fase 89")
+                .containsEntry("slice", "people_document_aluno_consumer_connection_strategy")
+                .containsEntry("status", "aluno_pessoa_local_resolution_prepared_without_real_consumer_connection")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_89_and_keep_consumer_unconnected_until_a_new_service_flow_justifies_it")
+                .containsEntry("minimalNextSlice", "people_document_aluno_consumer_connection_closure")
+                .containsEntry("alunoPessoaLookupContractPrepared", true)
+                .containsEntry("alunoPessoaLookupAdapterPrepared", true)
+                .containsEntry("localResolutionReadyForConnection", true)
+                .containsEntry("realConsumerConnected", false)
+                .containsEntry("routeChangeRequiredNow", false)
+                .containsEntry("legacyChangeRequiredNow", false)
+                .containsEntry("fallbackRequired", true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> documentAlunoConsumerConnectionRecommendation =
+                (Map<String, Object>) documentAlunoConsumerConnectionStrategy.get("currentRecommendation");
+        assertThat(documentAlunoConsumerConnectionRecommendation)
+                .containsEntry("closeCurrentMacroPhaseAfterThisStep", true)
+                .containsEntry("keepConsumerUnconnected", true)
+                .containsEntry("nextPreferredFamily", "people_document_aluno_consumer_connection_closure")
+                .containsEntry("realFlowConnectionAllowedNow", false);
+        @SuppressWarnings("unchecked")
         Map<String, Object> funcionarioScopeDiagnostic =
                 (Map<String, Object>) details.get("peopleFuncionarioScopeDiagnostic");
         assertThat(funcionarioScopeDiagnostic)

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import br.com.escola.peopleservice.application.dto.PeopleLocalReadRoutingDecision;
 import br.com.escola.peopleservice.application.dto.PeopleCatalogReadModelSchemaPlan;
 import br.com.escola.peopleservice.application.dto.PeopleAddressScopeClosurePlan;
+import br.com.escola.peopleservice.application.dto.PeopleDocumentAlunoConsumerConnectionStrategyPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentAlunoConsumerContractPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentBackfillReconciliationPreparationPlan;
 import br.com.escola.peopleservice.application.dto.PeopleDocumentScopeClosurePlan;
@@ -35,6 +36,7 @@ import br.com.escola.peopleservice.application.service.PeopleAddressScopeClosure
 import br.com.escola.peopleservice.application.service.PeopleAddressWriteAuthorityPlanner;
 import br.com.escola.peopleservice.application.service.PeopleAddressWriteMonolithAdapterPlanner;
 import br.com.escola.peopleservice.application.service.PeopleCatalogReadModelSchemaPlanner;
+import br.com.escola.peopleservice.application.service.PeopleDocumentAlunoConsumerConnectionStrategyPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentAlunoConsumerContractPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentBackfillReconciliationPreparationPlanner;
 import br.com.escola.peopleservice.application.service.PeopleDocumentScopeClosurePlanner;
@@ -113,6 +115,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
             new PeopleAddressScopeClosurePlanner();
     private final PeopleDocumentAlunoConsumerContractPlanner documentAlunoConsumerContractPlanner =
             new PeopleDocumentAlunoConsumerContractPlanner();
+    private final PeopleDocumentAlunoConsumerConnectionStrategyPlanner documentAlunoConsumerConnectionStrategyPlanner =
+            new PeopleDocumentAlunoConsumerConnectionStrategyPlanner();
     private final PeopleDocumentScopeClosurePlanner documentScopeClosurePlanner =
             new PeopleDocumentScopeClosurePlanner();
     private final PeopleDocumentScopeDiagnosticPlanner documentScopeDiagnosticPlanner =
@@ -215,6 +219,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoFechamentoEscopoPessoaDocumento());
         details.put("peopleDocumentAlunoConsumerContractDiagnostic",
                 diagnosticoContratoConsumidorAlunoDocumento());
+        details.put("peopleDocumentAlunoConsumerConnectionStrategyDiagnostic",
+                diagnosticoEstrategiaConexaoConsumidorAlunoDocumento());
         details.put("peopleFuncionarioScopeDiagnostic", diagnosticoEscopoFuncionario());
         details.put("peopleFuncionarioInternalSummaryContractDiagnostic",
                 diagnosticoContratoInternoResumoFuncionario());
@@ -734,6 +740,42 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 "keepLegacyUntouched", true,
                 "nextPreferredFamily", "people_document_aluno_consumer_connection_strategy",
                 "connectConsumerNow", false));
+        return details;
+    }
+
+    private Map<String, Object> diagnosticoEstrategiaConexaoConsumidorAlunoDocumento() {
+        PeopleDocumentAlunoConsumerConnectionStrategyPlan plan =
+                documentAlunoConsumerConnectionStrategyPlanner.planejarEstrategiaDeConexao();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("alunoPessoaLookupContractPrepared", plan.alunoPessoaLookupContractPrepared());
+        details.put("alunoPessoaLookupAdapterPrepared", plan.alunoPessoaLookupAdapterPrepared());
+        details.put("localResolutionReadyForConnection", plan.localResolutionReadyForConnection());
+        details.put("realConsumerConnected", plan.realConsumerConnected());
+        details.put("routeChangeRequiredNow", plan.routeChangeRequiredNow());
+        details.put("legacyChangeRequiredNow", plan.legacyChangeRequiredNow());
+        details.put("fallbackRequired", plan.fallbackRequired());
+        details.put("preparedArtifacts", plan.preparedArtifacts());
+        details.put("resolutionFlow", plan.resolutionFlow());
+        details.put("guardrails", plan.guardrails());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        details.put("preparedLookupArtifacts", Map.of(
+                "port", "PeopleStudentPessoaLocalReadPort",
+                "response", "PessoaAlunoVinculoResponse",
+                "internalService", "PeopleStudentPessoaLocalReadService",
+                "adapter", "JdbcPeopleStudentPessoaLocalReadAdapter",
+                "routeCreated", false,
+                "legacyChangeRequiredNow", false));
+        details.put("currentRecommendation", Map.of(
+                "closeCurrentMacroPhaseAfterThisStep", true,
+                "keepConsumerUnconnected", true,
+                "nextPreferredFamily", "people_document_aluno_consumer_connection_closure",
+                "realFlowConnectionAllowedNow", false));
         return details;
     }
 

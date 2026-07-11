@@ -2065,6 +2065,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Contagem da macrofase Fase 88: 1 subfase restante estimada para decidir a
   estrategia de conexao desse consumidor inteiramente no `people-service`,
   ainda sem tocar o legado.
+- A Fase 89 fechou essa subfase restante exclusivamente no `people-service`,
+  criando a fronteira interna `PeopleStudentPessoaLocalReadPort`, o service
+  `PeopleStudentPessoaLocalReadService` e o adapter
+  `JdbcPeopleStudentPessoaLocalReadAdapter` para resolver `alunoId -> pessoaId`
+  sobre o read model local ja existente.
+- O actuator `peopleLocalPersistence` passou a expor
+  `peopleDocumentAlunoConsumerConnectionStrategyDiagnostic`, deixando explicito
+  que a resolucao local necessaria ao futuro consumidor de documentos esta
+  preparada, mas ainda sem conexao a fluxo real e sem qualquer alteracao no
+  `school-management-service`.
+- Contagem da macrofase Fase 89: 0 subfases restantes estimadas. O bloco do
+  consumidor futuro de documento por aluno fica fechado no codigo novo, pronto
+  para eventual reutilizacao futura.
 
 ## Diretriz para documentacao futura
 
