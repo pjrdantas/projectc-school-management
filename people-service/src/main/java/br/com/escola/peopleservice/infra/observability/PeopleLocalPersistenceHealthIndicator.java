@@ -72,6 +72,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private final PeopleLocalPersistenceFuncionarioDiagnostics funcionarioDiagnostics;
     private final PeopleLocalPersistenceContactDiagnostics contactDiagnostics;
     private final PeopleLocalPersistenceProfessorDiagnostics professorDiagnostics;
+    private final PeopleLocalPersistenceStudentResponsibleDiagnostics studentResponsibleDiagnostics;
     private final PeopleLocalReadModelSchemaMigrationState schemaMigrationState;
     private final PeopleLocalPersistenceOperationState operationState;
 
@@ -94,6 +95,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         this.funcionarioDiagnostics = new PeopleLocalPersistenceFuncionarioDiagnostics(readCutoverGuard);
         this.contactDiagnostics = new PeopleLocalPersistenceContactDiagnostics();
         this.professorDiagnostics = new PeopleLocalPersistenceProfessorDiagnostics();
+        this.studentResponsibleDiagnostics = new PeopleLocalPersistenceStudentResponsibleDiagnostics();
         this.schemaMigrationState = schemaMigrationState;
         this.operationState = operationState;
     }
@@ -177,6 +179,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoContratoInternoResumoProfessor());
         details.put("peopleProfessorInternalSummaryAdapterPreparationDiagnostic",
                 diagnosticoPreparacaoAdapterResumoProfessor());
+        details.put("peopleStudentResponsibleLinkScopeDiagnostic",
+                diagnosticoEscopoVinculosAlunoResponsavel());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -424,6 +428,10 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
 
     private Map<String, Object> diagnosticoPreparacaoAdapterResumoProfessor() {
         return professorDiagnostics.diagnosticoPreparacaoAdapterResumoProfessor();
+    }
+
+    private Map<String, Object> diagnosticoEscopoVinculosAlunoResponsavel() {
+        return studentResponsibleDiagnostics.diagnosticoEscopoVinculosAlunoResponsavel();
     }
 
     private Map<String, Object> diagnosticoProximaFatiaBloqueada() {

@@ -1976,6 +1976,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   registraram que a familia terminou esta macrofase apenas com fronteira
   interna preparada, sem migration, sem adapter JDBC, sem rota e sem
   persistencia propria. A contagem regressiva da Fase 95 chega a 0.
+- A primeira subfase da Fase 96 abriu a nova familia de vinculos base de
+  `aluno` e `responsavel` no `people-service`, sem criar rota, migration ou
+  persistencia adicional. O planner
+  `PeopleStudentResponsibleLinkScopeDiagnosticPlanner` e o actuator
+  `peopleStudentResponsibleLinkScopeDiagnostic` formalizaram que os lookups
+  locais `alunoId -> pessoaId` e `responsavelId -> pessoaId` ja existem no
+  codigo novo, mas ainda sem fechamento explicito como macrofase propria. A
+  contagem regressiva da Fase 96 passa a 1 subfase restante estimada.
 
 ## Historico resumido
 

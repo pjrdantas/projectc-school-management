@@ -4711,6 +4711,38 @@ Proxima fase pratica sugerida:
   macrofase separada para schema/adapter local, sem misturar com este bloco
   inicial.
 
+### Fase 96 - Diagnostico da familia de vinculos base de aluno e responsavel
+
+Objetivo: abrir a proxima familia backend do `people-service` pelo recorte
+minimo ainda sem macrofase propria, formalizando os vinculos base
+`aluno -> pessoa`, `responsavel -> pessoa` e a dependencia de
+`aluno_responsavel`, ainda sem rota, sem migration e sem alterar o legado.
+
+Entregue na primeira subfase da Fase 96:
+
+- foi criado o planner `PeopleStudentResponsibleLinkScopeDiagnosticPlanner`,
+  registrando que os contratos locais de lookup de `aluno` e `responsavel` ja
+  existem no codigo novo, mas ainda sem fechamento explicito como familia
+  propria;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleStudentResponsibleLinkScopeDiagnostic`, deixando explicito que
+  `parentesco`, `status_aluno` e qualquer write de `aluno`, `responsavel` ou
+  `aluno_responsavel` continuam fora desta macrofase;
+- a fase preserva o foco novo-only: nenhuma rota nova, nenhuma migration, sem
+  BFF/frontend e sem qualquer alteracao no `school-management-service`.
+
+Contagem da macrofase Fase 96: 1 subfase restante estimada: formalizar o
+fechamento contratual minimo dessa familia reutilizando os lookups e services ja
+existentes, sem abrir persistencia propria adicional.
+
+Proxima fase pratica sugerida:
+
+- formalizar no `people-service` o fechamento contratual minimo da familia de
+  vinculos base `aluno/responsavel`, ainda sem rota e sem persistencia propria
+  adicional; ou
+- se surgir dependencia estrutural maior com `parentesco` ou `status_aluno`,
+  separar isso em macrofase propria sem misturar com este bloco minimo.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

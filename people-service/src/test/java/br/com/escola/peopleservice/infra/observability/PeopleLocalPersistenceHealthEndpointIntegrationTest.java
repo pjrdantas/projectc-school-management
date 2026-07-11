@@ -820,5 +820,20 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("fallbackSource", "monolith_internal_professor")
                 .containsEntry("routingOperation", "professorInternalSummaryLocalRead")
                 .containsEntry("schemaVersion", "not-created-in-this-phase");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> studentResponsibleScopeDiagnostic =
+                (Map<String, Object>) details.get("peopleStudentResponsibleLinkScopeDiagnostic");
+        assertThat(studentResponsibleScopeDiagnostic)
+                .containsEntry("phase", "Fase 96")
+                .containsEntry("slice", "student_responsible_link_contract_diagnostic")
+                .containsEntry("status", "student_responsible_person_link_contracts_exist_without_explicit_family_closure")
+                .containsEntry("recommendedNextStep",
+                        "prepare_minimal_student_responsible_link_contract_closure_without_new_route_or_persistence")
+                .containsEntry("minimalNextSlice", "student_responsible_link_contract_closure")
+                .containsEntry("diagnosticReadyNow", true)
+                .containsEntry("internalContractSeparationAllowedNow", true)
+                .containsEntry("localPersistenceAllowedNow", false)
+                .containsEntry("externalRouteChangeAllowedNow", false)
+                .containsEntry("fallbackToCurrentMonolithRequired", true);
     }
 }
