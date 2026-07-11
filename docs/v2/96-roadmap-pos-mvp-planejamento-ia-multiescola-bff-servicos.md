@@ -4685,18 +4685,31 @@ Entregue na segunda subfase da Fase 95:
   `school-management-service`, nenhuma mudanca em BFF/frontend e nenhuma
   migration de `professor`.
 
-Contagem da macrofase Fase 95: 1 subfase restante estimada: decidir se a
-familia de `professor` avanca para preparacao de adapter/local read ou se deve
-ser fechada ainda neste bloco sem persistencia propria.
+Entregue na terceira subfase da Fase 95:
+
+- foi criado o planner `PeopleProfessorInternalSummaryAdapterPreparationPlanner`
+  para registrar explicitamente o menor proximo passo possivel da familia:
+  diagnosticar o primeiro adapter/local read de `professor` sem cria-lo nesta
+  fase e sem ativar qualquer persistencia propria;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleProfessorInternalSummaryAdapterPreparationDiagnostic`, deixando
+  explicito que o contrato interno esta pronto, mas que schema, adapter real,
+  local read e qualquer conexao externa continuam fora deste bloco;
+- a familia de `professor` foi mantida estritamente em preparacao interna no
+  codigo novo, sem rota, sem migration, sem BFF/frontend e sem alteracao no
+  legado.
+
+Contagem da macrofase Fase 95: 0 subfases restantes estimadas. O bloco inicial
+de `professor` fica fechado como fronteira interna preparada, ainda sem
+persistencia propria.
 
 Proxima fase pratica sugerida:
 
-- preparar no `people-service` apenas o diagnostico/planejamento do primeiro
-  adapter local read de resumo de `professor`, ainda sem persistencia propria
-  ativa, sem alocacao `professor_turma_disciplina` e sem rota externa; ou
-- se a dependencia de `funcionario` e composicao academica mostrar risco maior
-  que o esperado, encerrar formalmente este bloco de `professor` sem ampliar
-  escopo.
+- encerrar formalmente esta familia de `professor` como bloco inicial concluido
+  e iniciar a proxima familia backend do `people-service` ainda nao tratada; ou
+- se houver justificativa forte de continuidade em `professor`, abrir uma nova
+  macrofase separada para schema/adapter local, sem misturar com este bloco
+  inicial.
 
 ### Fase futura - Desativacao do monolito
 

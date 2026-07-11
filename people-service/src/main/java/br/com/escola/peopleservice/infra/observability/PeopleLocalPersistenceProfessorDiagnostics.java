@@ -3,8 +3,10 @@ package br.com.escola.peopleservice.infra.observability;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import br.com.escola.peopleservice.application.dto.PeopleProfessorInternalSummaryAdapterPreparationPlan;
 import br.com.escola.peopleservice.application.dto.PeopleProfessorInternalSummaryContractPlan;
 import br.com.escola.peopleservice.application.dto.PeopleProfessorScopeDiagnosticPlan;
+import br.com.escola.peopleservice.application.service.PeopleProfessorInternalSummaryAdapterPreparationPlanner;
 import br.com.escola.peopleservice.application.service.PeopleProfessorInternalSummaryContractPlanner;
 import br.com.escola.peopleservice.application.service.PeopleProfessorScopeDiagnosticPlanner;
 
@@ -14,6 +16,8 @@ final class PeopleLocalPersistenceProfessorDiagnostics {
             new PeopleProfessorScopeDiagnosticPlanner();
     private final PeopleProfessorInternalSummaryContractPlanner professorInternalSummaryContractPlanner =
             new PeopleProfessorInternalSummaryContractPlanner();
+    private final PeopleProfessorInternalSummaryAdapterPreparationPlanner professorInternalSummaryAdapterPreparationPlanner =
+            new PeopleProfessorInternalSummaryAdapterPreparationPlanner();
 
     Map<String, Object> diagnosticoEscopoProfessor() {
         PeopleProfessorScopeDiagnosticPlan plan =
@@ -77,6 +81,31 @@ final class PeopleLocalPersistenceProfessorDiagnostics {
                 "adapterCreated", false,
                 "routeCreated", false,
                 "localPersistenceConnected", false));
+        return details;
+    }
+
+    Map<String, Object> diagnosticoPreparacaoAdapterResumoProfessor() {
+        PeopleProfessorInternalSummaryAdapterPreparationPlan plan =
+                professorInternalSummaryAdapterPreparationPlanner.planejarPreparacaoDoAdapterLocal();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("adapterImplementationAllowedNow", plan.adapterImplementationAllowedNow());
+        details.put("adapterPrepared", plan.adapterPrepared());
+        details.put("internalServiceConnected", plan.internalServiceConnected());
+        details.put("externalRouteCreated", plan.externalRouteCreated());
+        details.put("localReadCutoverAllowedNow", plan.localReadCutoverAllowedNow());
+        details.put("candidateSource", plan.candidateSource());
+        details.put("fallbackSource", plan.fallbackSource());
+        details.put("routingOperation", plan.routingOperation());
+        details.put("schemaVersion", plan.schemaVersion());
+        details.put("preparedArtifacts", plan.preparedArtifacts());
+        details.put("blockerBeforeActivation", plan.blockerBeforeActivation());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
         return details;
     }
 }

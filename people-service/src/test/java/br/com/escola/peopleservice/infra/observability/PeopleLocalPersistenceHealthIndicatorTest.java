@@ -1220,5 +1220,24 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("adapterCreated", false)
                 .containsEntry("routeCreated", false)
                 .containsEntry("localPersistenceConnected", false);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> professorAdapterPreparation =
+                (Map<String, Object>) health.getDetails().get("peopleProfessorInternalSummaryAdapterPreparationDiagnostic");
+        assertThat(professorAdapterPreparation)
+                .containsEntry("phase", "Fase 95")
+                .containsEntry("slice", "professor_internal_summary_adapter_preparation")
+                .containsEntry("status", "adapter_preparation_diagnosed_contract_ready_keep_local_read_inactive")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_95_and_formally_finish_professor_initial_block")
+                .containsEntry("minimalNextSlice", "professor_initial_block_closure")
+                .containsEntry("adapterImplementationAllowedNow", true)
+                .containsEntry("adapterPrepared", false)
+                .containsEntry("internalServiceConnected", true)
+                .containsEntry("externalRouteCreated", false)
+                .containsEntry("localReadCutoverAllowedNow", false)
+                .containsEntry("candidateSource", "people_professor_read_model_candidate")
+                .containsEntry("fallbackSource", "monolith_internal_professor")
+                .containsEntry("routingOperation", "professorInternalSummaryLocalRead")
+                .containsEntry("schemaVersion", "not-created-in-this-phase");
     }
 }

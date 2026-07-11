@@ -1969,6 +1969,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `PeopleProfessorInternalSummaryContractPlanner`, enquanto o actuator passou a
   expor `peopleProfessorInternalSummaryContractDiagnostic`. A contagem
   regressiva da Fase 95 passa a 1 subfase restante estimada.
+- A terceira subfase da Fase 95 fechou o bloco inicial de `professor` com o
+  diagnostico formal do primeiro adapter/local read, ainda sem cria-lo. O
+  planner `PeopleProfessorInternalSummaryAdapterPreparationPlanner` e o
+  actuator `peopleProfessorInternalSummaryAdapterPreparationDiagnostic`
+  registraram que a familia terminou esta macrofase apenas com fronteira
+  interna preparada, sem migration, sem adapter JDBC, sem rota e sem
+  persistencia propria. A contagem regressiva da Fase 95 chega a 0.
 
 ## Historico resumido
 
