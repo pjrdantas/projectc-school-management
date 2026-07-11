@@ -5,8 +5,10 @@ import java.util.Map;
 
 import br.com.escola.peopleservice.application.dto.PeopleContactInternalUsageCandidatePlan;
 import br.com.escola.peopleservice.application.dto.PeopleContactLocalReadPreparationPlan;
+import br.com.escola.peopleservice.application.dto.PeopleContactScopeClosurePlan;
 import br.com.escola.peopleservice.application.service.PeopleContactInternalUsageCandidatePlanner;
 import br.com.escola.peopleservice.application.service.PeopleContactLocalReadPreparationPlanner;
+import br.com.escola.peopleservice.application.service.PeopleContactScopeClosurePlanner;
 
 final class PeopleLocalPersistenceContactDiagnostics {
 
@@ -14,6 +16,8 @@ final class PeopleLocalPersistenceContactDiagnostics {
             new PeopleContactLocalReadPreparationPlanner();
     private final PeopleContactInternalUsageCandidatePlanner contactInternalUsageCandidatePlanner =
             new PeopleContactInternalUsageCandidatePlanner();
+    private final PeopleContactScopeClosurePlanner contactScopeClosurePlanner =
+            new PeopleContactScopeClosurePlanner();
 
     Map<String, Object> diagnosticoPreparacaoLeituraLocalContato() {
         PeopleContactLocalReadPreparationPlan plan =
@@ -71,6 +75,31 @@ final class PeopleLocalPersistenceContactDiagnostics {
         details.put("currentBlockers", plan.currentBlockers());
         details.put("preservedBoundaries", plan.preservedBoundaries());
         details.put("rollbackSteps", plan.rollbackSteps());
+        return details;
+    }
+
+    Map<String, Object> diagnosticoFechamentoEscopoContato() {
+        PeopleContactScopeClosurePlan plan = contactScopeClosurePlanner.planejarFechamentoEscopoContato();
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("phase", plan.phase());
+        details.put("slice", plan.slice());
+        details.put("status", plan.status());
+        details.put("recommendedNextStep", plan.recommendedNextStep());
+        details.put("minimalNextSlice", plan.minimalNextSlice());
+        details.put("readScopeClosed", plan.readScopeClosed());
+        details.put("writeScopePreparedWithoutCutover", plan.writeScopePreparedWithoutCutover());
+        details.put("activationRequiredNow", plan.activationRequiredNow());
+        details.put("safeToStartNextFamilyDiagnostic", plan.safeToStartNextFamilyDiagnostic());
+        details.put("closedCapabilities", plan.closedCapabilities());
+        details.put("remainingActivationBlockers", plan.remainingActivationBlockers());
+        details.put("nextFamilyCandidates", plan.nextFamilyCandidates());
+        details.put("rollbackSteps", plan.rollbackSteps());
+        details.put("explicitlyOutOfScope", plan.explicitlyOutOfScope());
+        details.put("currentRecommendation", Map.of(
+                "keepContactPreparedButUnused", true,
+                "keepContactWriteAuthorityOnMonolith", true,
+                "nextPreferredFamily", "next_backend_family",
+                "reopenContactInThisPhase", false));
         return details;
     }
 }

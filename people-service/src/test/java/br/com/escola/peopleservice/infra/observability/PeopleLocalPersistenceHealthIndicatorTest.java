@@ -1153,5 +1153,44 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("safeToConnectNow", false)
                 .containsEntry("externalRouteChangeRequired", false)
                 .containsEntry("fallbackRequired", true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> contactScopeClosure =
+                (Map<String, Object>) health.getDetails().get("peopleContactScopeClosureDiagnostic");
+        assertThat(contactScopeClosure)
+                .containsEntry("phase", "Fase 94")
+                .containsEntry("slice", "people_contact_scope_closure_review")
+                .containsEntry("status", "people_contact_scope_review_closed_ready_for_next_family_diagnostic")
+                .containsEntry("recommendedNextStep",
+                        "start_next_backend_family_without_reopening_people_contact")
+                .containsEntry("minimalNextSlice", "next_backend_family_diagnostic")
+                .containsEntry("readScopeClosed", true)
+                .containsEntry("writeScopePreparedWithoutCutover", false)
+                .containsEntry("activationRequiredNow", false)
+                .containsEntry("safeToStartNextFamilyDiagnostic", true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> professorScopeDiagnostic =
+                (Map<String, Object>) health.getDetails().get("peopleProfessorScopeDiagnostic");
+        assertThat(professorScopeDiagnostic)
+                .containsEntry("phase", "Fase 95")
+                .containsEntry("slice", "professor_contract_diagnostic")
+                .containsEntry("status",
+                        "professor_summary_contract_preferred_with_funcionario_and_person_authority_preserved_on_monolith")
+                .containsEntry("recommendedNextStep",
+                        "prepare_minimal_professor_internal_summary_contract_without_route_or_persistence_cutover")
+                .containsEntry("minimalNextSlice", "professor_internal_summary_contract")
+                .containsEntry("diagnosticReadyNow", true)
+                .containsEntry("internalContractSeparationAllowedNow", true)
+                .containsEntry("localPersistenceAllowedNow", false)
+                .containsEntry("externalRouteChangeAllowedNow", false)
+                .containsEntry("fallbackToCurrentMonolithRequired", true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> professorCurrentRecommendation =
+                (Map<String, Object>) professorScopeDiagnostic.get("currentRecommendation");
+        assertThat(professorCurrentRecommendation)
+                .containsEntry("preferFirstImplementation", "professor_internal_summary_read_only")
+                .containsEntry("keepProfessorReadsOnMonolith", true)
+                .containsEntry("keepAcademicAllocationOutOfPeopleService", true)
+                .containsEntry("prepareExternalRouteNow", false)
+                .containsEntry("advanceToPersistenceNow", false);
     }
 }

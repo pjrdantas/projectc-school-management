@@ -4617,6 +4617,68 @@ Proxima fase pratica sugerida:
 - se surgir um consumidor real em outro servico novo, reabrir esse recorte
   apenas para integrar a fronteira ja preparada, sem tocar o legado.
 
+### Fase 94 - Fechamento formal do bloco de contato
+
+Objetivo: registrar explicitamente no `people-service` que o bloco de contato
+(`email` e `telefone`) ficou preparado e fechado neste estagio, sem forcar
+conexao a fluxo real, sem rota externa e sem tocar o legado
+`school-management-service`.
+
+Entregue na primeira subfase da Fase 94:
+
+- foi criado o planner `PeopleContactScopeClosurePlanner`, consolidando que o
+  bloco de contato ja possui contrato, service, adapter e diagnostico de
+  ausencia de consumidor interno real;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleContactScopeClosureDiagnostic`, deixando explicito que a evolucao
+  seguinte deve sair para outra familia backend sem reabrir esse bloco agora;
+- a fase preserva o escopo novo-only: nenhuma mudanca em `consultarCadastro`,
+  nenhuma rota nova, nenhuma alteracao em BFF/frontend e nenhuma alteracao no
+  `school-management-service`.
+
+Contagem da macrofase Fase 94: 0 subfases restantes estimadas. O bloco de
+contato fica formalmente fechado como fronteira preparada no codigo novo.
+
+Proxima fase pratica sugerida:
+
+- iniciar uma nova familia backend exclusivamente dentro do codigo novo do
+  `people-service`, sem reabrir `endereco`, `pessoa_documento`, `funcionario`
+  ou `contato`; ou
+- se surgir um consumidor real em outro servico novo, reabrir somente a
+  fronteira necessaria para integracao controlada.
+
+### Fase 95 - Diagnostico da familia de professor no `people-service`
+
+Objetivo: abrir a proxima familia backend exclusivamente no codigo novo do
+`people-service`, escolhendo `professor` como o menor recorte restante com
+valor arquitetural sem reabrir blocos ja fechados e sem tocar o
+`school-management-service`.
+
+Entregue na primeira subfase da Fase 95:
+
+- foi criado o planner `PeopleProfessorScopeDiagnosticPlanner`, formalizando
+  que o primeiro passo seguro para `professor` deve ser um contrato interno
+  minimo read-only de resumo por escola;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleProfessorScopeDiagnostic`, deixando explicito que `professor` ainda
+  depende de `funcionario`, `pessoa` e relacoes academicas hoje mantidas no
+  monolito, sem autorizar rota externa, persistencia local ou write cutover
+  nesta etapa;
+- a fase preserva o foco novo-only: nenhuma rota nova, nenhuma migration,
+  nenhuma mudanca em BFF/frontend e nenhuma alteracao no legado.
+
+Contagem da macrofase Fase 95: 2 subfases restantes estimadas: primeiro
+formalizar o contrato interno minimo de resumo de professor; depois fechar o
+bloco inicial da familia antes de decidir persistencia propria.
+
+Proxima fase pratica sugerida:
+
+- preparar no `people-service` o contrato interno minimo de resumo de
+  `professor`, ainda read-only, sem persistencia propria e sem alocacao
+  `professor_turma_disciplina`; ou
+- se o diagnostico de dependencia mostrar risco maior que o esperado, encerrar
+  formalmente este bloco diagnostico sem ampliar escopo.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

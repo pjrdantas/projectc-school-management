@@ -1945,6 +1945,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `peopleLocalPersistence` passou a expor
   `peopleContactInternalUsageCandidateDiagnostic`. A contagem regressiva da
   Fase 93 chega a 0.
+- A primeira subfase da Fase 94 consolidou o fechamento formal do bloco de
+  contato no `people-service`, registrando como fechadas neste estagio as
+  capacidades de contrato, service, adapter e diagnostico de ausencia de
+  consumidor interno real. O actuator `peopleLocalPersistence` passou a expor
+  `peopleContactScopeClosureDiagnostic`, deixando explicito que a evolucao
+  seguinte deve sair para outra familia backend sem reabrir esse bloco agora.
+  A contagem regressiva da Fase 94 chega a 0.
+- A primeira subfase da Fase 95 abriu a nova familia de `professor` no
+  `people-service` apenas por diagnostico, sem criar rota, migration,
+  persistencia local ou cutover. O planner
+  `PeopleProfessorScopeDiagnosticPlanner` e o actuator
+  `peopleProfessorScopeDiagnostic` formalizaram que o menor passo seguro agora
+  e um contrato interno minimo read-only de resumo de professor por escola,
+  preservando no monolito as dependencias atuais de `funcionario`, `pessoa`,
+  autenticacao e alocacao academica. A contagem regressiva da Fase 95 passa a
+  2 subfases restantes estimadas.
 
 ## Historico resumido
 

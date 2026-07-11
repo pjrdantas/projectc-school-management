@@ -71,6 +71,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private final PeopleLocalPersistenceDocumentDiagnostics documentDiagnostics;
     private final PeopleLocalPersistenceFuncionarioDiagnostics funcionarioDiagnostics;
     private final PeopleLocalPersistenceContactDiagnostics contactDiagnostics;
+    private final PeopleLocalPersistenceProfessorDiagnostics professorDiagnostics;
     private final PeopleLocalReadModelSchemaMigrationState schemaMigrationState;
     private final PeopleLocalPersistenceOperationState operationState;
 
@@ -92,6 +93,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         this.documentDiagnostics = new PeopleLocalPersistenceDocumentDiagnostics(readCutoverGuard);
         this.funcionarioDiagnostics = new PeopleLocalPersistenceFuncionarioDiagnostics(readCutoverGuard);
         this.contactDiagnostics = new PeopleLocalPersistenceContactDiagnostics();
+        this.professorDiagnostics = new PeopleLocalPersistenceProfessorDiagnostics();
         this.schemaMigrationState = schemaMigrationState;
         this.operationState = operationState;
     }
@@ -167,6 +169,10 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoPreparacaoLeituraLocalContato());
         details.put("peopleContactInternalUsageCandidateDiagnostic",
                 diagnosticoUsoInternoMinimoContato());
+        details.put("peopleContactScopeClosureDiagnostic",
+                diagnosticoFechamentoEscopoContato());
+        details.put("peopleProfessorScopeDiagnostic",
+                diagnosticoEscopoProfessor());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -398,6 +404,14 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
 
     private Map<String, Object> diagnosticoUsoInternoMinimoContato() {
         return contactDiagnostics.diagnosticoUsoInternoMinimoContato();
+    }
+
+    private Map<String, Object> diagnosticoFechamentoEscopoContato() {
+        return contactDiagnostics.diagnosticoFechamentoEscopoContato();
+    }
+
+    private Map<String, Object> diagnosticoEscopoProfessor() {
+        return professorDiagnostics.diagnosticoEscopoProfessor();
     }
 
     private Map<String, Object> diagnosticoProximaFatiaBloqueada() {
