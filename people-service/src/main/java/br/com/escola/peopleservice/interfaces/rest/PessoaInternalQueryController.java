@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.escola.peopleservice.application.context.InternalHeaders;
 import br.com.escola.peopleservice.application.context.InternalRequestContext;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
+import br.com.escola.peopleservice.application.dto.PessoaContatoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
@@ -73,6 +74,14 @@ public class PessoaInternalQueryController {
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
             @PathVariable("id") @NonNull UUID pessoaId) {
         return pessoaQueryUseCase.listarEnderecosPorPessoa(authorization, context, pessoaId);
+    }
+
+    @GetMapping("/pessoas/{id}/contato")
+    public PessoaContatoResponse buscarContatoPorPessoa(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable("id") @NonNull UUID pessoaId) {
+        return pessoaQueryUseCase.buscarContatoPorPessoa(authorization, context, pessoaId);
     }
 
     @GetMapping("/pessoas/{id}")

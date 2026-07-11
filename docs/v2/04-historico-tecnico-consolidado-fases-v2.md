@@ -2253,3 +2253,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   legado.
 - A validacao foi ampliada com testes de servico e integracao HTTP cobrindo o
   contrato interno desse recorte.
+
+### Fase 105
+
+- O `people-service` passou a expor no contrato interno a leitura local de
+  contato por pessoa, reaproveitando `PessoaContatoService`.
+- Foi aberta a rota interna `GET /internal/v1/pessoas/{id}/contato`, sem
+  alteracao em BFF, frontend ou legado.
+- A validacao foi ampliada com testes de servico e integracao HTTP desse
+  contrato interno.

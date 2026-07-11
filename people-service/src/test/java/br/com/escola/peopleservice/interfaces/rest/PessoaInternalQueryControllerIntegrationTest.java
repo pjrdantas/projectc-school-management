@@ -24,7 +24,9 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.escola.peopleservice.application.service.PeopleReadModelSyncState;
+import br.com.escola.peopleservice.application.service.PessoaContatoService;
 import br.com.escola.peopleservice.application.service.PessoaEnderecoService;
+import br.com.escola.peopleservice.application.dto.PessoaContatoResponse;
 import br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import okhttp3.mockwebserver.MockResponse;
@@ -48,6 +50,9 @@ class PessoaInternalQueryControllerIntegrationTest {
 
     @MockBean
     private PessoaEnderecoService pessoaEnderecoService;
+
+    @MockBean
+    private PessoaContatoService pessoaContatoService;
 
     @BeforeAll
     static void beforeAll() throws IOException {
@@ -267,6 +272,24 @@ class PessoaInternalQueryControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].cep").value("01001000"));
     }
 
+    @Test
+    void deveExporLeituraInternaDeContato() throws Exception {
+        marcarReadModelComoVerde();
+        when(pessoaContatoService.buscarContatoPorPessoa(PESSOA_ID, ESCOLA_ID))
+                .thenReturn(java.util.Optional.of(contato()));
+
+        mockMvc.perform(get("/internal/v1/pessoas/{id}/contato", PESSOA_ID)
+                        .header("X-Internal-Token", "internal-token")
+                        .header("X-Correlation-Id", "corr-people-7")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", "Bearer internal-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pessoaId").value(PESSOA_ID.toString()))
+                .andExpect(jsonPath("$.email").value("ana.aluna@example.com"))
+                .andExpect(jsonPath("$.telefone").value("11999999999"));
+    }
+
     private void marcarReadModelComoVerde() {
         peopleReadModelSyncState.update(new PeopleReadModelSyncSummary(
                 true,
@@ -451,6 +474,15 @@ class PessoaInternalQueryControllerIntegrationTest {
                 "Centro",
                 "Rio de Janeiro",
                 "RJ");
+    }
+
+    private PessoaContatoResponse contato() {
+        return new PessoaContatoResponse(
+                PESSOA_ID,
+                ESCOLA_ID,
+                "ana.aluna@example.com",
+                "11999999999",
+                true);
     }
 
     private RecordedRequest aguardarRequisicao(String method, String path) throws InterruptedException {

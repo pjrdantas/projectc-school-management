@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import br.com.escola.peopleservice.application.context.InternalRequestContext;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
+import br.com.escola.peopleservice.application.dto.PessoaContatoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
@@ -27,6 +28,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     private final AlunoResponsavelPort alunoResponsavelPort;
     private final PessoaAlunoResponsavelCatalogoService pessoaAlunoResponsavelCatalogoService;
     private final PessoaEnderecoService pessoaEnderecoService;
+    private final PessoaContatoService pessoaContatoService;
     private final PeopleReadSourcePolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
@@ -37,6 +39,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             AlunoResponsavelPort alunoResponsavelPort,
             PessoaAlunoResponsavelCatalogoService pessoaAlunoResponsavelCatalogoService,
             PessoaEnderecoService pessoaEnderecoService,
+            PessoaContatoService pessoaContatoService,
             PeopleReadSourcePolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
         this.pessoaReadPort = pessoaReadPort;
@@ -45,6 +48,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
         this.alunoResponsavelPort = alunoResponsavelPort;
         this.pessoaAlunoResponsavelCatalogoService = pessoaAlunoResponsavelCatalogoService;
         this.pessoaEnderecoService = pessoaEnderecoService;
+        this.pessoaContatoService = pessoaContatoService;
         this.readRoutingPolicy = readRoutingPolicy;
         this.meterRegistry = meterRegistry;
     }
@@ -104,6 +108,15 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             InternalRequestContext context,
             UUID pessoaId) {
         return pessoaEnderecoService.listarEnderecosPorPessoa(pessoaId, context.escolaId());
+    }
+
+    @Override
+    public PessoaContatoResponse buscarContatoPorPessoa(
+            String authorization,
+            InternalRequestContext context,
+            UUID pessoaId) {
+        return pessoaContatoService.buscarContatoPorPessoa(pessoaId, context.escolaId())
+                .orElseThrow(() -> new PeopleServiceResourceNotFoundException("Contato nao encontrado"));
     }
 
     @Override

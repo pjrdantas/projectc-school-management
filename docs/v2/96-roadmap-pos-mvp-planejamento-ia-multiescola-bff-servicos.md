@@ -6007,3 +6007,18 @@ Entregue nesta fase:
 
 Contagem da macrofase Fase 104: 0 subfases restantes estimadas. O bloco interno
 de leitura de endereco ficou fechado.
+
+### Fase 105 - Contrato interno visivel de leitura de contato
+
+Entregue nesta fase:
+
+- o `people-service` passou a expor no contrato interno a leitura local de
+  contato por pessoa;
+- `PessoaQueryUseCase`, `PessoaQueryService` e
+  `PessoaInternalQueryController` passaram a cobrir
+  `GET /internal/v1/pessoas/{id}/contato`;
+- a fase permaneceu restrita ao codigo novo, sem BFF, sem frontend e sem tocar
+  no legado.
+
+Contagem da macrofase Fase 105: 0 subfases restantes estimadas. O bloco interno
+de leitura de contato ficou fechado.
