@@ -1984,6 +1984,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   locais `alunoId -> pessoaId` e `responsavelId -> pessoaId` ja existem no
   codigo novo, mas ainda sem fechamento explicito como macrofase propria. A
   contagem regressiva da Fase 96 passa a 1 subfase restante estimada.
+- A segunda subfase da Fase 96 fechou formalmente essa familia de vinculos base
+  de `aluno` e `responsavel` no `people-service`. O planner
+  `PeopleStudentResponsibleLinkScopeClosurePlanner` e o actuator
+  `peopleStudentResponsibleLinkScopeClosureDiagnostic` registraram que a
+  familia termina esta macrofase apenas como fronteira interna preparada, sem
+  abrir `parentesco`, `status_aluno`, rota externa ou persistencia propria
+  adicional. A contagem regressiva da Fase 96 chega a 0.
 
 ## Historico resumido
 

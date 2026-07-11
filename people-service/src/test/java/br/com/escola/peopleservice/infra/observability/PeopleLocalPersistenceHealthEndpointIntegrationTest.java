@@ -835,5 +835,19 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("localPersistenceAllowedNow", false)
                 .containsEntry("externalRouteChangeAllowedNow", false)
                 .containsEntry("fallbackToCurrentMonolithRequired", true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> studentResponsibleScopeClosure =
+                (Map<String, Object>) details.get("peopleStudentResponsibleLinkScopeClosureDiagnostic");
+        assertThat(studentResponsibleScopeClosure)
+                .containsEntry("phase", "Fase 96")
+                .containsEntry("slice", "student_responsible_link_scope_closure_review")
+                .containsEntry("status", "student_responsible_link_scope_review_closed_ready_for_next_family_diagnostic")
+                .containsEntry("recommendedNextStep",
+                        "start_next_backend_family_without_reopening_student_responsible_links")
+                .containsEntry("minimalNextSlice", "next_backend_family_diagnostic")
+                .containsEntry("readScopeClosed", true)
+                .containsEntry("writeScopePreparedWithoutCutover", false)
+                .containsEntry("activationRequiredNow", false)
+                .containsEntry("safeToStartNextFamilyDiagnostic", true);
     }
 }

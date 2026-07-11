@@ -4731,17 +4731,30 @@ Entregue na primeira subfase da Fase 96:
 - a fase preserva o foco novo-only: nenhuma rota nova, nenhuma migration, sem
   BFF/frontend e sem qualquer alteracao no `school-management-service`.
 
-Contagem da macrofase Fase 96: 1 subfase restante estimada: formalizar o
-fechamento contratual minimo dessa familia reutilizando os lookups e services ja
-existentes, sem abrir persistencia propria adicional.
+Entregue na segunda subfase da Fase 96:
+
+- foi criado o planner `PeopleStudentResponsibleLinkScopeClosurePlanner`,
+  formalizando o fechamento dessa familia como bloco interno ja preparado no
+  codigo novo, reutilizando os lookups e services existentes de `aluno` e
+  `responsavel`;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleStudentResponsibleLinkScopeClosureDiagnostic`, deixando explicito que
+  a familia fica fechada neste estagio sem abrir `parentesco`,
+  `status_aluno`, rota externa ou persistencia propria adicional;
+- o escopo permaneceu estritamente backend-only e novo-only: nenhuma migration,
+  nenhuma alteracao em BFF/frontend e nenhuma mudanca no legado.
+
+Contagem da macrofase Fase 96: 0 subfases restantes estimadas. O bloco de
+vinculos base `aluno/responsavel` fica formalmente fechado como fronteira
+preparada no codigo novo.
 
 Proxima fase pratica sugerida:
 
-- formalizar no `people-service` o fechamento contratual minimo da familia de
-  vinculos base `aluno/responsavel`, ainda sem rota e sem persistencia propria
-  adicional; ou
-- se surgir dependencia estrutural maior com `parentesco` ou `status_aluno`,
-  separar isso em macrofase propria sem misturar com este bloco minimo.
+- iniciar a proxima familia backend ainda nao tratada no `people-service`,
+  preferencialmente pelos catalogos/vinculos de `parentesco` ou `status_aluno`,
+  porque ficaram explicitamente fora deste bloco minimo; ou
+- se nao houver necessidade imediata nesses catalogos, abrir outra familia nova
+  ainda nao coberta sem reabrir `aluno/responsavel`.
 
 ### Fase futura - Desativacao do monolito
 

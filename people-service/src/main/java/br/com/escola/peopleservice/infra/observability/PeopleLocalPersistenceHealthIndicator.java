@@ -181,6 +181,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoPreparacaoAdapterResumoProfessor());
         details.put("peopleStudentResponsibleLinkScopeDiagnostic",
                 diagnosticoEscopoVinculosAlunoResponsavel());
+        details.put("peopleStudentResponsibleLinkScopeClosureDiagnostic",
+                diagnosticoFechamentoEscopoVinculosAlunoResponsavel());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -432,6 +434,10 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
 
     private Map<String, Object> diagnosticoEscopoVinculosAlunoResponsavel() {
         return studentResponsibleDiagnostics.diagnosticoEscopoVinculosAlunoResponsavel();
+    }
+
+    private Map<String, Object> diagnosticoFechamentoEscopoVinculosAlunoResponsavel() {
+        return studentResponsibleDiagnostics.diagnosticoFechamentoEscopoVinculosAlunoResponsavel();
     }
 
     private Map<String, Object> diagnosticoProximaFatiaBloqueada() {
