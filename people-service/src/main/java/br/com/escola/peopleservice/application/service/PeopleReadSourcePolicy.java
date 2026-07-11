@@ -32,6 +32,10 @@ public class PeopleReadSourcePolicy {
             "documentoMetadata",
             "internal-operation:PessoaDocumentoMetadataPort",
             DOCUMENT_METADATA_SOURCE);
+    private static final ReadRouteDescriptor ALUNO_VINCULO_READ_ROUTE = new ReadRouteDescriptor(
+            "alunoVinculo",
+            "internal-operation:AlunoPessoaPort",
+            "aluno");
     private static final ReadRouteDescriptor RESPONSAVEL_VINCULO_READ_ROUTE = new ReadRouteDescriptor(
             "responsavelVinculo",
             "internal-operation:ResponsavelPessoaPort",
@@ -97,6 +101,17 @@ public class PeopleReadSourcePolicy {
         PeopleReadSourceDecision decision = avaliarLeituraDocumentoMetadata();
         registrarMetricaDecisao(decision);
         Counter.builder("people.document.read.routing.decisions")
+                .tag("selected_source", decision.selectedSource())
+                .tag("reason", decision.reason())
+                .register(meterRegistry)
+                .increment();
+        return decision;
+    }
+
+    public PeopleReadSourceDecision registrarDecisaoLeituraAlunoVinculo() {
+        PeopleReadSourceDecision decision = avaliarLeituraAlunoVinculo();
+        registrarMetricaDecisao(decision);
+        Counter.builder("people.student.read.routing.decisions")
                 .tag("selected_source", decision.selectedSource())
                 .tag("reason", decision.reason())
                 .register(meterRegistry)
@@ -211,6 +226,24 @@ public class PeopleReadSourcePolicy {
                 reason);
     }
 
+    public PeopleReadSourceDecision avaliarLeituraAlunoVinculo() {
+        String reason = motivoInelegibilidade(ALUNO_VINCULO_READ_ROUTE);
+        if ("local-read-adapter-not-configured".equals(reason)) {
+            reason = "student-link-local-read-connection-disabled";
+        }
+        boolean localReadEligible = isEligibleReason(reason);
+        return new PeopleReadSourceDecision(
+                ALUNO_VINCULO_READ_ROUTE.operation(),
+                ALUNO_VINCULO_READ_ROUTE.route(),
+                ALUNO_VINCULO_READ_ROUTE.candidateSource(),
+                selectedSource(localReadEligible, ALUNO_VINCULO_READ_ROUTE.operation()),
+                properties.localReadRoutingEnabled(),
+                localReadEligible,
+                properties.fallbackEnabled(),
+                false,
+                reason);
+    }
+
     public PeopleReadSourceDecision avaliarLeituraResponsavelVinculo() {
         String reason = motivoInelegibilidade(RESPONSAVEL_VINCULO_READ_ROUTE);
         if ("local-read-adapter-not-configured".equals(reason)) {
@@ -303,6 +336,9 @@ public class PeopleReadSourcePolicy {
         if (DOCUMENT_METADATA_READ_ROUTE.operation().equals(route.operation())) {
             return "local-document-metadata-read-eligible";
         }
+        if (ALUNO_VINCULO_READ_ROUTE.operation().equals(route.operation())) {
+            return "local-student-link-read-eligible";
+        }
         if (RESPONSAVEL_VINCULO_READ_ROUTE.operation().equals(route.operation())) {
             return "local-responsible-link-read-eligible";
         }
@@ -321,6 +357,7 @@ public class PeopleReadSourcePolicy {
                 || "local-student-responsible-read-eligible".equals(reason)
                 || "local-address-read-eligible".equals(reason)
                 || "local-document-metadata-read-eligible".equals(reason)
+                || "local-student-link-read-eligible".equals(reason)
                 || "local-responsible-link-read-eligible".equals(reason)
                 || "local-funcionario-internal-summary-read-eligible".equals(reason)
                 || "local-professor-internal-summary-read-eligible".equals(reason);
@@ -340,6 +377,9 @@ public class PeopleReadSourcePolicy {
             return "people_read_model_identity";
         }
         if ("consultarCadastro".equals(operation)) {
+            return STUDENT_RESPONSIBLE_SOURCE;
+        }
+        if (ALUNO_VINCULO_READ_ROUTE.operation().equals(operation)) {
             return STUDENT_RESPONSIBLE_SOURCE;
         }
         if (RESPONSAVEL_VINCULO_READ_ROUTE.operation().equals(operation)) {

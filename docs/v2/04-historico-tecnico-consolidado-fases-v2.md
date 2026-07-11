@@ -2029,6 +2029,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   verdes; e health/testes foram estendidos para cobrir bloqueio, adapter
   ausente, caminho liberado e metricas internas. A contagem regressiva da Fase
   99 chega a 0.
+- A primeira subfase da Fase 100 fechou a simetria do bloco base de `aluno` no
+  `people-service`. `AlunoPessoaService` passou a consultar
+  `PeopleReadSourcePolicy` antes de acessar `AlunoPessoaPort`; a policy passou
+  a reconhecer a operacao `alunoVinculo`, liberando o bloco
+  `people_read_model_student_responsible` apenas com backfill/reconciliacao
+  verdes; e health/testes foram estendidos para cobrir bloqueio, adapter
+  ausente, caminho liberado e metricas internas. A contagem regressiva da Fase
+  100 chega a 0.
 
 ## Historico resumido
 

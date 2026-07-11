@@ -123,12 +123,19 @@ class PeopleReadModelHealthIndicatorTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> address = (Map<String, Object>) internalReadRoutes.get("address");
         @SuppressWarnings("unchecked")
+        Map<String, Object> studentLink = (Map<String, Object>) internalReadRoutes.get("studentLink");
+        @SuppressWarnings("unchecked")
         Map<String, Object> responsibleLink = (Map<String, Object>) internalReadRoutes.get("responsibleLink");
         assertThat(address)
                 .containsEntry("route", "internal-operation:PessoaEnderecoPort")
                 .containsEntry("selectedSource", "people_read_model_address")
                 .containsEntry("localReadEligible", true)
                 .containsEntry("reason", "local-address-read-eligible");
+        assertThat(studentLink)
+                .containsEntry("route", "internal-operation:AlunoPessoaPort")
+                .containsEntry("selectedSource", "people_read_model_student_responsible")
+                .containsEntry("localReadEligible", true)
+                .containsEntry("reason", "local-student-link-read-eligible");
         assertThat(responsibleLink)
                 .containsEntry("route", "internal-operation:ResponsavelPessoaPort")
                 .containsEntry("selectedSource", "people_read_model_student_responsible")

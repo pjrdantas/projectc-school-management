@@ -4878,6 +4878,37 @@ Proxima fase pratica sugerida:
   `people-service` que ja tenha adapter local preparado e ainda nao esteja
   conectado ao mesmo criterio de elegibilidade.
 
+### Fase 100 - Elegibilidade interna do vinculo base de `aluno`
+
+Objetivo: fechar a simetria do bloco base `aluno/responsavel` no
+`people-service`, conectando o lookup de vinculo base de `aluno` ao mesmo guard
+interno das demais leituras locais, sem criar schema novo, sem rota externa e
+sem tocar no `school-management-service`.
+
+Entregue na primeira subfase da Fase 100:
+
+- `AlunoPessoaService` passou a consultar `PeopleReadSourcePolicy` antes de
+  acessar `AlunoPessoaPort`, bloqueando o caminho local quando o estado do read
+  model nao estiver elegivel e preservando fallback quando necessario;
+- `PeopleReadSourcePolicy` passou a reconhecer explicitamente a operacao
+  `alunoVinculo`, tratando esse lookup como leitura local do bloco
+  `people_read_model_student_responsible` apenas quando o backfill e a
+  reconciliacao estiverem verdes;
+- health e testes do modulo foram estendidos para expor a decisao interna de
+  `aluno`, suas metricas de roteamento e o comportamento do service sob
+  bloqueio, adapter ausente e caminho liberado.
+
+Contagem da macrofase Fase 100: 0 subfases restantes estimadas. O bloco base
+de `aluno` fica alinhado ao mesmo criterio de elegibilidade e observabilidade
+ja aplicado a `responsavel`, `funcionario`, `professor`, `documento` e
+`endereco`.
+
+Proxima fase pratica sugerida:
+
+- escolher o proximo agregado do `people-service` que ja tenha adapter local ou
+  read model preparado, mas ainda nao esteja fechado com o mesmo padrao de
+  guard interno e observabilidade.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
