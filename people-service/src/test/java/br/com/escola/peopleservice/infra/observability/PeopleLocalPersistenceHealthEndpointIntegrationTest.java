@@ -40,7 +40,8 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("migrationEnabled", false)
                 .containsEntry("readModelCutoverEnabled", false)
                 .containsEntry("writeCutoverAllowed", false)
-                .containsEntry("mode", "read_only_shadow_foundation");
+                .containsEntry("mode", "read_only_shadow_foundation")
+                .containsEntry("localContactReadsTotal", 0.0d);
 
         @SuppressWarnings("unchecked")
         Map<String, Object> shadowReadRoutes = (Map<String, Object>) details.get("shadowReadRoutes");
@@ -689,5 +690,49 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("keepFuncionarioAuthorityOnMonolith", true)
                 .containsEntry("nextPreferredFamily", "next_backend_family")
                 .containsEntry("reopenFuncionarioInThisPhase", false);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> contactPreparation =
+                (Map<String, Object>) details.get("peopleContactLocalReadPreparationDiagnostic");
+        assertThat(contactPreparation)
+                .containsEntry("phase", "Fase 92")
+                .containsEntry("slice", "people_contact_local_read_preparation")
+                .containsEntry("status", "internal_contact_read_prepared_with_local_adapter_no_route")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_92_and_plan_people_contact_internal_consumer_diagnostic")
+                .containsEntry("minimalNextSlice", "people_contact_internal_consumer_diagnostic")
+                .containsEntry("contractPrepared", true)
+                .containsEntry("internalServicePrepared", true)
+                .containsEntry("adapterCreated", true)
+                .containsEntry("localPersistenceConnected", true)
+                .containsEntry("externalRouteCreated", false)
+                .containsEntry("candidateSource", "pessoa")
+                .containsEntry("fallbackSource", "monolith_proxy")
+                .containsEntry("fallbackRequired", true);
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> preparedContactArtifacts =
+                (java.util.Map<String, Object>) contactPreparation.get("preparedArtifacts");
+        assertThat(preparedContactArtifacts)
+                .containsEntry("port", "PeopleContactLocalReadPort")
+                .containsEntry("response", "PessoaContatoLocalReadResponse")
+                .containsEntry("adapter", "JdbcPeopleContactLocalReadAdapter")
+                .containsEntry("internalService", "PeopleContactLocalReadService")
+                .containsEntry("routeCreated", false)
+                .containsEntry("adapterCreated", true)
+                .containsEntry("localPersistenceConnected", true);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> contactUsageCandidate =
+                (Map<String, Object>) details.get("peopleContactInternalUsageCandidateDiagnostic");
+        assertThat(contactUsageCandidate)
+                .containsEntry("phase", "Fase 93")
+                .containsEntry("slice", "people_contact_internal_usage_candidate_diagnostic")
+                .containsEntry("status", "no_safe_internal_contact_consumer_without_route_or_query_scope_change")
+                .containsEntry("recommendedNextStep",
+                        "close_phase_93_and_keep_contact_prepared_without_forced_consumer")
+                .containsEntry("minimalNextSlice", "people_contact_block_closure")
+                .containsEntry("internalUsageCandidateFound", false)
+                .containsEntry("safeToConnectNow", false)
+                .containsEntry("externalRouteChangeRequired", false)
+                .containsEntry("fallbackRequired", true);
     }
 }

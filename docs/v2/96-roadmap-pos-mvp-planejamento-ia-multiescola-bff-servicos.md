@@ -4551,6 +4551,72 @@ Proxima fase pratica sugerida:
 - se surgir um consumidor real em outro servico novo, reabrir esse recorte
   apenas para integrar a fronteira ja preparada, sem tocar o legado.
 
+### Fase 92 - Preparacao da leitura interna de contato no `people-service`
+
+Objetivo: criar exclusivamente no `people-service` a fronteira interna minima
+de contato de pessoa (`email` e `telefone`), reutilizando o read model local ja
+existente de `pessoa`, sem criar rota, sem BFF, sem frontend e sem tocar o
+legado `school-management-service`.
+
+Entregue na primeira subfase da Fase 92:
+
+- foi criado o contrato interno `PeopleContactLocalReadPort` com response
+  proprio `PessoaContatoLocalReadResponse`, sem expor entidade JPA;
+- foi criado o `PeopleContactLocalReadService` com fallback local seguro quando
+  o adapter nao estiver disponivel ou falhar;
+- foi criado o `JdbcPeopleContactLocalReadAdapter`, lendo `email` e `telefone`
+  diretamente da tabela local `pessoa`, que ja faz parte do read model do
+  `people-service`;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleContactLocalReadPreparationDiagnostic`, deixando explicito que a
+  fronteira interna de contato esta pronta mas continua sem rota externa e sem
+  consumidor real conectado;
+- a fase preserva o escopo novo-only: nenhuma mudanca de `consultarCadastro`,
+  nenhuma alteracao em BFF/frontend e nenhuma alteracao no
+  `school-management-service`.
+
+Contagem da macrofase Fase 92: 1 subfase restante estimada: diagnosticar o
+primeiro consumidor interno legitimo desse contrato de contato ainda dentro do
+codigo novo, sem abrir rota externa e sem tocar o legado.
+
+Proxima fase pratica sugerida:
+
+- diagnosticar o primeiro consumidor interno legitimo de
+  `PeopleContactLocalReadPort` exclusivamente no codigo novo, mantendo a
+  fronteira pronta mas ainda sem conexao funcional real; ou
+- se nao houver consumidor novo justificavel agora, fechar a fase como bloco
+  preparado e seguir para outra familia nova de desacoplamento.
+
+### Fase 93 - Diagnostico do consumidor interno de contato no `people-service`
+
+Objetivo: diagnosticar exclusivamente no `people-service` se existe consumidor
+interno legitimo para a nova fronteira de contato (`email` e `telefone`), sem
+forcar conexao artificial, sem criar rota, sem BFF, sem frontend e sem tocar o
+legado `school-management-service`.
+
+Entregue na primeira subfase da Fase 93:
+
+- foi criado o planner `PeopleContactInternalUsageCandidatePlanner`,
+  formalizando que ainda nao existe consumidor interno seguro para o contrato
+  de contato sem ampliar escopo de `PessoaQueryService` ou de rotas externas;
+- o actuator `peopleLocalPersistence` passou a expor
+  `peopleContactInternalUsageCandidateDiagnostic`, deixando explicito que o
+  bloco de contato segue preparado, mas ainda sem conexao funcional real;
+- a fase preserva o escopo novo-only: nenhuma mudanca em `consultarCadastro`,
+  nenhuma rota nova, nenhuma alteracao em BFF/frontend e nenhuma alteracao no
+  `school-management-service`.
+
+Contagem da macrofase Fase 93: 0 subfases restantes estimadas. O bloco de
+contato fica fechado como fronteira preparada no codigo novo, ainda sem
+consumidor real conectado.
+
+Proxima fase pratica sugerida:
+
+- fazer o fechamento formal do bloco de contato e escolher a proxima familia
+  exclusivamente dentro do codigo novo; ou
+- se surgir um consumidor real em outro servico novo, reabrir esse recorte
+  apenas para integrar a fronteira ja preparada, sem tocar o legado.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

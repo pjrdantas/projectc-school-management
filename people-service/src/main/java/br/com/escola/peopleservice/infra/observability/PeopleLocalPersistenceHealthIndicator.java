@@ -70,6 +70,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
     private final PeopleLocalPersistenceAddressDiagnostics addressDiagnostics;
     private final PeopleLocalPersistenceDocumentDiagnostics documentDiagnostics;
     private final PeopleLocalPersistenceFuncionarioDiagnostics funcionarioDiagnostics;
+    private final PeopleLocalPersistenceContactDiagnostics contactDiagnostics;
     private final PeopleLocalReadModelSchemaMigrationState schemaMigrationState;
     private final PeopleLocalPersistenceOperationState operationState;
 
@@ -90,6 +91,7 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
         this.addressDiagnostics = new PeopleLocalPersistenceAddressDiagnostics(addressWriteAuthorityPlanner);
         this.documentDiagnostics = new PeopleLocalPersistenceDocumentDiagnostics(readCutoverGuard);
         this.funcionarioDiagnostics = new PeopleLocalPersistenceFuncionarioDiagnostics(readCutoverGuard);
+        this.contactDiagnostics = new PeopleLocalPersistenceContactDiagnostics();
         this.schemaMigrationState = schemaMigrationState;
         this.operationState = operationState;
     }
@@ -161,6 +163,10 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 diagnosticoUsoInternoMinimoResumoFuncionario());
         details.put("peopleFuncionarioScopeClosureDiagnostic",
                 diagnosticoFechamentoEscopoFuncionario());
+        details.put("peopleContactLocalReadPreparationDiagnostic",
+                diagnosticoPreparacaoLeituraLocalContato());
+        details.put("peopleContactInternalUsageCandidateDiagnostic",
+                diagnosticoUsoInternoMinimoContato());
         details.put("schemaMigration", schemaMigrationState.currentReport());
         details.put("localReadModelBackfill", operationState.currentReport());
         details.put("catalogBackfill", operationState.currentReport());
@@ -192,6 +198,8 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
                 totalContador("people.shadow.local.persistence.document.metadata.reads"));
         details.put("localFuncionarioInternalSummaryReadsTotal",
                 totalContador("people.shadow.local.persistence.funcionario.internal.summary.reads"));
+        details.put("localContactReadsTotal",
+                totalContador("people.shadow.local.persistence.contact.reads"));
         details.put("addressWriteShadowCommandsTotal",
                 totalContador("people.shadow.local.persistence.address.write.shadow.commands"));
         details.put("monolithAddressWriteRequestsTotal",
@@ -382,6 +390,14 @@ public class PeopleLocalPersistenceHealthIndicator implements HealthIndicator {
 
     private Map<String, Object> diagnosticoFechamentoEscopoFuncionario() {
         return funcionarioDiagnostics.diagnosticoFechamentoEscopoFuncionario();
+    }
+
+    private Map<String, Object> diagnosticoPreparacaoLeituraLocalContato() {
+        return contactDiagnostics.diagnosticoPreparacaoLeituraLocalContato();
+    }
+
+    private Map<String, Object> diagnosticoUsoInternoMinimoContato() {
+        return contactDiagnostics.diagnosticoUsoInternoMinimoContato();
     }
 
     private Map<String, Object> diagnosticoProximaFatiaBloqueada() {

@@ -1929,6 +1929,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   exclusao ou o fluxo generico `/api/documentos`. A fase termina sem alteracao
   funcional oficial e com a contagem regressiva da Fase 87 em 2 subfases
   restantes estimadas.
+- A primeira subfase da Fase 92 criou exclusivamente no `people-service` a
+  fronteira interna minima de contato de pessoa (`email` e `telefone`) sobre o
+  read model local ja existente de `pessoa`, sem rota externa e sem tocar o
+  legado. Foram criados `PeopleContactLocalReadPort`,
+  `PessoaContatoLocalReadResponse`, `PeopleContactLocalReadService` e
+  `JdbcPeopleContactLocalReadAdapter`, com diagnostico novo no actuator
+  `peopleContactLocalReadPreparationDiagnostic`. A contagem regressiva da Fase
+  92 passa a 1 subfase restante estimada.
+- A primeira subfase da Fase 93 fechou o diagnostico do consumidor interno de
+  contato exclusivamente no `people-service`, formalizando que ainda nao existe
+  consumidor interno seguro para essa fronteira sem ampliar `PessoaQueryService`
+  ou mudar rotas externas. Foi criado o planner
+  `PeopleContactInternalUsageCandidatePlanner` e o actuator
+  `peopleLocalPersistence` passou a expor
+  `peopleContactInternalUsageCandidateDiagnostic`. A contagem regressiva da
+  Fase 93 chega a 0.
 
 ## Historico resumido
 
