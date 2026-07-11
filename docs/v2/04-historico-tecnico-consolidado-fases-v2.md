@@ -2045,6 +2045,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   health/testes foram estendidos para cobrir bloqueio, adapter ausente,
   caminho liberado e metricas internas. A contagem regressiva da Fase 101
   chega a 0.
+- A primeira subfase da Fase 102 fechou a camada de aplicacao dos catalogos
+  base de `aluno/responsavel` no `people-service`. Foi criado
+  `PessoaAlunoResponsavelCatalogoService`, reaproveitando `PessoaCatalogoPort`
+  para expor internamente `listarStatusAluno()` e `listarParentescos()` com
+  guard de elegibilidade e metricas; `PeopleReadSourcePolicy` passou a
+  reconhecer explicitamente essas duas operacoes como catalogos locais do
+  `people_read_model_catalog`; e os testes foram estendidos para cobrir
+  bloqueio, adapter ausente, falha local e sucesso. A contagem regressiva da
+  Fase 102 chega a 0.
 
 ## Historico resumido
 

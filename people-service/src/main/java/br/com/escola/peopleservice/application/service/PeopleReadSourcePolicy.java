@@ -63,6 +63,14 @@ public class PeopleReadSourcePolicy {
                     "GET /internal/v1/pessoas/catalogos/tipos-endereco",
                     "tipo_endereco"),
             new ReadRouteDescriptor(
+                    "listarStatusAluno",
+                    "internal-operation:PessoaCatalogoPort/status_aluno",
+                    "status_aluno"),
+            new ReadRouteDescriptor(
+                    "listarParentescos",
+                    "internal-operation:PessoaCatalogoPort/parentesco",
+                    "parentesco"),
+            new ReadRouteDescriptor(
                     "buscarPorId",
                     "GET /internal/v1/pessoas/{id}",
                     "pessoa"),
@@ -441,7 +449,10 @@ public class PeopleReadSourcePolicy {
     }
 
     private boolean isCatalogRoute(String operation) {
-        return "listarTiposPessoa".equals(operation) || "listarTiposEndereco".equals(operation);
+        return "listarTiposPessoa".equals(operation)
+                || "listarTiposEndereco".equals(operation)
+                || "listarStatusAluno".equals(operation)
+                || "listarParentescos".equals(operation);
     }
 
     private double totalContador(String meterName) {

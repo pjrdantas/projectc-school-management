@@ -97,6 +97,8 @@ class PeopleReadSourcePolicyTest {
         assertThat(decisions).containsKeys(
                 "listarTiposPessoa",
                 "listarTiposEndereco",
+                "listarStatusAluno",
+                "listarParentescos",
                 "buscarPorId",
                 "consultarCadastro");
         assertThat(decisions).doesNotContainKey("endereco");
@@ -105,6 +107,10 @@ class PeopleReadSourcePolicyTest {
         assertThat(decisions.get("listarTiposPessoa").reason()).isEqualTo("local-catalog-read-eligible");
         assertThat(decisions.get("listarTiposEndereco").selectedSource()).isEqualTo("people_read_model_catalog");
         assertThat(decisions.get("listarTiposEndereco").localReadEligible()).isTrue();
+        assertThat(decisions.get("listarStatusAluno").selectedSource()).isEqualTo("people_read_model_catalog");
+        assertThat(decisions.get("listarStatusAluno").localReadEligible()).isTrue();
+        assertThat(decisions.get("listarParentescos").selectedSource()).isEqualTo("people_read_model_catalog");
+        assertThat(decisions.get("listarParentescos").localReadEligible()).isTrue();
         assertThat(decisions.get("buscarPorId").selectedSource()).isEqualTo("people_read_model_identity");
         assertThat(decisions.get("buscarPorId").localReadEligible()).isTrue();
         assertThat(decisions.get("buscarPorId").reason()).isEqualTo("local-identity-read-eligible");

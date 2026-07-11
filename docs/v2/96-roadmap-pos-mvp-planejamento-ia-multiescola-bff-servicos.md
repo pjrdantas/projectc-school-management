@@ -4939,6 +4939,36 @@ Proxima fase pratica sugerida:
   tenha sido fechado com guard interno, observabilidade e consumo controlado,
   sem reabrir o legado.
 
+### Fase 102 - Fronteira interna dos catalogos base de `aluno/responsavel`
+
+Objetivo: fechar no `people-service` a camada de aplicacao dos catalogos
+`status_aluno` e `parentesco`, que ja possuem read model e adapter local, sem
+criar rota externa nova, sem BFF/frontend e sem depender de contrato interno
+inexistente no `school-management-service`.
+
+Entregue na primeira subfase da Fase 102:
+
+- foi criado `PessoaAlunoResponsavelCatalogoService`, reaproveitando
+  `PessoaCatalogoPort` para expor internamente `listarStatusAluno()` e
+  `listarParentescos()` com guard de elegibilidade, fallback local e metricas;
+- `PeopleReadSourcePolicy` passou a reconhecer explicitamente as operacoes
+  `listarStatusAluno` e `listarParentescos` como catalogos locais do
+  `people_read_model_catalog`, alinhando essas decisoes ao mesmo criterio de
+  backfill/reconciliacao verde dos demais catalogos;
+- testes do modulo foram estendidos para cobrir bloqueio do guard, adapter
+  ausente, falha local e sucesso, mantendo o bloco como fronteira interna do
+  codigo novo, ainda sem contrato HTTP novo.
+
+Contagem da macrofase Fase 102: 0 subfases restantes estimadas. O bloco de
+catalogos base de `aluno/responsavel` fica fechado na camada de aplicacao do
+`people-service`, sem inflar interface externa e sem tocar o legado.
+
+Proxima fase pratica sugerida:
+
+- escolher o proximo agregado que ainda precise de fechamento na camada de
+  aplicacao ou observabilidade, preservando o criterio de recortes pequenos,
+  portas especificas e nenhum retorno ao legado.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade
