@@ -146,6 +146,36 @@ class PeopleReadSourcePolicyTest {
     }
 
     @Test
+    void deveLiberarOperacaoContatoQuandoRelatorioLocalEstaVerde() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        PeopleReadSourcePolicy guard = new PeopleReadSourcePolicy(
+                new PeopleReadModelProperties(true, false, true, false, true, true, 500, true),
+                meterRegistry,
+                greenState());
+
+        var decision = guard.registrarDecisaoLeituraContato();
+
+        assertThat(decision.operation()).isEqualTo("contato");
+        assertThat(decision.route()).isEqualTo("internal-operation:PessoaContatoPort");
+        assertThat(decision.candidateSource()).isEqualTo("pessoa");
+        assertThat(decision.selectedSource()).isEqualTo("people_read_model_identity");
+        assertThat(decision.localReadRequested()).isTrue();
+        assertThat(decision.localReadEligible()).isTrue();
+        assertThat(decision.fallbackEnabled()).isTrue();
+        assertThat(decision.writesEnabled()).isFalse();
+        assertThat(decision.reason()).isEqualTo("local-contact-read-eligible");
+        assertThat(meterRegistry.counter(
+                "people.read.routing.decisions",
+                "operation", "contato",
+                "selected_source", "people_read_model_identity",
+                "reason", "local-contact-read-eligible").count()).isEqualTo(1.0d);
+        assertThat(meterRegistry.counter(
+                "people.contact.read.routing.decisions",
+                "selected_source", "people_read_model_identity",
+                "reason", "local-contact-read-eligible").count()).isEqualTo(1.0d);
+    }
+
+    @Test
     void deveLiberarOperacaoDocumentoQuandoRelatorioLocalEstaVerde() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         PeopleReadSourcePolicy guard = new PeopleReadSourcePolicy(

@@ -2037,6 +2037,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   verdes; e health/testes foram estendidos para cobrir bloqueio, adapter
   ausente, caminho liberado e metricas internas. A contagem regressiva da Fase
   100 chega a 0.
+- A primeira subfase da Fase 101 reabriu de forma controlada o bloco de
+  `contato` no `people-service`. `PessoaContatoService` passou a consultar
+  `PeopleReadSourcePolicy` antes de acessar `PessoaContatoPort`; a policy
+  passou a reconhecer a operacao `contato`, liberando a leitura local sobre o
+  read model de `pessoa` apenas com backfill/reconciliacao verdes; e
+  health/testes foram estendidos para cobrir bloqueio, adapter ausente,
+  caminho liberado e metricas internas. A contagem regressiva da Fase 101
+  chega a 0.
 
 ## Historico resumido
 

@@ -15,9 +15,12 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 class PessoaContatoServiceTest {
 
     @Test
-    void retornaVazioQuandoAdapterNaoExiste() {
+    void retornaVazioQuandoGuardBloqueiaLeituraLocal() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
-        PessoaContatoService service = new PessoaContatoService(provider(null), meterRegistry);
+        PessoaContatoService service = new PessoaContatoService(
+                provider(null),
+                readRoutingPolicy(false, meterRegistry),
+                meterRegistry);
 
         Optional<PessoaContatoResponse> response =
                 service.buscarContatoPorPessoa(UUID.randomUUID(), UUID.randomUUID());
@@ -26,7 +29,7 @@ class PessoaContatoServiceTest {
         assertThat(meterRegistry.counter(
                 "people.contact.reads",
                 "operation", "buscarContatoPorPessoa",
-                "result", "fallback_adapter_missing").count()).isEqualTo(1.0d);
+                "result", "fallback_guard_blocked").count()).isEqualTo(1.0d);
     }
 
     @Test
@@ -34,7 +37,10 @@ class PessoaContatoServiceTest {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         PessoaContatoResponse contato = contato();
         CountingContatoPort port = new CountingContatoPort(contato);
-        PessoaContatoService service = new PessoaContatoService(provider(port), meterRegistry);
+        PessoaContatoService service = new PessoaContatoService(
+                provider(port),
+                readRoutingPolicy(true, meterRegistry),
+                meterRegistry);
 
         Optional<PessoaContatoResponse> response =
                 service.buscarContatoPorPessoa(UUID.randomUUID(), UUID.randomUUID());
@@ -51,7 +57,10 @@ class PessoaContatoServiceTest {
     void registraFallbackQuandoAdapterFalha() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         PessoaContatoService service =
-                new PessoaContatoService(provider(new FailingContatoPort()), meterRegistry);
+                new PessoaContatoService(
+                        provider(new FailingContatoPort()),
+                        readRoutingPolicy(true, meterRegistry),
+                        meterRegistry);
 
         Optional<PessoaContatoResponse> response =
                 service.buscarContatoPorPessoa(UUID.randomUUID(), UUID.randomUUID());
@@ -61,6 +70,59 @@ class PessoaContatoServiceTest {
                 "people.contact.reads",
                 "operation", "buscarContatoPorPessoa",
                 "result", "fallback_error").count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void retornaVazioQuandoAdapterNaoExisteMesmoComGuardLiberado() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        PessoaContatoService service = new PessoaContatoService(
+                provider(null),
+                readRoutingPolicy(true, meterRegistry),
+                meterRegistry);
+
+        Optional<PessoaContatoResponse> response =
+                service.buscarContatoPorPessoa(UUID.randomUUID(), UUID.randomUUID());
+
+        assertThat(response).isEmpty();
+        assertThat(meterRegistry.counter(
+                "people.contact.reads",
+                "operation", "buscarContatoPorPessoa",
+                "result", "fallback_adapter_missing").count()).isEqualTo(1.0d);
+    }
+
+    private PeopleReadSourcePolicy readRoutingPolicy(boolean localReadEligible, SimpleMeterRegistry meterRegistry) {
+        return new PeopleReadSourcePolicy(
+                new br.com.escola.peopleservice.infra.config.PeopleReadModelProperties(
+                        localReadEligible,
+                        false,
+                        localReadEligible,
+                        false,
+                        localReadEligible,
+                        localReadEligible,
+                        500,
+                        true),
+                meterRegistry,
+                localReadEligible ? greenState() : new PeopleReadModelSyncState());
+    }
+
+    private PeopleReadModelSyncState greenState() {
+        PeopleReadModelSyncState state = new PeopleReadModelSyncState();
+        state.update(new br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary(
+                true,
+                true,
+                "completed",
+                "local-read-model-backfill-and-reconciliation-completed",
+                500,
+                8,
+                8,
+                25,
+                25,
+                25,
+                0,
+                false,
+                false,
+                java.util.List.of()));
+        return state;
     }
 
     private ObjectProvider<PessoaContatoPort> provider(PessoaContatoPort port) {

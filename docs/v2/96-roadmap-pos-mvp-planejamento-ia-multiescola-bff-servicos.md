@@ -4909,6 +4909,36 @@ Proxima fase pratica sugerida:
   read model preparado, mas ainda nao esteja fechado com o mesmo padrao de
   guard interno e observabilidade.
 
+### Fase 101 - Reabertura controlada do bloco de `contato`
+
+Objetivo: reaproveitar a fronteira de `contato` (`email` e `telefone`) ja
+preparada no `people-service`, agora fechando esse bloco com o mesmo criterio
+de elegibilidade interna, metricas e health das demais leituras locais, sem
+criar rota externa, sem BFF/frontend e sem tocar o
+`school-management-service`.
+
+Entregue na primeira subfase da Fase 101:
+
+- `PessoaContatoService` passou a consultar `PeopleReadSourcePolicy` antes de
+  acessar `PessoaContatoPort`, bloqueando o caminho local quando a base local
+  nao estiver elegivel e preservando fallback quando necessario;
+- `PeopleReadSourcePolicy` passou a reconhecer explicitamente a operacao
+  `contato`, tratando esse lookup como leitura local sobre o read model de
+  `pessoa` apenas quando o backfill e a reconciliacao estiverem verdes;
+- health e testes do modulo foram estendidos para expor a decisao interna de
+  `contato`, suas metricas de roteamento e o comportamento do service sob
+  bloqueio, adapter ausente e caminho liberado.
+
+Contagem da macrofase Fase 101: 0 subfases restantes estimadas. O bloco de
+`contato`, antes apenas preparado, fica reaberto e fechado com o mesmo padrao
+operacional das leituras locais atuais do `people-service`.
+
+Proxima fase pratica sugerida:
+
+- escolher a proxima familia ou agregado do `people-service` que ainda nao
+  tenha sido fechado com guard interno, observabilidade e consumo controlado,
+  sem reabrir o legado.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

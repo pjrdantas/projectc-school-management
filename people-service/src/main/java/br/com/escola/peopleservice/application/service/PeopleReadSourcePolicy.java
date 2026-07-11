@@ -28,6 +28,10 @@ public class PeopleReadSourcePolicy {
             "endereco",
             "internal-operation:PessoaEnderecoPort",
             ADDRESS_SOURCE);
+    private static final ReadRouteDescriptor CONTACT_READ_ROUTE = new ReadRouteDescriptor(
+            "contato",
+            "internal-operation:PessoaContatoPort",
+            "pessoa");
     private static final ReadRouteDescriptor DOCUMENT_METADATA_READ_ROUTE = new ReadRouteDescriptor(
             "documentoMetadata",
             "internal-operation:PessoaDocumentoMetadataPort",
@@ -90,6 +94,17 @@ public class PeopleReadSourcePolicy {
         PeopleReadSourceDecision decision = avaliarLeituraEndereco();
         registrarMetricaDecisao(decision);
         Counter.builder("people.address.read.routing.decisions")
+                .tag("selected_source", decision.selectedSource())
+                .tag("reason", decision.reason())
+                .register(meterRegistry)
+                .increment();
+        return decision;
+    }
+
+    public PeopleReadSourceDecision registrarDecisaoLeituraContato() {
+        PeopleReadSourceDecision decision = avaliarLeituraContato();
+        registrarMetricaDecisao(decision);
+        Counter.builder("people.contact.read.routing.decisions")
                 .tag("selected_source", decision.selectedSource())
                 .tag("reason", decision.reason())
                 .register(meterRegistry)
@@ -201,6 +216,24 @@ public class PeopleReadSourcePolicy {
                 ADDRESS_READ_ROUTE.route(),
                 ADDRESS_READ_ROUTE.candidateSource(),
                 selectedSource(localReadEligible, ADDRESS_READ_ROUTE.operation()),
+                properties.localReadRoutingEnabled(),
+                localReadEligible,
+                properties.fallbackEnabled(),
+                false,
+                reason);
+    }
+
+    public PeopleReadSourceDecision avaliarLeituraContato() {
+        String reason = motivoInelegibilidade(CONTACT_READ_ROUTE);
+        if ("local-read-adapter-not-configured".equals(reason)) {
+            reason = "contact-local-read-connection-disabled";
+        }
+        boolean localReadEligible = isEligibleReason(reason);
+        return new PeopleReadSourceDecision(
+                CONTACT_READ_ROUTE.operation(),
+                CONTACT_READ_ROUTE.route(),
+                CONTACT_READ_ROUTE.candidateSource(),
+                selectedSource(localReadEligible, CONTACT_READ_ROUTE.operation()),
                 properties.localReadRoutingEnabled(),
                 localReadEligible,
                 properties.fallbackEnabled(),
@@ -333,6 +366,9 @@ public class PeopleReadSourcePolicy {
         if (ADDRESS_READ_ROUTE.operation().equals(route.operation())) {
             return "local-address-read-eligible";
         }
+        if (CONTACT_READ_ROUTE.operation().equals(route.operation())) {
+            return "local-contact-read-eligible";
+        }
         if (DOCUMENT_METADATA_READ_ROUTE.operation().equals(route.operation())) {
             return "local-document-metadata-read-eligible";
         }
@@ -356,6 +392,7 @@ public class PeopleReadSourcePolicy {
                 || "local-identity-read-eligible".equals(reason)
                 || "local-student-responsible-read-eligible".equals(reason)
                 || "local-address-read-eligible".equals(reason)
+                || "local-contact-read-eligible".equals(reason)
                 || "local-document-metadata-read-eligible".equals(reason)
                 || "local-student-link-read-eligible".equals(reason)
                 || "local-responsible-link-read-eligible".equals(reason)
@@ -387,6 +424,9 @@ public class PeopleReadSourcePolicy {
         }
         if (ADDRESS_READ_ROUTE.operation().equals(operation)) {
             return ADDRESS_SOURCE;
+        }
+        if (CONTACT_READ_ROUTE.operation().equals(operation)) {
+            return "people_read_model_identity";
         }
         if (DOCUMENT_METADATA_READ_ROUTE.operation().equals(operation)) {
             return DOCUMENT_METADATA_SOURCE;

@@ -102,6 +102,10 @@ public class PeopleReadModelHealthIndicator implements HealthIndicator {
                 totalContador("people.address.read.routing.decisions"));
         details.put("localAddressReadsTotal",
                 totalContador("people.address.reads"));
+        details.put("contactReadRoutingDecisionsTotal",
+                totalContador("people.contact.read.routing.decisions"));
+        details.put("localContactReadsTotal",
+                totalContador("people.contact.reads"));
         details.put("documentMetadataReadRoutingDecisionsTotal",
                 totalContador("people.document.read.routing.decisions"));
         details.put("localDocumentMetadataReadsTotal",
@@ -157,6 +161,7 @@ public class PeopleReadModelHealthIndicator implements HealthIndicator {
     private Map<String, Object> internalReadRoutes() {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("address", mapDecision(readRoutingPolicy.avaliarLeituraEndereco()));
+        details.put("contact", mapDecision(readRoutingPolicy.avaliarLeituraContato()));
         details.put("documentMetadata", mapDecision(readRoutingPolicy.avaliarLeituraDocumentoMetadata()));
         details.put("studentLink", mapDecision(readRoutingPolicy.avaliarLeituraAlunoVinculo()));
         details.put("responsibleLink", mapDecision(readRoutingPolicy.avaliarLeituraResponsavelVinculo()));

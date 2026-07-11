@@ -14,16 +14,24 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class PessoaContatoService {
 
     private final ObjectProvider<PessoaContatoPort> contatoPortProvider;
+    private final PeopleReadSourcePolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
     public PessoaContatoService(
             ObjectProvider<PessoaContatoPort> contatoPortProvider,
+            PeopleReadSourcePolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
         this.contatoPortProvider = contatoPortProvider;
+        this.readRoutingPolicy = readRoutingPolicy;
         this.meterRegistry = meterRegistry;
     }
 
     public Optional<PessoaContatoResponse> buscarContatoPorPessoa(UUID pessoaId, UUID escolaId) {
+        var decision = readRoutingPolicy.registrarDecisaoLeituraContato();
+        if (!decision.localReadEligible()) {
+            registrarLeituraContatoLocal("buscarContatoPorPessoa", "fallback_guard_blocked");
+            return Optional.empty();
+        }
         PessoaContatoPort port = contatoPortProvider.getIfAvailable();
         if (port == null) {
             registrarLeituraContatoLocal("buscarContatoPorPessoa", "fallback_adapter_missing");
