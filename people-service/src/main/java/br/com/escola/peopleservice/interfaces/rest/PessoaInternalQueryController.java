@@ -44,6 +44,20 @@ public class PessoaInternalQueryController {
         return pessoaQueryUseCase.listarTiposEndereco(authorization, context);
     }
 
+    @GetMapping("/pessoas/catalogos/status-aluno")
+    public List<PessoaCatalogoResponse> listarStatusAluno(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
+        return pessoaQueryUseCase.listarStatusAluno(authorization, context);
+    }
+
+    @GetMapping("/pessoas/catalogos/parentescos")
+    public List<PessoaCatalogoResponse> listarParentescos(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
+        return pessoaQueryUseCase.listarParentescos(authorization, context);
+    }
+
     @GetMapping("/pessoas/{id}")
     public PessoaResumoResponse buscarPessoaPorId(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,

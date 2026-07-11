@@ -5973,3 +5973,22 @@ Proxima subfase pratica:
   cadastral antes da extracao fisica do `people-service`;
 - manter o foco backend/backend e evitar publicar eventos antes de fechar essas
   fronteiras internas minimas.
+
+### Fase 103 - Contrato interno visivel dos catalogos locais de `aluno/responsavel`
+
+Entregue nesta fase:
+
+- o contrato interno de consulta de `people-service` passou a expor tambem
+  `listarStatusAluno()` e `listarParentescos()` no mesmo `PessoaQueryUseCase`,
+  sem alterar BFF, frontend ou qualquer rota externa;
+- `PessoaInternalQueryController` passou a publicar
+  `GET /internal/v1/pessoas/catalogos/status-aluno` e
+  `GET /internal/v1/pessoas/catalogos/parentescos`, usando apenas o codigo novo;
+- `PessoaQueryService` conectou esses endpoints ao
+  `PessoaAlunoResponsavelCatalogoService`, preservando a separacao entre
+  contrato interno, politica de elegibilidade e adapter local;
+- os testes do `people-service` passaram a validar tanto o servico de consulta
+  quanto as duas novas rotas internas usando o read model local.
+
+Contagem da macrofase Fase 103: 0 subfases restantes estimadas. Este recorte
+pratico ficou fechado.

@@ -24,6 +24,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     private final PessoaCatalogoPort catalogoPort;
     private final PessoaPort pessoaPort;
     private final AlunoResponsavelPort alunoResponsavelPort;
+    private final PessoaAlunoResponsavelCatalogoService pessoaAlunoResponsavelCatalogoService;
     private final PeopleReadSourcePolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
@@ -32,12 +33,14 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             PessoaCatalogoPort catalogoPort,
             PessoaPort pessoaPort,
             AlunoResponsavelPort alunoResponsavelPort,
+            PessoaAlunoResponsavelCatalogoService pessoaAlunoResponsavelCatalogoService,
             PeopleReadSourcePolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
         this.pessoaReadPort = pessoaReadPort;
         this.catalogoPort = catalogoPort;
         this.pessoaPort = pessoaPort;
         this.alunoResponsavelPort = alunoResponsavelPort;
+        this.pessoaAlunoResponsavelCatalogoService = pessoaAlunoResponsavelCatalogoService;
         this.readRoutingPolicy = readRoutingPolicy;
         this.meterRegistry = meterRegistry;
     }
@@ -70,6 +73,16 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             }
         }
         return pessoaReadPort.listarTiposEndereco(authorization, context);
+    }
+
+    @Override
+    public List<PessoaCatalogoResponse> listarStatusAluno(String authorization, InternalRequestContext context) {
+        return pessoaAlunoResponsavelCatalogoService.listarStatusAluno();
+    }
+
+    @Override
+    public List<PessoaCatalogoResponse> listarParentescos(String authorization, InternalRequestContext context) {
+        return pessoaAlunoResponsavelCatalogoService.listarParentescos();
     }
 
     @Override

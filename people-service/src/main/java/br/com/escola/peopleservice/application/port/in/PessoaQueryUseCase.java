@@ -14,6 +14,10 @@ public interface PessoaQueryUseCase {
 
     List<PessoaCatalogoResponse> listarTiposEndereco(String authorization, InternalRequestContext context);
 
+    List<PessoaCatalogoResponse> listarStatusAluno(String authorization, InternalRequestContext context);
+
+    List<PessoaCatalogoResponse> listarParentescos(String authorization, InternalRequestContext context);
+
     PessoaResumoResponse buscarPessoaPorId(String authorization, InternalRequestContext context, UUID pessoaId);
 
     PessoaConsultaCadastralPageResponse consultarCadastro(

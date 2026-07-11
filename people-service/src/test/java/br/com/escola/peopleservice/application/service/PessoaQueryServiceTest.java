@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 
 import br.com.escola.peopleservice.application.context.InternalRequestContext;
 import br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary;
@@ -32,6 +33,10 @@ class PessoaQueryServiceTest {
                 new FakePessoaCatalogoPort(List.of(new PessoaCatalogoResponse(localId, "ALUNO", "Aluno")), List.of(), false),
                 new FakePessoaPort(Optional.empty(), false),
                 new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
+                catalogoAlunoResponsavelService(
+                        new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                        greenGuard(meterRegistry),
+                        meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -55,6 +60,10 @@ class PessoaQueryServiceTest {
                 new FakePessoaCatalogoPort(List.of(), List.of(), true),
                 new FakePessoaPort(Optional.empty(), false),
                 new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
+                catalogoAlunoResponsavelService(
+                        new FakePessoaCatalogoPort(List.of(), List.of(), true),
+                        greenGuard(meterRegistry),
+                        meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -80,6 +89,10 @@ class PessoaQueryServiceTest {
                 new FakePessoaCatalogoPort(List.of(), List.of(), false),
                 new FakePessoaPort(Optional.of(local), false),
                 new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
+                catalogoAlunoResponsavelService(
+                        new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                        greenGuard(meterRegistry),
+                        meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -105,6 +118,10 @@ class PessoaQueryServiceTest {
                 new FakePessoaCatalogoPort(List.of(), List.of(), false),
                 new FakePessoaPort(Optional.empty(), false),
                 new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
+                catalogoAlunoResponsavelService(
+                        new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                        greenGuard(meterRegistry),
+                        meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -128,6 +145,10 @@ class PessoaQueryServiceTest {
                 new FakePessoaCatalogoPort(List.of(), List.of(), false),
                 new FakePessoaPort(Optional.empty(), false),
                 new FakeAlunoResponsavelPort(localPage, false),
+                catalogoAlunoResponsavelService(
+                        new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                        greenGuard(meterRegistry),
+                        meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -159,6 +180,10 @@ class PessoaQueryServiceTest {
                 new FakePessoaCatalogoPort(List.of(), List.of(), false),
                 new FakePessoaPort(Optional.empty(), false),
                 new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), true),
+                catalogoAlunoResponsavelService(
+                        new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                        greenGuard(meterRegistry),
+                        meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -178,6 +203,86 @@ class PessoaQueryServiceTest {
                 "people.studentresponsible.reads",
                 "operation", "consultarCadastro",
                 "result", "fallback_error").count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void deveExporStatusAlunoPeloContratoInternoLocal() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        UUID statusId = UUID.randomUUID();
+        PessoaQueryService service = new PessoaQueryService(
+                new FakePessoaReadPort(new AtomicInteger(), List.of()),
+                new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                new FakePessoaPort(Optional.empty(), false),
+                new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
+                catalogoAlunoResponsavelService(
+                        new FakePessoaCatalogoPort(
+                                List.of(),
+                                List.of(),
+                                List.of(new PessoaCatalogoResponse(statusId, "ATIVO", "Ativo")),
+                                List.of(),
+                                false),
+                        greenGuard(meterRegistry),
+                        meterRegistry),
+                greenGuard(meterRegistry),
+                meterRegistry);
+
+        var response = service.listarStatusAluno("Bearer token", context());
+
+        assertThat(response).containsExactly(new PessoaCatalogoResponse(statusId, "ATIVO", "Ativo"));
+    }
+
+    @Test
+    void deveExporParentescosPeloContratoInternoLocal() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        UUID parentescoId = UUID.randomUUID();
+        PessoaQueryService service = new PessoaQueryService(
+                new FakePessoaReadPort(new AtomicInteger(), List.of()),
+                new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                new FakePessoaPort(Optional.empty(), false),
+                new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
+                catalogoAlunoResponsavelService(
+                        new FakePessoaCatalogoPort(
+                                List.of(),
+                                List.of(),
+                                List.of(),
+                                List.of(new PessoaCatalogoResponse(parentescoId, "MAE", "Mae")),
+                                false),
+                        greenGuard(meterRegistry),
+                        meterRegistry),
+                greenGuard(meterRegistry),
+                meterRegistry);
+
+        var response = service.listarParentescos("Bearer token", context());
+
+        assertThat(response).containsExactly(new PessoaCatalogoResponse(parentescoId, "MAE", "Mae"));
+    }
+
+    private PessoaAlunoResponsavelCatalogoService catalogoAlunoResponsavelService(
+            PessoaCatalogoPort catalogoPort,
+            PeopleReadSourcePolicy readRoutingPolicy,
+            SimpleMeterRegistry meterRegistry) {
+        ObjectProvider<PessoaCatalogoPort> provider = new ObjectProvider<>() {
+            @Override
+            public PessoaCatalogoPort getObject(Object... args) {
+                return catalogoPort;
+            }
+
+            @Override
+            public PessoaCatalogoPort getIfAvailable() {
+                return catalogoPort;
+            }
+
+            @Override
+            public PessoaCatalogoPort getIfUnique() {
+                return catalogoPort;
+            }
+
+            @Override
+            public PessoaCatalogoPort getObject() {
+                return catalogoPort;
+            }
+        };
+        return new PessoaAlunoResponsavelCatalogoService(provider, readRoutingPolicy, meterRegistry);
     }
 
     private PeopleReadSourcePolicy greenGuard(SimpleMeterRegistry meterRegistry) {
@@ -214,7 +319,16 @@ class PessoaQueryServiceTest {
     private record FakePessoaCatalogoPort(
             List<PessoaCatalogoResponse> tiposPessoa,
             List<PessoaCatalogoResponse> tiposEndereco,
+            List<PessoaCatalogoResponse> statusAluno,
+            List<PessoaCatalogoResponse> parentescos,
             boolean fail) implements PessoaCatalogoPort {
+
+        private FakePessoaCatalogoPort(
+                List<PessoaCatalogoResponse> tiposPessoa,
+                List<PessoaCatalogoResponse> tiposEndereco,
+                boolean fail) {
+            this(tiposPessoa, tiposEndereco, List.of(), List.of(), fail);
+        }
 
         @Override
         public List<PessoaCatalogoResponse> listarTiposPessoa() {
@@ -237,7 +351,7 @@ class PessoaQueryServiceTest {
             if (fail) {
                 throw new IllegalStateException("local-failed");
             }
-            return List.of();
+            return statusAluno;
         }
 
         @Override
@@ -245,7 +359,7 @@ class PessoaQueryServiceTest {
             if (fail) {
                 throw new IllegalStateException("local-failed");
             }
-            return List.of();
+            return parentescos;
         }
     }
 

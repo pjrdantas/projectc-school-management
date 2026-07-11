@@ -2228,3 +2228,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Atualizar este consolidado somente quando houver decisao tecnica relevante ou fechamento de um bloco grande de trabalho.
 - Para documentacao de usuario, criar futuramente manuais por perfil padrao, quando os perfis estiverem definidos.
 - Para mudancas de codigo, priorizar implementacao e validacao; documentacao deve ser pontual e util.
+
+### Fase 103
+
+- O `people-service` passou a expor no contrato interno as consultas locais de
+  `status_aluno` e `parentesco`, ligando `PessoaQueryUseCase`,
+  `PessoaQueryService` e `PessoaInternalQueryController` aos dois catalogos ja
+  preparados na camada nova.
+- Foram abertas as rotas internas
+  `GET /internal/v1/pessoas/catalogos/status-aluno` e
+  `GET /internal/v1/pessoas/catalogos/parentescos`, sem mudanca em BFF,
+  frontend ou legado.
+- A validacao foi ampliada com testes de servico e integracao HTTP para
+  confirmar resposta do read model local nesses dois endpoints.
