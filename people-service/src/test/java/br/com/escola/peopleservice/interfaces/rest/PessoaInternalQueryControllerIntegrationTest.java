@@ -1,6 +1,7 @@
 package br.com.escola.peopleservice.interfaces.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -17,12 +18,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.escola.peopleservice.application.service.PeopleReadModelSyncState;
+import br.com.escola.peopleservice.application.service.PessoaEnderecoService;
 import br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary;
+import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -32,6 +36,8 @@ import okhttp3.mockwebserver.RecordedRequest;
 class PessoaInternalQueryControllerIntegrationTest {
 
     private static final String READ_MODEL_URL = "jdbc:h2:mem:people-internal-query;MODE=PostgreSQL;DB_CLOSE_DELAY=-1";
+    private static final UUID ESCOLA_ID = UUID.fromString("00000000-0000-0000-0000-000000000047");
+    private static final UUID PESSOA_ID = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
     private static MockWebServer mockWebServer;
 
     @Autowired
@@ -39,6 +45,9 @@ class PessoaInternalQueryControllerIntegrationTest {
 
     @Autowired
     private PeopleReadModelSyncState peopleReadModelSyncState;
+
+    @MockBean
+    private PessoaEnderecoService pessoaEnderecoService;
 
     @BeforeAll
     static void beforeAll() throws IOException {
@@ -63,13 +72,14 @@ class PessoaInternalQueryControllerIntegrationTest {
         registry.add("people.read-model.fallback-enabled", () -> true);
         registry.add("people.read-model.schema-migration.driver-class-name", () -> "org.h2.Driver");
         registry.add("people.read-model.schema-migration.url", () -> READ_MODEL_URL);
+        registry.add("people.read-model.schema-migration.username", () -> "sa");
+        registry.add("people.read-model.schema-migration.password", () -> "");
     }
 
     @Test
     void deveConsultarPessoaPorIdNoRuntimeInterno() throws Exception {
         marcarReadModelComoVerde();
         UUID pessoaId = UUID.randomUUID();
-        UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
         mockWebServer.enqueue(new MockResponse()
                 .setHeader("Content-Type", "application/json")
                 .setBody("""
@@ -80,13 +90,13 @@ class PessoaInternalQueryControllerIntegrationTest {
                           "escolaNome": "Escola Padrao",
                           "ativo": true
                         }
-                        """.formatted(pessoaId, escolaId)));
+                        """.formatted(pessoaId, ESCOLA_ID)));
 
         mockMvc.perform(get("/internal/v1/pessoas/{id}", pessoaId)
                         .header("X-Internal-Token", "internal-token")
                         .header("X-Correlation-Id", "corr-people-1")
                         .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", escolaId)
+                        .header("X-Escola-Id", ESCOLA_ID)
                         .header("Authorization", "Bearer internal-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(pessoaId.toString()))
@@ -94,7 +104,7 @@ class PessoaInternalQueryControllerIntegrationTest {
 
         RecordedRequest recorded = aguardarRequisicao("GET", "/internal/pessoas/" + pessoaId);
         assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer internal-user-token");
-        assertThat(recorded.getHeader("X-Escola-Id")).isEqualTo(escolaId.toString());
+        assertThat(recorded.getHeader("X-Escola-Id")).isEqualTo(ESCOLA_ID.toString());
         assertThat(recorded.getHeader("X-Correlation-Id")).isEqualTo("corr-people-1");
     }
 
@@ -150,7 +160,7 @@ class PessoaInternalQueryControllerIntegrationTest {
                         .header("X-Internal-Token", "internal-token")
                         .header("X-Correlation-Id", "corr-people-2a")
                         .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("X-Escola-Id", ESCOLA_ID)
                         .header("Authorization", "Bearer internal-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(tipoPessoaId.toString()))
@@ -163,7 +173,7 @@ class PessoaInternalQueryControllerIntegrationTest {
                         .header("X-Internal-Token", "internal-token")
                         .header("X-Correlation-Id", "corr-people-2b")
                         .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("X-Escola-Id", ESCOLA_ID)
                         .header("Authorization", "Bearer internal-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1))
@@ -182,7 +192,7 @@ class PessoaInternalQueryControllerIntegrationTest {
         mockMvc.perform(get("/internal/v1/pessoas/catalogos/tipos-pessoa")
                         .header("X-Correlation-Id", "corr-people-3")
                         .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("X-Escola-Id", ESCOLA_ID)
                         .header("Authorization", "Bearer internal-user-token"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("INTERNAL_UNAUTHORIZED"));
@@ -198,7 +208,7 @@ class PessoaInternalQueryControllerIntegrationTest {
                         .header("X-Internal-Token", "internal-token")
                         .header("X-Correlation-Id", "corr-people-4")
                         .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("X-Escola-Id", ESCOLA_ID)
                         .header("Authorization", "Bearer internal-user-token"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
@@ -212,7 +222,7 @@ class PessoaInternalQueryControllerIntegrationTest {
                         .header("X-Internal-Token", "internal-token")
                         .header("X-Correlation-Id", "corr-people-5a")
                         .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("X-Escola-Id", ESCOLA_ID)
                         .header("Authorization", "Bearer internal-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
@@ -221,10 +231,40 @@ class PessoaInternalQueryControllerIntegrationTest {
                         .header("X-Internal-Token", "internal-token")
                         .header("X-Correlation-Id", "corr-people-5b")
                         .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("X-Escola-Id", ESCOLA_ID)
                         .header("Authorization", "Bearer internal-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void deveExporLeiturasInternasDeEndereco() throws Exception {
+        marcarReadModelComoVerde();
+        when(pessoaEnderecoService.buscarEnderecoPrincipalPorPessoa(PESSOA_ID, ESCOLA_ID))
+                .thenReturn(java.util.Optional.of(enderecoPrincipal()));
+        when(pessoaEnderecoService.listarEnderecosPorPessoa(PESSOA_ID, ESCOLA_ID))
+                .thenReturn(List.of(enderecoPrincipal(), enderecoSecundario()));
+
+        mockMvc.perform(get("/internal/v1/pessoas/{id}/endereco-principal", PESSOA_ID)
+                        .header("X-Internal-Token", "internal-token")
+                        .header("X-Correlation-Id", "corr-people-6a")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", "Bearer internal-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pessoaId").value(PESSOA_ID.toString()))
+                .andExpect(jsonPath("$.cep").value("01001000"))
+                .andExpect(jsonPath("$.principal").value(true));
+
+        mockMvc.perform(get("/internal/v1/pessoas/{id}/enderecos", PESSOA_ID)
+                        .header("X-Internal-Token", "internal-token")
+                        .header("X-Correlation-Id", "corr-people-6b")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", "Bearer internal-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].pessoaId").value(PESSOA_ID.toString()))
+                .andExpect(jsonPath("$[0].cep").value("01001000"));
     }
 
     private void marcarReadModelComoVerde() {
@@ -272,9 +312,145 @@ class PessoaInternalQueryControllerIntegrationTest {
                     INSERT INTO parentesco (id_parentesco, codigo, descricao)
                     VALUES ('22222222-2222-2222-2222-222222222222', 'MAE', 'Mae')
                     """);
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS pessoa (
+                        id_pessoa UUID NOT NULL PRIMARY KEY,
+                        id_escola UUID NOT NULL,
+                        nome_completo VARCHAR(150) NOT NULL
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS tipo_endereco (
+                        id_tipo_endereco UUID NOT NULL PRIMARY KEY,
+                        codigo VARCHAR(50) NOT NULL,
+                        descricao VARCHAR(150) NOT NULL
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS endereco (
+                        id_endereco UUID NOT NULL PRIMARY KEY,
+                        cep VARCHAR(20),
+                        logradouro VARCHAR(150),
+                        numero VARCHAR(30),
+                        complemento VARCHAR(150),
+                        bairro VARCHAR(100),
+                        cidade VARCHAR(100),
+                        uf VARCHAR(2),
+                        created_at TIMESTAMP,
+                        updated_at TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS pessoa_endereco (
+                        id_pessoa_endereco UUID NOT NULL PRIMARY KEY,
+                        id_pessoa UUID NOT NULL,
+                        id_endereco UUID NOT NULL,
+                        id_tipo_endereco UUID NOT NULL,
+                        principal BOOLEAN NOT NULL,
+                        created_at TIMESTAMP NOT NULL
+                    )
+                    """);
+            statement.execute("DELETE FROM pessoa_endereco");
+            statement.execute("DELETE FROM endereco");
+            statement.execute("DELETE FROM tipo_endereco");
+            statement.execute("DELETE FROM pessoa");
+            statement.execute("""
+                    INSERT INTO pessoa (id_pessoa, id_escola, nome_completo)
+                    VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '00000000-0000-0000-0000-000000000047', 'Ana Aluna')
+                    """);
+            statement.execute("""
+                    INSERT INTO tipo_endereco (id_tipo_endereco, codigo, descricao)
+                    VALUES ('11111111-1111-1111-1111-111111111111', 'RESIDENCIAL', 'Residencial')
+                    """);
+            statement.execute("""
+                    INSERT INTO endereco (
+                        id_endereco, cep, logradouro, numero, complemento, bairro, cidade, uf, created_at, updated_at
+                    ) VALUES
+                    (
+                        '22222222-2222-2222-2222-222222222222',
+                        '01001000',
+                        'Praca da Se',
+                        '100',
+                        'Apto 1',
+                        'Se',
+                        'Sao Paulo',
+                        'SP',
+                        TIMESTAMP '2026-01-02 10:00:00',
+                        TIMESTAMP '2026-01-02 10:00:00'
+                    ),
+                    (
+                        '33333333-3333-3333-3333-333333333333',
+                        '20040002',
+                        'Rua da Assembleia',
+                        '200',
+                        NULL,
+                        'Centro',
+                        'Rio de Janeiro',
+                        'RJ',
+                        TIMESTAMP '2026-01-03 10:00:00',
+                        TIMESTAMP '2026-01-03 10:00:00'
+                    )
+                    """);
+            statement.execute("""
+                    INSERT INTO pessoa_endereco (
+                        id_pessoa_endereco, id_pessoa, id_endereco, id_tipo_endereco, principal, created_at
+                    ) VALUES
+                    (
+                        '44444444-4444-4444-4444-444444444444',
+                        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                        '22222222-2222-2222-2222-222222222222',
+                        '11111111-1111-1111-1111-111111111111',
+                        TRUE,
+                        TIMESTAMP '2026-01-04 10:00:00'
+                    ),
+                    (
+                        '55555555-5555-5555-5555-555555555555',
+                        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                        '33333333-3333-3333-3333-333333333333',
+                        '11111111-1111-1111-1111-111111111111',
+                        FALSE,
+                        TIMESTAMP '2026-01-03 10:00:00'
+                    )
+                    """);
         } catch (Exception ex) {
             throw new IllegalStateException("failed-to-prepare-local-catalogs", ex);
         }
+    }
+
+    private PessoaEnderecoResponse enderecoPrincipal() {
+        return new PessoaEnderecoResponse(
+                UUID.fromString("44444444-4444-4444-4444-444444444444"),
+                PESSOA_ID,
+                UUID.fromString("22222222-2222-2222-2222-222222222222"),
+                UUID.fromString("11111111-1111-1111-1111-111111111111"),
+                "RESIDENCIAL",
+                "Residencial",
+                true,
+                "01001000",
+                "Praca da Se",
+                "100",
+                "Apto 1",
+                "Se",
+                "Sao Paulo",
+                "SP");
+    }
+
+    private PessoaEnderecoResponse enderecoSecundario() {
+        return new PessoaEnderecoResponse(
+                UUID.fromString("55555555-5555-5555-5555-555555555555"),
+                PESSOA_ID,
+                UUID.fromString("33333333-3333-3333-3333-333333333333"),
+                UUID.fromString("11111111-1111-1111-1111-111111111111"),
+                "RESIDENCIAL",
+                "Residencial",
+                false,
+                "20040002",
+                "Rua da Assembleia",
+                "200",
+                null,
+                "Centro",
+                "Rio de Janeiro",
+                "RJ");
     }
 
     private RecordedRequest aguardarRequisicao(String method, String path) throws InterruptedException {

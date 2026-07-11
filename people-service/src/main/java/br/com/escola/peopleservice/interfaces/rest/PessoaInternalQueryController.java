@@ -17,6 +17,7 @@ import br.com.escola.peopleservice.application.context.InternalHeaders;
 import br.com.escola.peopleservice.application.context.InternalRequestContext;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
+import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 import br.com.escola.peopleservice.application.port.in.PessoaQueryUseCase;
 
@@ -56,6 +57,22 @@ public class PessoaInternalQueryController {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
         return pessoaQueryUseCase.listarParentescos(authorization, context);
+    }
+
+    @GetMapping("/pessoas/{id}/endereco-principal")
+    public PessoaEnderecoResponse buscarEnderecoPrincipalPorPessoa(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable("id") @NonNull UUID pessoaId) {
+        return pessoaQueryUseCase.buscarEnderecoPrincipalPorPessoa(authorization, context, pessoaId);
+    }
+
+    @GetMapping("/pessoas/{id}/enderecos")
+    public List<PessoaEnderecoResponse> listarEnderecosPorPessoa(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable("id") @NonNull UUID pessoaId) {
+        return pessoaQueryUseCase.listarEnderecosPorPessoa(authorization, context, pessoaId);
     }
 
     @GetMapping("/pessoas/{id}")

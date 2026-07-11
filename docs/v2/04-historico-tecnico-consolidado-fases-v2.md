@@ -2241,3 +2241,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   frontend ou legado.
 - A validacao foi ampliada com testes de servico e integracao HTTP para
   confirmar resposta do read model local nesses dois endpoints.
+
+### Fase 104
+
+- O `people-service` passou a expor no contrato interno a leitura local de
+  endereco por pessoa, reaproveitando o bloco ja implementado em
+  `PessoaEnderecoService`.
+- Foram abertas as rotas internas
+  `GET /internal/v1/pessoas/{id}/endereco-principal` e
+  `GET /internal/v1/pessoas/{id}/enderecos`, sem alteracao em BFF, frontend ou
+  legado.
+- A validacao foi ampliada com testes de servico e integracao HTTP cobrindo o
+  contrato interno desse recorte.

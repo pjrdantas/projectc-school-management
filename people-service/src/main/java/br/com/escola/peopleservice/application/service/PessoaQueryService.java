@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import br.com.escola.peopleservice.application.context.InternalRequestContext;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
+import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 import br.com.escola.peopleservice.application.exception.PeopleServiceResourceNotFoundException;
 import br.com.escola.peopleservice.application.port.in.PessoaQueryUseCase;
@@ -25,6 +26,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     private final PessoaPort pessoaPort;
     private final AlunoResponsavelPort alunoResponsavelPort;
     private final PessoaAlunoResponsavelCatalogoService pessoaAlunoResponsavelCatalogoService;
+    private final PessoaEnderecoService pessoaEnderecoService;
     private final PeopleReadSourcePolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
@@ -34,6 +36,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             PessoaPort pessoaPort,
             AlunoResponsavelPort alunoResponsavelPort,
             PessoaAlunoResponsavelCatalogoService pessoaAlunoResponsavelCatalogoService,
+            PessoaEnderecoService pessoaEnderecoService,
             PeopleReadSourcePolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
         this.pessoaReadPort = pessoaReadPort;
@@ -41,6 +44,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
         this.pessoaPort = pessoaPort;
         this.alunoResponsavelPort = alunoResponsavelPort;
         this.pessoaAlunoResponsavelCatalogoService = pessoaAlunoResponsavelCatalogoService;
+        this.pessoaEnderecoService = pessoaEnderecoService;
         this.readRoutingPolicy = readRoutingPolicy;
         this.meterRegistry = meterRegistry;
     }
@@ -83,6 +87,23 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     @Override
     public List<PessoaCatalogoResponse> listarParentescos(String authorization, InternalRequestContext context) {
         return pessoaAlunoResponsavelCatalogoService.listarParentescos();
+    }
+
+    @Override
+    public PessoaEnderecoResponse buscarEnderecoPrincipalPorPessoa(
+            String authorization,
+            InternalRequestContext context,
+            UUID pessoaId) {
+        return pessoaEnderecoService.buscarEnderecoPrincipalPorPessoa(pessoaId, context.escolaId())
+                .orElseThrow(() -> new PeopleServiceResourceNotFoundException("Endereco principal nao encontrado"));
+    }
+
+    @Override
+    public List<PessoaEnderecoResponse> listarEnderecosPorPessoa(
+            String authorization,
+            InternalRequestContext context,
+            UUID pessoaId) {
+        return pessoaEnderecoService.listarEnderecosPorPessoa(pessoaId, context.escolaId());
     }
 
     @Override

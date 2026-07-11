@@ -6,6 +6,7 @@ import java.util.UUID;
 import br.com.escola.peopleservice.application.context.InternalRequestContext;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
+import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 
 public interface PessoaQueryUseCase {
@@ -17,6 +18,16 @@ public interface PessoaQueryUseCase {
     List<PessoaCatalogoResponse> listarStatusAluno(String authorization, InternalRequestContext context);
 
     List<PessoaCatalogoResponse> listarParentescos(String authorization, InternalRequestContext context);
+
+    PessoaEnderecoResponse buscarEnderecoPrincipalPorPessoa(
+            String authorization,
+            InternalRequestContext context,
+            UUID pessoaId);
+
+    List<PessoaEnderecoResponse> listarEnderecosPorPessoa(
+            String authorization,
+            InternalRequestContext context,
+            UUID pessoaId);
 
     PessoaResumoResponse buscarPessoaPorId(String authorization, InternalRequestContext context, UUID pessoaId);
 

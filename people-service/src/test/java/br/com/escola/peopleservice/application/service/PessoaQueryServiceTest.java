@@ -14,6 +14,7 @@ import br.com.escola.peopleservice.application.context.InternalRequestContext;
 import br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
+import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 import br.com.escola.peopleservice.application.port.out.PessoaCatalogoPort;
 import br.com.escola.peopleservice.application.port.out.AlunoResponsavelPort;
@@ -37,6 +38,7 @@ class PessoaQueryServiceTest {
                         new FakePessoaCatalogoPort(List.of(), List.of(), false),
                         greenGuard(meterRegistry),
                         meterRegistry),
+                enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -64,6 +66,7 @@ class PessoaQueryServiceTest {
                         new FakePessoaCatalogoPort(List.of(), List.of(), true),
                         greenGuard(meterRegistry),
                         meterRegistry),
+                enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -93,6 +96,7 @@ class PessoaQueryServiceTest {
                         new FakePessoaCatalogoPort(List.of(), List.of(), false),
                         greenGuard(meterRegistry),
                         meterRegistry),
+                enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -122,6 +126,7 @@ class PessoaQueryServiceTest {
                         new FakePessoaCatalogoPort(List.of(), List.of(), false),
                         greenGuard(meterRegistry),
                         meterRegistry),
+                enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -149,6 +154,7 @@ class PessoaQueryServiceTest {
                         new FakePessoaCatalogoPort(List.of(), List.of(), false),
                         greenGuard(meterRegistry),
                         meterRegistry),
+                enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -184,6 +190,7 @@ class PessoaQueryServiceTest {
                         new FakePessoaCatalogoPort(List.of(), List.of(), false),
                         greenGuard(meterRegistry),
                         meterRegistry),
+                enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -223,6 +230,7 @@ class PessoaQueryServiceTest {
                                 false),
                         greenGuard(meterRegistry),
                         meterRegistry),
+                enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -249,12 +257,59 @@ class PessoaQueryServiceTest {
                                 false),
                         greenGuard(meterRegistry),
                         meterRegistry),
+                enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
         var response = service.listarParentescos("Bearer token", context());
 
         assertThat(response).containsExactly(new PessoaCatalogoResponse(parentescoId, "MAE", "Mae"));
+    }
+
+    @Test
+    void deveExporEnderecoPrincipalPeloContratoInternoLocal() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        UUID pessoaId = UUID.randomUUID();
+        PessoaEnderecoResponse endereco = endereco(pessoaId, "01001000");
+        PessoaQueryService service = new PessoaQueryService(
+                new FakePessoaReadPort(new AtomicInteger(), List.of()),
+                new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                new FakePessoaPort(Optional.empty(), false),
+                new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
+                catalogoAlunoResponsavelService(
+                        new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                        greenGuard(meterRegistry),
+                        meterRegistry),
+                enderecoService(new FakePessoaEnderecoPort(Optional.of(endereco), List.of(endereco)), greenGuard(meterRegistry), meterRegistry),
+                greenGuard(meterRegistry),
+                meterRegistry);
+
+        var response = service.buscarEnderecoPrincipalPorPessoa("Bearer token", context(), pessoaId);
+
+        assertThat(response).isEqualTo(endereco);
+    }
+
+    @Test
+    void deveListarEnderecosPeloContratoInternoLocal() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        UUID pessoaId = UUID.randomUUID();
+        PessoaEnderecoResponse endereco = endereco(pessoaId, "01001000");
+        PessoaQueryService service = new PessoaQueryService(
+                new FakePessoaReadPort(new AtomicInteger(), List.of()),
+                new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                new FakePessoaPort(Optional.empty(), false),
+                new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
+                catalogoAlunoResponsavelService(
+                        new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                        greenGuard(meterRegistry),
+                        meterRegistry),
+                enderecoService(new FakePessoaEnderecoPort(Optional.of(endereco), List.of(endereco)), greenGuard(meterRegistry), meterRegistry),
+                greenGuard(meterRegistry),
+                meterRegistry);
+
+        var response = service.listarEnderecosPorPessoa("Bearer token", context(), pessoaId);
+
+        assertThat(response).containsExactly(endereco);
     }
 
     private PessoaAlunoResponsavelCatalogoService catalogoAlunoResponsavelService(
@@ -283,6 +338,31 @@ class PessoaQueryServiceTest {
             }
         };
         return new PessoaAlunoResponsavelCatalogoService(provider, readRoutingPolicy, meterRegistry);
+    }
+
+    private PessoaEnderecoService enderecoService(
+            FakePessoaEnderecoPort enderecoPort,
+            PeopleReadSourcePolicy readRoutingPolicy,
+            SimpleMeterRegistry meterRegistry) {
+        return new PessoaEnderecoService(enderecoPort, readRoutingPolicy, meterRegistry);
+    }
+
+    private PessoaEnderecoResponse endereco(UUID pessoaId, String cep) {
+        return new PessoaEnderecoResponse(
+                UUID.randomUUID(),
+                pessoaId,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "RESIDENCIAL",
+                "Residencial",
+                true,
+                cep,
+                "Praca da Se",
+                "100",
+                null,
+                "Se",
+                "Sao Paulo",
+                "SP");
     }
 
     private PeopleReadSourcePolicy greenGuard(SimpleMeterRegistry meterRegistry) {
@@ -392,6 +472,21 @@ class PessoaQueryServiceTest {
                 throw new IllegalStateException("student-responsible-local-failed");
             }
             return response;
+        }
+    }
+
+    private record FakePessoaEnderecoPort(
+            Optional<PessoaEnderecoResponse> principal,
+            List<PessoaEnderecoResponse> enderecos) implements br.com.escola.peopleservice.application.port.out.PessoaEnderecoPort {
+
+        @Override
+        public Optional<PessoaEnderecoResponse> buscarEnderecoPrincipalPorPessoa(UUID pessoaId, UUID escolaId) {
+            return principal;
+        }
+
+        @Override
+        public List<PessoaEnderecoResponse> listarEnderecosPorPessoa(UUID pessoaId, UUID escolaId) {
+            return enderecos;
         }
     }
 

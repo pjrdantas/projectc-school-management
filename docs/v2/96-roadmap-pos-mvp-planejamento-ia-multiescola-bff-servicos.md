@@ -5992,3 +5992,18 @@ Entregue nesta fase:
 
 Contagem da macrofase Fase 103: 0 subfases restantes estimadas. Este recorte
 pratico ficou fechado.
+
+### Fase 104 - Contrato interno visivel de leitura de endereco
+
+Entregue nesta fase:
+
+- o `people-service` passou a expor no contrato interno as leituras locais de
+  endereco ja prontas no read model;
+- `PessoaQueryUseCase` e `PessoaQueryService` passaram a cobrir
+  `buscarEnderecoPrincipalPorPessoa` e `listarEnderecosPorPessoa`;
+- `PessoaInternalQueryController` passou a publicar
+  `GET /internal/v1/pessoas/{id}/endereco-principal` e
+  `GET /internal/v1/pessoas/{id}/enderecos`, ainda sem BFF e sem frontend.
+
+Contagem da macrofase Fase 104: 0 subfases restantes estimadas. O bloco interno
+de leitura de endereco ficou fechado.
