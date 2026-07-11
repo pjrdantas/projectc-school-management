@@ -11,3 +11,5 @@ public record PessoaResponsavelResumoResponse(
         String telefone,
         LocalDateTime createdAt) {
 }
+
+

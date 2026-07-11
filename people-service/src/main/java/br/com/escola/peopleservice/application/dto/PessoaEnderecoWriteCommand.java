@@ -19,3 +19,5 @@ public record PessoaEnderecoWriteCommand(
         String idempotencyKey,
         String requestedBy) {
 }
+
+

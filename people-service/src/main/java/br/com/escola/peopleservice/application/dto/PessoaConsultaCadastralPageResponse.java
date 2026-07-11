@@ -8,3 +8,5 @@ public record PessoaConsultaCadastralPageResponse(
         int page,
         int size) {
 }
+
+

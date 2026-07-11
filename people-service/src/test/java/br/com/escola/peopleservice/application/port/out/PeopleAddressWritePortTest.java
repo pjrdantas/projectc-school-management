@@ -41,11 +41,11 @@ class PeopleAddressWritePortTest {
 
         assertThat(result.commandId()).isEqualTo(commandId);
         assertThat(result.pessoaId()).isEqualTo(pessoaId);
-        assertThat(result.status()).isEqualTo("not_persisted_shadow_contract");
+        assertThat(result.status()).isEqualTo("not_persisted_monolith_contract");
         assertThat(result.selectedSource()).isEqualTo("monolith_proxy");
         assertThat(result.persistedLocally()).isFalse();
         assertThat(result.fallbackRequired()).isTrue();
-        assertThat(result.warnings()).contains("people-service-write-cutover-disabled");
+        assertThat(result.warnings()).contains("people-service-write-monolith-only");
     }
 
     @Test
@@ -67,7 +67,7 @@ class PeopleAddressWritePortTest {
         assertThat(result.pessoaId()).isEqualTo(pessoaId);
         assertThat(result.enderecoId()).isNull();
         assertThat(result.pessoaEnderecoId()).isNull();
-        assertThat(result.status()).isEqualTo("not_persisted_shadow_contract");
+        assertThat(result.status()).isEqualTo("not_persisted_monolith_contract");
         assertThat(result.persistedLocally()).isFalse();
         assertThat(result.fallbackRequired()).isTrue();
     }
@@ -81,11 +81,11 @@ class PeopleAddressWritePortTest {
                     command.pessoaId(),
                     null,
                     null,
-                    "not_persisted_shadow_contract",
+                    "not_persisted_monolith_contract",
                     "monolith_proxy",
                     false,
                     true,
-                    List.of("people-service-write-cutover-disabled"));
+                    List.of("people-service-write-monolith-only"));
         }
 
         @Override
@@ -95,11 +95,12 @@ class PeopleAddressWritePortTest {
                     command.pessoaId(),
                     null,
                     null,
-                    "not_persisted_shadow_contract",
+                    "not_persisted_monolith_contract",
                     "monolith_proxy",
                     false,
                     true,
-                    List.of("people-service-write-cutover-disabled"));
+                    List.of("people-service-write-monolith-only"));
         }
     }
 }
+

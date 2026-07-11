@@ -7,3 +7,5 @@ public record PessoaCatalogoResponse(
         String codigo,
         String descricao) {
 }
+
+

@@ -10,14 +10,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 import br.com.escola.peopleservice.application.context.InternalRequestContext;
-import br.com.escola.peopleservice.application.dto.PeopleLocalPersistenceOperationReport;
+import br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
-import br.com.escola.peopleservice.application.port.out.PeopleCatalogLocalReadPort;
-import br.com.escola.peopleservice.application.port.out.PeopleStudentResponsibleLocalReadPort;
+import br.com.escola.peopleservice.application.port.out.PessoaCatalogoPort;
+import br.com.escola.peopleservice.application.port.out.AlunoResponsavelPort;
 import br.com.escola.peopleservice.application.port.out.PessoaReadPort;
-import br.com.escola.peopleservice.infra.config.PeopleLocalPersistenceProperties;
+import br.com.escola.peopleservice.infra.config.PeopleReadModelProperties;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 class PessoaQueryServiceTest {
@@ -29,9 +29,9 @@ class PessoaQueryServiceTest {
         UUID localId = UUID.randomUUID();
         PessoaQueryService service = new PessoaQueryService(
                 new FakePessoaReadPort(monolithCalls, List.of()),
-                new FakeCatalogLocalReadPort(List.of(new PessoaCatalogoResponse(localId, "ALUNO", "Aluno")), List.of(), false),
-                new FakeIdentityLocalReadPort(Optional.empty(), false),
-                new FakeStudentResponsibleLocalReadPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
+                new FakePessoaCatalogoPort(List.of(new PessoaCatalogoResponse(localId, "ALUNO", "Aluno")), List.of(), false),
+                new FakePessoaPort(Optional.empty(), false),
+                new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -40,7 +40,7 @@ class PessoaQueryServiceTest {
         assertThat(response).containsExactly(new PessoaCatalogoResponse(localId, "ALUNO", "Aluno"));
         assertThat(monolithCalls).hasValue(0);
         assertThat(meterRegistry.counter(
-                "people.shadow.local.persistence.catalog.reads",
+                "people.catalog.reads",
                 "operation", "listarTiposPessoa",
                 "result", "success").count()).isEqualTo(1.0d);
     }
@@ -52,9 +52,9 @@ class PessoaQueryServiceTest {
         UUID monolithId = UUID.randomUUID();
         PessoaQueryService service = new PessoaQueryService(
                 new FakePessoaReadPort(monolithCalls, List.of(new PessoaCatalogoResponse(monolithId, "ALUNO", "Aluno"))),
-                new FakeCatalogLocalReadPort(List.of(), List.of(), true),
-                new FakeIdentityLocalReadPort(Optional.empty(), false),
-                new FakeStudentResponsibleLocalReadPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
+                new FakePessoaCatalogoPort(List.of(), List.of(), true),
+                new FakePessoaPort(Optional.empty(), false),
+                new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -63,7 +63,7 @@ class PessoaQueryServiceTest {
         assertThat(response).containsExactly(new PessoaCatalogoResponse(monolithId, "ALUNO", "Aluno"));
         assertThat(monolithCalls).hasValue(1);
         assertThat(meterRegistry.counter(
-                "people.shadow.local.persistence.catalog.reads",
+                "people.catalog.reads",
                 "operation", "listarTiposPessoa",
                 "result", "fallback").count()).isEqualTo(1.0d);
     }
@@ -77,9 +77,9 @@ class PessoaQueryServiceTest {
         PessoaResumoResponse local = new PessoaResumoResponse(pessoaId, "Pessoa Local", escolaId, null, true);
         PessoaQueryService service = new PessoaQueryService(
                 new FakePessoaReadPort(monolithCalls, List.of()),
-                new FakeCatalogLocalReadPort(List.of(), List.of(), false),
-                new FakeIdentityLocalReadPort(Optional.of(local), false),
-                new FakeStudentResponsibleLocalReadPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
+                new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                new FakePessoaPort(Optional.of(local), false),
+                new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -88,7 +88,7 @@ class PessoaQueryServiceTest {
         assertThat(response).isEqualTo(local);
         assertThat(monolithCalls).hasValue(0);
         assertThat(meterRegistry.counter(
-                "people.shadow.local.persistence.identity.reads",
+                "people.identity.reads",
                 "operation", "buscarPorId",
                 "result", "success").count()).isEqualTo(1.0d);
     }
@@ -102,9 +102,9 @@ class PessoaQueryServiceTest {
         PessoaResumoResponse monolith = new PessoaResumoResponse(pessoaId, "Pessoa Monolito", escolaId, "Escola", true);
         PessoaQueryService service = new PessoaQueryService(
                 new FakePessoaReadPort(monolithCalls, List.of(), Optional.of(monolith)),
-                new FakeCatalogLocalReadPort(List.of(), List.of(), false),
-                new FakeIdentityLocalReadPort(Optional.empty(), false),
-                new FakeStudentResponsibleLocalReadPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
+                new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                new FakePessoaPort(Optional.empty(), false),
+                new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -113,7 +113,7 @@ class PessoaQueryServiceTest {
         assertThat(response).isEqualTo(monolith);
         assertThat(monolithCalls).hasValue(1);
         assertThat(meterRegistry.counter(
-                "people.shadow.local.persistence.identity.reads",
+                "people.identity.reads",
                 "operation", "buscarPorId",
                 "result", "fallback_not_found").count()).isEqualTo(1.0d);
     }
@@ -125,9 +125,9 @@ class PessoaQueryServiceTest {
         var localPage = new PessoaConsultaCadastralPageResponse(List.of(), 3, 1, 15);
         PessoaQueryService service = new PessoaQueryService(
                 new FakePessoaReadPort(monolithCalls, List.of()),
-                new FakeCatalogLocalReadPort(List.of(), List.of(), false),
-                new FakeIdentityLocalReadPort(Optional.empty(), false),
-                new FakeStudentResponsibleLocalReadPort(localPage, false),
+                new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                new FakePessoaPort(Optional.empty(), false),
+                new FakeAlunoResponsavelPort(localPage, false),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -144,7 +144,7 @@ class PessoaQueryServiceTest {
         assertThat(response).isEqualTo(localPage);
         assertThat(monolithCalls).hasValue(0);
         assertThat(meterRegistry.counter(
-                "people.shadow.local.persistence.student.responsible.reads",
+                "people.studentresponsible.reads",
                 "operation", "consultarCadastro",
                 "result", "success").count()).isEqualTo(1.0d);
     }
@@ -156,9 +156,9 @@ class PessoaQueryServiceTest {
         var monolithPage = new PessoaConsultaCadastralPageResponse(List.of(), 1, 0, 20);
         PessoaQueryService service = new PessoaQueryService(
                 new FakePessoaReadPort(monolithCalls, List.of(), Optional.empty(), monolithPage),
-                new FakeCatalogLocalReadPort(List.of(), List.of(), false),
-                new FakeIdentityLocalReadPort(Optional.empty(), false),
-                new FakeStudentResponsibleLocalReadPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), true),
+                new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                new FakePessoaPort(Optional.empty(), false),
+                new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), true),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -175,14 +175,14 @@ class PessoaQueryServiceTest {
         assertThat(response).isEqualTo(monolithPage);
         assertThat(monolithCalls).hasValue(1);
         assertThat(meterRegistry.counter(
-                "people.shadow.local.persistence.student.responsible.reads",
+                "people.studentresponsible.reads",
                 "operation", "consultarCadastro",
                 "result", "fallback_error").count()).isEqualTo(1.0d);
     }
 
-    private PeopleLocalReadCutoverGuard greenGuard(SimpleMeterRegistry meterRegistry) {
-        PeopleLocalPersistenceOperationState state = new PeopleLocalPersistenceOperationState();
-        state.update(new PeopleLocalPersistenceOperationReport(
+    private PeopleReadSourcePolicy greenGuard(SimpleMeterRegistry meterRegistry) {
+        PeopleReadModelSyncState state = new PeopleReadModelSyncState();
+        state.update(new PeopleReadModelSyncSummary(
                 true,
                 true,
                 "completed",
@@ -197,8 +197,8 @@ class PessoaQueryServiceTest {
                 false,
                 false,
                 List.of()));
-        return new PeopleLocalReadCutoverGuard(
-                new PeopleLocalPersistenceProperties(true, false, true, false, true, true, 500, true),
+        return new PeopleReadSourcePolicy(
+                new PeopleReadModelProperties(true, false, true, false, true, true, 500, true),
                 meterRegistry,
                 state);
     }
@@ -211,10 +211,10 @@ class PessoaQueryServiceTest {
         return new InternalRequestContext("corr", UUID.randomUUID(), escolaId);
     }
 
-    private record FakeCatalogLocalReadPort(
+    private record FakePessoaCatalogoPort(
             List<PessoaCatalogoResponse> tiposPessoa,
             List<PessoaCatalogoResponse> tiposEndereco,
-            boolean fail) implements PeopleCatalogLocalReadPort {
+            boolean fail) implements PessoaCatalogoPort {
 
         @Override
         public List<PessoaCatalogoResponse> listarTiposPessoa() {
@@ -233,9 +233,9 @@ class PessoaQueryServiceTest {
         }
     }
 
-    private record FakeIdentityLocalReadPort(
+    private record FakePessoaPort(
             Optional<PessoaResumoResponse> response,
-            boolean fail) implements br.com.escola.peopleservice.application.port.out.PeopleIdentityLocalReadPort {
+            boolean fail) implements br.com.escola.peopleservice.application.port.out.PessoaPort {
 
         @Override
         public Optional<PessoaResumoResponse> buscarPessoaPorId(UUID pessoaId, UUID escolaId) {
@@ -246,9 +246,9 @@ class PessoaQueryServiceTest {
         }
     }
 
-    private record FakeStudentResponsibleLocalReadPort(
+    private record FakeAlunoResponsavelPort(
             PessoaConsultaCadastralPageResponse response,
-            boolean fail) implements PeopleStudentResponsibleLocalReadPort {
+            boolean fail) implements AlunoResponsavelPort {
 
         @Override
         public PessoaConsultaCadastralPageResponse consultarCadastro(
@@ -318,3 +318,5 @@ class PessoaQueryServiceTest {
         }
     }
 }
+
+

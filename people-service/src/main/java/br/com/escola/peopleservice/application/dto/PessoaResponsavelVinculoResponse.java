@@ -7,3 +7,5 @@ public record PessoaResponsavelVinculoResponse(
         UUID pessoaId,
         UUID escolaId) {
 }
+
+

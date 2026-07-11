@@ -14,3 +14,5 @@ public record PessoaEnderecoWriteResult(
         boolean fallbackRequired,
         List<String> warnings) {
 }
+
+

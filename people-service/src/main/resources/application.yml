@@ -12,31 +12,31 @@ management:
         include: health,info
 
 people:
-  shadow:
-    internal-api:
-      token: ${PEOPLE_SHADOW_INTERNAL_API_TOKEN:people-shadow-local-token}
-    monolith:
-      base-url: ${PEOPLE_SHADOW_MONOLITH_BASE_URL:http://localhost:8080}
-      connect-timeout: ${PEOPLE_SHADOW_MONOLITH_CONNECT_TIMEOUT:2s}
-      read-timeout: ${PEOPLE_SHADOW_MONOLITH_READ_TIMEOUT:5s}
-      address-write-adapter-enabled: ${PEOPLE_SHADOW_MONOLITH_ADDRESS_WRITE_ADAPTER_ENABLED:false}
-    local-persistence:
-      enabled: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_ENABLED:false}
-      migration-enabled: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_MIGRATION_ENABLED:false}
-      read-model-cutover-enabled: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_READ_MODEL_CUTOVER_ENABLED:false}
-      fail-on-error: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_FAIL_ON_ERROR:false}
-      backfill-enabled: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_BACKFILL_ENABLED:false}
-      reconciliation-enabled: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_RECONCILIATION_ENABLED:false}
-      backfill-batch-size: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_BACKFILL_BATCH_SIZE:500}
-      read-model-fallback-enabled: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_READ_MODEL_FALLBACK_ENABLED:true}
-      schema-migration:
-        url: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_SCHEMA_URL:}
-        username: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_SCHEMA_USERNAME:}
-        password: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_SCHEMA_PASSWORD:}
-        driver-class-name: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_SCHEMA_DRIVER_CLASS_NAME:}
-        locations: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_SCHEMA_LOCATIONS:classpath:db/people-readmodel/migration}
-      catalog-backfill:
-        source-url: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_CATALOG_BACKFILL_SOURCE_URL:}
-        source-username: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_CATALOG_BACKFILL_SOURCE_USERNAME:}
-        source-password: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_CATALOG_BACKFILL_SOURCE_PASSWORD:}
-        source-driver-class-name: ${PEOPLE_SHADOW_LOCAL_PERSISTENCE_CATALOG_BACKFILL_SOURCE_DRIVER_CLASS_NAME:}
+  internal-api:
+    token: ${PEOPLE_INTERNAL_API_TOKEN:people-internal-local-token}
+  monolith:
+    base-url: ${PEOPLE_MONOLITH_BASE_URL:http://localhost:8080}
+    connect-timeout: ${PEOPLE_MONOLITH_CONNECT_TIMEOUT:2s}
+    read-timeout: ${PEOPLE_MONOLITH_READ_TIMEOUT:5s}
+    address-write-adapter-enabled: ${PEOPLE_MONOLITH_ADDRESS_WRITE_ADAPTER_ENABLED:false}
+  read-model:
+    enabled: ${PEOPLE_READ_MODEL_ENABLED:false}
+    migration-enabled: ${PEOPLE_READ_MODEL_MIGRATION_ENABLED:false}
+    local-read-routing-enabled: ${PEOPLE_READ_MODEL_LOCAL_READ_ROUTING_ENABLED:false}
+    fail-on-error: ${PEOPLE_READ_MODEL_FAIL_ON_ERROR:false}
+    backfill-enabled: ${PEOPLE_READ_MODEL_BACKFILL_ENABLED:false}
+    reconciliation-enabled: ${PEOPLE_READ_MODEL_RECONCILIATION_ENABLED:false}
+    backfill-batch-size: ${PEOPLE_READ_MODEL_BACKFILL_BATCH_SIZE:500}
+    fallback-enabled: ${PEOPLE_READ_MODEL_FALLBACK_ENABLED:true}
+    schema-migration:
+      url: ${PEOPLE_READ_MODEL_SCHEMA_URL:}
+      username: ${PEOPLE_READ_MODEL_SCHEMA_USERNAME:}
+      password: ${PEOPLE_READ_MODEL_SCHEMA_PASSWORD:}
+      driver-class-name: ${PEOPLE_READ_MODEL_SCHEMA_DRIVER_CLASS_NAME:}
+      locations: ${PEOPLE_READ_MODEL_SCHEMA_LOCATIONS:classpath:db/people-readmodel/migration}
+    source:
+      source-url: ${PEOPLE_READ_MODEL_SOURCE_URL:}
+      source-username: ${PEOPLE_READ_MODEL_SOURCE_USERNAME:}
+      source-password: ${PEOPLE_READ_MODEL_SOURCE_PASSWORD:}
+      source-driver-class-name: ${PEOPLE_READ_MODEL_SOURCE_DRIVER_CLASS_NAME:}
+

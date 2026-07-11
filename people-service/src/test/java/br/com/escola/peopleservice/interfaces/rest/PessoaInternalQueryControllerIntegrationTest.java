@@ -45,12 +45,12 @@ class PessoaInternalQueryControllerIntegrationTest {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("people.shadow.internal-api.token", () -> "shadow-token");
-        registry.add("people.shadow.monolith.base-url", () -> mockWebServer.url("/").toString());
+        registry.add("people.internal-api.token", () -> "internal-token");
+        registry.add("people.monolith.base-url", () -> mockWebServer.url("/").toString());
     }
 
     @Test
-    void deveConsultarPessoaPorIdNoRuntimeShadow() throws Exception {
+    void deveConsultarPessoaPorIdNoRuntimeInterno() throws Exception {
         UUID pessoaId = UUID.randomUUID();
         UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
         mockWebServer.enqueue(new MockResponse()
@@ -58,7 +58,7 @@ class PessoaInternalQueryControllerIntegrationTest {
                 .setBody("""
                         {
                           "id": "%s",
-                          "nomeCompleto": "Pessoa Shadow",
+                          "nomeCompleto": "Pessoa Interna",
                           "escolaId": "%s",
                           "escolaNome": "Escola Padrao",
                           "ativo": true
@@ -66,17 +66,17 @@ class PessoaInternalQueryControllerIntegrationTest {
                         """.formatted(pessoaId, escolaId)));
 
         mockMvc.perform(get("/internal/v1/pessoas/{id}", pessoaId)
-                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Internal-Token", "internal-token")
                         .header("X-Correlation-Id", "corr-people-1")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", escolaId)
-                        .header("Authorization", "Bearer shadow-user-token"))
+                        .header("Authorization", "Bearer internal-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(pessoaId.toString()))
-                .andExpect(jsonPath("$.nomeCompleto").value("Pessoa Shadow"));
+                .andExpect(jsonPath("$.nomeCompleto").value("Pessoa Interna"));
 
         RecordedRequest recorded = aguardarRequisicao("GET", "/internal/pessoas/" + pessoaId);
-        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer shadow-user-token");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer internal-user-token");
         assertThat(recorded.getHeader("X-Escola-Id")).isEqualTo(escolaId.toString());
         assertThat(recorded.getHeader("X-Correlation-Id")).isEqualTo("corr-people-1");
     }
@@ -104,18 +104,18 @@ class PessoaInternalQueryControllerIntegrationTest {
                           "content": [
                             {
                               "idAluno": "%s",
-                              "nomeCompleto": "Aluno Shadow",
+                              "nomeCompleto": "Aluno Interno",
                               "cpf": "12345678901",
-                              "email": "aluno.shadow@example.com",
+                              "email": "aluno.internal@example.com",
                               "telefone": "11999999999",
                               "dataNascimento": "2014-03-10",
                               "createdAt": "2026-07-02T08:00:00",
                               "responsaveis": [
                                 {
                                   "id": "%s",
-                                  "nomeCompleto": "Responsavel Shadow",
+                                  "nomeCompleto": "Responsavel Interno",
                                   "cpf": "98765432100",
-                                  "email": "responsavel.shadow@example.com",
+                                  "email": "responsavel.internal@example.com",
                                   "telefone": "11888888888",
                                   "createdAt": "2026-07-02T08:30:00"
                                 }
@@ -129,11 +129,11 @@ class PessoaInternalQueryControllerIntegrationTest {
                         """.formatted(alunoId, responsavelId)));
 
         mockMvc.perform(get("/internal/pessoas/catalogos/tipos-pessoa")
-                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Internal-Token", "internal-token")
                         .header("X-Correlation-Id", "corr-people-2a")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
-                        .header("Authorization", "Bearer shadow-user-token"))
+                        .header("Authorization", "Bearer internal-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(tipoPessoaId.toString()))
                 .andExpect(jsonPath("$[0].codigo").value("ALUNO"));
@@ -142,11 +142,11 @@ class PessoaInternalQueryControllerIntegrationTest {
                         .queryParam("nomeAluno", "Aluno")
                         .queryParam("page", "0")
                         .queryParam("size", "10")
-                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Internal-Token", "internal-token")
                         .header("X-Correlation-Id", "corr-people-2b")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
-                        .header("Authorization", "Bearer shadow-user-token"))
+                        .header("Authorization", "Bearer internal-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.content[0].idAluno").value(alunoId.toString()))
@@ -165,7 +165,7 @@ class PessoaInternalQueryControllerIntegrationTest {
                         .header("X-Correlation-Id", "corr-people-3")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
-                        .header("Authorization", "Bearer shadow-user-token"))
+                        .header("Authorization", "Bearer internal-user-token"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("INTERNAL_UNAUTHORIZED"));
     }
@@ -176,11 +176,11 @@ class PessoaInternalQueryControllerIntegrationTest {
         mockWebServer.enqueue(new MockResponse().setResponseCode(404));
 
         mockMvc.perform(get("/internal/v1/pessoas/{id}", pessoaId)
-                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Internal-Token", "internal-token")
                         .header("X-Correlation-Id", "corr-people-4")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
-                        .header("Authorization", "Bearer shadow-user-token"))
+                        .header("Authorization", "Bearer internal-user-token"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
     }
@@ -198,3 +198,4 @@ class PessoaInternalQueryControllerIntegrationTest {
         throw new AssertionError("Requisicao esperada nao encontrada: " + method + " " + path);
     }
 }
+

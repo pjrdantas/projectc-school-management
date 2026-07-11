@@ -9,3 +9,5 @@ public record PessoaResumoResponse(
         String escolaNome,
         Boolean ativo) {
 }
+
+

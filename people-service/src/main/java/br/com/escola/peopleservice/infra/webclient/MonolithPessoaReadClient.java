@@ -96,7 +96,7 @@ public class MonolithPessoaReadClient implements PessoaReadPort {
             throw exception;
         } catch (ResourceAccessException exception) {
             registrarErro("buscarPorId", exception);
-            throw new DownstreamUnavailableException("Monolito indisponivel para leitura shadow de pessoa", exception);
+            throw new DownstreamUnavailableException("Monolito indisponivel para leitura interna de pessoa", exception);
         }
     }
 
@@ -144,7 +144,7 @@ public class MonolithPessoaReadClient implements PessoaReadPort {
 
     private void registrarRequisicao(String operacao, String resultado) {
         meterRegistry.counter(
-                "people.shadow.monolith.requests",
+                "people.monolith.requests",
                 "operacao", operacao,
                 "destino", "monolith",
                 "resultado", resultado)
@@ -154,9 +154,10 @@ public class MonolithPessoaReadClient implements PessoaReadPort {
     private void registrarErro(String operacao, Exception exception) {
         registrarRequisicao(operacao, "error");
         meterRegistry.counter(
-                "people.shadow.monolith.failures",
+                "people.monolith.failures",
                 "operacao", operacao,
                 "causa", exception.getClass().getSimpleName())
                 .increment();
     }
 }
+

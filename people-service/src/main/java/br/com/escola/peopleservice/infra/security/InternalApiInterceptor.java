@@ -20,7 +20,7 @@ public class InternalApiInterceptor implements HandlerInterceptor {
 
     private final byte[] configuredToken;
 
-    public InternalApiInterceptor(@Value("${people.shadow.internal-api.token:}") String configuredToken) {
+    public InternalApiInterceptor(@Value("${people.internal-api.token:}") String configuredToken) {
         this.configuredToken = configuredToken.getBytes(StandardCharsets.UTF_8);
     }
 
@@ -62,3 +62,4 @@ public class InternalApiInterceptor implements HandlerInterceptor {
         return value.trim();
     }
 }
+

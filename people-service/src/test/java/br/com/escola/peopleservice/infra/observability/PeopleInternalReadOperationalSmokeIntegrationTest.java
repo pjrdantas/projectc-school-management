@@ -26,7 +26,7 @@ import okhttp3.mockwebserver.MockWebServer;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "management.endpoint.health.show-details=always",
-                "people.shadow.internal-api.token=shadow-token"
+                "people.internal-api.token=internal-token"
         })
 class PeopleInternalReadOperationalSmokeIntegrationTest {
 
@@ -48,11 +48,11 @@ class PeopleInternalReadOperationalSmokeIntegrationTest {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("people.shadow.monolith.base-url", () -> mockWebServer.url("/").toString());
+        registry.add("people.monolith.base-url", () -> mockWebServer.url("/").toString());
     }
 
     @Test
-    void deveComprovarSinaisDeSucessoNotFoundEErroNoHealthDoShadowReadOnly() {
+    void deveComprovarSinaisDeSucessoNotFoundEErroNoHealthInternoSomenteLeitura() {
         UUID tipoPessoaId = UUID.randomUUID();
         UUID pessoaId = UUID.randomUUID();
         UUID alunoId = UUID.randomUUID();
@@ -92,23 +92,23 @@ class PeopleInternalReadOperationalSmokeIntegrationTest {
                         }
                         """.formatted(alunoId)));
 
-        RestClient shadowClient = RestClient.builder()
+        RestClient internalClient = RestClient.builder()
                 .baseUrl("http://localhost:" + port)
-                .defaultHeader("X-Internal-Token", "shadow-token")
+                .defaultHeader("X-Internal-Token", "internal-token")
                 .defaultHeader("X-Correlation-Id", "corr-people-smoke")
                 .defaultHeader("X-Usuario-Id", UUID.randomUUID().toString())
                 .defaultHeader("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer shadow-user-token")
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer internal-user-token")
                 .build();
 
-        String tiposPessoa = shadowClient.get()
+        String tiposPessoa = internalClient.get()
                 .uri("/internal/v1/pessoas/catalogos/tipos-pessoa")
                 .retrieve()
                 .body(String.class);
         assertThat(tiposPessoa).contains("ALUNO");
 
         try {
-            shadowClient.get()
+            internalClient.get()
                     .uri("/internal/v1/pessoas/{id}", pessoaId)
                     .retrieve()
                     .body(String.class);
@@ -117,7 +117,7 @@ class PeopleInternalReadOperationalSmokeIntegrationTest {
         }
 
         try {
-            shadowClient.get()
+            internalClient.get()
                     .uri("/internal/v1/pessoas/catalogos/tipos-endereco")
                     .retrieve()
                     .body(String.class);
@@ -125,7 +125,7 @@ class PeopleInternalReadOperationalSmokeIntegrationTest {
             assertThat(exception.getStatusCode().value()).isEqualTo(503);
         }
 
-        String consulta = shadowClient.get()
+        String consulta = internalClient.get()
                 .uri("/internal/v1/pessoas/consulta-cadastral?nomeAluno=Aluno&page=0&size=10")
                 .retrieve()
                 .body(String.class);
@@ -137,7 +137,7 @@ class PeopleInternalReadOperationalSmokeIntegrationTest {
                 .build();
 
         Map<?, ?> health = actuatorClient.get()
-                .uri("/actuator/health/peopleShadowMonolith")
+                .uri("/actuator/health/peopleMonolithDependency")
                 .retrieve()
                 .body(Map.class);
 
@@ -152,28 +152,30 @@ class PeopleInternalReadOperationalSmokeIntegrationTest {
                 .containsEntry("failuresTotal", 1.0d);
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> shadowReadRoutes = (Map<String, Object>) details.get("shadowReadRoutes");
+        Map<String, Object> monolithReadRoutes = (Map<String, Object>) details.get("monolithReadRoutes");
         @SuppressWarnings("unchecked")
-        Map<String, Object> tiposPessoaRoute = (Map<String, Object>) shadowReadRoutes.get("listarTiposPessoa");
+        Map<String, Object> tiposPessoaRoute = (Map<String, Object>) monolithReadRoutes.get("listarTiposPessoa");
         @SuppressWarnings("unchecked")
-        Map<String, Object> tiposEnderecoRoute = (Map<String, Object>) shadowReadRoutes.get("listarTiposEndereco");
+        Map<String, Object> tiposEnderecoRoute = (Map<String, Object>) monolithReadRoutes.get("listarTiposEndereco");
         @SuppressWarnings("unchecked")
-        Map<String, Object> buscarPorIdRoute = (Map<String, Object>) shadowReadRoutes.get("buscarPorId");
+        Map<String, Object> buscarPorIdRoute = (Map<String, Object>) monolithReadRoutes.get("buscarPorId");
         @SuppressWarnings("unchecked")
-        Map<String, Object> consultaRoute = (Map<String, Object>) shadowReadRoutes.get("consultarCadastro");
+        Map<String, Object> consultaRoute = (Map<String, Object>) monolithReadRoutes.get("consultarCadastro");
 
         assertThat(tiposPessoaRoute)
-                .containsEntry("shadowRoute", "GET /internal/v1/pessoas/catalogos/tipos-pessoa")
+                .containsEntry("route", "GET /internal/v1/pessoas/catalogos/tipos-pessoa")
                 .containsEntry("monolithSuccessTotal", 1.0d);
         assertThat(tiposEnderecoRoute)
-                .containsEntry("shadowRoute", "GET /internal/v1/pessoas/catalogos/tipos-endereco")
+                .containsEntry("route", "GET /internal/v1/pessoas/catalogos/tipos-endereco")
                 .containsEntry("monolithErrorTotal", 1.0d)
                 .containsEntry("failuresTotal", 1.0d);
         assertThat(buscarPorIdRoute)
-                .containsEntry("shadowRoute", "GET /internal/v1/pessoas/{id}")
+                .containsEntry("route", "GET /internal/v1/pessoas/{id}")
                 .containsEntry("monolithNotFoundTotal", 1.0d);
         assertThat(consultaRoute)
-                .containsEntry("shadowRoute", "GET /internal/v1/pessoas/consulta-cadastral")
+                .containsEntry("route", "GET /internal/v1/pessoas/consulta-cadastral")
                 .containsEntry("monolithSuccessTotal", 1.0d);
     }
 }
+
+

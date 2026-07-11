@@ -20,12 +20,12 @@ import io.micrometer.core.instrument.MeterRegistry;
 
 @Component
 @ConditionalOnProperty(
-        prefix = "people.shadow.monolith",
+        prefix = "people.monolith",
         name = "address-write-adapter-enabled",
         havingValue = "true")
 public class MonolithPessoaAddressWriteClient implements PeopleAddressWritePort {
 
-    private static final String METRIC_NAME = "people.shadow.monolith.address.write.requests";
+    private static final String METRIC_NAME = "people.monolith.address.write.requests";
     private static final String SELECTED_SOURCE = "school_management_service";
     private static final String FALLBACK_SOURCE = "monolith_proxy";
 
@@ -132,7 +132,7 @@ public class MonolithPessoaAddressWriteClient implements PeopleAddressWritePort 
                 true,
                 List.of(
                         "people-service-monolith-address-write-adapter-fallback",
-                        "keep-shadow-command-as-fallback",
+                        "keep-monolith-command-as-fallback",
                         "local-address-persistence-disabled"));
     }
 
@@ -161,7 +161,7 @@ public class MonolithPessoaAddressWriteClient implements PeopleAddressWritePort 
     private void registrarErro(String operation, Exception exception) {
         registrarRequisicao(operation, "fallback_required");
         meterRegistry.counter(
-                "people.shadow.monolith.address.write.failures",
+                "people.monolith.address.write.failures",
                 "operation", operation,
                 "cause", exception.getClass().getSimpleName())
                 .increment();
@@ -191,3 +191,4 @@ public class MonolithPessoaAddressWriteClient implements PeopleAddressWritePort 
             List<String> warnings) {
     }
 }
+

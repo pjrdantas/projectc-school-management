@@ -5,7 +5,7 @@ import java.time.Duration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "people.shadow.monolith")
+@ConfigurationProperties(prefix = "people.monolith")
 public record MonolithPeopleClientProperties(
         URI baseUrl,
         Duration connectTimeout,
@@ -24,3 +24,4 @@ public record MonolithPeopleClientProperties(
         }
     }
 }
+

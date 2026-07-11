@@ -17,31 +17,31 @@ class PeopleMonolithReadHealthIndicatorTest {
     @Test
     void deveReportarUpComDiagnosticoDetalhadoPorRota() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
-        Counter.builder("people.shadow.monolith.requests")
+        Counter.builder("people.monolith.requests")
                 .tag("operacao", "listarTiposPessoa")
                 .tag("destino", "monolith")
                 .tag("resultado", "success")
                 .register(meterRegistry)
                 .increment();
-        Counter.builder("people.shadow.monolith.requests")
+        Counter.builder("people.monolith.requests")
                 .tag("operacao", "listarTiposEndereco")
                 .tag("destino", "monolith")
                 .tag("resultado", "success")
                 .register(meterRegistry)
                 .increment();
-        Counter.builder("people.shadow.monolith.requests")
+        Counter.builder("people.monolith.requests")
                 .tag("operacao", "buscarPorId")
                 .tag("destino", "monolith")
                 .tag("resultado", "not_found")
                 .register(meterRegistry)
                 .increment();
-        Counter.builder("people.shadow.monolith.requests")
+        Counter.builder("people.monolith.requests")
                 .tag("operacao", "consultarCadastro")
                 .tag("destino", "monolith")
                 .tag("resultado", "error")
                 .register(meterRegistry)
                 .increment();
-        Counter.builder("people.shadow.monolith.failures")
+        Counter.builder("people.monolith.failures")
                 .tag("operacao", "consultarCadastro")
                 .tag("causa", "ResourceAccessException")
                 .register(meterRegistry)
@@ -66,28 +66,28 @@ class PeopleMonolithReadHealthIndicatorTest {
                 .containsEntry("failuresTotal", 1.0d);
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> shadowReadRoutes = (Map<String, Object>) health.getDetails().get("shadowReadRoutes");
+        Map<String, Object> monolithReadRoutes = (Map<String, Object>) health.getDetails().get("monolithReadRoutes");
         @SuppressWarnings("unchecked")
-        Map<String, Object> tiposPessoa = (Map<String, Object>) shadowReadRoutes.get("listarTiposPessoa");
+        Map<String, Object> tiposPessoa = (Map<String, Object>) monolithReadRoutes.get("listarTiposPessoa");
         @SuppressWarnings("unchecked")
-        Map<String, Object> tiposEndereco = (Map<String, Object>) shadowReadRoutes.get("listarTiposEndereco");
+        Map<String, Object> tiposEndereco = (Map<String, Object>) monolithReadRoutes.get("listarTiposEndereco");
         @SuppressWarnings("unchecked")
-        Map<String, Object> buscarPorId = (Map<String, Object>) shadowReadRoutes.get("buscarPorId");
+        Map<String, Object> buscarPorId = (Map<String, Object>) monolithReadRoutes.get("buscarPorId");
         @SuppressWarnings("unchecked")
-        Map<String, Object> consulta = (Map<String, Object>) shadowReadRoutes.get("consultarCadastro");
+        Map<String, Object> consulta = (Map<String, Object>) monolithReadRoutes.get("consultarCadastro");
 
         assertThat(tiposPessoa)
-                .containsEntry("shadowRoute", "GET /internal/v1/pessoas/catalogos/tipos-pessoa")
+                .containsEntry("route", "GET /internal/v1/pessoas/catalogos/tipos-pessoa")
                 .containsEntry("monolithRoute", "GET /internal/pessoas/catalogos/tipos-pessoa")
                 .containsEntry("monolithSuccessTotal", 1.0d);
         assertThat(tiposEndereco)
-                .containsEntry("shadowRoute", "GET /internal/v1/pessoas/catalogos/tipos-endereco")
+                .containsEntry("route", "GET /internal/v1/pessoas/catalogos/tipos-endereco")
                 .containsEntry("monolithRoute", "GET /internal/pessoas/catalogos/tipos-endereco")
                 .containsEntry("monolithSuccessTotal", 1.0d);
         assertThat(buscarPorId)
                 .containsEntry("monolithNotFoundTotal", 1.0d);
         assertThat(consulta)
-                .containsEntry("shadowRoute", "GET /internal/v1/pessoas/consulta-cadastral")
+                .containsEntry("route", "GET /internal/v1/pessoas/consulta-cadastral")
                 .containsEntry("monolithErrorTotal", 1.0d)
                 .containsEntry("failuresTotal", 1.0d);
     }
@@ -110,3 +110,5 @@ class PeopleMonolithReadHealthIndicatorTest {
                 .containsEntry("reason", "base-url-invalida");
     }
 }
+
+

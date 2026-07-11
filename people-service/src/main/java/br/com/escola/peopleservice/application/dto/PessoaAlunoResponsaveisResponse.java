@@ -15,3 +15,5 @@ public record PessoaAlunoResponsaveisResponse(
         LocalDateTime createdAt,
         List<PessoaResponsavelResumoResponse> responsaveis) {
 }
+
+

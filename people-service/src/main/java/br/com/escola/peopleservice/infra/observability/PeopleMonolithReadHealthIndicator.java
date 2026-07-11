@@ -15,10 +15,10 @@ import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Statistic;
 
-@Component("peopleShadowMonolith")
+@Component("peopleMonolithDependency")
 public class PeopleMonolithReadHealthIndicator implements HealthIndicator {
 
-    private static final List<RouteMetricDescriptor> SHADOW_ROUTES = List.of(
+    private static final List<RouteMetricDescriptor> MONOLITH_ROUTES = List.of(
             new RouteMetricDescriptor(
                     "listarTiposPessoa",
                     "GET /internal/v1/pessoas/catalogos/tipos-pessoa",
@@ -47,9 +47,9 @@ public class PeopleMonolithReadHealthIndicator implements HealthIndicator {
     public Health health() {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("dependency", "monolith");
-        details.put("requestsTotal", totalContador("people.shadow.monolith.requests"));
-        details.put("failuresTotal", totalContador("people.shadow.monolith.failures"));
-        details.put("shadowReadRoutes", diagnosticoRotasShadow());
+        details.put("requestsTotal", totalContador("people.monolith.requests"));
+        details.put("failuresTotal", totalContador("people.monolith.failures"));
+        details.put("monolithReadRoutes", diagnosticoRotasMonolito());
 
         try {
             URI uri = properties.baseUrl();
@@ -74,11 +74,11 @@ public class PeopleMonolithReadHealthIndicator implements HealthIndicator {
         return Health.outOfService().withDetails(details).build();
     }
 
-    private Map<String, Object> diagnosticoRotasShadow() {
+    private Map<String, Object> diagnosticoRotasMonolito() {
         Map<String, Object> rotas = new LinkedHashMap<>();
-        for (RouteMetricDescriptor descriptor : SHADOW_ROUTES) {
+        for (RouteMetricDescriptor descriptor : MONOLITH_ROUTES) {
             Map<String, Object> detalhe = new LinkedHashMap<>();
-            detalhe.put("shadowRoute", descriptor.shadowRoute());
+            detalhe.put("route", descriptor.route());
             detalhe.put("monolithRoute", descriptor.monolithRoute());
             detalhe.put("monolithSuccessTotal", totalRequests(descriptor.operation(), "success"));
             detalhe.put("monolithNotFoundTotal", totalRequests(descriptor.operation(), "not_found"));
@@ -91,7 +91,7 @@ public class PeopleMonolithReadHealthIndicator implements HealthIndicator {
 
     private double totalRequests(String operation, String resultado) {
         return meterRegistry.getMeters().stream()
-                .filter(meter -> "people.shadow.monolith.requests".equals(meter.getId().getName()))
+                .filter(meter -> "people.monolith.requests".equals(meter.getId().getName()))
                 .filter(meter -> tagEquals(meter, "operacao", operation))
                 .filter(meter -> tagEquals(meter, "resultado", resultado))
                 .mapToDouble(this::valorContador)
@@ -100,7 +100,7 @@ public class PeopleMonolithReadHealthIndicator implements HealthIndicator {
 
     private double totalFailures(String operation) {
         return meterRegistry.getMeters().stream()
-                .filter(meter -> "people.shadow.monolith.failures".equals(meter.getId().getName()))
+                .filter(meter -> "people.monolith.failures".equals(meter.getId().getName()))
                 .filter(meter -> tagEquals(meter, "operacao", operation))
                 .mapToDouble(this::valorContador)
                 .sum();
@@ -127,6 +127,8 @@ public class PeopleMonolithReadHealthIndicator implements HealthIndicator {
         return 0.0d;
     }
 
-    private record RouteMetricDescriptor(String operation, String shadowRoute, String monolithRoute) {
+    private record RouteMetricDescriptor(String operation, String route, String monolithRoute) {
     }
 }
+
+

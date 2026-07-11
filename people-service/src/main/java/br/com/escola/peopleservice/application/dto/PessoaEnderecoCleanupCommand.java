@@ -10,3 +10,5 @@ public record PessoaEnderecoCleanupCommand(
         String idempotencyKey,
         String requestedBy) {
 }
+
+

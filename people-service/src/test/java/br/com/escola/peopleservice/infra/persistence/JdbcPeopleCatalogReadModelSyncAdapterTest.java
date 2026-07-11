@@ -10,16 +10,16 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import br.com.escola.peopleservice.infra.config.PeopleCatalogReadModelBackfillProperties;
-import br.com.escola.peopleservice.infra.config.PeopleLocalReadModelSchemaMigrationProperties;
+import br.com.escola.peopleservice.infra.config.PeopleReadModelSourceProperties;
+import br.com.escola.peopleservice.infra.config.PeopleReadModelMigrationProperties;
 
 class JdbcPeopleCatalogReadModelSyncAdapterTest {
 
     @Test
     void bloqueiaSincronizacaoQuandoOrigemOuDestinoNaoEstaoConfigurados() {
         JdbcPeopleCatalogReadModelSyncAdapter adapter = new JdbcPeopleCatalogReadModelSyncAdapter(
-                new PeopleCatalogReadModelBackfillProperties("", "", "", ""),
-                new PeopleLocalReadModelSchemaMigrationProperties("", "", "", "", List.of()));
+                new PeopleReadModelSourceProperties("", "", "", ""),
+                new PeopleReadModelMigrationProperties("", "", "", "", List.of()));
 
         var reports = adapter.synchronize(true, true, 100);
 
@@ -42,8 +42,8 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         popularOrigem(sourceUrl);
 
         JdbcPeopleCatalogReadModelSyncAdapter adapter = new JdbcPeopleCatalogReadModelSyncAdapter(
-                new PeopleCatalogReadModelBackfillProperties(sourceUrl, "sa", "", "org.h2.Driver"),
-                new PeopleLocalReadModelSchemaMigrationProperties(targetUrl, "sa", "", "org.h2.Driver", List.of()));
+                new PeopleReadModelSourceProperties(sourceUrl, "sa", "", "org.h2.Driver"),
+                new PeopleReadModelMigrationProperties(targetUrl, "sa", "", "org.h2.Driver", List.of()));
 
         var reports = adapter.synchronize(true, true, 100);
 
@@ -94,8 +94,8 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         popularEnderecoPrincipalDuplicado(sourceUrl);
 
         JdbcPeopleCatalogReadModelSyncAdapter adapter = new JdbcPeopleCatalogReadModelSyncAdapter(
-                new PeopleCatalogReadModelBackfillProperties(sourceUrl, "sa", "", "org.h2.Driver"),
-                new PeopleLocalReadModelSchemaMigrationProperties(targetUrl, "sa", "", "org.h2.Driver", List.of()));
+                new PeopleReadModelSourceProperties(sourceUrl, "sa", "", "org.h2.Driver"),
+                new PeopleReadModelMigrationProperties(targetUrl, "sa", "", "org.h2.Driver", List.of()));
 
         var reports = adapter.synchronize(true, true, 100);
 
@@ -574,3 +574,4 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         }
     }
 }
+

@@ -106,7 +106,7 @@ class MonolithPessoaAddressWriteClientTest {
                 "\"logradouro\":\"Praca da Se\"",
                 "\"principal\":true");
         assertThat(meterRegistry.counter(
-                "people.shadow.monolith.address.write.requests",
+                "people.monolith.address.write.requests",
                 "operation", "criarOuAtualizarEnderecoPrincipal",
                 "result", "success",
                 "selectedSource", "school_management_service").count()).isEqualTo(1.0d);
@@ -176,11 +176,12 @@ class MonolithPessoaAddressWriteClientTest {
         assertThat(result.fallbackRequired()).isTrue();
         assertThat(result.warnings()).contains(
                 "people-service-monolith-address-write-adapter-fallback",
-                "keep-shadow-command-as-fallback",
+                "keep-monolith-command-as-fallback",
                 "local-address-persistence-disabled");
         assertThat(meterRegistry.counter(
-                "people.shadow.monolith.address.write.failures",
+                "people.monolith.address.write.failures",
                 "operation", "removerEnderecosDaPessoa",
                 "cause", "ServiceUnavailable").count()).isEqualTo(1.0d);
     }
 }
+
