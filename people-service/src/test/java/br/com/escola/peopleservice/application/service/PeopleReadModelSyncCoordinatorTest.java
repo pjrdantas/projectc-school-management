@@ -30,7 +30,7 @@ class PeopleReadModelSyncCoordinatorTest {
         assertThat(report.backfillEnabled()).isFalse();
         assertThat(report.reconciliationEnabled()).isFalse();
         assertThat(report.batchSize()).isEqualTo(500);
-        assertThat(report.plannedTables()).isEqualTo(11);
+        assertThat(report.plannedTables()).isEqualTo(13);
         assertThat(report.successfulTables()).isZero();
         assertThat(report.backfilledRecords()).isZero();
         assertThat(report.divergences()).isZero();
@@ -74,6 +74,34 @@ class PeopleReadModelSyncCoordinatorTest {
                                 3,
                                 3,
                                 3,
+                                0),
+                        new TableOperationReport(
+                                "status_aluno",
+                                "id_status_aluno",
+                                "monolith_jdbc",
+                                "people_read_model_catalog",
+                                "success",
+                                "catalog-sync-completed",
+                                backfillEnabled,
+                                reconciliationEnabled,
+                                true,
+                                2,
+                                2,
+                                2,
+                                0),
+                        new TableOperationReport(
+                                "parentesco",
+                                "id_parentesco",
+                                "monolith_jdbc",
+                                "people_read_model_catalog",
+                                "success",
+                                "catalog-sync-completed",
+                                backfillEnabled,
+                                reconciliationEnabled,
+                                true,
+                                2,
+                                2,
+                                2,
                                 0),
                         new TableOperationReport(
                                 "pessoa",
@@ -210,15 +238,15 @@ class PeopleReadModelSyncCoordinatorTest {
         assertThat(report.backfillEnabled()).isTrue();
         assertThat(report.reconciliationEnabled()).isTrue();
         assertThat(report.batchSize()).isEqualTo(100);
-        assertThat(report.successfulTables()).isEqualTo(11);
-        assertThat(report.backfilledRecords()).isEqualTo(22);
-        assertThat(report.sourceRows()).isEqualTo(22);
-        assertThat(report.targetRows()).isEqualTo(22);
+        assertThat(report.successfulTables()).isEqualTo(13);
+        assertThat(report.backfilledRecords()).isEqualTo(26);
+        assertThat(report.sourceRows()).isEqualTo(26);
+        assertThat(report.targetRows()).isEqualTo(26);
         assertThat(report.divergences()).isZero();
         assertThat(report.writesEnabled()).isFalse();
         assertThat(report.localReadRoutingEnabled()).isFalse();
         assertThat(report.tables())
-                .hasSize(11)
+                .hasSize(13)
                 .allSatisfy(table -> {
                     assertThat(table.source()).isEqualTo("monolith_jdbc");
                     assertThat(table.status()).isEqualTo("success");
@@ -231,6 +259,8 @@ class PeopleReadModelSyncCoordinatorTest {
                 .containsExactly(
                         "tipo_pessoa",
                         "tipo_endereco",
+                        "status_aluno",
+                        "parentesco",
                         "pessoa",
                         "pessoa_tipo_pessoa",
                         "aluno",
@@ -244,11 +274,11 @@ class PeopleReadModelSyncCoordinatorTest {
         assertThat(meterRegistry.counter("people.readmodel.sync.cycles", "status", "completed").count())
                 .isEqualTo(1.0d);
         assertThat(meterRegistry.counter("people.readmodel.sync.tables.planned").count())
-                .isEqualTo(11.0d);
+                .isEqualTo(13.0d);
         assertThat(meterRegistry.counter("people.readmodel.sync.records").count())
-                .isEqualTo(22.0d);
+                .isEqualTo(26.0d);
         assertThat(meterRegistry.counter("people.readmodel.sync.reconciliation.tables").count())
-                .isEqualTo(11.0d);
+                .isEqualTo(13.0d);
     }
 }
 

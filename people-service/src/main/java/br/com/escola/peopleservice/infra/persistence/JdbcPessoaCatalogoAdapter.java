@@ -39,6 +39,24 @@ public class JdbcPessoaCatalogoAdapter implements PessoaCatalogoPort {
                 """);
     }
 
+    @Override
+    public List<PessoaCatalogoResponse> listarStatusAluno() {
+        return query("""
+                SELECT id_status_aluno, codigo, descricao
+                FROM status_aluno
+                ORDER BY codigo
+                """);
+    }
+
+    @Override
+    public List<PessoaCatalogoResponse> listarParentescos() {
+        return query("""
+                SELECT id_parentesco, codigo, descricao
+                FROM parentesco
+                ORDER BY codigo
+                """);
+    }
+
     private List<PessoaCatalogoResponse> query(String sql) {
         if (!StringUtils.hasText(properties.url())) {
             throw new IllegalStateException("local-catalog-read-url-required");

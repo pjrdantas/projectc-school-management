@@ -24,7 +24,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         var reports = adapter.synchronize(true, true, 100);
 
         assertThat(reports)
-                .hasSize(11)
+                .hasSize(13)
                 .allSatisfy(report -> {
                     assertThat(report.status()).isEqualTo("blocked");
                     assertThat(report.reason()).isEqualTo("local-read-model-source-url-required");
@@ -48,7 +48,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         var reports = adapter.synchronize(true, true, 100);
 
         assertThat(reports)
-                .hasSize(11)
+                .hasSize(13)
                 .allSatisfy(report -> {
                     assertThat(report.status()).isEqualTo("success");
                     assertThat(report.divergences()).isZero();
@@ -59,6 +59,8 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                 .containsExactly(
                         "tipo_pessoa",
                         "tipo_endereco",
+                        "status_aluno",
+                        "parentesco",
                         "pessoa",
                         "pessoa_tipo_pessoa",
                         "aluno",
@@ -68,11 +70,13 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         "pessoa_endereco",
                         "people_documento_read_model",
                         "people_funcionario_read_model");
-        assertThat(reports.stream().mapToInt(report -> report.sourceRows()).sum()).isEqualTo(20);
-        assertThat(reports.stream().mapToInt(report -> report.targetRows()).sum()).isEqualTo(20);
+        assertThat(reports.stream().mapToInt(report -> report.sourceRows()).sum()).isEqualTo(24);
+        assertThat(reports.stream().mapToInt(report -> report.targetRows()).sum()).isEqualTo(24);
 
         assertThat(contar(targetUrl, "tipo_pessoa")).isEqualTo(3);
         assertThat(contar(targetUrl, "tipo_endereco")).isEqualTo(2);
+        assertThat(contar(targetUrl, "status_aluno")).isEqualTo(2);
+        assertThat(contar(targetUrl, "parentesco")).isEqualTo(2);
         assertThat(contar(targetUrl, "pessoa")).isEqualTo(2);
         assertThat(contar(targetUrl, "pessoa_tipo_pessoa")).isEqualTo(3);
         assertThat(contar(targetUrl, "aluno")).isEqualTo(1);
@@ -134,6 +138,20 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
             statement.execute("""
                     CREATE TABLE tipo_endereco (
                         id_tipo_endereco UUID NOT NULL PRIMARY KEY,
+                        codigo VARCHAR(40) NOT NULL UNIQUE,
+                        descricao VARCHAR(120) NOT NULL
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE status_aluno (
+                        id_status_aluno UUID NOT NULL PRIMARY KEY,
+                        codigo VARCHAR(40) NOT NULL UNIQUE,
+                        descricao VARCHAR(120) NOT NULL
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE parentesco (
+                        id_parentesco UUID NOT NULL PRIMARY KEY,
                         codigo VARCHAR(40) NOT NULL UNIQUE,
                         descricao VARCHAR(120) NOT NULL
                     )
@@ -313,6 +331,16 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                     INSERT INTO tipo_endereco (id_tipo_endereco, codigo, descricao) VALUES
                     ('44444444-4444-4444-4444-444444444444', 'RESIDENCIAL', 'Residencial'),
                     ('55555555-5555-5555-5555-555555555555', 'COMERCIAL', 'Comercial')
+                    """);
+            statement.execute("""
+                    INSERT INTO status_aluno (id_status_aluno, codigo, descricao) VALUES
+                    ('66666666-6666-6666-6666-666666666666', 'ATIVO', 'Ativo'),
+                    ('77777777-7777-7777-7777-777777777777', 'INATIVO', 'Inativo')
+                    """);
+            statement.execute("""
+                    INSERT INTO parentesco (id_parentesco, codigo, descricao) VALUES
+                    ('88888888-8888-8888-8888-888888888888', 'MAE', 'Mae'),
+                    ('99999999-9999-9999-9999-999999999999', 'PAI', 'Pai')
                     """);
             statement.execute("""
                     INSERT INTO pessoa (

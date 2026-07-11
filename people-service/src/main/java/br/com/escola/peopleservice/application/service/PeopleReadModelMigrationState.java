@@ -21,6 +21,8 @@ public class PeopleReadModelMigrationState {
                     List.of(
                             "tipo_pessoa",
                             "tipo_endereco",
+                            "status_aluno",
+                            "parentesco",
                             "pessoa",
                             "pessoa_tipo_pessoa",
                             "aluno",

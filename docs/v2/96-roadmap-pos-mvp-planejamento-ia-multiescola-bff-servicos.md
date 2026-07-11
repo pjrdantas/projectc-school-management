@@ -4756,6 +4756,41 @@ Proxima fase pratica sugerida:
 - se nao houver necessidade imediata nesses catalogos, abrir outra familia nova
   ainda nao coberta sem reabrir `aluno/responsavel`.
 
+### Fase 97 - Read model local dos catalogos `status_aluno` e `parentesco`
+
+Objetivo: abrir a proxima familia backend do `people-service` pelo menor
+recorte concreto restante de `aluno/responsavel`, adicionando os catalogos
+`status_aluno` e `parentesco` ao read model local e ao contrato interno ja
+existente de catalogos, sem criar rota nova, sem BFF e sem tocar o
+`school-management-service`.
+
+Entregue na primeira subfase da Fase 97:
+
+- foi criada a migration opt-in
+  `V7__create_people_student_responsible_catalog_read_model.sql`, adicionando
+  as tabelas locais `status_aluno` e `parentesco` com reconciliacao por
+  `id_status_aluno` e `id_parentesco`;
+- o ciclo JDBC de sincronizacao do `people-service` passou a incluir esses dois
+  catalogos no mesmo read model de catalogos ja existente, preservando a
+  estrategia atual de backfill/reconciliacao sem rota externa;
+- o contrato interno `PessoaCatalogoPort` e o adapter local
+  `JdbcPessoaCatalogoAdapter` passaram a expor `listarStatusAluno()` e
+  `listarParentescos()`, deixando a nova familia preparada no codigo novo para
+  consumo controlado futuro;
+- health, estado de migration, coordenacao de sync e testes do modulo foram
+  ajustados para refletir as duas novas tabelas, sem alterar qualquer contrato
+  HTTP atual e sem mover autoridade funcional do monolito.
+
+Contagem da macrofase Fase 97: 1 subfase restante estimada.
+
+Proxima fase pratica sugerida:
+
+- fechar formalmente esta familia de catalogos base de `aluno/responsavel` se
+  nao houver consumidor interno imediato; ou
+- se houver necessidade concreta no proprio `people-service`, conectar um
+  primeiro consumidor interno controlado desses catalogos sem abrir rota
+  externa.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

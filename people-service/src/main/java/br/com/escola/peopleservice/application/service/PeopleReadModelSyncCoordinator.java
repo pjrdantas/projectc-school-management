@@ -17,6 +17,8 @@ public class PeopleReadModelSyncCoordinator {
     private static final List<TableDescriptor> TABLES = List.of(
             new TableDescriptor("tipo_pessoa", "id_tipo_pessoa"),
             new TableDescriptor("tipo_endereco", "id_tipo_endereco"),
+            new TableDescriptor("status_aluno", "id_status_aluno"),
+            new TableDescriptor("parentesco", "id_parentesco"),
             new TableDescriptor("pessoa", "id_pessoa"),
             new TableDescriptor("pessoa_tipo_pessoa", "id_pessoa_tipo_pessoa"),
             new TableDescriptor("aluno", "id_aluno"),

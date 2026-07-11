@@ -24,6 +24,8 @@ public class PeopleReadModelHealthIndicator implements HealthIndicator {
     private static final List<String> READ_MODEL_TABLES = List.of(
             "tipo_pessoa",
             "tipo_endereco",
+            "status_aluno",
+            "parentesco",
             "pessoa",
             "pessoa_tipo_pessoa",
             "aluno",

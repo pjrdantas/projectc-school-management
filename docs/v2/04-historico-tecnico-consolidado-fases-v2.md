@@ -1991,6 +1991,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   familia termina esta macrofase apenas como fronteira interna preparada, sem
   abrir `parentesco`, `status_aluno`, rota externa ou persistencia propria
   adicional. A contagem regressiva da Fase 96 chega a 0.
+- A primeira subfase da Fase 97 abriu a familia restante de catalogos base de
+  `aluno/responsavel` no `people-service` pelo menor recorte concreto. A
+  migration opt-in
+  `V7__create_people_student_responsible_catalog_read_model.sql` adicionou as
+  tabelas locais `status_aluno` e `parentesco`; o ciclo JDBC de sync foi
+  estendido para esses dois catalogos; e `PessoaCatalogoPort` com
+  `JdbcPessoaCatalogoAdapter` passaram a expor `listarStatusAluno()` e
+  `listarParentescos()`. A entrega permaneceu estritamente backend-only, sem
+  rota externa, sem BFF e sem alteracao no `school-management-service`. A
+  contagem regressiva da Fase 97 passa a 1 subfase restante estimada.
 
 ## Historico resumido
 

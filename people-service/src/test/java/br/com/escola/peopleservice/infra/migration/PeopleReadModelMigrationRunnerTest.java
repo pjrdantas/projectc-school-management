@@ -93,6 +93,8 @@ class PeopleReadModelMigrationRunnerTest {
                 .containsExactly(
                         "tipo_pessoa",
                         "tipo_endereco",
+                        "status_aluno",
+                        "parentesco",
                         "pessoa",
                         "pessoa_tipo_pessoa",
                         "aluno",
@@ -111,6 +113,14 @@ class PeopleReadModelMigrationRunnerTest {
         }
         try (var connection = DriverManager.getConnection(url, "sa", "");
                 var resultSet = connection.getMetaData().getTables(null, null, "tipo_endereco", null)) {
+            assertThat(resultSet.next()).isTrue();
+        }
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+                var resultSet = connection.getMetaData().getTables(null, null, "status_aluno", null)) {
+            assertThat(resultSet.next()).isTrue();
+        }
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+                var resultSet = connection.getMetaData().getTables(null, null, "parentesco", null)) {
             assertThat(resultSet.next()).isTrue();
         }
         try (var connection = DriverManager.getConnection(url, "sa", "");

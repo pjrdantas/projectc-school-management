@@ -9,4 +9,8 @@ public interface PessoaCatalogoPort {
     List<PessoaCatalogoResponse> listarTiposPessoa();
 
     List<PessoaCatalogoResponse> listarTiposEndereco();
+
+    List<PessoaCatalogoResponse> listarStatusAluno();
+
+    List<PessoaCatalogoResponse> listarParentescos();
 }

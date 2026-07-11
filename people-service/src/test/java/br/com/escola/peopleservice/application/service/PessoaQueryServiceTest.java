@@ -231,6 +231,22 @@ class PessoaQueryServiceTest {
             }
             return tiposEndereco;
         }
+
+        @Override
+        public List<PessoaCatalogoResponse> listarStatusAluno() {
+            if (fail) {
+                throw new IllegalStateException("local-failed");
+            }
+            return List.of();
+        }
+
+        @Override
+        public List<PessoaCatalogoResponse> listarParentescos() {
+            if (fail) {
+                throw new IllegalStateException("local-failed");
+            }
+            return List.of();
+        }
     }
 
     private record FakePessoaPort(

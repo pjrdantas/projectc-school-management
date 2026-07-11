@@ -42,7 +42,23 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                     "SELECT id_tipo_endereco, codigo, descricao FROM tipo_endereco ORDER BY codigo LIMIT ?",
                     "SELECT id_tipo_endereco, codigo, descricao FROM tipo_endereco ORDER BY codigo",
                     "UPDATE tipo_endereco SET codigo = ?, descricao = ? WHERE id_tipo_endereco = ?",
-                    "INSERT INTO tipo_endereco (id_tipo_endereco, codigo, descricao) VALUES (?, ?, ?)"));
+                    "INSERT INTO tipo_endereco (id_tipo_endereco, codigo, descricao) VALUES (?, ?, ?)"),
+            new CatalogTable(
+                    "status_aluno",
+                    "id_status_aluno",
+                    false,
+                    "SELECT id_status_aluno, codigo, descricao FROM status_aluno ORDER BY codigo LIMIT ?",
+                    "SELECT id_status_aluno, codigo, descricao FROM status_aluno ORDER BY codigo",
+                    "UPDATE status_aluno SET codigo = ?, descricao = ? WHERE id_status_aluno = ?",
+                    "INSERT INTO status_aluno (id_status_aluno, codigo, descricao) VALUES (?, ?, ?)"),
+            new CatalogTable(
+                    "parentesco",
+                    "id_parentesco",
+                    false,
+                    "SELECT id_parentesco, codigo, descricao FROM parentesco ORDER BY codigo LIMIT ?",
+                    "SELECT id_parentesco, codigo, descricao FROM parentesco ORDER BY codigo",
+                    "UPDATE parentesco SET codigo = ?, descricao = ? WHERE id_parentesco = ?",
+                    "INSERT INTO parentesco (id_parentesco, codigo, descricao) VALUES (?, ?, ?)"));
 
     private static final PessoaTable PESSOA_TABLE = new PessoaTable(
             """

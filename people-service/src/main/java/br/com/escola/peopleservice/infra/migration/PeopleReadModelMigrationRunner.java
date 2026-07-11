@@ -21,6 +21,8 @@ public class PeopleReadModelMigrationRunner implements ApplicationRunner {
     private static final List<String> TABLES = List.of(
             "tipo_pessoa",
             "tipo_endereco",
+            "status_aluno",
+            "parentesco",
             "pessoa",
             "pessoa_tipo_pessoa",
             "aluno",
