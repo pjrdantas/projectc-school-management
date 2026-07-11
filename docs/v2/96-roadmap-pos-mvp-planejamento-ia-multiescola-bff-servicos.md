@@ -6022,3 +6022,19 @@ Entregue nesta fase:
 
 Contagem da macrofase Fase 105: 0 subfases restantes estimadas. O bloco interno
 de leitura de contato ficou fechado.
+
+### Fase 106 - Contrato interno visivel de documento metadata
+
+Entregue nesta fase:
+
+- o `people-service` passou a expor no contrato interno a leitura de metadata
+  de documentos por pessoa e por `documentoId`;
+- `PessoaQueryUseCase`, `PessoaQueryService` e
+  `PessoaInternalQueryController` passaram a cobrir
+  `GET /internal/v1/pessoas/{id}/documentos` e
+  `GET /internal/v1/documentos/{documentoId}`;
+- a fase permaneceu restrita ao codigo novo, sem BFF, sem frontend e sem tocar
+  no legado.
+
+Contagem da macrofase Fase 106: 0 subfases restantes estimadas. O bloco interno
+de documento metadata ficou fechado.

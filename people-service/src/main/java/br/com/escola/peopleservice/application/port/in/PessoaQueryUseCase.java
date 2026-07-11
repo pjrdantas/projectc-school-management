@@ -7,6 +7,7 @@ import br.com.escola.peopleservice.application.context.InternalRequestContext;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaContatoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
+import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataResponse;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 
@@ -31,6 +32,16 @@ public interface PessoaQueryUseCase {
             UUID pessoaId);
 
     PessoaContatoResponse buscarContatoPorPessoa(
+            String authorization,
+            InternalRequestContext context,
+            UUID pessoaId);
+
+    PessoaDocumentoMetadataResponse buscarDocumentoPorId(
+            String authorization,
+            InternalRequestContext context,
+            UUID documentoId);
+
+    List<PessoaDocumentoMetadataResponse> listarDocumentosPorPessoa(
             String authorization,
             InternalRequestContext context,
             UUID pessoaId);

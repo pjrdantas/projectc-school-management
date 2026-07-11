@@ -2262,3 +2262,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   alteracao em BFF, frontend ou legado.
 - A validacao foi ampliada com testes de servico e integracao HTTP desse
   contrato interno.
+
+### Fase 106
+
+- O `people-service` passou a expor no contrato interno a leitura de metadata
+  de documentos, reaproveitando `PessoaDocumentoMetadataService`.
+- Foram abertas as rotas internas `GET /internal/v1/pessoas/{id}/documentos` e
+  `GET /internal/v1/documentos/{documentoId}`, sem alteracao em BFF, frontend
+  ou legado.
+- A validacao foi ampliada com testes de servico e integracao HTTP desse
+  contrato interno.

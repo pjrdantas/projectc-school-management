@@ -25,8 +25,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.escola.peopleservice.application.service.PeopleReadModelSyncState;
 import br.com.escola.peopleservice.application.service.PessoaContatoService;
+import br.com.escola.peopleservice.application.service.PessoaDocumentoMetadataService;
 import br.com.escola.peopleservice.application.service.PessoaEnderecoService;
 import br.com.escola.peopleservice.application.dto.PessoaContatoResponse;
+import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataResponse;
 import br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import okhttp3.mockwebserver.MockResponse;
@@ -53,6 +55,9 @@ class PessoaInternalQueryControllerIntegrationTest {
 
     @MockBean
     private PessoaContatoService pessoaContatoService;
+
+    @MockBean
+    private PessoaDocumentoMetadataService pessoaDocumentoMetadataService;
 
     @BeforeAll
     static void beforeAll() throws IOException {
@@ -290,6 +295,36 @@ class PessoaInternalQueryControllerIntegrationTest {
                 .andExpect(jsonPath("$.telefone").value("11999999999"));
     }
 
+    @Test
+    void deveExporLeiturasInternasDeDocumentoMetadata() throws Exception {
+        marcarReadModelComoVerde();
+        PessoaDocumentoMetadataResponse documento = documento();
+        when(pessoaDocumentoMetadataService.buscarDocumentoPorId(documento.documentoId(), ESCOLA_ID))
+                .thenReturn(java.util.Optional.of(documento));
+        when(pessoaDocumentoMetadataService.listarDocumentosPorPessoa(PESSOA_ID, ESCOLA_ID))
+                .thenReturn(List.of(documento));
+
+        mockMvc.perform(get("/internal/v1/pessoas/{id}/documentos", PESSOA_ID)
+                        .header("X-Internal-Token", "internal-token")
+                        .header("X-Correlation-Id", "corr-people-8a")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", "Bearer internal-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].pessoaId").value(PESSOA_ID.toString()))
+                .andExpect(jsonPath("$[0].tipoDocumentoCodigo").value("CPF"));
+
+        mockMvc.perform(get("/internal/v1/documentos/{documentoId}", documento.documentoId())
+                        .header("X-Internal-Token", "internal-token")
+                        .header("X-Correlation-Id", "corr-people-8b")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", "Bearer internal-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.documentoId").value(documento.documentoId().toString()))
+                .andExpect(jsonPath("$.tipoDocumentoCodigo").value("CPF"));
+    }
+
     private void marcarReadModelComoVerde() {
         peopleReadModelSyncState.update(new PeopleReadModelSyncSummary(
                 true,
@@ -483,6 +518,20 @@ class PessoaInternalQueryControllerIntegrationTest {
                 "ana.aluna@example.com",
                 "11999999999",
                 true);
+    }
+
+    private PessoaDocumentoMetadataResponse documento() {
+        return new PessoaDocumentoMetadataResponse(
+                UUID.fromString("66666666-6666-6666-6666-666666666666"),
+                PESSOA_ID,
+                UUID.fromString("77777777-7777-7777-7777-777777777777"),
+                UUID.fromString("88888888-8888-8888-8888-888888888888"),
+                "CPF",
+                "CPF",
+                "12345678900",
+                "/tmp/cpf.pdf",
+                "Documento principal",
+                java.time.OffsetDateTime.parse("2026-01-02T10:15:30Z"));
     }
 
     private RecordedRequest aguardarRequisicao(String method, String path) throws InterruptedException {

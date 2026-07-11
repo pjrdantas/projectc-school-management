@@ -18,6 +18,7 @@ import br.com.escola.peopleservice.application.context.InternalRequestContext;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaContatoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
+import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataResponse;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 import br.com.escola.peopleservice.application.port.in.PessoaQueryUseCase;
@@ -82,6 +83,22 @@ public class PessoaInternalQueryController {
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
             @PathVariable("id") @NonNull UUID pessoaId) {
         return pessoaQueryUseCase.buscarContatoPorPessoa(authorization, context, pessoaId);
+    }
+
+    @GetMapping("/pessoas/{id}/documentos")
+    public List<PessoaDocumentoMetadataResponse> listarDocumentosPorPessoa(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable("id") @NonNull UUID pessoaId) {
+        return pessoaQueryUseCase.listarDocumentosPorPessoa(authorization, context, pessoaId);
+    }
+
+    @GetMapping("/documentos/{documentoId}")
+    public PessoaDocumentoMetadataResponse buscarDocumentoPorId(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID documentoId) {
+        return pessoaQueryUseCase.buscarDocumentoPorId(authorization, context, documentoId);
     }
 
     @GetMapping("/pessoas/{id}")

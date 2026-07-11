@@ -15,6 +15,7 @@ import br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaContatoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
+import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataResponse;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 import br.com.escola.peopleservice.application.port.out.PessoaCatalogoPort;
@@ -41,6 +42,7 @@ class PessoaQueryServiceTest {
                         meterRegistry),
                 enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 contatoService(new FakePessoaContatoPort(Optional.empty()), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -70,6 +72,7 @@ class PessoaQueryServiceTest {
                         meterRegistry),
                 enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 contatoService(new FakePessoaContatoPort(Optional.empty()), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -101,6 +104,7 @@ class PessoaQueryServiceTest {
                         meterRegistry),
                 enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 contatoService(new FakePessoaContatoPort(Optional.empty()), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -132,6 +136,7 @@ class PessoaQueryServiceTest {
                         meterRegistry),
                 enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 contatoService(new FakePessoaContatoPort(Optional.empty()), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -161,6 +166,7 @@ class PessoaQueryServiceTest {
                         meterRegistry),
                 enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 contatoService(new FakePessoaContatoPort(Optional.empty()), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -198,6 +204,7 @@ class PessoaQueryServiceTest {
                         meterRegistry),
                 enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 contatoService(new FakePessoaContatoPort(Optional.empty()), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -239,6 +246,7 @@ class PessoaQueryServiceTest {
                         meterRegistry),
                 enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 contatoService(new FakePessoaContatoPort(Optional.empty()), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -267,6 +275,7 @@ class PessoaQueryServiceTest {
                         meterRegistry),
                 enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 contatoService(new FakePessoaContatoPort(Optional.empty()), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -291,6 +300,7 @@ class PessoaQueryServiceTest {
                         meterRegistry),
                 enderecoService(new FakePessoaEnderecoPort(Optional.of(endereco), List.of(endereco)), greenGuard(meterRegistry), meterRegistry),
                 contatoService(new FakePessoaContatoPort(Optional.empty()), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -315,6 +325,7 @@ class PessoaQueryServiceTest {
                         meterRegistry),
                 enderecoService(new FakePessoaEnderecoPort(Optional.of(endereco), List.of(endereco)), greenGuard(meterRegistry), meterRegistry),
                 contatoService(new FakePessoaContatoPort(Optional.empty()), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
@@ -344,12 +355,57 @@ class PessoaQueryServiceTest {
                         meterRegistry),
                 enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 contatoService(new FakePessoaContatoPort(Optional.of(contato)), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
                 greenGuard(meterRegistry),
                 meterRegistry);
 
         var response = service.buscarContatoPorPessoa("Bearer token", context(), pessoaId);
 
         assertThat(response).isEqualTo(contato);
+    }
+
+    @Test
+    void deveExporDocumentoMetadataPorIdPeloContratoInternoLocal() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        UUID pessoaId = UUID.randomUUID();
+        PessoaDocumentoMetadataResponse documento = documento(pessoaId);
+        PessoaQueryService service = new PessoaQueryService(
+                new FakePessoaReadPort(new AtomicInteger(), List.of()),
+                new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                new FakePessoaPort(Optional.empty(), false),
+                new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
+                catalogoAlunoResponsavelService(new FakePessoaCatalogoPort(List.of(), List.of(), false), greenGuard(meterRegistry), meterRegistry),
+                enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
+                contatoService(new FakePessoaContatoPort(Optional.empty()), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.of(documento), List.of(documento)), greenGuard(meterRegistry), meterRegistry),
+                greenGuard(meterRegistry),
+                meterRegistry);
+
+        var response = service.buscarDocumentoPorId("Bearer token", context(), documento.documentoId());
+
+        assertThat(response).isEqualTo(documento);
+    }
+
+    @Test
+    void deveListarDocumentosPorPessoaPeloContratoInternoLocal() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        UUID pessoaId = UUID.randomUUID();
+        PessoaDocumentoMetadataResponse documento = documento(pessoaId);
+        PessoaQueryService service = new PessoaQueryService(
+                new FakePessoaReadPort(new AtomicInteger(), List.of()),
+                new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                new FakePessoaPort(Optional.empty(), false),
+                new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), false),
+                catalogoAlunoResponsavelService(new FakePessoaCatalogoPort(List.of(), List.of(), false), greenGuard(meterRegistry), meterRegistry),
+                enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
+                contatoService(new FakePessoaContatoPort(Optional.empty()), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.of(documento), List.of(documento)), greenGuard(meterRegistry), meterRegistry),
+                greenGuard(meterRegistry),
+                meterRegistry);
+
+        var response = service.listarDocumentosPorPessoa("Bearer token", context(), pessoaId);
+
+        assertThat(response).containsExactly(documento);
     }
 
     private PessoaAlunoResponsavelCatalogoService catalogoAlunoResponsavelService(
@@ -415,6 +471,34 @@ class PessoaQueryServiceTest {
         return new PessoaContatoService(provider, readRoutingPolicy, meterRegistry);
     }
 
+    private PessoaDocumentoMetadataService documentoMetadataService(
+            FakePessoaDocumentoMetadataPort documentoPort,
+            PeopleReadSourcePolicy readRoutingPolicy,
+            SimpleMeterRegistry meterRegistry) {
+        ObjectProvider<br.com.escola.peopleservice.application.port.out.PessoaDocumentoMetadataPort> provider = new ObjectProvider<>() {
+            @Override
+            public br.com.escola.peopleservice.application.port.out.PessoaDocumentoMetadataPort getObject(Object... args) {
+                return documentoPort;
+            }
+
+            @Override
+            public br.com.escola.peopleservice.application.port.out.PessoaDocumentoMetadataPort getIfAvailable() {
+                return documentoPort;
+            }
+
+            @Override
+            public br.com.escola.peopleservice.application.port.out.PessoaDocumentoMetadataPort getIfUnique() {
+                return documentoPort;
+            }
+
+            @Override
+            public br.com.escola.peopleservice.application.port.out.PessoaDocumentoMetadataPort getObject() {
+                return documentoPort;
+            }
+        };
+        return new PessoaDocumentoMetadataService(provider, readRoutingPolicy, meterRegistry);
+    }
+
     private PessoaEnderecoResponse endereco(UUID pessoaId, String cep) {
         return new PessoaEnderecoResponse(
                 UUID.randomUUID(),
@@ -431,6 +515,20 @@ class PessoaQueryServiceTest {
                 "Se",
                 "Sao Paulo",
                 "SP");
+    }
+
+    private PessoaDocumentoMetadataResponse documento(UUID pessoaId) {
+        return new PessoaDocumentoMetadataResponse(
+                UUID.randomUUID(),
+                pessoaId,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "CPF",
+                "CPF",
+                "12345678900",
+                "/tmp/cpf.pdf",
+                "Documento principal",
+                java.time.OffsetDateTime.parse("2026-01-02T10:15:30Z"));
     }
 
     private PeopleReadSourcePolicy greenGuard(SimpleMeterRegistry meterRegistry) {
@@ -564,6 +662,21 @@ class PessoaQueryServiceTest {
         @Override
         public Optional<PessoaContatoResponse> buscarContatoPorPessoa(UUID pessoaId, UUID escolaId) {
             return contato;
+        }
+    }
+
+    private record FakePessoaDocumentoMetadataPort(
+            Optional<PessoaDocumentoMetadataResponse> documento,
+            List<PessoaDocumentoMetadataResponse> documentos) implements br.com.escola.peopleservice.application.port.out.PessoaDocumentoMetadataPort {
+
+        @Override
+        public Optional<PessoaDocumentoMetadataResponse> buscarDocumentoPorId(UUID documentoId, UUID escolaId) {
+            return documento;
+        }
+
+        @Override
+        public List<PessoaDocumentoMetadataResponse> listarDocumentosPorPessoa(UUID pessoaId, UUID escolaId) {
+            return documentos;
         }
     }
 
