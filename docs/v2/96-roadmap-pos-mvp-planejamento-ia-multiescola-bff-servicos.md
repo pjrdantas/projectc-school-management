@@ -4395,6 +4395,39 @@ Proxima fase pratica sugerida:
 - se houver necessidade objetiva futura, reabrir `pessoa_documento` apenas com
   novo consumidor real ou nova fronteira tecnica justificada.
 
+### Fase 87 - Diagnostico do primeiro consumidor real de documento no monolito
+
+Objetivo: mapear no `school-management-service` o menor consumidor real que
+poderia usar futuramente o contrato interno de metadados de documento vindo do
+`people-service`, sem alterar rotas externas, sem tocar upload e sem mexer em
+cleanup/exclusao nesta etapa.
+
+Entregue na primeira subfase da Fase 87:
+
+- foi formalizado no monolito o diagnostico do primeiro consumidor real de
+  `pessoa_documento`, registrando que `DocumentoAlunoService.listarPorAluno` e
+  o menor recorte seguro para uma futura fronteira interna;
+- o diagnostico deixou explicito que `GET /api/documentos-alunos/alunos/{alunoId}`
+  e menor que `buscarPorId` e menor que o fluxo generico `/api/documentos`,
+  porque permanece em um unico agregado funcional, reutiliza a resolucao
+  `alunoId -> pessoaId` e nao exige mover upload ou exclusao;
+- o actuator `documentoPeopleConsumerDiagnostic` passou a expor as dependencias
+  atuais do `DocumentoGateway`, os impactos de consistencia e a recomendacao de
+  preparar primeiro um contrato interno de consumo sem ativar leitura local.
+
+Contagem da macrofase Fase 87: 2 subfases restantes estimadas: primeiro
+preparar o contrato interno/adapter de consumo de metadados para
+`DocumentoAlunoService.listarPorAluno`; depois avaliar a conexao controlada com
+fallback obrigatorio antes de considerar outros fluxos de documento.
+
+Proxima fase pratica sugerida:
+
+- preparar no `school-management-service` o contrato interno minimo de consumo
+  de metadados de documento para `DocumentoAlunoService.listarPorAluno`, ainda
+  sem trocar a autoridade atual do `DocumentoGateway`; ou
+- se o recorte de aluno precisar ser segurado, manter `documento` somente em
+  diagnostico e escolher outra familia backend menor.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

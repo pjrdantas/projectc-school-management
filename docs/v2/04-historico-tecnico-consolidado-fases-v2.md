@@ -1920,6 +1920,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   seguinte deve sair para outra familia backend sem reabrir esse bloco agora. A
   fase termina sem alteracao funcional oficial no
   `school-management-service`, com a contagem regressiva da Fase 86 em 0.
+- A primeira subfase da Fase 87 abriu a nova macrofase backend no
+  `school-management-service` pelo menor consumidor real de documentos. O
+  diagnostico formalizou em actuator dedicado que
+  `DocumentoAlunoService.listarPorAluno` e o primeiro recorte seguro para futura
+  fronteira com o `people-service`, porque permanece no agregado de aluno,
+  reaproveita a resolucao `alunoId -> pessoaId` e nao exige mover upload,
+  exclusao ou o fluxo generico `/api/documentos`. A fase termina sem alteracao
+  funcional oficial e com a contagem regressiva da Fase 87 em 2 subfases
+  restantes estimadas.
 
 ## Historico resumido
 
