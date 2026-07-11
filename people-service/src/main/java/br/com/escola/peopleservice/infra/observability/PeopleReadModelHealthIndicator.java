@@ -34,7 +34,8 @@ public class PeopleReadModelHealthIndicator implements HealthIndicator {
             "endereco",
             "pessoa_endereco",
             "people_documento_read_model",
-            "people_funcionario_read_model");
+            "people_funcionario_read_model",
+            "people_professor_read_model");
 
     private static final List<String> EXCLUDED_WRITE_AUTHORITIES = List.of(
             "funcionario",
@@ -109,6 +110,8 @@ public class PeopleReadModelHealthIndicator implements HealthIndicator {
                 totalContador("people.funcionario.read.routing.decisions"));
         details.put("localFuncionarioResumoReadsTotal",
                 totalContador("people.funcionario.reads"));
+        details.put("localProfessorResumoReadsTotal",
+                totalContador("people.professor.reads"));
         details.put("addressWriteCommandsTotal",
                 totalContador("people.address.write.commands"));
         details.put("monolithAddressWriteRequestsTotal",

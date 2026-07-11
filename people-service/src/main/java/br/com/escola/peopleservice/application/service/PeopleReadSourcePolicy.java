@@ -19,7 +19,6 @@ public class PeopleReadSourcePolicy {
 
     private static final String MONOLITH_SOURCE = "monolith_proxy";
     private static final String MONOLITH_INTERNAL_RH_SOURCE = "monolith_internal_rh";
-    private static final String LOCAL_CANDIDATE_SOURCE = "people_read_model_candidate";
     private static final String STUDENT_RESPONSIBLE_SOURCE = "people_read_model_student_responsible";
     private static final String ADDRESS_SOURCE = "people_read_model_address";
     private static final String DOCUMENT_METADATA_SOURCE = "people_documento_read_model";

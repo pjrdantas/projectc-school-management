@@ -30,7 +30,7 @@ class PeopleReadModelSyncCoordinatorTest {
         assertThat(report.backfillEnabled()).isFalse();
         assertThat(report.reconciliationEnabled()).isFalse();
         assertThat(report.batchSize()).isEqualTo(500);
-        assertThat(report.plannedTables()).isEqualTo(13);
+        assertThat(report.plannedTables()).isEqualTo(14);
         assertThat(report.successfulTables()).isZero();
         assertThat(report.backfilledRecords()).isZero();
         assertThat(report.divergences()).isZero();
@@ -228,6 +228,20 @@ class PeopleReadModelSyncCoordinatorTest {
                                 1,
                                 1,
                                 1,
+                                0),
+                        new TableOperationReport(
+                                "people_professor_read_model",
+                                "id_professor",
+                                "monolith_jdbc",
+                                "people_professor_read_model",
+                                "success",
+                                "professor-summary-sync-completed",
+                                backfillEnabled,
+                                reconciliationEnabled,
+                                true,
+                                1,
+                                1,
+                                1,
                                 0)),
                 state);
 
@@ -238,15 +252,15 @@ class PeopleReadModelSyncCoordinatorTest {
         assertThat(report.backfillEnabled()).isTrue();
         assertThat(report.reconciliationEnabled()).isTrue();
         assertThat(report.batchSize()).isEqualTo(100);
-        assertThat(report.successfulTables()).isEqualTo(13);
-        assertThat(report.backfilledRecords()).isEqualTo(26);
-        assertThat(report.sourceRows()).isEqualTo(26);
-        assertThat(report.targetRows()).isEqualTo(26);
+        assertThat(report.successfulTables()).isEqualTo(14);
+        assertThat(report.backfilledRecords()).isEqualTo(27);
+        assertThat(report.sourceRows()).isEqualTo(27);
+        assertThat(report.targetRows()).isEqualTo(27);
         assertThat(report.divergences()).isZero();
         assertThat(report.writesEnabled()).isFalse();
         assertThat(report.localReadRoutingEnabled()).isFalse();
         assertThat(report.tables())
-                .hasSize(13)
+                .hasSize(14)
                 .allSatisfy(table -> {
                     assertThat(table.source()).isEqualTo("monolith_jdbc");
                     assertThat(table.status()).isEqualTo("success");
@@ -269,16 +283,17 @@ class PeopleReadModelSyncCoordinatorTest {
                         "endereco",
                         "pessoa_endereco",
                         "people_documento_read_model",
-                        "people_funcionario_read_model");
+                        "people_funcionario_read_model",
+                        "people_professor_read_model");
         assertThat(state.currentReport()).isEqualTo(report);
         assertThat(meterRegistry.counter("people.readmodel.sync.cycles", "status", "completed").count())
                 .isEqualTo(1.0d);
         assertThat(meterRegistry.counter("people.readmodel.sync.tables.planned").count())
-                .isEqualTo(13.0d);
+                .isEqualTo(14.0d);
         assertThat(meterRegistry.counter("people.readmodel.sync.records").count())
-                .isEqualTo(26.0d);
+                .isEqualTo(27.0d);
         assertThat(meterRegistry.counter("people.readmodel.sync.reconciliation.tables").count())
-                .isEqualTo(13.0d);
+                .isEqualTo(14.0d);
     }
 }
 

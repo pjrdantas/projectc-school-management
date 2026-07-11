@@ -4791,6 +4791,36 @@ Proxima fase pratica sugerida:
   primeiro consumidor interno controlado desses catalogos sem abrir rota
   externa.
 
+### Fase 98 - Schema e adapter local de resumo de `professor`
+
+Objetivo: retomar a familia de `professor` pelo primeiro passo concreto ainda
+faltante no codigo novo do `people-service`, adicionando schema local,
+backfill/reconciliacao e adapter JDBC do resumo de professor, sem criar rota
+externa e sem tocar o `school-management-service`.
+
+Entregue na primeira subfase da Fase 98:
+
+- foi criada a migration opt-in `V8__create_people_professor_read_model.sql`,
+  adicionando a tabela local `people_professor_read_model`;
+- o ciclo JDBC de sincronizacao do `people-service` passou a incluir o resumo
+  de `professor`, reconciliado por `id_professor`, com join de origem entre
+  `professor`, `pessoa` e `funcionario`;
+- foi criado o adapter local `JdbcPessoaProfessorResumoAdapter`, ligado ao
+  contrato `PessoaProfessorResumoPort`, permitindo
+  `buscarProfessorPorId()` e `listarProfessoresPorEscola()` no schema local;
+- migration state, sync coordinator, health e testes do modulo foram estendidos
+  para refletir a nova tabela, mantendo a entrega backend-only, sem BFF, sem
+  rota nova e sem alteracao do legado.
+
+Contagem da macrofase Fase 98: 1 subfase restante estimada.
+
+Proxima fase pratica sugerida:
+
+- fechar formalmente esta familia de `professor` como preparada com schema e
+  adapter local; ou
+- se houver consumidor interno imediato, conectar esse resumo local ao primeiro
+  fluxo controlado dentro do proprio `people-service`, ainda sem rota externa.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

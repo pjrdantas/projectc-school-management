@@ -293,6 +293,32 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                     ) VALUES (?, ?, ?, ?, ?, ?, ?)
                     """);
 
+    private static final ProfessorResumoTable PROFESSOR_RESUMO_TABLE = new ProfessorResumoTable(
+            """
+                    SELECT pr.id_professor, pr.id_pessoa, f.id_funcionario, p.id_escola, p.nome_completo,
+                           pr.ativo, pr.created_at
+                    FROM professor pr
+                    JOIN pessoa p ON p.id_pessoa = pr.id_pessoa
+                    LEFT JOIN funcionario f ON f.id_pessoa = pr.id_pessoa
+                    ORDER BY pr.id_professor
+                    LIMIT ?
+                    """,
+            """
+                    SELECT id_professor, id_pessoa, id_funcionario, id_escola, nome_completo, ativo, created_at
+                    FROM people_professor_read_model
+                    ORDER BY id_professor
+                    """,
+            """
+                    UPDATE people_professor_read_model
+                    SET id_pessoa = ?, id_funcionario = ?, id_escola = ?, nome_completo = ?, ativo = ?, created_at = ?
+                    WHERE id_professor = ?
+                    """,
+            """
+                    INSERT INTO people_professor_read_model (
+                        id_professor, id_pessoa, id_funcionario, id_escola, nome_completo, ativo, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """);
+
     private final PeopleReadModelSourceProperties backfillProperties;
     private final PeopleReadModelMigrationProperties targetProperties;
 
@@ -333,6 +359,12 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
             reports.add(synchronizePessoaEndereco(source, target, backfillEnabled, reconciliationEnabled, batchSize));
             reports.add(synchronizeDocumentoMetadata(source, target, backfillEnabled, reconciliationEnabled, batchSize));
             reports.add(synchronizeFuncionarioResumo(
+                    source,
+                    target,
+                    backfillEnabled,
+                    reconciliationEnabled,
+                    batchSize));
+            reports.add(synchronizeProfessorResumo(
                     source,
                     target,
                     backfillEnabled,
@@ -796,6 +828,51 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                 divergences);
     }
 
+    private TableOperationReport synchronizeProfessorResumo(
+            Connection source,
+            Connection target,
+            boolean backfillEnabled,
+            boolean reconciliationEnabled,
+            int batchSize) throws SQLException {
+        List<ProfessorResumoRow> sourceRows = readProfessorResumoRows(
+                source,
+                PROFESSOR_RESUMO_TABLE.sourceLimitedQuery(),
+                batchSize);
+        int backfilledRecords = 0;
+
+        if (backfillEnabled) {
+            for (ProfessorResumoRow row : sourceRows) {
+                backfilledRecords += upsertProfessorResumo(target, row);
+            }
+        }
+
+        List<ProfessorResumoRow> targetRows = reconciliationEnabled
+                ? readProfessorResumoRows(target, PROFESSOR_RESUMO_TABLE.targetQuery(), Integer.MAX_VALUE)
+                : List.of();
+        int divergences = reconciliationEnabled
+                ? countProfessorResumoDivergences(sourceRows, targetRows)
+                : 0;
+        String status = divergences == 0 ? "success" : "diverged";
+        String reason = divergences == 0
+                ? "professor-summary-sync-completed"
+                : "professor-summary-reconciliation-diverged";
+
+        return new TableOperationReport(
+                "people_professor_read_model",
+                "id_professor",
+                "monolith_jdbc",
+                "people_professor_read_model",
+                status,
+                reason,
+                backfillEnabled,
+                reconciliationEnabled,
+                true,
+                sourceRows.size(),
+                reconciliationEnabled ? targetRows.size() : 0,
+                backfilledRecords,
+                divergences);
+    }
+
     private List<CatalogRow> readRows(Connection connection, String query, boolean hasCreatedAt, int limit) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             if (query.contains("LIMIT ?")) {
@@ -1049,6 +1126,32 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         }
     }
 
+    private List<ProfessorResumoRow> readProfessorResumoRows(
+            Connection connection,
+            String query,
+            int limit) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            if (query.contains("LIMIT ?")) {
+                statement.setInt(1, Math.max(1, limit));
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<ProfessorResumoRow> rows = new ArrayList<>();
+                while (resultSet.next()) {
+                    Timestamp createdAt = resultSet.getTimestamp("created_at");
+                    rows.add(new ProfessorResumoRow(
+                            resultSet.getObject("id_professor", UUID.class),
+                            resultSet.getObject("id_pessoa", UUID.class),
+                            resultSet.getObject("id_funcionario", UUID.class),
+                            resultSet.getObject("id_escola", UUID.class),
+                            resultSet.getString("nome_completo"),
+                            resultSet.getBoolean("ativo"),
+                            createdAt == null ? null : createdAt.toInstant()));
+                }
+                return rows;
+            }
+        }
+    }
+
     private int upsert(Connection target, CatalogTable table, CatalogRow row) throws SQLException {
         try (PreparedStatement update = target.prepareStatement(table.updateSql())) {
             bindUpdate(update, table, row);
@@ -1218,6 +1321,34 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
 
         try (PreparedStatement insert = target.prepareStatement(FUNCIONARIO_INTERNAL_SUMMARY_TABLE.insertSql())) {
             bindFuncionarioResumoInsert(insert, row);
+            return insert.executeUpdate();
+        }
+    }
+
+    private int upsertProfessorResumo(Connection target, ProfessorResumoRow row)
+            throws SQLException {
+        try (PreparedStatement update = target.prepareStatement(PROFESSOR_RESUMO_TABLE.updateSql())) {
+            update.setObject(1, row.pessoaId());
+            update.setObject(2, row.funcionarioId());
+            update.setObject(3, row.escolaId());
+            update.setString(4, row.nomeCompleto());
+            update.setBoolean(5, row.ativo());
+            update.setTimestamp(6, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+            update.setObject(7, row.id());
+            int updated = update.executeUpdate();
+            if (updated > 0) {
+                return updated;
+            }
+        }
+
+        try (PreparedStatement insert = target.prepareStatement(PROFESSOR_RESUMO_TABLE.insertSql())) {
+            insert.setObject(1, row.id());
+            insert.setObject(2, row.pessoaId());
+            insert.setObject(3, row.funcionarioId());
+            insert.setObject(4, row.escolaId());
+            insert.setString(5, row.nomeCompleto());
+            insert.setBoolean(6, row.ativo());
+            insert.setTimestamp(7, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
             return insert.executeUpdate();
         }
     }
@@ -1611,6 +1742,27 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         return divergences;
     }
 
+    private int countProfessorResumoDivergences(
+            List<ProfessorResumoRow> sourceRows,
+            List<ProfessorResumoRow> targetRows) {
+        Map<UUID, ProfessorResumoRow> sourceById = byProfessorResumoId(sourceRows);
+        Map<UUID, ProfessorResumoRow> targetById = byProfessorResumoId(targetRows);
+        int divergences = 0;
+
+        for (Map.Entry<UUID, ProfessorResumoRow> entry : sourceById.entrySet()) {
+            ProfessorResumoRow target = targetById.get(entry.getKey());
+            if (target == null || !entry.getValue().matches(target)) {
+                divergences++;
+            }
+        }
+        for (UUID targetId : targetById.keySet()) {
+            if (!sourceById.containsKey(targetId)) {
+                divergences++;
+            }
+        }
+        return divergences;
+    }
+
     private Map<String, CatalogRow> byCode(List<CatalogRow> rows) {
         Map<String, CatalogRow> byCode = new LinkedHashMap<>();
         for (CatalogRow row : rows) {
@@ -1687,6 +1839,15 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
             List<FuncionarioResumoRow> rows) {
         Map<UUID, FuncionarioResumoRow> byId = new LinkedHashMap<>();
         for (FuncionarioResumoRow row : rows) {
+            byId.put(row.id(), row);
+        }
+        return byId;
+    }
+
+    private Map<UUID, ProfessorResumoRow> byProfessorResumoId(
+            List<ProfessorResumoRow> rows) {
+        Map<UUID, ProfessorResumoRow> byId = new LinkedHashMap<>();
+        for (ProfessorResumoRow row : rows) {
             byId.put(row.id(), row);
         }
         return byId;
@@ -1775,6 +1936,12 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                 "people_funcionario_read_model",
                 "id_funcionario",
                 "people_funcionario_read_model",
+                backfillEnabled,
+                reconciliationEnabled));
+        reports.add(blockedReport(
+                "people_professor_read_model",
+                "id_professor",
+                "people_professor_read_model",
                 backfillEnabled,
                 reconciliationEnabled));
         return reports;
@@ -1909,6 +2076,13 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
     }
 
     private record FuncionarioResumoTable(
+            String sourceLimitedQuery,
+            String targetQuery,
+            String updateSql,
+            String insertSql) {
+    }
+
+    private record ProfessorResumoTable(
             String sourceLimitedQuery,
             String targetQuery,
             String updateSql,
@@ -2106,6 +2280,29 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                     && Objects.equals(escolaId, other.escolaId)
                     && Objects.equals(normalize(nomeCompleto), normalize(other.nomeCompleto))
                     && Objects.equals(normalize(cargoDescricao), normalize(other.cargoDescricao))
+                    && ativo == other.ativo;
+        }
+
+        private static String normalize(String value) {
+            return value == null ? null : value.trim();
+        }
+    }
+
+    private record ProfessorResumoRow(
+            UUID id,
+            UUID pessoaId,
+            UUID funcionarioId,
+            UUID escolaId,
+            String nomeCompleto,
+            boolean ativo,
+            Instant createdAt) {
+
+        boolean matches(ProfessorResumoRow other) {
+            return Objects.equals(id, other.id)
+                    && Objects.equals(pessoaId, other.pessoaId)
+                    && Objects.equals(funcionarioId, other.funcionarioId)
+                    && Objects.equals(escolaId, other.escolaId)
+                    && Objects.equals(normalize(nomeCompleto), normalize(other.nomeCompleto))
                     && ativo == other.ativo;
         }
 

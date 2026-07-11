@@ -2001,6 +2001,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `listarParentescos()`. A entrega permaneceu estritamente backend-only, sem
   rota externa, sem BFF e sem alteracao no `school-management-service`. A
   contagem regressiva da Fase 97 passa a 1 subfase restante estimada.
+- A primeira subfase da Fase 98 retomou a familia de `professor` pelo primeiro
+  recorte concreto ainda faltante no `people-service`. A migration opt-in
+  `V8__create_people_professor_read_model.sql` adicionou a tabela local
+  `people_professor_read_model`; o ciclo JDBC de sync foi estendido para
+  reconciliar esse resumo por `id_professor` a partir de `professor`, `pessoa`
+  e `funcionario`; e o adapter `JdbcPessoaProfessorResumoAdapter` passou a
+  implementar `PessoaProfessorResumoPort` no schema local. Migration state,
+  sync coordinator, health e testes foram atualizados sem criar rota externa,
+  sem BFF e sem alteracao no `school-management-service`. A contagem
+  regressiva da Fase 98 passa a 1 subfase restante estimada.
 
 ## Historico resumido
 

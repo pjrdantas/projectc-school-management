@@ -27,7 +27,8 @@ public class PeopleReadModelSyncCoordinator {
             new TableDescriptor("endereco", "id_endereco"),
             new TableDescriptor("pessoa_endereco", "id_pessoa_endereco"),
             new TableDescriptor("people_documento_read_model", "id_pessoa_documento"),
-            new TableDescriptor("people_funcionario_read_model", "id_funcionario"));
+            new TableDescriptor("people_funcionario_read_model", "id_funcionario"),
+            new TableDescriptor("people_professor_read_model", "id_professor"));
 
     private final PeopleReadModelProperties properties;
     private final MeterRegistry meterRegistry;

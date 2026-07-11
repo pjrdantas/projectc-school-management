@@ -102,7 +102,8 @@ class PeopleReadModelMigrationRunnerTest {
                         "aluno_responsavel",
                         "endereco",
                         "pessoa_endereco",
-                        "people_funcionario_read_model");
+                        "people_funcionario_read_model",
+                        "people_professor_read_model");
         assertThat(meterRegistry.counter(
                 "people.readmodel.migrations",
                 "status", "success").count()).isEqualTo(1.0d);
@@ -153,6 +154,10 @@ class PeopleReadModelMigrationRunnerTest {
         }
         try (var connection = DriverManager.getConnection(url, "sa", "");
                 var resultSet = connection.getMetaData().getTables(null, null, "people_funcionario_read_model", null)) {
+            assertThat(resultSet.next()).isTrue();
+        }
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+                var resultSet = connection.getMetaData().getTables(null, null, "people_professor_read_model", null)) {
             assertThat(resultSet.next()).isTrue();
         }
     }

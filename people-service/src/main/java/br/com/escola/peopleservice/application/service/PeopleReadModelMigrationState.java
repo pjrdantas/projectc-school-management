@@ -30,7 +30,8 @@ public class PeopleReadModelMigrationState {
                             "aluno_responsavel",
                             "endereco",
                             "pessoa_endereco",
-                            "people_funcionario_read_model"),
+                            "people_funcionario_read_model",
+                            "people_professor_read_model"),
                     0));
 
     public PeopleReadModelMigrationSummary currentReport() {

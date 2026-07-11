@@ -24,7 +24,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         var reports = adapter.synchronize(true, true, 100);
 
         assertThat(reports)
-                .hasSize(13)
+                .hasSize(14)
                 .allSatisfy(report -> {
                     assertThat(report.status()).isEqualTo("blocked");
                     assertThat(report.reason()).isEqualTo("local-read-model-source-url-required");
@@ -48,7 +48,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         var reports = adapter.synchronize(true, true, 100);
 
         assertThat(reports)
-                .hasSize(13)
+                .hasSize(14)
                 .allSatisfy(report -> {
                     assertThat(report.status()).isEqualTo("success");
                     assertThat(report.divergences()).isZero();
@@ -69,9 +69,10 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         "endereco",
                         "pessoa_endereco",
                         "people_documento_read_model",
-                        "people_funcionario_read_model");
-        assertThat(reports.stream().mapToInt(report -> report.sourceRows()).sum()).isEqualTo(24);
-        assertThat(reports.stream().mapToInt(report -> report.targetRows()).sum()).isEqualTo(24);
+                        "people_funcionario_read_model",
+                        "people_professor_read_model");
+        assertThat(reports.stream().mapToInt(report -> report.sourceRows()).sum()).isEqualTo(25);
+        assertThat(reports.stream().mapToInt(report -> report.targetRows()).sum()).isEqualTo(25);
 
         assertThat(contar(targetUrl, "tipo_pessoa")).isEqualTo(3);
         assertThat(contar(targetUrl, "tipo_endereco")).isEqualTo(2);
@@ -86,6 +87,7 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
         assertThat(contar(targetUrl, "pessoa_endereco")).isEqualTo(2);
         assertThat(contar(targetUrl, "people_documento_read_model")).isEqualTo(2);
         assertThat(contar(targetUrl, "people_funcionario_read_model")).isEqualTo(1);
+        assertThat(contar(targetUrl, "people_professor_read_model")).isEqualTo(1);
     }
 
     @Test
@@ -307,6 +309,25 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         id_escola UUID NOT NULL,
                         nome_completo VARCHAR(200) NOT NULL,
                         cargo_descricao VARCHAR(120),
+                        ativo BOOLEAN NOT NULL,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE professor (
+                        id_professor UUID NOT NULL PRIMARY KEY,
+                        id_pessoa UUID NOT NULL,
+                        ativo BOOLEAN NOT NULL,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE people_professor_read_model (
+                        id_professor UUID NOT NULL PRIMARY KEY,
+                        id_pessoa UUID NOT NULL,
+                        id_funcionario UUID,
+                        id_escola UUID NOT NULL,
+                        nome_completo VARCHAR(200) NOT NULL,
                         ativo BOOLEAN NOT NULL,
                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                     )
@@ -552,6 +573,16 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         'f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1',
                         'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
                         '45454545-4545-4545-4545-454545454545',
+                        TRUE,
+                        CURRENT_TIMESTAMP
+                    )
+                    """);
+            statement.execute("""
+                    INSERT INTO professor (
+                        id_professor, id_pessoa, ativo, created_at
+                    ) VALUES (
+                        'abab1234-abab-1234-abab-1234abab1234',
+                        'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
                         TRUE,
                         CURRENT_TIMESTAMP
                     )

@@ -30,7 +30,8 @@ public class PeopleReadModelMigrationRunner implements ApplicationRunner {
             "aluno_responsavel",
             "endereco",
             "pessoa_endereco",
-            "people_funcionario_read_model");
+            "people_funcionario_read_model",
+            "people_professor_read_model");
 
     private final PeopleReadModelProperties readModelProperties;
     private final PeopleReadModelMigrationProperties migrationProperties;
