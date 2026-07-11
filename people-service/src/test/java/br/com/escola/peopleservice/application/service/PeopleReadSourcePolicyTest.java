@@ -176,6 +176,36 @@ class PeopleReadSourcePolicyTest {
     }
 
     @Test
+    void deveLiberarOperacaoResponsavelQuandoRelatorioLocalEstaVerde() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        PeopleReadSourcePolicy guard = new PeopleReadSourcePolicy(
+                new PeopleReadModelProperties(true, false, true, false, true, true, 500, true),
+                meterRegistry,
+                greenState());
+
+        var decision = guard.registrarDecisaoLeituraResponsavelVinculo();
+
+        assertThat(decision.operation()).isEqualTo("responsavelVinculo");
+        assertThat(decision.route()).isEqualTo("internal-operation:ResponsavelPessoaPort");
+        assertThat(decision.candidateSource()).isEqualTo("responsavel");
+        assertThat(decision.selectedSource()).isEqualTo("people_read_model_student_responsible");
+        assertThat(decision.localReadRequested()).isTrue();
+        assertThat(decision.localReadEligible()).isTrue();
+        assertThat(decision.fallbackEnabled()).isTrue();
+        assertThat(decision.writesEnabled()).isFalse();
+        assertThat(decision.reason()).isEqualTo("local-responsible-link-read-eligible");
+        assertThat(meterRegistry.counter(
+                "people.read.routing.decisions",
+                "operation", "responsavelVinculo",
+                "selected_source", "people_read_model_student_responsible",
+                "reason", "local-responsible-link-read-eligible").count()).isEqualTo(1.0d);
+        assertThat(meterRegistry.counter(
+                "people.responsible.read.routing.decisions",
+                "selected_source", "people_read_model_student_responsible",
+                "reason", "local-responsible-link-read-eligible").count()).isEqualTo(1.0d);
+    }
+
+    @Test
     void deveLiberarOperacaoFuncionarioQuandoRelatorioLocalEstaVerde() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         PeopleReadSourcePolicy guard = new PeopleReadSourcePolicy(

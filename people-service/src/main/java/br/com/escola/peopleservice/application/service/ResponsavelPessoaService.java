@@ -14,16 +14,24 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class ResponsavelPessoaService {
 
     private final ObjectProvider<ResponsavelPessoaPort> responsavelPortProvider;
+    private final PeopleReadSourcePolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
     public ResponsavelPessoaService(
             ObjectProvider<ResponsavelPessoaPort> responsavelPortProvider,
+            PeopleReadSourcePolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
         this.responsavelPortProvider = responsavelPortProvider;
+        this.readRoutingPolicy = readRoutingPolicy;
         this.meterRegistry = meterRegistry;
     }
 
     public Optional<PessoaResponsavelVinculoResponse> buscarVinculoPorResponsavelId(UUID responsavelId, UUID escolaId) {
+        var decision = readRoutingPolicy.registrarDecisaoLeituraResponsavelVinculo();
+        if (!decision.localReadEligible()) {
+            registrarLookup("buscarVinculoPorResponsavelId", "guard_blocked");
+            return Optional.empty();
+        }
         ResponsavelPessoaPort port = responsavelPortProvider.getIfAvailable();
         if (port == null) {
             registrarLookup("buscarVinculoPorResponsavelId", "adapter_missing");

@@ -15,10 +15,11 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 class ResponsavelPessoaServiceTest {
 
     @Test
-    void retornaVazioQuandoAdapterNaoExiste() {
+    void retornaVazioQuandoGuardBloqueiaLeituraLocal() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         ResponsavelPessoaService service = new ResponsavelPessoaService(
                 provider(null),
+                readRoutingPolicy(false, meterRegistry),
                 meterRegistry);
 
         var response = service.buscarVinculoPorResponsavelId(UUID.randomUUID(), UUID.randomUUID());
@@ -27,7 +28,7 @@ class ResponsavelPessoaServiceTest {
         assertThat(meterRegistry.counter(
                 "people.responsible.lookup",
                 "operation", "buscarVinculoPorResponsavelId",
-                "result", "adapter_missing").count()).isEqualTo(1.0d);
+                "result", "guard_blocked").count()).isEqualTo(1.0d);
     }
 
     @Test
@@ -39,6 +40,7 @@ class ResponsavelPessoaServiceTest {
                 UUID.randomUUID());
         ResponsavelPessoaService service = new ResponsavelPessoaService(
                 provider(new CountingPort(vinculo)),
+                readRoutingPolicy(true, meterRegistry),
                 meterRegistry);
 
         var response = service.buscarVinculoPorResponsavelId(vinculo.responsavelId(), vinculo.escolaId());
@@ -55,6 +57,7 @@ class ResponsavelPessoaServiceTest {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         ResponsavelPessoaService service = new ResponsavelPessoaService(
                 provider(new FailingPort()),
+                readRoutingPolicy(true, meterRegistry),
                 meterRegistry);
 
         var response = service.buscarVinculoPorResponsavelId(UUID.randomUUID(), UUID.randomUUID());
@@ -64,6 +67,58 @@ class ResponsavelPessoaServiceTest {
                 "people.responsible.lookup",
                 "operation", "buscarVinculoPorResponsavelId",
                 "result", "error").count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void retornaVazioQuandoAdapterNaoExisteMesmoComGuardLiberado() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        ResponsavelPessoaService service = new ResponsavelPessoaService(
+                provider(null),
+                readRoutingPolicy(true, meterRegistry),
+                meterRegistry);
+
+        var response = service.buscarVinculoPorResponsavelId(UUID.randomUUID(), UUID.randomUUID());
+
+        assertThat(response).isEmpty();
+        assertThat(meterRegistry.counter(
+                "people.responsible.lookup",
+                "operation", "buscarVinculoPorResponsavelId",
+                "result", "adapter_missing").count()).isEqualTo(1.0d);
+    }
+
+    private PeopleReadSourcePolicy readRoutingPolicy(boolean localReadEligible, SimpleMeterRegistry meterRegistry) {
+        return new PeopleReadSourcePolicy(
+                new br.com.escola.peopleservice.infra.config.PeopleReadModelProperties(
+                        localReadEligible,
+                        false,
+                        localReadEligible,
+                        false,
+                        localReadEligible,
+                        localReadEligible,
+                        500,
+                        true),
+                meterRegistry,
+                localReadEligible ? greenState() : new PeopleReadModelSyncState());
+    }
+
+    private PeopleReadModelSyncState greenState() {
+        PeopleReadModelSyncState state = new PeopleReadModelSyncState();
+        state.update(new br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary(
+                true,
+                true,
+                "completed",
+                "local-read-model-backfill-and-reconciliation-completed",
+                500,
+                8,
+                8,
+                25,
+                25,
+                25,
+                0,
+                false,
+                false,
+                java.util.List.of()));
+        return state;
     }
 
     private ObjectProvider<ResponsavelPessoaPort> provider(ResponsavelPessoaPort port) {

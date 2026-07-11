@@ -4847,6 +4847,37 @@ Proxima fase pratica sugerida:
   sempre preservando o criterio de primeiro contrato interno, depois adapter
   local e so entao consumidor interno.
 
+### Fase 99 - Elegibilidade interna do vinculo base de `responsavel`
+
+Objetivo: fechar o menor recorte remanescente de leitura interna local ja
+preparada no `people-service`, conectando o lookup de vinculo base de
+`responsavel` ao mesmo guard operacional das demais leituras locais, sem criar
+schema novo, sem rota externa e sem tocar no `school-management-service`.
+
+Entregue na primeira subfase da Fase 99:
+
+- `ResponsavelPessoaService` passou a consultar `PeopleReadSourcePolicy` antes
+  de acessar `ResponsavelPessoaPort`, bloqueando a leitura local quando a base
+  local nao estiver elegivel e preservando fallback quando necessario;
+- `PeopleReadSourcePolicy` passou a reconhecer explicitamente a operacao
+  `responsavelVinculo`, tratando esse lookup como leitura local do bloco
+  `people_read_model_student_responsible` apenas quando o estado de
+  backfill/reconciliacao estiver verde;
+- health e testes do modulo foram estendidos para expor a decisao interna de
+  `responsavel`, suas metricas de roteamento e o comportamento do service sob
+  bloqueio, adapter ausente e caminho liberado.
+
+Contagem da macrofase Fase 99: 0 subfases restantes estimadas. O bloco do
+vinculo base de `responsavel` fica fechado com guard interno, observabilidade e
+consumo alinhado ao padrao atual do `people-service`.
+
+Proxima fase pratica sugerida:
+
+- iniciar o proximo recorte minimo ainda sem guard interno simetrico, como o
+  vinculo base de `aluno`, ou escolher outro agregado remanescente do
+  `people-service` que ja tenha adapter local preparado e ainda nao esteja
+  conectado ao mesmo criterio de elegibilidade.
+
 ### Fase futura - Desativacao do monolito
 
 Somente quando todas as rotas tiverem proprietario, reconciliacao, observabilidade

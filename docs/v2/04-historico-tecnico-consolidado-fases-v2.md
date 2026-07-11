@@ -2020,6 +2020,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   a leitura local nao estiver elegivel; e os testes foram estendidos para
   cobrir guard, liberacao e metricas. A contagem regressiva da Fase 98 chega a
   0.
+- A primeira subfase da Fase 99 fechou o menor recorte remanescente de leitura
+  interna local de `responsavel` no `people-service`. `ResponsavelPessoaService`
+  passou a consultar `PeopleReadSourcePolicy` antes de acessar
+  `ResponsavelPessoaPort`; a policy passou a reconhecer a operacao
+  `responsavelVinculo`, liberando o bloco
+  `people_read_model_student_responsible` apenas com backfill/reconciliacao
+  verdes; e health/testes foram estendidos para cobrir bloqueio, adapter
+  ausente, caminho liberado e metricas internas. A contagem regressiva da Fase
+  99 chega a 0.
 
 ## Historico resumido
 
