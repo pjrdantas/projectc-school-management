@@ -174,14 +174,14 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
                 .containsEntry("writeCommand", "PessoaEnderecoWriteCommand")
                 .containsEntry("cleanupCommand", "PessoaEnderecoCleanupCommand")
                 .containsEntry("result", "PessoaEnderecoWriteResult")
-                .containsEntry("shadowService", "PeopleAddressWriteShadowService")
+                .containsEntry("shadowService", "PeopleAddressWriteFallbackService")
                 .containsEntry("adapterCreated", true)
                 .containsEntry("localPersistenceConnected", false);
         @SuppressWarnings("unchecked")
         java.util.Map<String, Object> shadowCommandExecution =
                 (java.util.Map<String, Object>) addressWriteAuthority.get("shadowCommandExecution");
         assertThat(shadowCommandExecution)
-                .containsEntry("service", "PeopleAddressWriteShadowService")
+                .containsEntry("service", "PeopleAddressWriteFallbackService")
                 .containsEntry("selectedSource", "monolith_proxy")
                 .containsEntry("persistedLocally", false)
                 .containsEntry("fallbackRequired", true)
@@ -216,7 +216,7 @@ class PeopleLocalPersistenceHealthEndpointIntegrationTest {
         java.util.Map<String, Object> currentPeopleServiceState =
                 (java.util.Map<String, Object>) addressWriteMonolithAdapter.get("currentPeopleServiceState");
         assertThat(currentPeopleServiceState)
-                .containsEntry("shadowService", "PeopleAddressWriteShadowService")
+                .containsEntry("shadowService", "PeopleAddressWriteFallbackService")
                 .containsEntry("monolithWriteClientCreated", true)
                 .containsEntry("monolithWriteClient", "MonolithPessoaAddressWriteClient")
                 .containsEntry("monolithWriteClientEnabledByDefault", false)

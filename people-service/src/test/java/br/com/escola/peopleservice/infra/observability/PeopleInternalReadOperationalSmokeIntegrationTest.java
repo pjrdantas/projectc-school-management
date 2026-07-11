@@ -28,7 +28,7 @@ import okhttp3.mockwebserver.MockWebServer;
                 "management.endpoint.health.show-details=always",
                 "people.shadow.internal-api.token=shadow-token"
         })
-class PeopleShadowOperationalSmokeIntegrationTest {
+class PeopleInternalReadOperationalSmokeIntegrationTest {
 
     private static MockWebServer mockWebServer;
 

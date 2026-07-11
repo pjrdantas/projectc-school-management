@@ -12,7 +12,7 @@ import br.com.escola.peopleservice.infra.config.MonolithPeopleClientProperties;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
-class PeopleShadowMonolithHealthIndicatorTest {
+class PeopleMonolithReadHealthIndicatorTest {
 
     @Test
     void deveReportarUpComDiagnosticoDetalhadoPorRota() {
@@ -47,7 +47,7 @@ class PeopleShadowMonolithHealthIndicatorTest {
                 .register(meterRegistry)
                 .increment();
 
-        PeopleShadowMonolithHealthIndicator indicator = new PeopleShadowMonolithHealthIndicator(
+        PeopleMonolithReadHealthIndicator indicator = new PeopleMonolithReadHealthIndicator(
                 new MonolithPeopleClientProperties(
                         java.net.URI.create("http://localhost:8080"),
                         Duration.ofSeconds(2),
@@ -94,7 +94,7 @@ class PeopleShadowMonolithHealthIndicatorTest {
 
     @Test
     void deveReportarOutOfServiceQuandoBaseUrlForInvalida() {
-        PeopleShadowMonolithHealthIndicator indicator = new PeopleShadowMonolithHealthIndicator(
+        PeopleMonolithReadHealthIndicator indicator = new PeopleMonolithReadHealthIndicator(
                 new MonolithPeopleClientProperties(
                         java.net.URI.create("http:///"),
                         Duration.ofSeconds(2),

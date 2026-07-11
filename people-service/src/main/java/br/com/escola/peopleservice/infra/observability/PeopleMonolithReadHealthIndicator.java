@@ -16,7 +16,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Statistic;
 
 @Component("peopleShadowMonolith")
-public class PeopleShadowMonolithHealthIndicator implements HealthIndicator {
+public class PeopleMonolithReadHealthIndicator implements HealthIndicator {
 
     private static final List<RouteMetricDescriptor> SHADOW_ROUTES = List.of(
             new RouteMetricDescriptor(
@@ -36,7 +36,7 @@ public class PeopleShadowMonolithHealthIndicator implements HealthIndicator {
     private final MonolithPeopleClientProperties properties;
     private final MeterRegistry meterRegistry;
 
-    public PeopleShadowMonolithHealthIndicator(
+    public PeopleMonolithReadHealthIndicator(
             MonolithPeopleClientProperties properties,
             MeterRegistry meterRegistry) {
         this.properties = properties;

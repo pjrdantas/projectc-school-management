@@ -73,7 +73,7 @@ public class PeopleAddressWriteAuthorityPlanner {
                         "PessoaEnderecoWriteCommand carries idempotency key for write attempts",
                         "PessoaEnderecoCleanupCommand carries orphan cleanup intent",
                         "PessoaEnderecoWriteResult exposes selected source, local persistence flag and fallback requirement",
-                        "PeopleAddressWriteShadowService records shadow decisions without writing local tables",
+                        "PeopleAddressWriteFallbackService records fallback decisions without writing local tables",
                         "monolith fallback contract before any write routing",
                         "reconciliation report for writes before and after activation"),
                 List.of(

@@ -11,12 +11,12 @@ import br.com.escola.peopleservice.application.dto.PessoaEnderecoCleanupCommand;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoWriteCommand;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
-class PeopleAddressWriteShadowServiceTest {
+class PeopleAddressWriteFallbackServiceTest {
 
     @Test
     void recebeComandoDeEscritaSemPersistirLocalmente() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
-        PeopleAddressWriteShadowService service = new PeopleAddressWriteShadowService(meterRegistry);
+        PeopleAddressWriteFallbackService service = new PeopleAddressWriteFallbackService(meterRegistry);
         UUID commandId = UUID.randomUUID();
         UUID pessoaId = UUID.randomUUID();
 
@@ -57,7 +57,7 @@ class PeopleAddressWriteShadowServiceTest {
     @Test
     void recebeComandoDeCleanupSemRemoverEnderecoLocalmente() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
-        PeopleAddressWriteShadowService service = new PeopleAddressWriteShadowService(meterRegistry);
+        PeopleAddressWriteFallbackService service = new PeopleAddressWriteFallbackService(meterRegistry);
         UUID commandId = UUID.randomUUID();
         UUID pessoaId = UUID.randomUUID();
 
@@ -91,7 +91,7 @@ class PeopleAddressWriteShadowServiceTest {
     @Test
     void rejeitaComandoSemIdempotencia() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
-        PeopleAddressWriteShadowService service = new PeopleAddressWriteShadowService(meterRegistry);
+        PeopleAddressWriteFallbackService service = new PeopleAddressWriteFallbackService(meterRegistry);
 
         assertThatThrownBy(() -> service.removerEnderecosDaPessoa(new PessoaEnderecoCleanupCommand(
                 UUID.randomUUID(),

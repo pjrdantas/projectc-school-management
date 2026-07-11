@@ -58,7 +58,7 @@ public class PeopleAddressWriteMonolithAdapterPlanner {
                         "people-service-local-read-model-is-not-write-authority",
                         "viacep-is-input-enrichment-not-write-authority"),
                 List.of(
-                        "keep-PeopleAddressWriteShadowService-returning-monolith_proxy",
+                        "keep-PeopleAddressWriteFallbackService-returning-monolith_proxy",
                         "do-not-create-people-service-write-route",
                         "do-not-write-to-local-address-tables",
                         "disable-people.shadow.monolith.address-write-adapter-enabled",

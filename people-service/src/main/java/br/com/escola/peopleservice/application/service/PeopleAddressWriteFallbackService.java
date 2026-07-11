@@ -11,7 +11,7 @@ import br.com.escola.peopleservice.application.port.out.PeopleAddressWritePort;
 import io.micrometer.core.instrument.MeterRegistry;
 
 @Service
-public class PeopleAddressWriteShadowService implements PeopleAddressWritePort {
+public class PeopleAddressWriteFallbackService implements PeopleAddressWritePort {
 
     private static final String METRIC_NAME = "people.shadow.local.persistence.address.write.shadow.commands";
     private static final String SELECTED_SOURCE = "monolith_proxy";
@@ -19,7 +19,7 @@ public class PeopleAddressWriteShadowService implements PeopleAddressWritePort {
 
     private final MeterRegistry meterRegistry;
 
-    public PeopleAddressWriteShadowService(MeterRegistry meterRegistry) {
+    public PeopleAddressWriteFallbackService(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
     }
 
@@ -66,7 +66,7 @@ public class PeopleAddressWriteShadowService implements PeopleAddressWritePort {
                 || idempotencyKey.isBlank()) {
             registrarComando("invalid", "rejected");
             throw new IllegalArgumentException(
-                    "commandId, pessoaId, escolaId and idempotencyKey are required for address write shadow commands");
+                    "commandId, pessoaId, escolaId and idempotencyKey are required for address write commands");
         }
     }
 

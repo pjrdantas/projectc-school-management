@@ -408,7 +408,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 .containsEntry("writeCommand", "PessoaEnderecoWriteCommand")
                 .containsEntry("cleanupCommand", "PessoaEnderecoCleanupCommand")
                 .containsEntry("result", "PessoaEnderecoWriteResult")
-                .containsEntry("shadowService", "PeopleAddressWriteShadowService")
+                .containsEntry("shadowService", "PeopleAddressWriteFallbackService")
                 .containsEntry("adapterCreated", true)
                 .containsEntry("routeCreated", false)
                 .containsEntry("localPersistenceConnected", false);
@@ -416,7 +416,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         java.util.Map<String, Object> shadowCommandExecution =
                 (java.util.Map<String, Object>) addressWriteAuthority.get("shadowCommandExecution");
         assertThat(shadowCommandExecution)
-                .containsEntry("service", "PeopleAddressWriteShadowService")
+                .containsEntry("service", "PeopleAddressWriteFallbackService")
                 .containsEntry("metric", "people.shadow.local.persistence.address.write.shadow.commands")
                 .containsEntry("selectedSource", "monolith_proxy")
                 .containsEntry("persistedLocally", false)
@@ -442,7 +442,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
                 "PessoaEnderecoWriteCommand carries idempotency key for write attempts",
                 "PessoaEnderecoCleanupCommand carries orphan cleanup intent",
                 "PessoaEnderecoWriteResult exposes selected source, local persistence flag and fallback requirement",
-                "PeopleAddressWriteShadowService records shadow decisions without writing local tables");
+                "PeopleAddressWriteFallbackService records fallback decisions without writing local tables");
         @SuppressWarnings("unchecked")
         java.util.List<String> writeOutOfScope =
                 (java.util.List<String>) addressWriteAuthority.get("explicitlyOutOfScope");
@@ -481,7 +481,7 @@ class PeopleLocalPersistenceHealthIndicatorTest {
         java.util.Map<String, Object> currentPeopleServiceState =
                 (java.util.Map<String, Object>) addressWriteMonolithAdapter.get("currentPeopleServiceState");
         assertThat(currentPeopleServiceState)
-                .containsEntry("shadowService", "PeopleAddressWriteShadowService")
+                .containsEntry("shadowService", "PeopleAddressWriteFallbackService")
                 .containsEntry("writePort", "PeopleAddressWritePort")
                 .containsEntry("monolithWriteClientCreated", true)
                 .containsEntry("monolithWriteClient", "MonolithPessoaAddressWriteClient")
