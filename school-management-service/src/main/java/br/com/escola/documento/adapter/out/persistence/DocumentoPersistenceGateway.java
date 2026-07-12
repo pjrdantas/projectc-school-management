@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.escola.aluno.application.port.internal.AlunoMatriculaPort;
 import br.com.escola.documento.adapter.out.persistence.entity.DocumentoEntity;
 import br.com.escola.documento.adapter.out.persistence.repository.DocumentoJpaRepository;
 import br.com.escola.documento.application.dto.DocumentoInput;
@@ -16,31 +17,28 @@ import br.com.escola.documento.domain.EntidadeDocumentalTipo;
 import br.com.escola.documento.domain.TipoDocumento;
 import br.com.escola.documento.domain.exception.DocumentoInvalidoException;
 import br.com.escola.documento.domain.exception.DocumentoNaoEncontradoException;
-import br.com.escola.responsavel.adapter.out.persistence.entity.ResponsavelEntity;
-import br.com.escola.responsavel.adapter.out.persistence.repository.ResponsavelJpaRepository;
-import br.com.escola.aluno.adapter.out.persistence.entity.AlunoEntity;
-import br.com.escola.aluno.adapter.out.persistence.repository.AlunoJpaRepository;
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.responsavel.application.port.internal.ResponsavelDocumentoPort;
 
 @Component
 public class DocumentoPersistenceGateway implements DocumentoGateway {
 
     private final DocumentoJpaRepository documentoJpaRepository;
-    private final AlunoJpaRepository alunoJpaRepository;
-    private final ResponsavelJpaRepository responsavelJpaRepository;
+    private final AlunoMatriculaPort alunoMatriculaPort;
+    private final ResponsavelDocumentoPort responsavelDocumentoPort;
     private final JdbcTemplate jdbcTemplate;
     private final EscolaTenantService escolaTenantService;
 
     public DocumentoPersistenceGateway(
             DocumentoJpaRepository documentoJpaRepository,
-            AlunoJpaRepository alunoJpaRepository,
-            ResponsavelJpaRepository responsavelJpaRepository,
+            AlunoMatriculaPort alunoMatriculaPort,
+            ResponsavelDocumentoPort responsavelDocumentoPort,
             JdbcTemplate jdbcTemplate,
             EscolaTenantService escolaTenantService) {
         this.documentoJpaRepository = documentoJpaRepository;
-        this.alunoJpaRepository = alunoJpaRepository;
-        this.responsavelJpaRepository = responsavelJpaRepository;
+        this.alunoMatriculaPort = alunoMatriculaPort;
+        this.responsavelDocumentoPort = responsavelDocumentoPort;
         this.jdbcTemplate = jdbcTemplate;
         this.escolaTenantService = escolaTenantService;
     }
@@ -109,14 +107,14 @@ public class DocumentoPersistenceGateway implements DocumentoGateway {
 
     private UUID resolvePessoaId(EntidadeDocumentalTipo entidadeTipo, UUID entidadeId) {
         if (entidadeTipo == EntidadeDocumentalTipo.ALUNO) {
-            return alunoJpaRepository.findByIdAndPessoa_Escola_Id(entidadeId, escolaId())
-                    .map(AlunoEntity::getPessoa)
+            return alunoMatriculaPort.buscarAlunoPorIdEEscola(entidadeId, escolaId())
+                    .map(aluno -> aluno.getPessoa())
                     .map(pessoa -> pessoa.getId())
                     .orElseThrow(() -> new DocumentoInvalidoException("Aluno não encontrado: " + entidadeId));
         }
         if (entidadeTipo == EntidadeDocumentalTipo.RESPONSAVEL) {
-            return responsavelJpaRepository.findByIdAndPessoa_Escola_Id(entidadeId, escolaId())
-                    .map(ResponsavelEntity::getPessoa)
+            return responsavelDocumentoPort.buscarResponsavelPorIdEEscola(entidadeId, escolaId())
+                    .map(responsavel -> responsavel.getPessoa())
                     .map(pessoa -> pessoa.getId())
                     .orElseThrow(() -> new DocumentoInvalidoException("Responsável não encontrado: " + entidadeId));
         }

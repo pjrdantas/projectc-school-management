@@ -107,6 +107,13 @@ POST /api/auth/login
 
 A resposta retorna `accessToken` e `refreshToken`.
 
+Observacao operacional:
+
+- O frontend federado deve abrir o host em `http://localhost:4200` e, apos
+  login bem-sucedido, navegar para `/dashboard`. A rota antiga `/home` nao
+  existe no host atual; se algum manual orientar `/home`, essa instrucao esta
+  desatualizada e pode aparentar que o login nao saiu da tela inicial.
+
 ## Endpoints principais
 
 ### Autenticacao

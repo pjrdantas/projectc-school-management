@@ -35,7 +35,11 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
             new RouteMetricDescriptor(
                     "listarPorTurma",
                     "GET /api/turmas/{turmaId}/professores",
-                    "GET /internal/professores/turmas/{turmaId}"));
+                    "GET /internal/professores/turmas/{turmaId}"),
+            new RouteMetricDescriptor(
+                    "listarFuncionariosElegiveis",
+                    "GET /api/professores/funcionarios-elegiveis",
+                    "GET /internal/professores/funcionarios-elegiveis"));
 
     private final Environment environment;
     private final MeterRegistry meterRegistry;
@@ -52,11 +56,46 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
                 "professor.internal-client.fallback-local-on-error",
                 Boolean.class,
                 true);
+        boolean criarCutoverEnabled = environment.getProperty(
+                "professor.internal-client.criar-cutover-enabled",
+                Boolean.class,
+                false);
+        boolean vincularTurmaDisciplinaCutoverEnabled = environment.getProperty(
+                "professor.internal-client.vincular-turma-disciplina-cutover-enabled",
+                Boolean.class,
+                false);
+        boolean buscarPorIdCutoverEnabled = environment.getProperty(
+                "professor.internal-client.buscar-por-id-cutover-enabled",
+                Boolean.class,
+                false);
+        boolean listarCutoverEnabled = environment.getProperty(
+                "professor.internal-client.listar-cutover-enabled",
+                Boolean.class,
+                false);
+        boolean listarAlocacoesCutoverEnabled = environment.getProperty(
+                "professor.internal-client.listar-alocacoes-cutover-enabled",
+                Boolean.class,
+                false);
+        boolean listarPorTurmaCutoverEnabled = environment.getProperty(
+                "professor.internal-client.listar-por-turma-cutover-enabled",
+                Boolean.class,
+                false);
+        boolean listarFuncionariosElegiveisCutoverEnabled = environment.getProperty(
+                "professor.internal-client.listar-funcionarios-elegiveis-cutover-enabled",
+                Boolean.class,
+                false);
         String resolvedBaseUrl = baseUrlResolvida();
 
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("enabled", enabled);
         details.put("fallbackLocalOnError", fallbackLocalOnError);
+        details.put("criarCutoverEnabled", criarCutoverEnabled);
+        details.put("vincularTurmaDisciplinaCutoverEnabled", vincularTurmaDisciplinaCutoverEnabled);
+        details.put("buscarPorIdCutoverEnabled", buscarPorIdCutoverEnabled);
+        details.put("listarCutoverEnabled", listarCutoverEnabled);
+        details.put("listarAlocacoesCutoverEnabled", listarAlocacoesCutoverEnabled);
+        details.put("listarPorTurmaCutoverEnabled", listarPorTurmaCutoverEnabled);
+        details.put("listarFuncionariosElegiveisCutoverEnabled", listarFuncionariosElegiveisCutoverEnabled);
         details.put("internalEndpointPrefix", INTERNAL_ENDPOINT_PREFIX);
         details.put("requestsTotal", totalContador("professor.internal.client.requests"));
         details.put("fallbacksTotal", totalContador("professor.internal.client.fallbacks"));
@@ -113,14 +152,98 @@ public class ProfessorInternalClientHealthIndicator implements HealthIndicator {
             Map<String, Object> detalhe = new LinkedHashMap<>();
             detalhe.put("externalRoute", descriptor.externalRoute());
             detalhe.put("internalRoute", descriptor.internalRoute());
+            detalhe.put("fallbackStrategy", fallbackStrategy(descriptor.operation()));
             detalhe.put("internalSuccessTotal", totalRequests(descriptor.operation(), "internal", "success"));
             detalhe.put("internalErrorTotal", totalRequests(descriptor.operation(), "internal", "error"));
             detalhe.put("localFallbackTotal", totalRequests(descriptor.operation(), "local", "fallback"));
             detalhe.put("featureDisabledLocalTotal", totalRequests(descriptor.operation(), "local", "feature_disabled"));
             detalhe.put("fallbacksTotal", totalFallbacks(descriptor.operation()));
+            if ("criar".equals(descriptor.operation())) {
+                detalhe.put("cutoverEnabled", criarCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
+            } else if ("vincularTurmaDisciplina".equals(descriptor.operation())) {
+                detalhe.put("cutoverEnabled", vincularTurmaDisciplinaCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
+            } else if ("listar".equals(descriptor.operation())) {
+                detalhe.put("cutoverEnabled", listarCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
+            } else if ("listarAlocacoes".equals(descriptor.operation())) {
+                detalhe.put("cutoverEnabled", listarAlocacoesCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
+            } else if ("listarPorTurma".equals(descriptor.operation())) {
+                detalhe.put("cutoverEnabled", listarPorTurmaCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
+            } else if ("listarFuncionariosElegiveis".equals(descriptor.operation())) {
+                detalhe.put("cutoverEnabled", listarFuncionariosElegiveisCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
+            } else if ("buscarPorId".equals(descriptor.operation())) {
+                detalhe.put("cutoverEnabled", buscarPorIdCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
+            }
             rotas.put(descriptor.operation(), detalhe);
         }
         return rotas;
+    }
+
+    private String fallbackStrategy(String operation) {
+        if ("criar".equals(operation) && criarCutoverEnabled()) {
+            return "disabled_for_route";
+        }
+        if ("vincularTurmaDisciplina".equals(operation) && vincularTurmaDisciplinaCutoverEnabled()) {
+            return "disabled_for_route";
+        }
+        if ("listar".equals(operation) && listarCutoverEnabled()) {
+            return "disabled_for_route";
+        }
+        if ("listarAlocacoes".equals(operation) && listarAlocacoesCutoverEnabled()) {
+            return "disabled_for_route";
+        }
+        if ("listarPorTurma".equals(operation) && listarPorTurmaCutoverEnabled()) {
+            return "disabled_for_route";
+        }
+        if ("listarFuncionariosElegiveis".equals(operation) && listarFuncionariosElegiveisCutoverEnabled()) {
+            return "disabled_for_route";
+        }
+        if ("buscarPorId".equals(operation) && buscarPorIdCutoverEnabled()) {
+            return "disabled_for_route";
+        }
+        return environment.getProperty("professor.internal-client.fallback-local-on-error", Boolean.class, true)
+                ? "local_on_error"
+                : "disabled_globally";
+    }
+
+    private boolean listarCutoverEnabled() {
+        return environment.getProperty("professor.internal-client.listar-cutover-enabled", Boolean.class, false);
+    }
+
+    private boolean criarCutoverEnabled() {
+        return environment.getProperty("professor.internal-client.criar-cutover-enabled", Boolean.class, false);
+    }
+
+    private boolean vincularTurmaDisciplinaCutoverEnabled() {
+        return environment.getProperty(
+                "professor.internal-client.vincular-turma-disciplina-cutover-enabled",
+                Boolean.class,
+                false);
+    }
+
+    private boolean listarAlocacoesCutoverEnabled() {
+        return environment.getProperty("professor.internal-client.listar-alocacoes-cutover-enabled", Boolean.class, false);
+    }
+
+    private boolean listarPorTurmaCutoverEnabled() {
+        return environment.getProperty("professor.internal-client.listar-por-turma-cutover-enabled", Boolean.class, false);
+    }
+
+    private boolean listarFuncionariosElegiveisCutoverEnabled() {
+        return environment.getProperty(
+                "professor.internal-client.listar-funcionarios-elegiveis-cutover-enabled",
+                Boolean.class,
+                false);
+    }
+
+    private boolean buscarPorIdCutoverEnabled() {
+        return environment.getProperty("professor.internal-client.buscar-por-id-cutover-enabled", Boolean.class, false);
     }
 
     private double totalRequests(String operation, String destino, String resultado) {

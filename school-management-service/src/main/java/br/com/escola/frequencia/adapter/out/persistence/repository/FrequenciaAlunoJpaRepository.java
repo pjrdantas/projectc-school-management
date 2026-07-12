@@ -20,6 +20,13 @@ public interface FrequenciaAlunoJpaRepository extends JpaRepository<FrequenciaAl
             UUID aulaId,
             UUID escolaId);
 
+    List<FrequenciaAlunoEntity>
+            findByAula_ProfessorTurmaDisciplina_IdAndAula_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdAndAula_DataAulaBetween(
+                    UUID professorTurmaDisciplinaId,
+                    UUID escolaId,
+                    java.time.LocalDate dataInicial,
+                    java.time.LocalDate dataFinal);
+
     Optional<FrequenciaAlunoEntity> findByAulaIdAndMatriculaId(UUID aulaId, UUID matriculaId);
 
     Optional<FrequenciaAlunoEntity> findByAula_IdAndAula_ProfessorTurmaDisciplina_TurmaDisciplina_Turma_Escola_IdAndMatricula_Id(

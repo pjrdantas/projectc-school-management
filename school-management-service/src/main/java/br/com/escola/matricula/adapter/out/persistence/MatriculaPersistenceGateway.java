@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.escola.aluno.application.port.internal.AlunoMatriculaPort;
 import br.com.escola.catalogo.adapter.out.persistence.entity.PeriodoLetivoEntity;
 import br.com.escola.catalogo.adapter.out.persistence.entity.TurmaEntity;
 import br.com.escola.matricula.adapter.out.persistence.entity.EtapaMatriculaModeloEntity;
@@ -37,7 +38,7 @@ import br.com.escola.matricula.domain.exception.MatriculaAtivaDuplicadaException
 import br.com.escola.matricula.domain.exception.MatriculaNaoEncontradaException;
 import br.com.escola.matricula.domain.exception.MatriculaStatusInvalidoException;
 import br.com.escola.matricula.domain.exception.MatriculaTipoInvalidoException;
-import br.com.escola.aluno.adapter.out.persistence.entity.AlunoEntity;
+import br.com.escola.matricula.domain.exception.MatriculaAlunoNaoEncontradoException;
 import br.com.escola.institucional.application.service.EscolaTenantService;
 import jakarta.persistence.EntityManager;
 
@@ -53,6 +54,7 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
     private final StatusMatriculaJpaRepository statusMatriculaJpaRepository;
     private final StatusEtapaMatriculaJpaRepository statusEtapaMatriculaJpaRepository;
     private final EtapaMatriculaModeloJpaRepository etapaMatriculaModeloJpaRepository;
+    private final AlunoMatriculaPort alunoMatriculaPort;
     private final EntityManager entityManager;
     private final EscolaTenantService escolaTenantService;
 
@@ -64,6 +66,7 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
             StatusMatriculaJpaRepository statusMatriculaJpaRepository,
             StatusEtapaMatriculaJpaRepository statusEtapaMatriculaJpaRepository,
             EtapaMatriculaModeloJpaRepository etapaMatriculaModeloJpaRepository,
+            AlunoMatriculaPort alunoMatriculaPort,
             EntityManager entityManager,
             EscolaTenantService escolaTenantService) {
         this.matriculaJpaRepository = matriculaJpaRepository;
@@ -73,6 +76,7 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
         this.statusMatriculaJpaRepository = statusMatriculaJpaRepository;
         this.statusEtapaMatriculaJpaRepository = statusEtapaMatriculaJpaRepository;
         this.etapaMatriculaModeloJpaRepository = etapaMatriculaModeloJpaRepository;
+        this.alunoMatriculaPort = alunoMatriculaPort;
         this.entityManager = entityManager;
         this.escolaTenantService = escolaTenantService;
     }
@@ -86,7 +90,9 @@ public class MatriculaPersistenceGateway implements MatriculaGateway {
             MatriculaStatus status,
             MatriculaTipo tipoMatricula,
             String observacao) {
-        AlunoEntity aluno = entityManager.getReference(AlunoEntity.class, alunoId);
+        UUID escolaId = escolaId();
+        var aluno = alunoMatriculaPort.buscarAlunoPorIdEEscola(alunoId, escolaId)
+                .orElseThrow(() -> new MatriculaAlunoNaoEncontradoException(alunoId));
         TurmaEntity turma = entityManager.getReference(TurmaEntity.class, turmaId);
         PeriodoLetivoEntity periodoLetivo = entityManager.getReference(PeriodoLetivoEntity.class, periodoLetivoId);
         TipoMatriculaEntity tipo = resolveTipo(tipoMatricula);

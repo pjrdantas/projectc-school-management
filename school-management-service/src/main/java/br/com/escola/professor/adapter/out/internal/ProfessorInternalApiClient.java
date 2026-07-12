@@ -16,11 +16,13 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import br.com.escola.professor.adapter.in.web.dto.internal.ProfessorAlocacaoInternalRequest;
 import br.com.escola.professor.adapter.in.web.dto.internal.ProfessorAlocacaoInternalResponse;
+import br.com.escola.professor.adapter.in.web.dto.internal.ProfessorFuncionarioElegivelInternalResponse;
 import br.com.escola.professor.adapter.in.web.dto.internal.ProfessorInternalRequest;
 import br.com.escola.professor.adapter.in.web.dto.internal.ProfessorInternalResponse;
 import br.com.escola.professor.application.dto.internal.AlocarProfessorTurmaDisciplinaSolicitacao;
 import br.com.escola.professor.application.dto.internal.CriarProfessorSolicitacao;
 import br.com.escola.professor.application.dto.internal.ProfessorAlocacaoResumo;
+import br.com.escola.professor.application.dto.internal.ProfessorFuncionarioElegivelResumo;
 import br.com.escola.professor.application.dto.internal.ProfessorResumo;
 import br.com.escola.professor.application.port.internal.ProfessorAcademicoPort;
 import jakarta.servlet.http.HttpServletRequest;
@@ -154,6 +156,24 @@ public class ProfessorInternalApiClient implements ProfessorAcademicoPort {
                 .toList();
     }
 
+    @Override
+    public List<ProfessorFuncionarioElegivelResumo> listarFuncionariosElegiveis(UUID escolaId) {
+        List<ProfessorFuncionarioElegivelInternalResponse> response = restClient().get()
+                .uri("/internal/professores/funcionarios-elegiveis")
+                .headers(headers -> preencherHeaders(headers, escolaId))
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<ProfessorFuncionarioElegivelInternalResponse>>() {
+                });
+
+        if (response == null) {
+            return List.of();
+        }
+
+        return response.stream()
+                .map(this::toFuncionarioElegivelResumo)
+                .toList();
+    }
+
     private void preencherHeaders(HttpHeaders headers, UUID escolaId) {
         headers.add(ESCOLA_HEADER, escolaId.toString());
         HttpServletRequest request = requestAtual();
@@ -230,5 +250,19 @@ public class ProfessorInternalApiClient implements ProfessorAcademicoPort {
                 response.dataFim(),
                 response.ativo(),
                 response.createdAt());
+    }
+
+    private ProfessorFuncionarioElegivelResumo toFuncionarioElegivelResumo(
+            ProfessorFuncionarioElegivelInternalResponse response) {
+        if (response == null) {
+            return null;
+        }
+        return new ProfessorFuncionarioElegivelResumo(
+                response.funcionarioId(),
+                response.nomeCompleto(),
+                response.escolaId(),
+                response.escolaNome(),
+                response.cargo(),
+                response.ativo());
     }
 }

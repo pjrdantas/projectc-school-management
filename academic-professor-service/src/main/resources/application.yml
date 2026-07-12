@@ -1,6 +1,17 @@
 spring:
   application:
     name: academic-professor-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:academic_professor_service;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.h2.Driver}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
 
 server:
   port: 8092
@@ -19,3 +30,16 @@ professor:
       base-url: ${PROFESSOR_SHADOW_MONOLITH_BASE_URL:http://localhost:8080}
       connect-timeout: ${PROFESSOR_SHADOW_MONOLITH_CONNECT_TIMEOUT:2s}
       read-timeout: ${PROFESSOR_SHADOW_MONOLITH_READ_TIMEOUT:5s}
+    local-persistence:
+      enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_ENABLED:false}
+      fail-on-error: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_FAIL_ON_ERROR:false}
+    migration:
+      enabled: ${PROFESSOR_SHADOW_MIGRATION_ENABLED:false}
+      runner-enabled: ${PROFESSOR_SHADOW_MIGRATION_RUNNER_ENABLED:true}
+      apply: ${PROFESSOR_SHADOW_MIGRATION_APPLY:false}
+      report-path: ${PROFESSOR_SHADOW_MIGRATION_REPORT_PATH:target/professor-shadow-migration-report.json}
+      source:
+        url: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
+        username: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_USERNAME:postgres}
+        password: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_PASSWORD:}
+        driver-class-name: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}

@@ -7,6 +7,7 @@ import java.util.UUID;
 import br.com.escola.professor.application.dto.internal.AlocarProfessorTurmaDisciplinaSolicitacao;
 import br.com.escola.professor.application.dto.internal.CriarProfessorSolicitacao;
 import br.com.escola.professor.application.dto.internal.ProfessorAlocacaoResumo;
+import br.com.escola.professor.application.dto.internal.ProfessorFuncionarioElegivelResumo;
 import br.com.escola.professor.application.dto.internal.ProfessorResumo;
 
 public interface ProfessorAcademicoPort {
@@ -27,4 +28,6 @@ public interface ProfessorAcademicoPort {
     List<ProfessorAlocacaoResumo> listarAlocacoes(UUID escolaId, UUID professorId);
 
     List<ProfessorAlocacaoResumo> listarProfessoresPorTurma(UUID escolaId, UUID turmaId);
+
+    List<ProfessorFuncionarioElegivelResumo> listarFuncionariosElegiveis(UUID escolaId);
 }

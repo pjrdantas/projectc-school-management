@@ -1,0 +1,66 @@
+package br.com.escola.bff.application.service;
+
+import java.util.UUID;
+
+import org.springframework.http.ResponseEntity;
+
+import br.com.escola.bff.application.dto.CatalogReadQuery;
+import br.com.escola.bff.application.port.out.AuthContextPort;
+import br.com.escola.bff.application.port.out.PeoplePessoaReadPort;
+import br.com.escola.bff.application.usecase.ConsultarPessoaDetalheUseCase;
+import reactor.core.publisher.Mono;
+
+public class PessoaDetailReadProxyService implements ConsultarPessoaDetalheUseCase {
+
+    private final AuthContextPort authContextPort;
+    private final PeoplePessoaReadPort peoplePessoaReadPort;
+
+    public PessoaDetailReadProxyService(
+            AuthContextPort authContextPort,
+            PeoplePessoaReadPort peoplePessoaReadPort) {
+        this.authContextPort = authContextPort;
+        this.peoplePessoaReadPort = peoplePessoaReadPort;
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> buscarPessoaPorId(String authorization, String correlationId, UUID pessoaId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> peoplePessoaReadPort.buscarPessoaPorId(pessoaId, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> buscarEnderecoPrincipal(String authorization, String correlationId, UUID pessoaId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> peoplePessoaReadPort.buscarEnderecoPrincipal(pessoaId, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> listarEnderecos(String authorization, String correlationId, UUID pessoaId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> peoplePessoaReadPort.listarEnderecos(pessoaId, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> buscarContato(String authorization, String correlationId, UUID pessoaId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> peoplePessoaReadPort.buscarContato(pessoaId, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> listarDocumentos(String authorization, String correlationId, UUID pessoaId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> peoplePessoaReadPort.listarDocumentos(pessoaId, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> buscarDocumentoPorId(String authorization, String correlationId, UUID documentoId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> peoplePessoaReadPort.buscarDocumentoPorId(documentoId, query, context));
+    }
+}

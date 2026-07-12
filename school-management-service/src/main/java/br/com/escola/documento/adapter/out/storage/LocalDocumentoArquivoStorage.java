@@ -7,35 +7,47 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import br.com.escola.documento.application.port.out.DocumentoArquivoReferencia;
 import br.com.escola.documento.application.port.out.DocumentoArquivoStorage;
 import br.com.escola.documento.domain.EntidadeDocumentalTipo;
 import br.com.escola.documento.domain.exception.DocumentoInvalidoException;
 
 @Component
+@ConditionalOnProperty(prefix = "documento.storage", name = "backend", havingValue = "local", matchIfMissing = true)
 public class LocalDocumentoArquivoStorage implements DocumentoArquivoStorage {
 
-    private static final Path DOCUMENTOS_UPLOAD_DIR = Path.of("uploads", "documentos");
+    private final Path documentosUploadDir;
+
+    public LocalDocumentoArquivoStorage(DocumentoStorageProperties properties) {
+        this.documentosUploadDir = properties.normalizedRoot();
+    }
 
     @Override
-    public String salvar(EntidadeDocumentalTipo entidadeTipo, UUID entidadeId, MultipartFile arquivo) {
+    public DocumentoArquivoReferencia salvar(EntidadeDocumentalTipo entidadeTipo, UUID entidadeId, MultipartFile arquivo) {
         try {
-            Path diretorioEntidade = DOCUMENTOS_UPLOAD_DIR
+            Path diretorioEntidade = documentosUploadDir
                     .resolve(entidadeTipo.name().toLowerCase())
-                    .resolve(entidadeId.toString());
+                    .resolve(entidadeId.toString())
+                    .normalize();
+            if (!diretorioEntidade.startsWith(documentosUploadDir)) {
+                throw new DocumentoInvalidoException("Diretório de documento inválido");
+            }
             Files.createDirectories(diretorioEntidade);
 
-            String nomeOriginal = arquivo.getOriginalFilename() == null ? "documento" : arquivo.getOriginalFilename();
-            String nomeSeguro = nomeOriginal.replaceAll("[^A-Za-z0-9._-]", "_");
+            String nomeSeguro = DocumentoArquivoNome.seguro(arquivo);
             Path destino = diretorioEntidade.resolve(UUID.randomUUID() + "-" + nomeSeguro).normalize();
             if (!destino.startsWith(diretorioEntidade)) {
                 throw new DocumentoInvalidoException("Nome de arquivo inválido");
             }
 
             Files.copy(arquivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
-            return destino.toString().replace('\\', '/');
+            String chave = documentosUploadDir.relativize(destino).toString().replace('\\', '/');
+            String localizacao = destino.toString().replace('\\', '/');
+            return DocumentoArquivoReferencia.local(chave, localizacao);
         } catch (IOException ex) {
             throw new UncheckedIOException("Não foi possível salvar o arquivo do documento", ex);
         }

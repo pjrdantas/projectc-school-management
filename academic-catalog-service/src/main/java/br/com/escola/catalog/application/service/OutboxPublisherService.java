@@ -2,7 +2,6 @@ package br.com.escola.catalog.application.service;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

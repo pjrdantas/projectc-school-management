@@ -5,19 +5,16 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import br.com.escola.compartilhado.viacep.ViaCepResponse;
 import br.com.escola.compartilhado.viacep.ViaCepService;
-import br.com.escola.aluno.adapter.out.persistence.repository.AlunoJpaRepository;
-import br.com.escola.transferencia.adapter.in.web.dto.EscolaOrigemRequest;
-import br.com.escola.transferencia.adapter.in.web.dto.EscolaOrigemResponse;
-import br.com.escola.transferencia.adapter.in.web.dto.TransferenciaAlunoRequest;
-import br.com.escola.transferencia.adapter.in.web.dto.TransferenciaAlunoResponse;
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
-import br.com.escola.transferencia.adapter.out.persistence.entity.TransferenciaAlunoEntity;
 import br.com.escola.transferencia.adapter.out.persistence.repository.EscolaOrigemJpaRepository;
-import br.com.escola.transferencia.adapter.out.persistence.repository.TransferenciaAlunoJpaRepository;
+import br.com.escola.transferencia.application.dto.internal.CriarTransferenciaAlunoSolicitacao;
+import br.com.escola.transferencia.application.dto.internal.EscolaOrigemResumo;
+import br.com.escola.transferencia.application.dto.internal.EscolaOrigemSolicitacao;
+import br.com.escola.transferencia.application.dto.internal.TransferenciaAlunoResumo;
+import br.com.escola.transferencia.application.port.out.TransferenciaAlunoGateway;
 import br.com.escola.transferencia.domain.exception.EscolaOrigemNaoEncontradaException;
 import br.com.escola.transferencia.domain.exception.TransferenciaAlunoInvalidaException;
 import br.com.escola.transferencia.domain.exception.TransferenciaAlunoNaoEncontradaException;
@@ -25,87 +22,74 @@ import br.com.escola.transferencia.domain.exception.TransferenciaAlunoNaoEncontr
 @Service
 public class TransferenciaAlunoService {
 
-    private final TransferenciaAlunoJpaRepository transferenciaAlunoJpaRepository;
     private final EscolaOrigemJpaRepository escolaOrigemJpaRepository;
-    private final AlunoJpaRepository alunoJpaRepository;
+    private final TransferenciaAlunoGateway transferenciaAlunoGateway;
     private final ViaCepService viaCepService;
-    private final JdbcTemplate jdbcTemplate;
 
     public TransferenciaAlunoService(
-            TransferenciaAlunoJpaRepository transferenciaAlunoJpaRepository,
             EscolaOrigemJpaRepository escolaOrigemJpaRepository,
-            AlunoJpaRepository alunoJpaRepository,
-            ViaCepService viaCepService,
-            JdbcTemplate jdbcTemplate) {
-        this.transferenciaAlunoJpaRepository = transferenciaAlunoJpaRepository;
+            TransferenciaAlunoGateway transferenciaAlunoGateway,
+            ViaCepService viaCepService) {
         this.escolaOrigemJpaRepository = escolaOrigemJpaRepository;
-        this.alunoJpaRepository = alunoJpaRepository;
+        this.transferenciaAlunoGateway = transferenciaAlunoGateway;
         this.viaCepService = viaCepService;
-        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Transactional
-    public EscolaOrigemResponse criarEscolaOrigem(EscolaOrigemRequest request) {
-        return toEscolaResponse(escolaOrigemJpaRepository.save(toEscolaEntity(request)));
+    public EscolaOrigemResumo criarEscolaOrigem(EscolaOrigemSolicitacao request) {
+        return toEscolaResumo(escolaOrigemJpaRepository.save(toEscolaEntity(request)));
     }
 
     @Transactional(readOnly = true)
-    public List<EscolaOrigemResponse> listarEscolasOrigem() {
-        return escolaOrigemJpaRepository.findAll().stream().map(this::toEscolaResponse).toList();
+    public List<EscolaOrigemResumo> listarEscolasOrigem() {
+        return escolaOrigemJpaRepository.findAll().stream().map(this::toEscolaResumo).toList();
     }
 
     @Transactional(readOnly = true)
-    public EscolaOrigemResponse buscarEscolaOrigem(UUID id) {
+    public EscolaOrigemResumo buscarEscolaOrigem(UUID id) {
         return escolaOrigemJpaRepository.findById(id)
-                .map(this::toEscolaResponse)
+                .map(this::toEscolaResumo)
                 .orElseThrow(() -> new EscolaOrigemNaoEncontradaException(id));
     }
 
     @Transactional
-    public TransferenciaAlunoResponse criarTransferencia(TransferenciaAlunoRequest request) {
-        var aluno = alunoJpaRepository.findById(request.alunoId())
-                .orElseThrow(() -> new TransferenciaAlunoInvalidaException("Aluno não encontrado: " + request.alunoId()));
+    public TransferenciaAlunoResumo criarTransferencia(CriarTransferenciaAlunoSolicitacao request) {
+        if (!transferenciaAlunoGateway.existsAlunoById(request.alunoId())) {
+            throw new TransferenciaAlunoInvalidaException("Aluno não encontrado: " + request.alunoId());
+        }
         EscolaEntity escolaOrigem = resolverEscolaOrigem(request);
-
-        TransferenciaAlunoEntity entity = new TransferenciaAlunoEntity();
-        entity.setAluno(aluno);
-        entity.setEscolaOrigem(escolaOrigem);
-        entity.setSerieOrigem(request.serieOrigem());
-        entity.setAnoLetivoOrigem(request.anoLetivoOrigem());
-        entity.setDataTransferencia(request.dataTransferencia());
-        entity.setMotivoTransferencia(request.motivoTransferencia());
-        entity.setSituacaoOrigem(request.situacaoOrigem());
-        entity.setDocumentosEntregues(request.documentosEntregues());
         String tipoTransferencia = normalizarTipoTransferencia(request.tipoTransferencia());
         String statusTransferencia = normalizarStatusTransferencia(request.statusTransferencia());
-        entity.setTipoTransferencia(tipoTransferencia);
-        entity.setStatusTransferencia(statusTransferencia);
-        entity.setTipoTransferenciaId(buscarIdCatalogo("tipo_transferencia", "id_tipo_transferencia", tipoTransferencia));
-        entity.setStatusTransferenciaId(buscarIdCatalogo("status_transferencia", "id_status_transferencia", statusTransferencia));
-        entity.setUsuarioOperacao(request.usuarioOperacao());
-        entity.setObservacao(request.observacao());
-
-        return toTransferenciaResponse(transferenciaAlunoJpaRepository.save(entity));
+        return transferenciaAlunoGateway.save(
+                request.alunoId(),
+                toEscolaResumo(escolaOrigem),
+                request.serieOrigem(),
+                request.anoLetivoOrigem(),
+                request.dataTransferencia(),
+                request.motivoTransferencia(),
+                request.situacaoOrigem(),
+                request.documentosEntregues(),
+                tipoTransferencia,
+                statusTransferencia,
+                request.usuarioOperacao(),
+                request.observacao());
     }
 
     @Transactional(readOnly = true)
-    public TransferenciaAlunoResponse buscarTransferencia(UUID id) {
-        return transferenciaAlunoJpaRepository.findById(id)
-                .map(this::toTransferenciaResponse)
+    public TransferenciaAlunoResumo buscarTransferencia(UUID id) {
+        return transferenciaAlunoGateway.findById(id)
                 .orElseThrow(() -> new TransferenciaAlunoNaoEncontradaException(id));
     }
 
     @Transactional(readOnly = true)
-    public List<TransferenciaAlunoResponse> listarPorAluno(UUID alunoId) {
-        if (!alunoJpaRepository.existsById(alunoId)) {
+    public List<TransferenciaAlunoResumo> listarPorAluno(UUID alunoId) {
+        if (!transferenciaAlunoGateway.existsAlunoById(alunoId)) {
             throw new TransferenciaAlunoInvalidaException("Aluno não encontrado: " + alunoId);
         }
-        return transferenciaAlunoJpaRepository.findByAluno_IdOrderByCreatedAtDesc(alunoId).stream()
-                .map(this::toTransferenciaResponse)
-                .toList();
+        return transferenciaAlunoGateway.findByAlunoId(alunoId);
     }
 
-    private EscolaEntity resolverEscolaOrigem(TransferenciaAlunoRequest request) {
+    private EscolaEntity resolverEscolaOrigem(CriarTransferenciaAlunoSolicitacao request) {
         if (request.escolaOrigemId() != null) {
             return escolaOrigemJpaRepository.findById(request.escolaOrigemId())
                     .orElseThrow(() -> new EscolaOrigemNaoEncontradaException(request.escolaOrigemId()));
@@ -116,7 +100,7 @@ public class TransferenciaAlunoService {
         return escolaOrigemJpaRepository.save(toEscolaEntity(request.escolaOrigem()));
     }
 
-    private EscolaEntity toEscolaEntity(EscolaOrigemRequest request) {
+    private EscolaEntity toEscolaEntity(EscolaOrigemSolicitacao request) {
         EscolaEntity entity = new EscolaEntity();
         entity.setNomeEscola(request.nomeEscola());
         entity.setCodigoInep(request.codigoInep());
@@ -132,7 +116,7 @@ public class TransferenciaAlunoService {
         return entity;
     }
 
-    private void preencherEnderecoComViaCep(EscolaEntity entity, EscolaOrigemRequest request) {
+    private void preencherEnderecoComViaCep(EscolaEntity entity, EscolaOrigemSolicitacao request) {
         ViaCepResponse endereco = viaCepService.consultar(request.cep());
         if (endereco == null) {
             return;
@@ -147,25 +131,6 @@ public class TransferenciaAlunoService {
         entity.setUf(endereco.uf());
         entity.setNumero(request.numero());
         entity.setComplemento(request.complemento());
-    }
-
-    private TransferenciaAlunoResponse toTransferenciaResponse(TransferenciaAlunoEntity entity) {
-        return new TransferenciaAlunoResponse(
-                entity.getId(),
-                entity.getAluno().getId(),
-                toEscolaResponse(entity.getEscolaOrigem()),
-                entity.getSerieOrigem(),
-                entity.getAnoLetivoOrigem(),
-                entity.getDataTransferencia(),
-                entity.getMotivoTransferencia(),
-                entity.getSituacaoOrigem(),
-                entity.getDocumentosEntregues(),
-                entity.getObservacao(),
-                resolverCodigoCatalogo("tipo_transferencia", "id_tipo_transferencia", entity.getTipoTransferenciaId(), entity.getTipoTransferencia()),
-                resolverCodigoCatalogo("status_transferencia", "id_status_transferencia", entity.getStatusTransferenciaId(), entity.getStatusTransferencia()),
-                entity.getUsuarioOperacao(),
-                entity.getDataHoraOperacao(),
-                entity.getCreatedAt());
     }
 
     private String normalizarTipoTransferencia(String tipo) {
@@ -192,33 +157,8 @@ public class TransferenciaAlunoService {
         return normalizado;
     }
 
-    private UUID buscarIdCatalogo(String tabela, String colunaId, String codigo) {
-        List<UUID> ids = jdbcTemplate.query(
-                "SELECT " + colunaId + " FROM " + tabela + " WHERE codigo = ?",
-                (rs, rowNum) -> rs.getObject(colunaId, UUID.class),
-                codigo);
-        if (ids.isEmpty()) {
-            throw new TransferenciaAlunoInvalidaException("Catálogo não cadastrado: " + tabela + "." + codigo);
-        }
-        return ids.getFirst();
-    }
-
-    private String resolverCodigoCatalogo(String tabela, String colunaId, UUID id, String valorTransient) {
-        if (valorTransient != null && !valorTransient.isBlank()) {
-            return valorTransient;
-        }
-        if (id == null) {
-            return null;
-        }
-        List<String> codigos = jdbcTemplate.query(
-                "SELECT codigo FROM " + tabela + " WHERE " + colunaId + " = ?",
-                (rs, rowNum) -> rs.getString("codigo"),
-                id);
-        return codigos.isEmpty() ? null : codigos.getFirst();
-    }
-
-    private EscolaOrigemResponse toEscolaResponse(EscolaEntity entity) {
-        return new EscolaOrigemResponse(
+    private EscolaOrigemResumo toEscolaResumo(EscolaEntity entity) {
+        return new EscolaOrigemResumo(
                 entity.getId(),
                 entity.getNomeEscola(),
                 entity.getCodigoInep(),

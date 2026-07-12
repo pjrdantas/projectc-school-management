@@ -37,6 +37,8 @@ import br.com.escola.professor.domain.exception.AulaFrequenciaAlunoDuplicadaExce
 import br.com.escola.professor.domain.exception.AulaFrequenciaProfessorDuplicadaException;
 import br.com.escola.professor.domain.exception.AulaMatriculaTurmaInconsistenteException;
 import br.com.escola.professor.domain.exception.AulaNaoEncontradaException;
+import br.com.escola.professor.domain.exception.DiarioClasseLancamentoDuplicadoException;
+import br.com.escola.professor.domain.exception.DiarioClasseLancamentoInvalidoException;
 import br.com.escola.professor.domain.exception.ProfessorFuncionarioInativoException;
 import br.com.escola.professor.domain.exception.ProfessorJaCadastradoException;
 import br.com.escola.professor.domain.exception.ProfessorNaoEncontradoException;
@@ -372,6 +374,20 @@ public class ApiExceptionHandler extends BaseApiExceptionHandler {
             AulaMatriculaTurmaInconsistenteException ex,
             HttpServletRequest request) {
         return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(DiarioClasseLancamentoInvalidoException.class)
+    public ResponseEntity<ApiErrorResponse> handleDiarioClasseLancamentoInvalido(
+            DiarioClasseLancamentoInvalidoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(DiarioClasseLancamentoDuplicadoException.class)
+    public ResponseEntity<ApiErrorResponse> handleDiarioClasseLancamentoDuplicado(
+            DiarioClasseLancamentoDuplicadoException ex,
+            HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", ex.getMessage(), request);
     }
 
     @ExceptionHandler(AvaliacaoNaoEncontradaException.class)

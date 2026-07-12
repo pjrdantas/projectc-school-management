@@ -64,6 +64,10 @@ public class AulaEntity implements Serializable {
     private PlanejamentoAulaEntity planejamentoAula;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_diario_classe_lancamento", referencedColumnName = "id_diario_classe_lancamento")
+    private DiarioClasseLancamentoEntity diarioClasseLancamento;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_professor_turma_disciplina", referencedColumnName = "id_professor_turma_disciplina", nullable = false)
     private ProfessorTurmaDisciplinaEntity professorTurmaDisciplina;
 }

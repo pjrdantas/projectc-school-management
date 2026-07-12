@@ -18,6 +18,7 @@ import br.com.escola.professor.adapter.in.web.dto.ProfessorResponse;
 import br.com.escola.professor.application.dto.internal.AlocarProfessorTurmaDisciplinaSolicitacao;
 import br.com.escola.professor.application.dto.internal.CriarProfessorSolicitacao;
 import br.com.escola.professor.application.dto.internal.ProfessorAlocacaoResumo;
+import br.com.escola.professor.application.dto.internal.ProfessorFuncionarioElegivelResumo;
 import br.com.escola.professor.application.dto.internal.ProfessorResumo;
 import br.com.escola.professor.application.port.internal.ProfessorAcademicoPort;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -31,6 +32,13 @@ public class ProfessorFluxoOrquestradorService {
     private final MeterRegistry meterRegistry;
     private final boolean internalClientEnabled;
     private final boolean fallbackLocalOnError;
+    private final boolean criarCutoverEnabled;
+    private final boolean vincularTurmaDisciplinaCutoverEnabled;
+    private final boolean buscarPorIdCutoverEnabled;
+    private final boolean listarCutoverEnabled;
+    private final boolean listarAlocacoesCutoverEnabled;
+    private final boolean listarPorTurmaCutoverEnabled;
+    private final boolean listarFuncionariosElegiveisCutoverEnabled;
 
     public ProfessorFluxoOrquestradorService(
             ProfessorService professorService,
@@ -38,13 +46,27 @@ public class ProfessorFluxoOrquestradorService {
             EscolaTenantService escolaTenantService,
             MeterRegistry meterRegistry,
             @Value("${professor.internal-client.enabled:false}") boolean internalClientEnabled,
-            @Value("${professor.internal-client.fallback-local-on-error:true}") boolean fallbackLocalOnError) {
+            @Value("${professor.internal-client.fallback-local-on-error:true}") boolean fallbackLocalOnError,
+            @Value("${professor.internal-client.criar-cutover-enabled:false}") boolean criarCutoverEnabled,
+            @Value("${professor.internal-client.vincular-turma-disciplina-cutover-enabled:false}") boolean vincularTurmaDisciplinaCutoverEnabled,
+            @Value("${professor.internal-client.buscar-por-id-cutover-enabled:false}") boolean buscarPorIdCutoverEnabled,
+            @Value("${professor.internal-client.listar-cutover-enabled:false}") boolean listarCutoverEnabled,
+            @Value("${professor.internal-client.listar-alocacoes-cutover-enabled:false}") boolean listarAlocacoesCutoverEnabled,
+            @Value("${professor.internal-client.listar-por-turma-cutover-enabled:false}") boolean listarPorTurmaCutoverEnabled,
+            @Value("${professor.internal-client.listar-funcionarios-elegiveis-cutover-enabled:false}") boolean listarFuncionariosElegiveisCutoverEnabled) {
         this.professorService = professorService;
         this.professorInternalApiClient = professorInternalApiClient;
         this.escolaTenantService = escolaTenantService;
         this.meterRegistry = meterRegistry;
         this.internalClientEnabled = internalClientEnabled;
         this.fallbackLocalOnError = fallbackLocalOnError;
+        this.criarCutoverEnabled = criarCutoverEnabled;
+        this.vincularTurmaDisciplinaCutoverEnabled = vincularTurmaDisciplinaCutoverEnabled;
+        this.buscarPorIdCutoverEnabled = buscarPorIdCutoverEnabled;
+        this.listarCutoverEnabled = listarCutoverEnabled;
+        this.listarAlocacoesCutoverEnabled = listarAlocacoesCutoverEnabled;
+        this.listarPorTurmaCutoverEnabled = listarPorTurmaCutoverEnabled;
+        this.listarFuncionariosElegiveisCutoverEnabled = listarFuncionariosElegiveisCutoverEnabled;
     }
 
     public ProfessorResponse criar(ProfessorRequest request) {
@@ -70,7 +92,12 @@ public class ProfessorFluxoOrquestradorService {
     }
 
     public List<ProfessorFuncionarioElegivelResponse> listarFuncionariosElegiveis() {
-        return professorService.listarFuncionariosElegiveis();
+        return executarComClienteInterno(
+                "listarFuncionariosElegiveis",
+                () -> professorInternalApiClient.listarFuncionariosElegiveis(escolaPadraoId()).stream()
+                        .map(this::toFuncionarioElegivelResponse)
+                        .toList(),
+                professorService::listarFuncionariosElegiveis);
     }
 
     public ProfessorResponse buscarPorId(UUID id) {
@@ -127,7 +154,7 @@ public class ProfessorFluxoOrquestradorService {
         } catch (RuntimeException exception) {
             registrarRequisicao(operacao, "internal", "error");
 
-            if (!fallbackLocalOnError || !permiteFallback(exception)) {
+            if (!permiteFallbackLocal(operacao, exception)) {
                 throw exception;
             }
 
@@ -140,6 +167,34 @@ public class ProfessorFluxoOrquestradorService {
 
     private boolean permiteFallback(RuntimeException exception) {
         return exception instanceof RestClientException;
+    }
+
+    private boolean permiteFallbackLocal(String operacao, RuntimeException exception) {
+        if (!fallbackLocalOnError || !permiteFallback(exception)) {
+            return false;
+        }
+        if ("criar".equals(operacao) && criarCutoverEnabled) {
+            return false;
+        }
+        if ("vincularTurmaDisciplina".equals(operacao) && vincularTurmaDisciplinaCutoverEnabled) {
+            return false;
+        }
+        if ("listar".equals(operacao) && listarCutoverEnabled) {
+            return false;
+        }
+        if ("listarAlocacoes".equals(operacao) && listarAlocacoesCutoverEnabled) {
+            return false;
+        }
+        if ("listarPorTurma".equals(operacao) && listarPorTurmaCutoverEnabled) {
+            return false;
+        }
+        if ("listarFuncionariosElegiveis".equals(operacao) && listarFuncionariosElegiveisCutoverEnabled) {
+            return false;
+        }
+        if ("buscarPorId".equals(operacao) && buscarPorIdCutoverEnabled) {
+            return false;
+        }
+        return true;
     }
 
     private void registrarRequisicao(String operacao, String destino, String resultado) {
@@ -191,5 +246,15 @@ public class ProfessorFluxoOrquestradorService {
                 resumo.dataFim(),
                 resumo.ativo(),
                 resumo.createdAt());
+    }
+
+    private ProfessorFuncionarioElegivelResponse toFuncionarioElegivelResponse(ProfessorFuncionarioElegivelResumo resumo) {
+        return new ProfessorFuncionarioElegivelResponse(
+                resumo.funcionarioId(),
+                resumo.nomeCompleto(),
+                resumo.escolaId(),
+                resumo.escolaNome(),
+                resumo.cargo(),
+                resumo.ativo());
     }
 }

@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { PROFESSOR_INTERNAL_ROUTES } from './professor/professor-domain';
+import { PROFESSOR_INTERNAL_ROUTES } from './professor/professor-domain.manifest';
 
 export const routes: Routes = [
   {

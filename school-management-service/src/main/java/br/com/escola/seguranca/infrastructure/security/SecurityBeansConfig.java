@@ -22,8 +22,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.com.escola.seguranca.application.service.AuthService;
 import br.com.escola.compartilhado.exception.ApiErrorResponse;
+import br.com.escola.seguranca.application.port.internal.IdentidadeTenantPort;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -33,17 +33,17 @@ import java.time.LocalDateTime;
 @EnableMethodSecurity
 public class SecurityBeansConfig {
 
-    private final AuthService authService;
+    private final IdentidadeTenantPort identidadeTenantPort;
     private final ObjectMapper objectMapper;
 
-    public SecurityBeansConfig(@Lazy AuthService authService, ObjectMapper objectMapper) {
-        this.authService = authService;
+    public SecurityBeansConfig(@Lazy IdentidadeTenantPort identidadeTenantPort, ObjectMapper objectMapper) {
+        this.identidadeTenantPort = identidadeTenantPort;
         this.objectMapper = objectMapper;
     }
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(authService);
+        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(identidadeTenantPort);
 
         return http
             .csrf(csrf -> csrf.disable())

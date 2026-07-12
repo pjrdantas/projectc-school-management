@@ -11,8 +11,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import br.com.escola.seguranca.adapter.out.persistence.entity.UsuarioEntity;
-import br.com.escola.seguranca.application.service.AuthService;
+import br.com.escola.seguranca.application.dto.internal.PrincipalAutenticadoResumo;
+import br.com.escola.seguranca.application.port.internal.IdentidadeTenantPort;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,10 +20,10 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final AuthService authService;
+    private final IdentidadeTenantPort identidadeTenantPort;
 
-    public JwtAuthenticationFilter(AuthService authService) {
-        this.authService = authService;
+    public JwtAuthenticationFilter(IdentidadeTenantPort identidadeTenantPort) {
+        this.identidadeTenantPort = identidadeTenantPort;
     }
 
     @Override
@@ -39,11 +39,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = header.substring(7);
 
             try {
-                UsuarioEntity usuario = authService.validarAccessToken(token);
+                PrincipalAutenticadoResumo principalResumo = identidadeTenantPort.resolverPrincipal(token);
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails principal = User.withUsername(usuario.getUsername())
-                            .password(usuario.getSenhaHash())
-                            .authorities(authService.buscarPermissoes(usuario.getId()).toArray(new String[0]))
+                    UserDetails principal = User.withUsername(principalResumo.username())
+                            .password("N/A")
+                            .authorities(principalResumo.permissoes().toArray(new String[0]))
                             .build();
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());

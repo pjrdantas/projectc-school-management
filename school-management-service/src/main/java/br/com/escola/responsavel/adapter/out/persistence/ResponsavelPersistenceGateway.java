@@ -18,13 +18,11 @@ import br.com.escola.responsavel.domain.exception.ResponsavelNaoEncontradoExcept
 import br.com.escola.compartilhado.pessoa.dto.EnderecoDados;
 import br.com.escola.compartilhado.pessoa.dto.PessoaCriada;
 import br.com.escola.compartilhado.pessoa.dto.PessoaDados;
-import br.com.escola.compartilhado.endereco.entity.EnderecoEntity;
-import br.com.escola.compartilhado.endereco.entity.PessoaEnderecoEntity;
-import br.com.escola.compartilhado.endereco.repository.EnderecoJpaRepository;
-import br.com.escola.compartilhado.endereco.repository.PessoaEnderecoJpaRepository;
+import br.com.escola.compartilhado.pessoa.dto.internal.PessoaEnderecoResumo;
+import br.com.escola.compartilhado.pessoa.port.internal.PessoaCadastroPort;
+import br.com.escola.compartilhado.pessoa.port.internal.PessoaEnderecoPort;
 import br.com.escola.compartilhado.pessoa.repository.PessoaJpaRepository;
 import br.com.escola.compartilhado.pessoa.repository.PessoaTipoPessoaJpaRepository;
-import br.com.escola.compartilhado.pessoa.service.PessoaFoundationService;
 import br.com.escola.documento.adapter.out.persistence.repository.DocumentoJpaRepository;
 import br.com.escola.institucional.application.service.EscolaTenantService;
 
@@ -34,10 +32,9 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
     private final ResponsavelJpaRepository responsavelJpaRepository;
     private final PessoaJpaRepository pessoaJpaRepository;
     private final PessoaTipoPessoaJpaRepository pessoaTipoPessoaJpaRepository;
-    private final EnderecoJpaRepository enderecoJpaRepository;
     private final DocumentoJpaRepository documentoJpaRepository;
-    private final PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository;
-    private final PessoaFoundationService pessoaFoundationService;
+    private final PessoaCadastroPort pessoaCadastroPort;
+    private final PessoaEnderecoPort pessoaEnderecoPort;
     private final AlunoResponsavelJpaRepository alunoResponsavelJpaRepository;
     private final EscolaTenantService escolaTenantService;
 
@@ -45,19 +42,17 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
             ResponsavelJpaRepository responsavelJpaRepository,
             PessoaJpaRepository pessoaJpaRepository,
             PessoaTipoPessoaJpaRepository pessoaTipoPessoaJpaRepository,
-            EnderecoJpaRepository enderecoJpaRepository,
             DocumentoJpaRepository documentoJpaRepository,
-            PessoaEnderecoJpaRepository pessoaEnderecoJpaRepository,
-            PessoaFoundationService pessoaFoundationService,
+            PessoaCadastroPort pessoaCadastroPort,
+            PessoaEnderecoPort pessoaEnderecoPort,
             AlunoResponsavelJpaRepository alunoResponsavelJpaRepository,
             EscolaTenantService escolaTenantService) {
         this.responsavelJpaRepository = responsavelJpaRepository;
         this.pessoaJpaRepository = pessoaJpaRepository;
         this.pessoaTipoPessoaJpaRepository = pessoaTipoPessoaJpaRepository;
-        this.enderecoJpaRepository = enderecoJpaRepository;
         this.documentoJpaRepository = documentoJpaRepository;
-        this.pessoaEnderecoJpaRepository = pessoaEnderecoJpaRepository;
-        this.pessoaFoundationService = pessoaFoundationService;
+        this.pessoaCadastroPort = pessoaCadastroPort;
+        this.pessoaEnderecoPort = pessoaEnderecoPort;
         this.alunoResponsavelJpaRepository = alunoResponsavelJpaRepository;
         this.escolaTenantService = escolaTenantService;
     }
@@ -75,7 +70,7 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
     @Override
     @Transactional
     public ResponsavelOutput save(ResponsavelInput input) {
-        PessoaCriada pessoaCriada = pessoaFoundationService.criarPessoaComTipoEEndereco(
+        PessoaCriada pessoaCriada = pessoaCadastroPort.criarPessoaComTipoEEndereco(
                 toPessoaDados(input),
                 "RESPONSAVEL",
                 toEnderecoDados(input),
@@ -92,7 +87,7 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
         ResponsavelEntity entity = responsavelJpaRepository.findByIdAndPessoa_Escola_Id(id, resolverEscolaId(input.escolaId()))
                 .orElseThrow(() -> new ResponsavelNaoEncontradoException(id));
 
-        pessoaFoundationService.atualizarPessoaEEndereco(
+        pessoaCadastroPort.atualizarPessoaEEndereco(
                 entity.getPessoa(),
                 toPessoaDados(input),
                 toEnderecoDados(input),
@@ -106,18 +101,12 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
         ResponsavelEntity responsavel = responsavelJpaRepository.findByIdAndPessoa_Escola_Id(id, resolverEscolaId(null))
                 .orElseThrow(() -> new ResponsavelNaoEncontradoException(id));
         UUID pessoaId = responsavel.getPessoa().getId();
-        List<UUID> enderecoIds = pessoaEnderecoJpaRepository.findByPessoaId(pessoaId).stream()
-                .map(vinculo -> vinculo.getEndereco().getId())
-                .toList();
 
         responsavelJpaRepository.delete(responsavel);
         responsavelJpaRepository.flush();
         documentoJpaRepository.deletePessoaDocumentoByPessoaId(pessoaId);
         documentoJpaRepository.deleteDocumentosSemVinculo();
-        pessoaEnderecoJpaRepository.deleteByPessoaId(pessoaId);
-        enderecoIds.stream()
-                .filter(enderecoId -> pessoaEnderecoJpaRepository.countByEnderecoId(enderecoId) == 0)
-                .forEach(enderecoJpaRepository::deleteById);
+        pessoaEnderecoPort.removerEnderecosDaPessoaRemovendoOrfaos(pessoaId);
         pessoaTipoPessoaJpaRepository.deleteByPessoaId(pessoaId);
         pessoaJpaRepository.deleteById(pessoaId);
     }
@@ -143,9 +132,8 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
     }
 
     private ResponsavelOutput toOutput(ResponsavelEntity entity) {
-        EnderecoEntity endereco = pessoaEnderecoJpaRepository
-                .findPrincipalByPessoaId(entity.getPessoa().getId())
-                .map(PessoaEnderecoEntity::getEndereco)
+        PessoaEnderecoResumo endereco = pessoaEnderecoPort
+                .buscarEnderecoPrincipalPorPessoa(entity.getPessoa().getId())
                 .orElse(null);
 
         return new ResponsavelOutput(
@@ -155,13 +143,13 @@ public class ResponsavelPersistenceGateway implements ResponsavelCommandGateway,
                 entity.getEmail(),
                 entity.getTelefone(),
                 entity.getRg(),
-                endereco != null ? endereco.getCep() : null,
-                endereco != null ? endereco.getLogradouro() : null,
-                endereco != null ? endereco.getNumero() : null,
-                endereco != null ? endereco.getComplemento() : null,
-                endereco != null ? endereco.getBairro() : null,
-                endereco != null ? endereco.getCidade() : null,
-                endereco != null ? endereco.getUf() : null,
+                endereco != null ? endereco.cep() : null,
+                endereco != null ? endereco.logradouro() : null,
+                endereco != null ? endereco.numero() : null,
+                endereco != null ? endereco.complemento() : null,
+                endereco != null ? endereco.bairro() : null,
+                endereco != null ? endereco.cidade() : null,
+                endereco != null ? endereco.uf() : null,
                 entity.getPessoa().getEscola().getId(),
                 entity.getPessoa().getEscola().getNome(),
                 entity.getCreatedAt());

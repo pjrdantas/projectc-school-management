@@ -2,16 +2,14 @@ package br.com.escola.matricula.application.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.escola.avaliacao.adapter.out.persistence.entity.NotaAlunoEntity;
-import br.com.escola.avaliacao.adapter.out.persistence.repository.NotaAlunoJpaRepository;
-import br.com.escola.frequencia.adapter.out.persistence.entity.FrequenciaAlunoEntity;
-import br.com.escola.frequencia.adapter.out.persistence.repository.FrequenciaAlunoJpaRepository;
+import br.com.escola.historico.application.dto.internal.FrequenciaAcademicaResumo;
+import br.com.escola.historico.application.dto.internal.NotaAcademicaResumo;
+import br.com.escola.historico.application.port.internal.RendimentoAcademicoPort;
 import br.com.escola.matricula.adapter.in.web.dto.MatriculaAcademicoFrequenciaResponse;
 import br.com.escola.matricula.adapter.in.web.dto.MatriculaAcademicoIndicadoresResponse;
 import br.com.escola.matricula.adapter.in.web.dto.MatriculaAcademicoNotaResponse;
@@ -27,18 +25,15 @@ public class MatriculaAcademicoResumoService {
     private static final BigDecimal CEM = BigDecimal.valueOf(100);
 
     private final MatriculaJpaRepository matriculaJpaRepository;
-    private final FrequenciaAlunoJpaRepository frequenciaAlunoJpaRepository;
-    private final NotaAlunoJpaRepository notaAlunoJpaRepository;
+    private final RendimentoAcademicoPort rendimentoAcademicoPort;
     private final EscolaContextoPort escolaContextoPort;
 
     public MatriculaAcademicoResumoService(
             MatriculaJpaRepository matriculaJpaRepository,
-            FrequenciaAlunoJpaRepository frequenciaAlunoJpaRepository,
-            NotaAlunoJpaRepository notaAlunoJpaRepository,
+            RendimentoAcademicoPort rendimentoAcademicoPort,
             EscolaContextoPort escolaContextoPort) {
         this.matriculaJpaRepository = matriculaJpaRepository;
-        this.frequenciaAlunoJpaRepository = frequenciaAlunoJpaRepository;
-        this.notaAlunoJpaRepository = notaAlunoJpaRepository;
+        this.rendimentoAcademicoPort = rendimentoAcademicoPort;
         this.escolaContextoPort = escolaContextoPort;
     }
 
@@ -49,10 +44,9 @@ public class MatriculaAcademicoResumoService {
                 .findByIdAndTurma_Escola_Id(matriculaId, escolaId)
                 .orElseThrow(() -> new MatriculaNaoEncontradaException(matriculaId));
 
-        List<FrequenciaAlunoEntity> frequencias = frequenciaAlunoJpaRepository
-                .findByMatricula_IdAndMatricula_Turma_Escola_Id(matriculaId, escolaId);
-        List<NotaAlunoEntity> notas = notaAlunoJpaRepository
-                .findByMatricula_IdAndMatricula_Turma_Escola_Id(matriculaId, escolaId);
+        var rendimento = rendimentoAcademicoPort.consultarPorMatricula(matriculaId, escolaId);
+        var frequencias = rendimento.frequencias();
+        var notas = rendimento.notas();
 
         return new MatriculaAcademicoResumoResponse(
                 matricula.getId(),
@@ -70,8 +64,8 @@ public class MatriculaAcademicoResumoService {
     }
 
     private MatriculaAcademicoIndicadoresResponse toIndicadores(
-            List<FrequenciaAlunoEntity> frequencias,
-            List<NotaAlunoEntity> notas) {
+            java.util.List<FrequenciaAcademicaResumo> frequencias,
+            java.util.List<NotaAcademicaResumo> notas) {
         long presencas = countSituacao(frequencias, "PRESENTE");
         long faltas = countSituacao(frequencias, "FALTA");
         long faltasJustificadas = countSituacao(frequencias, "FALTA_JUSTIFICADA");
@@ -80,14 +74,14 @@ public class MatriculaAcademicoResumoService {
         BigDecimal mediaPercentual = BigDecimal.ZERO;
         if (!notas.isEmpty()) {
             mediaNotas = notas.stream()
-                    .map(NotaAlunoEntity::getNota)
+                    .map(NotaAcademicaResumo::nota)
                     .reduce(BigDecimal.ZERO, BigDecimal::add)
                     .divide(BigDecimal.valueOf(notas.size()), 2, RoundingMode.HALF_UP);
 
             mediaPercentual = notas.stream()
-                    .map(nota -> nota.getNota()
+                    .map(nota -> nota.nota()
                             .multiply(CEM)
-                            .divide(nota.getAvaliacao().getValorMaximo(), 2, RoundingMode.HALF_UP))
+                            .divide(nota.valorMaximo(), 2, RoundingMode.HALF_UP))
                     .reduce(BigDecimal.ZERO, BigDecimal::add)
                     .divide(BigDecimal.valueOf(notas.size()), 2, RoundingMode.HALF_UP);
         }
@@ -102,35 +96,35 @@ public class MatriculaAcademicoResumoService {
                 mediaPercentual);
     }
 
-    private long countSituacao(List<FrequenciaAlunoEntity> frequencias, String situacao) {
+    private long countSituacao(java.util.List<FrequenciaAcademicaResumo> frequencias, String situacao) {
         return frequencias.stream()
-                .filter(frequencia -> situacao.equals(frequencia.getSituacaoFrequencia().getCodigo()))
+                .filter(frequencia -> situacao.equals(frequencia.situacao()))
                 .count();
     }
 
-    private MatriculaAcademicoFrequenciaResponse toFrequenciaResponse(FrequenciaAlunoEntity entity) {
+    private MatriculaAcademicoFrequenciaResponse toFrequenciaResponse(FrequenciaAcademicaResumo entity) {
         return new MatriculaAcademicoFrequenciaResponse(
-                entity.getId(),
-                entity.getAula().getId(),
-                entity.getAula().getDataAula(),
-                entity.getAula().getProfessorTurmaDisciplina().getTurmaDisciplina().getDisciplina().getId(),
-                entity.getAula().getProfessorTurmaDisciplina().getTurmaDisciplina().getDisciplina().getNome(),
-                entity.getSituacaoFrequencia().getCodigo(),
-                entity.getJustificativa());
+                entity.id(),
+                entity.aulaId(),
+                entity.dataAula(),
+                entity.disciplinaId(),
+                entity.disciplinaNome(),
+                entity.situacao(),
+                entity.justificativa());
     }
 
-    private MatriculaAcademicoNotaResponse toNotaResponse(NotaAlunoEntity entity) {
+    private MatriculaAcademicoNotaResponse toNotaResponse(NotaAcademicaResumo entity) {
         return new MatriculaAcademicoNotaResponse(
-                entity.getId(),
-                entity.getAvaliacao().getId(),
-                entity.getAvaliacao().getTitulo(),
-                entity.getAvaliacao().getDataAplicacao(),
-                entity.getAvaliacao().getProfessorTurmaDisciplina().getTurmaDisciplina().getDisciplina().getId(),
-                entity.getAvaliacao().getProfessorTurmaDisciplina().getTurmaDisciplina().getDisciplina().getNome(),
-                entity.getAvaliacao().getTipoAvaliacao().getCodigo(),
-                entity.getNota(),
-                entity.getAvaliacao().getValorMaximo(),
-                entity.getAvaliacao().getPeso(),
-                entity.getObservacao());
+                entity.id(),
+                entity.avaliacaoId(),
+                entity.avaliacaoTitulo(),
+                entity.dataAplicacao(),
+                entity.disciplinaId(),
+                entity.disciplinaNome(),
+                entity.tipoAvaliacao(),
+                entity.nota(),
+                entity.valorMaximo(),
+                entity.peso(),
+                entity.observacao());
     }
 }

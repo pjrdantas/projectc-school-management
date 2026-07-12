@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -92,7 +91,22 @@ public class BearerAuthenticationWebFilter implements WebFilter {
                 || path.matches("^/api/turmas/[^/]+$")
                 || path.matches("^/api/turmas/[^/]+/disciplinas$")
                 || "/api/academico/catalogos/niveis-ensino".equals(path)
-                || "/api/academico/catalogos/turnos".equals(path);
+                || "/api/academico/catalogos/turnos".equals(path)
+                || "/api/professores".equals(path)
+                || path.matches("^/api/professores/[^/]+$")
+                || "/api/funcionarios".equals(path)
+                || path.matches("^/api/funcionarios/[^/]+$")
+                || "/api/consulta-cadastral".equals(path)
+                || "/api/pessoas/catalogos/tipos-pessoa".equals(path)
+                || "/api/pessoas/catalogos/tipos-endereco".equals(path)
+                || "/api/pessoas/catalogos/status-aluno".equals(path)
+                || "/api/pessoas/catalogos/parentescos".equals(path)
+                || path.matches("^/api/pessoas/[^/]+$")
+                || path.matches("^/api/pessoas/[^/]+/endereco-principal$")
+                || path.matches("^/api/pessoas/[^/]+/enderecos$")
+                || path.matches("^/api/pessoas/[^/]+/contato$")
+                || path.matches("^/api/pessoas/[^/]+/documentos$")
+                || path.matches("^/api/documentos/[^/]+$");
     }
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {

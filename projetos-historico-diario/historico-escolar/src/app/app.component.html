@@ -1,0 +1,724 @@
+<main class="page-shell no-print">
+  <aside class="sidebar no-print">
+    <mat-card>
+      <mat-card-header>
+        <mat-icon mat-card-avatar>school</mat-icon>
+        <mat-card-title>Histórico Escolar</mat-card-title>
+        <mat-card-subtitle>Ensino Fundamental</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="summary-label">Preenchimento</p>
+        <div class="presence-rate">{{ progressoPreenchimento }}%</div>
+        <mat-progress-bar mode="determinate" [value]="progressoPreenchimento"></mat-progress-bar>
+        <p class="summary-text">{{ camposPreenchidos }} de {{ totalCampos }} campos preenchidos</p>
+
+        <mat-divider></mat-divider>
+
+        <div class="student-summary">
+          <p class="summary-label">Aluno</p>
+          <strong>{{ aluno.nome || 'Nome não informado' }}</strong>
+          <span>RA: {{ aluno.ra || '—' }}</span>
+          <span>RG/RNM: {{ aluno.rg || '—' }}</span>
+        </div>
+
+        <div class="history-summary-box">
+          <p class="summary-label">Status</p>
+          <strong>{{ statusVisual }}</strong>
+          <span>Série atual: {{ contexto.serieMatriculaAtual || '—' }}</span>
+          <span>Série de origem: {{ contexto.serieConcluidaOrigem || '—' }}</span>
+        </div>
+
+        <div class="print-hint">
+          <mat-icon>info</mat-icon>
+          <span>Na tela você edita em visual moderno. Ao imprimir/PDF, sai no modelo oficial.</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </aside>
+
+  <section class="content">
+    <mat-card class="document-card">
+      <mat-card-header class="document-header">
+        <div class="page-title-group">
+          <div class="page-icon">
+            <mat-icon>history_edu</mat-icon>
+          </div>
+          <div>
+            <mat-card-title>Histórico Escolar</mat-card-title>
+            <mat-card-subtitle>Ensino Fundamental</mat-card-subtitle>
+          </div>
+        </div>
+
+        <div class="page-actions">
+          <input #historicoPdfInput class="pdf-input-hidden" type="file" accept="application/pdf,.pdf" (change)="importarPdf($event)">
+          <button mat-stroked-button color="primary" (click)="historicoPdfInput.click()" [disabled]="importandoPdf || salvando" matTooltip="Importar um PDF de Histórico Escolar e preencher a tela automaticamente">
+            <mat-icon>upload_file</mat-icon>
+            {{ importandoPdf ? 'Lendo PDF...' : 'Importar PDF' }}
+          </button>
+          <button mat-flat-button color="primary" (click)="salvarHistorico()" [disabled]="salvarDesabilitado" matTooltip="Salvar cadastro ou edição do Histórico Escolar">
+            <mat-icon>save</mat-icon>
+            {{ salvando ? 'Salvando...' : 'Salvar' }}
+          </button>
+          <button mat-stroked-button (click)="imprimir()" matTooltip="Imprimir usando o modelo oficial">
+            <mat-icon>print</mat-icon>
+            Imprimir
+          </button>
+          <button mat-flat-button color="primary" (click)="exportarPdf()" matTooltip="Salvar em PDF usando o modelo oficial">
+            <mat-icon>download</mat-icon>
+            Exportar PDF
+          </button>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content>
+        <section class="backend-status-panel" [class.success]="mensagemTipo === 'success'" [class.error]="mensagemTipo === 'error'">
+          <div>
+            <strong>{{ modoVisual }} • {{ statusVisual }}</strong>
+            <p>{{ mensagemSistema }}</p>
+          </div>
+          <div class="status-pill">{{ contexto.status }}</div>
+        </section>
+
+        <section class="pdf-import-panel" *ngIf="arquivoPdfImportado">
+          <mat-icon>picture_as_pdf</mat-icon>
+          <div>
+            <strong>PDF importado</strong>
+            <p>{{ arquivoPdfImportado }} — confira os dados extraídos antes de salvar.</p>
+          </div>
+        </section>
+
+        <section class="pending-panel" *ngIf="pendencias.length">
+          <div class="pending-title">
+            <mat-icon>warning</mat-icon>
+            <strong>Pendências do Histórico Escolar</strong>
+          </div>
+          <ul>
+            <li *ngFor="let pendencia of pendencias" [class.error-item]="pendencia.severidade === 'ERRO'">
+              {{ pendencia.mensagem }}
+            </li>
+          </ul>
+        </section>
+
+        <section class="school-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Governo</mat-label>
+            <input matInput [(ngModel)]="cabecalho.governo" required [class.required-missing]="campoCadastroPendente(cabecalho.governo)">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Secretaria</mat-label>
+            <input matInput [(ngModel)]="cabecalho.secretaria" required [class.required-missing]="campoCadastroPendente(cabecalho.secretaria)">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="wide">
+            <mat-label>Diretoria de Ensino</mat-label>
+            <input matInput [(ngModel)]="cabecalho.diretoria" required [class.required-missing]="campoCadastroPendente(cabecalho.diretoria)">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="wide">
+            <mat-label>Escola</mat-label>
+            <input matInput [(ngModel)]="cabecalho.escola" required [class.required-missing]="campoCadastroPendente(cabecalho.escola)">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="wide">
+            <mat-label>Ato legal de criação</mat-label>
+            <input matInput [(ngModel)]="cabecalho.atoLegalCriacao" required [class.required-missing]="campoCadastroPendente(cabecalho.atoLegalCriacao)">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="wide">
+            <mat-label>Endereço</mat-label>
+            <input matInput [(ngModel)]="cabecalho.endereco" required [class.required-missing]="campoCadastroPendente(cabecalho.endereco)">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Número</mat-label>
+            <input matInput [(ngModel)]="cabecalho.numero" required [class.required-missing]="campoCadastroPendente(cabecalho.numero)">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Bairro</mat-label>
+            <input matInput [(ngModel)]="cabecalho.bairro" required [class.required-missing]="campoCadastroPendente(cabecalho.bairro)">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Município</mat-label>
+            <input matInput [(ngModel)]="cabecalho.municipio" required [class.required-missing]="campoCadastroPendente(cabecalho.municipio)">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>CEP</mat-label>
+            <input matInput [(ngModel)]="cabecalho.cep" required [class.required-missing]="campoCadastroPendente(cabecalho.cep)">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Telefone</mat-label>
+            <input matInput [(ngModel)]="cabecalho.telefone" required [class.required-missing]="campoCadastroPendente(cabecalho.telefone)">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>E-mail</mat-label>
+            <input matInput [(ngModel)]="cabecalho.email" required [class.required-missing]="campoCadastroPendente(cabecalho.email)">
+          </mat-form-field>
+        </section>
+
+        <section class="student-grid">
+          <mat-form-field appearance="outline" class="wide">
+            <mat-label>Nome do aluno</mat-label>
+            <input matInput [(ngModel)]="aluno.nome" required [class.required-missing]="campoCadastroPendente(aluno.nome)">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>RG/RNM</mat-label>
+            <input matInput [(ngModel)]="aluno.rg" required [class.required-missing]="campoCadastroPendente(aluno.rg)">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>RA</mat-label>
+            <input matInput [(ngModel)]="aluno.ra" required [class.required-missing]="campoCadastroPendente(aluno.ra)">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Município de nascimento</mat-label>
+            <input matInput [(ngModel)]="aluno.nascimentoMunicipio" required [class.required-missing]="campoCadastroPendente(aluno.nascimentoMunicipio)">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Estado</mat-label>
+            <input matInput [(ngModel)]="aluno.nascimentoEstado" required [class.required-missing]="campoCadastroPendente(aluno.nascimentoEstado)">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>País</mat-label>
+            <input matInput [(ngModel)]="aluno.nascimentoPais" required [class.required-missing]="campoCadastroPendente(aluno.nascimentoPais)">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Data de nascimento</mat-label>
+            <input matInput [(ngModel)]="aluno.nascimentoData" required [class.required-missing]="campoCadastroPendente(aluno.nascimentoData)">
+          </mat-form-field>
+        </section>
+
+        <section class="context-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Série de matrícula atual</mat-label>
+            <input matInput type="number" min="1" max="9" [(ngModel)]="contexto.serieMatriculaAtual">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Série concluída na escola de origem</mat-label>
+            <input matInput type="number" min="1" max="9" [(ngModel)]="contexto.serieConcluidaOrigem">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Escola de origem</mat-label>
+            <input matInput [(ngModel)]="contexto.escolaOrigem">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Data de transferência</mat-label>
+            <input matInput placeholder="dd/mm/aaaa" [(ngModel)]="contexto.dataTransferencia">
+          </mat-form-field>
+          <p class="context-help">
+            Para aluno transferido para a série atual, o sistema sinaliza como pendência tudo que estiver faltando até a série anterior.
+          </p>
+        </section>
+
+        <mat-tab-group class="historico-tabs" animationDuration="150ms">
+          <mat-tab label="Anos e componentes">
+            <div class="tab-panel">
+              <section class="boxed-section">
+                <h3>Ano / Período Letivo</h3>
+                <div class="table-scroll years-table-scroll">
+                  <table class="modern-table period-table">
+                    <thead>
+                      <tr>
+                        <th>Campo</th>
+                        <th *ngFor="let periodo of periodos">{{ periodo.serie }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="row-label">Ano letivo</td>
+                        <td *ngFor="let periodo of periodos">
+                          <input class="cell-input center" [(ngModel)]="periodo.anoLetivo" aria-label="Ano letivo">
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="row-label">Equivalência</td>
+                        <td *ngFor="let periodo of periodos">
+                          <input class="cell-input center" [(ngModel)]="periodo.equivalencia" aria-label="Equivalência da série">
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section class="boxed-section">
+                <h3>Base Nacional Comum</h3>
+                <div class="table-scroll years-table-scroll">
+                  <table class="modern-table curriculum-modern-table">
+                    <thead>
+                      <tr>
+                        <th class="component-col">Componente curricular</th>
+                        <th *ngFor="let periodo of periodos">{{ periodo.serie }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let row of baseComumRows">
+                        <td class="component-col">
+                          <input class="cell-input name-input" [(ngModel)]="row.nome" aria-label="Componente curricular da base comum">
+                        </td>
+                        <td *ngFor="let valor of row.valores; let col = index">
+                          <input class="cell-input center" [(ngModel)]="row.valores[col]" aria-label="Nota ou resultado">
+                        </td>
+                      </tr>
+                      <tr class="total-line">
+                        <td>Total de aulas da base comum</td>
+                        <td *ngFor="let valor of totalBaseComum; let col = index">
+                          <input class="cell-input center" [(ngModel)]="totalBaseComum[col]">
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section class="boxed-section">
+                <h3>Parte Diversificada / Eletivas</h3>
+                <div class="table-scroll years-table-scroll">
+                  <table class="modern-table curriculum-modern-table">
+                    <thead>
+                      <tr>
+                        <th class="component-col">Componente curricular</th>
+                        <th *ngFor="let periodo of periodos">{{ periodo.serie }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let row of diversificadaRows">
+                        <td class="component-col">
+                          <input class="cell-input name-input" [(ngModel)]="row.nome" aria-label="Componente curricular da parte diversificada">
+                        </td>
+                        <td *ngFor="let valor of row.valores; let col = index">
+                          <input class="cell-input center" [(ngModel)]="row.valores[col]" aria-label="Nota ou resultado da parte diversificada">
+                        </td>
+                      </tr>
+                      <tr class="total-line">
+                        <td>Total de aulas da parte diversificada</td>
+                        <td *ngFor="let valor of totalParteDiversificada; let col = index">
+                          <input class="cell-input center" [(ngModel)]="totalParteDiversificada[col]">
+                        </td>
+                      </tr>
+                      <tr class="total-line">
+                        <td>Total de aulas anuais</td>
+                        <td *ngFor="let valor of totalAulasAnuais; let col = index">
+                          <input class="cell-input center" [(ngModel)]="totalAulasAnuais[col]">
+                        </td>
+                      </tr>
+                      <tr class="total-line">
+                        <td>Total da carga horária anual</td>
+                        <td *ngFor="let valor of totalCargaHoraria; let col = index">
+                          <input class="cell-input center" [(ngModel)]="totalCargaHoraria[col]">
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+          </mat-tab>
+
+          <mat-tab label="Estudos realizados">
+            <div class="tab-panel">
+              <section class="boxed-section">
+                <h3>Estudos realizados</h3>
+                <div class="table-scroll">
+                  <table class="modern-table studies-modern-table">
+                    <thead>
+                      <tr>
+                        <th>Série/Ano</th>
+                        <th>Ano</th>
+                        <th>Estabelecimento de ensino</th>
+                        <th>Município</th>
+                        <th>UF</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let estudo of estudosRealizados">
+                        <td>
+                          <input class="cell-input center" [(ngModel)]="estudo.serieAno" aria-label="Série ou ano">
+                        </td>
+                        <td>
+                          <input class="cell-input center" [(ngModel)]="estudo.ano" aria-label="Ano">
+                        </td>
+                        <td>
+                          <input class="cell-input" [(ngModel)]="estudo.escola" aria-label="Estabelecimento de ensino">
+                        </td>
+                        <td>
+                          <input class="cell-input" [(ngModel)]="estudo.municipio" aria-label="Município">
+                        </td>
+                        <td>
+                          <input class="cell-input center" [(ngModel)]="estudo.uf" aria-label="UF">
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section class="boxed-section legal-screen-notes">
+                <h3>Fundamento legal e escala de avaliação</h3>
+                <p>Fundamento Legal: Lei Federal 9394/96.</p>
+                <p>Escala de Avaliação: a partir de 2007, escala numérica de notas de 0 a 10, com patamar satisfatório igual ou superior a 5.</p>
+                <p>Os registros de avaliação dos 1º, 2º e 3º Anos do Ensino Fundamental restringem-se aos componentes curriculares de Língua Portuguesa e Matemática.</p>
+                <p>Ensino Fundamental de 9 anos implantado a partir de 2009, de forma gradativa e contínua.</p>
+              </section>
+            </div>
+          </mat-tab>
+
+          <mat-tab label="Observações e certificado">
+            <div class="tab-panel certificate-panel">
+              <section class="boxed-section observations-screen-box">
+                <h3>Observações</h3>
+                <mat-form-field appearance="outline">
+                  <mat-label>Observações do histórico escolar</mat-label>
+                  <textarea matInput rows="9" [(ngModel)]="observacoes"></textarea>
+                </mat-form-field>
+              </section>
+
+              <section class="boxed-section certificate-screen-box">
+                <h3>Certificado</h3>
+                <div class="certificate-grid">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Série concluída certificada</mat-label>
+                    <input matInput type="number" min="1" max="9" [(ngModel)]="certificado.serieConcluida">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Diretor certificante</mat-label>
+                    <input matInput [(ngModel)]="certificado.diretor">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Escola do certificado</mat-label>
+                    <input matInput [(ngModel)]="certificado.escola">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>RG do aluno</mat-label>
+                    <input matInput [(ngModel)]="certificado.rgAluno">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Ano de conclusão</mat-label>
+                    <input matInput [(ngModel)]="certificado.ano">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="wide">
+                    <mat-label>Número de publicação de concluinte</mat-label>
+                    <input matInput [(ngModel)]="certificado.publicacao">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Data de emissão</mat-label>
+                    <input matInput [(ngModel)]="certificado.data">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Nome do Gerente de Organização Escolar</mat-label>
+                    <input matInput [(ngModel)]="certificado.gerenteNome">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>RG do Gerente</mat-label>
+                    <input matInput [(ngModel)]="certificado.gerenteRg">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Nome do Diretor de Escola</mat-label>
+                    <input matInput [(ngModel)]="certificado.diretorNome">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>RG do Diretor</mat-label>
+                    <input matInput [(ngModel)]="certificado.diretorRg">
+                  </mat-form-field>
+                </div>
+              </section>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </mat-card-content>
+    </mat-card>
+  </section>
+</main>
+
+<section class="exact-official-sheet print-only" aria-label="Histórico Escolar Oficial para impressão">
+  <img class="official-template-image" src="assets/historico-escolar-modelo-oficial.png" alt="">
+
+  <div *ngIf="cabecalho.diretoria && cabecalho.diretoria.indexOf('____') === -1" class="template-value template-directorate">{{ cabecalho.diretoria }}</div>
+  <div *ngIf="cabecalho.escola && cabecalho.escola.indexOf('____') === -1" class="template-value template-school">{{ cabecalho.escola }}</div>
+  <div class="template-value template-legal-act">{{ cabecalho.atoLegalCriacao }}</div>
+  <div class="template-value template-address">{{ cabecalho.endereco }}</div>
+  <div class="template-value template-number">{{ cabecalho.numero }}</div>
+  <div class="template-value template-neighborhood">{{ cabecalho.bairro }}</div>
+  <div class="template-value template-city">{{ cabecalho.municipio }}</div>
+  <div class="template-value template-zip">{{ cabecalho.cep }}</div>
+  <div class="template-value template-phone">{{ cabecalho.telefone }}</div>
+  <div class="template-value template-email">{{ cabecalho.email }}</div>
+
+  <div class="template-value template-student-name">{{ aluno.nome }}</div>
+  <div class="template-value template-student-rg">{{ aluno.rg }}</div>
+  <div class="template-value template-student-ra">{{ aluno.ra }}</div>
+  <div class="template-value template-birth-city">{{ aluno.nascimentoMunicipio }}</div>
+  <div class="template-value template-birth-state">{{ aluno.nascimentoEstado }}</div>
+  <div class="template-value template-birth-country">{{ aluno.nascimentoPais }}</div>
+  <div class="template-value template-birth-date">{{ aluno.nascimentoData }}</div>
+
+  <div class="template-period-years">
+    <div *ngFor="let periodo of periodos; let last = last">
+      <strong>{{ last && periodo.anoLetivo === '2020' ? '' : periodo.anoLetivo }}</strong>
+    </div>
+  </div>
+
+  <div class="template-curriculum-grid template-base-grid">
+    <ng-container *ngFor="let row of baseComumRows">
+      <span class="template-component-name"></span>
+      <span *ngFor="let valor of row.valores">{{ valor }}</span>
+    </ng-container>
+  </div>
+
+  <div class="template-curriculum-grid template-diversified-grid">
+    <ng-container *ngFor="let row of diversificadaRows; let rowIndex = index">
+      <span class="template-component-name">{{ rowIndex < 2 ? '' : row.nome }}</span>
+      <span *ngFor="let valor of row.valores">{{ valor }}</span>
+    </ng-container>
+  </div>
+
+  <div class="template-studies-grid">
+    <ng-container *ngFor="let estudo of estudosRealizados">
+      <span></span>
+      <span>{{ estudo.ano }}</span>
+      <span>{{ estudo.escola }}</span>
+      <span>{{ estudo.municipio }}</span>
+      <span>{{ estudo.uf }}</span>
+    </ng-container>
+  </div>
+
+  <div class="template-value template-observations">{{ observacoes }}</div>
+
+  <div *ngIf="certificado.escola || aluno.nome || certificado.rgAluno || certificado.ano" class="template-certificate-text">
+    O Diretor da EE <strong>{{ certificado.escola }}</strong>, CERTIFICA, nos termos do Inciso VII,
+    Artigo 24 da Lei Federal 9394/96, que <strong>{{ aluno.nome }}</strong>, RG
+    <strong>{{ certificado.rgAluno }}</strong>, concluiu o Ensino Fundamental, no ano de
+    <strong>{{ certificado.ano }}</strong>.
+  </div>
+  <div *ngIf="certificado.publicacao" class="template-publication">
+    <strong>Número de publicação de concluinte (Resolução SE 61/2019):</strong>
+    <span>{{ certificado.publicacao }}</span>
+  </div>
+
+  <div class="template-value template-signature-date">{{ certificado.data }}</div>
+  <div class="template-value template-manager-name">{{ certificado.gerenteNome }}</div>
+  <div class="template-value template-manager-rg">{{ certificado.gerenteRg }}</div>
+  <div class="template-value template-director-name">{{ certificado.diretorNome }}</div>
+  <div class="template-value template-director-rg">{{ certificado.diretorRg }}</div>
+</section>
+
+<section class="official-sheet legacy-official-sheet" aria-hidden="true">
+  <header class="official-header">
+    <div class="logo-box">
+      <img src="assets/brasao-sp.png" alt="Brasão do Governo do Estado de São Paulo">
+    </div>
+
+    <div class="school-lines">
+      <div class="line-row strong">{{ cabecalho.governo }}</div>
+      <div class="line-row strong">{{ cabecalho.secretaria }}</div>
+      <div class="line-row strong editable-line">
+        <input [(ngModel)]="cabecalho.diretoria" aria-label="Diretoria de Ensino">
+      </div>
+      <div class="line-row strong editable-line">
+        <input [(ngModel)]="cabecalho.escola" aria-label="Escola">
+      </div>
+      <div class="line-row ato">
+        <span>{{ cabecalho.atoLegal }}</span>
+        <input [(ngModel)]="cabecalho.atoLegalCriacao" aria-label="Ato legal de criação">
+      </div>
+    </div>
+
+    <div class="address-lines">
+      <div class="mini-row span-2">
+        <label>Endereço:</label>
+        <input [(ngModel)]="cabecalho.endereco" aria-label="Endereço">
+        <label>Nº</label>
+        <input class="tiny" [(ngModel)]="cabecalho.numero" aria-label="Número">
+      </div>
+      <div class="mini-row">
+        <label>Bairro:</label>
+        <input [(ngModel)]="cabecalho.bairro" aria-label="Bairro">
+        <label>Município:</label>
+        <input [(ngModel)]="cabecalho.municipio" aria-label="Município">
+        <label>Cep:</label>
+        <input class="small" [(ngModel)]="cabecalho.cep" aria-label="CEP">
+      </div>
+      <div class="mini-row">
+        <label>Telefone:</label>
+        <input class="small" [(ngModel)]="cabecalho.telefone" aria-label="Telefone">
+        <label>Endereço eletrônico:</label>
+        <input [(ngModel)]="cabecalho.email" aria-label="Endereço eletrônico">
+      </div>
+    </div>
+  </header>
+
+  <div class="document-title">HISTÓRICO ESCOLAR - ENSINO FUNDAMENTAL</div>
+
+  <section class="student-block">
+    <div class="student-row">
+      <label>Nome:</label>
+      <input [(ngModel)]="aluno.nome" aria-label="Nome do aluno">
+      <label>RG/RNM:</label>
+      <input [(ngModel)]="aluno.rg" aria-label="RG ou RNM">
+      <label>RA:</label>
+      <input [(ngModel)]="aluno.ra" aria-label="RA">
+    </div>
+    <div class="student-row birth-row">
+      <strong>Nascimento:</strong>
+      <label>Município:</label>
+      <input [(ngModel)]="aluno.nascimentoMunicipio" aria-label="Município de nascimento">
+      <label>Estado:</label>
+      <input [(ngModel)]="aluno.nascimentoEstado" aria-label="Estado de nascimento">
+      <label>País:</label>
+      <input [(ngModel)]="aluno.nascimentoPais" aria-label="País de nascimento">
+    </div>
+    <div class="student-row birth-row-bottom">
+      <span></span>
+      <label>Data:</label>
+      <input [(ngModel)]="aluno.nascimentoData" aria-label="Data de nascimento">
+    </div>
+  </section>
+
+  <table class="official-table curriculum-table">
+    <thead>
+      <tr>
+        <th rowspan="3" class="legal-column-header"></th>
+        <th rowspan="3" colspan="2" class="componentes-header">COMPONENTES CURRICULARES</th>
+        <th [attr.colspan]="periodos.length" class="period-title">ANO/PERÍODO LETIVO</th>
+      </tr>
+      <tr>
+        <th *ngFor="let periodo of periodos" class="year-cell">
+          <span>ANO</span>
+          <input [(ngModel)]="periodo.anoLetivo" aria-label="Ano letivo">
+        </th>
+      </tr>
+      <tr>
+        <th *ngFor="let periodo of periodos" class="serie-cell">
+          <span>{{ periodo.serie }}</span>
+          <small>{{ periodo.equivalencia }}</small>
+        </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let row of baseComumRows; let i = index">
+        <td *ngIf="i === 0" [attr.rowspan]="totalCurriculoRows" class="vertical-cell legal-text">
+          Fundamento Legal: Lei Federal 9394/96
+        </td>
+        <td *ngIf="i === 0" [attr.rowspan]="baseComumRows.length" class="vertical-cell group-label">
+          BASE NACIONAL COMUM
+        </td>
+        <td class="component-name">
+          <input [(ngModel)]="row.nome" aria-label="Componente curricular da base comum">
+        </td>
+        <td *ngFor="let valor of row.valores; let col = index">
+          <input class="center-input" [(ngModel)]="row.valores[col]" aria-label="Resultado curricular">
+        </td>
+      </tr>
+
+      <tr class="total-row">
+        <td colspan="2">TOTAL DE AULAS DA BASE COMUM</td>
+        <td *ngFor="let valor of totalBaseComum; let col = index">
+          <input class="center-input" [(ngModel)]="totalBaseComum[col]" aria-label="Total de aulas da base comum">
+        </td>
+      </tr>
+
+      <tr *ngFor="let row of diversificadaRows; let i = index" [class.blank-row]="!row.nome">
+        <td *ngIf="i === 0" [attr.rowspan]="diversificadaRows.length" class="vertical-cell group-label diversified">
+          PARTE DIVERSIFICADA<br><br><span>ELETIVAS</span>
+        </td>
+        <td class="component-name">
+          <input [(ngModel)]="row.nome" aria-label="Componente curricular da parte diversificada">
+        </td>
+        <td *ngFor="let valor of row.valores; let col = index">
+          <input class="center-input" [(ngModel)]="row.valores[col]" aria-label="Resultado curricular parte diversificada">
+        </td>
+      </tr>
+
+      <tr class="total-row">
+        <td colspan="2">TOTAL DE AULAS DA PARTE DIVERSIFICADA</td>
+        <td *ngFor="let valor of totalParteDiversificada; let col = index">
+          <input class="center-input" [(ngModel)]="totalParteDiversificada[col]" aria-label="Total de aulas da parte diversificada">
+        </td>
+      </tr>
+
+      <tr class="total-row">
+        <td colspan="2">TOTAL DE AULAS ANUAIS (Aulas)</td>
+        <td *ngFor="let valor of totalAulasAnuais; let col = index">
+          <input class="center-input" [(ngModel)]="totalAulasAnuais[col]" aria-label="Total de aulas anuais">
+        </td>
+      </tr>
+
+      <tr class="total-row">
+        <td colspan="2">TOTAL DA CARGA HORÁRIA ANUAL (Horas)</td>
+        <td *ngFor="let valor of totalCargaHoraria; let col = index">
+          <input class="center-input" [(ngModel)]="totalCargaHoraria[col]" aria-label="Total da carga horária anual">
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table class="official-table studies-table">
+    <tbody>
+      <tr>
+        <td [attr.rowspan]="estudosRealizados.length + 1" class="vertical-cell studies-label">ESTUDOS REALIZADOS</td>
+        <th>Série/Ano</th>
+        <th>ANO</th>
+        <th>ESTABELECIMENTO DE ENSINO</th>
+        <th>MUNICÍPIO</th>
+        <th>UF</th>
+      </tr>
+      <tr *ngFor="let estudo of estudosRealizados">
+        <td class="serie-studies">{{ estudo.serieAno }}</td>
+        <td><input class="center-input" [(ngModel)]="estudo.ano" aria-label="Ano dos estudos realizados"></td>
+        <td><input [(ngModel)]="estudo.escola" aria-label="Estabelecimento de ensino"></td>
+        <td><input [(ngModel)]="estudo.municipio" aria-label="Município dos estudos realizados"></td>
+        <td><input class="center-input uf-input" [(ngModel)]="estudo.uf" aria-label="UF dos estudos realizados"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <section class="legal-notes">
+    <p>
+      Escala de Avaliação: A partir de 2007 - Escala numérica de notas de 0 (zero) a 10 (dez), com patamar indicativo de desempenho escolar satisfatório, a nota igual ou superior a 5 (cinco).
+    </p>
+    <p>
+      Os registros de avaliação dos 1º, 2º e 3º Anos do Ensino Fundamental restringir-se-ão aos componentes curriculares de Língua Portuguesa e Matemática, nos termos da Resolução SE 02, de 29/10/2019.
+    </p>
+    <p>
+      Ensino Fundamental de 9 (nove) anos, implantado a partir de 2009, de forma gradativa e contínua, nos termos da Resolução SE 98/2008 e Deliberação CEE/SP nº 73/2008.
+    </p>
+  </section>
+
+  <section class="observations-box">
+    <strong>OBSERVAÇÕES:</strong>
+    <textarea [(ngModel)]="observacoes" aria-label="Observações do histórico escolar"></textarea>
+  </section>
+
+  <section class="certificate-box">
+    <div class="certificate-title">CERTIFICADO</div>
+    <p>
+      O Diretor da EE
+      <input [(ngModel)]="certificado.escola" aria-label="Escola do certificado">
+      , CERTIFICA, nos termos do Inciso VII, Artigo 24 da Lei Federal 9394/96, que
+      <input [(ngModel)]="aluno.nome" aria-label="Nome do aluno no certificado">
+      , RG
+      <input [(ngModel)]="certificado.rgAluno" aria-label="RG do aluno no certificado">
+      , concluiu o Ensino Fundamental, no ano de
+      <input class="short-line" [(ngModel)]="certificado.ano" aria-label="Ano de conclusão">.
+    </p>
+    <div class="publication-row">
+      <strong>Número de publicação de concluinte (Resolução SE 61/2019):</strong>
+      <input [(ngModel)]="certificado.publicacao" aria-label="Número de publicação de concluinte">
+    </div>
+  </section>
+
+  <section class="signature-grid">
+    <div class="date-box">
+      <label>Data:</label>
+      <input [(ngModel)]="certificado.data" placeholder="____/____/________" aria-label="Data de emissão">
+    </div>
+    <div class="signature-box">
+      <input [(ngModel)]="certificado.gerenteNome" aria-label="Nome do Gerente de Organização Escolar">
+      <span>Nome</span>
+      <input [(ngModel)]="certificado.gerenteRg" aria-label="RG do Gerente de Organização Escolar">
+      <span>RG</span>
+      <strong>Gerente de Organização Escolar</strong>
+    </div>
+    <div class="signature-box">
+      <input [(ngModel)]="certificado.diretorNome" aria-label="Nome do Diretor de Escola">
+      <span>Nome</span>
+      <input [(ngModel)]="certificado.diretorRg" aria-label="RG do Diretor de Escola">
+      <span>RG</span>
+      <strong>Diretor de Escola</strong>
+    </div>
+  </section>
+</section>

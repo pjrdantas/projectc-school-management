@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarRequest;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarResponse;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarGeracaoRequest;
+import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarTelaResponse;
 import br.com.escola.historico.application.service.HistoricoEscolarService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -59,6 +61,21 @@ public class HistoricoEscolarController {
     @Operation(summary = "Busca histórico escolar por ID")
     public HistoricoEscolarResponse buscarPorId(@PathVariable @NonNull UUID id) {
         return historicoEscolarService.buscarPorId(id);
+    }
+
+    @GetMapping("/novo")
+    @Operation(summary = "Carrega histórico escolar no modo cadastro da nova tela")
+    public HistoricoEscolarTelaResponse carregarNovo(
+            @RequestParam UUID idAluno,
+            @RequestParam UUID idMatricula,
+            @RequestParam(defaultValue = "CADASTRO") String modo) {
+        return historicoEscolarService.carregarNovo(idAluno, idMatricula, modo);
+    }
+
+    @GetMapping("/{id}/carregamento")
+    @Operation(summary = "Carrega histórico escolar no modo edição da nova tela")
+    public HistoricoEscolarTelaResponse carregarParaEdicao(@PathVariable @NonNull UUID id) {
+        return historicoEscolarService.carregarParaEdicao(id);
     }
 
     @GetMapping("/alunos/{alunoId}")

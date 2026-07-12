@@ -12,23 +12,38 @@ import br.com.escola.professorservice.application.dto.ProfessorResumoResponse;
 import br.com.escola.professorservice.application.exception.ProfessorServiceResourceNotFoundException;
 import br.com.escola.professorservice.application.port.in.ProfessorQueryUseCase;
 import br.com.escola.professorservice.application.port.out.ProfessorReadPort;
+import br.com.escola.professorservice.application.port.out.ProfessorShadowLocalReadPort;
 
 @Service
 public class ProfessorQueryService implements ProfessorQueryUseCase {
 
     private final ProfessorReadPort professorReadPort;
+    private final ProfessorShadowLocalReadPort professorShadowLocalReadPort;
 
-    public ProfessorQueryService(ProfessorReadPort professorReadPort) {
+    public ProfessorQueryService(
+            ProfessorReadPort professorReadPort,
+            ProfessorShadowLocalReadPort professorShadowLocalReadPort) {
         this.professorReadPort = professorReadPort;
+        this.professorShadowLocalReadPort = professorShadowLocalReadPort;
     }
 
     @Override
     public List<ProfessorResumoResponse> listarProfessores(String authorization, InternalRequestContext context) {
+        if (professorShadowLocalReadPort.supportsListarProfessores(context)) {
+            return professorShadowLocalReadPort.listarProfessores(context);
+        }
         return professorReadPort.listarProfessores(authorization, context);
     }
 
     @Override
     public ProfessorResumoResponse buscarProfessorPorId(String authorization, InternalRequestContext context, UUID professorId) {
+        var local = professorShadowLocalReadPort.buscarProfessorPorId(context, professorId);
+        if (local.isPresent()) {
+            return local.orElseThrow();
+        }
+        if (professorShadowLocalReadPort.supportsBuscarProfessorPorIdCutover(context)) {
+            throw new ProfessorServiceResourceNotFoundException("Professor não encontrado");
+        }
         return professorReadPort.buscarProfessorPorId(authorization, context, professorId)
                 .orElseThrow(() -> new ProfessorServiceResourceNotFoundException("Professor não encontrado"));
     }
@@ -38,6 +53,9 @@ public class ProfessorQueryService implements ProfessorQueryUseCase {
             String authorization,
             InternalRequestContext context,
             UUID professorId) {
+        if (professorShadowLocalReadPort.supportsListarAlocacoes(context, professorId)) {
+            return professorShadowLocalReadPort.listarAlocacoes(context, professorId);
+        }
         return professorReadPort.listarAlocacoes(authorization, context, professorId);
     }
 
@@ -46,6 +64,9 @@ public class ProfessorQueryService implements ProfessorQueryUseCase {
             String authorization,
             InternalRequestContext context,
             UUID turmaId) {
+        if (professorShadowLocalReadPort.supportsListarProfessoresPorTurma(context, turmaId)) {
+            return professorShadowLocalReadPort.listarProfessoresPorTurma(context, turmaId);
+        }
         return professorReadPort.listarProfessoresPorTurma(authorization, context, turmaId);
     }
 

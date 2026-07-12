@@ -5,25 +5,25 @@ import java.util.UUID;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
-import br.com.escola.matricula.application.port.out.AlunoConsultaGateway;
-import br.com.escola.aluno.adapter.out.persistence.repository.AlunoJpaRepository;
+import br.com.escola.aluno.application.port.internal.AlunoMatriculaPort;
 import br.com.escola.institucional.application.port.EscolaContextoPort;
+import br.com.escola.matricula.application.port.out.AlunoConsultaGateway;
 
 @Component
 public class AlunoConsultaPersistenceGateway implements AlunoConsultaGateway {
 
-    private final AlunoJpaRepository alunoJpaRepository;
+    private final AlunoMatriculaPort alunoMatriculaPort;
     private final EscolaContextoPort escolaContextoPort;
 
     public AlunoConsultaPersistenceGateway(
-            AlunoJpaRepository alunoJpaRepository,
+            AlunoMatriculaPort alunoMatriculaPort,
             EscolaContextoPort escolaContextoPort) {
-        this.alunoJpaRepository = alunoJpaRepository;
+        this.alunoMatriculaPort = alunoMatriculaPort;
         this.escolaContextoPort = escolaContextoPort;
     }
 
     @Override
     public boolean existsById(@NonNull UUID id) {
-        return alunoJpaRepository.existsByIdAndPessoa_Escola_Id(id, escolaContextoPort.obterContextoPadrao().escolaId());
+        return alunoMatriculaPort.existeAlunoPorIdEEscola(id, escolaContextoPort.obterContextoPadrao().escolaId());
     }
 }

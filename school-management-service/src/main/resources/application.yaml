@@ -54,3 +54,17 @@ professor:
     fallback-local-on-error: ${PROFESSOR_INTERNAL_CLIENT_FALLBACK_LOCAL_ON_ERROR:true}
     base-url: ${PROFESSOR_INTERNAL_CLIENT_BASE_URL:http://localhost:8080}
     internal-token: ${PROFESSOR_INTERNAL_CLIENT_INTERNAL_TOKEN:}
+
+documento:
+  storage:
+    backend: ${DOCUMENTO_STORAGE_BACKEND:local}
+    local:
+      root: ${DOCUMENTO_STORAGE_LOCAL_ROOT:uploads/documentos}
+    s3:
+      bucket: ${DOCUMENTO_STORAGE_S3_BUCKET:school-documents}
+      prefix: ${DOCUMENTO_STORAGE_S3_PREFIX:documentos}
+      region: ${DOCUMENTO_STORAGE_S3_REGION:us-east-1}
+      endpoint: ${DOCUMENTO_STORAGE_S3_ENDPOINT:}
+      access-key: ${DOCUMENTO_STORAGE_S3_ACCESS_KEY:}
+      secret-key: ${DOCUMENTO_STORAGE_S3_SECRET_KEY:}
+      path-style-access: ${DOCUMENTO_STORAGE_S3_PATH_STYLE_ACCESS:true}

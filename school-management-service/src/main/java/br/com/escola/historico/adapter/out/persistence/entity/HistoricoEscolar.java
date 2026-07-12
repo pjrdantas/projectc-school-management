@@ -17,8 +17,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import br.com.escola.aluno.adapter.out.persistence.entity.AlunoEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -50,46 +50,46 @@ public class HistoricoEscolar {
     @Column(name = "origem", nullable = false, length = 20)
     private String origem;
 
-    @Transient
+    @Column(name = "nome_aluno", nullable = false, length = 255)
     private String nomeAluno;
 
-    @Transient
+    @Column(name = "rg_ren", length = 80)
     private String rgRen;
 
-    @Transient
+    @Column(name = "ra", length = 80)
     private String ra;
 
-    @Transient
+    @Column(name = "rm", length = 80)
     private String rm;
 
-    @Transient
+    @Column(name = "data_nascimento")
     private LocalDate dataNascimento;
 
-    @Transient
+    @Column(name = "municipio_nascimento", length = 150)
     private String municipioNascimento;
 
-    @Transient
+    @Column(name = "estado_nascimento", length = 2)
     private String estadoNascimento;
 
-    @Transient
+    @Column(name = "pais_nascimento", length = 100)
     private String paisNascimento;
 
-    @Transient
+    @Column(name = "nome_escola", length = 255)
     private String nomeEscola;
 
-    @Transient
+    @Column(name = "endereco_escola", length = 255)
     private String enderecoEscola;
 
-    @Transient
+    @Column(name = "municipio_escola", length = 150)
     private String municipioEscola;
 
-    @Transient
+    @Column(name = "cep_escola", length = 10)
     private String cepEscola;
 
-    @Transient
+    @Column(name = "telefone_escola", length = 30)
     private String telefoneEscola;
 
-    @Transient
+    @Column(name = "email_escola", length = 150)
     private String emailEscola;
 
     @Column(name = "ano_conclusao")
@@ -128,8 +128,35 @@ public class HistoricoEscolar {
     @Column(name = "observacoes", columnDefinition = "TEXT")
     private String observacoes;
 
+    @Column(name = "id_matricula")
+    private UUID matriculaId;
+
+    @Column(name = "id_transferencia_aluno")
+    private UUID transferenciaAlunoId;
+
+    @Column(name = "status", nullable = false, length = 30)
+    private String status;
+
+    @Column(name = "bloqueado", nullable = false)
+    private Boolean bloqueado;
+
+    @Column(name = "serie_matricula_atual")
+    private Integer serieMatriculaAtual;
+
+    @Column(name = "serie_concluida_origem")
+    private Integer serieConcluidaOrigem;
+
+    @Column(name = "escola_origem_nome", length = 150)
+    private String escolaOrigemNome;
+
+    @Column(name = "data_transferencia")
+    private LocalDate dataTransferencia;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "atualizado_em")
+    private LocalDateTime atualizadoEm;
 
     @OneToMany(
             mappedBy = "historicoEscolar",
@@ -138,6 +165,14 @@ public class HistoricoEscolar {
     )
     @Builder.Default
     private List<HistoricoEscolarItem> componentesCurriculares = new ArrayList<>();
+
+    @OneToMany(
+            mappedBy = "historicoEscolar",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<HistoricoEscolarPendencia> pendencias = new ArrayList<>();
 
     public void addComponenteCurricular(HistoricoEscolarItem item) {
         item.setHistoricoEscolar(this);
@@ -152,6 +187,19 @@ public class HistoricoEscolar {
         itens.forEach(this::addComponenteCurricular);
     }
 
+    public void addPendencia(HistoricoEscolarPendencia pendencia) {
+        pendencia.setHistoricoEscolar(this);
+        pendencias.add(pendencia);
+    }
+
+    public void replacePendencias(List<HistoricoEscolarPendencia> novasPendencias) {
+        pendencias.clear();
+        if (novasPendencias == null) {
+            return;
+        }
+        novasPendencias.forEach(this::addPendencia);
+    }
+
     @PrePersist
     public void prePersist() {
         if (origem == null || origem.isBlank()) {
@@ -160,5 +208,23 @@ public class HistoricoEscolar {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
+        if (status == null || status.isBlank()) {
+            status = "RASCUNHO";
+        }
+        if (bloqueado == null) {
+            bloqueado = false;
+        }
+        atualizadoEm = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        if (status == null || status.isBlank()) {
+            status = "RASCUNHO";
+        }
+        if (bloqueado == null) {
+            bloqueado = false;
+        }
+        atualizadoEm = LocalDateTime.now();
     }
 }

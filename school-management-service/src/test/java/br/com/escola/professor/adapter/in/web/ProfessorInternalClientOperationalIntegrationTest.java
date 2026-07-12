@@ -104,12 +104,14 @@ class ProfessorInternalClientOperationalIntegrationTest {
         double alocarAntes = contador("vincularTurmaDisciplina", "internal", "success");
         double listarAntes = contador("listarAlocacoes", "internal", "success");
         double listarPorTurmaAntes = contador("listarPorTurma", "internal", "success");
+        double listarElegiveisAntes = contador("listarFuncionariosElegiveis", "internal", "success");
         double fallbackAntes = contadorFallback("criar", "RestClientException")
                 + contadorFallback("listar", "RestClientException")
                 + contadorFallback("buscarPorId", "RestClientException")
                 + contadorFallback("vincularTurmaDisciplina", "RestClientException")
                 + contadorFallback("listarAlocacoes", "RestClientException")
-                + contadorFallback("listarPorTurma", "RestClientException");
+                + contadorFallback("listarPorTurma", "RestClientException")
+                + contadorFallback("listarFuncionariosElegiveis", "RestClientException");
 
         RestClient client = RestClient.builder()
                 .baseUrl("http://localhost:" + port)
@@ -141,6 +143,14 @@ class ProfessorInternalClientOperationalIntegrationTest {
         JsonNode professoresJson = objectMapper.readTree(professoresResponse);
         assertThat(professoresJson).hasSize(1);
         assertThat(professoresJson.get(0).get("id").asText()).isEqualTo(professorId.toString());
+
+        String elegiveisResponse = client.get()
+                .uri("/api/professores/funcionarios-elegiveis")
+                .retrieve()
+                .body(String.class);
+        JsonNode elegiveisJson = objectMapper.readTree(elegiveisResponse);
+        assertThat(elegiveisJson.isArray()).isTrue();
+        assertThat(elegiveisJson).isEmpty();
 
         String professorConsulta = client.get()
                 .uri("/api/professores/{id}", professorId)
@@ -188,12 +198,14 @@ class ProfessorInternalClientOperationalIntegrationTest {
         assertThat(contador("vincularTurmaDisciplina", "internal", "success") - alocarAntes).isEqualTo(1.0d);
         assertThat(contador("listarAlocacoes", "internal", "success") - listarAntes).isEqualTo(1.0d);
         assertThat(contador("listarPorTurma", "internal", "success") - listarPorTurmaAntes).isEqualTo(1.0d);
+        assertThat(contador("listarFuncionariosElegiveis", "internal", "success") - listarElegiveisAntes).isEqualTo(1.0d);
         double fallbackDepois = contadorFallback("criar", "RestClientException")
                 + contadorFallback("listar", "RestClientException")
                 + contadorFallback("buscarPorId", "RestClientException")
                 + contadorFallback("vincularTurmaDisciplina", "RestClientException")
                 + contadorFallback("listarAlocacoes", "RestClientException")
-                + contadorFallback("listarPorTurma", "RestClientException");
+                + contadorFallback("listarPorTurma", "RestClientException")
+                + contadorFallback("listarFuncionariosElegiveis", "RestClientException");
         assertThat(fallbackDepois - fallbackAntes).isEqualTo(0.0d);
     }
 

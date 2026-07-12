@@ -1,5 +1,7 @@
 package br.com.escola.seguranca.adapter.in.web.dto;
 
+import java.util.UUID;
+
 import jakarta.validation.constraints.NotBlank;
 
 public record AuthRequest(
@@ -7,5 +9,7 @@ public record AuthRequest(
         String login,
 
         @NotBlank(message = "senha é obrigatória")
-        String senha
+        String senha,
+
+        UUID escolaId
 ) {}

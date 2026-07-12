@@ -23,9 +23,12 @@ import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorAlocacaoRequest;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorAlocacaoResponse;
+import br.com.escola.professor.adapter.in.web.dto.ProfessorFuncionarioElegivelResponse;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorRequest;
 import br.com.escola.professor.adapter.in.web.dto.ProfessorResponse;
+import br.com.escola.professor.application.dto.internal.CriarProfessorSolicitacao;
 import br.com.escola.professor.application.dto.internal.ProfessorAlocacaoResumo;
+import br.com.escola.professor.application.dto.internal.ProfessorFuncionarioElegivelResumo;
 import br.com.escola.professor.application.dto.internal.ProfessorResumo;
 import br.com.escola.professor.application.port.internal.ProfessorAcademicoPort;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -59,7 +62,7 @@ class ProfessorFluxoOrquestradorServiceTest {
     @Test
     void deveUsarClienteInternoQuandoFeatureHabilitada() {
         UUID professorId = UUID.randomUUID();
-        ProfessorFluxoOrquestradorService service = novoService(true, true);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, false);
         when(professorInternalApiClient.buscarProfessor(ESCOLA_ID, professorId))
                 .thenReturn(Optional.of(professorResumo(professorId)));
 
@@ -78,7 +81,7 @@ class ProfessorFluxoOrquestradorServiceTest {
 
     @Test
     void deveUsarClienteInternoParaListagemQuandoFeatureHabilitada() {
-        ProfessorFluxoOrquestradorService service = novoService(true, true);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, false);
         when(professorInternalApiClient.listarProfessores(ESCOLA_ID))
                 .thenReturn(List.of(professorResumo(UUID.randomUUID())));
 
@@ -98,7 +101,7 @@ class ProfessorFluxoOrquestradorServiceTest {
     @Test
     void deveFazerFallbackParaServicoLocalQuandoClienteInternoFalha() {
         UUID professorId = UUID.randomUUID();
-        ProfessorFluxoOrquestradorService service = novoService(true, true);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, false);
         when(professorInternalApiClient.listarAlocacoes(ESCOLA_ID, professorId))
                 .thenThrow(new RestClientException("falha interna"));
         when(professorService.listarAlocacoes(professorId))
@@ -130,7 +133,7 @@ class ProfessorFluxoOrquestradorServiceTest {
     @Test
     void deveFazerFallbackParaServicoLocalQuandoListarPorTurmaFalhaNoClienteInterno() {
         UUID turmaId = UUID.randomUUID();
-        ProfessorFluxoOrquestradorService service = novoService(true, true);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, false);
         when(professorInternalApiClient.listarProfessoresPorTurma(ESCOLA_ID, turmaId))
                 .thenThrow(new RestClientException("falha interna"));
         when(professorService.listarPorTurma(turmaId))
@@ -163,7 +166,7 @@ class ProfessorFluxoOrquestradorServiceTest {
     void deveUsarServicoLocalQuandoFeatureEstiverDesabilitada() {
         UUID funcionarioId = UUID.randomUUID();
         ProfessorRequest request = new ProfessorRequest(funcionarioId, "RP-1", "Licenciatura", true);
-        ProfessorFluxoOrquestradorService service = novoService(false, true);
+        ProfessorFluxoOrquestradorService service = novoService(false, true, false, false, false, false, false, false, false);
         when(professorService.criar(request)).thenReturn(professorResponse());
 
         ProfessorResponse response = service.criar(request);
@@ -182,7 +185,7 @@ class ProfessorFluxoOrquestradorServiceTest {
     @Test
     void devePropagarErroQuandoFallbackEstiverDesabilitado() {
         UUID professorId = UUID.randomUUID();
-        ProfessorFluxoOrquestradorService service = novoService(true, false);
+        ProfessorFluxoOrquestradorService service = novoService(true, false, false, false, false, false, false, false, false);
         when(professorInternalApiClient.buscarProfessor(ESCOLA_ID, professorId))
                 .thenThrow(new RestClientException("falha interna"));
 
@@ -191,14 +194,319 @@ class ProfessorFluxoOrquestradorServiceTest {
         verify(professorService, never()).buscarPorId(any());
     }
 
-    private ProfessorFluxoOrquestradorService novoService(boolean enabled, boolean fallbackLocalOnError) {
+    @Test
+    void deveFazerFallbackLocalNoBuscarPorIdQuandoCutoverAindaNaoEstaAtivo() {
+        UUID professorId = UUID.randomUUID();
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, false);
+        when(professorInternalApiClient.buscarProfessor(ESCOLA_ID, professorId))
+                .thenThrow(new RestClientException("falha interna"));
+        when(professorService.buscarPorId(professorId)).thenReturn(professorResponse());
+
+        ProfessorResponse response = service.buscarPorId(professorId);
+
+        assertThat(response.nomeCompleto()).isEqualTo("Professor Local");
+        verify(professorService).buscarPorId(professorId);
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "buscarPorId")
+                .tag("destino", "local")
+                .tag("resultado", "fallback")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void devePropagarErroNoBuscarPorIdSemFallbackQuandoCutoverEstaAtivo() {
+        UUID professorId = UUID.randomUUID();
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, true, false, false, false, false);
+        when(professorInternalApiClient.buscarProfessor(ESCOLA_ID, professorId))
+                .thenThrow(new RestClientException("falha interna"));
+
+        assertThrows(RestClientException.class, () -> service.buscarPorId(professorId));
+
+        verify(professorService, never()).buscarPorId(any());
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "buscarPorId")
+                .tag("destino", "internal")
+                .tag("resultado", "error")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void deveFazerFallbackLocalNoListarQuandoCutoverAindaNaoEstaAtivo() {
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, false);
+        when(professorInternalApiClient.listarProfessores(ESCOLA_ID))
+                .thenThrow(new RestClientException("falha interna"));
+        when(professorService.listar()).thenReturn(List.of(professorResponse()));
+
+        List<ProfessorResponse> response = service.listar();
+
+        assertThat(response).hasSize(1);
+        verify(professorService).listar();
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listar")
+                .tag("destino", "local")
+                .tag("resultado", "fallback")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void devePropagarErroNoListarSemFallbackQuandoCutoverEstaAtivo() {
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, true, false, false, false);
+        when(professorInternalApiClient.listarProfessores(ESCOLA_ID))
+                .thenThrow(new RestClientException("falha interna"));
+
+        assertThrows(RestClientException.class, service::listar);
+
+        verify(professorService, never()).listar();
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listar")
+                .tag("destino", "internal")
+                .tag("resultado", "error")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void deveFazerFallbackLocalNoListarAlocacoesQuandoCutoverAindaNaoEstaAtivo() {
+        UUID professorId = UUID.randomUUID();
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, false);
+        when(professorInternalApiClient.listarAlocacoes(ESCOLA_ID, professorId))
+                .thenThrow(new RestClientException("falha interna"));
+        when(professorService.listarAlocacoes(professorId))
+                .thenReturn(List.of(alocacaoResponse(professorId)));
+
+        List<ProfessorAlocacaoResponse> response = service.listarAlocacoes(professorId);
+
+        assertThat(response).hasSize(1);
+        verify(professorService).listarAlocacoes(professorId);
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listarAlocacoes")
+                .tag("destino", "local")
+                .tag("resultado", "fallback")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void devePropagarErroNoListarAlocacoesSemFallbackQuandoCutoverEstaAtivo() {
+        UUID professorId = UUID.randomUUID();
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, true, false, false);
+        when(professorInternalApiClient.listarAlocacoes(ESCOLA_ID, professorId))
+                .thenThrow(new RestClientException("falha interna"));
+
+        assertThrows(RestClientException.class, () -> service.listarAlocacoes(professorId));
+
+        verify(professorService, never()).listarAlocacoes(professorId);
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listarAlocacoes")
+                .tag("destino", "internal")
+                .tag("resultado", "error")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void deveFazerFallbackLocalNoListarPorTurmaQuandoCutoverAindaNaoEstaAtivo() {
+        UUID turmaId = UUID.randomUUID();
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, false);
+        when(professorInternalApiClient.listarProfessoresPorTurma(ESCOLA_ID, turmaId))
+                .thenThrow(new RestClientException("falha interna"));
+        when(professorService.listarPorTurma(turmaId))
+                .thenReturn(List.of(alocacaoResponse(UUID.randomUUID())));
+
+        List<ProfessorAlocacaoResponse> response = service.listarPorTurma(turmaId);
+
+        assertThat(response).hasSize(1);
+        verify(professorService).listarPorTurma(turmaId);
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listarPorTurma")
+                .tag("destino", "local")
+                .tag("resultado", "fallback")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void devePropagarErroNoListarPorTurmaSemFallbackQuandoCutoverEstaAtivo() {
+        UUID turmaId = UUID.randomUUID();
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, true, false);
+        when(professorInternalApiClient.listarProfessoresPorTurma(ESCOLA_ID, turmaId))
+                .thenThrow(new RestClientException("falha interna"));
+
+        assertThrows(RestClientException.class, () -> service.listarPorTurma(turmaId));
+
+        verify(professorService, never()).listarPorTurma(turmaId);
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listarPorTurma")
+                .tag("destino", "internal")
+                .tag("resultado", "error")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void deveFazerFallbackLocalNoListarFuncionariosElegiveisQuandoCutoverAindaNaoEstaAtivo() {
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, false);
+        when(professorInternalApiClient.listarFuncionariosElegiveis(ESCOLA_ID))
+                .thenThrow(new RestClientException("falha interna"));
+        when(professorService.listarFuncionariosElegiveis())
+                .thenReturn(List.of(funcionarioElegivelResponse()));
+
+        List<ProfessorFuncionarioElegivelResponse> response = service.listarFuncionariosElegiveis();
+
+        assertThat(response).hasSize(1);
+        verify(professorService).listarFuncionariosElegiveis();
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listarFuncionariosElegiveis")
+                .tag("destino", "local")
+                .tag("resultado", "fallback")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void deveUsarClienteInternoNoListarFuncionariosElegiveisQuandoDisponivel() {
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, false);
+        when(professorInternalApiClient.listarFuncionariosElegiveis(ESCOLA_ID))
+                .thenReturn(List.of(funcionarioElegivelResumo()));
+
+        List<ProfessorFuncionarioElegivelResponse> response = service.listarFuncionariosElegiveis();
+
+        assertThat(response).hasSize(1);
+        assertThat(response.get(0).nomeCompleto()).isEqualTo("Funcionario Elegivel");
+        verify(professorService, never()).listarFuncionariosElegiveis();
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listarFuncionariosElegiveis")
+                .tag("destino", "internal")
+                .tag("resultado", "success")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void devePropagarErroNoListarFuncionariosElegiveisSemFallbackQuandoCutoverEstaAtivo() {
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, true);
+        when(professorInternalApiClient.listarFuncionariosElegiveis(ESCOLA_ID))
+                .thenThrow(new RestClientException("falha interna"));
+
+        assertThrows(RestClientException.class, service::listarFuncionariosElegiveis);
+
+        verify(professorService, never()).listarFuncionariosElegiveis();
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "listarFuncionariosElegiveis")
+                .tag("destino", "internal")
+                .tag("resultado", "error")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void deveFazerFallbackLocalNoCriarQuandoCutoverAindaNaoEstaAtivo() {
+        UUID funcionarioId = UUID.randomUUID();
+        ProfessorRequest request = new ProfessorRequest(funcionarioId, "RP-1", "Licenciatura", true);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, false);
+        when(professorInternalApiClient.criarProfessor(any(), any(CriarProfessorSolicitacao.class)))
+                .thenThrow(new RestClientException("falha interna"));
+        when(professorService.criar(request)).thenReturn(professorResponse());
+
+        ProfessorResponse response = service.criar(request);
+
+        assertThat(response.nomeCompleto()).isEqualTo("Professor Local");
+        verify(professorService).criar(request);
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "criar")
+                .tag("destino", "local")
+                .tag("resultado", "fallback")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void devePropagarErroNoCriarSemFallbackQuandoCutoverEstaAtivo() {
+        UUID funcionarioId = UUID.randomUUID();
+        ProfessorRequest request = new ProfessorRequest(funcionarioId, "RP-1", "Licenciatura", true);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, true, false, false, false, false, false, false);
+        when(professorInternalApiClient.criarProfessor(any(), any(CriarProfessorSolicitacao.class)))
+                .thenThrow(new RestClientException("falha interna"));
+
+        assertThrows(RestClientException.class, () -> service.criar(request));
+
+        verify(professorService, never()).criar(request);
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "criar")
+                .tag("destino", "internal")
+                .tag("resultado", "error")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void deveFazerFallbackLocalNoVincularTurmaDisciplinaQuandoCutoverAindaNaoEstaAtivo() {
+        UUID professorId = UUID.randomUUID();
+        ProfessorAlocacaoRequest request = new ProfessorAlocacaoRequest(UUID.randomUUID(), LocalDate.of(2039, 2, 1), null, true);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, false, false, false, false, false, false);
+        when(professorInternalApiClient.alocarProfessorTurmaDisciplina(any(), any(), any()))
+                .thenThrow(new RestClientException("falha interna"));
+        when(professorService.vincularTurmaDisciplina(professorId, request))
+                .thenReturn(alocacaoResponse(professorId));
+
+        ProfessorAlocacaoResponse response = service.vincularTurmaDisciplina(professorId, request);
+
+        assertThat(response.professorId()).isEqualTo(professorId);
+        verify(professorService).vincularTurmaDisciplina(professorId, request);
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "vincularTurmaDisciplina")
+                .tag("destino", "local")
+                .tag("resultado", "fallback")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void devePropagarErroNoVincularTurmaDisciplinaSemFallbackQuandoCutoverEstaAtivo() {
+        UUID professorId = UUID.randomUUID();
+        ProfessorAlocacaoRequest request = new ProfessorAlocacaoRequest(UUID.randomUUID(), LocalDate.of(2039, 2, 1), null, true);
+        ProfessorFluxoOrquestradorService service = novoService(true, true, false, true, false, false, false, false, false);
+        when(professorInternalApiClient.alocarProfessorTurmaDisciplina(any(), any(), any()))
+                .thenThrow(new RestClientException("falha interna"));
+
+        assertThrows(RestClientException.class, () -> service.vincularTurmaDisciplina(professorId, request));
+
+        verify(professorService, never()).vincularTurmaDisciplina(professorId, request);
+        assertThat(meterRegistry.get("professor.internal.client.requests")
+                .tag("operacao", "vincularTurmaDisciplina")
+                .tag("destino", "internal")
+                .tag("resultado", "error")
+                .counter()
+                .count()).isEqualTo(1.0d);
+    }
+
+    private ProfessorFluxoOrquestradorService novoService(
+            boolean enabled,
+            boolean fallbackLocalOnError,
+            boolean criarCutoverEnabled,
+            boolean vincularTurmaDisciplinaCutoverEnabled,
+            boolean buscarPorIdCutoverEnabled,
+            boolean listarCutoverEnabled,
+            boolean listarAlocacoesCutoverEnabled,
+            boolean listarPorTurmaCutoverEnabled,
+            boolean listarFuncionariosElegiveisCutoverEnabled) {
         return new ProfessorFluxoOrquestradorService(
                 professorService,
                 professorInternalApiClient,
                 escolaTenantService,
                 meterRegistry,
                 enabled,
-                fallbackLocalOnError);
+                fallbackLocalOnError,
+                criarCutoverEnabled,
+                vincularTurmaDisciplinaCutoverEnabled,
+                buscarPorIdCutoverEnabled,
+                listarCutoverEnabled,
+                listarAlocacoesCutoverEnabled,
+                listarPorTurmaCutoverEnabled,
+                listarFuncionariosElegiveisCutoverEnabled);
     }
 
     private ProfessorResumo professorResumo(UUID professorId) {
@@ -256,5 +564,25 @@ class ProfessorFluxoOrquestradorServiceTest {
                 resumo.dataFim(),
                 resumo.ativo(),
                 resumo.createdAt());
+    }
+
+    private ProfessorFuncionarioElegivelResponse funcionarioElegivelResponse() {
+        return new ProfessorFuncionarioElegivelResponse(
+                UUID.randomUUID(),
+                "Funcionario Elegivel",
+                ESCOLA_ID,
+                "Escola Padrão",
+                "Professor",
+                true);
+    }
+
+    private ProfessorFuncionarioElegivelResumo funcionarioElegivelResumo() {
+        return new ProfessorFuncionarioElegivelResumo(
+                UUID.randomUUID(),
+                "Funcionario Elegivel",
+                ESCOLA_ID,
+                "Escola Padrão",
+                "Professor",
+                true);
     }
 }

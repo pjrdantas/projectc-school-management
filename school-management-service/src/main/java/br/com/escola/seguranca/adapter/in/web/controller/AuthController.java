@@ -21,6 +21,7 @@ import br.com.escola.seguranca.adapter.in.web.dto.LogoutRequest;
 import br.com.escola.seguranca.adapter.in.web.dto.RefreshRequest;
 import br.com.escola.seguranca.application.service.AuthService;
 import br.com.escola.compartilhado.exception.ErrorResponse;
+import br.com.escola.seguranca.domain.exception.CredenciaisInvalidasException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -45,11 +46,12 @@ public class AuthController {
         try {
             AuthResponse response = authService.login(
                     request.login().trim(),
-                    request.senha().trim()
+                    request.senha().trim(),
+                    request.escolaId()
             );
             return ResponseEntity.ok(response);
 
-        } catch (IllegalArgumentException ex) {
+        } catch (CredenciaisInvalidasException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(buildError("Credenciais inválidas", "/api/auth/login"));
         }

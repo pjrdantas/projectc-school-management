@@ -1,8 +1,8 @@
 package br.com.escola.compartilhado.pessoa.service;
 
 import java.util.Locale;
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -10,9 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import br.com.escola.compartilhado.pessoa.dto.EnderecoDados;
-import br.com.escola.compartilhado.pessoa.dto.CatalogoPessoaResponse;
 import br.com.escola.compartilhado.pessoa.dto.PessoaCriada;
 import br.com.escola.compartilhado.pessoa.dto.PessoaDados;
+import br.com.escola.compartilhado.pessoa.dto.internal.PessoaEnderecoResumo;
 import br.com.escola.compartilhado.endereco.entity.EnderecoEntity;
 import br.com.escola.compartilhado.endereco.entity.PessoaEnderecoEntity;
 import br.com.escola.compartilhado.pessoa.entity.PessoaEntity;
@@ -28,9 +28,11 @@ import br.com.escola.compartilhado.pessoa.repository.TipoPessoaJpaRepository;
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.adapter.out.persistence.repository.EscolaJpaRepository;
 import br.com.escola.institucional.application.service.EscolaTenantService;
+import br.com.escola.compartilhado.pessoa.port.internal.PessoaCadastroPort;
+import br.com.escola.compartilhado.pessoa.port.internal.PessoaEnderecoPort;
 
 @Service
-public class PessoaFoundationService {
+public class PessoaFoundationService implements PessoaCadastroPort, PessoaEnderecoPort {
 
     private static final String TIPO_ENDERECO_PADRAO = "RESIDENCIAL";
 
@@ -70,6 +72,7 @@ public class PessoaFoundationService {
         return criarPessoaComTipoEEndereco(pessoaDados, tipoPessoaCodigo, enderecoDados, null);
     }
 
+    @Override
     @Transactional
     public PessoaCriada criarPessoaComTipoEEndereco(
             PessoaDados pessoaDados,
@@ -96,6 +99,7 @@ public class PessoaFoundationService {
         atualizarPessoaEEndereco(pessoa, pessoaDados, enderecoDados, null);
     }
 
+    @Override
     @Transactional
     public void atualizarPessoaEEndereco(PessoaEntity pessoa, PessoaDados pessoaDados, EnderecoDados enderecoDados, UUID escolaId) {
         preencherPessoa(pessoa, pessoaDados);
@@ -123,6 +127,15 @@ public class PessoaFoundationService {
         pessoaEnderecoRepository.save(vinculo);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<PessoaEntity> buscarPorIdEEscola(UUID pessoaId, UUID escolaId) {
+        if (pessoaId == null || escolaId == null) {
+            return Optional.empty();
+        }
+        return pessoaRepository.findByIdAndEscola_Id(pessoaId, escolaId);
+    }
+
     @Transactional
     public void vincularTipoPessoa(PessoaEntity pessoa, String tipoPessoaCodigo) {
         vincularTipoPessoa(pessoa, buscarTipoPessoaObrigatorio(tipoPessoaCodigo));
@@ -134,6 +147,7 @@ public class PessoaFoundationService {
                 .orElseThrow(() -> new IllegalArgumentException("Tipo de pessoa nao cadastrado: " + codigo));
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Optional<PessoaEntity> buscarPorCpf(String cpf) {
         if (!StringUtils.hasText(cpf)) {
@@ -143,18 +157,58 @@ public class PessoaFoundationService {
         return pessoaRepository.findByCpfAndEscola_Id(cpf.trim(), escolaId);
     }
 
+    @Override
     @Transactional(readOnly = true)
-    public List<CatalogoPessoaResponse> listarTiposPessoa() {
-        return tipoPessoaRepository.findAll().stream()
-                .map(tipo -> new CatalogoPessoaResponse(tipo.getId(), tipo.getCodigo(), tipo.getDescricao()))
-                .toList();
+    public Optional<PessoaEnderecoResumo> buscarEnderecoPrincipalPorPessoa(UUID pessoaId) {
+        if (pessoaId == null) {
+            return Optional.empty();
+        }
+        return pessoaEnderecoRepository.findPrincipalByPessoaId(pessoaId)
+                .map(this::toEnderecoResumo);
     }
 
-    @Transactional(readOnly = true)
-    public List<CatalogoPessoaResponse> listarTiposEndereco() {
-        return tipoEnderecoRepository.findAll().stream()
-                .map(tipo -> new CatalogoPessoaResponse(tipo.getId(), tipo.getCodigo(), tipo.getDescricao()))
+    @Override
+    @Transactional
+    public PessoaEnderecoResumo atualizarEnderecoPrincipalDaPessoa(UUID pessoaId, UUID escolaId, EnderecoDados enderecoDados) {
+        if (pessoaId == null || escolaId == null) {
+            throw new IllegalArgumentException("Pessoa e escola sao obrigatorias.");
+        }
+        if (enderecoDados == null || isEnderecoVazio(enderecoDados)) {
+            throw new IllegalArgumentException("Endereco principal e obrigatorio.");
+        }
+        PessoaEntity pessoa = buscarPorIdEEscola(pessoaId, escolaId)
+                .orElseThrow(() -> new IllegalArgumentException("Pessoa nao encontrada para a escola informada."));
+
+        PessoaEnderecoEntity vinculo = pessoaEnderecoRepository.findPrincipalByPessoaId(pessoa.getId())
+                .orElse(null);
+        if (vinculo == null) {
+            EnderecoEntity endereco = enderecoRepository.save(toEnderecoEntity(enderecoDados));
+            return toEnderecoResumo(vincularEndereco(pessoa, endereco, enderecoDados));
+        }
+
+        EnderecoEntity endereco = vinculo.getEndereco();
+        preencherEndereco(endereco, enderecoDados);
+        enderecoRepository.save(endereco);
+        vinculo.setTipoEndereco(buscarTipoEndereco(enderecoDados.tipoEnderecoCodigo()));
+        vinculo.setPrincipal(enderecoDados.principal() == null || enderecoDados.principal());
+        return toEnderecoResumo(pessoaEnderecoRepository.save(vinculo));
+    }
+
+    @Override
+    @Transactional
+    public void removerEnderecosDaPessoaRemovendoOrfaos(UUID pessoaId) {
+        if (pessoaId == null) {
+            return;
+        }
+        List<UUID> enderecoIds = pessoaEnderecoRepository.findByPessoaId(pessoaId).stream()
+                .map(PessoaEnderecoEntity::getEndereco)
+                .map(EnderecoEntity::getId)
                 .toList();
+
+        pessoaEnderecoRepository.deleteByPessoaId(pessoaId);
+        enderecoIds.stream()
+                .filter(enderecoId -> pessoaEnderecoRepository.countByEnderecoId(enderecoId) == 0)
+                .forEach(enderecoRepository::deleteById);
     }
 
     private void vincularTipoPessoa(PessoaEntity pessoa, TipoPessoaEntity tipoPessoa) {
@@ -183,6 +237,23 @@ public class PessoaFoundationService {
 
         return tipoEnderecoRepository.findByCodigo(codigoNormalizado)
                 .orElseThrow(() -> new IllegalArgumentException("Tipo de endereco nao cadastrado: " + codigoNormalizado));
+    }
+
+    private PessoaEnderecoResumo toEnderecoResumo(PessoaEnderecoEntity vinculo) {
+        EnderecoEntity endereco = vinculo.getEndereco();
+        TipoEnderecoEntity tipoEndereco = vinculo.getTipoEndereco();
+        return new PessoaEnderecoResumo(
+                vinculo.getId(),
+                endereco.getId(),
+                endereco.getCep(),
+                endereco.getLogradouro(),
+                endereco.getNumero(),
+                endereco.getComplemento(),
+                endereco.getBairro(),
+                endereco.getCidade(),
+                endereco.getUf(),
+                tipoEndereco == null ? null : tipoEndereco.getCodigo(),
+                vinculo.isPrincipal());
     }
 
     private PessoaEntity toPessoaEntity(PessoaDados dados) {

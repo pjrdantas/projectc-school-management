@@ -11,6 +11,9 @@ import br.com.escola.avaliacao.adapter.out.persistence.repository.AvaliacaoJpaRe
 import br.com.escola.avaliacao.adapter.out.persistence.repository.NotaAlunoJpaRepository;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardProfessorTurmaResponse;
+import br.com.escola.dashboard.application.dto.internal.DashboardProfessorResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardProfessorTurmaResumo;
+import br.com.escola.dashboard.application.port.internal.DashboardProfessorPort;
 import br.com.escola.frequencia.adapter.out.persistence.repository.FrequenciaProfessorJpaRepository;
 import br.com.escola.institucional.application.dto.EscolaContexto;
 import br.com.escola.institucional.application.port.EscolaContextoPort;
@@ -23,7 +26,7 @@ import br.com.escola.professor.adapter.out.persistence.repository.ProfessorTurma
 import br.com.escola.professor.domain.exception.ProfessorNaoEncontradoException;
 
 @Service
-public class DashboardProfessorService {
+public class DashboardProfessorService implements DashboardProfessorPort {
 
     private final ProfessorJpaRepository professorJpaRepository;
     private final ProfessorTurmaDisciplinaJpaRepository professorTurmaDisciplinaJpaRepository;
@@ -55,6 +58,28 @@ public class DashboardProfessorService {
 
     @Transactional(readOnly = true)
     public DashboardProfessorResponse consultar(UUID professorId) {
+        DashboardProfessorResumo resumo = consultarResumo(professorId);
+        return new DashboardProfessorResponse(
+                resumo.escolaId(),
+                resumo.escolaNome(),
+                resumo.professorId(),
+                resumo.turmasVinculadas(),
+                resumo.alocacoesAtivas(),
+                resumo.aulasPlanejadas(),
+                resumo.aulasRealizadas(),
+                resumo.frequenciasPendentes(),
+                resumo.avaliacoesRegistradas(),
+                resumo.avaliacoesComNotasPendentes(),
+                resumo.planejamentosBimestrais(),
+                resumo.planejamentosBimestraisPendentes(),
+                resumo.turmas().stream()
+                        .map(this::toTurmaResponse)
+                        .toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DashboardProfessorResumo consultarResumo(UUID professorId) {
         EscolaContexto contexto = escolaContextoPort.obterContextoPadrao();
         UUID escolaId = contexto.escolaId();
         if (!professorJpaRepository.existsByIdAndPessoa_Escola_Id(professorId, escolaId)) {
@@ -69,7 +94,7 @@ public class DashboardProfessorService {
                 .filter(alocacao -> !Boolean.FALSE.equals(alocacao.getAtivo()))
                 .toList();
 
-        return new DashboardProfessorResponse(
+        return new DashboardProfessorResumo(
                 contexto.escolaId(),
                 contexto.escolaNome(),
                 professorId,
@@ -137,22 +162,31 @@ public class DashboardProfessorService {
         return !Boolean.TRUE.equals(planejamento.getAprovadoPeloProfessor());
     }
 
-    private List<DashboardProfessorTurmaResponse> listarTurmas(List<ProfessorTurmaDisciplinaEntity> alocacoes) {
+    private List<DashboardProfessorTurmaResumo> listarTurmas(List<ProfessorTurmaDisciplinaEntity> alocacoes) {
         return alocacoes.stream()
-                .map(this::toTurmaResponse)
+                .map(this::toTurmaResumo)
                 .sorted(Comparator
-                        .comparing(DashboardProfessorTurmaResponse::turmaNome)
-                        .thenComparing(DashboardProfessorTurmaResponse::disciplinaNome))
+                        .comparing(DashboardProfessorTurmaResumo::turmaNome)
+                        .thenComparing(DashboardProfessorTurmaResumo::disciplinaNome))
                 .toList();
     }
 
-    private DashboardProfessorTurmaResponse toTurmaResponse(ProfessorTurmaDisciplinaEntity alocacao) {
+    private DashboardProfessorTurmaResumo toTurmaResumo(ProfessorTurmaDisciplinaEntity alocacao) {
         var turmaDisciplina = alocacao.getTurmaDisciplina();
-        return new DashboardProfessorTurmaResponse(
+        return new DashboardProfessorTurmaResumo(
                 alocacao.getId(),
                 turmaDisciplina.getTurma().getId(),
                 turmaDisciplina.getTurma().getNome(),
                 turmaDisciplina.getDisciplina().getId(),
                 turmaDisciplina.getDisciplina().getNome());
+    }
+
+    private DashboardProfessorTurmaResponse toTurmaResponse(DashboardProfessorTurmaResumo turma) {
+        return new DashboardProfessorTurmaResponse(
+                turma.professorTurmaDisciplinaId(),
+                turma.turmaId(),
+                turma.turmaNome(),
+                turma.disciplinaId(),
+                turma.disciplinaNome());
     }
 }

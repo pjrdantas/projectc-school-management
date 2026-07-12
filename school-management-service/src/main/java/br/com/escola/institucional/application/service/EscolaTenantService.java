@@ -11,11 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.adapter.out.persistence.repository.EscolaJpaRepository;
 import br.com.escola.institucional.application.dto.EscolaContexto;
+import br.com.escola.institucional.application.dto.OrigemTenantAtivo;
+import br.com.escola.institucional.application.dto.TenantAtivoResumo;
 import br.com.escola.institucional.application.port.EscolaContextoPort;
+import br.com.escola.institucional.application.port.internal.TenantAtivoPort;
 import br.com.escola.seguranca.adapter.out.persistence.entity.UsuarioEntity;
 
 @Service
-public class EscolaTenantService implements EscolaContextoPort {
+public class EscolaTenantService implements EscolaContextoPort, TenantAtivoPort {
 
     public static final UUID ESCOLA_PADRAO_ID = UUID.fromString("00000000-0000-0000-0000-000000000047");
 
@@ -52,6 +55,44 @@ public class EscolaTenantService implements EscolaContextoPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public TenantAtivoResumo resolverTenantAtivo(UsuarioEntity usuario) {
+        if (usuario != null && usuario.getEscola() != null) {
+            return new TenantAtivoResumo(
+                    usuario.getEscola().getId(),
+                    usuario.getEscola().getNome(),
+                    OrigemTenantAtivo.USUARIO_ESCOLA);
+        }
+
+        EscolaEntity escolaPadrao = obterOuCriarEscolaPadrao();
+        return new TenantAtivoResumo(
+                escolaPadrao.getId(),
+                escolaPadrao.getNome(),
+                OrigemTenantAtivo.ESCOLA_PADRAO);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TenantAtivoResumo resolverTenantDaSessaoOuUsuario(UsuarioEntity usuario, UUID escolaIdSessao) {
+        if (escolaIdSessao != null) {
+            EscolaEntity escolaSessao = carregarEscola(escolaIdSessao);
+            return new TenantAtivoResumo(
+                    escolaSessao.getId(),
+                    escolaSessao.getNome(),
+                    OrigemTenantAtivo.ESCOLA_SESSAO);
+        }
+
+        return resolverTenantAtivo(usuario);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EscolaEntity carregarEscola(UUID escolaId) {
+        return escolaJpaRepository.findById(escolaId)
+                .orElseThrow(() -> new IllegalArgumentException("Escola não encontrada."));
+    }
+
+    @Override
     @Transactional
     public EscolaContexto obterContextoPadrao() {
         EscolaEntity escola = obterOuCriarEscolaPadrao();
@@ -61,10 +102,10 @@ public class EscolaTenantService implements EscolaContextoPort {
     @Override
     @Transactional
     public EscolaContexto resolverContexto(UsuarioEntity usuario) {
-        EscolaEntity escola = resolverEscolaAtiva(usuario);
+        TenantAtivoResumo tenantAtivo = resolverTenantAtivo(usuario);
         return new EscolaContexto(
-                escola.getId(),
-                escola.getNome(),
+                tenantAtivo.escolaId(),
+                tenantAtivo.escolaNome(),
                 usuario == null ? null : usuario.getId(),
                 perfis(usuario),
                 permissoes(usuario));
@@ -76,8 +117,7 @@ public class EscolaTenantService implements EscolaContextoPort {
         if (escolaId == null) {
             return false;
         }
-        EscolaEntity escola = resolverEscolaAtiva(usuario);
-        return escolaId.equals(escola.getId());
+        return escolaId.equals(resolverTenantAtivo(usuario).escolaId());
     }
 
     private Set<String> perfis(UsuarioEntity usuario) {

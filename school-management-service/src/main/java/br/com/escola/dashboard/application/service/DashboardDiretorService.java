@@ -12,9 +12,15 @@ import br.com.escola.avaliacao.adapter.out.persistence.repository.AvaliacaoJpaRe
 import br.com.escola.avaliacao.adapter.out.persistence.repository.NotaAlunoJpaRepository;
 import br.com.escola.catalogo.adapter.out.persistence.entity.TurmaEntity;
 import br.com.escola.catalogo.adapter.out.persistence.repository.TurmaJpaRepository;
-import br.com.escola.dashboard.adapter.in.web.dto.DashboardAcademicoResponse;
 import br.com.escola.dashboard.adapter.in.web.dto.DashboardDiretorResponse;
-import br.com.escola.dashboard.adapter.in.web.dto.DashboardSecretariaResponse;
+import br.com.escola.dashboard.adapter.in.web.dto.DashboardMatriculaStatusResponse;
+import br.com.escola.dashboard.adapter.in.web.dto.DashboardTurmaVagaResponse;
+import br.com.escola.dashboard.application.dto.internal.DashboardAcademicoResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardDiretorResumo;
+import br.com.escola.dashboard.application.dto.internal.DashboardSecretariaResumo;
+import br.com.escola.dashboard.application.port.internal.DashboardAcademicoPort;
+import br.com.escola.dashboard.application.port.internal.DashboardDiretorPort;
+import br.com.escola.dashboard.application.port.internal.DashboardSecretariaPort;
 import br.com.escola.institucional.application.dto.EscolaContexto;
 import br.com.escola.institucional.application.port.EscolaContextoPort;
 import br.com.escola.matricula.adapter.out.persistence.repository.MatriculaJpaRepository;
@@ -24,15 +30,15 @@ import br.com.escola.professor.adapter.out.persistence.repository.AulaJpaReposit
 import br.com.escola.professor.adapter.out.persistence.repository.ProfessorTurmaDisciplinaJpaRepository;
 
 @Service
-public class DashboardDiretorService {
+public class DashboardDiretorService implements DashboardDiretorPort {
 
     private static final List<String> STATUS_NAO_OCUPAM_VAGA = List.of(
             MatriculaStatus.CANCELADA.name(),
             MatriculaStatus.INDEFERIDA.name(),
             MatriculaStatus.TRANSFERIDO.name());
 
-    private final DashboardAcademicoService dashboardAcademicoService;
-    private final DashboardSecretariaService dashboardSecretariaService;
+    private final DashboardAcademicoPort dashboardAcademicoPort;
+    private final DashboardSecretariaPort dashboardSecretariaPort;
     private final AlunoJpaRepository alunoJpaRepository;
     private final TurmaJpaRepository turmaJpaRepository;
     private final MatriculaJpaRepository matriculaJpaRepository;
@@ -43,8 +49,8 @@ public class DashboardDiretorService {
     private final EscolaContextoPort escolaContextoPort;
 
     public DashboardDiretorService(
-            DashboardAcademicoService dashboardAcademicoService,
-            DashboardSecretariaService dashboardSecretariaService,
+            DashboardAcademicoPort dashboardAcademicoPort,
+            DashboardSecretariaPort dashboardSecretariaPort,
             AlunoJpaRepository alunoJpaRepository,
             TurmaJpaRepository turmaJpaRepository,
             MatriculaJpaRepository matriculaJpaRepository,
@@ -53,8 +59,8 @@ public class DashboardDiretorService {
             AvaliacaoJpaRepository avaliacaoJpaRepository,
             NotaAlunoJpaRepository notaAlunoJpaRepository,
             EscolaContextoPort escolaContextoPort) {
-        this.dashboardAcademicoService = dashboardAcademicoService;
-        this.dashboardSecretariaService = dashboardSecretariaService;
+        this.dashboardAcademicoPort = dashboardAcademicoPort;
+        this.dashboardSecretariaPort = dashboardSecretariaPort;
         this.alunoJpaRepository = alunoJpaRepository;
         this.turmaJpaRepository = turmaJpaRepository;
         this.matriculaJpaRepository = matriculaJpaRepository;
@@ -67,12 +73,50 @@ public class DashboardDiretorService {
 
     @Transactional(readOnly = true)
     public DashboardDiretorResponse consultar() {
+        DashboardDiretorResumo resumo = consultarResumo();
+        return new DashboardDiretorResponse(
+                resumo.escolaId(),
+                resumo.escolaNome(),
+                resumo.totalMatriculas(),
+                resumo.matriculasPendentes(),
+                resumo.matriculasConcluidas(),
+                resumo.matriculasEfetivadas(),
+                resumo.matriculasAptasRematricula(),
+                resumo.alunosAtivos(),
+                resumo.alunosInativos(),
+                resumo.turmasAtivas(),
+                resumo.turmasLotadas(),
+                resumo.professoresAlocados(),
+                resumo.aulasRealizadas(),
+                resumo.avaliacoesRegistradas(),
+                resumo.avaliacoesComNotasPendentes(),
+                resumo.boletinsFechados(),
+                resumo.historicosInternosGerados(),
+                resumo.transferencias(),
+                resumo.solicitacoesExclusaoPendentes(),
+                resumo.matriculasComDocumentosPendentes(),
+                resumo.matriculasPorStatus().stream()
+                        .map(item -> new DashboardMatriculaStatusResponse(item.status(), item.total()))
+                        .toList(),
+                resumo.turmasComVagas().stream()
+                        .map(item -> new DashboardTurmaVagaResponse(
+                                item.turmaId(),
+                                item.turmaNome(),
+                                item.capacidade(),
+                                item.vagasOcupadas(),
+                                item.vagasDisponiveis()))
+                        .toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DashboardDiretorResumo consultarResumo() {
         EscolaContexto contexto = escolaContextoPort.obterContextoPadrao();
         UUID escolaId = contexto.escolaId();
-        DashboardAcademicoResponse academico = dashboardAcademicoService.consultar();
-        DashboardSecretariaResponse secretaria = dashboardSecretariaService.consultar();
+        DashboardAcademicoResumo academico = dashboardAcademicoPort.consultarResumo();
+        DashboardSecretariaResumo secretaria = dashboardSecretariaPort.consultarResumo();
 
-        return new DashboardDiretorResponse(
+        return new DashboardDiretorResumo(
                 contexto.escolaId(),
                 contexto.escolaNome(),
                 academico.totalMatriculas(),
@@ -97,7 +141,7 @@ public class DashboardDiretorService {
                 academico.turmasComVagas());
     }
 
-    private long contarMatriculasPendentes(DashboardSecretariaResponse secretaria) {
+    private long contarMatriculasPendentes(DashboardSecretariaResumo secretaria) {
         return secretaria.matriculasSolicitadas()
                 + secretaria.matriculasEmAndamento()
                 + secretaria.matriculasAguardandoDocumentos()

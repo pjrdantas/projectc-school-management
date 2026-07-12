@@ -107,4 +107,14 @@ public interface MatriculaJpaRepository extends JpaRepository<MatriculaEntity, U
             UUID alunoId,
             UUID escolaId,
             UUID periodoLetivoId);
+
+    Optional<MatriculaEntity> findFirstByAluno_IdAndAluno_Pessoa_Escola_IdOrderByDataSolicitacaoDescCreatedAtDesc(
+            UUID alunoId,
+            UUID escolaId);
+
+    List<MatriculaEntity> findByTurma_IdAndPeriodoLetivo_AnoAndTurma_Escola_IdAndStatus_CodigoNotInOrderByAluno_Pessoa_NomeCompletoAsc(
+            UUID turmaId,
+            Integer anoLetivo,
+            UUID escolaId,
+            Iterable<String> statusCodigos);
 }

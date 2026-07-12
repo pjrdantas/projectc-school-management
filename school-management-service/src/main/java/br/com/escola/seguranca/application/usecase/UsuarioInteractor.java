@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.institucional.adapter.out.persistence.entity.EscolaEntity;
 import br.com.escola.institucional.adapter.out.persistence.repository.EscolaJpaRepository;
+import br.com.escola.institucional.application.port.internal.UsuarioEscolaPort;
 import br.com.escola.institucional.application.service.EscolaTenantService;
 import br.com.escola.seguranca.adapter.out.persistence.entity.UsuarioEntity;
 import br.com.escola.seguranca.adapter.out.persistence.mapper.UsuarioMapper;
@@ -27,6 +28,7 @@ public class UsuarioInteractor implements UsuarioUseCasePort {
     private final UsuarioMapper mapper;
     private final EscolaJpaRepository escolaJpaRepository;
     private final EscolaTenantService escolaTenantService;
+    private final UsuarioEscolaPort usuarioEscolaPort;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     // ================= CREATE =================
@@ -50,6 +52,7 @@ public class UsuarioInteractor implements UsuarioUseCasePort {
         UsuarioEntity entity = mapper.toEntity(model);
         entity.setEscola(resolverEscola(model.getEscolaId()));
         UsuarioEntity saved = repository.save(entity);
+        sincronizarUsuarioEscola(saved);
 
         return mapper.toDomain(saved);
     }
@@ -84,7 +87,9 @@ public class UsuarioInteractor implements UsuarioUseCasePort {
         existing.getPerfis().clear();
         existing.getPerfis().addAll(mapper.toEntity(model).getPerfis());
 
-        return mapper.toDomain(repository.save(existing));
+        UsuarioEntity atualizado = repository.save(existing);
+        sincronizarUsuarioEscola(atualizado);
+        return mapper.toDomain(atualizado);
     }
 
     // ================= DELETE =================
@@ -158,5 +163,12 @@ public class UsuarioInteractor implements UsuarioUseCasePort {
 
         return escolaJpaRepository.findById(escolaId)
                 .orElseThrow(() -> new IllegalArgumentException("Escola não encontrada."));
+    }
+
+    private void sincronizarUsuarioEscola(UsuarioEntity usuario) {
+        if (usuario == null || usuario.getEscola() == null) {
+            return;
+        }
+        usuarioEscolaPort.garantirVinculo(usuario.getId(), usuario.getEscola().getId());
     }
 }
