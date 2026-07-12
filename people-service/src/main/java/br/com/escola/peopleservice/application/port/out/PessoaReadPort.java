@@ -7,6 +7,7 @@ import java.util.UUID;
 import br.com.escola.peopleservice.application.context.InternalRequestContext;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
+import br.com.escola.peopleservice.application.dto.PessoaResponsavelVinculadoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 
 public interface PessoaReadPort {
@@ -26,4 +27,9 @@ public interface PessoaReadPort {
             String cpfResponsavel,
             int page,
             int size);
+
+    Optional<List<PessoaResponsavelVinculadoResponse>> listarResponsaveisPorAluno(
+            String authorization,
+            InternalRequestContext context,
+            UUID alunoId);
 }

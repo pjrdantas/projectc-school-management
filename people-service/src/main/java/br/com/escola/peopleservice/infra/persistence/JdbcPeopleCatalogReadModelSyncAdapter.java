@@ -164,25 +164,29 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
 
     private static final AlunoResponsavelTable ALUNO_RESPONSAVEL_TABLE = new AlunoResponsavelTable(
             """
-                    SELECT id_aluno_responsavel, id_aluno, id_responsavel, created_at
+                    SELECT id_aluno_responsavel, id_aluno, id_responsavel, id_parentesco,
+                           responsavel_financeiro, responsavel_pedagogico, autorizado_retirar, created_at
                     FROM aluno_responsavel
                     ORDER BY id_aluno, id_responsavel
                     LIMIT ?
                     """,
             """
-                    SELECT id_aluno_responsavel, id_aluno, id_responsavel, created_at
+                    SELECT id_aluno_responsavel, id_aluno, id_responsavel, id_parentesco,
+                           responsavel_financeiro, responsavel_pedagogico, autorizado_retirar, created_at
                     FROM aluno_responsavel
                     ORDER BY id_aluno, id_responsavel
                     """,
             """
                     UPDATE aluno_responsavel
-                    SET id_aluno = ?, id_responsavel = ?, created_at = ?
+                    SET id_aluno = ?, id_responsavel = ?, id_parentesco = ?, responsavel_financeiro = ?,
+                        responsavel_pedagogico = ?, autorizado_retirar = ?, created_at = ?
                     WHERE id_aluno_responsavel = ?
                     """,
             """
                     INSERT INTO aluno_responsavel (
-                        id_aluno_responsavel, id_aluno, id_responsavel, created_at
-                    ) VALUES (?, ?, ?, ?)
+                        id_aluno_responsavel, id_aluno, id_responsavel, id_parentesco,
+                        responsavel_financeiro, responsavel_pedagogico, autorizado_retirar, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """);
 
     private static final EnderecoTable ENDERECO_TABLE = new EnderecoTable(
@@ -1013,6 +1017,10 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
                             resultSet.getObject("id_aluno_responsavel", UUID.class),
                             resultSet.getObject("id_aluno", UUID.class),
                             resultSet.getObject("id_responsavel", UUID.class),
+                            resultSet.getObject("id_parentesco", UUID.class),
+                            resultSet.getBoolean("responsavel_financeiro"),
+                            resultSet.getBoolean("responsavel_pedagogico"),
+                            resultSet.getBoolean("autorizado_retirar"),
                             createdAt == null ? null : createdAt.toInstant()));
                 }
                 return rows;
@@ -1237,8 +1245,12 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         try (PreparedStatement update = target.prepareStatement(ALUNO_RESPONSAVEL_TABLE.updateSql())) {
             update.setObject(1, row.alunoId());
             update.setObject(2, row.responsavelId());
-            update.setTimestamp(3, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
-            update.setObject(4, row.id());
+            update.setObject(3, row.parentescoId());
+            update.setBoolean(4, row.responsavelFinanceiro());
+            update.setBoolean(5, row.responsavelPedagogico());
+            update.setBoolean(6, row.autorizadoRetirar());
+            update.setTimestamp(7, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+            update.setObject(8, row.id());
             int updated = update.executeUpdate();
             if (updated > 0) {
                 return updated;
@@ -1249,7 +1261,11 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
             insert.setObject(1, row.id());
             insert.setObject(2, row.alunoId());
             insert.setObject(3, row.responsavelId());
-            insert.setTimestamp(4, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
+            insert.setObject(4, row.parentescoId());
+            insert.setBoolean(5, row.responsavelFinanceiro());
+            insert.setBoolean(6, row.responsavelPedagogico());
+            insert.setBoolean(7, row.autorizadoRetirar());
+            insert.setTimestamp(8, Timestamp.from(row.createdAt() == null ? Instant.now() : row.createdAt()));
             return insert.executeUpdate();
         }
     }
@@ -2178,12 +2194,24 @@ public class JdbcPeopleCatalogReadModelSyncAdapter implements PeopleCatalogReadM
         }
     }
 
-    private record AlunoResponsavelRow(UUID id, UUID alunoId, UUID responsavelId, Instant createdAt) {
+    private record AlunoResponsavelRow(
+            UUID id,
+            UUID alunoId,
+            UUID responsavelId,
+            UUID parentescoId,
+            boolean responsavelFinanceiro,
+            boolean responsavelPedagogico,
+            boolean autorizadoRetirar,
+            Instant createdAt) {
 
         boolean matches(AlunoResponsavelRow other) {
             return Objects.equals(id, other.id)
                     && Objects.equals(alunoId, other.alunoId)
-                    && Objects.equals(responsavelId, other.responsavelId);
+                    && Objects.equals(responsavelId, other.responsavelId)
+                    && Objects.equals(parentescoId, other.parentescoId)
+                    && responsavelFinanceiro == other.responsavelFinanceiro
+                    && responsavelPedagogico == other.responsavelPedagogico
+                    && autorizadoRetirar == other.autorizadoRetirar;
         }
     }
 

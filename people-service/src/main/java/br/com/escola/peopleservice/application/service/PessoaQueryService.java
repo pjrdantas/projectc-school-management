@@ -13,6 +13,7 @@ import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataRespon
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaFuncionarioResumoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaProfessorResumoResponse;
+import br.com.escola.peopleservice.application.dto.PessoaResponsavelVinculadoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 import br.com.escola.peopleservice.application.exception.PeopleServiceResourceNotFoundException;
 import br.com.escola.peopleservice.application.port.in.PessoaQueryUseCase;
@@ -234,6 +235,28 @@ public class PessoaQueryService implements PessoaQueryUseCase {
                 cpfResponsavel,
                 page,
                 size);
+    }
+
+    @Override
+    public List<PessoaResponsavelVinculadoResponse> listarResponsaveisPorAluno(
+            String authorization,
+            InternalRequestContext context,
+            UUID alunoId) {
+        var decision = readRoutingPolicy.registrarDecisao("listarResponsaveisPorAluno");
+        if (decision.localReadEligible()) {
+            try {
+                var localResponse = alunoResponsavelPort.listarResponsaveisPorAluno(alunoId);
+                if (localResponse.isPresent()) {
+                    registrarLeituraAlunoResponsavelLocal("listarResponsaveisPorAluno", "success");
+                    return localResponse.get();
+                }
+                registrarLeituraAlunoResponsavelLocal("listarResponsaveisPorAluno", "fallback_not_found");
+            } catch (RuntimeException ex) {
+                registrarLeituraAlunoResponsavelLocal("listarResponsaveisPorAluno", "fallback_error");
+            }
+        }
+        return pessoaReadPort.listarResponsaveisPorAluno(authorization, context, alunoId)
+                .orElseThrow(() -> new PeopleServiceResourceNotFoundException("Aluno nao encontrado"));
     }
 
     private void registrarLeituraLocal(String operation, String result) {

@@ -11,6 +11,7 @@ import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataRespon
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaFuncionarioResumoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaProfessorResumoResponse;
+import br.com.escola.peopleservice.application.dto.PessoaResponsavelVinculadoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 
 public interface PessoaQueryUseCase {
@@ -77,4 +78,9 @@ public interface PessoaQueryUseCase {
             String cpfResponsavel,
             int page,
             int size);
+
+    List<PessoaResponsavelVinculadoResponse> listarResponsaveisPorAluno(
+            String authorization,
+            InternalRequestContext context,
+            UUID alunoId);
 }

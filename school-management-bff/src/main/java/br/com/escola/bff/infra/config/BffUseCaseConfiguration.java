@@ -23,9 +23,11 @@ import br.com.escola.bff.application.port.out.MonolithSerieWritePort;
 import br.com.escola.bff.application.port.out.MonolithTurmaDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.MonolithTurmaWritePort;
 import br.com.escola.bff.application.port.out.PeopleCadastroReadPort;
+import br.com.escola.bff.application.port.out.PeopleAlunoResponsavelReadPort;
 import br.com.escola.bff.application.port.out.PeopleCatalogReadPort;
 import br.com.escola.bff.application.port.out.PeopleFuncionarioReadPort;
 import br.com.escola.bff.application.port.out.PeoplePessoaReadPort;
+import br.com.escola.bff.application.service.AlunoResponsavelReadProxyService;
 import br.com.escola.bff.application.service.CadastroPessoaReadProxyService;
 import br.com.escola.bff.application.service.CatalogReadRoutingService;
 import br.com.escola.bff.application.service.DisciplinaWriteRoutingService;
@@ -38,6 +40,7 @@ import br.com.escola.bff.application.service.SerieWriteRoutingService;
 import br.com.escola.bff.application.service.TurmaDisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.TurmaWriteRoutingService;
 import br.com.escola.bff.application.usecase.ConsultarCadastroPessoaUseCase;
+import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPessoaCatalogoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPessoaDetalheUseCase;
 import br.com.escola.bff.application.port.out.PeopleProfessorReadPort;
@@ -65,6 +68,13 @@ public class BffUseCaseConfiguration {
             AuthContextPort authContextPort,
             PeopleCadastroReadPort peopleCadastroReadPort) {
         return new CadastroPessoaReadProxyService(authContextPort, peopleCadastroReadPort);
+    }
+
+    @Bean
+    ConsultarAlunoResponsavelUseCase consultarAlunoResponsavelUseCase(
+            AuthContextPort authContextPort,
+            PeopleAlunoResponsavelReadPort peopleAlunoResponsavelReadPort) {
+        return new AlunoResponsavelReadProxyService(authContextPort, peopleAlunoResponsavelReadPort);
     }
 
     @Bean

@@ -77,7 +77,11 @@ public class PeopleReadSourcePolicy {
             new ReadRouteDescriptor(
                     "consultarCadastro",
                     "GET /internal/v1/pessoas/consulta-cadastral",
-                    "aluno,responsavel,aluno_responsavel"));
+                    "aluno,responsavel,aluno_responsavel"),
+            new ReadRouteDescriptor(
+                    "listarResponsaveisPorAluno",
+                    "GET /internal/v1/alunos/{id}/responsaveis",
+                    "aluno,responsavel,aluno_responsavel,parentesco,pessoa,endereco"));
 
     private final PeopleReadModelProperties properties;
     private final MeterRegistry meterRegistry;
@@ -368,7 +372,7 @@ public class PeopleReadSourcePolicy {
         if ("buscarPorId".equals(route.operation())) {
             return "local-identity-read-eligible";
         }
-        if ("consultarCadastro".equals(route.operation())) {
+        if ("consultarCadastro".equals(route.operation()) || "listarResponsaveisPorAluno".equals(route.operation())) {
             return "local-student-responsible-read-eligible";
         }
         if (ADDRESS_READ_ROUTE.operation().equals(route.operation())) {
@@ -421,7 +425,7 @@ public class PeopleReadSourcePolicy {
         if ("buscarPorId".equals(operation)) {
             return "people_read_model_identity";
         }
-        if ("consultarCadastro".equals(operation)) {
+        if ("consultarCadastro".equals(operation) || "listarResponsaveisPorAluno".equals(operation)) {
             return STUDENT_RESPONSIBLE_SOURCE;
         }
         if (ALUNO_VINCULO_READ_ROUTE.operation().equals(operation)) {

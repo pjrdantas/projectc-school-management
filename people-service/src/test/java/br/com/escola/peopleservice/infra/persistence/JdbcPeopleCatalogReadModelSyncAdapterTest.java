@@ -217,6 +217,10 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                         id_aluno_responsavel UUID NOT NULL PRIMARY KEY,
                         id_aluno UUID NOT NULL REFERENCES aluno(id_aluno),
                         id_responsavel UUID NOT NULL REFERENCES responsavel(id_responsavel),
+                        id_parentesco UUID REFERENCES parentesco(id_parentesco),
+                        responsavel_financeiro BOOLEAN NOT NULL DEFAULT FALSE,
+                        responsavel_pedagogico BOOLEAN NOT NULL DEFAULT FALSE,
+                        autorizado_retirar BOOLEAN NOT NULL DEFAULT FALSE,
                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                         UNIQUE (id_aluno, id_responsavel)
                     )
@@ -459,11 +463,16 @@ class JdbcPeopleCatalogReadModelSyncAdapterTest {
                     """);
             statement.execute("""
                     INSERT INTO aluno_responsavel (
-                        id_aluno_responsavel, id_aluno, id_responsavel, created_at
+                        id_aluno_responsavel, id_aluno, id_responsavel, id_parentesco,
+                        responsavel_financeiro, responsavel_pedagogico, autorizado_retirar, created_at
                     ) VALUES (
                         'cccccccc-3333-3333-3333-cccccccccccc',
                         'aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa',
                         'bbbbbbbb-2222-2222-2222-bbbbbbbbbbbb',
+                        '88888888-8888-8888-8888-888888888888',
+                        TRUE,
+                        FALSE,
+                        TRUE,
                         CURRENT_TIMESTAMP
                     )
                     """);

@@ -2358,3 +2358,33 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   oficial pelo BFF, sem toque em frontend e sem toque no legado.
 - A validacao do modulo foi executada com `mvn -pl school-management-bff test`
   e fechou em `BUILD SUCCESS`, com 94 testes, 0 falhas e 0 erros.
+
+### Fase 114
+
+- O `people-service` foi mantido como encerrado no recorte anterior. Esta fase
+  passa a valer como abertura de uma nova macrofase backend para a futura
+  familia/servico de `responsaveis`, e nao como continuacao do fechamento
+  anterior.
+- O menor recorte seguro dessa nova macrofase foi fechado como leitura oficial
+  por vinculo com `aluno`, sem abrir escrita migrada e sem mexer em frontend.
+- O `people-service` recebeu o DTO
+  `PessoaResponsavelVinculadoResponse`, a migration
+  `V9__extend_people_student_responsible_link_read_model.sql`, a extensao do
+  read model local de `aluno_responsavel` com `id_parentesco`,
+  `responsavel_financeiro`, `responsavel_pedagogico` e
+  `autorizado_retirar`, alem do adapter JDBC local para
+  `GET /internal/v1/alunos/{alunoId}/responsaveis` com fallback obrigatorio
+  para o monolito.
+- O `school-management-bff` passou a expor oficialmente
+  `GET /api/alunos/{alunoId}/responsaveis` consumindo o
+  `people-service`, preservando o contrato externo atual e mantendo
+  `GET /api/responsaveis` fora do recorte inicial.
+- A contagem dessa nova macrofase fica fechada em 2 fases totais:
+  a Fase 114, concluida, e 1 unica fase restante para decidir e, se aprovado,
+  oficializar o detalhe minimo de `responsavel` por id. Nao existe reabertura
+  do `people-service` nessa contagem.
+- A validacao do modulo tocado foi executada com
+  `mvn -pl people-service "-Dtest=JdbcAlunoResponsavelAdapterTest,PessoaInternalQueryControllerIntegrationTest,PeopleReadModelMigrationRunnerTest,PessoaQueryServiceTest,JdbcPeopleCatalogReadModelSyncAdapterTest" test`
+  e com
+  `mvn -pl school-management-bff "-Dtest=AlunoResponsavelReadControllerTest,AlunoResponsavelReadProxyIntegrationTest" test`,
+  ambos em `BUILD SUCCESS`.

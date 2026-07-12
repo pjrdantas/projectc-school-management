@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import org.springframework.util.StringUtils;
 import br.com.escola.peopleservice.application.dto.PessoaAlunoResponsaveisResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResponsavelResumoResponse;
+import br.com.escola.peopleservice.application.dto.PessoaResponsavelVinculadoResponse;
 import br.com.escola.peopleservice.application.port.out.AlunoResponsavelPort;
 import br.com.escola.peopleservice.infra.config.PeopleReadModelMigrationProperties;
 
@@ -68,6 +70,99 @@ public class JdbcAlunoResponsavelAdapter implements AlunoResponsavelPort {
             return new PessoaConsultaCadastralPageResponse(readAggregates(connection, alunoIds), total, safePage, safeSize);
         } catch (SQLException ex) {
             throw new IllegalStateException("student-responsible-local-read-failed", ex);
+        }
+    }
+
+    @Override
+    public Optional<List<PessoaResponsavelVinculadoResponse>> listarResponsaveisPorAluno(UUID alunoId) {
+        if (!StringUtils.hasText(properties.url())) {
+            throw new IllegalStateException("student-responsible-local-read-url-required");
+        }
+        loadDriver(properties.driverClassName());
+
+        try (var connection = DriverManager.getConnection(
+                properties.url(),
+                properties.username(),
+                properties.password())) {
+            if (!alunoExiste(connection, alunoId)) {
+                return Optional.empty();
+            }
+            return Optional.of(readResponsaveisPorAluno(connection, alunoId));
+        } catch (SQLException ex) {
+            throw new IllegalStateException("student-responsible-local-read-failed", ex);
+        }
+    }
+
+    private boolean alunoExiste(java.sql.Connection connection, UUID alunoId) throws SQLException {
+        try (var statement = connection.prepareStatement("SELECT 1 FROM aluno WHERE id_aluno = ?")) {
+            statement.setObject(1, alunoId);
+            try (var resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        }
+    }
+
+    private List<PessoaResponsavelVinculadoResponse> readResponsaveisPorAluno(
+            java.sql.Connection connection,
+            UUID alunoId) throws SQLException {
+        String sql = """
+                SELECT r.id_responsavel,
+                       r.nome_completo,
+                       r.cpf,
+                       r.email,
+                       r.telefone,
+                       p.rg,
+                       e.cep,
+                       e.logradouro,
+                       e.numero,
+                       e.complemento,
+                       e.bairro,
+                       e.cidade,
+                       e.uf,
+                       pa.codigo AS parentesco_codigo,
+                       ar.responsavel_financeiro,
+                       ar.responsavel_pedagogico,
+                       ar.autorizado_retirar,
+                       r.created_at
+                FROM aluno_responsavel ar
+                  JOIN responsavel r ON r.id_responsavel = ar.id_responsavel
+                  LEFT JOIN pessoa p ON p.id_pessoa = r.id_pessoa
+                  LEFT JOIN parentesco pa ON pa.id_parentesco = ar.id_parentesco
+                  LEFT JOIN pessoa_endereco pe
+                    ON pe.id_pessoa = r.id_pessoa
+                   AND pe.principal = TRUE
+                  LEFT JOIN endereco e ON e.id_endereco = pe.id_endereco
+                WHERE ar.id_aluno = ?
+                ORDER BY r.nome_completo
+                """;
+
+        try (var statement = connection.prepareStatement(sql)) {
+            statement.setObject(1, alunoId);
+            try (var resultSet = statement.executeQuery()) {
+                List<PessoaResponsavelVinculadoResponse> responsaveis = new ArrayList<>();
+                while (resultSet.next()) {
+                    responsaveis.add(new PessoaResponsavelVinculadoResponse(
+                            resultSet.getObject("id_responsavel", UUID.class),
+                            getString(resultSet, "nome_completo"),
+                            getString(resultSet, "cpf"),
+                            getString(resultSet, "email"),
+                            getString(resultSet, "telefone"),
+                            getString(resultSet, "rg"),
+                            getString(resultSet, "cep"),
+                            getString(resultSet, "logradouro"),
+                            getString(resultSet, "numero"),
+                            getString(resultSet, "complemento"),
+                            getString(resultSet, "bairro"),
+                            getString(resultSet, "cidade"),
+                            getString(resultSet, "uf"),
+                            getString(resultSet, "parentesco_codigo"),
+                            getBoolean(resultSet, "responsavel_financeiro"),
+                            getBoolean(resultSet, "responsavel_pedagogico"),
+                            getBoolean(resultSet, "autorizado_retirar"),
+                            getLocalDateTime(resultSet, "created_at")));
+                }
+                return List.copyOf(responsaveis);
+            }
         }
     }
 
@@ -194,6 +289,15 @@ public class JdbcAlunoResponsavelAdapter implements AlunoResponsavelPort {
         try {
             Timestamp timestamp = resultSet.getTimestamp(column);
             return timestamp == null ? null : timestamp.toLocalDateTime();
+        } catch (SQLException ex) {
+            throw new IllegalStateException("student-responsible-local-read-mapping-failed", ex);
+        }
+    }
+
+    private Boolean getBoolean(java.sql.ResultSet resultSet, String column) {
+        try {
+            boolean value = resultSet.getBoolean(column);
+            return resultSet.wasNull() ? null : value;
         } catch (SQLException ex) {
             throw new IllegalStateException("student-responsible-local-read-mapping-failed", ex);
         }

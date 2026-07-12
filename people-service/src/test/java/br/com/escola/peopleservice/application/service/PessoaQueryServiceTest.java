@@ -19,6 +19,7 @@ import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataRespon
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaFuncionarioResumoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaProfessorResumoResponse;
+import br.com.escola.peopleservice.application.dto.PessoaResponsavelVinculadoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 import br.com.escola.peopleservice.application.port.out.PessoaCatalogoPort;
 import br.com.escola.peopleservice.application.port.out.AlunoResponsavelPort;
@@ -238,6 +239,70 @@ class PessoaQueryServiceTest {
                 "people.studentresponsible.reads",
                 "operation", "consultarCadastro",
                 "result", "fallback_error").count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void deveListarResponsaveisPorAlunoNoReadModelLocalQuandoGuardaPermite() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        AtomicInteger monolithCalls = new AtomicInteger();
+        List<PessoaResponsavelVinculadoResponse> local = List.of(responsavelVinculado("Mae Local"));
+        PessoaQueryService service = new PessoaQueryService(
+                new FakePessoaReadPort(monolithCalls, List.of(), Optional.empty(), new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), Optional.of(local)),
+                new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                new FakePessoaPort(Optional.empty(), false),
+                new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), Optional.of(local), false),
+                catalogoAlunoResponsavelService(
+                        new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                        greenGuard(meterRegistry),
+                        meterRegistry),
+                enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
+                contatoService(new FakePessoaContatoPort(Optional.empty()), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
+                funcionarioResumoService(new FakePessoaFuncionarioResumoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
+                professorResumoService(new FakePessoaProfessorResumoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
+                greenGuard(meterRegistry),
+                meterRegistry);
+
+        var response = service.listarResponsaveisPorAluno("Bearer token", context(), UUID.randomUUID());
+
+        assertThat(response).isEqualTo(local);
+        assertThat(monolithCalls).hasValue(0);
+        assertThat(meterRegistry.counter(
+                "people.studentresponsible.reads",
+                "operation", "listarResponsaveisPorAluno",
+                "result", "success").count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void deveFazerFallbackQuandoAlunoNaoExisteNoReadModelLocal() {
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        AtomicInteger monolithCalls = new AtomicInteger();
+        List<PessoaResponsavelVinculadoResponse> monolith = List.of(responsavelVinculado("Mae Monolito"));
+        PessoaQueryService service = new PessoaQueryService(
+                new FakePessoaReadPort(monolithCalls, List.of(), Optional.empty(), new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), Optional.of(monolith)),
+                new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                new FakePessoaPort(Optional.empty(), false),
+                new FakeAlunoResponsavelPort(new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20), Optional.empty(), false),
+                catalogoAlunoResponsavelService(
+                        new FakePessoaCatalogoPort(List.of(), List.of(), false),
+                        greenGuard(meterRegistry),
+                        meterRegistry),
+                enderecoService(new FakePessoaEnderecoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
+                contatoService(new FakePessoaContatoPort(Optional.empty()), greenGuard(meterRegistry), meterRegistry),
+                documentoMetadataService(new FakePessoaDocumentoMetadataPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
+                funcionarioResumoService(new FakePessoaFuncionarioResumoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
+                professorResumoService(new FakePessoaProfessorResumoPort(Optional.empty(), List.of()), greenGuard(meterRegistry), meterRegistry),
+                greenGuard(meterRegistry),
+                meterRegistry);
+
+        var response = service.listarResponsaveisPorAluno("Bearer token", context(), UUID.randomUUID());
+
+        assertThat(response).isEqualTo(monolith);
+        assertThat(monolithCalls).hasValue(1);
+        assertThat(meterRegistry.counter(
+                "people.studentresponsible.reads",
+                "operation", "listarResponsaveisPorAluno",
+                "result", "fallback_not_found").count()).isEqualTo(1.0d);
     }
 
     @Test
@@ -727,6 +792,28 @@ class PessoaQueryServiceTest {
                 true);
     }
 
+    private PessoaResponsavelVinculadoResponse responsavelVinculado(String nome) {
+        return new PessoaResponsavelVinculadoResponse(
+                UUID.randomUUID(),
+                nome,
+                "11111111111",
+                "responsavel@example.test",
+                "31999990000",
+                "MG123456",
+                "30110000",
+                "Rua Principal",
+                "100",
+                null,
+                "Centro",
+                "Belo Horizonte",
+                "MG",
+                "MAE",
+                true,
+                false,
+                true,
+                java.time.LocalDateTime.parse("2026-01-05T10:00:00"));
+    }
+
     private PeopleReadSourcePolicy greenGuard(SimpleMeterRegistry meterRegistry) {
         PeopleReadModelSyncState state = new PeopleReadModelSyncState();
         state.update(new PeopleReadModelSyncSummary(
@@ -820,7 +907,12 @@ class PessoaQueryServiceTest {
 
     private record FakeAlunoResponsavelPort(
             PessoaConsultaCadastralPageResponse response,
+            Optional<List<PessoaResponsavelVinculadoResponse>> responsaveisPorAluno,
             boolean fail) implements AlunoResponsavelPort {
+
+        private FakeAlunoResponsavelPort(PessoaConsultaCadastralPageResponse response, boolean fail) {
+            this(response, Optional.empty(), fail);
+        }
 
         @Override
         public PessoaConsultaCadastralPageResponse consultarCadastro(
@@ -834,6 +926,14 @@ class PessoaQueryServiceTest {
                 throw new IllegalStateException("student-responsible-local-failed");
             }
             return response;
+        }
+
+        @Override
+        public Optional<List<PessoaResponsavelVinculadoResponse>> listarResponsaveisPorAluno(UUID alunoId) {
+            if (fail) {
+                throw new IllegalStateException("student-responsible-local-failed");
+            }
+            return responsaveisPorAluno;
         }
     }
 
@@ -910,17 +1010,36 @@ class PessoaQueryServiceTest {
             AtomicInteger catalogCalls,
             List<PessoaCatalogoResponse> tiposPessoa,
             Optional<PessoaResumoResponse> pessoa,
-            PessoaConsultaCadastralPageResponse consultaCadastroResponse) implements PessoaReadPort {
+            PessoaConsultaCadastralPageResponse consultaCadastroResponse,
+            Optional<List<PessoaResponsavelVinculadoResponse>> responsaveisPorAlunoResponse) implements PessoaReadPort {
 
         private FakePessoaReadPort(AtomicInteger catalogCalls, List<PessoaCatalogoResponse> tiposPessoa) {
-            this(catalogCalls, tiposPessoa, Optional.empty(), new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20));
+            this(
+                    catalogCalls,
+                    tiposPessoa,
+                    Optional.empty(),
+                    new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20),
+                    Optional.empty());
         }
 
         private FakePessoaReadPort(
                 AtomicInteger catalogCalls,
                 List<PessoaCatalogoResponse> tiposPessoa,
                 Optional<PessoaResumoResponse> pessoa) {
-            this(catalogCalls, tiposPessoa, pessoa, new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20));
+            this(
+                    catalogCalls,
+                    tiposPessoa,
+                    pessoa,
+                    new PessoaConsultaCadastralPageResponse(List.of(), 0, 0, 20),
+                    Optional.empty());
+        }
+
+        private FakePessoaReadPort(
+                AtomicInteger catalogCalls,
+                List<PessoaCatalogoResponse> tiposPessoa,
+                Optional<PessoaResumoResponse> pessoa,
+                PessoaConsultaCadastralPageResponse consultaCadastroResponse) {
+            this(catalogCalls, tiposPessoa, pessoa, consultaCadastroResponse, Optional.empty());
         }
 
         @Override
@@ -956,6 +1075,15 @@ class PessoaQueryServiceTest {
                 int size) {
             catalogCalls.incrementAndGet();
             return consultaCadastroResponse;
+        }
+
+        @Override
+        public Optional<List<PessoaResponsavelVinculadoResponse>> listarResponsaveisPorAluno(
+                String authorization,
+                InternalRequestContext context,
+                UUID alunoId) {
+            catalogCalls.incrementAndGet();
+            return responsaveisPorAlunoResponse;
         }
     }
 }

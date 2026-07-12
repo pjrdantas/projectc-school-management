@@ -15,6 +15,7 @@ import br.com.escola.peopleservice.application.context.InternalHeaders;
 import br.com.escola.peopleservice.application.context.InternalRequestContext;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
+import br.com.escola.peopleservice.application.dto.PessoaResponsavelVinculadoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 import br.com.escola.peopleservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.peopleservice.application.port.out.PessoaReadPort;
@@ -132,6 +133,33 @@ public class MonolithPessoaReadClient implements PessoaReadPort {
         } catch (ResourceAccessException exception) {
             registrarErro("consultarCadastro", exception);
             throw new DownstreamUnavailableException("Monolito indisponivel para consulta cadastral de pessoas", exception);
+        }
+    }
+
+    @Override
+    public Optional<List<PessoaResponsavelVinculadoResponse>> listarResponsaveisPorAluno(
+            String authorization,
+            InternalRequestContext context,
+            UUID alunoId) {
+        try {
+            List<PessoaResponsavelVinculadoResponse> response = restClient.get()
+                    .uri("/api/alunos/{alunoId}/responsaveis", alunoId)
+                    .headers(headers -> enrichHeaders(headers, authorization, context))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<PessoaResponsavelVinculadoResponse>>() {
+                    });
+            registrarRequisicao("listarResponsaveisPorAluno", "success");
+            return Optional.of(response == null ? List.of() : response);
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                registrarRequisicao("listarResponsaveisPorAluno", "not_found");
+                return Optional.empty();
+            }
+            registrarErro("listarResponsaveisPorAluno", exception);
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            registrarErro("listarResponsaveisPorAluno", exception);
+            throw new DownstreamUnavailableException("Monolito indisponivel para leitura de responsaveis do aluno", exception);
         }
     }
 

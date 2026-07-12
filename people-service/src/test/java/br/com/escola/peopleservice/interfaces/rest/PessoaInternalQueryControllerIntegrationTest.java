@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -24,6 +25,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.escola.peopleservice.application.service.PeopleReadModelSyncState;
+import br.com.escola.peopleservice.application.service.PeopleReadModelSyncCoordinator;
 import br.com.escola.peopleservice.application.service.PessoaContatoService;
 import br.com.escola.peopleservice.application.service.PessoaDocumentoMetadataService;
 import br.com.escola.peopleservice.application.service.PessoaEnderecoService;
@@ -46,6 +48,8 @@ class PessoaInternalQueryControllerIntegrationTest {
     private static final String READ_MODEL_URL = "jdbc:h2:mem:people-internal-query;MODE=PostgreSQL;DB_CLOSE_DELAY=-1";
     private static final UUID ESCOLA_ID = UUID.fromString("00000000-0000-0000-0000-000000000047");
     private static final UUID PESSOA_ID = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    private static final UUID ALUNO_ID = UUID.fromString("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa");
+    private static final UUID RESPONSAVEL_ID = UUID.fromString("bbbbbbbb-2222-2222-2222-bbbbbbbbbbbb");
     private static MockWebServer mockWebServer;
 
     @Autowired
@@ -69,6 +73,9 @@ class PessoaInternalQueryControllerIntegrationTest {
     @MockBean
     private PessoaProfessorResumoService pessoaProfessorResumoService;
 
+    @MockBean
+    private PeopleReadModelSyncCoordinator peopleReadModelSyncCoordinator;
+
     @BeforeAll
     static void beforeAll() throws IOException {
         mockWebServer = new MockWebServer();
@@ -79,6 +86,11 @@ class PessoaInternalQueryControllerIntegrationTest {
     @AfterAll
     static void afterAll() throws IOException {
         mockWebServer.shutdown();
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        prepararCatalogosLocais();
     }
 
     @DynamicPropertySource
@@ -132,8 +144,6 @@ class PessoaInternalQueryControllerIntegrationTest {
     void deveExporRotasInternasCompativeisEConsultaCadastral() throws Exception {
         marcarReadModelComoVerde();
         UUID tipoPessoaId = UUID.randomUUID();
-        UUID alunoId = UUID.randomUUID();
-        UUID responsavelId = UUID.randomUUID();
         mockWebServer.enqueue(new MockResponse()
                 .setHeader("Content-Type", "application/json")
                 .setBody("""
@@ -145,36 +155,6 @@ class PessoaInternalQueryControllerIntegrationTest {
                           }
                         ]
                         """.formatted(tipoPessoaId)));
-        mockWebServer.enqueue(new MockResponse()
-                .setHeader("Content-Type", "application/json")
-                .setBody("""
-                        {
-                          "content": [
-                            {
-                              "idAluno": "%s",
-                              "nomeCompleto": "Aluno Interno",
-                              "cpf": "12345678901",
-                              "email": "aluno.internal@example.com",
-                              "telefone": "11999999999",
-                              "dataNascimento": "2014-03-10",
-                              "createdAt": "2026-07-02T08:00:00",
-                              "responsaveis": [
-                                {
-                                  "id": "%s",
-                                  "nomeCompleto": "Responsavel Interno",
-                                  "cpf": "98765432100",
-                                  "email": "responsavel.internal@example.com",
-                                  "telefone": "11888888888",
-                                  "createdAt": "2026-07-02T08:30:00"
-                                }
-                              ]
-                            }
-                          ],
-                          "totalElements": 1,
-                          "page": 0,
-                          "size": 10
-                        }
-                        """.formatted(alunoId, responsavelId)));
 
         mockMvc.perform(get("/internal/pessoas/catalogos/tipos-pessoa")
                         .header("X-Internal-Token", "internal-token")
@@ -187,7 +167,7 @@ class PessoaInternalQueryControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].codigo").value("ALUNO"));
 
         mockMvc.perform(get("/internal/v1/pessoas/consulta-cadastral")
-                        .queryParam("nomeAluno", "Aluno")
+                        .queryParam("nomeAluno", "Ana")
                         .queryParam("page", "0")
                         .queryParam("size", "10")
                         .header("X-Internal-Token", "internal-token")
@@ -197,14 +177,31 @@ class PessoaInternalQueryControllerIntegrationTest {
                         .header("Authorization", "Bearer internal-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.content[0].idAluno").value(alunoId.toString()))
-                .andExpect(jsonPath("$.content[0].responsaveis[0].id").value(responsavelId.toString()));
+                .andExpect(jsonPath("$.content[0].idAluno").value(ALUNO_ID.toString()))
+                .andExpect(jsonPath("$.content[0].nomeCompleto").value("Ana Aluna"))
+                .andExpect(jsonPath("$.content[0].responsaveis[0].id").value(RESPONSAVEL_ID.toString()))
+                .andExpect(jsonPath("$.content[0].responsaveis[0].nomeCompleto").value("Responsavel Interno"));
 
         RecordedRequest catalogoRequest = aguardarRequisicao("GET", "/internal/pessoas/catalogos/tipos-pessoa");
         assertThat(catalogoRequest.getPath()).isEqualTo("/internal/pessoas/catalogos/tipos-pessoa");
+    }
 
-        RecordedRequest consultaRequest = aguardarRequisicao("GET", "/internal/pessoas/consulta-cadastral?nomeAluno=Aluno&page=0&size=10");
-        assertThat(consultaRequest.getPath()).isEqualTo("/internal/pessoas/consulta-cadastral?nomeAluno=Aluno&page=0&size=10");
+    @Test
+    void deveExporResponsaveisVinculadosPorAlunoNoContratoInterno() throws Exception {
+        marcarReadModelComoVerde();
+
+        mockMvc.perform(get("/internal/v1/alunos/{alunoId}/responsaveis", ALUNO_ID)
+                        .header("X-Internal-Token", "internal-token")
+                        .header("X-Correlation-Id", "corr-people-2c")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", "Bearer internal-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(RESPONSAVEL_ID.toString()))
+                .andExpect(jsonPath("$[0].nomeCompleto").value("Responsavel Interno"))
+                .andExpect(jsonPath("$[0].parentesco").value("MAE"))
+                .andExpect(jsonPath("$[0].responsavelFinanceiro").value(true))
+                .andExpect(jsonPath("$[0].autorizadoRetirar").value(true));
     }
 
     @Test
@@ -414,7 +411,7 @@ class PessoaInternalQueryControllerIntegrationTest {
     }
 
     private static void prepararCatalogosLocais() {
-        try (var connection = DriverManager.getConnection(READ_MODEL_URL);
+        try (var connection = DriverManager.getConnection(READ_MODEL_URL, "sa", "");
                 var statement = connection.createStatement()) {
             statement.execute("""
                     CREATE TABLE IF NOT EXISTS status_aluno (
@@ -444,7 +441,45 @@ class PessoaInternalQueryControllerIntegrationTest {
                     CREATE TABLE IF NOT EXISTS pessoa (
                         id_pessoa UUID NOT NULL PRIMARY KEY,
                         id_escola UUID NOT NULL,
-                        nome_completo VARCHAR(150) NOT NULL
+                        nome_completo VARCHAR(150) NOT NULL,
+                        escola_nome VARCHAR(150),
+                        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+                        rg VARCHAR(20)
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS aluno (
+                        id_aluno UUID NOT NULL PRIMARY KEY,
+                        id_pessoa UUID,
+                        nome_completo VARCHAR(150) NOT NULL,
+                        cpf VARCHAR(14),
+                        email VARCHAR(150),
+                        telefone VARCHAR(20),
+                        data_nascimento DATE,
+                        created_at TIMESTAMP NOT NULL
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS responsavel (
+                        id_responsavel UUID NOT NULL PRIMARY KEY,
+                        id_pessoa UUID,
+                        nome_completo VARCHAR(150) NOT NULL,
+                        cpf VARCHAR(14),
+                        email VARCHAR(150),
+                        telefone VARCHAR(20),
+                        created_at TIMESTAMP NOT NULL
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS aluno_responsavel (
+                        id_aluno_responsavel UUID NOT NULL PRIMARY KEY,
+                        id_aluno UUID NOT NULL,
+                        id_responsavel UUID NOT NULL,
+                        id_parentesco UUID,
+                        responsavel_financeiro BOOLEAN NOT NULL,
+                        responsavel_pedagogico BOOLEAN NOT NULL,
+                        autorizado_retirar BOOLEAN NOT NULL,
+                        created_at TIMESTAMP NOT NULL
                     )
                     """);
             statement.execute("""
@@ -481,10 +516,37 @@ class PessoaInternalQueryControllerIntegrationTest {
             statement.execute("DELETE FROM pessoa_endereco");
             statement.execute("DELETE FROM endereco");
             statement.execute("DELETE FROM tipo_endereco");
+            statement.execute("DELETE FROM aluno_responsavel");
+            statement.execute("DELETE FROM responsavel");
+            statement.execute("DELETE FROM aluno");
             statement.execute("DELETE FROM pessoa");
             statement.execute("""
-                    INSERT INTO pessoa (id_pessoa, id_escola, nome_completo)
-                    VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '00000000-0000-0000-0000-000000000047', 'Ana Aluna')
+                    INSERT INTO pessoa (id_pessoa, id_escola, nome_completo, escola_nome, ativo, rg) VALUES
+                    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '00000000-0000-0000-0000-000000000047', 'Ana Aluna', 'Escola Padrao', TRUE, NULL),
+                    ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '00000000-0000-0000-0000-000000000047', 'Responsavel Interno', 'Escola Padrao', TRUE, 'MG123456')
+                    """);
+            statement.execute("""
+                    INSERT INTO aluno (id_aluno, id_pessoa, nome_completo, cpf, email, telefone, data_nascimento, created_at)
+                    VALUES ('aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Ana Aluna', '12345678901', 'ana.aluna@example.com', '11999999999', DATE '2014-03-10', TIMESTAMP '2026-07-02 08:00:00')
+                    """);
+            statement.execute("""
+                    INSERT INTO responsavel (id_responsavel, id_pessoa, nome_completo, cpf, email, telefone, created_at)
+                    VALUES ('bbbbbbbb-2222-2222-2222-bbbbbbbbbbbb', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Responsavel Interno', '98765432100', 'responsavel.internal@example.com', '11888888888', TIMESTAMP '2026-07-02 08:30:00')
+                    """);
+            statement.execute("""
+                    INSERT INTO aluno_responsavel (
+                        id_aluno_responsavel, id_aluno, id_responsavel, id_parentesco,
+                        responsavel_financeiro, responsavel_pedagogico, autorizado_retirar, created_at
+                    ) VALUES (
+                        'cccccccc-3333-3333-3333-cccccccccccc',
+                        'aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa',
+                        'bbbbbbbb-2222-2222-2222-bbbbbbbbbbbb',
+                        '22222222-2222-2222-2222-222222222222',
+                        TRUE,
+                        FALSE,
+                        TRUE,
+                        TIMESTAMP '2026-07-02 08:35:00'
+                    )
                     """);
             statement.execute("""
                     INSERT INTO tipo_endereco (id_tipo_endereco, codigo, descricao)
@@ -533,10 +595,10 @@ class PessoaInternalQueryControllerIntegrationTest {
                     ),
                     (
                         '55555555-5555-5555-5555-555555555555',
-                        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                        'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
                         '33333333-3333-3333-3333-333333333333',
                         '11111111-1111-1111-1111-111111111111',
-                        FALSE,
+                        TRUE,
                         TIMESTAMP '2026-01-03 10:00:00'
                     )
                     """);

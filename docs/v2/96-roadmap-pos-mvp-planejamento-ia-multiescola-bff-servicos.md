@@ -6164,3 +6164,37 @@ Entregue nesta fase:
 Contagem regressiva do `people-service`: 0 fases restantes neste recorte atual
 de leitura oficial. O contrato de leitura atualmente implementado no
 `people-service` ficou fechado.
+
+### Fase 114 - Abertura da nova macrofase de `responsaveis` pelo vinculo com `aluno`
+
+Entregue nesta fase:
+
+- o `people-service` permanece formalmente encerrado no recorte anterior; esta
+  fase nao reabre aquela macrofase e passa a ser tratada como abertura de uma
+  nova macrofase backend para a futura familia/servico de `responsaveis`;
+- o menor recorte seguro para abrir essa nova macrofase foi formalizado como
+  `GET /api/alunos/{alunoId}/responsaveis`, porque ele reutiliza o vinculo
+  oficial ja existente com `aluno`, preserva o contrato externo atual e evita
+  abrir nesta etapa a listagem ampla `GET /api/responsaveis`;
+- o `people-service` recebeu o DTO
+  `PessoaResponsavelVinculadoResponse`, a migration
+  `V9__extend_people_student_responsible_link_read_model.sql`, a extensao do
+  read model local de `aluno_responsavel` com `id_parentesco`,
+  `responsavel_financeiro`, `responsavel_pedagogico` e
+  `autorizado_retirar`, alem do adapter JDBC local e do fallback controlado
+  para o monolito;
+- como passo transitorio de implementacao no codigo novo atual, o contrato
+  interno hospedado hoje no `people-service` passou a expor
+  `GET /internal/v1/alunos/{alunoId}/responsaveis`, e o
+  `school-management-bff` passou a oficializar a mesma leitura em
+  `GET /api/alunos/{alunoId}/responsaveis`;
+- a macrofase ficou delimitada de forma exata em 2 fases totais:
+  a Fase 114, agora concluida, para o vinculo `aluno -> responsaveis`, e uma
+  unica fase restante para decidir e, se aprovado, oficializar o detalhe
+  minimo de `responsavel` por id; `GET /api/responsaveis` continua fora desse
+  fechamento por depender de contrato de listagem mais amplo e semantica de
+  filtro ainda nao migrada.
+
+Contagem regressiva da nova macrofase de `responsaveis`: 1 fase restante
+exata. O `people-service` continua fechado; o que resta e apenas concluir ou
+encerrar esta nova macrofase independente.
