@@ -6104,3 +6104,63 @@ Entregue nesta fase:
 
 Contagem regressiva do `people-service`: 1 fase real restante estimada para
 fechar o primeiro bloco oficial minimo.
+
+### Fase 111 - Fechamento formal do primeiro bloco oficial minimo de `people-service`
+
+Entregue nesta fase:
+
+- foi confirmada a cobertura oficial completa do recorte minimo combinado no
+  `school-management-bff`, com rotas externas de listagem e detalhe por id para
+  `professores` e `funcionarios`;
+- a validacao automatizada foi reforcada para garantir explicitamente os
+  caminhos `GET /api/professores/{professorId}` e
+  `GET /api/funcionarios/{funcionarioId}`, alem das listagens ja fechadas;
+- com isso, o primeiro bloco oficial minimo do `people-service` ficou
+  formalmente encerrado sem ampliar escopo para frontend, endereco, contato ou
+  outras familias.
+
+Contagem regressiva do `people-service`: 0 fases reais restantes neste primeiro
+bloco oficial minimo. Macrofase encerrada.
+
+### Fase 112 - Segundo bloco oficial de leitura de `people-service` via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a publicar oficialmente
+  `GET /api/consulta-cadastral`,
+  `GET /api/pessoas/catalogos/tipos-pessoa` e
+  `GET /api/pessoas/catalogos/tipos-endereco` consumindo o `people-service`;
+- a chamada externa preservou os contratos ja existentes do monolito e passou a
+  resolver contexto autenticado no monolito antes de encaminhar para
+  `GET /internal/v1/pessoas/consulta-cadastral`,
+  `GET /internal/v1/pessoas/catalogos/tipos-pessoa` e
+  `GET /internal/v1/pessoas/catalogos/tipos-endereco`;
+- a protecao de bearer no BFF foi ampliada para essas rotas oficiais, mantendo
+  o mesmo padrao aplicado aos demais consumos novos de people.
+
+Contagem regressiva do `people-service`: o segundo bloco oficial de leitura foi
+iniciado e ficou parcialmente fechado nesta fase.
+
+### Fase 113 - Fechamento formal do contrato de leitura atual de `people-service` via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a publicar oficialmente tambem
+  `GET /api/pessoas/catalogos/status-aluno`,
+  `GET /api/pessoas/catalogos/parentescos`,
+  `GET /api/pessoas/{pessoaId}`,
+  `GET /api/pessoas/{pessoaId}/endereco-principal`,
+  `GET /api/pessoas/{pessoaId}/enderecos`,
+  `GET /api/pessoas/{pessoaId}/contato`,
+  `GET /api/pessoas/{pessoaId}/documentos` e
+  `GET /api/documentos/{documentoId}`, todos consumindo o `people-service`;
+- com isso, todo endpoint de leitura atualmente implementado no
+  `PessoaInternalQueryController` do `people-service` ficou exposto de forma
+  oficial pelo BFF, sem tocar frontend e sem alterar o legado;
+- a protecao de bearer no BFF foi ampliada para todas essas rotas e a
+  validacao automatizada foi reforcada com testes de controller, proxy e
+  filtro de autenticacao.
+
+Contagem regressiva do `people-service`: 0 fases restantes neste recorte atual
+de leitura oficial. O contrato de leitura atualmente implementado no
+`people-service` ficou fechado.

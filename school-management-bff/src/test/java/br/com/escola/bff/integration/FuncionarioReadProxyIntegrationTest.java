@@ -91,6 +91,47 @@ class FuncionarioReadProxyIntegrationTest {
         assertThat(peopleRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
     }
 
+    @Test
+    void deveConsumirPeopleServiceNaBuscaOficialDeFuncionarioPorId() throws InterruptedException {
+        String funcionarioId = "00000000-0000-0000-0000-000000000012";
+
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao"
+                        }
+                        """));
+
+        PEOPLE.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "funcionarioId":"00000000-0000-0000-0000-000000000012",
+                          "pessoaId":"00000000-0000-0000-0000-000000000022",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "nomeCompleto":"Carlos Lima",
+                          "cargoDescricao":"Secretaria",
+                          "ativo":true
+                        }
+                        """));
+
+        client.get().uri("/api/funcionarios/{funcionarioId}", funcionarioId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-func-2")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.funcionarioId").isEqualTo(funcionarioId)
+                .jsonPath("$.cargoDescricao").isEqualTo("Secretaria");
+
+        MONOLITH.takeRequest();
+        var peopleRequest = PEOPLE.takeRequest();
+        assertThat(peopleRequest.getPath()).isEqualTo("/internal/v1/funcionarios/" + funcionarioId);
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {

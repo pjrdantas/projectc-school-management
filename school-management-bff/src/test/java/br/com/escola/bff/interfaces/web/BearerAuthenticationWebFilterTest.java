@@ -113,4 +113,41 @@ class BearerAuthenticationWebFilterTest {
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-turma-disc-write");
     }
+
+    @Test
+    void deveProtegerConsultaCadastralSemBearerToken() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("/api/consulta-cadastral")
+                        .header(TrustedHeaders.CORRELATION_ID, "corr-consulta"));
+
+        StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-consulta");
+    }
+
+    @Test
+    void deveProtegerNovasRotasOficiaisDePeopleSemBearerToken() {
+        String[] paths = {
+                "/api/pessoas/catalogos/status-aluno",
+                "/api/pessoas/catalogos/parentescos",
+                "/api/pessoas/00000000-0000-0000-0000-000000000401",
+                "/api/pessoas/00000000-0000-0000-0000-000000000401/endereco-principal",
+                "/api/pessoas/00000000-0000-0000-0000-000000000401/enderecos",
+                "/api/pessoas/00000000-0000-0000-0000-000000000401/contato",
+                "/api/pessoas/00000000-0000-0000-0000-000000000401/documentos",
+                "/api/documentos/00000000-0000-0000-0000-000000000501"
+        };
+
+        for (String path : paths) {
+            MockServerWebExchange exchange = MockServerWebExchange.from(
+                    MockServerHttpRequest.get(path)
+                            .header(TrustedHeaders.CORRELATION_ID, "corr-people"));
+
+            StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
+
+            assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+            assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-people");
+        }
+    }
 }

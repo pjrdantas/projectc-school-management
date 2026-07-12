@@ -2314,3 +2314,47 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `GET /internal/v1/funcionarios/{funcionarioId}` no `people-service`.
 - A validacao foi ampliada com teste de controller do BFF e teste de integracao
   ponta a ponta com `MockWebServer` cobrindo monolito e `people-service`.
+
+### Fase 111
+
+- O primeiro bloco oficial minimo do `people-service` foi encerrado
+  formalmente no `school-management-bff`, com cobertura confirmada para
+  `GET /api/professores`, `GET /api/professores/{professorId}`,
+  `GET /api/funcionarios` e `GET /api/funcionarios/{funcionarioId}`.
+- A validacao automatizada foi reforcada para cobrir explicitamente os
+  endpoints oficiais de detalhe por id de `professores` e `funcionarios`, alem
+  das listagens ja existentes.
+- O fechamento permaneceu restrito ao codigo novo do BFF e ao consumo do
+  `people-service`, sem alteracao em frontend e sem toque no legado.
+
+### Fase 112
+
+- O `school-management-bff` passou a expor oficialmente
+  `GET /api/consulta-cadastral`,
+  `GET /api/pessoas/catalogos/tipos-pessoa` e
+  `GET /api/pessoas/catalogos/tipos-endereco` consumindo o `people-service`.
+- A resolucao de contexto autenticado permaneceu centralizada no monolito e a
+  chamada oficial passou a seguir para
+  `GET /internal/v1/pessoas/consulta-cadastral`,
+  `GET /internal/v1/pessoas/catalogos/tipos-pessoa` e
+  `GET /internal/v1/pessoas/catalogos/tipos-endereco` no `people-service`.
+- A validacao foi ampliada com testes de controller, testes de integracao
+  ponta a ponta com `MockWebServer` e cobertura do filtro de bearer para esse
+  novo bloco oficial.
+
+### Fase 113
+
+- O `school-management-bff` passou a expor oficialmente tambem
+  `GET /api/pessoas/catalogos/status-aluno`,
+  `GET /api/pessoas/catalogos/parentescos`,
+  `GET /api/pessoas/{pessoaId}`,
+  `GET /api/pessoas/{pessoaId}/endereco-principal`,
+  `GET /api/pessoas/{pessoaId}/enderecos`,
+  `GET /api/pessoas/{pessoaId}/contato`,
+  `GET /api/pessoas/{pessoaId}/documentos` e
+  `GET /api/documentos/{documentoId}` consumindo o `people-service`.
+- Com isso, todo endpoint de leitura atualmente implementado no
+  `PessoaInternalQueryController` do `people-service` ficou exposto de forma
+  oficial pelo BFF, sem toque em frontend e sem toque no legado.
+- A validacao do modulo foi executada com `mvn -pl school-management-bff test`
+  e fechou em `BUILD SUCCESS`, com 94 testes, 0 falhas e 0 erros.
