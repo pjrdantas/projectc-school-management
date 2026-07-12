@@ -25,9 +25,12 @@ import br.com.escola.bff.application.port.out.MonolithTurmaWritePort;
 import br.com.escola.bff.application.service.CatalogReadRoutingService;
 import br.com.escola.bff.application.service.DisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.PeriodoLetivoWriteRoutingService;
+import br.com.escola.bff.application.service.ProfessorReadProxyService;
 import br.com.escola.bff.application.service.SerieWriteRoutingService;
 import br.com.escola.bff.application.service.TurmaDisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.TurmaWriteRoutingService;
+import br.com.escola.bff.application.port.out.PeopleProfessorReadPort;
+import br.com.escola.bff.application.usecase.ConsultarProfessorUseCase;
 import br.com.escola.bff.application.usecase.CreateDisciplinaUseCase;
 import br.com.escola.bff.application.usecase.CreatePeriodoLetivoUseCase;
 import br.com.escola.bff.application.usecase.CreateSerieUseCase;
@@ -37,6 +40,13 @@ import br.com.escola.bff.application.usecase.RouteCatalogReadUseCase;
 
 @Configuration
 public class BffUseCaseConfiguration {
+
+    @Bean
+    ConsultarProfessorUseCase consultarProfessorUseCase(
+            AuthContextPort authContextPort,
+            PeopleProfessorReadPort peopleProfessorReadPort) {
+        return new ProfessorReadProxyService(authContextPort, peopleProfessorReadPort);
+    }
 
     @Bean
     RouteCatalogReadUseCase routeCatalogReadUseCase(

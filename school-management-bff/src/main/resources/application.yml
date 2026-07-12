@@ -19,11 +19,17 @@ clients:
     connect-timeout: ${CATALOG_SERVICE_CONNECT_TIMEOUT:2s}
     response-timeout: ${CATALOG_SERVICE_RESPONSE_TIMEOUT:3s}
     internal-token: ${CATALOG_INTERNAL_API_TOKEN:}
+  people-service:
+    base-url: ${PEOPLE_SERVICE_BASE_URL:http://localhost:8083}
+    connect-timeout: ${PEOPLE_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${PEOPLE_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${PEOPLE_INTERNAL_API_TOKEN:}
 
 features:
   disciplinas-proxy-enabled: ${DISCIPLINAS_PROXY_ENABLED:true}
   catalog-read-proxy-enabled: ${CATALOG_READ_PROXY_ENABLED:${DISCIPLINAS_PROXY_ENABLED:true}}
   catalog-write-proxy-enabled: ${CATALOG_WRITE_PROXY_ENABLED:true}
+  people-read-proxy-enabled: ${PEOPLE_READ_PROXY_ENABLED:true}
   catalog-read-cutover:
     enabled: ${CATALOG_READ_CUTOVER_ENABLED:false}
     report-path: ${CATALOG_READ_CUTOVER_REPORT_PATH:}

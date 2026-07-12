@@ -6070,3 +6070,20 @@ Entregue nesta fase:
 
 Contagem da macrofase Fase 108: 0 subfases restantes estimadas. O bloco interno
 de professor resumo ficou fechado.
+
+### Fase 109 - Primeiro consumo oficial de professor via `school-management-bff`
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a publicar `GET /api/professores` e
+  `GET /api/professores/{professorId}` consumindo oficialmente o
+  `people-service`, sem alterar frontend e sem tocar no legado;
+- foi criado um fluxo enxuto de proxy para professor, reaproveitando a
+  resolucao de contexto autenticado no monolito e encaminhando a chamada para
+  `GET /internal/v1/professores` e
+  `GET /internal/v1/professores/{professorId}` no `people-service`;
+- a entrega ficou restrita ao codigo novo do BFF e do `people-service`, sem
+  introduzir novo mecanismo operacional paralelo para esse recorte.
+
+Contagem regressiva do `people-service`: 2 fases reais restantes estimadas
+para fechar o primeiro bloco oficial minimo.
