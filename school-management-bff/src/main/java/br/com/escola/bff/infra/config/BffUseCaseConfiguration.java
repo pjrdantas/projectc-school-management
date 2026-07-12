@@ -22,14 +22,17 @@ import br.com.escola.bff.application.port.out.MonolithPeriodoLetivoWritePort;
 import br.com.escola.bff.application.port.out.MonolithSerieWritePort;
 import br.com.escola.bff.application.port.out.MonolithTurmaDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.MonolithTurmaWritePort;
+import br.com.escola.bff.application.port.out.PeopleFuncionarioReadPort;
 import br.com.escola.bff.application.service.CatalogReadRoutingService;
 import br.com.escola.bff.application.service.DisciplinaWriteRoutingService;
+import br.com.escola.bff.application.service.FuncionarioReadProxyService;
 import br.com.escola.bff.application.service.PeriodoLetivoWriteRoutingService;
 import br.com.escola.bff.application.service.ProfessorReadProxyService;
 import br.com.escola.bff.application.service.SerieWriteRoutingService;
 import br.com.escola.bff.application.service.TurmaDisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.TurmaWriteRoutingService;
 import br.com.escola.bff.application.port.out.PeopleProfessorReadPort;
+import br.com.escola.bff.application.usecase.ConsultarFuncionarioUseCase;
 import br.com.escola.bff.application.usecase.ConsultarProfessorUseCase;
 import br.com.escola.bff.application.usecase.CreateDisciplinaUseCase;
 import br.com.escola.bff.application.usecase.CreatePeriodoLetivoUseCase;
@@ -40,6 +43,13 @@ import br.com.escola.bff.application.usecase.RouteCatalogReadUseCase;
 
 @Configuration
 public class BffUseCaseConfiguration {
+
+    @Bean
+    ConsultarFuncionarioUseCase consultarFuncionarioUseCase(
+            AuthContextPort authContextPort,
+            PeopleFuncionarioReadPort peopleFuncionarioReadPort) {
+        return new FuncionarioReadProxyService(authContextPort, peopleFuncionarioReadPort);
+    }
 
     @Bean
     ConsultarProfessorUseCase consultarProfessorUseCase(

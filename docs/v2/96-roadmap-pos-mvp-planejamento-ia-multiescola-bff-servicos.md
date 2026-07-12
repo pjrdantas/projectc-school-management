@@ -6087,3 +6087,20 @@ Entregue nesta fase:
 
 Contagem regressiva do `people-service`: 2 fases reais restantes estimadas
 para fechar o primeiro bloco oficial minimo.
+
+### Fase 110 - Segundo consumo oficial minimo via `school-management-bff`
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a publicar `GET /api/funcionarios` e
+  `GET /api/funcionarios/{funcionarioId}` consumindo oficialmente o
+  `people-service`, sem alterar frontend e sem tocar no legado;
+- foi aplicado o mesmo fluxo enxuto ja validado para professor, reaproveitando
+  a resolucao de contexto autenticado no monolito e encaminhando a chamada para
+  `GET /internal/v1/funcionarios` e
+  `GET /internal/v1/funcionarios/{funcionarioId}` no `people-service`;
+- a entrega permaneceu restrita ao codigo novo do BFF e do `people-service`,
+  sem ampliar escopo para outros recortes.
+
+Contagem regressiva do `people-service`: 1 fase real restante estimada para
+fechar o primeiro bloco oficial minimo.

@@ -2302,3 +2302,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `GET /internal/v1/professores/{professorId}` no `people-service`.
 - A validacao foi ampliada com teste de controller do BFF e teste de integracao
   ponta a ponta com `MockWebServer` cobrindo monolito e `people-service`.
+
+### Fase 110
+
+- O `school-management-bff` passou a expor oficialmente `GET /api/funcionarios`
+  e `GET /api/funcionarios/{funcionarioId}` consumindo o `people-service`, sem
+  alteracao em frontend e sem toque no legado.
+- A resolucao de contexto autenticado continuou centralizada no monolito e a
+  chamada oficial passou a seguir para
+  `GET /internal/v1/funcionarios` e
+  `GET /internal/v1/funcionarios/{funcionarioId}` no `people-service`.
+- A validacao foi ampliada com teste de controller do BFF e teste de integracao
+  ponta a ponta com `MockWebServer` cobrindo monolito e `people-service`.
