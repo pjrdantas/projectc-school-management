@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import br.com.escola.enrollmentdocumentservice.application.context.InternalRequestContext;
+import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.TransferenciaAlunoRequest;
@@ -59,5 +60,13 @@ public class EnrollmentTransferService implements EnrollmentTransferUseCase {
             InternalRequestContext context,
             UUID alunoId) {
         return enrollmentTransferPort.listarTransferenciasPorAluno(authorization, context, alunoId);
+    }
+
+    @Override
+    public List<DocumentoAlunoResponse> listarDocumentosPorAluno(
+            String authorization,
+            InternalRequestContext context,
+            UUID alunoId) {
+        return enrollmentTransferPort.listarDocumentosPorAluno(authorization, context, alunoId);
     }
 }

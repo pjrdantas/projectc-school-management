@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.enrollmentdocumentservice.application.context.InternalHeaders;
 import br.com.escola.enrollmentdocumentservice.application.context.InternalRequestContext;
+import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.TransferenciaAlunoRequest;
@@ -82,5 +83,13 @@ public class EnrollmentDocumentInternalController {
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
             @PathVariable @NonNull UUID alunoId) {
         return enrollmentTransferUseCase.listarTransferenciasPorAluno(authorization, context, alunoId);
+    }
+
+    @GetMapping("/documentos-alunos/alunos/{alunoId}")
+    public List<DocumentoAlunoResponse> listarDocumentosPorAluno(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID alunoId) {
+        return enrollmentTransferUseCase.listarDocumentosPorAluno(authorization, context, alunoId);
     }
 }

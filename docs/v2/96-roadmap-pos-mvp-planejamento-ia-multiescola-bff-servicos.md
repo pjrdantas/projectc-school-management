@@ -6272,3 +6272,28 @@ Entregue nesta fase:
 
 Contagem regressiva do `enrollment-document-service`: 0 fases restantes neste
 primeiro bloco oficial minimo.
+
+### Fase 118 - Abertura do bloco oficial minimo de `documento` por aluno no `enrollment-document-service`
+
+Entregue nesta fase:
+
+- foi aberta a proxima macrofase do `enrollment-document-service` pelo menor
+  recorte seguro fora de `transferencia`: a leitura oficial
+  `GET /api/documentos-alunos/alunos/{alunoId}`;
+- o `school-management-service` passou a expor o contrato interno
+  `GET /internal/documentos-alunos/alunos/{alunoId}` reaproveitando o
+  `DocumentoAlunoService`, sem refatoracao ampla e sem mover escrita;
+- o `enrollment-document-service` passou a consumir esse contrato e a expor
+  `GET /internal/v1/documentos-alunos/alunos/{alunoId}` como nova fronteira
+  backend/backend do recorte;
+- o `school-management-bff` passou a oficializar
+  `GET /api/documentos-alunos/alunos/{alunoId}` consumindo o
+  `enrollment-document-service`, com propagacao de bearer, correlation ID e
+  contexto interno obrigatorio;
+- esta nova macrofase fica delimitada em 2 fases totais: a Fase 118, agora
+  concluida, para a listagem de documentos por aluno, e 1 unica fase restante
+  para decidir e, se aprovado, oficializar o detalhe minimo
+  `GET /api/documentos-alunos/{id}`.
+
+Contagem regressiva do bloco `documento` por aluno no
+`enrollment-document-service`: 1 fase restante.

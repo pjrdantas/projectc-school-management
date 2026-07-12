@@ -2453,3 +2453,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A validacao do modulo tocado foi executada com
   `mvn -pl school-management-bff -Dtest=TransferenciaReadControllerTest,EscolaOrigemReadControllerTest,TransferenciaReadProxyIntegrationTest,EscolaOrigemReadProxyIntegrationTest test`
   e passou a cobrir tambem as novas leituras adicionadas nesta fase.
+
+### Fase 118
+
+- O primeiro bloco oficial minimo de `transferencia` no
+  `enrollment-document-service` foi mantido como encerrado. Esta fase abriu a
+  macrofase seguinte pelo menor recorte seguro de `documento` ligado a aluno:
+  `GET /api/documentos-alunos/alunos/{alunoId}`.
+- O `school-management-service` passou a expor
+  `GET /internal/documentos-alunos/alunos/{alunoId}` reaproveitando o
+  `DocumentoAlunoService`, sem alterar escrita, upload ou exclusao.
+- O `enrollment-document-service` passou a expor
+  `GET /internal/v1/documentos-alunos/alunos/{alunoId}` consumindo o monolito
+  pelo contrato interno novo e sem abrir persistencia propria.
+- O `school-management-bff` passou a oficializar
+  `GET /api/documentos-alunos/alunos/{alunoId}` consumindo o
+  `enrollment-document-service`, incluindo protecao de bearer nessa rota.
+- A nova macrofase de `documento` por aluno no `enrollment-document-service`
+  fica contada em 2 fases totais: a Fase 118, concluida, e 1 unica fase
+  restante para decidir e, se aprovado, oficializar `GET /api/documentos-alunos/{id}`.

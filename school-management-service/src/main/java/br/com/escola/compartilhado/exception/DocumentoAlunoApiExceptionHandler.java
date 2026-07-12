@@ -6,11 +6,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import br.com.escola.documento.adapter.in.web.DocumentoAlunoController;
+import br.com.escola.documento.adapter.in.web.internal.DocumentoAlunoInternalController;
 import br.com.escola.documento.domain.exception.DocumentoInvalidoException;
 import br.com.escola.documento.domain.exception.DocumentoNaoEncontradoException;
 import jakarta.servlet.http.HttpServletRequest;
 
-@RestControllerAdvice(basePackageClasses = DocumentoAlunoController.class)
+@RestControllerAdvice(basePackageClasses = {
+        DocumentoAlunoController.class,
+        DocumentoAlunoInternalController.class
+})
 public class DocumentoAlunoApiExceptionHandler extends BaseApiExceptionHandler {
 
     @ExceptionHandler(DocumentoNaoEncontradoException.class)

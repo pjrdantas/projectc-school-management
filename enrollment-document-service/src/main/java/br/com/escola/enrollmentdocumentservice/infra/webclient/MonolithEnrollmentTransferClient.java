@@ -12,6 +12,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 import br.com.escola.enrollmentdocumentservice.application.context.InternalHeaders;
 import br.com.escola.enrollmentdocumentservice.application.context.InternalRequestContext;
+import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.TransferenciaAlunoRequest;
@@ -166,6 +167,29 @@ public class MonolithEnrollmentTransferClient implements EnrollmentTransferPort 
         } catch (ResourceAccessException exception) {
             registrarErro("listarTransferenciasPorAluno", exception);
             throw new DownstreamUnavailableException("Monolito indisponivel para leitura de transferencias do aluno", exception);
+        }
+    }
+
+    @Override
+    public List<DocumentoAlunoResponse> listarDocumentosPorAluno(
+            String authorization,
+            InternalRequestContext context,
+            UUID alunoId) {
+        try {
+            List<DocumentoAlunoResponse> response = restClient.get()
+                    .uri("/internal/documentos-alunos/alunos/{alunoId}", alunoId)
+                    .headers(headers -> enrichHeaders(headers, authorization, context))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<DocumentoAlunoResponse>>() {
+                    });
+            registrarRequisicao("listarDocumentosPorAluno", "success");
+            return response == null ? List.of() : response;
+        } catch (RestClientResponseException exception) {
+            registrarErro("listarDocumentosPorAluno", exception);
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            registrarErro("listarDocumentosPorAluno", exception);
+            throw new DownstreamUnavailableException("Monolito indisponivel para leitura de documentos do aluno", exception);
         }
     }
 

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import br.com.escola.enrollmentdocumentservice.application.context.InternalRequestContext;
+import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.TransferenciaAlunoRequest;
@@ -25,6 +26,11 @@ public interface EnrollmentTransferPort {
     TransferenciaAlunoResponse buscarTransferencia(String authorization, InternalRequestContext context, UUID id);
 
     List<TransferenciaAlunoResponse> listarTransferenciasPorAluno(
+            String authorization,
+            InternalRequestContext context,
+            UUID alunoId);
+
+    List<DocumentoAlunoResponse> listarDocumentosPorAluno(
             String authorization,
             InternalRequestContext context,
             UUID alunoId);
