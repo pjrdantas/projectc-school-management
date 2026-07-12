@@ -2472,3 +2472,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A nova macrofase de `documento` por aluno no `enrollment-document-service`
   fica contada em 2 fases totais: a Fase 118, concluida, e 1 unica fase
   restante para decidir e, se aprovado, oficializar `GET /api/documentos-alunos/{id}`.
+
+### Fase 119
+
+- O `school-management-service` passou a expor
+  `GET /internal/documentos-alunos/{id}` reaproveitando o
+  `DocumentoAlunoService`, sem alterar escrita, upload ou exclusao.
+- O `enrollment-document-service` passou a expor
+  `GET /internal/v1/documentos-alunos/{id}` consumindo o monolito pelo mesmo
+  contrato interno novo.
+- O `school-management-bff` passou a oficializar
+  `GET /api/documentos-alunos/{id}` consumindo o
+  `enrollment-document-service`, preservando o contrato externo atual e a
+  protecao de bearer.
+- Com isso, a macrofase de `documento` por aluno no
+  `enrollment-document-service` chega a 0 fases restantes neste primeiro bloco
+  oficial minimo.

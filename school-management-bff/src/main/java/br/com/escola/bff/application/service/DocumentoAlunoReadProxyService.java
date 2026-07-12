@@ -31,4 +31,14 @@ public class DocumentoAlunoReadProxyService implements ConsultarDocumentoAlunoUs
         return authContextPort.resolve(query)
                 .flatMap(context -> enrollmentDocumentAlunoReadPort.listarDocumentosPorAluno(alunoId, query, context));
     }
+
+    @Override
+    public Mono<ResponseEntity<String>> buscarDocumentoAlunoPorId(
+            String authorization,
+            String correlationId,
+            UUID id) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> enrollmentDocumentAlunoReadPort.buscarDocumentoAlunoPorId(id, query, context));
+    }
 }

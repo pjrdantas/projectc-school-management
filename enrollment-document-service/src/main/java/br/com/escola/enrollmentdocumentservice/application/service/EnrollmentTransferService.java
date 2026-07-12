@@ -69,4 +69,12 @@ public class EnrollmentTransferService implements EnrollmentTransferUseCase {
             UUID alunoId) {
         return enrollmentTransferPort.listarDocumentosPorAluno(authorization, context, alunoId);
     }
+
+    @Override
+    public DocumentoAlunoResponse buscarDocumentoAlunoPorId(
+            String authorization,
+            InternalRequestContext context,
+            UUID id) {
+        return enrollmentTransferPort.buscarDocumentoAlunoPorId(authorization, context, id);
+    }
 }

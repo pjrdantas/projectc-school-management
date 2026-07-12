@@ -199,6 +199,42 @@ class EnrollmentDocumentInternalControllerIntegrationTest {
     }
 
     @Test
+    void deveBuscarDocumentoAlunoPorIdNoContratoInterno() throws Exception {
+        UUID alunoId = UUID.randomUUID();
+        UUID documentoId = UUID.randomUUID();
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "id":"%s",
+                          "alunoId":"%s",
+                          "tipoDocumento":"HISTORICO_ESCOLAR",
+                          "nomeArquivo":"historico.pdf",
+                          "urlArquivo":"s3://bucket/historico.pdf",
+                          "numeroDocumento":"historico.pdf",
+                          "caminhoArquivo":"s3://bucket/historico.pdf",
+                          "dataUpload":"2026-07-12T10:00:00",
+                          "observacao":"Documento escolar"
+                        }
+                        """.formatted(documentoId, alunoId)));
+
+        mockMvc.perform(get("/internal/v1/documentos-alunos/{id}", documentoId)
+                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Correlation-Id", "corr-enrollment-5")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer enrollment-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(documentoId.toString()))
+                .andExpect(jsonPath("$.alunoId").value(alunoId.toString()))
+                .andExpect(jsonPath("$.tipoDocumento").value("HISTORICO_ESCOLAR"));
+
+        RecordedRequest recorded = aguardarRequisicao("GET", "/internal/documentos-alunos/" + documentoId);
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer enrollment-user-token");
+        assertThat(recorded.getHeader("X-Correlation-Id")).isEqualTo("corr-enrollment-5");
+    }
+
+    @Test
     void deveExigirTokenInternoValido() throws Exception {
         mockMvc.perform(get("/internal/v1/escolas-origem")
                         .header("X-Correlation-Id", "corr-enrollment-3")

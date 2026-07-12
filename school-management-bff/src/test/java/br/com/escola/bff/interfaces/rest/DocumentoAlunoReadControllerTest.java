@@ -15,10 +15,62 @@ import reactor.core.publisher.Mono;
 class DocumentoAlunoReadControllerTest {
 
     @Test
+    void deveExporContratoCompativelNaBuscaDeDocumentoPorId() {
+        UUID documentoId = UUID.fromString("00000000-0000-0000-0000-000000000301");
+        ConsultarDocumentoAlunoUseCase useCase = new ConsultarDocumentoAlunoUseCase() {
+            @Override
+            public Mono<ResponseEntity<String>> listarDocumentosPorAluno(
+                    String authorization,
+                    String correlationId,
+                    UUID alunoId) {
+                return Mono.error(new UnsupportedOperationException());
+            }
+
+            @Override
+            public Mono<ResponseEntity<String>> buscarDocumentoAlunoPorId(
+                    String authorization,
+                    String correlationId,
+                    UUID id) {
+                return Mono.just(ResponseEntity.ok("""
+                        {
+                          "id":"00000000-0000-0000-0000-000000000301",
+                          "alunoId":"00000000-0000-0000-0000-000000000021",
+                          "tipoDocumento":"HISTORICO_ESCOLAR",
+                          "nomeArquivo":"historico.pdf",
+                          "urlArquivo":"s3://bucket/historico.pdf",
+                          "numeroDocumento":"historico.pdf",
+                          "caminhoArquivo":"s3://bucket/historico.pdf",
+                          "dataUpload":"2026-07-12T10:00:00",
+                          "observacao":"Documento escolar"
+                        }
+                        """));
+            }
+        };
+
+        WebTestClient client = WebTestClient.bindToController(new DocumentoAlunoReadController(useCase))
+                .controllerAdvice(new BffExceptionHandler())
+                .build();
+
+        client.get().uri("/api/documentos-alunos/{id}", documentoId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-doc-aluno-id-1")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(documentoId.toString())
+                .jsonPath("$.tipoDocumento").isEqualTo("HISTORICO_ESCOLAR");
+    }
+
+    @Test
     void deveExporContratoCompativelNaListagemDeDocumentosPorAluno() {
         UUID alunoId = UUID.fromString("00000000-0000-0000-0000-000000000021");
-        ConsultarDocumentoAlunoUseCase useCase = (authorization, correlationId, requestedAlunoId) -> Mono.just(
-                ResponseEntity.ok("""
+        ConsultarDocumentoAlunoUseCase useCase = new ConsultarDocumentoAlunoUseCase() {
+            @Override
+            public Mono<ResponseEntity<String>> listarDocumentosPorAluno(
+                    String authorization,
+                    String correlationId,
+                    UUID requestedAlunoId) {
+                return Mono.just(ResponseEntity.ok("""
                         [{
                           "id":"00000000-0000-0000-0000-000000000301",
                           "alunoId":"00000000-0000-0000-0000-000000000021",
@@ -31,6 +83,16 @@ class DocumentoAlunoReadControllerTest {
                           "observacao":"Documento escolar"
                         }]
                         """));
+            }
+
+            @Override
+            public Mono<ResponseEntity<String>> buscarDocumentoAlunoPorId(
+                    String authorization,
+                    String correlationId,
+                    UUID id) {
+                return Mono.error(new UnsupportedOperationException());
+            }
+        };
 
         WebTestClient client = WebTestClient.bindToController(new DocumentoAlunoReadController(useCase))
                 .controllerAdvice(new BffExceptionHandler())

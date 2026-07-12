@@ -193,6 +193,32 @@ public class MonolithEnrollmentTransferClient implements EnrollmentTransferPort 
         }
     }
 
+    @Override
+    public DocumentoAlunoResponse buscarDocumentoAlunoPorId(
+            String authorization,
+            InternalRequestContext context,
+            UUID id) {
+        try {
+            DocumentoAlunoResponse response = restClient.get()
+                    .uri("/internal/documentos-alunos/{id}", id)
+                    .headers(headers -> enrichHeaders(headers, authorization, context))
+                    .retrieve()
+                    .body(DocumentoAlunoResponse.class);
+            registrarRequisicao("buscarDocumentoAlunoPorId", "success");
+            return response;
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                registrarRequisicao("buscarDocumentoAlunoPorId", "not_found");
+                throw new EnrollmentDocumentServiceResourceNotFoundException("Documento do aluno nao encontrado");
+            }
+            registrarErro("buscarDocumentoAlunoPorId", exception);
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            registrarErro("buscarDocumentoAlunoPorId", exception);
+            throw new DownstreamUnavailableException("Monolito indisponivel para leitura de documento do aluno", exception);
+        }
+    }
+
     private void enrichHeaders(HttpHeaders headers, String authorization, InternalRequestContext context) {
         headers.set(HttpHeaders.AUTHORIZATION, authorization);
         headers.set(InternalHeaders.CORRELATION_ID, context.correlationId());

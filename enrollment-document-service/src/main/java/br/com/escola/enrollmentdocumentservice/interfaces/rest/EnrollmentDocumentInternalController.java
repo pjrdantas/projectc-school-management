@@ -92,4 +92,12 @@ public class EnrollmentDocumentInternalController {
             @PathVariable @NonNull UUID alunoId) {
         return enrollmentTransferUseCase.listarDocumentosPorAluno(authorization, context, alunoId);
     }
+
+    @GetMapping("/documentos-alunos/{id}")
+    public DocumentoAlunoResponse buscarDocumentoAlunoPorId(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID id) {
+        return enrollmentTransferUseCase.buscarDocumentoAlunoPorId(authorization, context, id);
+    }
 }

@@ -22,6 +22,11 @@ public class DocumentoAlunoInternalController {
         this.documentoAlunoService = documentoAlunoService;
     }
 
+    @GetMapping("/{id}")
+    public DocumentoAlunoResponse buscarPorId(@PathVariable @NonNull UUID id) {
+        return documentoAlunoService.buscarPorId(id);
+    }
+
     @GetMapping("/alunos/{alunoId}")
     public List<DocumentoAlunoResponse> listarPorAluno(@PathVariable @NonNull UUID alunoId) {
         return documentoAlunoService.listarPorAluno(alunoId);

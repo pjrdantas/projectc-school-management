@@ -6297,3 +6297,22 @@ Entregue nesta fase:
 
 Contagem regressiva do bloco `documento` por aluno no
 `enrollment-document-service`: 1 fase restante.
+
+### Fase 119 - Fechamento formal do bloco oficial minimo de `documento` por aluno no `enrollment-document-service`
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a publicar oficialmente tambem
+  `GET /api/documentos-alunos/{id}` consumindo o
+  `enrollment-document-service`;
+- o `school-management-service` passou a expor o detalhe interno
+  `GET /internal/documentos-alunos/{id}` reaproveitando o
+  `DocumentoAlunoService`, sem alterar upload, escrita ou exclusao;
+- o `enrollment-document-service` passou a consumir esse detalhe interno e a
+  expor `GET /internal/v1/documentos-alunos/{id}` no mesmo recorte
+  backend/backend de documento por aluno;
+- com isso, o bloco oficial minimo de `documento` por aluno no
+  `enrollment-document-service` ficou fechado no BFF sem tocar frontend.
+
+Contagem regressiva do bloco `documento` por aluno no
+`enrollment-document-service`: 0 fases restantes.

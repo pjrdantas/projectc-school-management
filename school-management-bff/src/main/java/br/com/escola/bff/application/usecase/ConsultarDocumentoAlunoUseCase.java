@@ -12,4 +12,9 @@ public interface ConsultarDocumentoAlunoUseCase {
             String authorization,
             String correlationId,
             UUID alunoId);
+
+    Mono<ResponseEntity<String>> buscarDocumentoAlunoPorId(
+            String authorization,
+            String correlationId,
+            UUID id);
 }

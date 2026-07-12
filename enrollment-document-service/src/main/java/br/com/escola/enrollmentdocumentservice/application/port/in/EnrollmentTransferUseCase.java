@@ -34,4 +34,9 @@ public interface EnrollmentTransferUseCase {
             String authorization,
             InternalRequestContext context,
             UUID alunoId);
+
+    DocumentoAlunoResponse buscarDocumentoAlunoPorId(
+            String authorization,
+            InternalRequestContext context,
+            UUID id);
 }

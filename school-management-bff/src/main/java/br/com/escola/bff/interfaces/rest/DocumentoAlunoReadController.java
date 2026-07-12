@@ -31,4 +31,12 @@ public class DocumentoAlunoReadController {
             @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
         return consultarDocumentoAlunoUseCase.listarDocumentosPorAluno(authorization, correlationId, alunoId);
     }
+
+    @GetMapping("/api/documentos-alunos/{id}")
+    public Mono<ResponseEntity<String>> buscarDocumentoAlunoPorId(
+            @PathVariable UUID id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return consultarDocumentoAlunoUseCase.buscarDocumentoAlunoPorId(authorization, correlationId, id);
+    }
 }

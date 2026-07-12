@@ -14,4 +14,9 @@ public interface EnrollmentDocumentAlunoReadPort {
             UUID alunoId,
             CatalogReadQuery query,
             AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> buscarDocumentoAlunoPorId(
+            UUID id,
+            CatalogReadQuery query,
+            AuthSessionContext context);
 }

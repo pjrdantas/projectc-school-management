@@ -33,6 +33,30 @@ class DocumentoAlunoInternalControllerIntegrationTest {
 
     @Test
     @WithMockUser
+    void deveBuscarDocumentoInternoPorId() throws Exception {
+        UUID alunoId = UUID.randomUUID();
+        UUID documentoId = UUID.randomUUID();
+        when(documentoAlunoService.buscarPorId(any()))
+                .thenReturn(new DocumentoAlunoResponse(
+                        documentoId,
+                        alunoId,
+                        "HISTORICO_ESCOLAR",
+                        "historico.pdf",
+                        "s3://bucket/historico.pdf",
+                        "historico.pdf",
+                        "s3://bucket/historico.pdf",
+                        LocalDateTime.of(2026, 7, 12, 10, 0),
+                        "Documento escolar"));
+
+        mockMvc.perform(get("/internal/documentos-alunos/{id}", documentoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(documentoId.toString()))
+                .andExpect(jsonPath("$.alunoId").value(alunoId.toString()))
+                .andExpect(jsonPath("$.tipoDocumento").value("HISTORICO_ESCOLAR"));
+    }
+
+    @Test
+    @WithMockUser
     void deveListarDocumentosInternosPorAluno() throws Exception {
         UUID alunoId = UUID.randomUUID();
         UUID documentoId = UUID.randomUUID();
