@@ -8,6 +8,10 @@ import reactor.core.publisher.Mono;
 
 public interface ConsultarEscolaOrigemUseCase {
 
+    Mono<ResponseEntity<String>> listarEscolasOrigem(
+            String authorization,
+            String correlationId);
+
     Mono<ResponseEntity<String>> buscarEscolaOrigemPorId(
             String authorization,
             String correlationId,

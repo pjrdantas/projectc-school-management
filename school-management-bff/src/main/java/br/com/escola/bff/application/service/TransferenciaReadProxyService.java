@@ -23,6 +23,19 @@ public class TransferenciaReadProxyService implements ConsultarTransferenciaUseC
     }
 
     @Override
+    public Mono<ResponseEntity<String>> listarTransferenciasPorAluno(
+            String authorization,
+            String correlationId,
+            UUID alunoId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> enrollmentDocumentTransferenciaReadPort.listarTransferenciasPorAluno(
+                        alunoId,
+                        query,
+                        context));
+    }
+
+    @Override
     public Mono<ResponseEntity<String>> buscarTransferenciaPorId(
             String authorization,
             String correlationId,

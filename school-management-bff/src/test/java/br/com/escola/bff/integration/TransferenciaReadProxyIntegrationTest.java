@@ -88,6 +88,47 @@ class TransferenciaReadProxyIntegrationTest {
         assertThat(enrollmentRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
     }
 
+    @Test
+    void deveConsumirEnrollmentDocumentServiceNaListagemOficialDeTransferenciasPorAluno() throws InterruptedException {
+        String alunoId = "00000000-0000-0000-0000-000000000021";
+
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao"
+                        }
+                        """));
+
+        ENROLLMENT_DOCUMENT.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{
+                          "id":"00000000-0000-0000-0000-000000000091",
+                          "alunoId":"00000000-0000-0000-0000-000000000021",
+                          "serieOrigem":"5A",
+                          "anoLetivoOrigem":"2026",
+                          "statusTransferencia":"EM_ANDAMENTO"
+                        }]
+                        """));
+
+        client.get().uri("/api/transferencias/alunos/{alunoId}", alunoId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-transferencia-list-2")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].alunoId").isEqualTo(alunoId)
+                .jsonPath("$[0].statusTransferencia").isEqualTo("EM_ANDAMENTO");
+
+        MONOLITH.takeRequest();
+        var enrollmentRequest = ENROLLMENT_DOCUMENT.takeRequest();
+        assertThat(enrollmentRequest.getPath()).isEqualTo("/internal/v1/transferencias/alunos/" + alunoId);
+        assertThat(enrollmentRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-transferencia-list-2");
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {

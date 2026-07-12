@@ -2435,3 +2435,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A validacao do modulo tocado foi executada com
   `mvn -pl school-management-bff "-Dtest=TransferenciaReadControllerTest,EscolaOrigemReadControllerTest,TransferenciaReadProxyIntegrationTest,EscolaOrigemReadProxyIntegrationTest" test`
   em `BUILD SUCCESS`.
+
+### Fase 117
+
+- O `school-management-bff` passou a expor oficialmente tambem
+  `GET /api/escolas-origem` e
+  `GET /api/transferencias/alunos/{alunoId}` consumindo o
+  `enrollment-document-service`, preservando os contratos externos atuais.
+- Com isso, o primeiro bloco oficial minimo de leitura suportado hoje no
+  `enrollment-document-service` ficou fechado no BFF sem alteracao em frontend
+  e sem migracao de escrita.
+- O `enrollment-document-service` permaneceu como runtime interno read-only
+  deste recorte, consumindo o monolito por contrato backend/backend e sem
+  alterar a autoridade funcional do legado.
+- A contagem do `enrollment-document-service` chega a 0 neste primeiro bloco
+  oficial minimo.
+- A validacao do modulo tocado foi executada com
+  `mvn -pl school-management-bff -Dtest=TransferenciaReadControllerTest,EscolaOrigemReadControllerTest,TransferenciaReadProxyIntegrationTest,EscolaOrigemReadProxyIntegrationTest test`
+  e passou a cobrir tambem as novas leituras adicionadas nesta fase.

@@ -24,6 +24,17 @@ public class TransferenciaReadController {
         this.consultarTransferenciaUseCase = consultarTransferenciaUseCase;
     }
 
+    @GetMapping("/api/transferencias/alunos/{alunoId}")
+    public Mono<ResponseEntity<String>> listarTransferenciasPorAluno(
+            @PathVariable UUID alunoId,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return consultarTransferenciaUseCase.listarTransferenciasPorAluno(
+                authorization,
+                correlationId,
+                alunoId);
+    }
+
     @GetMapping("/api/transferencias/{transferenciaId}")
     public Mono<ResponseEntity<String>> buscarTransferenciaPorId(
             @PathVariable UUID transferenciaId,

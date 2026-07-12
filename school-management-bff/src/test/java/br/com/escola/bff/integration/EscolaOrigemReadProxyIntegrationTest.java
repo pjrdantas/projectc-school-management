@@ -89,6 +89,44 @@ class EscolaOrigemReadProxyIntegrationTest {
         assertThat(enrollmentRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
     }
 
+    @Test
+    void deveConsumirEnrollmentDocumentServiceNaListagemOficialDeEscolasOrigem() throws InterruptedException {
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao"
+                        }
+                        """));
+
+        ENROLLMENT_DOCUMENT.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{
+                          "id":"00000000-0000-0000-0000-000000000081",
+                          "nomeEscola":"Escola Origem Oficial",
+                          "codigoInep":"12345678",
+                          "cidade":"Recife",
+                          "uf":"PE"
+                        }]
+                        """));
+
+        client.get().uri("/api/escolas-origem")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-escola-origem-list-2")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].nomeEscola").isEqualTo("Escola Origem Oficial");
+
+        MONOLITH.takeRequest();
+        var enrollmentRequest = ENROLLMENT_DOCUMENT.takeRequest();
+        assertThat(enrollmentRequest.getPath()).isEqualTo("/internal/v1/escolas-origem");
+        assertThat(enrollmentRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-escola-origem-list-2");
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {

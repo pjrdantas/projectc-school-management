@@ -24,6 +24,13 @@ public class EscolaOrigemReadController {
         this.consultarEscolaOrigemUseCase = consultarEscolaOrigemUseCase;
     }
 
+    @GetMapping("/api/escolas-origem")
+    public Mono<ResponseEntity<String>> listarEscolasOrigem(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return consultarEscolaOrigemUseCase.listarEscolasOrigem(authorization, correlationId);
+    }
+
     @GetMapping("/api/escolas-origem/{escolaOrigemId}")
     public Mono<ResponseEntity<String>> buscarEscolaOrigemPorId(
             @PathVariable UUID escolaOrigemId,

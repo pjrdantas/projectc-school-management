@@ -10,6 +10,10 @@ import reactor.core.publisher.Mono;
 
 public interface EnrollmentDocumentEscolaOrigemReadPort {
 
+    Mono<ResponseEntity<String>> listarEscolasOrigem(
+            CatalogReadQuery query,
+            AuthSessionContext context);
+
     Mono<ResponseEntity<String>> buscarEscolaOrigemPorId(
             UUID escolaOrigemId,
             CatalogReadQuery query,

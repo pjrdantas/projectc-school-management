@@ -28,6 +28,23 @@ public class EnrollmentDocumentTransferenciaReadClient extends AbstractDownstrea
     }
 
     @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> listarTransferenciasPorAluno(
+            UUID alunoId,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.get()
+                .uri("/internal/v1/transferencias/alunos/{alunoId}", alunoId)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Enrollment document service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Enrollment document service indisponivel"));
+    }
+
+    @Override
     public Mono<org.springframework.http.ResponseEntity<String>> buscarTransferenciaPorId(
             UUID transferenciaId,
             CatalogReadQuery query,

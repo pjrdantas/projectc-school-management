@@ -23,6 +23,15 @@ public class EscolaOrigemReadProxyService implements ConsultarEscolaOrigemUseCas
     }
 
     @Override
+    public Mono<ResponseEntity<String>> listarEscolasOrigem(
+            String authorization,
+            String correlationId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> enrollmentDocumentEscolaOrigemReadPort.listarEscolasOrigem(query, context));
+    }
+
+    @Override
     public Mono<ResponseEntity<String>> buscarEscolaOrigemPorId(
             String authorization,
             String correlationId,

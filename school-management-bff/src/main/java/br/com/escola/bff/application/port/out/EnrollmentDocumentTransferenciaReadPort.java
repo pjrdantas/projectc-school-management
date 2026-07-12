@@ -10,6 +10,11 @@ import reactor.core.publisher.Mono;
 
 public interface EnrollmentDocumentTransferenciaReadPort {
 
+    Mono<ResponseEntity<String>> listarTransferenciasPorAluno(
+            UUID alunoId,
+            CatalogReadQuery query,
+            AuthSessionContext context);
+
     Mono<ResponseEntity<String>> buscarTransferenciaPorId(
             UUID transferenciaId,
             CatalogReadQuery query,

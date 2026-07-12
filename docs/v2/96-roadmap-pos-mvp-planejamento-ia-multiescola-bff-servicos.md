@@ -6254,3 +6254,21 @@ Entregue nesta fase:
 
 Contagem regressiva do `enrollment-document-service`: 1 fase restante para
 fechar este primeiro bloco oficial minimo.
+
+### Fase 117 - Fechamento formal do primeiro bloco oficial minimo de `enrollment-document-service`
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a publicar oficialmente tambem
+  `GET /api/escolas-origem` e
+  `GET /api/transferencias/alunos/{alunoId}` consumindo o
+  `enrollment-document-service`;
+- com isso, o primeiro bloco oficial minimo de leitura atualmente suportado no
+  `enrollment-document-service` ficou exposto de forma oficial pelo BFF, sem
+  tocar frontend e sem reabrir escrita;
+- a validacao do modulo tocado foi ampliada com testes de controller e
+  integracao cobrindo essas duas leituras restantes, preservando propagacao de
+  bearer, correlation ID e headers internos.
+
+Contagem regressiva do `enrollment-document-service`: 0 fases restantes neste
+primeiro bloco oficial minimo.
