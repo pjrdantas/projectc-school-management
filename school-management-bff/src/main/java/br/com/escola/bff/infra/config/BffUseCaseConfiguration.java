@@ -16,6 +16,8 @@ import br.com.escola.bff.application.port.out.CatalogReadCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogReadObservabilityPort;
 import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
+import br.com.escola.bff.application.port.out.EnrollmentDocumentEscolaOrigemReadPort;
+import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaReadPort;
 import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
 import br.com.escola.bff.application.port.out.MonolithDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.MonolithPeriodoLetivoWritePort;
@@ -31,21 +33,25 @@ import br.com.escola.bff.application.service.AlunoResponsavelReadProxyService;
 import br.com.escola.bff.application.service.CadastroPessoaReadProxyService;
 import br.com.escola.bff.application.service.CatalogReadRoutingService;
 import br.com.escola.bff.application.service.DisciplinaWriteRoutingService;
+import br.com.escola.bff.application.service.EscolaOrigemReadProxyService;
 import br.com.escola.bff.application.service.FuncionarioReadProxyService;
 import br.com.escola.bff.application.service.PeriodoLetivoWriteRoutingService;
 import br.com.escola.bff.application.service.PessoaCatalogReadProxyService;
 import br.com.escola.bff.application.service.PessoaDetailReadProxyService;
 import br.com.escola.bff.application.service.ProfessorReadProxyService;
 import br.com.escola.bff.application.service.SerieWriteRoutingService;
+import br.com.escola.bff.application.service.TransferenciaReadProxyService;
 import br.com.escola.bff.application.service.TurmaDisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.TurmaWriteRoutingService;
 import br.com.escola.bff.application.usecase.ConsultarCadastroPessoaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
+import br.com.escola.bff.application.usecase.ConsultarEscolaOrigemUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPessoaCatalogoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPessoaDetalheUseCase;
 import br.com.escola.bff.application.port.out.PeopleProfessorReadPort;
 import br.com.escola.bff.application.usecase.ConsultarFuncionarioUseCase;
 import br.com.escola.bff.application.usecase.ConsultarProfessorUseCase;
+import br.com.escola.bff.application.usecase.ConsultarTransferenciaUseCase;
 import br.com.escola.bff.application.usecase.CreateDisciplinaUseCase;
 import br.com.escola.bff.application.usecase.CreatePeriodoLetivoUseCase;
 import br.com.escola.bff.application.usecase.CreateSerieUseCase;
@@ -96,6 +102,20 @@ public class BffUseCaseConfiguration {
             AuthContextPort authContextPort,
             PeopleProfessorReadPort peopleProfessorReadPort) {
         return new ProfessorReadProxyService(authContextPort, peopleProfessorReadPort);
+    }
+
+    @Bean
+    ConsultarEscolaOrigemUseCase consultarEscolaOrigemUseCase(
+            AuthContextPort authContextPort,
+            EnrollmentDocumentEscolaOrigemReadPort enrollmentDocumentEscolaOrigemReadPort) {
+        return new EscolaOrigemReadProxyService(authContextPort, enrollmentDocumentEscolaOrigemReadPort);
+    }
+
+    @Bean
+    ConsultarTransferenciaUseCase consultarTransferenciaUseCase(
+            AuthContextPort authContextPort,
+            EnrollmentDocumentTransferenciaReadPort enrollmentDocumentTransferenciaReadPort) {
+        return new TransferenciaReadProxyService(authContextPort, enrollmentDocumentTransferenciaReadPort);
     }
 
     @Bean

@@ -2414,3 +2414,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   e com
   `mvn -Dtest=TransferenciaInternalControllerIntegrationTest test`
   em `school-management-service`, ambos em `BUILD SUCCESS`.
+
+### Fase 116
+
+- O `school-management-bff` passou a expor oficialmente
+  `GET /api/transferencias/{id}` e `GET /api/escolas-origem/{id}` consumindo o
+  `enrollment-document-service`, sem alterar frontend e preservando os payloads
+  externos atuais.
+- O BFF recebeu a fundacao minima dedicada desse bloco: properties do cliente,
+  `WebClient` proprio, portas de leitura, use cases, proxy services e
+  controllers read-only para `transferencia` e `escola origem`.
+- A resolucao de contexto autenticado continuou centralizada no BFF e passou a
+  propagar `Authorization`, `X-Correlation-Id`, `X-Usuario-Id`,
+  `X-Escola-Id` e token interno para o `enrollment-document-service`.
+- O `enrollment-document-service` permaneceu como proxy interno do monolito;
+  nao houve escrita migrada, nova persistencia nem mudanca de autoridade no
+  legado.
+- A contagem da macrofase do `enrollment-document-service` passa a 1 fase
+  restante para fechar o primeiro bloco oficial minimo iniciado na Fase 115.
+- A validacao do modulo tocado foi executada com
+  `mvn -pl school-management-bff "-Dtest=TransferenciaReadControllerTest,EscolaOrigemReadControllerTest,TransferenciaReadProxyIntegrationTest,EscolaOrigemReadProxyIntegrationTest" test`
+  em `BUILD SUCCESS`.

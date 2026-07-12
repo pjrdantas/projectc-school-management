@@ -6233,3 +6233,24 @@ Entregue nesta fase:
 
 Contagem regressiva do `enrollment-document-service`: 2 fases restantes para
 fechar o primeiro bloco oficial do servico.
+
+### Fase 116 - Primeiro bloco oficial de leitura do `enrollment-document-service` via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a publicar oficialmente
+  `GET /api/transferencias/{id}` e `GET /api/escolas-origem/{id}` consumindo o
+  `enrollment-document-service`, preservando os contratos externos atuais e sem
+  tocar frontend;
+- o BFF recebeu cliente HTTP, portas, use cases, proxy services e controllers
+  dedicados para esse primeiro bloco minimo, reaproveitando a mesma resolucao
+  de contexto autenticado ja usada nas leituras do `people-service`;
+- o `enrollment-document-service` permaneceu como consumidor do monolito por
+  contrato interno, sem migrar escrita e sem alterar a autoridade funcional do
+  legado nesta etapa;
+- a validacao ficou restrita ao modulo tocado, com testes de controller e de
+  integracao do BFF cobrindo a propagacao de bearer, correlation ID e headers
+  internos para o novo servico.
+
+Contagem regressiva do `enrollment-document-service`: 1 fase restante para
+fechar este primeiro bloco oficial minimo.
