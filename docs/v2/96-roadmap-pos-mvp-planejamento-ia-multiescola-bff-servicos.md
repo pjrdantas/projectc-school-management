@@ -6198,3 +6198,38 @@ Entregue nesta fase:
 Contagem regressiva da nova macrofase de `responsaveis`: 1 fase restante
 exata. O `people-service` continua fechado; o que resta e apenas concluir ou
 encerrar esta nova macrofase independente.
+
+### Fase 115 - Abertura fisica do `enrollment-document-service` por `transferencia`
+
+Entregue nesta fase:
+
+- o `people-service` permanece encerrado; a nova frente backend passa a ser o
+  `enrollment-document-service`, ja previsto no roadmap como servico de
+  `matriculas, documentos e transferencia`;
+- a macrofase foi delimitada em 3 fases totais, escolhendo nesta primeira o
+  menor recorte seguro para abertura fisica do runtime novo:
+  `transferencia_aluno` e `escolas-origem`, sem escrita migrada oficial, sem
+  BFF e sem frontend;
+- foi criado o modulo fisico `enrollment-document-service` no monorepo, com
+  estrutura em camadas, `application.yml`, validacao de headers internos,
+  tratamento de erros proprio e cliente HTTP para consumir o monolito;
+- o novo runtime passou a expor o contrato interno
+  `POST/GET /internal/v1/transferencias`,
+  `GET /internal/v1/transferencias/alunos/{alunoId}` e
+  `POST/GET /internal/v1/escolas-origem`, preservando o monolito como unica
+  autoridade funcional nesta etapa;
+- o `school-management-service` passou a expor os adaptadores internos
+  `POST/GET /internal/transferencias`,
+  `GET /internal/transferencias/alunos/{alunoId}` e
+  `POST/GET /internal/escolas-origem`, reaproveitando o
+  `TransferenciaAlunoService` existente e separando o contrato backend/backend
+  sem refatoracao ampla;
+- os primeiros candidatos para oficializacao futura no
+  `school-management-bff` ficam identificados como as leituras
+  `GET /api/transferencias/{id}` e `GET /api/escolas-origem/{id}`, por serem o
+  menor passo read-only com resposta direta e baixo risco de composicao;
+- a validacao ficou restrita aos modulos tocados, cobrindo o runtime novo e o
+  adaptador interno do monolito com testes automatizados.
+
+Contagem regressiva do `enrollment-document-service`: 2 fases restantes para
+fechar o primeiro bloco oficial do servico.

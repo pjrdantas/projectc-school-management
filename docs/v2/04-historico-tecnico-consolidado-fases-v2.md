@@ -2388,3 +2388,29 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   e com
   `mvn -pl school-management-bff "-Dtest=AlunoResponsavelReadControllerTest,AlunoResponsavelReadProxyIntegrationTest" test`,
   ambos em `BUILD SUCCESS`.
+
+### Fase 115
+
+- O `people-service` foi mantido como encerrado. A nova macrofase backend passa
+  a ser a abertura fisica do `enrollment-document-service`, servico ja previsto
+  no roadmap para `matriculas, documentos e transferencia`.
+- O menor recorte seguro dessa abertura foi fechado em
+  `transferencia_aluno` e `escolas-origem`, sem migrar escrita oficial, sem
+  alterar frontend e sem introduzir ainda rotas publicas no BFF.
+- Foi criado o modulo `enrollment-document-service` com estrutura em camadas,
+  validacao de contexto interno, tratamento de erro proprio e cliente HTTP para
+  consumir o monolito pelos contratos internos
+  `POST/GET /internal/transferencias`,
+  `GET /internal/transferencias/alunos/{alunoId}` e
+  `POST/GET /internal/escolas-origem`.
+- O `school-management-service` passou a expor esses adaptadores internos de
+  baixo risco reaproveitando o `TransferenciaAlunoService`, isolando o contrato
+  backend/backend sem refatoracao ampla do legado.
+- A macrofase do `enrollment-document-service` fica contada em 3 fases totais:
+  a Fase 115, agora concluida, e 2 fases restantes para oficializar leituras
+  minimas no BFF e depois decidir o proximo recorte seguro do servico.
+- A validacao do modulo tocado foi executada com
+  `mvn -pl enrollment-document-service test`
+  e com
+  `mvn -Dtest=TransferenciaInternalControllerIntegrationTest test`
+  em `school-management-service`, ambos em `BUILD SUCCESS`.

@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: enrollment-document-service
+
+server:
+  port: 8094
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+enrollment-document:
+  internal-api:
+    token: ${ENROLLMENT_DOCUMENT_INTERNAL_API_TOKEN:enrollment-document-internal-local-token}
+  monolith:
+    base-url: ${ENROLLMENT_DOCUMENT_MONOLITH_BASE_URL:http://localhost:8080}
+    connect-timeout: ${ENROLLMENT_DOCUMENT_MONOLITH_CONNECT_TIMEOUT:2s}
+    read-timeout: ${ENROLLMENT_DOCUMENT_MONOLITH_READ_TIMEOUT:5s}

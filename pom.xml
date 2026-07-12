@@ -22,6 +22,7 @@
         <module>academic-catalog-service</module>
         <module>academic-professor-service</module>
         <module>people-service</module>
+        <module>enrollment-document-service</module>
     </modules>
 
     <properties>

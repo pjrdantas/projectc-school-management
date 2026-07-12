@@ -7,12 +7,19 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import br.com.escola.transferencia.adapter.in.web.EscolaOrigemController;
 import br.com.escola.transferencia.adapter.in.web.TransferenciaAlunoController;
+import br.com.escola.transferencia.adapter.in.web.internal.EscolaOrigemInternalController;
+import br.com.escola.transferencia.adapter.in.web.internal.TransferenciaAlunoInternalController;
 import br.com.escola.transferencia.domain.exception.EscolaOrigemNaoEncontradaException;
 import br.com.escola.transferencia.domain.exception.TransferenciaAlunoInvalidaException;
 import br.com.escola.transferencia.domain.exception.TransferenciaAlunoNaoEncontradaException;
 import jakarta.servlet.http.HttpServletRequest;
 
-@RestControllerAdvice(basePackageClasses = { EscolaOrigemController.class, TransferenciaAlunoController.class })
+@RestControllerAdvice(basePackageClasses = {
+        EscolaOrigemController.class,
+        TransferenciaAlunoController.class,
+        EscolaOrigemInternalController.class,
+        TransferenciaAlunoInternalController.class
+})
 public class TransferenciaApiExceptionHandler extends BaseApiExceptionHandler {
 
     @ExceptionHandler(EscolaOrigemNaoEncontradaException.class)
