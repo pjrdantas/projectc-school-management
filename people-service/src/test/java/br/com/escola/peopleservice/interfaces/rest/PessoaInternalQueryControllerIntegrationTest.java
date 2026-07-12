@@ -28,11 +28,13 @@ import br.com.escola.peopleservice.application.service.PessoaContatoService;
 import br.com.escola.peopleservice.application.service.PessoaDocumentoMetadataService;
 import br.com.escola.peopleservice.application.service.PessoaEnderecoService;
 import br.com.escola.peopleservice.application.service.PessoaFuncionarioResumoService;
+import br.com.escola.peopleservice.application.service.PessoaProfessorResumoService;
 import br.com.escola.peopleservice.application.dto.PessoaContatoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataResponse;
 import br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaFuncionarioResumoResponse;
+import br.com.escola.peopleservice.application.dto.PessoaProfessorResumoResponse;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -63,6 +65,9 @@ class PessoaInternalQueryControllerIntegrationTest {
 
     @MockBean
     private PessoaFuncionarioResumoService pessoaFuncionarioResumoService;
+
+    @MockBean
+    private PessoaProfessorResumoService pessoaProfessorResumoService;
 
     @BeforeAll
     static void beforeAll() throws IOException {
@@ -360,6 +365,36 @@ class PessoaInternalQueryControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].cargoDescricao").value("Secretaria"));
     }
 
+    @Test
+    void deveExporLeiturasInternasDeProfessorResumo() throws Exception {
+        marcarReadModelComoVerde();
+        PessoaProfessorResumoResponse professor = professor();
+        when(pessoaProfessorResumoService.buscarProfessorPorId(professor.professorId(), ESCOLA_ID))
+                .thenReturn(java.util.Optional.of(professor));
+        when(pessoaProfessorResumoService.listarProfessoresPorEscola(ESCOLA_ID))
+                .thenReturn(List.of(professor));
+
+        mockMvc.perform(get("/internal/v1/professores/{professorId}", professor.professorId())
+                        .header("X-Internal-Token", "internal-token")
+                        .header("X-Correlation-Id", "corr-people-10a")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", "Bearer internal-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.professorId").value(professor.professorId().toString()))
+                .andExpect(jsonPath("$.nomeCompleto").value("Professor Interno"));
+
+        mockMvc.perform(get("/internal/v1/professores")
+                        .header("X-Internal-Token", "internal-token")
+                        .header("X-Correlation-Id", "corr-people-10b")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", "Bearer internal-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].professorId").value(professor.professorId().toString()))
+                .andExpect(jsonPath("$[0].nomeCompleto").value("Professor Interno"));
+    }
+
     private void marcarReadModelComoVerde() {
         peopleReadModelSyncState.update(new PeopleReadModelSyncSummary(
                 true,
@@ -576,6 +611,16 @@ class PessoaInternalQueryControllerIntegrationTest {
                 ESCOLA_ID,
                 "Funcionario Interno",
                 "Secretaria",
+                true);
+    }
+
+    private PessoaProfessorResumoResponse professor() {
+        return new PessoaProfessorResumoResponse(
+                UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+                PESSOA_ID,
+                UUID.fromString("99999999-9999-9999-9999-999999999999"),
+                ESCOLA_ID,
+                "Professor Interno",
                 true);
     }
 

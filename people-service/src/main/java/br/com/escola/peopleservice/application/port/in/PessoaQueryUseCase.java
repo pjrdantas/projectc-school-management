@@ -10,6 +10,7 @@ import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageRe
 import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataResponse;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaFuncionarioResumoResponse;
+import br.com.escola.peopleservice.application.dto.PessoaProfessorResumoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 
 public interface PessoaQueryUseCase {
@@ -53,6 +54,15 @@ public interface PessoaQueryUseCase {
             UUID funcionarioId);
 
     List<PessoaFuncionarioResumoResponse> listarFuncionariosAtivosPorEscola(
+            String authorization,
+            InternalRequestContext context);
+
+    PessoaProfessorResumoResponse buscarProfessorPorId(
+            String authorization,
+            InternalRequestContext context,
+            UUID professorId);
+
+    List<PessoaProfessorResumoResponse> listarProfessoresPorEscola(
             String authorization,
             InternalRequestContext context);
 

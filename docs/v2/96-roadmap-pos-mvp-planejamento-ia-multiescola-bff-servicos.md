@@ -6054,3 +6054,19 @@ Entregue nesta fase:
 
 Contagem da macrofase Fase 107: 0 subfases restantes estimadas. O bloco interno
 de funcionario resumo ficou fechado.
+
+### Fase 108 - Contrato interno visivel de professor resumo
+
+Entregue nesta fase:
+
+- o `people-service` passou a expor no contrato interno o bloco de resumo de
+  professor por id e a listagem por escola;
+- `PessoaQueryUseCase`, `PessoaQueryService` e
+  `PessoaInternalQueryController` passaram a cobrir
+  `GET /internal/v1/professores/{professorId}` e
+  `GET /internal/v1/professores`;
+- a fase permaneceu restrita ao codigo novo, sem BFF, sem frontend e sem tocar
+  no legado.
+
+Contagem da macrofase Fase 108: 0 subfases restantes estimadas. O bloco interno
+de professor resumo ficou fechado.

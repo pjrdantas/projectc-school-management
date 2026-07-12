@@ -2281,3 +2281,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   e `GET /internal/v1/funcionarios`, sem alteracao em BFF, frontend ou legado.
 - A validacao foi ampliada com testes de servico e integracao HTTP desse
   contrato interno.
+
+### Fase 108
+
+- O `people-service` passou a expor no contrato interno o resumo de professor,
+  reaproveitando `PessoaProfessorResumoService`.
+- Foram abertas as rotas internas `GET /internal/v1/professores/{professorId}`
+  e `GET /internal/v1/professores`, sem alteracao em BFF, frontend ou legado.
+- A validacao foi ampliada com testes de servico e integracao HTTP desse
+  contrato interno.

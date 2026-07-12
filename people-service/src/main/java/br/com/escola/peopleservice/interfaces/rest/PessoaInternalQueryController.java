@@ -21,6 +21,7 @@ import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageRe
 import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataResponse;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaFuncionarioResumoResponse;
+import br.com.escola.peopleservice.application.dto.PessoaProfessorResumoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 import br.com.escola.peopleservice.application.port.in.PessoaQueryUseCase;
 
@@ -115,6 +116,21 @@ public class PessoaInternalQueryController {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
         return pessoaQueryUseCase.listarFuncionariosAtivosPorEscola(authorization, context);
+    }
+
+    @GetMapping("/professores/{professorId}")
+    public PessoaProfessorResumoResponse buscarProfessorPorId(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID professorId) {
+        return pessoaQueryUseCase.buscarProfessorPorId(authorization, context, professorId);
+    }
+
+    @GetMapping("/professores")
+    public List<PessoaProfessorResumoResponse> listarProfessoresPorEscola(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
+        return pessoaQueryUseCase.listarProfessoresPorEscola(authorization, context);
     }
 
     @GetMapping("/pessoas/{id}")
