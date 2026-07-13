@@ -25,4 +25,20 @@ public interface PedagogicalAvaliacaoPort {
             UUID avaliacaoId,
             CatalogReadQuery query,
             AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> lancarNota(
+            UUID avaliacaoId,
+            String requestBody,
+            CatalogReadQuery query,
+            AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> listarNotasPorAvaliacao(
+            UUID avaliacaoId,
+            CatalogReadQuery query,
+            AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> listarNotasPorMatricula(
+            UUID matriculaId,
+            CatalogReadQuery query,
+            AuthSessionContext context);
 }

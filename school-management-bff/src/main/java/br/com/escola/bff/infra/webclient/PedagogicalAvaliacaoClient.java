@@ -85,4 +85,58 @@ public class PedagogicalAvaliacaoClient extends AbstractDownstreamClientSupport 
                 .timeout(properties.responseTimeout())
                 .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
     }
+
+    @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> lancarNota(
+            UUID avaliacaoId,
+            String requestBody,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.post()
+                .uri("/internal/v1/avaliacoes/{id}/notas", avaliacaoId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .bodyValue(requestBody)
+                .exchangeToMono(response -> handle(response, "Pedagogical service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
+    }
+
+    @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> listarNotasPorAvaliacao(
+            UUID avaliacaoId,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.get()
+                .uri("/internal/v1/avaliacoes/{id}/notas", avaliacaoId)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Pedagogical service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
+    }
+
+    @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> listarNotasPorMatricula(
+            UUID matriculaId,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.get()
+                .uri("/internal/v1/matriculas/{matriculaId}/notas", matriculaId)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Pedagogical service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
+    }
 }

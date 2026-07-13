@@ -9,10 +9,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import br.com.escola.bff.application.context.TrustedHeaders;
 import br.com.escola.bff.application.usecase.CriarAvaliacaoUseCase;
 import reactor.core.publisher.Mono;
+import java.util.UUID;
 
 @RestController
 @ConditionalOnProperty(name = "features.pedagogical-write-proxy-enabled", havingValue = "true", matchIfMissing = true)
@@ -31,5 +33,15 @@ public class AvaliacaoWriteController {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
         return criarAvaliacaoUseCase.criar(authorization, correlationId, requestBody);
+    }
+
+    @PostMapping("/api/avaliacoes/{id}/notas")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<ResponseEntity<String>> lancarNota(
+            @PathVariable UUID id,
+            @RequestBody String requestBody,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return criarAvaliacaoUseCase.lancarNota(authorization, correlationId, id, requestBody);
     }
 }

@@ -146,6 +146,105 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
         assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-avaliacao-read-2");
     }
 
+    @Test
+    void deveConsumirPedagogicalServiceNoLancamentoDeNota() throws InterruptedException {
+        UUID avaliacaoId = UUID.randomUUID();
+        UUID matriculaId = UUID.randomUUID();
+        String requestBody = """
+                {"matriculaId":"%s","nota":8.50,"observacao":"Boa participacao"}
+                """.formatted(matriculaId);
+
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse()
+                .setResponseCode(201)
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"id":"%s","avaliacaoId":"%s","matriculaId":"%s","alunoNome":"Aluno Nota","nota":8.50}
+                        """.formatted(UUID.randomUUID(), avaliacaoId, matriculaId)));
+
+        client.post().uri("/api/avaliacoes/{id}/notas", avaliacaoId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-nota-write-1")
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody()
+                .jsonPath("$.avaliacaoId").isEqualTo(avaliacaoId.toString())
+                .jsonPath("$.matriculaId").isEqualTo(matriculaId.toString());
+
+        MONOLITH.takeRequest();
+        var request = PEDAGOGICAL.takeRequest();
+        assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes/" + avaliacaoId + "/notas");
+        assertThat(request.getBody().readUtf8()).isEqualTo(requestBody);
+    }
+
+    @Test
+    void deveConsumirPedagogicalServiceNaListagemDeNotasPorAvaliacao() throws InterruptedException {
+        UUID avaliacaoId = UUID.randomUUID();
+
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{"id":"%s","avaliacaoId":"%s","alunoNome":"Aluno Nota","nota":8.50}]
+                        """.formatted(UUID.randomUUID(), avaliacaoId)));
+
+        client.get().uri("/api/avaliacoes/{id}/notas", avaliacaoId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-nota-read-1")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].avaliacaoId").isEqualTo(avaliacaoId.toString())
+                .jsonPath("$[0].alunoNome").isEqualTo("Aluno Nota");
+
+        MONOLITH.takeRequest();
+        var request = PEDAGOGICAL.takeRequest();
+        assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes/" + avaliacaoId + "/notas");
+    }
+
+    @Test
+    void deveConsumirPedagogicalServiceNaListagemDeNotasPorMatricula() throws InterruptedException {
+        UUID matriculaId = UUID.randomUUID();
+
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{"id":"%s","matriculaId":"%s","alunoNome":"Aluno Matricula Nota","nota":9.00}]
+                        """.formatted(UUID.randomUUID(), matriculaId)));
+
+        client.get().uri("/api/matriculas/{matriculaId}/notas", matriculaId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-nota-read-2")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].matriculaId").isEqualTo(matriculaId.toString())
+                .jsonPath("$[0].alunoNome").isEqualTo("Aluno Matricula Nota");
+
+        MONOLITH.takeRequest();
+        var request = PEDAGOGICAL.takeRequest();
+        assertThat(request.getPath()).isEqualTo("/internal/v1/matriculas/" + matriculaId + "/notas");
+        assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-nota-read-2");
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {

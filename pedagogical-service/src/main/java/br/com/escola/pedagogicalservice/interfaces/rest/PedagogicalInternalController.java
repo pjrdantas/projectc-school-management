@@ -27,6 +27,7 @@ import br.com.escola.pedagogicalservice.application.dto.AvaliacaoResponse;
 import br.com.escola.pedagogicalservice.application.dto.AulaResponse;
 import br.com.escola.pedagogicalservice.application.dto.BoletimResponse;
 import br.com.escola.pedagogicalservice.application.dto.HistoricoEscolarTelaResponse;
+import br.com.escola.pedagogicalservice.application.dto.NotaAlunoResponse;
 import br.com.escola.pedagogicalservice.application.port.in.AvaliacaoUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.AulaUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.HistoricoEscolarReadUseCase;
@@ -113,6 +114,32 @@ public class PedagogicalInternalController {
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
             @PathVariable @NonNull UUID id) {
         return avaliacaoUseCase.buscarPorId(authorization, context, id);
+    }
+
+    @PostMapping("/avaliacoes/{id}/notas")
+    @ResponseStatus(HttpStatus.CREATED)
+    public NotaAlunoResponse lancarNota(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID id,
+            @RequestBody String requestBody) {
+        return avaliacaoUseCase.lancarNota(authorization, context, id, requestBody);
+    }
+
+    @GetMapping("/avaliacoes/{id}/notas")
+    public List<NotaAlunoResponse> listarNotasPorAvaliacao(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID id) {
+        return avaliacaoUseCase.listarNotasPorAvaliacao(authorization, context, id);
+    }
+
+    @GetMapping("/matriculas/{matriculaId}/notas")
+    public List<NotaAlunoResponse> listarNotasPorMatricula(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID matriculaId) {
+        return avaliacaoUseCase.listarNotasPorMatricula(authorization, context, matriculaId);
     }
 
     @GetMapping("/aulas")

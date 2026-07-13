@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import br.com.escola.pedagogicalservice.application.context.InternalRequestContext;
 import br.com.escola.pedagogicalservice.application.dto.AvaliacaoResponse;
+import br.com.escola.pedagogicalservice.application.dto.NotaAlunoResponse;
 import br.com.escola.pedagogicalservice.application.port.in.AvaliacaoUseCase;
 import br.com.escola.pedagogicalservice.application.port.out.AvaliacaoPort;
 
@@ -36,5 +37,30 @@ public class AvaliacaoService implements AvaliacaoUseCase {
     @Override
     public AvaliacaoResponse buscarPorId(String authorization, InternalRequestContext context, UUID avaliacaoId) {
         return avaliacaoPort.buscarPorId(authorization, context, avaliacaoId);
+    }
+
+    @Override
+    public NotaAlunoResponse lancarNota(
+            String authorization,
+            InternalRequestContext context,
+            UUID avaliacaoId,
+            String requestBody) {
+        return avaliacaoPort.lancarNota(authorization, context, avaliacaoId, requestBody);
+    }
+
+    @Override
+    public List<NotaAlunoResponse> listarNotasPorAvaliacao(
+            String authorization,
+            InternalRequestContext context,
+            UUID avaliacaoId) {
+        return avaliacaoPort.listarNotasPorAvaliacao(authorization, context, avaliacaoId);
+    }
+
+    @Override
+    public List<NotaAlunoResponse> listarNotasPorMatricula(
+            String authorization,
+            InternalRequestContext context,
+            UUID matriculaId) {
+        return avaliacaoPort.listarNotasPorMatricula(authorization, context, matriculaId);
     }
 }

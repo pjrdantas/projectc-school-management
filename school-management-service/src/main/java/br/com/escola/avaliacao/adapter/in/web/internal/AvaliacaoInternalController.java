@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.avaliacao.adapter.in.web.dto.AvaliacaoRequest;
 import br.com.escola.avaliacao.adapter.in.web.dto.AvaliacaoResponse;
+import br.com.escola.avaliacao.adapter.in.web.dto.NotaAlunoRequest;
+import br.com.escola.avaliacao.adapter.in.web.dto.NotaAlunoResponse;
 import br.com.escola.avaliacao.application.service.AvaliacaoService;
 import jakarta.validation.Valid;
 
@@ -45,5 +47,18 @@ public class AvaliacaoInternalController {
     @GetMapping("/{id}")
     public AvaliacaoResponse buscarPorId(@PathVariable @NonNull UUID id) {
         return avaliacaoService.buscarPorId(id);
+    }
+
+    @PostMapping("/{id}/notas")
+    @ResponseStatus(HttpStatus.CREATED)
+    public NotaAlunoResponse lancarNota(
+            @PathVariable @NonNull UUID id,
+            @Valid @RequestBody NotaAlunoRequest request) {
+        return avaliacaoService.lancarNota(id, request);
+    }
+
+    @GetMapping("/{id}/notas")
+    public List<NotaAlunoResponse> listarNotas(@PathVariable @NonNull UUID id) {
+        return avaliacaoService.listarNotasPorAvaliacao(id);
     }
 }

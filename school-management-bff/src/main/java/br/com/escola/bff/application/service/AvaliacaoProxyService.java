@@ -47,4 +47,35 @@ public class AvaliacaoProxyService implements ConsultarAvaliacaoUseCase, CriarAv
         return authContextPort.resolve(query)
                 .flatMap(context -> pedagogicalAvaliacaoPort.buscarPorId(avaliacaoId, query, context));
     }
+
+    @Override
+    public Mono<ResponseEntity<String>> lancarNota(
+            String authorization,
+            String correlationId,
+            UUID avaliacaoId,
+            String requestBody) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> pedagogicalAvaliacaoPort.lancarNota(avaliacaoId, requestBody, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> listarNotasPorAvaliacao(
+            String authorization,
+            String correlationId,
+            UUID avaliacaoId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> pedagogicalAvaliacaoPort.listarNotasPorAvaliacao(avaliacaoId, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> listarNotasPorMatricula(
+            String authorization,
+            String correlationId,
+            UUID matriculaId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> pedagogicalAvaliacaoPort.listarNotasPorMatricula(matriculaId, query, context));
+    }
 }

@@ -6629,3 +6629,39 @@ Entregue nesta fase:
 
 Contagem regressiva funcional estimada do `pedagogical-service`: 2 fases
 restantes no escopo atual planejado.
+
+### Fase 131 - Bloco minimo de `notas` no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o dominio de `notas` foi aberto pelo menor recorte operacional seguro ainda
+  acoplado a `avaliacoes`: lancamento por avaliacao, listagem por avaliacao e
+  consulta por matricula, preservando os contratos externos atuais
+  `POST /api/avaliacoes/{id}/notas`, `GET /api/avaliacoes/{id}/notas` e
+  `GET /api/matriculas/{matriculaId}/notas`;
+- o `school-management-service` passou a expor
+  `POST /internal/avaliacoes/{id}/notas`,
+  `GET /internal/avaliacoes/{id}/notas` e
+  `GET /internal/matriculas/{matriculaId}/notas`, reaproveitando
+  `AvaliacaoService` sem migrar ainda o bloco final de `frequencias`;
+- o `pedagogical-service` passou a publicar
+  `POST /internal/v1/avaliacoes/{id}/notas`,
+  `GET /internal/v1/avaliacoes/{id}/notas` e
+  `GET /internal/v1/matriculas/{matriculaId}/notas`, mantendo o monolito como
+  autoridade funcional e separando o contrato backend/backend do primeiro bloco
+  de notas;
+- o `school-management-bff` passou a oficializar essas tres rotas consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno e
+  o payload externo atual;
+- as rotas finais de `frequencias`
+  `POST /api/aulas/{id}/frequencia-professor`,
+  `GET /api/aulas/{id}/frequencia-professor`,
+  `POST /api/aulas/{id}/frequencias-alunos` e
+  `GET /api/aulas/{id}/frequencias-alunos` permaneceram explicitamente para a
+  fase final de encerramento funcional do micro-servico;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, query params,
+  payload e propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 1 fase
+restante no escopo atual planejado.

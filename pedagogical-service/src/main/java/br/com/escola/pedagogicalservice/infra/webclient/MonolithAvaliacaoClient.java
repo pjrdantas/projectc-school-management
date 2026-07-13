@@ -15,6 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import br.com.escola.pedagogicalservice.application.context.InternalHeaders;
 import br.com.escola.pedagogicalservice.application.context.InternalRequestContext;
 import br.com.escola.pedagogicalservice.application.dto.AvaliacaoResponse;
+import br.com.escola.pedagogicalservice.application.dto.NotaAlunoResponse;
 import br.com.escola.pedagogicalservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.pedagogicalservice.application.exception.PedagogicalServiceResourceNotFoundException;
 import br.com.escola.pedagogicalservice.application.port.out.AvaliacaoPort;
@@ -121,6 +122,101 @@ public class MonolithAvaliacaoClient implements AvaliacaoPort {
             meterRegistry.counter("pedagogical.monolith.requests", "route", "avaliacaoBuscarPorId", "result", "unavailable")
                     .increment();
             throw new DownstreamUnavailableException("Monolito indisponivel para consulta de avaliacao", exception);
+        }
+    }
+
+    @Override
+    public NotaAlunoResponse lancarNota(
+            String authorization,
+            InternalRequestContext context,
+            UUID avaliacaoId,
+            String requestBody) {
+        try {
+            NotaAlunoResponse response = restClient.post()
+                    .uri("/internal/avaliacoes/{id}/notas", avaliacaoId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .headers(headers -> enrichHeaders(headers, authorization, context))
+                    .body(requestBody)
+                    .retrieve()
+                    .body(NotaAlunoResponse.class);
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "avaliacaoLancarNota", "result", "success")
+                    .increment();
+            return response;
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                meterRegistry.counter("pedagogical.monolith.requests", "route", "avaliacaoLancarNota", "result", "not_found")
+                        .increment();
+                throw new PedagogicalServiceResourceNotFoundException("Dependencia de nota nao encontrada");
+            }
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "avaliacaoLancarNota", "result", "http_error")
+                    .increment();
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "avaliacaoLancarNota", "result", "unavailable")
+                    .increment();
+            throw new DownstreamUnavailableException("Monolito indisponivel para lancamento de nota", exception);
+        }
+    }
+
+    @Override
+    public List<NotaAlunoResponse> listarNotasPorAvaliacao(
+            String authorization,
+            InternalRequestContext context,
+            UUID avaliacaoId) {
+        try {
+            List<NotaAlunoResponse> response = restClient.get()
+                    .uri("/internal/avaliacoes/{id}/notas", avaliacaoId)
+                    .headers(headers -> enrichHeaders(headers, authorization, context))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<NotaAlunoResponse>>() {
+                    });
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "avaliacaoListarNotas", "result", "success")
+                    .increment();
+            return response == null ? List.of() : response;
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                meterRegistry.counter("pedagogical.monolith.requests", "route", "avaliacaoListarNotas", "result", "not_found")
+                        .increment();
+                throw new PedagogicalServiceResourceNotFoundException("Consulta de notas por avaliacao nao encontrada");
+            }
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "avaliacaoListarNotas", "result", "http_error")
+                    .increment();
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "avaliacaoListarNotas", "result", "unavailable")
+                    .increment();
+            throw new DownstreamUnavailableException("Monolito indisponivel para listagem de notas por avaliacao", exception);
+        }
+    }
+
+    @Override
+    public List<NotaAlunoResponse> listarNotasPorMatricula(
+            String authorization,
+            InternalRequestContext context,
+            UUID matriculaId) {
+        try {
+            List<NotaAlunoResponse> response = restClient.get()
+                    .uri("/internal/matriculas/{matriculaId}/notas", matriculaId)
+                    .headers(headers -> enrichHeaders(headers, authorization, context))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<NotaAlunoResponse>>() {
+                    });
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "matriculaListarNotas", "result", "success")
+                    .increment();
+            return response == null ? List.of() : response;
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                meterRegistry.counter("pedagogical.monolith.requests", "route", "matriculaListarNotas", "result", "not_found")
+                        .increment();
+                throw new PedagogicalServiceResourceNotFoundException("Consulta de notas por matricula nao encontrada");
+            }
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "matriculaListarNotas", "result", "http_error")
+                    .increment();
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "matriculaListarNotas", "result", "unavailable")
+                    .increment();
+            throw new DownstreamUnavailableException("Monolito indisponivel para listagem de notas por matricula", exception);
         }
     }
 

@@ -2749,3 +2749,30 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   ambos em `BUILD SUCCESS`.
 - Contagem funcional estimada do `pedagogical-service`: 2 fases restantes no
   escopo atual planejado.
+
+### Fase 131
+
+- A Fase 9 do `pedagogical-service` abriu o bloco minimo de `notas`
+  acoplado a `avaliacoes`, preservando os contratos publicos
+  `POST /api/avaliacoes/{id}/notas`, `GET /api/avaliacoes/{id}/notas` e
+  `GET /api/matriculas/{matriculaId}/notas`.
+- O `school-management-service` passou a expor
+  `POST /internal/avaliacoes/{id}/notas`,
+  `GET /internal/avaliacoes/{id}/notas` e
+  `GET /internal/matriculas/{matriculaId}/notas`, reaproveitando
+  `AvaliacaoService` sem incluir ainda o bloco final de `frequencias`.
+- O `pedagogical-service` passou a expor
+  `POST /internal/v1/avaliacoes/{id}/notas`,
+  `GET /internal/v1/avaliacoes/{id}/notas` e
+  `GET /internal/v1/matriculas/{matriculaId}/notas` consumindo o monolito pelo
+  contrato interno novo.
+- O `school-management-bff` passou a oficializar essas tres rotas consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID e contexto
+  autenticado.
+- A validacao desta fase ficou restrita aos modulos tocados e foi executada
+  com `mvn -f school-management-service/pom.xml "-Dtest=AvaliacaoInternalControllerTest,NotaAlunoInternalControllerTest" test`
+  e com
+  `mvn -pl pedagogical-service,school-management-bff "-Dtest=PedagogicalInternalControllerIntegrationTest,PedagogicalAvaliacaoProxyIntegrationTest" test`,
+  ambos em `BUILD SUCCESS`.
+- Contagem funcional estimada do `pedagogical-service`: 1 fase restante no
+  escopo atual planejado.

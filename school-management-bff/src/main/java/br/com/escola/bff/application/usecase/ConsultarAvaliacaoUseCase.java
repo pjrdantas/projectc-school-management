@@ -18,4 +18,14 @@ public interface ConsultarAvaliacaoUseCase {
             String authorization,
             String correlationId,
             UUID avaliacaoId);
+
+    Mono<ResponseEntity<String>> listarNotasPorAvaliacao(
+            String authorization,
+            String correlationId,
+            UUID avaliacaoId);
+
+    Mono<ResponseEntity<String>> listarNotasPorMatricula(
+            String authorization,
+            String correlationId,
+            UUID matriculaId);
 }

@@ -41,4 +41,20 @@ public class AvaliacaoReadController {
             @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
         return consultarAvaliacaoUseCase.buscarPorId(authorization, correlationId, id);
     }
+
+    @GetMapping("/api/avaliacoes/{id}/notas")
+    public Mono<ResponseEntity<String>> listarNotasPorAvaliacao(
+            @PathVariable UUID id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return consultarAvaliacaoUseCase.listarNotasPorAvaliacao(authorization, correlationId, id);
+    }
+
+    @GetMapping("/api/matriculas/{matriculaId}/notas")
+    public Mono<ResponseEntity<String>> listarNotasPorMatricula(
+            @PathVariable UUID matriculaId,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return consultarAvaliacaoUseCase.listarNotasPorMatricula(authorization, correlationId, matriculaId);
+    }
 }

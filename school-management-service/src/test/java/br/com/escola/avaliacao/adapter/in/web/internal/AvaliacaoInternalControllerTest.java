@@ -21,6 +21,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import br.com.escola.avaliacao.adapter.in.web.dto.AvaliacaoRequest;
 import br.com.escola.avaliacao.adapter.in.web.dto.AvaliacaoResponse;
+import br.com.escola.avaliacao.adapter.in.web.dto.NotaAlunoRequest;
+import br.com.escola.avaliacao.adapter.in.web.dto.NotaAlunoResponse;
 import br.com.escola.avaliacao.application.service.AvaliacaoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -93,6 +95,51 @@ class AvaliacaoInternalControllerTest {
         verify(avaliacaoService).buscarPorId(avaliacaoId);
     }
 
+    @Test
+    void deveLancarNotaNoContratoInterno() throws Exception {
+        AvaliacaoService avaliacaoService = Mockito.mock(AvaliacaoService.class);
+        UUID avaliacaoId = UUID.randomUUID();
+        UUID matriculaId = UUID.randomUUID();
+
+        when(avaliacaoService.lancarNota(Mockito.eq(avaliacaoId), Mockito.any(NotaAlunoRequest.class)))
+                .thenReturn(notaAlunoResponse(avaliacaoId, matriculaId, "Aluno Interno"));
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new AvaliacaoInternalController(avaliacaoService)).build();
+
+        mockMvc.perform(post("/internal/avaliacoes/{id}/notas", avaliacaoId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new NotaAlunoRequest(
+                                matriculaId,
+                                new BigDecimal("8.50"),
+                                "Boa participacao"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.avaliacaoId").value(avaliacaoId.toString()))
+                .andExpect(jsonPath("$.matriculaId").value(matriculaId.toString()))
+                .andExpect(jsonPath("$.alunoNome").value("Aluno Interno"));
+
+        verify(avaliacaoService).lancarNota(Mockito.eq(avaliacaoId), Mockito.any(NotaAlunoRequest.class));
+    }
+
+    @Test
+    void deveListarNotasPorAvaliacaoNoContratoInterno() throws Exception {
+        AvaliacaoService avaliacaoService = Mockito.mock(AvaliacaoService.class);
+        UUID avaliacaoId = UUID.randomUUID();
+        UUID matriculaId = UUID.randomUUID();
+
+        when(avaliacaoService.listarNotasPorAvaliacao(avaliacaoId))
+                .thenReturn(List.of(notaAlunoResponse(avaliacaoId, matriculaId, "Aluno Interno")));
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new AvaliacaoInternalController(avaliacaoService)).build();
+
+        mockMvc.perform(get("/internal/avaliacoes/{id}/notas", avaliacaoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].avaliacaoId").value(avaliacaoId.toString()))
+                .andExpect(jsonPath("$[0].matriculaId").value(matriculaId.toString()))
+                .andExpect(jsonPath("$[0].alunoNome").value("Aluno Interno"));
+
+        verify(avaliacaoService).listarNotasPorAvaliacao(avaliacaoId);
+    }
+
     private AvaliacaoRequest avaliacaoRequest(UUID alocacaoId) {
         return new AvaliacaoRequest(
                 alocacaoId,
@@ -123,5 +170,21 @@ class AvaliacaoInternalControllerTest {
                 new BigDecimal("1.00"),
                 "PROVA",
                 LocalDateTime.of(2039, 4, 15, 7, 0));
+    }
+
+    private NotaAlunoResponse notaAlunoResponse(UUID avaliacaoId, UUID matriculaId, String alunoNome) {
+        return new NotaAlunoResponse(
+                UUID.randomUUID(),
+                avaliacaoId,
+                "Prova interna",
+                matriculaId,
+                UUID.randomUUID(),
+                alunoNome,
+                UUID.randomUUID(),
+                "Escola Interna",
+                new BigDecimal("8.50"),
+                "Boa participacao",
+                LocalDateTime.of(2039, 4, 15, 8, 0),
+                LocalDateTime.of(2039, 4, 15, 8, 5));
     }
 }
