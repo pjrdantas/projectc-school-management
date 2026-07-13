@@ -89,6 +89,7 @@ public class BearerAuthenticationWebFilter implements WebFilter {
             return false;
         }
         return "/api/disciplinas".equals(path)
+                || "/api/auth/tenant/ativa".equals(path)
                 || "/api/auth/escolas".equals(path)
                 || path.matches("^/api/disciplinas/[^/]+$")
                 || "/api/periodos-letivos".equals(path)

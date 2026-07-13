@@ -2880,3 +2880,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   em `BUILD SUCCESS`.
 - Contagem regressiva da macrofase inicial de identidade e tenant: 3 fases
   restantes no escopo fechado atual.
+
+### Fase 136
+
+- A Fase 4 da macrofase de identidade e tenant oficializou no
+  `school-management-bff` a leitura publica minima do tenant ativo consumindo o
+  `institutional-tenant-service`.
+- O `school-management-bff` passou a expor `GET /api/auth/tenant/ativa`,
+  preservando bearer obrigatorio, `correlationId` e o contexto autenticado
+  atual como fonte de `X-Usuario-Id` e `X-Escola-Id` para a chamada interna.
+- Para manter o menor recorte seguro, esta fase nao duplicou externamente a
+  listagem de escolas em uma nova rota de tenant, porque esse vinculo ja ficou
+  oficializado em `GET /api/auth/escolas` na fase anterior.
+- Foi criado cliente HTTP dedicado do BFF para o
+  `institutional-tenant-service`, com token interno proprio, e o filtro de
+  bearer passou a proteger tambem a nova rota publica de tenant ativo.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff -Dtest=InstitutionalTenantReadProxyIntegrationTest test`
+  em `BUILD SUCCESS`.
+- Contagem regressiva da macrofase inicial de identidade e tenant: 2 fases
+  restantes no escopo fechado atual.

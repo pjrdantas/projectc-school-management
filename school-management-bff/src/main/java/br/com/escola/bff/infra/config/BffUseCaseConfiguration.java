@@ -24,6 +24,7 @@ import br.com.escola.bff.application.port.out.EnrollmentDocumentMatriculaReadPor
 import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaReadPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaWritePort;
 import br.com.escola.bff.application.port.out.IdentityAccessSessionPort;
+import br.com.escola.bff.application.port.out.InstitutionalTenantReadPort;
 import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
 import br.com.escola.bff.application.port.out.MonolithDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.MonolithPeriodoLetivoWritePort;
@@ -59,6 +60,7 @@ import br.com.escola.bff.application.service.EscolaOrigemWriteProxyService;
 import br.com.escola.bff.application.service.FuncionarioReadProxyService;
 import br.com.escola.bff.application.service.HistoricoEscolarReadProxyService;
 import br.com.escola.bff.application.service.HistoricoEscolarWriteProxyService;
+import br.com.escola.bff.application.service.InstitutionalTenantReadProxyService;
 import br.com.escola.bff.application.service.MatriculaReadProxyService;
 import br.com.escola.bff.application.service.PeriodoLetivoWriteRoutingService;
 import br.com.escola.bff.application.service.PessoaCatalogReadProxyService;
@@ -93,6 +95,7 @@ import br.com.escola.bff.application.usecase.AtualizarHistoricoEscolarUseCase;
 import br.com.escola.bff.application.usecase.SalvarDiarioClasseUseCase;
 import br.com.escola.bff.application.usecase.ConsultarMatriculaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarProfessorUseCase;
+import br.com.escola.bff.application.usecase.ConsultarTenantAtivoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarTransferenciaUseCase;
 import br.com.escola.bff.application.usecase.CreateDisciplinaUseCase;
 import br.com.escola.bff.application.usecase.CreatePeriodoLetivoUseCase;
@@ -131,6 +134,13 @@ public class BffUseCaseConfiguration {
             AuthContextPort authContextPort,
             IdentityAccessSessionPort identityAccessSessionPort) {
         return new AuthSessionProxyService(authContextPort, identityAccessSessionPort);
+    }
+
+    @Bean
+    ConsultarTenantAtivoUseCase consultarTenantAtivoUseCase(
+            AuthContextPort authContextPort,
+            InstitutionalTenantReadPort institutionalTenantReadPort) {
+        return new InstitutionalTenantReadProxyService(authContextPort, institutionalTenantReadPort);
     }
 
     @Bean

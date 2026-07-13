@@ -6800,3 +6800,27 @@ Entregue nesta fase:
 
 Contagem regressiva da macrofase inicial de identidade e tenant: 3 fases
 restantes no escopo fechado atual.
+
+### Fase 136 - Oficializacao inicial do tenant ativo via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar a leitura publica minima do
+  tenant ativo consumindo o `institutional-tenant-service`;
+- foi publicada no BFF a rota `GET /api/auth/tenant/ativa`, reutilizando o
+  contrato interno ja estabilizado `GET /internal/v1/tenant/ativa`;
+- para preservar o menor recorte seguro, a fase nao abriu uma segunda rota
+  publica para listar escolas por tenant, porque a lista de escolas da sessao
+  ja ficou oficializada em `GET /api/auth/escolas` na fase anterior;
+- o BFF continua usando `GET /api/auth/contexto-atual` no monolito apenas para
+  montar `X-Usuario-Id` e `X-Escola-Id` na chamada interna ao servico novo;
+- foi criado cliente HTTP dedicado do BFF para o
+  `institutional-tenant-service`, com token interno proprio, e o filtro de
+  bearer passou a proteger tambem a nova rota oficial de tenant ativo;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff -Dtest=InstitutionalTenantReadProxyIntegrationTest test`,
+  cobrindo a resolucao de contexto, a propagacao de bearer/correlation ID e o
+  proxy oficial para a leitura do tenant ativo.
+
+Contagem regressiva da macrofase inicial de identidade e tenant: 2 fases
+restantes no escopo fechado atual.
