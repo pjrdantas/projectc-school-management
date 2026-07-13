@@ -428,6 +428,53 @@ class PlanningAiInternalControllerIntegrationTest {
     }
 
     @Test
+    void deveCriarVersaoNoContratoInterno() throws Exception {
+        UUID conteudoId = UUID.randomUUID();
+        UUID versaoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(201)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "id":"%s",
+                          "conteudoGeradoId":"%s",
+                          "numeroVersao":2,
+                          "conteudo":"Conteudo revisado",
+                          "motivoAlteracao":"Ajuste do professor",
+                          "createdAt":"2026-07-13T12:10:00"
+                        }
+                        """.formatted(versaoId, conteudoId)));
+
+        String requestBody = """
+                {
+                  "conteudo":"Conteudo revisado",
+                  "motivoAlteracao":"Ajuste do professor"
+                }
+                """;
+
+        mockMvc.perform(post("/internal/v1/ia/conteudos/{conteudoId}/versoes", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-14")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(versaoId.toString()))
+                .andExpect(jsonPath("$.conteudoGeradoId").value(conteudoId.toString()))
+                .andExpect(jsonPath("$.numeroVersao").value(2));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/versoes");
+        assertThat(recorded.getMethod()).isEqualTo("POST");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+        assertThat(recorded.getBody().readUtf8())
+                .isEqualTo("{\"conteudo\":\"Conteudo revisado\",\"motivoAlteracao\":\"Ajuste do professor\"}");
+    }
+
+    @Test
     void devePropagarNotFoundQuandoConteudoNaoExiste() throws Exception {
         UUID conteudoId = UUID.randomUUID();
 
@@ -452,6 +499,41 @@ class PlanningAiInternalControllerIntegrationTest {
 
         RecordedRequest recorded = aguardarRequisicao();
         assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId);
+    }
+
+    @Test
+    void devePropagarNotFoundQuandoConteudoNaoExisteNaCriacaoDeVersao() throws Exception {
+        UUID conteudoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(404)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "error":"RESOURCE_NOT_FOUND",
+                          "message":"Conteudo IA nao encontrado"
+                        }
+                        """));
+
+        mockMvc.perform(post("/internal/v1/ia/conteudos/{conteudoId}/versoes", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-15")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "conteudo":"Conteudo revisado",
+                                  "motivoAlteracao":"Ajuste do professor"
+                                }
+                                """))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/versoes");
+        assertThat(recorded.getMethod()).isEqualTo("POST");
     }
 
     @Test

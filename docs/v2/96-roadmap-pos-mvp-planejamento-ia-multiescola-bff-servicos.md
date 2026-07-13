@@ -7203,3 +7203,26 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
 6 fases restantes no escopo fechado atual.
+
+### Fase 151 - Abertura interna inicial da criacao de versao de conteudo IA
+
+Entregue nesta fase:
+
+- foi aberto no `planning-ai-service` o contrato interno
+  `POST /internal/v1/ia/conteudos/{conteudoId}/versoes`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `POST /api/ia/conteudos/{conteudoId}/versoes`, preservando o payload oficial
+  de versao criada e o contrato de entrada de edicao;
+- foi criado DTO proprio de request para criacao de versao no codigo novo, com
+  as mesmas validacoes basicas de `conteudo` e `motivoAlteracao`;
+- o comportamento de erro para conteudo inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional atual;
+- para manter o menor recorte seguro, esta fase permaneceu sem BFF, sem
+  oficializacao publica, sem aprovacao e sem publicacao na biblioteca;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service "-Dtest=PlanningAiInternalControllerIntegrationTest" test`,
+  cobrindo criacao interna de versao, propagacao de bearer, encaminhamento do
+  payload e preservacao de `404`.
+
+Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
+5 fases restantes no escopo fechado atual.

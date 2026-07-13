@@ -20,6 +20,7 @@ import br.com.escola.planningaiservice.application.context.InternalRequestContex
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
+import br.com.escola.planningaiservice.application.dto.CriarVersaoConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.GerarConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
 import br.com.escola.planningaiservice.application.port.in.PlanningAiReadUseCase;
@@ -97,6 +98,20 @@ public class PlanningAiInternalController {
                 authorization,
                 context,
                 conteudoId);
+    }
+
+    @PostMapping("/ia/conteudos/{conteudoId}/versoes")
+    @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
+    public ConteudoIaVersaoResponse criarVersao(
+            @PathVariable UUID conteudoId,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @Valid @RequestBody CriarVersaoConteudoIaRequest request) {
+        return planningAiReadUseCase.criarVersao(
+                authorization,
+                context,
+                conteudoId,
+                request);
     }
 
     @GetMapping("/ia/conteudos/{conteudoId}/versoes")

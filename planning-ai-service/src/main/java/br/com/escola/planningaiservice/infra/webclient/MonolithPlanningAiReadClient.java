@@ -15,6 +15,7 @@ import br.com.escola.planningaiservice.application.context.InternalRequestContex
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
+import br.com.escola.planningaiservice.application.dto.CriarVersaoConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.GerarConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
 import br.com.escola.planningaiservice.application.exception.DownstreamUnavailableException;
@@ -183,6 +184,32 @@ public class MonolithPlanningAiReadClient implements PlanningAiReadPort {
         } catch (ResourceAccessException exception) {
             throw new DownstreamUnavailableException(
                     "Monolito indisponivel para geracao de conteudo de planejamento IA",
+                    exception);
+        }
+    }
+
+    @Override
+    public ConteudoIaVersaoResponse criarVersao(
+            String authorization,
+            InternalRequestContext context,
+            UUID conteudoId,
+            CriarVersaoConteudoIaRequest request) {
+        try {
+            return restClient.post()
+                    .uri("/api/ia/conteudos/{conteudoId}/versoes", conteudoId)
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, authorization))
+                    .body(request)
+                    .retrieve()
+                    .body(ConteudoIaVersaoResponse.class);
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                throw new PlanningAiServiceResourceNotFoundException(
+                        "Criacao de versao de conteudo de planejamento IA nao encontrada");
+            }
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            throw new DownstreamUnavailableException(
+                    "Monolito indisponivel para criacao de versao de conteudo de planejamento IA",
                     exception);
         }
     }

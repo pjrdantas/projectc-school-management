@@ -7,6 +7,7 @@ import br.com.escola.planningaiservice.application.context.InternalRequestContex
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
+import br.com.escola.planningaiservice.application.dto.CriarVersaoConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.GerarConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
 
@@ -45,4 +46,10 @@ public interface PlanningAiReadUseCase {
             InternalRequestContext context,
             UUID planejamentoId,
             GerarConteudoIaRequest request);
+
+    ConteudoIaVersaoResponse criarVersao(
+            String authorization,
+            InternalRequestContext context,
+            UUID conteudoId,
+            CriarVersaoConteudoIaRequest request);
 }
