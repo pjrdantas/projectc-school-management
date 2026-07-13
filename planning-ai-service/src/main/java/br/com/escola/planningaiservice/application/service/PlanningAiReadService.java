@@ -124,4 +124,15 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
                 conteudoId,
                 request);
     }
+
+    @Override
+    public BibliotecaConteudoPedagogicoResponse publicarBiblioteca(
+            String authorization,
+            InternalRequestContext context,
+            UUID conteudoId) {
+        return planningAiReadPort.publicarBiblioteca(
+                authorization,
+                context,
+                conteudoId);
+    }
 }

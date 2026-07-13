@@ -3302,3 +3302,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoVersaoApproveControllerTest,PlanningAiConteudoVersaoApproveProxyIntegrationTest" test`.
 - Contagem regressiva do novo ciclo de escrita minima do
   `planning-ai-service`: 2 fases restantes no escopo fechado atual.
+
+### Fase 155
+
+- A Fase 7 do novo ciclo de escrita minima do `planning-ai-service` abriu no
+  servico novo o contrato interno
+  `POST /internal/v1/ia/conteudos/{conteudoId}/publicar-biblioteca`.
+- O `planning-ai-service` passou a consumir o contrato atual do monolito
+  `POST /api/ia/conteudos/{conteudoId}/publicar-biblioteca`, preservando o
+  payload funcional do conteudo publicado na biblioteca.
+- Esta abertura manteve o mesmo recorte funcional atual de publicacao direta
+  por identificador, sem body adicional nem ampliacao de escopo.
+- O comportamento de erro para conteudo inexistente foi mantido como
+  `404 RESOURCE_NOT_FOUND`.
+- Esta fase permaneceu sem BFF, porque o objetivo foi abrir o ultimo recorte
+  interno do ciclo pelo menor risco antes da oficializacao publica final.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service "-Dtest=PlanningAiInternalControllerIntegrationTest" test`.
+- Contagem regressiva do novo ciclo de escrita minima do
+  `planning-ai-service`: 1 fase restante no escopo fechado atual.

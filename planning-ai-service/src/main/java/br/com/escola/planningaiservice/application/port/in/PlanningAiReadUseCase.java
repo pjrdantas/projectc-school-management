@@ -59,4 +59,9 @@ public interface PlanningAiReadUseCase {
             InternalRequestContext context,
             UUID conteudoId,
             AprovarVersaoConteudoIaRequest request);
+
+    BibliotecaConteudoPedagogicoResponse publicarBiblioteca(
+            String authorization,
+            InternalRequestContext context,
+            UUID conteudoId);
 }

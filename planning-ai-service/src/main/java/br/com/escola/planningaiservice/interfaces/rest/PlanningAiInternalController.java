@@ -129,6 +129,18 @@ public class PlanningAiInternalController {
                 request);
     }
 
+    @PostMapping("/ia/conteudos/{conteudoId}/publicar-biblioteca")
+    @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
+    public BibliotecaConteudoPedagogicoResponse publicarBiblioteca(
+            @PathVariable UUID conteudoId,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
+        return planningAiReadUseCase.publicarBiblioteca(
+                authorization,
+                context,
+                conteudoId);
+    }
+
     @GetMapping("/ia/conteudos/{conteudoId}/versoes")
     public List<ConteudoIaVersaoResponse> listarVersoes(
             @PathVariable UUID conteudoId,

@@ -7302,3 +7302,25 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
 2 fases restantes no escopo fechado atual.
+
+### Fase 155 - Abertura interna inicial da publicacao de conteudo IA na biblioteca
+
+Entregue nesta fase:
+
+- foi aberto no `planning-ai-service` o contrato interno
+  `POST /internal/v1/ia/conteudos/{conteudoId}/publicar-biblioteca`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `POST /api/ia/conteudos/{conteudoId}/publicar-biblioteca`, preservando o
+  payload oficial de biblioteca publicado;
+- o contrato interno foi aberto sem body adicional, mantendo o mesmo recorte
+  funcional atual de publicacao direta por identificador do conteudo;
+- o comportamento de erro para conteudo inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional atual;
+- para manter o menor recorte seguro, esta fase permaneceu sem BFF e sem abrir
+  qualquer refatoracao estrutural adicional no servico novo;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service "-Dtest=PlanningAiInternalControllerIntegrationTest" test`,
+  cobrindo publicacao interna, propagacao de bearer e preservacao de `404`.
+
+Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
+1 fase restante no escopo fechado atual.

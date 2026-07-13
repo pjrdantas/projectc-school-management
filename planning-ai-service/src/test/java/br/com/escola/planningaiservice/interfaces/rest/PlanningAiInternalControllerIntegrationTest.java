@@ -633,6 +633,83 @@ class PlanningAiInternalControllerIntegrationTest {
     }
 
     @Test
+    void devePublicarBibliotecaNoContratoInterno() throws Exception {
+        UUID conteudoId = UUID.randomUUID();
+        UUID bibliotecaId = UUID.randomUUID();
+        UUID professorId = UUID.randomUUID();
+        UUID disciplinaId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(201)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "id":"%s",
+                          "escolaId":"%s",
+                          "escolaNome":"Escola Central",
+                          "professorId":"%s",
+                          "professorNome":"Professor Um",
+                          "disciplinaId":"%s",
+                          "disciplinaNome":"Matematica",
+                          "tipoConteudo":"ATIVIDADE",
+                          "tipoConteudoDescricao":"Atividade",
+                          "titulo":"Lista de fracoes",
+                          "tema":"Fracoes",
+                          "conteudo":"Conteudo revisado",
+                          "origem":"PLANEJAMENTO_IA",
+                          "reutilizavel":true,
+                          "ativo":true,
+                          "createdAt":"2026-07-13T12:30:00",
+                          "updatedAt":"2026-07-13T12:30:00"
+                        }
+                        """.formatted(bibliotecaId, UUID.randomUUID(), professorId, disciplinaId)));
+
+        mockMvc.perform(post("/internal/v1/ia/conteudos/{conteudoId}/publicar-biblioteca", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-18")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(bibliotecaId.toString()))
+                .andExpect(jsonPath("$.professorId").value(professorId.toString()))
+                .andExpect(jsonPath("$.origem").value("PLANEJAMENTO_IA"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/publicar-biblioteca");
+        assertThat(recorded.getMethod()).isEqualTo("POST");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+    }
+
+    @Test
+    void devePropagarNotFoundQuandoConteudoNaoExisteNaPublicacaoBiblioteca() throws Exception {
+        UUID conteudoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(404)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "error":"RESOURCE_NOT_FOUND",
+                          "message":"Conteudo IA nao encontrado"
+                        }
+                        """));
+
+        mockMvc.perform(post("/internal/v1/ia/conteudos/{conteudoId}/publicar-biblioteca", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-19")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/publicar-biblioteca");
+        assertThat(recorded.getMethod()).isEqualTo("POST");
+    }
+
+    @Test
     void deveListarVersoesNoContratoInterno() throws Exception {
         UUID conteudoId = UUID.randomUUID();
         UUID versaoId = UUID.randomUUID();
