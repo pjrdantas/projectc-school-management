@@ -396,48 +396,47 @@ class PlanningAiInternalControllerIntegrationTest {
         UUID planejamentoId = UUID.randomUUID();
         UUID conteudoId = UUID.randomUUID();
         UUID interacaoId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
 
-        mockWebServer.enqueue(new MockResponse()
-                .setHeader("Content-Type", "application/json")
-                .setBody("""
-                        [
-                          {
-                            "id":"%s",
-                            "planejamentoBimestralId":"%s",
-                            "interacaoId":"%s",
-                            "escolaId":"%s",
-                            "escolaNome":"Escola Central",
-                            "titulo":"Lista de fracoes",
-                            "conteudo":"Conteudo gerado",
-                            "versao":1,
-                            "hashConteudo":"abc123",
-                            "aprovadoPeloProfessor":false,
-                            "reutilizavel":true,
-                            "ativo":true,
-                            "status":"GERADO",
-                            "statusDescricao":"Gerado",
-                            "tipoConteudo":"ATIVIDADE",
-                            "tipoConteudoDescricao":"Atividade",
-                            "createdAt":"2026-07-13T11:10:00",
-                            "updatedAt":"2026-07-13T11:10:00"
-                          }
-                        ]
-                        """.formatted(conteudoId, planejamentoId, interacaoId, UUID.randomUUID())));
+        var interaction = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiInteractionJpaEntity();
+        interaction.setId(interacaoId);
+        interaction.setEscolaId(escolaId);
+        interaction.setPlanejamentoBimestralId(planejamentoId);
+        interaction.setPromptProfessor("Monte uma atividade sobre fracoes");
+        interaction.setRespostaIa("Sugestao de atividade");
+        interaction.setCreatedAt(java.time.LocalDateTime.parse("2026-07-13T11:00:00"));
+        interactionRepository.save(interaction);
+
+        var content = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiGeneratedContentJpaEntity();
+        content.setId(conteudoId);
+        content.setEscolaId(escolaId);
+        content.setPlanejamentoBimestralId(planejamentoId);
+        content.setInteracao(interaction);
+        content.setTitulo("Lista de fracoes");
+        content.setConteudo("Conteudo gerado");
+        content.setVersao(1);
+        content.setHashConteudo("abc123");
+        content.setAprovadoPeloProfessor(false);
+        content.setReutilizavel(true);
+        content.setAtivo(true);
+        content.setStatus("GERADO");
+        content.setTipoConteudo("ATIVIDADE");
+        content.setCreatedAt(java.time.LocalDateTime.parse("2026-07-13T11:10:00"));
+        content.setUpdatedAt(java.time.LocalDateTime.parse("2026-07-13T11:10:00"));
+        contentRepository.save(content);
 
         mockMvc.perform(get("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos", planejamentoId)
                         .header("X-Internal-Token", "planning-token")
                         .header("X-Correlation-Id", "corr-planning-6")
                         .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
                         .header("Authorization", "Bearer planning-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(conteudoId.toString()))
                 .andExpect(jsonPath("$[0].planejamentoBimestralId").value(planejamentoId.toString()))
                 .andExpect(jsonPath("$[0].tipoConteudo").value("ATIVIDADE"));
 
-        RecordedRequest recorded = aguardarRequisicao();
-        assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/conteudos");
-        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+        assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
     }
 
     @Test
@@ -462,6 +461,53 @@ class PlanningAiInternalControllerIntegrationTest {
                         .header("Authorization", "Bearer planning-user-token"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/conteudos");
+    }
+
+    @Test
+    void deveUsarFallbackDoMonolitoQuandoNaoHouverConteudosLocais() throws Exception {
+        UUID planejamentoId = UUID.randomUUID();
+        UUID conteudoId = UUID.randomUUID();
+        UUID interacaoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [
+                          {
+                            "id":"%s",
+                            "planejamentoBimestralId":"%s",
+                            "interacaoId":"%s",
+                            "escolaId":"%s",
+                            "escolaNome":"Escola Central",
+                            "titulo":"Fallback",
+                            "conteudo":"Conteudo do monolito",
+                            "versao":1,
+                            "hashConteudo":"abc123",
+                            "aprovadoPeloProfessor":false,
+                            "reutilizavel":true,
+                            "ativo":true,
+                            "status":"GERADO",
+                            "statusDescricao":"Gerado",
+                            "tipoConteudo":"ATIVIDADE",
+                            "tipoConteudoDescricao":"Atividade",
+                            "createdAt":"2026-07-13T11:10:00",
+                            "updatedAt":"2026-07-13T11:10:00"
+                          }
+                        ]
+                        """.formatted(conteudoId, planejamentoId, interacaoId, UUID.randomUUID())));
+
+        mockMvc.perform(get("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos", planejamentoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-6b")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(conteudoId.toString()))
+                .andExpect(jsonPath("$[0].conteudo").value("Conteudo do monolito"));
 
         RecordedRequest recorded = aguardarRequisicao();
         assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/conteudos");

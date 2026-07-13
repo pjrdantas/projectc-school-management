@@ -7418,3 +7418,24 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado de persistencia propria do
 `planning-ai-service`: 5 fases restantes no escopo fechado atual.
+
+### Fase 160 - Leitura local prioritaria dos conteudos gerados de planejamento IA
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a priorizar a persistencia propria para a
+  leitura interna `GET /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`;
+- a consulta local foi limitada ao mesmo recorte incremental ja populado no
+  servico novo: `escolaId + planejamentoBimestralId`, retornando o DTO interno
+  de conteudo ja estabilizado no contrato atual;
+- quando nao houver conteudos locais para esse recorte, o servico continua com
+  fallback para o monolito, preservando o comportamento funcional enquanto a
+  migracao de leitura ainda nao cobre todo o historico;
+- nenhuma rota publica foi alterada, nao houve mudanca no BFF e a fase nao
+  abriu ainda leitura local por `conteudoId`, versoes ou biblioteca;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo leitura local sem downstream e
+  fallback ao monolito quando a base propria estiver vazia.
+
+Contagem regressiva do novo ciclo fechado de persistencia propria do
+`planning-ai-service`: 4 fases restantes no escopo fechado atual.
