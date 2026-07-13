@@ -48,6 +48,7 @@ import br.com.escola.bff.application.port.out.PedagogicalDiarioClasseWritePort;
 import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarWritePort;
 import br.com.escola.bff.application.port.out.PlanningAiBibliotecaReadPort;
+import br.com.escola.bff.application.port.out.PlanningAiConteudoBibliotecaWritePort;
 import br.com.escola.bff.application.port.out.PlanningAiConteudoReadPort;
 import br.com.escola.bff.application.port.out.PlanningAiConteudoDetailReadPort;
 import br.com.escola.bff.application.port.out.PlanningAiConteudoVersaoApprovePort;
@@ -75,6 +76,7 @@ import br.com.escola.bff.application.service.HistoricoEscolarReadProxyService;
 import br.com.escola.bff.application.service.HistoricoEscolarWriteProxyService;
 import br.com.escola.bff.application.service.InstitutionalTenantReadProxyService;
 import br.com.escola.bff.application.service.MatriculaReadProxyService;
+import br.com.escola.bff.application.service.PlanejamentoIaConteudoBibliotecaWriteProxyService;
 import br.com.escola.bff.application.service.PlanejamentoIaConteudoDetailReadProxyService;
 import br.com.escola.bff.application.service.PlanejamentoIaConteudoVersaoApproveProxyService;
 import br.com.escola.bff.application.service.PeriodoLetivoWriteRoutingService;
@@ -109,6 +111,7 @@ import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaInteracaoUse
 import br.com.escola.bff.application.usecase.AprovarPlanejamentoIaConteudoVersaoUseCase;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoUseCase;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoVersaoUseCase;
+import br.com.escola.bff.application.usecase.PublicarPlanejamentoIaConteudoBibliotecaUseCase;
 import br.com.escola.bff.application.usecase.CriarAvaliacaoUseCase;
 import br.com.escola.bff.application.usecase.CriarAulaUseCase;
 import br.com.escola.bff.application.usecase.CriarEscolaOrigemUseCase;
@@ -391,6 +394,15 @@ public class BffUseCaseConfiguration {
         return new PlanejamentoIaConteudoVersaoApproveProxyService(
                 authContextPort,
                 planningAiConteudoVersaoApprovePort);
+    }
+
+    @Bean
+    PublicarPlanejamentoIaConteudoBibliotecaUseCase publicarPlanejamentoIaConteudoBibliotecaUseCase(
+            AuthContextPort authContextPort,
+            PlanningAiConteudoBibliotecaWritePort planningAiConteudoBibliotecaWritePort) {
+        return new PlanejamentoIaConteudoBibliotecaWriteProxyService(
+                authContextPort,
+                planningAiConteudoBibliotecaWritePort);
     }
 
     @Bean

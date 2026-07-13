@@ -11,6 +11,7 @@ import br.com.escola.bff.application.context.TrustedHeaders;
 import br.com.escola.bff.application.usecase.AprovarPlanejamentoIaConteudoVersaoUseCase;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoUseCase;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoVersaoUseCase;
+import br.com.escola.bff.application.usecase.PublicarPlanejamentoIaConteudoBibliotecaUseCase;
 import br.com.escola.bff.interfaces.advice.BffExceptionHandler;
 import reactor.core.publisher.Mono;
 
@@ -32,12 +33,15 @@ class PlanejamentoIaConteudoVersaoApproveControllerTest {
                           "aprovadoPeloProfessor":true
                         }
                         """));
+        PublicarPlanejamentoIaConteudoBibliotecaUseCase publicarBibliotecaUseCase =
+                (authorization, correlationId, requestedConteudoId) -> Mono.error(new UnsupportedOperationException());
 
         WebTestClient client = WebTestClient.bindToController(
                         new PlanejamentoIaConteudoWriteController(
                                 criarConteudoUseCase,
                                 criarVersaoUseCase,
-                                aprovarVersaoUseCase))
+                                aprovarVersaoUseCase,
+                                publicarBibliotecaUseCase))
                 .controllerAdvice(new BffExceptionHandler())
                 .build();
 

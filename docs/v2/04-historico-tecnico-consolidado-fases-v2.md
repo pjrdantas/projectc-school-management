@@ -3321,3 +3321,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service "-Dtest=PlanningAiInternalControllerIntegrationTest" test`.
 - Contagem regressiva do novo ciclo de escrita minima do
   `planning-ai-service`: 1 fase restante no escopo fechado atual.
+
+### Fase 156
+
+- A Fase 8 do novo ciclo de escrita minima do `planning-ai-service`
+  oficializou no `school-management-bff` o contrato publico
+  `POST /api/ia/conteudos/{conteudoId}/publicar-biblioteca`.
+- O BFF passou a ter porta de escrita propria para publicacao de conteudo IA na
+  biblioteca, servico de proxy dedicado e client HTTP especifico para o
+  `planning-ai-service`, mantendo o desacoplamento entre contrato publico,
+  orchestracao e integracao downstream.
+- A chamada publica passou a resolver o contexto autenticado atual pelo
+  `AuthContextPort` e a propagar `Authorization`, `X-Internal-Token`,
+  `X-Correlation-Id`, `X-Usuario-Id` e `X-Escola-Id` para o contrato interno
+  `POST /internal/v1/ia/conteudos/{conteudoId}/publicar-biblioteca`.
+- Esta oficializacao reutilizou a flag
+  `features.planning-ai-write-proxy-enabled`, preservando a separacao entre os
+  eixos de leitura e escrita do BFF.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoBibliotecaWriteControllerTest,PlanningAiConteudoBibliotecaWriteProxyIntegrationTest" test`.
+- Com a Fase 156, o ciclo fechado de 8 fases da escrita minima do
+  `planning-ai-service` fica concluido no recorte planejado atual.
+- Contagem regressiva do novo ciclo de escrita minima do
+  `planning-ai-service`: 0 fases restantes no escopo fechado atual.

@@ -17,6 +17,7 @@ import br.com.escola.bff.application.context.TrustedHeaders;
 import br.com.escola.bff.application.usecase.AprovarPlanejamentoIaConteudoVersaoUseCase;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoUseCase;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoVersaoUseCase;
+import br.com.escola.bff.application.usecase.PublicarPlanejamentoIaConteudoBibliotecaUseCase;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -26,14 +27,17 @@ public class PlanejamentoIaConteudoWriteController {
     private final CriarPlanejamentoIaConteudoUseCase criarPlanejamentoIaConteudoUseCase;
     private final CriarPlanejamentoIaConteudoVersaoUseCase criarPlanejamentoIaConteudoVersaoUseCase;
     private final AprovarPlanejamentoIaConteudoVersaoUseCase aprovarPlanejamentoIaConteudoVersaoUseCase;
+    private final PublicarPlanejamentoIaConteudoBibliotecaUseCase publicarPlanejamentoIaConteudoBibliotecaUseCase;
 
     public PlanejamentoIaConteudoWriteController(
             CriarPlanejamentoIaConteudoUseCase criarPlanejamentoIaConteudoUseCase,
             CriarPlanejamentoIaConteudoVersaoUseCase criarPlanejamentoIaConteudoVersaoUseCase,
-            AprovarPlanejamentoIaConteudoVersaoUseCase aprovarPlanejamentoIaConteudoVersaoUseCase) {
+            AprovarPlanejamentoIaConteudoVersaoUseCase aprovarPlanejamentoIaConteudoVersaoUseCase,
+            PublicarPlanejamentoIaConteudoBibliotecaUseCase publicarPlanejamentoIaConteudoBibliotecaUseCase) {
         this.criarPlanejamentoIaConteudoUseCase = criarPlanejamentoIaConteudoUseCase;
         this.criarPlanejamentoIaConteudoVersaoUseCase = criarPlanejamentoIaConteudoVersaoUseCase;
         this.aprovarPlanejamentoIaConteudoVersaoUseCase = aprovarPlanejamentoIaConteudoVersaoUseCase;
+        this.publicarPlanejamentoIaConteudoBibliotecaUseCase = publicarPlanejamentoIaConteudoBibliotecaUseCase;
     }
 
     @PostMapping("/api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos")
@@ -75,5 +79,17 @@ public class PlanejamentoIaConteudoWriteController {
                 correlationId,
                 conteudoId,
                 requestBody);
+    }
+
+    @PostMapping("/api/ia/conteudos/{conteudoId}/publicar-biblioteca")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<ResponseEntity<String>> publicarBiblioteca(
+            @PathVariable UUID conteudoId,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return publicarPlanejamentoIaConteudoBibliotecaUseCase.executar(
+                authorization,
+                correlationId,
+                conteudoId);
     }
 }
