@@ -1,3 +1,17 @@
+spring:
+  application:
+    name: planning-ai-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/planning_ai}
+    username: ${SPRING_DATASOURCE_USERNAME:school}
+    password: ${SPRING_DATASOURCE_PASSWORD:school_local}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
 server:
   port: 8096
 

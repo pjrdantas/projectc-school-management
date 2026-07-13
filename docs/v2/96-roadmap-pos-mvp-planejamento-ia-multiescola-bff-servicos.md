@@ -7349,3 +7349,27 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
 0 fases restantes no escopo fechado atual.
+
+### Fase 157 - Abertura da persistencia propria minima do `planning-ai-service`
+
+Entregue nesta fase:
+
+- foi aberto no `planning-ai-service` o primeiro bloco fisico de persistencia
+  propria para `planejamento_ia_interacao`, `planejamento_ia_conteudo_gerado`,
+  `planejamento_ia_conteudo_versao` e `biblioteca_conteudo_pedagogico`;
+- a modelagem local foi criada com dependencias de JPA/Flyway/PostgreSQL,
+  migration inicial propria e entidades separadas do contrato HTTP atual;
+- as referencias antes acopladas no monolito por relacionamentos JPA externos
+  passaram a ser representadas no servico novo apenas por IDs de escola,
+  planejamento, usuario, professor e disciplina;
+- tambem foi criado um modelo de dominio local para esse recorte, preservando a
+  separacao entre modelo de dominio e modelo de persistencia desde a abertura;
+- nenhuma rota interna ou publica foi alterada nesta fase e o
+  `planning-ai-service` continua operando como proxy HTTP para os contratos ja
+  oficializados, sem cutover e sem escrita migrada;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo a migration nova, a subida do
+  contexto com banco local de teste e o contrato interno ja existente.
+
+Contagem regressiva do novo ciclo fechado de persistencia propria do
+`planning-ai-service`: 7 fases restantes no escopo fechado atual.
