@@ -3029,3 +3029,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service test`.
 - Contagem regressiva da macrofase inicial de `planning-ai-service`: 7 fases
   restantes no escopo fechado atual.
+
+### Fase 142
+
+- A Fase 4 da macrofase inicial de `planning-ai-service` oficializou no
+  `school-management-bff` a rota publica
+  `GET /api/planejamentos-bimestrais/{planejamentoId}/ia/interacoes`.
+- O BFF passou a consumir o contrato interno
+  `GET /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/interacoes`
+  do servico novo, preservando o payload funcional de interacoes de IA do
+  planejamento.
+- Foi criado proxy dedicado no BFF para essa leitura, reutilizando o client
+  HTTP do `planning-ai-service` e o contexto autenticado atual do monolito para
+  resolver `X-Usuario-Id` e `X-Escola-Id`.
+- Esta fase permaneceu sem cutover, sem fallback e sem qualquer escrita
+  migrada, porque o objetivo foi somente oficializar o proximo contrato
+  read-only ja aberto no servico novo.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaInteracaoReadControllerTest,PlanningAiInteracaoReadProxyIntegrationTest" test`.
+- Contagem regressiva da macrofase inicial de `planning-ai-service`: 6 fases
+  restantes no escopo fechado atual.

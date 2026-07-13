@@ -6969,3 +6969,28 @@ Entregue nesta fase:
 
 Contagem regressiva da macrofase inicial de `planning-ai-service`: 7 fases
 restantes no escopo fechado atual.
+
+### Fase 142 - Oficializacao inicial das interacoes de planejamento IA via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar a rota publica
+  `GET /api/planejamentos-bimestrais/{planejamentoId}/ia/interacoes`;
+- a rota publica reutiliza o contrato interno ja aberto na fase anterior em
+  `GET /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/interacoes`,
+  preservando o payload oficial de interacoes de IA do planejamento;
+- o BFF resolve o contexto autenticado atual no monolito apenas para montar os
+  headers internos `X-Usuario-Id` e `X-Escola-Id` exigidos pelo
+  `planning-ai-service`;
+- foi criado no BFF um proxy dedicado para as interacoes de planejamento IA,
+  reutilizando o mesmo client properties e a mesma feature flag de leitura do
+  `planning-ai-service`;
+- para manter o menor recorte seguro, esta fase nao abriu geracao, versoes,
+  aprovacao, publicacao, escrita migrada, cutover ou fallback;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaInteracaoReadControllerTest,PlanningAiInteracaoReadProxyIntegrationTest" test`,
+  cobrindo contrato da rota publica, propagacao de bearer/correlation ID,
+  resolucao de contexto autenticado e chamada interna ao servico novo.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 6 fases
+restantes no escopo fechado atual.
