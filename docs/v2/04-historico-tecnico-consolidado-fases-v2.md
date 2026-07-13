@@ -3542,3 +3542,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `planning-ai-service` fica concluido no recorte planejado atual.
 - Contagem regressiva do novo ciclo fechado de escritas remanescentes do
   `planning-ai-service`: 0 fases restantes no escopo fechado atual.
+
+### Fase 169
+
+- Foi aberto um novo ciclo tecnico fechado de autonomia final do
+  `planning-ai-service`, focado em reduzir leituras repetidas no monolito sem
+  alterar os contratos externos ja estabilizados.
+- Quando `GET /internal/v1/ia/interacoes`,
+  `GET /internal/v1/ia/conteudos`,
+  `GET /internal/v1/ia/conteudos/{conteudoId}` e
+  `GET /internal/v1/ia/conteudos/{conteudoId}/versoes` precisam fazer fallback
+  para o monolito por ausencia local, o servico agora hidrata aditivamente a
+  persistencia propria com o payload oficial retornado.
+- Com isso, a primeira chamada continua preservando o comportamento atual, e as
+  leituras seguintes do mesmo recorte passam a poder ser atendidas pela base
+  propria sem novo downstream.
+- A hidratacao local da biblioteca pedagogica nao foi aberta nesta fase porque
+  o contrato oficial atual dessa leitura nao expõe `conteudoOrigemId`, entao
+  ainda nao ha chave segura para popular `biblioteca_conteudo_pedagogico` por
+  esse caminho.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva do novo ciclo fechado de autonomia final do
+  `planning-ai-service`: 5 fases restantes no escopo fechado atual.

@@ -28,6 +28,7 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
     private final PlanningAiLibraryReadService planningAiLibraryReadService;
     private final PlanningAiContentVersionPersistenceService planningAiContentVersionPersistenceService;
     private final PlanningAiContentApprovalPersistenceService planningAiContentApprovalPersistenceService;
+    private final PlanningAiReadModelSyncService planningAiReadModelSyncService;
 
     public PlanningAiReadService(
             PlanningAiReadPort planningAiReadPort,
@@ -38,7 +39,8 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             PlanningAiLibraryPublicationPersistenceService planningAiLibraryPublicationPersistenceService,
             PlanningAiLibraryReadService planningAiLibraryReadService,
             PlanningAiContentVersionPersistenceService planningAiContentVersionPersistenceService,
-            PlanningAiContentApprovalPersistenceService planningAiContentApprovalPersistenceService) {
+            PlanningAiContentApprovalPersistenceService planningAiContentApprovalPersistenceService,
+            PlanningAiReadModelSyncService planningAiReadModelSyncService) {
         this.planningAiReadPort = planningAiReadPort;
         this.planningAiGenerationPersistenceService = planningAiGenerationPersistenceService;
         this.planningAiInteractionReadService = planningAiInteractionReadService;
@@ -48,6 +50,7 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
         this.planningAiLibraryReadService = planningAiLibraryReadService;
         this.planningAiContentVersionPersistenceService = planningAiContentVersionPersistenceService;
         this.planningAiContentApprovalPersistenceService = planningAiContentApprovalPersistenceService;
+        this.planningAiReadModelSyncService = planningAiReadModelSyncService;
     }
 
     @Override
@@ -82,7 +85,9 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
         if (!localInteractions.isEmpty()) {
             return localInteractions;
         }
-        return planningAiReadPort.listarInteracoes(authorization, context, planejamentoId);
+        return planningAiReadModelSyncService.syncInteractions(
+                context,
+                planningAiReadPort.listarInteracoes(authorization, context, planejamentoId));
     }
 
     @Override
@@ -95,7 +100,9 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
         if (!localContents.isEmpty()) {
             return localContents;
         }
-        return planningAiReadPort.listarConteudos(authorization, context, planejamentoId);
+        return planningAiReadModelSyncService.syncContents(
+                context,
+                planningAiReadPort.listarConteudos(authorization, context, planejamentoId));
     }
 
     @Override
@@ -104,10 +111,12 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             InternalRequestContext context,
             UUID conteudoId) {
         return planningAiContentReadService.buscarPorIdEEscola(conteudoId, context.escolaId())
-                .orElseGet(() -> planningAiReadPort.buscarConteudo(
-                        authorization,
+                .orElseGet(() -> planningAiReadModelSyncService.syncContent(
                         context,
-                        conteudoId));
+                        planningAiReadPort.buscarConteudo(
+                                authorization,
+                                context,
+                                conteudoId)));
     }
 
     @Override
@@ -120,10 +129,12 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
         if (!localVersions.isEmpty()) {
             return localVersions;
         }
-        return planningAiReadPort.listarVersoes(
-                authorization,
+        return planningAiReadModelSyncService.syncVersions(
                 context,
-                conteudoId);
+                planningAiReadPort.listarVersoes(
+                        authorization,
+                        context,
+                        conteudoId));
     }
 
     @Override

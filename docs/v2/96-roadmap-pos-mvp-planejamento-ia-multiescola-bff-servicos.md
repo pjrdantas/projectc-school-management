@@ -7611,3 +7611,30 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado de escritas remanescentes do
 `planning-ai-service`: 0 fases restantes no escopo fechado atual.
+
+### Fase 169 - Hidratacao local progressiva apos fallback de leitura no `planning-ai-service`
+
+Entregue nesta fase:
+
+- foi aberto um novo ciclo tecnico fechado de autonomia final do
+  `planning-ai-service`, voltado a reduzir dependencias recorrentes do
+  monolito nas leituras internas ainda cobertas por fallback;
+- quando `GET /internal/v1/ia/interacoes`,
+  `GET /internal/v1/ia/conteudos`,
+  `GET /internal/v1/ia/conteudos/{conteudoId}` e
+  `GET /internal/v1/ia/conteudos/{conteudoId}/versoes` precisam buscar o
+  payload oficial no monolito por ausencia local, o servico agora hidrata de
+  forma aditiva a persistencia propria com o resultado recebido;
+- com isso, a primeira resposta continua preservando o contrato externo atual e
+  as leituras seguintes do mesmo recorte podem ser atendidas localmente sem
+  novo downstream, sempre restritas por `escolaId`;
+- a hidratacao da biblioteca pedagogica nao foi aberta nesta fase porque o
+  contrato oficial atual de fallback nao expõe `conteudoOrigemId`, entao ainda
+  nao existe chave segura para popular localmente
+  `biblioteca_conteudo_pedagogico` a partir dessa leitura;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo fallback inicial com gravacao
+  local aditiva e segunda leitura servida pela base propria.
+
+Contagem regressiva do novo ciclo fechado de autonomia final do
+`planning-ai-service`: 5 fases restantes no escopo fechado atual.
