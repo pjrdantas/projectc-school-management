@@ -3197,3 +3197,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service test`.
 - Contagem regressiva do novo ciclo de escrita minima do
   `planning-ai-service`: 7 fases restantes no escopo fechado atual.
+
+### Fase 150
+
+- A Fase 2 do novo ciclo de escrita minima do `planning-ai-service`
+  oficializou no `school-management-bff` o contrato publico
+  `POST /api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`.
+- O BFF passou a ter porta de escrita propria para geracao de conteudo IA,
+  servico de proxy dedicado e cliente HTTP especifico para o
+  `planning-ai-service`, mantendo o desacoplamento entre contrato publico,
+  orchestracao e integracao downstream.
+- A chamada publica passou a resolver o contexto autenticado atual pelo
+  `AuthContextPort` e a propagar `Authorization`, `X-Internal-Token`,
+  `X-Correlation-Id`, `X-Usuario-Id` e `X-Escola-Id` para o contrato interno
+  `POST /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`.
+- Foi adicionada a feature flag
+  `features.planning-ai-write-proxy-enabled`, separando a oficializacao de
+  escrita da flag ja existente de leitura.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoWriteControllerTest,PlanningAiConteudoWriteProxyIntegrationTest" test`.
+- Contagem regressiva do novo ciclo de escrita minima do
+  `planning-ai-service`: 6 fases restantes no escopo fechado atual.

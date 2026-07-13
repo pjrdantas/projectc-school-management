@@ -62,6 +62,7 @@ features:
   pedagogical-read-proxy-enabled: ${PEDAGOGICAL_READ_PROXY_ENABLED:true}
   pedagogical-write-proxy-enabled: ${PEDAGOGICAL_WRITE_PROXY_ENABLED:true}
   planning-ai-read-proxy-enabled: ${PLANNING_AI_READ_PROXY_ENABLED:true}
+  planning-ai-write-proxy-enabled: ${PLANNING_AI_WRITE_PROXY_ENABLED:true}
   identity-tenant-cutover:
     enabled: ${IDENTITY_TENANT_CUTOVER_ENABLED:true}
     fallback-to-monolith-on-error: ${IDENTITY_TENANT_FALLBACK_TO_MONOLITH_ON_ERROR:true}
