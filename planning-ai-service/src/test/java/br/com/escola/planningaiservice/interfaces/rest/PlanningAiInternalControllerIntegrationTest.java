@@ -132,7 +132,8 @@ class PlanningAiInternalControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(bibliotecaId.toString()))
                 .andExpect(jsonPath("$[0].professorId").value(professorId.toString()))
-                .andExpect(jsonPath("$[0].tipoConteudo").value("ATIVIDADE"));
+                .andExpect(jsonPath("$[0].tipoConteudo").value("ATIVIDADE"))
+                .andExpect(jsonPath("$[0].tipoConteudoDescricao").value("Atividade"));
 
         assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
     }
@@ -494,7 +495,9 @@ class PlanningAiInternalControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(conteudoId.toString()))
                 .andExpect(jsonPath("$[0].planejamentoBimestralId").value(planejamentoId.toString()))
-                .andExpect(jsonPath("$[0].tipoConteudo").value("ATIVIDADE"));
+                .andExpect(jsonPath("$[0].tipoConteudo").value("ATIVIDADE"))
+                .andExpect(jsonPath("$[0].statusDescricao").value("Gerado"))
+                .andExpect(jsonPath("$[0].tipoConteudoDescricao").value("Atividade"));
 
         assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
     }
@@ -616,7 +619,9 @@ class PlanningAiInternalControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(conteudoId.toString()))
                 .andExpect(jsonPath("$.planejamentoBimestralId").value(planejamentoId.toString()))
-                .andExpect(jsonPath("$.tipoConteudo").value("ATIVIDADE"));
+                .andExpect(jsonPath("$.tipoConteudo").value("ATIVIDADE"))
+                .andExpect(jsonPath("$.statusDescricao").value("Gerado"))
+                .andExpect(jsonPath("$.tipoConteudoDescricao").value("Atividade"));
 
         assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
     }
@@ -818,6 +823,35 @@ class PlanningAiInternalControllerIntegrationTest {
         UUID conteudoId = UUID.randomUUID();
         UUID planejamentoId = UUID.randomUUID();
         UUID interacaoId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+        UUID usuarioId = UUID.randomUUID();
+
+        var content = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiGeneratedContentJpaEntity();
+        content.setId(conteudoId);
+        content.setEscolaId(escolaId);
+        content.setPlanejamentoBimestralId(planejamentoId);
+        content.setTitulo("Lista de fracoes");
+        content.setConteudo("Conteudo revisado parcialmente");
+        content.setVersao(1);
+        content.setHashConteudo("abc123");
+        content.setAprovadoPeloProfessor(false);
+        content.setReutilizavel(true);
+        content.setAtivo(true);
+        content.setStatus("GERADO");
+        content.setTipoConteudo("ATIVIDADE");
+        content.setCreatedAt(java.time.LocalDateTime.parse("2026-07-13T12:20:00"));
+        content.setUpdatedAt(java.time.LocalDateTime.parse("2026-07-13T12:20:00"));
+        contentRepository.save(content);
+
+        var version = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiContentVersionJpaEntity();
+        version.setId(UUID.randomUUID());
+        version.setEscolaId(escolaId);
+        version.setConteudoGerado(content);
+        version.setNumeroVersao(2);
+        version.setConteudo("Conteudo revisado parcialmente");
+        version.setMotivoAlteracao("Ajuste do professor");
+        version.setCreatedAt(java.time.LocalDateTime.parse("2026-07-13T12:10:00"));
+        versionRepository.save(version);
 
         String requestBody = """
                 {
@@ -854,8 +888,8 @@ class PlanningAiInternalControllerIntegrationTest {
         mockMvc.perform(patch("/internal/v1/ia/conteudos/{conteudoId}/aprovar-versao", conteudoId)
                         .header("X-Internal-Token", "planning-token")
                         .header("X-Correlation-Id", "corr-planning-16")
-                        .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("X-Usuario-Id", usuarioId)
+                        .header("X-Escola-Id", escolaId)
                         .header("Authorization", "Bearer planning-user-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
@@ -871,6 +905,22 @@ class PlanningAiInternalControllerIntegrationTest {
         assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
         assertThat(recorded.getBody().readUtf8())
                 .isEqualTo("{\"numeroVersao\":2,\"publicarBiblioteca\":false}");
+        assertThat(contentRepository.findById(conteudoId))
+                .isPresent()
+                .get()
+                .satisfies(savedContent -> {
+                    assertThat(savedContent.getVersao()).isEqualTo(2);
+                    assertThat(savedContent.getConteudo()).isEqualTo("Conteudo revisado");
+                    assertThat(savedContent.isAprovadoPeloProfessor()).isTrue();
+                    assertThat(savedContent.getStatus()).isEqualTo("APROVADO");
+                });
+        assertThat(versionRepository.findById(version.getId()))
+                .isPresent()
+                .get()
+                .satisfies(savedVersion -> {
+                    assertThat(savedVersion.getAlteradoPor()).isEqualTo(usuarioId);
+                    assertThat(savedVersion.getConteudo()).isEqualTo("Conteudo revisado");
+                });
     }
 
     @Test
@@ -906,6 +956,7 @@ class PlanningAiInternalControllerIntegrationTest {
         RecordedRequest recorded = aguardarRequisicao();
         assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/aprovar-versao");
         assertThat(recorded.getMethod()).isEqualTo("PATCH");
+        assertThat(contentRepository.count()).isZero();
     }
 
     @Test

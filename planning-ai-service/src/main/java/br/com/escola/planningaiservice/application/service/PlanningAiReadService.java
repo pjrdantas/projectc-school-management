@@ -27,6 +27,7 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
     private final PlanningAiLibraryPublicationPersistenceService planningAiLibraryPublicationPersistenceService;
     private final PlanningAiLibraryReadService planningAiLibraryReadService;
     private final PlanningAiContentVersionPersistenceService planningAiContentVersionPersistenceService;
+    private final PlanningAiContentApprovalPersistenceService planningAiContentApprovalPersistenceService;
 
     public PlanningAiReadService(
             PlanningAiReadPort planningAiReadPort,
@@ -36,7 +37,8 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             PlanningAiContentVersionReadService planningAiContentVersionReadService,
             PlanningAiLibraryPublicationPersistenceService planningAiLibraryPublicationPersistenceService,
             PlanningAiLibraryReadService planningAiLibraryReadService,
-            PlanningAiContentVersionPersistenceService planningAiContentVersionPersistenceService) {
+            PlanningAiContentVersionPersistenceService planningAiContentVersionPersistenceService,
+            PlanningAiContentApprovalPersistenceService planningAiContentApprovalPersistenceService) {
         this.planningAiReadPort = planningAiReadPort;
         this.planningAiGenerationPersistenceService = planningAiGenerationPersistenceService;
         this.planningAiInteractionReadService = planningAiInteractionReadService;
@@ -45,6 +47,7 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
         this.planningAiLibraryPublicationPersistenceService = planningAiLibraryPublicationPersistenceService;
         this.planningAiLibraryReadService = planningAiLibraryReadService;
         this.planningAiContentVersionPersistenceService = planningAiContentVersionPersistenceService;
+        this.planningAiContentApprovalPersistenceService = planningAiContentApprovalPersistenceService;
     }
 
     @Override
@@ -164,11 +167,16 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             InternalRequestContext context,
             UUID conteudoId,
             AprovarVersaoConteudoIaRequest request) {
-        return planningAiReadPort.aprovarVersao(
+        ConteudoIaResponse response = planningAiReadPort.aprovarVersao(
                 authorization,
                 context,
                 conteudoId,
                 request);
+        return planningAiContentApprovalPersistenceService.persistirAprovacao(
+                context,
+                conteudoId,
+                request,
+                response);
     }
 
     @Override

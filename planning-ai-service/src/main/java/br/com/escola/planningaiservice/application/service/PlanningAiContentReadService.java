@@ -14,9 +14,13 @@ import br.com.escola.planningaiservice.infra.persistence.jpa.repository.Planning
 public class PlanningAiContentReadService {
 
     private final PlanningAiGeneratedContentJpaRepository contentRepository;
+    private final PlanningAiDescriptorService descriptorService;
 
-    public PlanningAiContentReadService(PlanningAiGeneratedContentJpaRepository contentRepository) {
+    public PlanningAiContentReadService(
+            PlanningAiGeneratedContentJpaRepository contentRepository,
+            PlanningAiDescriptorService descriptorService) {
         this.contentRepository = contentRepository;
+        this.descriptorService = descriptorService;
     }
 
     public List<ConteudoIaResponse> listarPorEscolaEPlanejamento(UUID escolaId, UUID planejamentoId) {
@@ -46,9 +50,9 @@ public class PlanningAiContentReadService {
                 entity.isReutilizavel(),
                 entity.isAtivo(),
                 entity.getStatus(),
-                null,
+                descriptorService.statusDescricao(entity.getStatus()),
                 entity.getTipoConteudo(),
-                null,
+                descriptorService.tipoConteudoDescricao(entity.getTipoConteudo()),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());
     }

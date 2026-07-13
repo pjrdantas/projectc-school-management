@@ -3499,3 +3499,46 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service test`.
 - Contagem regressiva do novo ciclo fechado de escritas remanescentes do
   `planning-ai-service`: 3 fases restantes no escopo fechado atual.
+
+### Fase 166
+
+- A Fase 2 do novo ciclo fechado de escritas remanescentes do
+  `planning-ai-service` passou a persistir localmente a aprovacao de versao de
+  conteudo IA apos resposta bem-sucedida do monolito.
+- O `planejamento_ia_conteudo_gerado` local passou a ser atualizado com
+  `status`, `aprovadoPeloProfessor`, `versao`, `conteudo`, `hashConteudo` e
+  `updatedAt`; quando a versao ja existe localmente, a
+  `planejamento_ia_conteudo_versao` correspondente tambem e atualizada.
+- O contrato `PATCH /internal/v1/ia/conteudos/{conteudoId}/aprovar-versao` foi
+  preservado e continuou usando o mesmo downstream oficial.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva do novo ciclo fechado de escritas remanescentes do
+  `planning-ai-service`: 2 fases restantes no escopo fechado atual.
+
+### Fase 167
+
+- A Fase 3 do novo ciclo fechado de escritas remanescentes do
+  `planning-ai-service` eliminou o ultimo gap funcional mais visivel do read
+  model local neste recorte: as descricoes derivadas de `status` e
+  `tipoConteudo`.
+- As leituras locais de conteudo e biblioteca passaram a preencher
+  `statusDescricao` e `tipoConteudoDescricao` por mapeamento local
+  deterministico, sem depender do payload descritivo do monolito para esses
+  campos.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva do novo ciclo fechado de escritas remanescentes do
+  `planning-ai-service`: 1 fase restante no escopo fechado atual.
+
+### Fase 168
+
+- A Fase 4 fechou o ciclo das escritas remanescentes do
+  `planning-ai-service`, consolidando a persistencia local incremental de
+  criacao de versao, aprovacao e enriquecimento minimo do read model local.
+- A validacao final permaneceu restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Com a Fase 168, o ciclo fechado de escritas remanescentes do
+  `planning-ai-service` fica concluido no recorte planejado atual.
+- Contagem regressiva do novo ciclo fechado de escritas remanescentes do
+  `planning-ai-service`: 0 fases restantes no escopo fechado atual.

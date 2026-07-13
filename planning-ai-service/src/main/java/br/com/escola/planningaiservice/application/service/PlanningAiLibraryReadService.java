@@ -14,9 +14,13 @@ import br.com.escola.planningaiservice.infra.persistence.jpa.repository.Pedagogi
 public class PlanningAiLibraryReadService {
 
     private final PedagogicalContentLibraryJpaRepository libraryRepository;
+    private final PlanningAiDescriptorService descriptorService;
 
-    public PlanningAiLibraryReadService(PedagogicalContentLibraryJpaRepository libraryRepository) {
+    public PlanningAiLibraryReadService(
+            PedagogicalContentLibraryJpaRepository libraryRepository,
+            PlanningAiDescriptorService descriptorService) {
         this.libraryRepository = libraryRepository;
+        this.descriptorService = descriptorService;
     }
 
     public List<BibliotecaConteudoPedagogicoResponse> listar(
@@ -52,7 +56,7 @@ public class PlanningAiLibraryReadService {
                 entity.getDisciplinaId(),
                 null,
                 entity.getTipoConteudo(),
-                null,
+                descriptorService.tipoConteudoDescricao(entity.getTipoConteudo()),
                 entity.getTitulo(),
                 entity.getTema(),
                 entity.getConteudo(),
