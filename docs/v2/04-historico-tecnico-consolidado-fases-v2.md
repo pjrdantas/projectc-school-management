@@ -2816,3 +2816,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Para manter a execucao objetiva, a definicao inicial fica fechada em 6 fases
   totais, lideradas pelo `identity-access-service` e acompanhadas pelo
   `institutional-tenant-service` como servico irmao da mesma frente.
+
+### Fase 133
+
+- A Fase 1 da nova macrofase de identidade abriu fisicamente o
+  `identity-access-service` pelo menor recorte backend/backend ja estabilizado
+  no monolito: a gestao interna da sessao multiescola por
+  `GET /internal/auth/escolas` e `POST /internal/auth/escola-ativa`.
+- Foi criado o modulo `identity-access-service` no monorepo, com runtime Spring
+  Boot proprio, validacao de contexto interno, tratamento de erro proprio e
+  cliente HTTP para consumir o monolito pelos contratos internos acima.
+- O `identity-access-service` passou a expor
+  `GET /internal/v1/auth/escolas` e
+  `POST /internal/v1/auth/escola-ativa`, preservando o contrato funcional hoje
+  estabilizado no `AuthTenantInternalController` do monolito.
+- Esta fase permaneceu propositalmente sem cutover de BFF, sem migracao de
+  persistencia, sem login/refresh/logout no runtime novo e sem alteracao de
+  payload externo.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl identity-access-service test` em `BUILD SUCCESS`.
+- Contagem regressiva da macrofase inicial de identidade e tenant: 5 fases
+  restantes no escopo fechado atual.

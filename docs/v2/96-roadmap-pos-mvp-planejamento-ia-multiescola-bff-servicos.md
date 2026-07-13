@@ -6726,3 +6726,27 @@ Definicao objetiva da proxima macrofase backend:
      fallback e rollback simples;
   6. fechamento formal do primeiro bloco oficial de identidade e tenant no
      codigo novo, com contagem zerada dessa macrofase.
+
+### Fase 133 - Abertura fisica minima do `identity-access-service`
+
+Entregue nesta fase:
+
+- foi criado o modulo fisico `identity-access-service` no monorepo, com
+  estrutura Spring Boot minima, `application.yml`, validacao de API interna,
+  tratamento de erro proprio e cliente HTTP dedicado para o monolito;
+- o menor recorte seguro escolhido para abrir o runtime novo foi o contrato
+  interno ja estabilizado de sessao multiescola:
+  `GET /internal/auth/escolas` e `POST /internal/auth/escola-ativa`;
+- o `identity-access-service` passou a publicar
+  `GET /internal/v1/auth/escolas` e
+  `POST /internal/v1/auth/escola-ativa`, mantendo o monolito como autoridade
+  funcional nesta primeira etapa;
+- a fase permaneceu estritamente backend/backend: nao houve cutover de BFF,
+  nao houve migracao de persistencia e ficaram explicitamente fora desta etapa
+  `login`, `refresh`, `logout` e qualquer mudanca de contrato externo;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl identity-access-service test`, cobrindo rota interna, propagacao do
+  bearer e protecao por token interno.
+
+Contagem regressiva da macrofase inicial de identidade e tenant: 5 fases
+restantes no escopo fechado atual.
