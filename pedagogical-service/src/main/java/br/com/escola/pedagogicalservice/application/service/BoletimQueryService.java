@@ -1,5 +1,6 @@
 package br.com.escola.pedagogicalservice.application.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -24,5 +25,13 @@ public class BoletimQueryService implements BoletimQueryUseCase {
             InternalRequestContext context,
             UUID matriculaId) {
         return boletimReadPort.consultarBoletimPorMatricula(authorization, context, matriculaId);
+    }
+
+    @Override
+    public List<BoletimResponse> listarFechamentosPorMatricula(
+            String authorization,
+            InternalRequestContext context,
+            UUID matriculaId) {
+        return boletimReadPort.listarFechamentosPorMatricula(authorization, context, matriculaId);
     }
 }

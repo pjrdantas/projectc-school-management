@@ -2581,3 +2581,30 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   ambos em `BUILD SUCCESS`.
 - Contagem funcional estimada do `pedagogical-service`: 9 fases restantes no
   escopo atual planejado.
+
+### Fase 124
+
+- O primeiro bloco oficial de `boletim` do `pedagogical-service` foi fechado
+  pelo read-only restante de menor risco no mesmo contrato publico:
+  `GET /api/matriculas/{matriculaId}/boletim/fechamentos`.
+- O `school-management-service` passou a expor
+  `GET /internal/boletins/matriculas/{matriculaId}/fechamentos`,
+  reaproveitando `BoletimService.listarFechamentos(...)` sem abrir ainda
+  `POST /fechamento`, `historico` ou escrita migrada.
+- O `pedagogical-service` passou a expor
+  `GET /internal/v1/matriculas/{matriculaId}/boletim/fechamentos` consumindo o
+  monolito pelo contrato interno novo e mantendo o runtime novo como fronteira
+  read-only deste bloco.
+- O `school-management-bff` passou a oficializar
+  `GET /api/matriculas/{matriculaId}/boletim/fechamentos` consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID e contexto interno
+  obrigatorio.
+- Com isso, o primeiro bloco minimo oficial de leitura de `boletim` fica
+  fechado no `pedagogical-service`, sem alterar frontend e sem abrir ainda a
+  escrita oficial de fechamento.
+- A validacao desta fase ficou restrita aos modulos tocados e foi executada com
+  `mvn -f school-management-service/pom.xml "-Dtest=BoletimInternalControllerTest" test`
+  e com
+  `mvn -pl pedagogical-service,school-management-bff "-Dtest=PedagogicalInternalControllerIntegrationTest,PedagogicalBoletimReadProxyIntegrationTest" test`.
+- Contagem funcional estimada do `pedagogical-service`: 8 fases restantes no
+  escopo atual planejado.

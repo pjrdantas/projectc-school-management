@@ -75,4 +75,44 @@ class BoletimInternalControllerTest {
 
         verify(boletimService).consultarPorMatricula(matriculaId);
     }
+
+    @Test
+    void deveListarFechamentosNoContratoInterno() throws Exception {
+        UUID matriculaId = UUID.randomUUID();
+        UUID boletimId = UUID.randomUUID();
+
+        BoletimService boletimService = Mockito.mock(BoletimService.class);
+        when(boletimService.listarFechamentos(matriculaId)).thenReturn(List.of(new BoletimResponse(
+                boletimId,
+                matriculaId,
+                UUID.randomUUID(),
+                "Aluno Fechado",
+                UUID.randomUUID(),
+                "Turma B",
+                UUID.randomUUID(),
+                "2026",
+                UUID.randomUUID(),
+                "Escola Interna",
+                LocalDate.of(2026, 7, 12),
+                "1BIM",
+                LocalDate.of(2026, 7, 10),
+                "Fechamento interno",
+                true,
+                new BoletimIndicadoresResponse(
+                        1,
+                        new BigDecimal("7.50"),
+                        new BigDecimal("88.00"),
+                        "APROVADO"),
+                List.of())));
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new BoletimInternalController(boletimService)).build();
+
+        mockMvc.perform(get("/internal/boletins/matriculas/{matriculaId}/fechamentos", matriculaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].matriculaId").value(matriculaId.toString()))
+                .andExpect(jsonPath("$[0].periodoReferencia").value("1BIM"))
+                .andExpect(jsonPath("$[0].persistido").value(true));
+
+        verify(boletimService).listarFechamentos(matriculaId);
+    }
 }

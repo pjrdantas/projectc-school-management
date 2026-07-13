@@ -14,4 +14,9 @@ public interface PedagogicalBoletimReadPort {
             UUID matriculaId,
             CatalogReadQuery query,
             AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> listarFechamentosPorMatricula(
+            UUID matriculaId,
+            CatalogReadQuery query,
+            AuthSessionContext context);
 }

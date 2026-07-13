@@ -34,4 +34,17 @@ public class BoletimReadProxyService implements ConsultarBoletimUseCase {
                         query,
                         context));
     }
+
+    @Override
+    public Mono<ResponseEntity<String>> listarFechamentosPorMatricula(
+            String authorization,
+            String correlationId,
+            UUID matriculaId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> pedagogicalBoletimReadPort.listarFechamentosPorMatricula(
+                        matriculaId,
+                        query,
+                        context));
+    }
 }

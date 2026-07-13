@@ -6427,3 +6427,32 @@ Entregue nesta fase:
 
 Contagem regressiva funcional estimada do `pedagogical-service`: 9 fases
 restantes no escopo atual planejado.
+
+### Fase 124 - Fechamento do primeiro bloco minimo de `boletim` no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o primeiro recorte oficial de `boletim` aberto na Fase 123 foi fechado pelo
+  read-only restante de menor risco do mesmo contrato publico:
+  `GET /api/matriculas/{matriculaId}/boletim/fechamentos`;
+- o `school-management-service` passou a expor
+  `GET /internal/boletins/matriculas/{matriculaId}/fechamentos`,
+  reaproveitando `BoletimService.listarFechamentos(...)` sem abrir ainda
+  escrita migrada ou historico;
+- o `pedagogical-service` passou a publicar
+  `GET /internal/v1/matriculas/{matriculaId}/boletim/fechamentos`,
+  mantendo o monolito como autoridade funcional e separando o contrato
+  backend/backend do bloco de fechamentos;
+- o `school-management-bff` passou a oficializar
+  `GET /api/matriculas/{matriculaId}/boletim/fechamentos` consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno e
+  o payload externo atual;
+- com isso, o primeiro bloco minimo oficial de leitura de `boletim` fica
+  fechado no `pedagogical-service` sem tocar frontend e sem abrir ainda
+  `POST /fechamento`;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, payload e
+  propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 8 fases
+restantes no escopo atual planejado.

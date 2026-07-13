@@ -1,5 +1,6 @@
 package br.com.escola.pedagogicalservice.interfaces.rest;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpHeaders;
@@ -32,5 +33,13 @@ public class PedagogicalInternalController {
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
             @PathVariable @NonNull UUID matriculaId) {
         return boletimQueryUseCase.consultarBoletimPorMatricula(authorization, context, matriculaId);
+    }
+
+    @GetMapping("/matriculas/{matriculaId}/boletim/fechamentos")
+    public List<BoletimResponse> listarFechamentosPorMatricula(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID matriculaId) {
+        return boletimQueryUseCase.listarFechamentosPorMatricula(authorization, context, matriculaId);
     }
 }

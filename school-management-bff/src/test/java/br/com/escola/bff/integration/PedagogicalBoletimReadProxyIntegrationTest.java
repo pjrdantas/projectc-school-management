@@ -87,6 +87,50 @@ class PedagogicalBoletimReadProxyIntegrationTest {
         assertThat(pedagogicalRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
     }
 
+    @Test
+    void deveConsumirPedagogicalServiceNaListagemDeFechamentosDeBoletim() throws InterruptedException {
+        UUID matriculaId = UUID.randomUUID();
+
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao"
+                        }
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [
+                          {
+                            "matriculaId":"%s",
+                            "periodoReferencia":"1BIM",
+                            "persistido":true
+                          }
+                        ]
+                        """.formatted(matriculaId)));
+
+        client.get().uri("/api/matriculas/{matriculaId}/boletim/fechamentos", matriculaId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-bff-2")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].matriculaId").isEqualTo(matriculaId.toString())
+                .jsonPath("$[0].periodoReferencia").isEqualTo("1BIM")
+                .jsonPath("$[0].persistido").isEqualTo(true);
+
+        MONOLITH.takeRequest();
+        var pedagogicalRequest = PEDAGOGICAL.takeRequest();
+        assertThat(pedagogicalRequest.getPath()).isEqualTo("/internal/v1/matriculas/" + matriculaId + "/boletim/fechamentos");
+        assertThat(pedagogicalRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
+        assertThat(pedagogicalRequest.getHeader("X-Internal-Token")).isEqualTo("pedagogical-internal-token");
+        assertThat(pedagogicalRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-bff-2");
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {

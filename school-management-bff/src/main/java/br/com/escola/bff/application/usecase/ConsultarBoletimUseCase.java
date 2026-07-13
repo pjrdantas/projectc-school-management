@@ -12,4 +12,9 @@ public interface ConsultarBoletimUseCase {
             String authorization,
             String correlationId,
             UUID matriculaId);
+
+    Mono<ResponseEntity<String>> listarFechamentosPorMatricula(
+            String authorization,
+            String correlationId,
+            UUID matriculaId);
 }

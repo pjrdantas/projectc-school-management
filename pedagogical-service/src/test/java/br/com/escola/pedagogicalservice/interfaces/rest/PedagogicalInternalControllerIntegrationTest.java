@@ -123,6 +123,58 @@ class PedagogicalInternalControllerIntegrationTest {
                 .andExpect(jsonPath("$.error").value("INTERNAL_UNAUTHORIZED"));
     }
 
+    @Test
+    void deveListarFechamentosNoContratoInterno() throws Exception {
+        UUID matriculaId = UUID.randomUUID();
+        UUID boletimId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [
+                          {
+                            "boletimId":"%s",
+                            "matriculaId":"%s",
+                            "alunoId":"00000000-0000-0000-0000-000000000021",
+                            "alunoNome":"Aluno Pedagogico",
+                            "turmaId":"00000000-0000-0000-0000-000000000071",
+                            "turmaNome":"6A",
+                            "periodoLetivoId":"00000000-0000-0000-0000-000000000091",
+                            "periodoLetivoNome":"2026",
+                            "escolaId":"00000000-0000-0000-0000-000000000047",
+                            "escolaNome":"Escola padrao",
+                            "dataGeracao":"2026-07-12",
+                            "periodoReferencia":"1BIM",
+                            "dataFechamento":"2026-07-10",
+                            "observacao":"Fechamento integrado",
+                            "persistido":true,
+                            "indicadores":{
+                              "totalDisciplinas":1,
+                              "mediaGeral":8.50,
+                              "frequenciaGeralPercentual":95.00,
+                              "resultadoGeral":"APROVADO"
+                            },
+                            "itens":[]
+                          }
+                        ]
+                        """.formatted(boletimId, matriculaId)));
+
+        mockMvc.perform(get("/internal/v1/matriculas/{matriculaId}/boletim/fechamentos", matriculaId)
+                        .header("X-Internal-Token", "pedagogical-token")
+                        .header("X-Correlation-Id", "corr-pedagogical-3")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer pedagogical-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].matriculaId").value(matriculaId.toString()))
+                .andExpect(jsonPath("$[0].periodoReferencia").value("1BIM"))
+                .andExpect(jsonPath("$[0].persistido").value(true));
+
+        RecordedRequest recorded = aguardarRequisicao("GET", "/internal/boletins/matriculas/" + matriculaId + "/fechamentos");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer pedagogical-user-token");
+        assertThat(recorded.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-3");
+    }
+
     private RecordedRequest aguardarRequisicao(String method, String path) throws InterruptedException {
         RecordedRequest recorded = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
         assertThat(recorded).isNotNull();

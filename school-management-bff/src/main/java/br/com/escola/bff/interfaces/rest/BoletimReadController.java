@@ -34,4 +34,15 @@ public class BoletimReadController {
                 correlationId,
                 matriculaId);
     }
+
+    @GetMapping("/api/matriculas/{matriculaId}/boletim/fechamentos")
+    public Mono<ResponseEntity<String>> listarFechamentosPorMatricula(
+            @PathVariable UUID matriculaId,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return consultarBoletimUseCase.listarFechamentosPorMatricula(
+                authorization,
+                correlationId,
+                matriculaId);
+    }
 }

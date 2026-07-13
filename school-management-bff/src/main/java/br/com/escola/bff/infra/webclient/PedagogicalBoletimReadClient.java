@@ -43,4 +43,21 @@ public class PedagogicalBoletimReadClient extends AbstractDownstreamClientSuppor
                 .timeout(properties.responseTimeout())
                 .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
     }
+
+    @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> listarFechamentosPorMatricula(
+            UUID matriculaId,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.get()
+                .uri("/internal/v1/matriculas/{matriculaId}/boletim/fechamentos", matriculaId)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Pedagogical service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
+    }
 }
