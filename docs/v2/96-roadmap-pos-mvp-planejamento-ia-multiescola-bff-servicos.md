@@ -6851,3 +6851,38 @@ Entregue nesta fase:
 
 Contagem regressiva da macrofase inicial de identidade e tenant: 1 fase
 restante no escopo fechado atual.
+
+### Fase 138 - Fechamento formal do primeiro bloco oficial de identity/tenant
+
+Entregue nesta fase:
+
+- foi encerrado formalmente o primeiro bloco oficial de identity/tenant no
+  codigo novo, mantendo o recorte limitado ao `school-management-bff`,
+  `identity-access-service` e `institutional-tenant-service`;
+- ficam consolidadas como rotas publicas oficiais do bloco multiescola no BFF:
+  `GET /api/auth/escolas`, `POST /api/auth/escola-ativa` e
+  `GET /api/auth/tenant/ativa`;
+- fica consolidado tambem o modelo operacional minimo do bloco: flags por rota,
+  fallback simples para o monolito, metricas dedicadas e health indicator
+  `identityTenantCutover`;
+- para evitar reabertura ambigua de escopo, o fechamento registra
+  explicitamente que continuam fora desta macrofase:
+  `POST /api/auth/login`, `POST /api/auth/refresh`,
+  `POST /api/auth/logout` e a retirada da dependencia do BFF de
+  `GET /api/auth/contexto-atual`;
+- foram adicionados testes unitarios especificos para o decider e para o health
+  indicator do bloco identity/tenant, reforcando a cobertura da parte
+  operacional sem abrir novas rotas;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=AuthSessionProxyIntegrationTest,InstitutionalTenantReadProxyIntegrationTest,AuthSessionMonolithIntegrationTest,AuthSessionFallbackIntegrationTest,IdentityTenantCutoverDeciderTest,IdentityTenantCutoverHealthIndicatorTest" test`.
+
+Contagem regressiva da macrofase inicial de identidade e tenant: 0 fases
+restantes no escopo fechado atual.
+
+Fechamento da macrofase:
+
+- a macrofase inicial de identity/tenant fica encerrada no plano funcional
+  fechado de 6 fases;
+- o proximo recorte futuro sugerido para esta frente, se ela for reaberta, e a
+  migracao controlada de `login`/`refresh`/`logout` e a remocao da dependencia
+  de `GET /api/auth/contexto-atual` no BFF.
