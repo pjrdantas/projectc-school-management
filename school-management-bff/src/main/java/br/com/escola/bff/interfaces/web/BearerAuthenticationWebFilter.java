@@ -67,6 +67,9 @@ public class BearerAuthenticationWebFilter implements WebFilter {
         if (HttpMethod.POST.equals(method) && "/api/escolas-origem".equals(path)) {
             return true;
         }
+        if (HttpMethod.POST.equals(method) && "/api/auth/escola-ativa".equals(path)) {
+            return true;
+        }
         if (HttpMethod.POST.equals(method) && "/api/transferencias".equals(path)) {
             return true;
         }
@@ -86,6 +89,7 @@ public class BearerAuthenticationWebFilter implements WebFilter {
             return false;
         }
         return "/api/disciplinas".equals(path)
+                || "/api/auth/escolas".equals(path)
                 || path.matches("^/api/disciplinas/[^/]+$")
                 || "/api/periodos-letivos".equals(path)
                 || path.matches("^/api/periodos-letivos/[^/]+$")

@@ -24,6 +24,11 @@ clients:
     connect-timeout: ${PEOPLE_SERVICE_CONNECT_TIMEOUT:2s}
     response-timeout: ${PEOPLE_SERVICE_RESPONSE_TIMEOUT:3s}
     internal-token: ${PEOPLE_INTERNAL_API_TOKEN:}
+  identity-access-service:
+    base-url: ${IDENTITY_ACCESS_SERVICE_BASE_URL:http://localhost:8091}
+    connect-timeout: ${IDENTITY_ACCESS_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${IDENTITY_ACCESS_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${IDENTITY_ACCESS_INTERNAL_API_TOKEN:}
   enrollment-document-service:
     base-url: ${ENROLLMENT_DOCUMENT_SERVICE_BASE_URL:http://localhost:8094}
     connect-timeout: ${ENROLLMENT_DOCUMENT_SERVICE_CONNECT_TIMEOUT:2s}
@@ -40,6 +45,7 @@ features:
   catalog-read-proxy-enabled: ${CATALOG_READ_PROXY_ENABLED:${DISCIPLINAS_PROXY_ENABLED:true}}
   catalog-write-proxy-enabled: ${CATALOG_WRITE_PROXY_ENABLED:true}
   people-read-proxy-enabled: ${PEOPLE_READ_PROXY_ENABLED:true}
+  identity-access-read-proxy-enabled: ${IDENTITY_ACCESS_READ_PROXY_ENABLED:true}
   enrollment-document-read-proxy-enabled: ${ENROLLMENT_DOCUMENT_READ_PROXY_ENABLED:true}
   enrollment-document-write-proxy-enabled: ${ENROLLMENT_DOCUMENT_WRITE_PROXY_ENABLED:true}
   pedagogical-read-proxy-enabled: ${PEDAGOGICAL_READ_PROXY_ENABLED:true}

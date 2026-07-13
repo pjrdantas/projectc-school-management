@@ -6775,3 +6775,28 @@ Entregue nesta fase:
 
 Contagem regressiva da macrofase inicial de identidade e tenant: 4 fases
 restantes no escopo fechado atual.
+
+### Fase 135 - Oficializacao inicial do bloco minimo de sessao via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar o primeiro bloco publico do
+  ciclo autenticado multiescola consumindo o `identity-access-service`;
+- foram publicadas no BFF as rotas `GET /api/auth/escolas` e
+  `POST /api/auth/escola-ativa`, reutilizando os contratos internos ja
+  estabilizados do `identity-access-service`;
+- para preservar compatibilidade e reduzir risco, a fase nao migrou ainda
+  `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/logout` nem
+  `GET /api/auth/contexto-atual`; o BFF continua usando `contexto-atual` no
+  monolito apenas para montar `X-Usuario-Id` e `X-Escola-Id` na chamada
+  interna ao servico novo;
+- foi criado cliente HTTP dedicado do BFF para o `identity-access-service`,
+  com token interno proprio, e o filtro de bearer passou a proteger tambem as
+  duas novas rotas oficiais de sessao;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff -Dtest=AuthSessionProxyIntegrationTest test`,
+  cobrindo a resolucao de contexto, a propagacao de bearer/correlation ID e o
+  proxy oficial para listagem e troca de escola ativa.
+
+Contagem regressiva da macrofase inicial de identidade e tenant: 3 fases
+restantes no escopo fechado atual.

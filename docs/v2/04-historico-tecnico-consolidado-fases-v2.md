@@ -2858,3 +2858,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl institutional-tenant-service test` em `BUILD SUCCESS`.
 - Contagem regressiva da macrofase inicial de identidade e tenant: 4 fases
   restantes no escopo fechado atual.
+
+### Fase 135
+
+- A Fase 3 da macrofase de identidade e tenant oficializou no
+  `school-management-bff` o primeiro bloco publico de sessao multiescola ja
+  encapsulado no `identity-access-service`, sem migrar ainda `login`,
+  `refresh`, `logout` ou `contexto-atual`.
+- O `school-management-bff` passou a expor `GET /api/auth/escolas` e
+  `POST /api/auth/escola-ativa`, preservando bearer obrigatorio, `correlationId`
+  e o contrato funcional do ciclo autenticado atual.
+- O BFF resolve o contexto autenticado atual pelo fluxo ja existente em
+  `/api/auth/contexto-atual` no monolito apenas para montar os headers internos
+  exigidos pelo `identity-access-service`, mantendo o recorte sem mudanca de
+  contrato externo nessas demais rotas.
+- Foi criado cliente HTTP dedicado do BFF para o `identity-access-service`,
+  com token interno proprio, e o filtro de bearer passou a proteger tambem as
+  duas novas rotas publicas.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff -Dtest=AuthSessionProxyIntegrationTest test`
+  em `BUILD SUCCESS`.
+- Contagem regressiva da macrofase inicial de identidade e tenant: 3 fases
+  restantes no escopo fechado atual.

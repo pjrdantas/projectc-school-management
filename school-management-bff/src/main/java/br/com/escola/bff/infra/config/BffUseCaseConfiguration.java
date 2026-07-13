@@ -23,6 +23,7 @@ import br.com.escola.bff.application.port.out.EnrollmentDocumentEscolaOrigemWrit
 import br.com.escola.bff.application.port.out.EnrollmentDocumentMatriculaReadPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaReadPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaWritePort;
+import br.com.escola.bff.application.port.out.IdentityAccessSessionPort;
 import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
 import br.com.escola.bff.application.port.out.MonolithDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.MonolithPeriodoLetivoWritePort;
@@ -44,6 +45,7 @@ import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarWritePo
 import br.com.escola.bff.application.service.AvaliacaoProxyService;
 import br.com.escola.bff.application.service.AulaProxyService;
 import br.com.escola.bff.application.service.AlunoResponsavelReadProxyService;
+import br.com.escola.bff.application.service.AuthSessionProxyService;
 import br.com.escola.bff.application.service.BoletimReadProxyService;
 import br.com.escola.bff.application.service.CadastroPessoaReadProxyService;
 import br.com.escola.bff.application.service.CatalogReadRoutingService;
@@ -69,6 +71,7 @@ import br.com.escola.bff.application.service.TurmaDisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.TurmaWriteRoutingService;
 import br.com.escola.bff.application.usecase.ConsultarCadastroPessoaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
+import br.com.escola.bff.application.usecase.ConsultarAuthSessionUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAvaliacaoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAulaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarBoletimUseCase;
@@ -97,6 +100,7 @@ import br.com.escola.bff.application.usecase.CreateSerieUseCase;
 import br.com.escola.bff.application.usecase.CreateTurmaUseCase;
 import br.com.escola.bff.application.usecase.LinkTurmaDisciplinaUseCase;
 import br.com.escola.bff.application.usecase.RouteCatalogReadUseCase;
+import br.com.escola.bff.application.usecase.SelecionarEscolaAtivaUseCase;
 
 @Configuration
 public class BffUseCaseConfiguration {
@@ -113,6 +117,20 @@ public class BffUseCaseConfiguration {
             AuthContextPort authContextPort,
             PeopleCadastroReadPort peopleCadastroReadPort) {
         return new CadastroPessoaReadProxyService(authContextPort, peopleCadastroReadPort);
+    }
+
+    @Bean
+    ConsultarAuthSessionUseCase consultarAuthSessionUseCase(
+            AuthContextPort authContextPort,
+            IdentityAccessSessionPort identityAccessSessionPort) {
+        return new AuthSessionProxyService(authContextPort, identityAccessSessionPort);
+    }
+
+    @Bean
+    SelecionarEscolaAtivaUseCase selecionarEscolaAtivaUseCase(
+            AuthContextPort authContextPort,
+            IdentityAccessSessionPort identityAccessSessionPort) {
+        return new AuthSessionProxyService(authContextPort, identityAccessSessionPort);
     }
 
     @Bean
