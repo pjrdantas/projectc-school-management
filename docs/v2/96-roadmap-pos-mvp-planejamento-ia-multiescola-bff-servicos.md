@@ -6750,3 +6750,28 @@ Entregue nesta fase:
 
 Contagem regressiva da macrofase inicial de identidade e tenant: 5 fases
 restantes no escopo fechado atual.
+
+### Fase 134 - Abertura fisica minima do `institutional-tenant-service`
+
+Entregue nesta fase:
+
+- foi criado o modulo fisico `institutional-tenant-service` no monorepo, com
+  estrutura Spring Boot minima, `application.yml`, validacao de API interna,
+  tratamento de erro proprio e cliente HTTP dedicado para o monolito;
+- o menor recorte seguro escolhido para abrir o servico irmao foi a leitura
+  autenticada das escolas disponiveis da sessao ja exposta no contrato interno
+  `GET /internal/auth/escolas`;
+- o `institutional-tenant-service` passou a publicar
+  `GET /internal/v1/tenant/escolas` e
+  `GET /internal/v1/tenant/ativa`, mantendo o monolito como autoridade
+  funcional e derivando no codigo novo apenas a leitura do tenant ativo atual;
+- a fase permaneceu estritamente backend/backend: nao houve cutover de BFF,
+  nao houve migracao de persistencia, nao houve escrita migrada e a troca de
+  escola ativa continuou fora deste recorte inicial do servico institucional;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl institutional-tenant-service test`, cobrindo rota interna,
+  propagacao do bearer, derivacao do tenant ativo e protecao por token
+  interno.
+
+Contagem regressiva da macrofase inicial de identidade e tenant: 4 fases
+restantes no escopo fechado atual.

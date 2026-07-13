@@ -20,6 +20,7 @@
     <modules>
         <module>school-management-bff</module>
         <module>identity-access-service</module>
+        <module>institutional-tenant-service</module>
         <module>academic-catalog-service</module>
         <module>academic-professor-service</module>
         <module>people-service</module>

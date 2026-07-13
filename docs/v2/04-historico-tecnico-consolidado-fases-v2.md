@@ -2837,3 +2837,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl identity-access-service test` em `BUILD SUCCESS`.
 - Contagem regressiva da macrofase inicial de identidade e tenant: 5 fases
   restantes no escopo fechado atual.
+
+### Fase 134
+
+- A Fase 2 da macrofase de identidade e tenant abriu fisicamente o
+  `institutional-tenant-service` pelo menor recorte read-only ja estabilizado
+  no monolito: a leitura autenticada das escolas disponiveis da sessao a partir
+  de `GET /internal/auth/escolas`.
+- Foi criado o modulo `institutional-tenant-service` no monorepo, com runtime
+  Spring Boot proprio, validacao de contexto interno, tratamento de erro
+  proprio e cliente HTTP dedicado para consumir o monolito sem tocar o legado.
+- O `institutional-tenant-service` passou a expor
+  `GET /internal/v1/tenant/escolas` e `GET /internal/v1/tenant/ativa`,
+  separando em codigo novo a leitura do vinculo usuario-escola e a resolucao do
+  tenant ativo derivada da sessao autenticada.
+- Esta fase permaneceu propositalmente sem BFF, sem escrita migrada, sem
+  persistencia propria e sem duplicar o fluxo de troca de escola ativa, que
+  continua pertencendo ao recorte de identidade/sessao.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl institutional-tenant-service test` em `BUILD SUCCESS`.
+- Contagem regressiva da macrofase inicial de identidade e tenant: 4 fases
+  restantes no escopo fechado atual.
