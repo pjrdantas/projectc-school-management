@@ -3049,3 +3049,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=PlanejamentoIaInteracaoReadControllerTest,PlanningAiInteracaoReadProxyIntegrationTest" test`.
 - Contagem regressiva da macrofase inicial de `planning-ai-service`: 6 fases
   restantes no escopo fechado atual.
+
+### Fase 143
+
+- A Fase 5 da macrofase inicial de `planning-ai-service` abriu o proximo
+  recorte interno read-only em
+  `GET /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`.
+- O servico novo passou a consumir o contrato atual do monolito
+  `GET /api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`,
+  preservando o payload funcional de conteudos gerados no fluxo de
+  planejamento e IA.
+- Foi criado DTO proprio para conteudos gerados no codigo novo, separado das
+  interacoes de IA e da biblioteca pedagogica.
+- O comportamento de erro para planejamento inexistente foi mantido como
+  `404 RESOURCE_NOT_FOUND`.
+- Esta fase permaneceu sem BFF, sem escrita migrada, sem geracao nova, sem
+  versoes, sem aprovacao e sem publicacao, porque o objetivo foi abrir apenas o
+  proximo bloco de leitura interna com menor risco.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva da macrofase inicial de `planning-ai-service`: 5 fases
+  restantes no escopo fechado atual.

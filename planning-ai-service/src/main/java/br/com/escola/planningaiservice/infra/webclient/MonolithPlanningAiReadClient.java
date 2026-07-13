@@ -13,6 +13,7 @@ import org.springframework.web.util.UriBuilder;
 
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
+import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
 import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
 import br.com.escola.planningaiservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.planningaiservice.application.exception.PlanningAiServiceResourceNotFoundException;
@@ -78,6 +79,32 @@ public class MonolithPlanningAiReadClient implements PlanningAiReadPort {
         } catch (ResourceAccessException exception) {
             throw new DownstreamUnavailableException(
                     "Monolito indisponivel para consulta de interacoes de planejamento IA",
+                    exception);
+        }
+    }
+
+    @Override
+    public List<ConteudoIaResponse> listarConteudos(
+            String authorization,
+            InternalRequestContext context,
+            UUID planejamentoId) {
+        try {
+            List<ConteudoIaResponse> response = restClient.get()
+                    .uri("/api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos", planejamentoId)
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, authorization))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<ConteudoIaResponse>>() {
+                    });
+            return response == null ? List.of() : response;
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                throw new PlanningAiServiceResourceNotFoundException(
+                        "Consulta de conteudos de planejamento IA nao encontrada");
+            }
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            throw new DownstreamUnavailableException(
+                    "Monolito indisponivel para consulta de conteudos de planejamento IA",
                     exception);
         }
     }

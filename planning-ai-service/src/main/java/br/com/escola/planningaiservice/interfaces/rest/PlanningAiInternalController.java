@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.escola.planningaiservice.application.context.InternalHeaders;
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
+import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
 import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
 import br.com.escola.planningaiservice.application.port.in.PlanningAiReadUseCase;
 
@@ -51,6 +52,17 @@ public class PlanningAiInternalController {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
         return planningAiReadUseCase.listarInteracoes(
+                authorization,
+                context,
+                planejamentoId);
+    }
+
+    @GetMapping("/planejamentos-bimestrais/{planejamentoId}/ia/conteudos")
+    public List<ConteudoIaResponse> listarConteudos(
+            @PathVariable UUID planejamentoId,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
+        return planningAiReadUseCase.listarConteudos(
                 authorization,
                 context,
                 planejamentoId);

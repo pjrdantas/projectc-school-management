@@ -209,6 +209,82 @@ class PlanningAiInternalControllerIntegrationTest {
         assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/interacoes");
     }
 
+    @Test
+    void deveListarConteudosNoContratoInterno() throws Exception {
+        UUID planejamentoId = UUID.randomUUID();
+        UUID conteudoId = UUID.randomUUID();
+        UUID interacaoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [
+                          {
+                            "id":"%s",
+                            "planejamentoBimestralId":"%s",
+                            "interacaoId":"%s",
+                            "escolaId":"%s",
+                            "escolaNome":"Escola Central",
+                            "titulo":"Lista de fracoes",
+                            "conteudo":"Conteudo gerado",
+                            "versao":1,
+                            "hashConteudo":"abc123",
+                            "aprovadoPeloProfessor":false,
+                            "reutilizavel":true,
+                            "ativo":true,
+                            "status":"GERADO",
+                            "statusDescricao":"Gerado",
+                            "tipoConteudo":"ATIVIDADE",
+                            "tipoConteudoDescricao":"Atividade",
+                            "createdAt":"2026-07-13T11:10:00",
+                            "updatedAt":"2026-07-13T11:10:00"
+                          }
+                        ]
+                        """.formatted(conteudoId, planejamentoId, interacaoId, UUID.randomUUID())));
+
+        mockMvc.perform(get("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos", planejamentoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-6")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(conteudoId.toString()))
+                .andExpect(jsonPath("$[0].planejamentoBimestralId").value(planejamentoId.toString()))
+                .andExpect(jsonPath("$[0].tipoConteudo").value("ATIVIDADE"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/conteudos");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+    }
+
+    @Test
+    void devePropagarNotFoundQuandoPlanejamentoNaoExisteNosConteudos() throws Exception {
+        UUID planejamentoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(404)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "error":"RESOURCE_NOT_FOUND",
+                          "message":"Planejamento bimestral nao encontrado"
+                        }
+                        """));
+
+        mockMvc.perform(get("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos", planejamentoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-7")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/conteudos");
+    }
+
     private RecordedRequest aguardarRequisicao() throws InterruptedException {
         RecordedRequest recorded = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
         assertThat(recorded).isNotNull();

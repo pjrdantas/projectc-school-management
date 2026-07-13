@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
+import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
 import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
 
 public interface PlanningAiReadPort {
@@ -18,6 +19,11 @@ public interface PlanningAiReadPort {
             String tema);
 
     List<PlanejamentoIaInteracaoResponse> listarInteracoes(
+            String authorization,
+            InternalRequestContext context,
+            UUID planejamentoId);
+
+    List<ConteudoIaResponse> listarConteudos(
             String authorization,
             InternalRequestContext context,
             UUID planejamentoId);
