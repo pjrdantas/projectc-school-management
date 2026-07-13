@@ -1,6 +1,7 @@
 package br.com.escola.planningaiservice.application.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -23,6 +24,11 @@ public class PlanningAiContentReadService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    public Optional<ConteudoIaResponse> buscarPorIdEEscola(UUID conteudoId, UUID escolaId) {
+        return contentRepository.findByIdAndEscolaId(conteudoId, escolaId)
+                .map(this::toResponse);
     }
 
     private ConteudoIaResponse toResponse(PlanningAiGeneratedContentJpaEntity entity) {

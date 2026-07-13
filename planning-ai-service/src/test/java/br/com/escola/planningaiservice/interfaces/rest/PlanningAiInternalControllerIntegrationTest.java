@@ -518,6 +518,54 @@ class PlanningAiInternalControllerIntegrationTest {
         UUID conteudoId = UUID.randomUUID();
         UUID planejamentoId = UUID.randomUUID();
         UUID interacaoId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+
+        var interaction = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiInteractionJpaEntity();
+        interaction.setId(interacaoId);
+        interaction.setEscolaId(escolaId);
+        interaction.setPlanejamentoBimestralId(planejamentoId);
+        interaction.setPromptProfessor("Monte uma atividade sobre fracoes");
+        interaction.setRespostaIa("Sugestao de atividade");
+        interaction.setCreatedAt(java.time.LocalDateTime.parse("2026-07-13T11:00:00"));
+        interactionRepository.save(interaction);
+
+        var content = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiGeneratedContentJpaEntity();
+        content.setId(conteudoId);
+        content.setEscolaId(escolaId);
+        content.setPlanejamentoBimestralId(planejamentoId);
+        content.setInteracao(interaction);
+        content.setTitulo("Lista de fracoes");
+        content.setConteudo("Conteudo gerado");
+        content.setVersao(1);
+        content.setHashConteudo("abc123");
+        content.setAprovadoPeloProfessor(false);
+        content.setReutilizavel(true);
+        content.setAtivo(true);
+        content.setStatus("GERADO");
+        content.setTipoConteudo("ATIVIDADE");
+        content.setCreatedAt(java.time.LocalDateTime.parse("2026-07-13T11:10:00"));
+        content.setUpdatedAt(java.time.LocalDateTime.parse("2026-07-13T11:10:00"));
+        contentRepository.save(content);
+
+        mockMvc.perform(get("/internal/v1/ia/conteudos/{conteudoId}", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-8")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(conteudoId.toString()))
+                .andExpect(jsonPath("$.planejamentoBimestralId").value(planejamentoId.toString()))
+                .andExpect(jsonPath("$.tipoConteudo").value("ATIVIDADE"));
+
+        assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
+    }
+
+    @Test
+    void deveUsarFallbackDoMonolitoQuandoNaoHouverConteudoLocalPorId() throws Exception {
+        UUID conteudoId = UUID.randomUUID();
+        UUID planejamentoId = UUID.randomUUID();
+        UUID interacaoId = UUID.randomUUID();
 
         mockWebServer.enqueue(new MockResponse()
                 .setHeader("Content-Type", "application/json")
@@ -528,8 +576,8 @@ class PlanningAiInternalControllerIntegrationTest {
                           "interacaoId":"%s",
                           "escolaId":"%s",
                           "escolaNome":"Escola Central",
-                          "titulo":"Lista de fracoes",
-                          "conteudo":"Conteudo gerado",
+                          "titulo":"Fallback",
+                          "conteudo":"Conteudo do monolito",
                           "versao":1,
                           "hashConteudo":"abc123",
                           "aprovadoPeloProfessor":false,
@@ -546,14 +594,13 @@ class PlanningAiInternalControllerIntegrationTest {
 
         mockMvc.perform(get("/internal/v1/ia/conteudos/{conteudoId}", conteudoId)
                         .header("X-Internal-Token", "planning-token")
-                        .header("X-Correlation-Id", "corr-planning-8")
+                        .header("X-Correlation-Id", "corr-planning-8b")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", UUID.randomUUID())
                         .header("Authorization", "Bearer planning-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(conteudoId.toString()))
-                .andExpect(jsonPath("$.planejamentoBimestralId").value(planejamentoId.toString()))
-                .andExpect(jsonPath("$.tipoConteudo").value("ATIVIDADE"));
+                .andExpect(jsonPath("$.conteudo").value("Conteudo do monolito"));
 
         RecordedRequest recorded = aguardarRequisicao();
         assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId);

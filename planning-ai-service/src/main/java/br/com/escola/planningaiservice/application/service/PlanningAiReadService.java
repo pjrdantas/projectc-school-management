@@ -83,10 +83,11 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             String authorization,
             InternalRequestContext context,
             UUID conteudoId) {
-        return planningAiReadPort.buscarConteudo(
-                authorization,
-                context,
-                conteudoId);
+        return planningAiContentReadService.buscarPorIdEEscola(conteudoId, context.escolaId())
+                .orElseGet(() -> planningAiReadPort.buscarConteudo(
+                        authorization,
+                        context,
+                        conteudoId));
     }
 
     @Override
