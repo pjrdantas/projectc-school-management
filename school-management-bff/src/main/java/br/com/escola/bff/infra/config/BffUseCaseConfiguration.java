@@ -19,8 +19,10 @@ import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentAlunoReadPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentReadPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentEscolaOrigemReadPort;
+import br.com.escola.bff.application.port.out.EnrollmentDocumentEscolaOrigemWritePort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentMatriculaReadPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaReadPort;
+import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaWritePort;
 import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
 import br.com.escola.bff.application.port.out.MonolithDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.MonolithPeriodoLetivoWritePort;
@@ -39,6 +41,7 @@ import br.com.escola.bff.application.service.DisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.DocumentoAlunoReadProxyService;
 import br.com.escola.bff.application.service.DocumentoReadProxyService;
 import br.com.escola.bff.application.service.EscolaOrigemReadProxyService;
+import br.com.escola.bff.application.service.EscolaOrigemWriteProxyService;
 import br.com.escola.bff.application.service.FuncionarioReadProxyService;
 import br.com.escola.bff.application.service.MatriculaReadProxyService;
 import br.com.escola.bff.application.service.PeriodoLetivoWriteRoutingService;
@@ -47,6 +50,7 @@ import br.com.escola.bff.application.service.PessoaDetailReadProxyService;
 import br.com.escola.bff.application.service.ProfessorReadProxyService;
 import br.com.escola.bff.application.service.SerieWriteRoutingService;
 import br.com.escola.bff.application.service.TransferenciaReadProxyService;
+import br.com.escola.bff.application.service.TransferenciaWriteProxyService;
 import br.com.escola.bff.application.service.TurmaDisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.TurmaWriteRoutingService;
 import br.com.escola.bff.application.usecase.ConsultarCadastroPessoaUseCase;
@@ -54,6 +58,8 @@ import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoAlunoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarEscolaOrigemUseCase;
+import br.com.escola.bff.application.usecase.CriarEscolaOrigemUseCase;
+import br.com.escola.bff.application.usecase.CriarTransferenciaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPessoaCatalogoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPessoaDetalheUseCase;
 import br.com.escola.bff.application.port.out.PeopleProfessorReadPort;
@@ -146,6 +152,20 @@ public class BffUseCaseConfiguration {
             AuthContextPort authContextPort,
             EnrollmentDocumentMatriculaReadPort enrollmentDocumentMatriculaReadPort) {
         return new MatriculaReadProxyService(authContextPort, enrollmentDocumentMatriculaReadPort);
+    }
+
+    @Bean
+    CriarEscolaOrigemUseCase criarEscolaOrigemUseCase(
+            AuthContextPort authContextPort,
+            EnrollmentDocumentEscolaOrigemWritePort enrollmentDocumentEscolaOrigemWritePort) {
+        return new EscolaOrigemWriteProxyService(authContextPort, enrollmentDocumentEscolaOrigemWritePort);
+    }
+
+    @Bean
+    CriarTransferenciaUseCase criarTransferenciaUseCase(
+            AuthContextPort authContextPort,
+            EnrollmentDocumentTransferenciaWritePort enrollmentDocumentTransferenciaWritePort) {
+        return new TransferenciaWriteProxyService(authContextPort, enrollmentDocumentTransferenciaWritePort);
     }
 
     @Bean

@@ -115,6 +115,30 @@ class BearerAuthenticationWebFilterTest {
     }
 
     @Test
+    void deveProtegerPostDeEscolaOrigemSemBearerToken() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("/api/escolas-origem")
+                        .header(TrustedHeaders.CORRELATION_ID, "corr-escola-origem-write"));
+
+        StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-escola-origem-write");
+    }
+
+    @Test
+    void deveProtegerPostDeTransferenciaSemBearerToken() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("/api/transferencias")
+                        .header(TrustedHeaders.CORRELATION_ID, "corr-transferencia-write"));
+
+        StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-transferencia-write");
+    }
+
+    @Test
     void deveProtegerConsultaCadastralSemBearerToken() {
         MockServerWebExchange exchange = MockServerWebExchange.from(
                 MockServerHttpRequest.get("/api/consulta-cadastral")

@@ -6367,3 +6367,31 @@ Entregue nesta fase:
 
 Contagem regressiva funcional estimada do `enrollment-document-service`: 1
 fase restante no escopo atual, dedicada a `escrita/storage/cutover`.
+
+### Fase 122 - Fechamento operacional minimo de escrita do `enrollment-document-service`
+
+Entregue nesta fase:
+
+- foi fechado o recorte minimo de escrita oficial ja pronto no
+  `enrollment-document-service`, ligando no `school-management-bff` os writes
+  `POST /api/escolas-origem` e `POST /api/transferencias`;
+- o BFF passou a resolver contexto autenticado no monolito e a encaminhar esses
+  writes para `POST /internal/v1/escolas-origem` e
+  `POST /internal/v1/transferencias` do `enrollment-document-service`,
+  preservando bearer, correlation ID e headers internos obrigatorios, sem
+  fallback automatico cruzado apos tentar o servico novo;
+- a protecao de bearer foi ampliada para essas duas rotas de escrita oficiais
+  do bloco `transferencia`, consolidando o primeiro cutover operacional minimo
+  de escrita do dominio novo no BFF;
+- o bloco de documento/binario permaneceu explicitamente fora deste fechamento:
+  `GET /api/documentos/{id}` segue pertencendo ao contrato de `people-service`,
+  e uploads/exclusoes de documentos continuam no monolito ate existir um recorte
+  isolado sem colisao de ownership entre `people-service` e
+  `enrollment-document-service`;
+- com isso, o `enrollment-document-service` fica encerrado no escopo atual
+  planejado: leituras oficiais de `transferencia`, `matricula`, `documento por
+  aluno`, leitura generica de `documentos administrativos` e escrita oficial
+  minima de `escolas-origem`/`transferencias`.
+
+Contagem regressiva funcional estimada do `enrollment-document-service`: 0
+fases restantes no escopo atual planejado.

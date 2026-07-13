@@ -36,6 +36,7 @@ features:
   catalog-write-proxy-enabled: ${CATALOG_WRITE_PROXY_ENABLED:true}
   people-read-proxy-enabled: ${PEOPLE_READ_PROXY_ENABLED:true}
   enrollment-document-read-proxy-enabled: ${ENROLLMENT_DOCUMENT_READ_PROXY_ENABLED:true}
+  enrollment-document-write-proxy-enabled: ${ENROLLMENT_DOCUMENT_WRITE_PROXY_ENABLED:true}
   catalog-read-cutover:
     enabled: ${CATALOG_READ_CUTOVER_ENABLED:false}
     report-path: ${CATALOG_READ_CUTOVER_REPORT_PATH:}

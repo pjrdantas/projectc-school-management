@@ -2530,3 +2530,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   monolito, no `enrollment-document-service` e no BFF.
 - Contagem funcional estimada do `enrollment-document-service`: 1 fase restante
   no escopo atual, dedicada ao fechamento de `escrita/storage/cutover`.
+
+### Fase 122
+
+- O fechamento operacional minimo de escrita do `enrollment-document-service`
+  foi concluido no `school-management-bff` com a oficializacao de
+  `POST /api/escolas-origem` e `POST /api/transferencias`.
+- O BFF passou a resolver o contexto autenticado no monolito e a encaminhar os
+  writes para `POST /internal/v1/escolas-origem` e
+  `POST /internal/v1/transferencias` do `enrollment-document-service`,
+  preservando bearer, correlation ID e headers internos obrigatorios, sem
+  fallback automatico apos tentar o servico novo.
+- A protecao de bearer foi ampliada para essas duas rotas, consolidando o
+  primeiro cutover operacional minimo de escrita do bloco `transferencia`.
+- O bloco de documento/binario foi mantido explicitamente fora deste fechamento:
+  o detalhe `GET /api/documentos/{id}` permanece no contrato de
+  `people-service`, e uploads/exclusoes seguem no monolito ate existir recorte
+  isolado sem colisao de ownership.
+- A validacao desta fase ficou restrita ao `school-management-bff`, porque o
+  recorte aproveitou contratos internos de escrita ja existentes no
+  `enrollment-document-service` e no monolito.
+- Contagem funcional estimada do `enrollment-document-service`: 0 fases
+  restantes no escopo atual planejado.
