@@ -31,6 +31,7 @@ import br.com.escola.pedagogicalservice.application.port.in.HistoricoEscolarRead
 import br.com.escola.pedagogicalservice.application.port.in.HistoricoEscolarWriteUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.BoletimQueryUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.DiarioClasseReadUseCase;
+import br.com.escola.pedagogicalservice.application.port.in.DiarioClasseWriteUseCase;
 
 @RestController
 @RequestMapping({ "/internal/v1", "/internal" })
@@ -39,6 +40,7 @@ public class PedagogicalInternalController {
     private final BoletimQueryUseCase boletimQueryUseCase;
     private final AulaUseCase aulaUseCase;
     private final DiarioClasseReadUseCase diarioClasseReadUseCase;
+    private final DiarioClasseWriteUseCase diarioClasseWriteUseCase;
     private final HistoricoEscolarReadUseCase historicoEscolarReadUseCase;
     private final HistoricoEscolarWriteUseCase historicoEscolarWriteUseCase;
 
@@ -46,11 +48,13 @@ public class PedagogicalInternalController {
             BoletimQueryUseCase boletimQueryUseCase,
             AulaUseCase aulaUseCase,
             DiarioClasseReadUseCase diarioClasseReadUseCase,
+            DiarioClasseWriteUseCase diarioClasseWriteUseCase,
             HistoricoEscolarReadUseCase historicoEscolarReadUseCase,
             HistoricoEscolarWriteUseCase historicoEscolarWriteUseCase) {
         this.boletimQueryUseCase = boletimQueryUseCase;
         this.aulaUseCase = aulaUseCase;
         this.diarioClasseReadUseCase = diarioClasseReadUseCase;
+        this.diarioClasseWriteUseCase = diarioClasseWriteUseCase;
         this.historicoEscolarReadUseCase = historicoEscolarReadUseCase;
         this.historicoEscolarWriteUseCase = historicoEscolarWriteUseCase;
     }
@@ -116,6 +120,15 @@ public class PedagogicalInternalController {
                 anoLetivo,
                 mes,
                 dataReferencia);
+    }
+
+    @PutMapping("/diarios-classe/{idDiarioClasse}")
+    public ResponseEntity<String> salvarDiarioClasse(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable String idDiarioClasse,
+            @RequestBody String requestBody) {
+        return diarioClasseWriteUseCase.salvar(authorization, context, idDiarioClasse, requestBody);
     }
 
     @PostMapping("/historicos-escolares")

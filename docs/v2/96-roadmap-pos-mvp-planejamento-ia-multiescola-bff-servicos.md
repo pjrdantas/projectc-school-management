@@ -6570,3 +6570,32 @@ Entregue nesta fase:
 
 Contagem regressiva funcional estimada do `pedagogical-service`: 4 fases
 restantes no escopo atual planejado.
+
+### Fase 129 - Escrita minima de `diario de classe` no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o bloco de `diario de classe` avancou para a primeira escrita minima segura,
+  preservando o contrato externo atual de
+  `PUT /api/diarios-classe/{idDiarioClasse}` sem abrir ainda as checagens por
+  coordenacao ou direcao;
+- o `school-management-service` passou a expor
+  `PUT /internal/diarios-classe/{idDiarioClasse}`, reaproveitando
+  `DiarioClasseConsultaService.salvar(...)` sem alterar o workflow de checagem;
+- o `pedagogical-service` passou a publicar
+  `PUT /internal/v1/diarios-classe/{idDiarioClasse}` como proxy controlado do
+  monolito, mantendo o legado como autoridade funcional e preservando o payload
+  externo atual;
+- o `school-management-bff` passou a oficializar esse write consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno e
+  o corpo JSON atual do lancamento;
+- as rotas de checagem
+  `/api/diarios-classe/lancamentos/{idLancamento}/checagens/coordenacao` e
+  `/api/diarios-classe/lancamentos/{idLancamento}/checagens/direcao`
+  permaneceram explicitamente fora desta fase;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, payload e
+  propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 3 fases
+restantes no escopo atual planejado.

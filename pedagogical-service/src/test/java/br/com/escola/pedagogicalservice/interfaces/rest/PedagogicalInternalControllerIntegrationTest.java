@@ -380,6 +380,44 @@ class PedagogicalInternalControllerIntegrationTest {
     }
 
     @Test
+    void deveSalvarDiarioClasseNoContratoInterno() throws Exception {
+        String idDiarioClasse = "diario-2058-06-x";
+        String requestBody = """
+                {
+                  "idDiarioClasse":"diario-2058-06-x",
+                  "dataLancamento":"2058-06-26",
+                  "frequencias":[{"idAluno":"00000000-0000-0000-0000-000000000021","situacao":"PRESENTE"}],
+                  "conteudos":[{"idPlanejamentoAula":"00000000-0000-0000-0000-000000000031","descricao":"Conteudo ministrado"}],
+                  "observacoes":["Observacao interna"],
+                  "assinatura":{"nomeProfessor":"Professor Diario","dataAssinatura":"26/06/2058"}
+                }
+                """;
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {"idDiarioClasse":"diario-2058-06-x","status":"SALVO","mensagem":"Lancamento salvo com sucesso.","salvoEm":"2058-06-26T10:30:00","bloqueado":true}
+                        """));
+
+        mockMvc.perform(put("/internal/v1/diarios-classe/{idDiarioClasse}", idDiarioClasse)
+                        .contentType("application/json")
+                        .content(requestBody)
+                        .header("X-Internal-Token", "pedagogical-token")
+                        .header("X-Correlation-Id", "corr-pedagogical-diario-2")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer pedagogical-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idDiarioClasse").value(idDiarioClasse))
+                .andExpect(jsonPath("$.status").value("SALVO"))
+                .andExpect(jsonPath("$.bloqueado").value(true));
+
+        RecordedRequest recorded = aguardarRequisicao("PUT", "/internal/diarios-classe/" + idDiarioClasse);
+        assertThat(recorded.getBody().readUtf8()).isEqualTo(requestBody);
+        assertThat(recorded.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-diario-2");
+    }
+
+    @Test
     void deveCarregarHistoricoNovoNoContratoInterno() throws Exception {
         UUID alunoId = UUID.randomUUID();
         UUID matriculaId = UUID.randomUUID();

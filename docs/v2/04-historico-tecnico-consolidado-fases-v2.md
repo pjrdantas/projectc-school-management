@@ -2701,3 +2701,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   ambos em `BUILD SUCCESS`.
 - Contagem funcional estimada do `pedagogical-service`: 4 fases restantes no
   escopo atual planejado.
+
+### Fase 129
+
+- A Fase 7 do `pedagogical-service` abriu a primeira escrita minima de
+  `diario de classe`, preservando o contrato publico atual
+  `PUT /api/diarios-classe/{idDiarioClasse}`.
+- O `school-management-service` passou a expor
+  `PUT /internal/diarios-classe/{idDiarioClasse}`, reaproveitando
+  `DiarioClasseConsultaService.salvar(...)` e mantendo fora desta fase as
+  checagens por coordenacao e direcao.
+- O `pedagogical-service` passou a expor
+  `PUT /internal/v1/diarios-classe/{idDiarioClasse}` como fronteira
+  backend/backend do write minimo.
+- O `school-management-bff` passou a oficializar esse write consumindo o
+  `pedagogical-service`, preservando o payload atual, bearer, correlation ID e
+  contexto autenticado.
+- A validacao desta fase ficou restrita aos modulos tocados e foi executada com
+  `mvn -f school-management-service/pom.xml "-Dtest=DiarioClasseInternalControllerTest" test`
+  e com
+  `mvn -pl pedagogical-service,school-management-bff "-Dtest=PedagogicalInternalControllerIntegrationTest,PedagogicalDiarioClasseWriteProxyIntegrationTest" test`,
+  ambos em `BUILD SUCCESS`.
+- Contagem funcional estimada do `pedagogical-service`: 3 fases restantes no
+  escopo atual planejado.

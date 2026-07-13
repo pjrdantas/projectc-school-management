@@ -3,15 +3,19 @@ package br.com.escola.professor.adapter.in.web.internal;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -21,9 +25,14 @@ import br.com.escola.professor.adapter.in.web.dto.DiarioClasseAvaliacaoResponse;
 import br.com.escola.professor.adapter.in.web.dto.DiarioClasseCabecalhoResponse;
 import br.com.escola.professor.adapter.in.web.dto.DiarioClasseConteudoPlanejadoResponse;
 import br.com.escola.professor.adapter.in.web.dto.DiarioClasseResponse;
+import br.com.escola.professor.adapter.in.web.dto.DiarioClasseSalvarRequest;
+import br.com.escola.professor.adapter.in.web.dto.DiarioClasseSalvarResponse;
 import br.com.escola.professor.application.service.DiarioClasseConsultaService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 class DiarioClasseInternalControllerTest {
+
+    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @Test
     void deveCarregarDiarioClasseNoContratoInterno() throws Exception {
@@ -101,5 +110,52 @@ class DiarioClasseInternalControllerTest {
                 2058,
                 6,
                 java.time.LocalDate.of(2058, 6, 26));
+    }
+
+    @Test
+    void deveSalvarDiarioClasseNoContratoInterno() throws Exception {
+        DiarioClasseConsultaService diarioClasseConsultaService = Mockito.mock(DiarioClasseConsultaService.class);
+        String idDiarioClasse = "diario-2058-06-x";
+
+        when(diarioClasseConsultaService.salvar(Mockito.eq(idDiarioClasse), Mockito.any(DiarioClasseSalvarRequest.class)))
+                .thenReturn(new DiarioClasseSalvarResponse(
+                        idDiarioClasse,
+                        "SALVO",
+                        "Lancamento salvo com sucesso.",
+                        LocalDateTime.of(2058, 6, 26, 10, 30),
+                        true));
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new DiarioClasseInternalController(diarioClasseConsultaService)).build();
+
+        mockMvc.perform(put("/internal/diarios-classe/{idDiarioClasse}", idDiarioClasse)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestSalvar(idDiarioClasse))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idDiarioClasse").value(idDiarioClasse))
+                .andExpect(jsonPath("$.status").value("SALVO"))
+                .andExpect(jsonPath("$.bloqueado").value(true));
+
+        verify(diarioClasseConsultaService).salvar(Mockito.eq(idDiarioClasse), Mockito.any(DiarioClasseSalvarRequest.class));
+    }
+
+    private DiarioClasseSalvarRequest requestSalvar(String idDiarioClasse) {
+        return new DiarioClasseSalvarRequest(
+                idDiarioClasse,
+                LocalDate.of(2058, 6, 26),
+                List.of(new br.com.escola.professor.adapter.in.web.dto.DiarioClasseFrequenciaRequest(
+                        UUID.randomUUID(),
+                        LocalDate.of(2058, 6, 26),
+                        26,
+                        "PRESENTE")),
+                List.of(new br.com.escola.professor.adapter.in.web.dto.DiarioClasseConteudoRequest(
+                        UUID.randomUUID().toString(),
+                        "Aula 1",
+                        "Conteudo ministrado",
+                        false,
+                        null)),
+                List.of("Observacao interna"),
+                new br.com.escola.professor.adapter.in.web.dto.DiarioClasseAssinaturaRequest(
+                        "Professor Interno",
+                        "26/06/2058"));
     }
 }

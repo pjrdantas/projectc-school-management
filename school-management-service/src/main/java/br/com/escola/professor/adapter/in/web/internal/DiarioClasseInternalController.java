@@ -4,13 +4,19 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.professor.adapter.in.web.dto.DiarioClasseResponse;
+import br.com.escola.professor.adapter.in.web.dto.DiarioClasseSalvarRequest;
+import br.com.escola.professor.adapter.in.web.dto.DiarioClasseSalvarResponse;
 import br.com.escola.professor.application.service.DiarioClasseConsultaService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/internal/diarios-classe")
@@ -37,5 +43,12 @@ public class DiarioClasseInternalController {
                 anoLetivo,
                 mes,
                 dataReferencia);
+    }
+
+    @PutMapping("/{idDiarioClasse}")
+    public DiarioClasseSalvarResponse salvar(
+            @PathVariable String idDiarioClasse,
+            @Valid @RequestBody DiarioClasseSalvarRequest request) {
+        return diarioClasseConsultaService.salvar(idDiarioClasse, request);
     }
 }
