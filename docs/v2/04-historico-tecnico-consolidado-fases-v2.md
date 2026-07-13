@@ -3174,3 +3174,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Permanecem explicitamente fora deste ciclo inicial qualquer geracao,
   criacao de versao, aprovacao, publicacao na biblioteca, persistencia propria
   e adocao de MongoDB, Kafka ou Redis.
+
+### Fase 149
+
+- Foi aberto um novo ciclo fechado de 8 fases para a escrita minima do
+  `planning-ai-service`, cobrindo geracao, criacao de versao, aprovacao e
+  publicacao, sempre no padrao `servico interno -> BFF`.
+- A Fase 1 desse novo ciclo abriu no `planning-ai-service` o contrato interno
+  `POST /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`.
+- O servico novo passou a consumir o contrato atual do monolito
+  `POST /api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`,
+  preservando o payload funcional de conteudo gerado e o contrato de entrada da
+  geracao.
+- Foi criado DTO proprio de request para geracao de conteudo IA no codigo novo,
+  com as mesmas validacoes basicas do contrato atual.
+- O comportamento de erro para planejamento inexistente foi mantido como
+  `404 RESOURCE_NOT_FOUND`.
+- Esta fase permaneceu sem BFF, sem criacao publica, sem criacao de versao,
+  sem aprovacao e sem publicacao, porque o objetivo foi abrir a primeira escrita
+  interna do novo ciclo pelo menor risco.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva do novo ciclo de escrita minima do
+  `planning-ai-service`: 7 fases restantes no escopo fechado atual.

@@ -9,6 +9,7 @@ import br.com.escola.planningaiservice.application.context.InternalRequestContex
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
+import br.com.escola.planningaiservice.application.dto.GerarConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
 import br.com.escola.planningaiservice.application.port.in.PlanningAiReadUseCase;
 import br.com.escola.planningaiservice.application.port.out.PlanningAiReadPort;
@@ -81,5 +82,18 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
                 authorization,
                 context,
                 conteudoId);
+    }
+
+    @Override
+    public ConteudoIaResponse gerarConteudo(
+            String authorization,
+            InternalRequestContext context,
+            UUID planejamentoId,
+            GerarConteudoIaRequest request) {
+        return planningAiReadPort.gerarConteudo(
+                authorization,
+                context,
+                planejamentoId,
+                request);
     }
 }

@@ -2,6 +2,7 @@ package br.com.escola.planningaiservice.interfaces.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -22,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
+import org.springframework.http.MediaType;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -102,6 +104,99 @@ class PlanningAiInternalControllerIntegrationTest {
                         + "&disciplinaId=" + disciplinaId
                         + "&tipoConteudo=ATIVIDADE&tema=Fracoes");
         assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+    }
+
+    @Test
+    void deveGerarConteudoNoContratoInterno() throws Exception {
+        UUID planejamentoId = UUID.randomUUID();
+        UUID conteudoId = UUID.randomUUID();
+        UUID interacaoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(201)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "id":"%s",
+                          "planejamentoBimestralId":"%s",
+                          "interacaoId":"%s",
+                          "escolaId":"%s",
+                          "escolaNome":"Escola Central",
+                          "titulo":"Sugestao - Fracoes",
+                          "conteudo":"Conteudo gerado",
+                          "versao":1,
+                          "hashConteudo":"abc123",
+                          "aprovadoPeloProfessor":false,
+                          "reutilizavel":true,
+                          "ativo":true,
+                          "status":"GERADO",
+                          "statusDescricao":"Gerado",
+                          "tipoConteudo":"ATIVIDADE",
+                          "tipoConteudoDescricao":"Atividade",
+                          "createdAt":"2026-07-13T11:30:00",
+                          "updatedAt":"2026-07-13T11:30:00"
+                        }
+                        """.formatted(conteudoId, planejamentoId, interacaoId, UUID.randomUUID())));
+
+        mockMvc.perform(post("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos", planejamentoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-12")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "promptProfessor":"Monte uma atividade sobre fracoes",
+                                  "tipoConteudo":"ATIVIDADE",
+                                  "titulo":"Sugestao - Fracoes",
+                                  "reutilizavel":true
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(conteudoId.toString()))
+                .andExpect(jsonPath("$.planejamentoBimestralId").value(planejamentoId.toString()))
+                .andExpect(jsonPath("$.tipoConteudo").value("ATIVIDADE"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/conteudos");
+        assertThat(recorded.getMethod()).isEqualTo("POST");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+    }
+
+    @Test
+    void devePropagarNotFoundQuandoPlanejamentoNaoExisteNaGeracao() throws Exception {
+        UUID planejamentoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(404)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "error":"RESOURCE_NOT_FOUND",
+                          "message":"Planejamento bimestral nao encontrado"
+                        }
+                        """));
+
+        mockMvc.perform(post("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos", planejamentoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-13")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "promptProfessor":"Monte uma atividade sobre fracoes",
+                                  "tipoConteudo":"ATIVIDADE"
+                                }
+                                """))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/conteudos");
+        assertThat(recorded.getMethod()).isEqualTo("POST");
     }
 
     @Test

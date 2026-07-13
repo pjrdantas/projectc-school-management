@@ -7151,3 +7151,30 @@ Fechamento da macrofase:
 - permanecem explicitamente fora deste ciclo inicial qualquer geracao,
   criacao de versao, aprovacao, publicacao na biblioteca, persistencia propria
   e adocao de MongoDB/Kafka/Redis.
+
+### Fase 149 - Abertura interna inicial da geracao de conteudo IA
+
+Entregue nesta fase:
+
+- foi aberto o novo ciclo fechado de 8 fases para a escrita minima do
+  `planning-ai-service`, cobrindo geracao, criacao de versao, aprovacao e
+  publicacao, sempre em pares `servico interno -> BFF`;
+- a primeira fase desse novo ciclo abriu no `planning-ai-service` o contrato
+  interno `POST /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `POST /api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`,
+  preservando o payload oficial de conteudo gerado e o contrato de entrada de
+  geracao;
+- foi criado DTO proprio de request para geracao de conteudo IA no codigo novo,
+  com as mesmas validacoes basicas de `promptProfessor`, `tipoConteudo`,
+  `titulo` e `reutilizavel`;
+- o comportamento de erro para planejamento inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional do monolito;
+- para manter o menor recorte seguro, esta fase permaneceu sem BFF, sem
+  criacao publica, sem criacao de versao, sem aprovacao e sem publicacao;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo o contrato interno de geracao,
+  propagacao de bearer e preservacao de `404` para planejamento inexistente.
+
+Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
+7 fases restantes no escopo fechado atual.

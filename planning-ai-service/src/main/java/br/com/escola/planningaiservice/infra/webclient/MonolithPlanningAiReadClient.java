@@ -15,6 +15,7 @@ import br.com.escola.planningaiservice.application.context.InternalRequestContex
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
+import br.com.escola.planningaiservice.application.dto.GerarConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
 import br.com.escola.planningaiservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.planningaiservice.application.exception.PlanningAiServiceResourceNotFoundException;
@@ -156,6 +157,32 @@ public class MonolithPlanningAiReadClient implements PlanningAiReadPort {
         } catch (ResourceAccessException exception) {
             throw new DownstreamUnavailableException(
                     "Monolito indisponivel para consulta de versoes de conteudo de planejamento IA",
+                    exception);
+        }
+    }
+
+    @Override
+    public ConteudoIaResponse gerarConteudo(
+            String authorization,
+            InternalRequestContext context,
+            UUID planejamentoId,
+            GerarConteudoIaRequest request) {
+        try {
+            return restClient.post()
+                    .uri("/api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos", planejamentoId)
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, authorization))
+                    .body(request)
+                    .retrieve()
+                    .body(ConteudoIaResponse.class);
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                throw new PlanningAiServiceResourceNotFoundException(
+                        "Geracao de conteudo de planejamento IA nao encontrada");
+            }
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            throw new DownstreamUnavailableException(
+                    "Monolito indisponivel para geracao de conteudo de planejamento IA",
                     exception);
         }
     }
