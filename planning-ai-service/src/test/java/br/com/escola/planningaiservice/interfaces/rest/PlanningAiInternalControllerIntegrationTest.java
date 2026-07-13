@@ -817,6 +817,24 @@ class PlanningAiInternalControllerIntegrationTest {
         UUID bibliotecaId = UUID.randomUUID();
         UUID professorId = UUID.randomUUID();
         UUID disciplinaId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+
+        var content = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiGeneratedContentJpaEntity();
+        content.setId(conteudoId);
+        content.setEscolaId(escolaId);
+        content.setPlanejamentoBimestralId(UUID.randomUUID());
+        content.setTitulo("Lista de fracoes");
+        content.setConteudo("Conteudo revisado");
+        content.setVersao(2);
+        content.setHashConteudo("abc123");
+        content.setAprovadoPeloProfessor(true);
+        content.setReutilizavel(true);
+        content.setAtivo(true);
+        content.setStatus("APROVADO");
+        content.setTipoConteudo("ATIVIDADE");
+        content.setCreatedAt(java.time.LocalDateTime.parse("2026-07-13T12:00:00"));
+        content.setUpdatedAt(java.time.LocalDateTime.parse("2026-07-13T12:00:00"));
+        contentRepository.save(content);
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(201)
@@ -847,7 +865,7 @@ class PlanningAiInternalControllerIntegrationTest {
                         .header("X-Internal-Token", "planning-token")
                         .header("X-Correlation-Id", "corr-planning-18")
                         .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
                         .header("Authorization", "Bearer planning-user-token"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(bibliotecaId.toString()))
@@ -858,6 +876,17 @@ class PlanningAiInternalControllerIntegrationTest {
         assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/publicar-biblioteca");
         assertThat(recorded.getMethod()).isEqualTo("POST");
         assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+        assertThat(libraryRepository.findById(bibliotecaId))
+                .isPresent()
+                .get()
+                .satisfies(library -> {
+                    assertThat(library.getEscolaId()).isEqualTo(escolaId);
+                    assertThat(library.getProfessorId()).isEqualTo(professorId);
+                    assertThat(library.getDisciplinaId()).isEqualTo(disciplinaId);
+                    assertThat(library.getConteudoOrigem()).isNotNull();
+                    assertThat(library.getConteudoOrigem().getId()).isEqualTo(conteudoId);
+                    assertThat(library.getOrigem()).isEqualTo("PLANEJAMENTO_IA");
+                });
     }
 
     @Test
@@ -886,6 +915,7 @@ class PlanningAiInternalControllerIntegrationTest {
         RecordedRequest recorded = aguardarRequisicao();
         assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/publicar-biblioteca");
         assertThat(recorded.getMethod()).isEqualTo("POST");
+        assertThat(libraryRepository.count()).isZero();
     }
 
     @Test

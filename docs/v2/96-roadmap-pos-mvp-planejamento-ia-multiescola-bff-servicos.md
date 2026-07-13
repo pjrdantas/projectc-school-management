@@ -7483,3 +7483,26 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado de persistencia propria do
 `planning-ai-service`: 2 fases restantes no escopo fechado atual.
+
+### Fase 163 - Gravacao aditiva local da publicacao na biblioteca pedagogica
+
+Entregue nesta fase:
+
+- o contrato interno existente de publicacao em
+  `POST /internal/v1/ia/conteudos/{conteudoId}/publicar-biblioteca` permaneceu
+  inalterado e continuou proxyando a chamada oficial para o monolito;
+- apos resposta bem-sucedida do monolito, o `planning-ai-service` passou a
+  gravar de forma aditiva a `biblioteca_conteudo_pedagogico` na sua
+  persistencia propria, vinculando a publicacao ao `conteudo_gerado` local ja
+  existente no servico;
+- essa gravacao usa apenas os IDs de referencia e o payload oficial retornado
+  pelo contrato atual, sem oficializar ainda leitura local da biblioteca no BFF
+  nem substituir o fluxo de consulta atual;
+- em caso de erro do downstream, o comportamento externo continua igual e nada
+  e persistido localmente;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo o contrato interno e a nova
+  gravacao local aditiva apos publicacao bem-sucedida.
+
+Contagem regressiva do novo ciclo fechado de persistencia propria do
+`planning-ai-service`: 1 fase restante no escopo fechado atual.

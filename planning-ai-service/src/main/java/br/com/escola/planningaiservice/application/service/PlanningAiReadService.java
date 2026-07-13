@@ -24,18 +24,21 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
     private final PlanningAiInteractionReadService planningAiInteractionReadService;
     private final PlanningAiContentReadService planningAiContentReadService;
     private final PlanningAiContentVersionReadService planningAiContentVersionReadService;
+    private final PlanningAiLibraryPublicationPersistenceService planningAiLibraryPublicationPersistenceService;
 
     public PlanningAiReadService(
             PlanningAiReadPort planningAiReadPort,
             PlanningAiGenerationPersistenceService planningAiGenerationPersistenceService,
             PlanningAiInteractionReadService planningAiInteractionReadService,
             PlanningAiContentReadService planningAiContentReadService,
-            PlanningAiContentVersionReadService planningAiContentVersionReadService) {
+            PlanningAiContentVersionReadService planningAiContentVersionReadService,
+            PlanningAiLibraryPublicationPersistenceService planningAiLibraryPublicationPersistenceService) {
         this.planningAiReadPort = planningAiReadPort;
         this.planningAiGenerationPersistenceService = planningAiGenerationPersistenceService;
         this.planningAiInteractionReadService = planningAiInteractionReadService;
         this.planningAiContentReadService = planningAiContentReadService;
         this.planningAiContentVersionReadService = planningAiContentVersionReadService;
+        this.planningAiLibraryPublicationPersistenceService = planningAiLibraryPublicationPersistenceService;
     }
 
     @Override
@@ -157,9 +160,13 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             String authorization,
             InternalRequestContext context,
             UUID conteudoId) {
-        return planningAiReadPort.publicarBiblioteca(
+        BibliotecaConteudoPedagogicoResponse response = planningAiReadPort.publicarBiblioteca(
                 authorization,
                 context,
                 conteudoId);
+        return planningAiLibraryPublicationPersistenceService.persistirPublicacao(
+                context,
+                conteudoId,
+                response);
     }
 }

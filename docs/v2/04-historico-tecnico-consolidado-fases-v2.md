@@ -3446,3 +3446,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service test`.
 - Contagem regressiva do novo ciclo fechado de persistencia propria do
   `planning-ai-service`: 2 fases restantes no escopo fechado atual.
+
+### Fase 163
+
+- A Fase 7 do novo ciclo fechado de persistencia propria do
+  `planning-ai-service` passou a gravar localmente, de forma aditiva, a
+  `biblioteca_conteudo_pedagogico` apos a publicacao bem-sucedida de conteudo
+  IA na biblioteca pelo monolito.
+- O contrato `POST /internal/v1/ia/conteudos/{conteudoId}/publicar-biblioteca`
+  foi preservado e continuou usando o mesmo downstream oficial, sem mudar
+  contrato publico, BFF ou leitura oficial da biblioteca.
+- A persistencia local foi vinculada ao `conteudo_gerado` ja existente no
+  servico novo, mantendo o desacoplamento por IDs e o uso do payload oficial de
+  resposta para preencher a base propria.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva do novo ciclo fechado de persistencia propria do
+  `planning-ai-service`: 1 fase restante no escopo fechado atual.
