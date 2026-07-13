@@ -15,12 +15,14 @@ import br.com.escola.enrollmentdocumentservice.application.context.InternalReque
 import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemResponse;
+import br.com.escola.enrollmentdocumentservice.application.dto.MatriculaResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.TransferenciaAlunoRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.TransferenciaAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.enrollmentdocumentservice.application.exception.EnrollmentDocumentServiceResourceNotFoundException;
 import br.com.escola.enrollmentdocumentservice.application.port.out.EnrollmentTransferPort;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 public class MonolithEnrollmentTransferClient implements EnrollmentTransferPort {
@@ -216,6 +218,39 @@ public class MonolithEnrollmentTransferClient implements EnrollmentTransferPort 
         } catch (ResourceAccessException exception) {
             registrarErro("buscarDocumentoAlunoPorId", exception);
             throw new DownstreamUnavailableException("Monolito indisponivel para leitura de documento do aluno", exception);
+        }
+    }
+
+    @Override
+    public List<MatriculaResponse> listarMatriculas(
+            String authorization,
+            InternalRequestContext context,
+            UUID alunoId,
+            UUID turmaId,
+            UUID periodoLetivoId,
+            String status) {
+        try {
+            String uri = UriComponentsBuilder.fromPath("/internal/matriculas")
+                    .queryParamIfPresent("alunoId", java.util.Optional.ofNullable(alunoId))
+                    .queryParamIfPresent("turmaId", java.util.Optional.ofNullable(turmaId))
+                    .queryParamIfPresent("periodoLetivoId", java.util.Optional.ofNullable(periodoLetivoId))
+                    .queryParamIfPresent("status", java.util.Optional.ofNullable(status))
+                    .build()
+                    .toUriString();
+            List<MatriculaResponse> response = restClient.get()
+                    .uri(uri)
+                    .headers(headers -> enrichHeaders(headers, authorization, context))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<MatriculaResponse>>() {
+                    });
+            registrarRequisicao("listarMatriculas", "success");
+            return response == null ? List.of() : response;
+        } catch (RestClientResponseException exception) {
+            registrarErro("listarMatriculas", exception);
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            registrarErro("listarMatriculas", exception);
+            throw new DownstreamUnavailableException("Monolito indisponivel para leitura de matriculas", exception);
         }
     }
 

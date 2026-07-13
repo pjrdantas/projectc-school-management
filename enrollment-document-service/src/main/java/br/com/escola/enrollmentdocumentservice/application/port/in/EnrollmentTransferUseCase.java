@@ -7,6 +7,7 @@ import br.com.escola.enrollmentdocumentservice.application.context.InternalReque
 import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemResponse;
+import br.com.escola.enrollmentdocumentservice.application.dto.MatriculaResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.TransferenciaAlunoRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.TransferenciaAlunoResponse;
 
@@ -39,4 +40,12 @@ public interface EnrollmentTransferUseCase {
             String authorization,
             InternalRequestContext context,
             UUID id);
+
+    List<MatriculaResponse> listarMatriculas(
+            String authorization,
+            InternalRequestContext context,
+            UUID alunoId,
+            UUID turmaId,
+            UUID periodoLetivoId,
+            String status);
 }

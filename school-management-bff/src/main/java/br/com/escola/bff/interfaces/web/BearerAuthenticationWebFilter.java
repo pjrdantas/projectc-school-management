@@ -107,7 +107,8 @@ public class BearerAuthenticationWebFilter implements WebFilter {
                 || path.matches("^/api/pessoas/[^/]+/contato$")
                 || path.matches("^/api/pessoas/[^/]+/documentos$")
                 || path.matches("^/api/documentos/[^/]+$")
-                || path.matches("^/api/documentos-alunos/alunos/[^/]+$");
+                || path.matches("^/api/documentos-alunos/alunos/[^/]+$")
+                || "/api/matriculas".equals(path);
     }
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {

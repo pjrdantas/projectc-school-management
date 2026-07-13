@@ -2488,3 +2488,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Com isso, a macrofase de `documento` por aluno no
   `enrollment-document-service` chega a 0 fases restantes neste primeiro bloco
   oficial minimo.
+
+### Fase 120
+
+- A proxima entrega funcional do `enrollment-document-service` foi aberta em
+  `matricula` pelo menor recorte read-only ja estavel no legado:
+  `GET /api/matriculas`, preservando os filtros externos atuais e o payload com
+  `etapas`.
+- O `school-management-service` passou a expor `GET /internal/matriculas` com
+  contrato interno proprio para `matricula` e `etapas`, reaproveitando
+  `ConsultarMatriculasUseCase` sem alterar o controller publico nem mover
+  escrita.
+- O `enrollment-document-service` passou a consumir esse contrato interno do
+  monolito e a publicar `GET /internal/v1/matriculas`, mantendo o servico novo
+  como runtime intermediario read-only para esse bloco.
+- O `school-management-bff` passou a oficializar `GET /api/matriculas`
+  consumindo o `enrollment-document-service`, com propagacao de bearer,
+  correlation ID e contexto interno obrigatorio.
+- A validacao ficou restrita aos modulos tocados com testes automatizados no
+  monolito, no `enrollment-document-service` e no BFF.
+- Contagem funcional estimada do `enrollment-document-service`: 2 fases
+  restantes no escopo atual, ficando como proxima frente `documentos
+  administrativos` antes do fechamento de `escrita/storage/cutover`.

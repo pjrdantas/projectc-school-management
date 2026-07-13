@@ -6316,3 +6316,29 @@ Entregue nesta fase:
 
 Contagem regressiva do bloco `documento` por aluno no
 `enrollment-document-service`: 0 fases restantes.
+
+### Fase 120 - Leitura oficial minima de `matricula` com `etapas` no `enrollment-document-service`
+
+Entregue nesta fase:
+
+- foi aberta a proxima frente funcional do `enrollment-document-service` em
+  `matricula`, usando o menor recorte read-only ja operacional no legado:
+  `GET /api/matriculas` com seus filtros atuais;
+- o `school-management-service` passou a expor o contrato interno
+  `GET /internal/matriculas`, com DTO interno proprio para `matricula` e
+  `etapas`, reaproveitando `ConsultarMatriculasUseCase` sem alterar o
+  controller publico nem abrir escrita;
+- o `enrollment-document-service` passou a consumir esse contrato do monolito e
+  a publicar `GET /internal/v1/matriculas`, preservando bearer, correlation ID
+  e contexto interno obrigatorio;
+- o `school-management-bff` passou a oficializar `GET /api/matriculas`
+  consumindo o `enrollment-document-service`, mantendo o mesmo formato externo
+  de filtros (`alunoId`, `turmaId`, `periodoLetivoId`, `status`) e o payload de
+  `matricula` com `etapas`;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `enrollment-document-service` e no BFF cobrindo rota, payload e
+  propagacao de headers.
+
+Contagem regressiva funcional estimada do `enrollment-document-service`: 2
+fases restantes no escopo atual, ficando como proximas frentes `documentos
+administrativos` e depois `escrita/storage/cutover`.

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import br.com.escola.matricula.adapter.in.web.MatriculaController;
 import br.com.escola.matricula.adapter.in.web.MatriculaDocumentoExigidoAdminController;
+import br.com.escola.matricula.adapter.in.web.internal.MatriculaInternalController;
 import br.com.escola.matricula.domain.exception.MatriculaAlunoNaoEncontradoException;
 import br.com.escola.matricula.domain.exception.MatriculaAtivaDuplicadaException;
 import br.com.escola.matricula.domain.exception.MatriculaDocumentoExigidoDuplicadoException;
@@ -26,7 +27,11 @@ import br.com.escola.matricula.domain.exception.TransferenciaDadosObrigatoriosEx
 import br.com.escola.matricula.domain.exception.TurmaPeriodoInconsistenteException;
 import jakarta.servlet.http.HttpServletRequest;
 
-@RestControllerAdvice(basePackageClasses = {MatriculaController.class, MatriculaDocumentoExigidoAdminController.class})
+@RestControllerAdvice(basePackageClasses = {
+        MatriculaController.class,
+        MatriculaDocumentoExigidoAdminController.class,
+        MatriculaInternalController.class
+})
 public class EnrollmentApiExceptionHandler extends BaseApiExceptionHandler {
 
     @ExceptionHandler(MatriculaAlunoNaoEncontradoException.class)

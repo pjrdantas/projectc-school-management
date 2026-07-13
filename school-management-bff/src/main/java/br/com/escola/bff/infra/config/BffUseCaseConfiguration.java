@@ -18,6 +18,7 @@ import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentAlunoReadPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentEscolaOrigemReadPort;
+import br.com.escola.bff.application.port.out.EnrollmentDocumentMatriculaReadPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaReadPort;
 import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
 import br.com.escola.bff.application.port.out.MonolithDisciplinaWritePort;
@@ -37,6 +38,7 @@ import br.com.escola.bff.application.service.DisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.DocumentoAlunoReadProxyService;
 import br.com.escola.bff.application.service.EscolaOrigemReadProxyService;
 import br.com.escola.bff.application.service.FuncionarioReadProxyService;
+import br.com.escola.bff.application.service.MatriculaReadProxyService;
 import br.com.escola.bff.application.service.PeriodoLetivoWriteRoutingService;
 import br.com.escola.bff.application.service.PessoaCatalogReadProxyService;
 import br.com.escola.bff.application.service.PessoaDetailReadProxyService;
@@ -53,6 +55,7 @@ import br.com.escola.bff.application.usecase.ConsultarPessoaCatalogoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPessoaDetalheUseCase;
 import br.com.escola.bff.application.port.out.PeopleProfessorReadPort;
 import br.com.escola.bff.application.usecase.ConsultarFuncionarioUseCase;
+import br.com.escola.bff.application.usecase.ConsultarMatriculaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarProfessorUseCase;
 import br.com.escola.bff.application.usecase.ConsultarTransferenciaUseCase;
 import br.com.escola.bff.application.usecase.CreateDisciplinaUseCase;
@@ -126,6 +129,13 @@ public class BffUseCaseConfiguration {
             AuthContextPort authContextPort,
             EnrollmentDocumentAlunoReadPort enrollmentDocumentAlunoReadPort) {
         return new DocumentoAlunoReadProxyService(authContextPort, enrollmentDocumentAlunoReadPort);
+    }
+
+    @Bean
+    ConsultarMatriculaUseCase consultarMatriculaUseCase(
+            AuthContextPort authContextPort,
+            EnrollmentDocumentMatriculaReadPort enrollmentDocumentMatriculaReadPort) {
+        return new MatriculaReadProxyService(authContextPort, enrollmentDocumentMatriculaReadPort);
     }
 
     @Bean

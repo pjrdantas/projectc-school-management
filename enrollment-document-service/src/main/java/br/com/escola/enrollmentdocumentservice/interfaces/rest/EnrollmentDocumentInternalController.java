@@ -21,6 +21,7 @@ import br.com.escola.enrollmentdocumentservice.application.context.InternalReque
 import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemResponse;
+import br.com.escola.enrollmentdocumentservice.application.dto.MatriculaResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.TransferenciaAlunoRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.TransferenciaAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.port.in.EnrollmentTransferUseCase;
@@ -99,5 +100,22 @@ public class EnrollmentDocumentInternalController {
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
             @PathVariable @NonNull UUID id) {
         return enrollmentTransferUseCase.buscarDocumentoAlunoPorId(authorization, context, id);
+    }
+
+    @GetMapping("/matriculas")
+    public List<MatriculaResponse> listarMatriculas(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) UUID alunoId,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) UUID turmaId,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) UUID periodoLetivoId,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String status) {
+        return enrollmentTransferUseCase.listarMatriculas(
+                authorization,
+                context,
+                alunoId,
+                turmaId,
+                periodoLetivoId,
+                status);
     }
 }

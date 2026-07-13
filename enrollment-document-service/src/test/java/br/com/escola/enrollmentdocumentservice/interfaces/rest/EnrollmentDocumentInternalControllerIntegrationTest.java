@@ -235,6 +235,59 @@ class EnrollmentDocumentInternalControllerIntegrationTest {
     }
 
     @Test
+    void deveListarMatriculasNoContratoInterno() throws Exception {
+        UUID matriculaId = UUID.randomUUID();
+        UUID alunoId = UUID.randomUUID();
+        UUID etapaId = UUID.randomUUID();
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [{
+                          "id":"%s",
+                          "alunoId":"%s",
+                          "turmaId":"00000000-0000-0000-0000-000000000071",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao",
+                          "serieId":"00000000-0000-0000-0000-000000000081",
+                          "serieNome":"6 Ano",
+                          "periodoLetivoId":"00000000-0000-0000-0000-000000000091",
+                          "status":"EM_ANDAMENTO",
+                          "tipoMatricula":"PRIMEIRA_MATRICULA",
+                          "dataMatricula":"2026-07-12",
+                          "observacao":"Matricula interna",
+                          "createdAt":"2026-07-12T10:00:00",
+                          "etapas":[{
+                            "id":"%s",
+                            "descricao":"Analise documental",
+                            "ordem":1,
+                            "status":"PENDENTE",
+                            "dataInicio":"2026-07-12T10:00:00",
+                            "dataConclusao":null,
+                            "observacao":"Aguardando conferencia"
+                          }]
+                        }]
+                        """.formatted(matriculaId, alunoId, etapaId)));
+
+        mockMvc.perform(get("/internal/v1/matriculas")
+                        .param("alunoId", alunoId.toString())
+                        .param("status", "EM_ANDAMENTO")
+                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Correlation-Id", "corr-enrollment-6")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer enrollment-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(matriculaId.toString()))
+                .andExpect(jsonPath("$[0].alunoId").value(alunoId.toString()))
+                .andExpect(jsonPath("$[0].etapas[0].id").value(etapaId.toString()))
+                .andExpect(jsonPath("$[0].etapas[0].descricao").value("Analise documental"));
+
+        RecordedRequest recorded = aguardarRequisicao("GET", "/internal/matriculas?alunoId=" + alunoId + "&status=EM_ANDAMENTO");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer enrollment-user-token");
+        assertThat(recorded.getHeader("X-Correlation-Id")).isEqualTo("corr-enrollment-6");
+    }
+
+    @Test
     void deveExigirTokenInternoValido() throws Exception {
         mockMvc.perform(get("/internal/v1/escolas-origem")
                         .header("X-Correlation-Id", "corr-enrollment-3")
