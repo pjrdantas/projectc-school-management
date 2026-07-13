@@ -3430,3 +3430,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service test`.
 - Contagem regressiva do novo ciclo fechado de persistencia propria do
   `planning-ai-service`: 3 fases restantes no escopo fechado atual.
+
+### Fase 162
+
+- A Fase 6 do novo ciclo fechado de persistencia propria do
+  `planning-ai-service` migrou a leitura interna de versoes de conteudo IA para
+  priorizar a base local do servico.
+- O contrato `GET /internal/v1/ia/conteudos/{conteudoId}/versoes` foi
+  preservado e passou a consultar primeiro a persistencia propria por
+  `conteudoId` e `escolaId`, retornando o mesmo DTO interno de versao.
+- Quando as versoes ainda nao existirem localmente, o servico mantem fallback
+  explicito para o monolito, sem alterar contrato externo nem o comportamento
+  funcional esperado.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva do novo ciclo fechado de persistencia propria do
+  `planning-ai-service`: 2 fases restantes no escopo fechado atual.

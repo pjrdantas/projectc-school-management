@@ -23,16 +23,19 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
     private final PlanningAiGenerationPersistenceService planningAiGenerationPersistenceService;
     private final PlanningAiInteractionReadService planningAiInteractionReadService;
     private final PlanningAiContentReadService planningAiContentReadService;
+    private final PlanningAiContentVersionReadService planningAiContentVersionReadService;
 
     public PlanningAiReadService(
             PlanningAiReadPort planningAiReadPort,
             PlanningAiGenerationPersistenceService planningAiGenerationPersistenceService,
             PlanningAiInteractionReadService planningAiInteractionReadService,
-            PlanningAiContentReadService planningAiContentReadService) {
+            PlanningAiContentReadService planningAiContentReadService,
+            PlanningAiContentVersionReadService planningAiContentVersionReadService) {
         this.planningAiReadPort = planningAiReadPort;
         this.planningAiGenerationPersistenceService = planningAiGenerationPersistenceService;
         this.planningAiInteractionReadService = planningAiInteractionReadService;
         this.planningAiContentReadService = planningAiContentReadService;
+        this.planningAiContentVersionReadService = planningAiContentVersionReadService;
     }
 
     @Override
@@ -95,6 +98,11 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             String authorization,
             InternalRequestContext context,
             UUID conteudoId) {
+        List<ConteudoIaVersaoResponse> localVersions = planningAiContentVersionReadService
+                .listarPorEscolaEConteudo(context.escolaId(), conteudoId);
+        if (!localVersions.isEmpty()) {
+            return localVersions;
+        }
         return planningAiReadPort.listarVersoes(
                 authorization,
                 context,

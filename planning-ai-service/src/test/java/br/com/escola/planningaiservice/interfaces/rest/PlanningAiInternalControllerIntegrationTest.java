@@ -892,36 +892,47 @@ class PlanningAiInternalControllerIntegrationTest {
     void deveListarVersoesNoContratoInterno() throws Exception {
         UUID conteudoId = UUID.randomUUID();
         UUID versaoId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
 
-        mockWebServer.enqueue(new MockResponse()
-                .setHeader("Content-Type", "application/json")
-                .setBody("""
-                        [
-                          {
-                            "id":"%s",
-                            "conteudoGeradoId":"%s",
-                            "numeroVersao":2,
-                            "conteudo":"Conteudo revisado",
-                            "motivoAlteracao":"Ajuste do professor",
-                            "createdAt":"2026-07-13T11:20:00"
-                          }
-                        ]
-                        """.formatted(versaoId, conteudoId)));
+        var content = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiGeneratedContentJpaEntity();
+        content.setId(conteudoId);
+        content.setEscolaId(escolaId);
+        content.setPlanejamentoBimestralId(UUID.randomUUID());
+        content.setTitulo("Lista de fracoes");
+        content.setConteudo("Conteudo gerado");
+        content.setVersao(1);
+        content.setHashConteudo("abc123");
+        content.setAprovadoPeloProfessor(false);
+        content.setReutilizavel(true);
+        content.setAtivo(true);
+        content.setStatus("GERADO");
+        content.setTipoConteudo("ATIVIDADE");
+        content.setCreatedAt(java.time.LocalDateTime.parse("2026-07-13T11:10:00"));
+        content.setUpdatedAt(java.time.LocalDateTime.parse("2026-07-13T11:10:00"));
+        contentRepository.save(content);
+
+        var version = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiContentVersionJpaEntity();
+        version.setId(versaoId);
+        version.setEscolaId(escolaId);
+        version.setConteudoGerado(content);
+        version.setNumeroVersao(2);
+        version.setConteudo("Conteudo revisado");
+        version.setMotivoAlteracao("Ajuste do professor");
+        version.setCreatedAt(java.time.LocalDateTime.parse("2026-07-13T11:20:00"));
+        versionRepository.save(version);
 
         mockMvc.perform(get("/internal/v1/ia/conteudos/{conteudoId}/versoes", conteudoId)
                         .header("X-Internal-Token", "planning-token")
                         .header("X-Correlation-Id", "corr-planning-10")
                         .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
                         .header("Authorization", "Bearer planning-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(versaoId.toString()))
                 .andExpect(jsonPath("$[0].conteudoGeradoId").value(conteudoId.toString()))
                 .andExpect(jsonPath("$[0].numeroVersao").value(2));
 
-        RecordedRequest recorded = aguardarRequisicao();
-        assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/versoes");
-        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+        assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
     }
 
     @Test
@@ -949,6 +960,42 @@ class PlanningAiInternalControllerIntegrationTest {
 
         RecordedRequest recorded = aguardarRequisicao();
         assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/versoes");
+    }
+
+    @Test
+    void deveUsarFallbackDoMonolitoQuandoNaoHouverVersoesLocais() throws Exception {
+        UUID conteudoId = UUID.randomUUID();
+        UUID versaoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [
+                          {
+                            "id":"%s",
+                            "conteudoGeradoId":"%s",
+                            "numeroVersao":2,
+                            "conteudo":"Conteudo revisado",
+                            "motivoAlteracao":"Ajuste do professor",
+                            "createdAt":"2026-07-13T11:20:00"
+                          }
+                        ]
+                        """.formatted(versaoId, conteudoId)));
+
+        mockMvc.perform(get("/internal/v1/ia/conteudos/{conteudoId}/versoes", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-10b")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(versaoId.toString()))
+                .andExpect(jsonPath("$[0].conteudoGeradoId").value(conteudoId.toString()))
+                .andExpect(jsonPath("$[0].numeroVersao").value(2));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/versoes");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
     }
 
     private RecordedRequest aguardarRequisicao() throws InterruptedException {
