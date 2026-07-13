@@ -136,6 +136,7 @@ class BearerAuthenticationWebFilterTest {
                 "/api/pessoas/00000000-0000-0000-0000-000000000401/enderecos",
                 "/api/pessoas/00000000-0000-0000-0000-000000000401/contato",
                 "/api/pessoas/00000000-0000-0000-0000-000000000401/documentos",
+                "/api/documentos",
                 "/api/documentos/00000000-0000-0000-0000-000000000501",
                 "/api/documentos-alunos/alunos/00000000-0000-0000-0000-000000000601",
                 "/api/matriculas"

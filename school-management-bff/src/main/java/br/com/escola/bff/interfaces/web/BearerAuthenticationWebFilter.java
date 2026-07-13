@@ -106,6 +106,7 @@ public class BearerAuthenticationWebFilter implements WebFilter {
                 || path.matches("^/api/pessoas/[^/]+/enderecos$")
                 || path.matches("^/api/pessoas/[^/]+/contato$")
                 || path.matches("^/api/pessoas/[^/]+/documentos$")
+                || "/api/documentos".equals(path)
                 || path.matches("^/api/documentos/[^/]+$")
                 || path.matches("^/api/documentos-alunos/alunos/[^/]+$")
                 || "/api/matriculas".equals(path);

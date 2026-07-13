@@ -6342,3 +6342,28 @@ Entregue nesta fase:
 Contagem regressiva funcional estimada do `enrollment-document-service`: 2
 fases restantes no escopo atual, ficando como proximas frentes `documentos
 administrativos` e depois `escrita/storage/cutover`.
+
+### Fase 121 - Leitura oficial minima de `documentos administrativos` no `enrollment-document-service`
+
+Entregue nesta fase:
+
+- foi oficializado no `school-management-bff` o recorte minimo restante de
+  `documentos administrativos` sem colisao com o bloco de `pessoa_documento`:
+  `GET /api/documentos` por `entidadeTipo` e `entidadeId`;
+- o `school-management-service` passou a expor `GET /internal/documentos`
+  reaproveitando `ListarDocumentosPorEntidadeUseCase`, com DTO interno proprio e
+  sem alterar upload, exclusao, storage ou o detalhe publico
+  `/api/documentos/{id}` hoje ainda associado ao contrato de `people-service`;
+- o `enrollment-document-service` passou a consumir esse contrato interno do
+  monolito e a publicar `GET /internal/v1/documentos`, mantendo o runtime novo
+  como fronteira read-only para o bloco generico de documentos;
+- o `school-management-bff` passou a publicar `GET /api/documentos` consumindo o
+  `enrollment-document-service`, preservando bearer, correlation ID, contexto
+  interno obrigatorio e convivendo sem conflito com `GET /api/documentos/{id}`
+  ainda servido pelo `people-service`;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `enrollment-document-service` e no BFF cobrindo rota, payload e
+  propagacao de headers.
+
+Contagem regressiva funcional estimada do `enrollment-document-service`: 1
+fase restante no escopo atual, dedicada a `escrita/storage/cutover`.

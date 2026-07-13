@@ -12,6 +12,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 import br.com.escola.enrollmentdocumentservice.application.context.InternalHeaders;
 import br.com.escola.enrollmentdocumentservice.application.context.InternalRequestContext;
+import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemResponse;
@@ -251,6 +252,35 @@ public class MonolithEnrollmentTransferClient implements EnrollmentTransferPort 
         } catch (ResourceAccessException exception) {
             registrarErro("listarMatriculas", exception);
             throw new DownstreamUnavailableException("Monolito indisponivel para leitura de matriculas", exception);
+        }
+    }
+
+    @Override
+    public List<DocumentoResponse> listarDocumentosPorEntidade(
+            String authorization,
+            InternalRequestContext context,
+            String entidadeTipo,
+            UUID entidadeId) {
+        try {
+            String uri = UriComponentsBuilder.fromPath("/internal/documentos")
+                    .queryParam("entidadeTipo", entidadeTipo)
+                    .queryParam("entidadeId", entidadeId)
+                    .build()
+                    .toUriString();
+            List<DocumentoResponse> response = restClient.get()
+                    .uri(uri)
+                    .headers(headers -> enrichHeaders(headers, authorization, context))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<DocumentoResponse>>() {
+                    });
+            registrarRequisicao("listarDocumentosPorEntidade", "success");
+            return response == null ? List.of() : response;
+        } catch (RestClientResponseException exception) {
+            registrarErro("listarDocumentosPorEntidade", exception);
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            registrarErro("listarDocumentosPorEntidade", exception);
+            throw new DownstreamUnavailableException("Monolito indisponivel para leitura de documentos administrativos", exception);
         }
     }
 

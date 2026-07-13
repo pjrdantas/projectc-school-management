@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.enrollmentdocumentservice.application.context.InternalHeaders;
 import br.com.escola.enrollmentdocumentservice.application.context.InternalRequestContext;
+import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemResponse;
@@ -117,5 +118,18 @@ public class EnrollmentDocumentInternalController {
                 turmaId,
                 periodoLetivoId,
                 status);
+    }
+
+    @GetMapping("/documentos")
+    public List<DocumentoResponse> listarDocumentosPorEntidade(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @org.springframework.web.bind.annotation.RequestParam String entidadeTipo,
+            @org.springframework.web.bind.annotation.RequestParam UUID entidadeId) {
+        return enrollmentTransferUseCase.listarDocumentosPorEntidade(
+                authorization,
+                context,
+                entidadeTipo,
+                entidadeId);
     }
 }

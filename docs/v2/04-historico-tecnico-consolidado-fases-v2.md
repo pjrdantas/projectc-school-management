@@ -2510,3 +2510,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Contagem funcional estimada do `enrollment-document-service`: 2 fases
   restantes no escopo atual, ficando como proxima frente `documentos
   administrativos` antes do fechamento de `escrita/storage/cutover`.
+
+### Fase 121
+
+- A frente de `documentos administrativos` no `enrollment-document-service` foi
+  aberta pelo menor recorte read-only restante sem conflitar com o bloco de
+  `pessoa_documento`: `GET /api/documentos` por `entidadeTipo` e `entidadeId`.
+- O `school-management-service` passou a expor `GET /internal/documentos` com
+  contrato interno proprio, reaproveitando `ListarDocumentosPorEntidadeUseCase`
+  sem alterar upload, exclusao, storage ou o detalhe publico
+  `/api/documentos/{id}` hoje ainda mantido no `people-service`.
+- O `enrollment-document-service` passou a consumir esse contrato interno do
+  monolito e a publicar `GET /internal/v1/documentos`, fechando o bloco
+  generico de leitura oficial de documentos administrativos no runtime novo.
+- O `school-management-bff` passou a oficializar `GET /api/documentos`
+  consumindo o `enrollment-document-service`, preservando bearer, correlation ID
+  e contexto interno obrigatorio.
+- A validacao ficou restrita aos modulos tocados com testes automatizados no
+  monolito, no `enrollment-document-service` e no BFF.
+- Contagem funcional estimada do `enrollment-document-service`: 1 fase restante
+  no escopo atual, dedicada ao fechamento de `escrita/storage/cutover`.

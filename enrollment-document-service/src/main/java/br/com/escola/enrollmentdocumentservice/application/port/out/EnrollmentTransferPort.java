@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import br.com.escola.enrollmentdocumentservice.application.context.InternalRequestContext;
+import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemResponse;
@@ -48,4 +49,10 @@ public interface EnrollmentTransferPort {
             UUID turmaId,
             UUID periodoLetivoId,
             String status);
+
+    List<DocumentoResponse> listarDocumentosPorEntidade(
+            String authorization,
+            InternalRequestContext context,
+            String entidadeTipo,
+            UUID entidadeId);
 }
