@@ -3365,3 +3365,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service test`.
 - Contagem regressiva do novo ciclo fechado de persistencia propria do
   `planning-ai-service`: 7 fases restantes no escopo fechado atual.
+
+### Fase 158
+
+- A Fase 2 do novo ciclo fechado de persistencia propria do
+  `planning-ai-service` passou a gravar localmente, de forma aditiva, a
+  `planejamento_ia_interacao` e o `planejamento_ia_conteudo_gerado` apos a
+  geracao bem-sucedida de conteudo IA no monolito.
+- O contrato interno `POST /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`
+  foi preservado e continuou usando o mesmo downstream oficial, sem mudar
+  contrato publico, BFF, flags ou comportamento externo.
+- A persistencia local foi mantida desacoplada por IDs de referencia, usando o
+  contexto interno do request e o payload oficial de resposta para preencher a
+  base propria aberta na fase anterior.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva do novo ciclo fechado de persistencia propria do
+  `planning-ai-service`: 6 fases restantes no escopo fechado atual.

@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,6 +22,10 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PlanningAiGeneratedContentJpaRepository;
+import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PlanningAiInteractionJpaRepository;
+import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PedagogicalContentLibraryJpaRepository;
+import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PlanningAiContentVersionJpaRepository;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -34,6 +39,26 @@ class PlanningAiInternalControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private PlanningAiInteractionJpaRepository interactionRepository;
+
+    @Autowired
+    private PlanningAiGeneratedContentJpaRepository contentRepository;
+
+    @Autowired
+    private PlanningAiContentVersionJpaRepository versionRepository;
+
+    @Autowired
+    private PedagogicalContentLibraryJpaRepository libraryRepository;
+
+    @BeforeEach
+    void limparPersistenciaLocal() {
+        libraryRepository.deleteAll();
+        versionRepository.deleteAll();
+        contentRepository.deleteAll();
+        interactionRepository.deleteAll();
+    }
 
     @BeforeAll
     static void beforeAll() throws IOException {
@@ -112,6 +137,8 @@ class PlanningAiInternalControllerIntegrationTest {
         UUID planejamentoId = UUID.randomUUID();
         UUID conteudoId = UUID.randomUUID();
         UUID interacaoId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+        UUID usuarioId = UUID.randomUUID();
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(201)
@@ -142,8 +169,8 @@ class PlanningAiInternalControllerIntegrationTest {
         mockMvc.perform(post("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos", planejamentoId)
                         .header("X-Internal-Token", "planning-token")
                         .header("X-Correlation-Id", "corr-planning-12")
-                        .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("X-Usuario-Id", usuarioId)
+                        .header("X-Escola-Id", escolaId)
                         .header("Authorization", "Bearer planning-user-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -163,11 +190,34 @@ class PlanningAiInternalControllerIntegrationTest {
         assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/conteudos");
         assertThat(recorded.getMethod()).isEqualTo("POST");
         assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+        assertThat(interactionRepository.findById(interacaoId))
+                .isPresent()
+                .get()
+                .satisfies(interaction -> {
+                    assertThat(interaction.getEscolaId()).isEqualTo(escolaId);
+                    assertThat(interaction.getPlanejamentoBimestralId()).isEqualTo(planejamentoId);
+                    assertThat(interaction.getUsuarioId()).isEqualTo(usuarioId);
+                    assertThat(interaction.getPromptProfessor()).isEqualTo("Monte uma atividade sobre fracoes");
+                    assertThat(interaction.getRespostaIa()).isEqualTo("Conteudo gerado");
+                });
+        assertThat(contentRepository.findById(conteudoId))
+                .isPresent()
+                .get()
+                .satisfies(content -> {
+                    assertThat(content.getEscolaId()).isEqualTo(escolaId);
+                    assertThat(content.getPlanejamentoBimestralId()).isEqualTo(planejamentoId);
+                    assertThat(content.getInteracao()).isNotNull();
+                    assertThat(content.getInteracao().getId()).isEqualTo(interacaoId);
+                    assertThat(content.getStatus()).isEqualTo("GERADO");
+                    assertThat(content.getTipoConteudo()).isEqualTo("ATIVIDADE");
+                });
     }
 
     @Test
     void devePropagarNotFoundQuandoPlanejamentoNaoExisteNaGeracao() throws Exception {
         UUID planejamentoId = UUID.randomUUID();
+        UUID conteudoIdInexistente = UUID.randomUUID();
+        UUID interacaoIdInexistente = UUID.randomUUID();
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(404)
@@ -198,6 +248,10 @@ class PlanningAiInternalControllerIntegrationTest {
         RecordedRequest recorded = aguardarRequisicao();
         assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/conteudos");
         assertThat(recorded.getMethod()).isEqualTo("POST");
+        assertThat(interactionRepository.findById(interacaoIdInexistente)).isNotPresent();
+        assertThat(contentRepository.findById(conteudoIdInexistente)).isNotPresent();
+        assertThat(interactionRepository.count()).isZero();
+        assertThat(contentRepository.count()).isZero();
     }
 
     @Test

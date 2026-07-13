@@ -7373,3 +7373,27 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado de persistencia propria do
 `planning-ai-service`: 7 fases restantes no escopo fechado atual.
+
+### Fase 158 - Gravacao aditiva local da geracao de conteudo IA
+
+Entregue nesta fase:
+
+- o contrato interno existente de geracao em
+  `POST /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`
+  permaneceu inalterado e continuou proxyando a chamada oficial para o
+  monolito;
+- apos resposta bem-sucedida do monolito, o `planning-ai-service` passou a
+  gravar de forma aditiva a `planejamento_ia_interacao` e o
+  `planejamento_ia_conteudo_gerado` na sua persistencia propria;
+- essa gravacao usa apenas IDs de referencia e os dados ja retornados pelo
+  contrato oficial atual, sem abrir leitura local, sem versionamento local,
+  sem biblioteca local ativa e sem qualquer alteracao no BFF;
+- a fase manteve o criterio incremental: em caso de erro do downstream, a
+  resposta e o comportamento externo continuam os mesmos e nada e oficializado
+  fora do modulo;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo schema local, contrato interno
+  e a nova persistencia aditiva apos geracao bem-sucedida.
+
+Contagem regressiva do novo ciclo fechado de persistencia propria do
+`planning-ai-service`: 6 fases restantes no escopo fechado atual.

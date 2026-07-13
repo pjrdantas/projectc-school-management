@@ -20,9 +20,13 @@ import br.com.escola.planningaiservice.application.port.out.PlanningAiReadPort;
 public class PlanningAiReadService implements PlanningAiReadUseCase {
 
     private final PlanningAiReadPort planningAiReadPort;
+    private final PlanningAiGenerationPersistenceService planningAiGenerationPersistenceService;
 
-    public PlanningAiReadService(PlanningAiReadPort planningAiReadPort) {
+    public PlanningAiReadService(
+            PlanningAiReadPort planningAiReadPort,
+            PlanningAiGenerationPersistenceService planningAiGenerationPersistenceService) {
         this.planningAiReadPort = planningAiReadPort;
+        this.planningAiGenerationPersistenceService = planningAiGenerationPersistenceService;
     }
 
     @Override
@@ -92,11 +96,15 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             InternalRequestContext context,
             UUID planejamentoId,
             GerarConteudoIaRequest request) {
-        return planningAiReadPort.gerarConteudo(
+        ConteudoIaResponse response = planningAiReadPort.gerarConteudo(
                 authorization,
                 context,
                 planejamentoId,
                 request);
+        return planningAiGenerationPersistenceService.persistirGeracao(
+                context,
+                request,
+                response);
     }
 
     @Override
