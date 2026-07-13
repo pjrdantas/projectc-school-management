@@ -26,6 +26,7 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
     private final PlanningAiContentVersionReadService planningAiContentVersionReadService;
     private final PlanningAiLibraryPublicationPersistenceService planningAiLibraryPublicationPersistenceService;
     private final PlanningAiLibraryReadService planningAiLibraryReadService;
+    private final PlanningAiContentVersionPersistenceService planningAiContentVersionPersistenceService;
 
     public PlanningAiReadService(
             PlanningAiReadPort planningAiReadPort,
@@ -34,7 +35,8 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             PlanningAiContentReadService planningAiContentReadService,
             PlanningAiContentVersionReadService planningAiContentVersionReadService,
             PlanningAiLibraryPublicationPersistenceService planningAiLibraryPublicationPersistenceService,
-            PlanningAiLibraryReadService planningAiLibraryReadService) {
+            PlanningAiLibraryReadService planningAiLibraryReadService,
+            PlanningAiContentVersionPersistenceService planningAiContentVersionPersistenceService) {
         this.planningAiReadPort = planningAiReadPort;
         this.planningAiGenerationPersistenceService = planningAiGenerationPersistenceService;
         this.planningAiInteractionReadService = planningAiInteractionReadService;
@@ -42,6 +44,7 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
         this.planningAiContentVersionReadService = planningAiContentVersionReadService;
         this.planningAiLibraryPublicationPersistenceService = planningAiLibraryPublicationPersistenceService;
         this.planningAiLibraryReadService = planningAiLibraryReadService;
+        this.planningAiContentVersionPersistenceService = planningAiContentVersionPersistenceService;
     }
 
     @Override
@@ -143,11 +146,16 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             InternalRequestContext context,
             UUID conteudoId,
             CriarVersaoConteudoIaRequest request) {
-        return planningAiReadPort.criarVersao(
+        ConteudoIaVersaoResponse response = planningAiReadPort.criarVersao(
                 authorization,
                 context,
                 conteudoId,
                 request);
+        return planningAiContentVersionPersistenceService.persistirCriacaoVersao(
+                context,
+                conteudoId,
+                request,
+                response);
     }
 
     @Override

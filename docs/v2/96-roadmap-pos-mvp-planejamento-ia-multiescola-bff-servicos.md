@@ -7531,3 +7531,26 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado de persistencia propria do
 `planning-ai-service`: 0 fases restantes no escopo fechado atual.
+
+### Fase 165 - Abertura do novo ciclo de escrita local para criacao de versao
+
+Entregue nesta fase:
+
+- foi aberto um novo ciclo fechado para desacoplar as escritas remanescentes do
+  `planning-ai-service`, iniciando pela criacao de versao de conteudo IA;
+- o contrato interno existente
+  `POST /internal/v1/ia/conteudos/{conteudoId}/versoes` permaneceu inalterado e
+  continuou proxyando a chamada oficial para o monolito;
+- apos resposta bem-sucedida do monolito, o `planning-ai-service` passou a
+  gravar de forma aditiva a `planejamento_ia_conteudo_versao` na sua
+  persistencia propria e a atualizar o `planejamento_ia_conteudo_gerado` local
+  com o novo conteudo, numero de versao e `updatedAt`;
+- essa gravacao usa apenas o contexto interno e o payload oficial retornado pelo
+  contrato atual, sem alterar BFF, sem cutover e sem oficializar ainda
+  aprovacao local como fonte principal;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo o contrato interno e a nova
+  persistencia local aditiva apos criacao bem-sucedida da versao.
+
+Contagem regressiva do novo ciclo fechado de escritas remanescentes do
+`planning-ai-service`: 3 fases restantes no escopo fechado atual.
