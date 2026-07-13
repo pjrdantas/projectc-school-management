@@ -6946,3 +6946,26 @@ Entregue nesta fase:
 
 Contagem regressiva da macrofase inicial de `planning-ai-service`: 8 fases
 restantes no escopo fechado atual.
+
+### Fase 141 - Leitura interna inicial de interacoes de planejamento IA
+
+Entregue nesta fase:
+
+- o `planning-ai-service` abriu o proximo recorte read-only interno do bloco em
+  `GET /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/interacoes`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `GET /api/planejamentos-bimestrais/{planejamentoId}/ia/interacoes`,
+  preservando o payload oficial de interacoes de IA do planejamento;
+- foi separado no codigo novo o DTO proprio de interacao de planejamento IA,
+  sem acoplar essa leitura ao contrato da biblioteca pedagogica;
+- o comportamento de erro para planejamento inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional do monolito;
+- para manter o recorte minimo seguro, esta fase permaneceu sem BFF, sem
+  escrita migrada, sem geracao de conteudo, sem versoes, sem aprovacao e sem
+  publicacao na biblioteca;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo contrato interno da nova rota,
+  propagacao de bearer e preservacao de `404` para planejamento inexistente.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 7 fases
+restantes no escopo fechado atual.

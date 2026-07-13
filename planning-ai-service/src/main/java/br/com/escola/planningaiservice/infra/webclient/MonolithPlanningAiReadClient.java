@@ -13,6 +13,7 @@ import org.springframework.web.util.UriBuilder;
 
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
+import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
 import br.com.escola.planningaiservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.planningaiservice.application.exception.PlanningAiServiceResourceNotFoundException;
 import br.com.escola.planningaiservice.application.port.out.PlanningAiReadPort;
@@ -51,6 +52,32 @@ public class MonolithPlanningAiReadClient implements PlanningAiReadPort {
         } catch (ResourceAccessException exception) {
             throw new DownstreamUnavailableException(
                     "Monolito indisponivel para consulta da biblioteca pedagogica",
+                    exception);
+        }
+    }
+
+    @Override
+    public List<PlanejamentoIaInteracaoResponse> listarInteracoes(
+            String authorization,
+            InternalRequestContext context,
+            UUID planejamentoId) {
+        try {
+            List<PlanejamentoIaInteracaoResponse> response = restClient.get()
+                    .uri("/api/planejamentos-bimestrais/{planejamentoId}/ia/interacoes", planejamentoId)
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, authorization))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<PlanejamentoIaInteracaoResponse>>() {
+                    });
+            return response == null ? List.of() : response;
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                throw new PlanningAiServiceResourceNotFoundException(
+                        "Consulta de interacoes de planejamento IA nao encontrada");
+            }
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            throw new DownstreamUnavailableException(
+                    "Monolito indisponivel para consulta de interacoes de planejamento IA",
                     exception);
         }
     }

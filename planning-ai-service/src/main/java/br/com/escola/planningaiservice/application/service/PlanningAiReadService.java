@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
+import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
 import br.com.escola.planningaiservice.application.port.in.PlanningAiReadUseCase;
 import br.com.escola.planningaiservice.application.port.out.PlanningAiReadPort;
 
@@ -34,5 +35,16 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
                 disciplinaId,
                 tipoConteudo,
                 tema);
+    }
+
+    @Override
+    public List<PlanejamentoIaInteracaoResponse> listarInteracoes(
+            String authorization,
+            InternalRequestContext context,
+            UUID planejamentoId) {
+        return planningAiReadPort.listarInteracoes(
+                authorization,
+                context,
+                planejamentoId);
     }
 }

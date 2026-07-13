@@ -141,6 +141,74 @@ class PlanningAiInternalControllerIntegrationTest {
                 .andExpect(jsonPath("$.error").value("INTERNAL_UNAUTHORIZED"));
     }
 
+    @Test
+    void deveListarInteracoesNoContratoInterno() throws Exception {
+        UUID planejamentoId = UUID.randomUUID();
+        UUID interacaoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [
+                          {
+                            "id":"%s",
+                            "planejamentoBimestralId":"%s",
+                            "escolaId":"%s",
+                            "escolaNome":"Escola Central",
+                            "promptProfessor":"Monte uma atividade sobre fracoes",
+                            "respostaIA":"Sugestao de atividade",
+                            "modeloIA":"gpt-4.1",
+                            "tokensEntrada":120,
+                            "tokensSaida":340,
+                            "custoEstimado":1.25,
+                            "createdAt":"2026-07-13T11:00:00"
+                          }
+                        ]
+                        """.formatted(interacaoId, planejamentoId, UUID.randomUUID())));
+
+        mockMvc.perform(get("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/interacoes", planejamentoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-4")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(interacaoId.toString()))
+                .andExpect(jsonPath("$[0].planejamentoBimestralId").value(planejamentoId.toString()))
+                .andExpect(jsonPath("$[0].modeloIA").value("gpt-4.1"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/interacoes");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+    }
+
+    @Test
+    void devePropagarNotFoundQuandoPlanejamentoNaoExisteNasInteracoes() throws Exception {
+        UUID planejamentoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(404)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "error":"RESOURCE_NOT_FOUND",
+                          "message":"Planejamento bimestral nao encontrado"
+                        }
+                        """));
+
+        mockMvc.perform(get("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/interacoes", planejamentoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-5")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/interacoes");
+    }
+
     private RecordedRequest aguardarRequisicao() throws InterruptedException {
         RecordedRequest recorded = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
         assertThat(recorded).isNotNull();
