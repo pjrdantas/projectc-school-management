@@ -6456,3 +6456,33 @@ Entregue nesta fase:
 
 Contagem regressiva funcional estimada do `pedagogical-service`: 8 fases
 restantes no escopo atual planejado.
+
+### Fase 125 - Primeiro recorte read-only de `historico escolar` no `pedagogical-service`
+
+Entregue nesta fase:
+
+- a macrofase de `historico escolar` foi iniciada pelo menor recorte read-only
+  explicitamente recomendado no roadmap: carregamento da nova tela em modo
+  cadastro e edicao, sem tocar salvamento, importacao de PDF ou workflow mais
+  pesado;
+- o `school-management-service` passou a expor
+  `GET /internal/historicos-escolares/novo` e
+  `GET /internal/historicos-escolares/{id}/carregamento`, reaproveitando
+  `HistoricoEscolarService.carregarNovo(...)` e
+  `HistoricoEscolarService.carregarParaEdicao(...)`;
+- o `pedagogical-service` passou a publicar
+  `GET /internal/v1/historicos-escolares/novo` e
+  `GET /internal/v1/historicos-escolares/{id}/carregamento`, mantendo o
+  monolito como autoridade funcional e isolando o contrato backend/backend da
+  nova experiencia de leitura de `historico escolar`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/historicos-escolares/novo` e
+  `GET /api/historicos-escolares/{id}/carregamento` consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno e
+  o payload externo atual;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, query params,
+  payload e propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 7 fases
+restantes no escopo atual planejado.

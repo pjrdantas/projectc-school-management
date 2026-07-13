@@ -175,6 +175,106 @@ class PedagogicalInternalControllerIntegrationTest {
         assertThat(recorded.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-3");
     }
 
+    @Test
+    void deveCarregarHistoricoNovoNoContratoInterno() throws Exception {
+        UUID alunoId = UUID.randomUUID();
+        UUID matriculaId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "contexto":{
+                            "idHistoricoEscolar":null,
+                            "idAluno":"%s",
+                            "idMatricula":"%s",
+                            "modo":"CADASTRO",
+                            "status":"RASCUNHO",
+                            "serieMatriculaAtual":6,
+                            "serieConcluidaOrigem":5,
+                            "escolaOrigem":"Escola Origem",
+                            "dataTransferencia":"2026-07-12",
+                            "bloqueado":false
+                          },
+                          "cabecalho":null,
+                          "aluno":null,
+                          "periodos":[],
+                          "baseComum":[],
+                          "parteDiversificada":[],
+                          "totais":null,
+                          "estudosRealizados":[],
+                          "observacoes":"Observacoes",
+                          "certificado":null,
+                          "pendencias":[]
+                        }
+                        """.formatted(alunoId, matriculaId)));
+
+        mockMvc.perform(get("/internal/v1/historicos-escolares/novo")
+                        .param("idAluno", alunoId.toString())
+                        .param("idMatricula", matriculaId.toString())
+                        .header("X-Internal-Token", "pedagogical-token")
+                        .header("X-Correlation-Id", "corr-pedagogical-4")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer pedagogical-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.contexto.idAluno").value(alunoId.toString()))
+                .andExpect(jsonPath("$.contexto.idMatricula").value(matriculaId.toString()))
+                .andExpect(jsonPath("$.contexto.modo").value("CADASTRO"));
+
+        RecordedRequest recorded = aguardarRequisicao(
+                "GET",
+                "/internal/historicos-escolares/novo?idAluno=" + alunoId + "&idMatricula=" + matriculaId + "&modo=CADASTRO");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer pedagogical-user-token");
+    }
+
+    @Test
+    void deveCarregarHistoricoParaEdicaoNoContratoInterno() throws Exception {
+        UUID historicoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "contexto":{
+                            "idHistoricoEscolar":"%s",
+                            "idAluno":"00000000-0000-0000-0000-000000000021",
+                            "idMatricula":"00000000-0000-0000-0000-000000000031",
+                            "modo":"EDICAO",
+                            "status":"RASCUNHO",
+                            "serieMatriculaAtual":6,
+                            "serieConcluidaOrigem":5,
+                            "escolaOrigem":"Escola Origem",
+                            "dataTransferencia":"2026-07-12",
+                            "bloqueado":false
+                          },
+                          "cabecalho":null,
+                          "aluno":null,
+                          "periodos":[],
+                          "baseComum":[],
+                          "parteDiversificada":[],
+                          "totais":null,
+                          "estudosRealizados":[],
+                          "observacoes":"Observacoes",
+                          "certificado":null,
+                          "pendencias":[]
+                        }
+                        """.formatted(historicoId)));
+
+        mockMvc.perform(get("/internal/v1/historicos-escolares/{id}/carregamento", historicoId)
+                        .header("X-Internal-Token", "pedagogical-token")
+                        .header("X-Correlation-Id", "corr-pedagogical-5")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer pedagogical-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.contexto.idHistoricoEscolar").value(historicoId.toString()))
+                .andExpect(jsonPath("$.contexto.modo").value("EDICAO"));
+
+        RecordedRequest recorded = aguardarRequisicao("GET", "/internal/historicos-escolares/" + historicoId + "/carregamento");
+        assertThat(recorded.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-5");
+    }
+
     private RecordedRequest aguardarRequisicao(String method, String path) throws InterruptedException {
         RecordedRequest recorded = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
         assertThat(recorded).isNotNull();

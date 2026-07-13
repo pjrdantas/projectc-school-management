@@ -2608,3 +2608,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl pedagogical-service,school-management-bff "-Dtest=PedagogicalInternalControllerIntegrationTest,PedagogicalBoletimReadProxyIntegrationTest" test`.
 - Contagem funcional estimada do `pedagogical-service`: 8 fases restantes no
   escopo atual planejado.
+
+### Fase 125
+
+- A Fase 3 do `pedagogical-service` iniciou o bloco read-only de
+  `historico escolar` pelo menor recorte indicado no roadmap: carregamento da
+  nova tela em modo cadastro e edicao, sem tocar create/update/delete,
+  importacao de PDF ou geracao por boletim.
+- O `school-management-service` passou a expor
+  `GET /internal/historicos-escolares/novo` e
+  `GET /internal/historicos-escolares/{id}/carregamento`, reaproveitando o
+  `HistoricoEscolarService` existente e sem ampliar escopo para escrita.
+- O `pedagogical-service` passou a expor
+  `GET /internal/v1/historicos-escolares/novo` e
+  `GET /internal/v1/historicos-escolares/{id}/carregamento` consumindo o
+  monolito por contrato interno proprio.
+- O `school-management-bff` passou a oficializar
+  `GET /api/historicos-escolares/novo` e
+  `GET /api/historicos-escolares/{id}/carregamento` consumindo o
+  `pedagogical-service`, preservando o contrato externo atual.
+- A validacao desta fase ficou restrita aos modulos tocados e sera executada
+  com testes focados no monolito, no `pedagogical-service` e no BFF.
+- Contagem funcional estimada do `pedagogical-service`: 7 fases restantes no
+  escopo atual planejado.
