@@ -18,4 +18,14 @@ public interface ConsultarAulaUseCase {
             String authorization,
             String correlationId,
             UUID aulaId);
+
+    Mono<ResponseEntity<String>> listarFrequenciaProfessor(
+            String authorization,
+            String correlationId,
+            UUID aulaId);
+
+    Mono<ResponseEntity<String>> listarFrequenciasAlunos(
+            String authorization,
+            String correlationId,
+            UUID aulaId);
 }

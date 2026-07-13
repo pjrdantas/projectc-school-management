@@ -85,4 +85,78 @@ public class PedagogicalAulaClient extends AbstractDownstreamClientSupport imple
                 .timeout(properties.responseTimeout())
                 .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
     }
+
+    @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> registrarFrequenciaProfessor(
+            UUID aulaId,
+            String requestBody,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.post()
+                .uri("/internal/v1/aulas/{id}/frequencia-professor", aulaId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .bodyValue(requestBody)
+                .exchangeToMono(response -> handle(response, "Pedagogical service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
+    }
+
+    @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> listarFrequenciaProfessor(
+            UUID aulaId,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.get()
+                .uri("/internal/v1/aulas/{id}/frequencia-professor", aulaId)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Pedagogical service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
+    }
+
+    @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> registrarFrequenciaAluno(
+            UUID aulaId,
+            String requestBody,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.post()
+                .uri("/internal/v1/aulas/{id}/frequencias-alunos", aulaId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .bodyValue(requestBody)
+                .exchangeToMono(response -> handle(response, "Pedagogical service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
+    }
+
+    @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> listarFrequenciasAlunos(
+            UUID aulaId,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.get()
+                .uri("/internal/v1/aulas/{id}/frequencias-alunos", aulaId)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Pedagogical service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
+    }
 }

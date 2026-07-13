@@ -21,6 +21,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import br.com.escola.professor.adapter.in.web.dto.AulaRequest;
 import br.com.escola.professor.adapter.in.web.dto.AulaResponse;
+import br.com.escola.professor.adapter.in.web.dto.FrequenciaAlunoRequest;
+import br.com.escola.professor.adapter.in.web.dto.FrequenciaAlunoResponse;
+import br.com.escola.professor.adapter.in.web.dto.FrequenciaProfessorRequest;
+import br.com.escola.professor.adapter.in.web.dto.FrequenciaProfessorResponse;
 import br.com.escola.professor.application.service.DiarioAulaService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -90,6 +94,84 @@ class AulaInternalControllerTest {
         verify(diarioAulaService).buscarAulaPorId(aulaId);
     }
 
+    @Test
+    void deveRegistrarFrequenciaProfessorNoContratoInterno() throws Exception {
+        DiarioAulaService diarioAulaService = Mockito.mock(DiarioAulaService.class);
+        UUID aulaId = UUID.randomUUID();
+
+        when(diarioAulaService.registrarFrequenciaProfessor(Mockito.eq(aulaId), Mockito.any(FrequenciaProfessorRequest.class)))
+                .thenReturn(frequenciaProfessorResponse(aulaId));
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new AulaInternalController(diarioAulaService)).build();
+
+        mockMvc.perform(post("/internal/aulas/{id}/frequencia-professor", aulaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new FrequenciaProfessorRequest(true, "Presente"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.aulaId").value(aulaId.toString()))
+                .andExpect(jsonPath("$.professorNome").value("Professor Interno"));
+
+        verify(diarioAulaService).registrarFrequenciaProfessor(Mockito.eq(aulaId), Mockito.any(FrequenciaProfessorRequest.class));
+    }
+
+    @Test
+    void deveListarFrequenciaProfessorNoContratoInterno() throws Exception {
+        DiarioAulaService diarioAulaService = Mockito.mock(DiarioAulaService.class);
+        UUID aulaId = UUID.randomUUID();
+
+        when(diarioAulaService.listarFrequenciaProfessor(aulaId)).thenReturn(List.of(frequenciaProfessorResponse(aulaId)));
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new AulaInternalController(diarioAulaService)).build();
+
+        mockMvc.perform(get("/internal/aulas/{id}/frequencia-professor", aulaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].aulaId").value(aulaId.toString()))
+                .andExpect(jsonPath("$[0].professorNome").value("Professor Interno"));
+
+        verify(diarioAulaService).listarFrequenciaProfessor(aulaId);
+    }
+
+    @Test
+    void deveRegistrarFrequenciaAlunoNoContratoInterno() throws Exception {
+        DiarioAulaService diarioAulaService = Mockito.mock(DiarioAulaService.class);
+        UUID aulaId = UUID.randomUUID();
+        UUID matriculaId = UUID.randomUUID();
+
+        when(diarioAulaService.registrarFrequenciaAluno(Mockito.eq(aulaId), Mockito.any(FrequenciaAlunoRequest.class)))
+                .thenReturn(frequenciaAlunoResponse(aulaId, matriculaId));
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new AulaInternalController(diarioAulaService)).build();
+
+        mockMvc.perform(post("/internal/aulas/{id}/frequencias-alunos", aulaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new FrequenciaAlunoRequest(matriculaId, "PRESENTE", "Participou"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.aulaId").value(aulaId.toString()))
+                .andExpect(jsonPath("$.matriculaId").value(matriculaId.toString()))
+                .andExpect(jsonPath("$.alunoNome").value("Aluno Interno"));
+
+        verify(diarioAulaService).registrarFrequenciaAluno(Mockito.eq(aulaId), Mockito.any(FrequenciaAlunoRequest.class));
+    }
+
+    @Test
+    void deveListarFrequenciasAlunosNoContratoInterno() throws Exception {
+        DiarioAulaService diarioAulaService = Mockito.mock(DiarioAulaService.class);
+        UUID aulaId = UUID.randomUUID();
+        UUID matriculaId = UUID.randomUUID();
+
+        when(diarioAulaService.listarFrequenciasAlunos(aulaId)).thenReturn(List.of(frequenciaAlunoResponse(aulaId, matriculaId)));
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new AulaInternalController(diarioAulaService)).build();
+
+        mockMvc.perform(get("/internal/aulas/{id}/frequencias-alunos", aulaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].aulaId").value(aulaId.toString()))
+                .andExpect(jsonPath("$[0].matriculaId").value(matriculaId.toString()))
+                .andExpect(jsonPath("$[0].alunoNome").value("Aluno Interno"));
+
+        verify(diarioAulaService).listarFrequenciasAlunos(aulaId);
+    }
+
     private AulaRequest aulaRequest(UUID alocacaoId) {
         return new AulaRequest(
                 alocacaoId,
@@ -120,5 +202,32 @@ class AulaInternalControllerTest {
                 "Observacao interna",
                 true,
                 LocalDateTime.of(2038, 3, 10, 7, 0));
+    }
+
+    private FrequenciaProfessorResponse frequenciaProfessorResponse(UUID aulaId) {
+        return new FrequenciaProfessorResponse(
+                UUID.randomUUID(),
+                aulaId,
+                UUID.randomUUID(),
+                "Professor Interno",
+                UUID.randomUUID(),
+                "Escola Interna",
+                true,
+                "Presente",
+                LocalDateTime.of(2038, 3, 10, 8, 0));
+    }
+
+    private FrequenciaAlunoResponse frequenciaAlunoResponse(UUID aulaId, UUID matriculaId) {
+        return new FrequenciaAlunoResponse(
+                UUID.randomUUID(),
+                aulaId,
+                matriculaId,
+                UUID.randomUUID(),
+                "Aluno Interno",
+                UUID.randomUUID(),
+                "Escola Interna",
+                "PRESENTE",
+                "Participou",
+                LocalDateTime.of(2038, 3, 10, 8, 5));
     }
 }

@@ -604,6 +604,170 @@ class PedagogicalInternalControllerIntegrationTest {
     }
 
     @Test
+    void deveRegistrarFrequenciaProfessorNoContratoInterno() throws Exception {
+        UUID aulaId = UUID.randomUUID();
+        String requestBody = """
+                {
+                  "presente": true,
+                  "justificativa": "Presente"
+                }
+                """;
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(201)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "id":"%s",
+                          "aulaId":"%s",
+                          "professorId":"00000000-0000-0000-0000-000000000101",
+                          "professorNome":"Professor Aula",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao",
+                          "presente":true,
+                          "justificativa":"Presente",
+                          "createdAt":"2038-03-10T08:00:00"
+                        }
+                        """.formatted(UUID.randomUUID(), aulaId)));
+
+        mockMvc.perform(post("/internal/v1/aulas/{id}/frequencia-professor", aulaId)
+                        .contentType("application/json")
+                        .content(requestBody)
+                        .header("X-Internal-Token", "pedagogical-token")
+                        .header("X-Correlation-Id", "corr-pedagogical-aula-freq-prof-1")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer pedagogical-user-token"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.aulaId").value(aulaId.toString()))
+                .andExpect(jsonPath("$.professorNome").value("Professor Aula"));
+
+        RecordedRequest recorded = aguardarRequisicao("POST", "/internal/aulas/" + aulaId + "/frequencia-professor");
+        assertThat(recorded.getBody().readUtf8()).isEqualTo(requestBody);
+    }
+
+    @Test
+    void deveListarFrequenciaProfessorNoContratoInterno() throws Exception {
+        UUID aulaId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [
+                          {
+                            "id":"%s",
+                            "aulaId":"%s",
+                            "professorId":"00000000-0000-0000-0000-000000000101",
+                            "professorNome":"Professor Aula",
+                            "escolaId":"00000000-0000-0000-0000-000000000047",
+                            "escolaNome":"Escola padrao",
+                            "presente":true,
+                            "justificativa":"Presente",
+                            "createdAt":"2038-03-10T08:00:00"
+                          }
+                        ]
+                        """.formatted(UUID.randomUUID(), aulaId)));
+
+        mockMvc.perform(get("/internal/v1/aulas/{id}/frequencia-professor", aulaId)
+                        .header("X-Internal-Token", "pedagogical-token")
+                        .header("X-Correlation-Id", "corr-pedagogical-aula-freq-prof-2")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer pedagogical-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].aulaId").value(aulaId.toString()))
+                .andExpect(jsonPath("$[0].professorNome").value("Professor Aula"));
+
+        RecordedRequest recorded = aguardarRequisicao("GET", "/internal/aulas/" + aulaId + "/frequencia-professor");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer pedagogical-user-token");
+    }
+
+    @Test
+    void deveRegistrarFrequenciaAlunoNoContratoInterno() throws Exception {
+        UUID aulaId = UUID.randomUUID();
+        UUID matriculaId = UUID.randomUUID();
+        String requestBody = """
+                {
+                  "matriculaId":"%s",
+                  "situacao":"PRESENTE",
+                  "justificativa":"Participou"
+                }
+                """.formatted(matriculaId);
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(201)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "id":"%s",
+                          "aulaId":"%s",
+                          "matriculaId":"%s",
+                          "alunoId":"00000000-0000-0000-0000-000000000021",
+                          "alunoNome":"Aluno Aula",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao",
+                          "situacao":"PRESENTE",
+                          "justificativa":"Participou",
+                          "createdAt":"2038-03-10T08:05:00"
+                        }
+                        """.formatted(UUID.randomUUID(), aulaId, matriculaId)));
+
+        mockMvc.perform(post("/internal/v1/aulas/{id}/frequencias-alunos", aulaId)
+                        .contentType("application/json")
+                        .content(requestBody)
+                        .header("X-Internal-Token", "pedagogical-token")
+                        .header("X-Correlation-Id", "corr-pedagogical-aula-freq-aluno-1")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer pedagogical-user-token"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.aulaId").value(aulaId.toString()))
+                .andExpect(jsonPath("$.matriculaId").value(matriculaId.toString()))
+                .andExpect(jsonPath("$.alunoNome").value("Aluno Aula"));
+
+        RecordedRequest recorded = aguardarRequisicao("POST", "/internal/aulas/" + aulaId + "/frequencias-alunos");
+        assertThat(recorded.getBody().readUtf8()).isEqualTo(requestBody);
+    }
+
+    @Test
+    void deveListarFrequenciasAlunosNoContratoInterno() throws Exception {
+        UUID aulaId = UUID.randomUUID();
+        UUID matriculaId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [
+                          {
+                            "id":"%s",
+                            "aulaId":"%s",
+                            "matriculaId":"%s",
+                            "alunoId":"00000000-0000-0000-0000-000000000021",
+                            "alunoNome":"Aluno Aula",
+                            "escolaId":"00000000-0000-0000-0000-000000000047",
+                            "escolaNome":"Escola padrao",
+                            "situacao":"PRESENTE",
+                            "justificativa":"Participou",
+                            "createdAt":"2038-03-10T08:05:00"
+                          }
+                        ]
+                        """.formatted(UUID.randomUUID(), aulaId, matriculaId)));
+
+        mockMvc.perform(get("/internal/v1/aulas/{id}/frequencias-alunos", aulaId)
+                        .header("X-Internal-Token", "pedagogical-token")
+                        .header("X-Correlation-Id", "corr-pedagogical-aula-freq-aluno-2")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer pedagogical-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].aulaId").value(aulaId.toString()))
+                .andExpect(jsonPath("$[0].matriculaId").value(matriculaId.toString()));
+
+        RecordedRequest recorded = aguardarRequisicao("GET", "/internal/aulas/" + aulaId + "/frequencias-alunos");
+        assertThat(recorded.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-aula-freq-aluno-2");
+    }
+
+    @Test
     void deveCarregarDiarioClasseNoContratoInterno() throws Exception {
         UUID professorId = UUID.randomUUID();
         UUID turmaId = UUID.randomUUID();

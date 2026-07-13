@@ -25,4 +25,26 @@ public interface PedagogicalAulaPort {
             UUID aulaId,
             CatalogReadQuery query,
             AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> registrarFrequenciaProfessor(
+            UUID aulaId,
+            String requestBody,
+            CatalogReadQuery query,
+            AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> listarFrequenciaProfessor(
+            UUID aulaId,
+            CatalogReadQuery query,
+            AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> registrarFrequenciaAluno(
+            UUID aulaId,
+            String requestBody,
+            CatalogReadQuery query,
+            AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> listarFrequenciasAlunos(
+            UUID aulaId,
+            CatalogReadQuery query,
+            AuthSessionContext context);
 }

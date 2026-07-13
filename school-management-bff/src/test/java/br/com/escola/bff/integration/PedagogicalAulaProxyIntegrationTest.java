@@ -146,6 +146,140 @@ class PedagogicalAulaProxyIntegrationTest {
         assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-aula-read-2");
     }
 
+    @Test
+    void deveConsumirPedagogicalServiceNoRegistroDeFrequenciaProfessor() throws InterruptedException {
+        UUID aulaId = UUID.randomUUID();
+        String requestBody = """
+                {"presente":true,"justificativa":"Presente"}
+                """;
+
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse()
+                .setResponseCode(201)
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"id":"%s","aulaId":"%s","professorNome":"Professor Aula","presente":true}
+                        """.formatted(UUID.randomUUID(), aulaId)));
+
+        client.post().uri("/api/aulas/{id}/frequencia-professor", aulaId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-aula-freq-prof-write-1")
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody()
+                .jsonPath("$.aulaId").isEqualTo(aulaId.toString());
+
+        MONOLITH.takeRequest();
+        var request = PEDAGOGICAL.takeRequest();
+        assertThat(request.getPath()).isEqualTo("/internal/v1/aulas/" + aulaId + "/frequencia-professor");
+        assertThat(request.getBody().readUtf8()).isEqualTo(requestBody);
+    }
+
+    @Test
+    void deveConsumirPedagogicalServiceNaListagemDeFrequenciaProfessor() throws InterruptedException {
+        UUID aulaId = UUID.randomUUID();
+
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{"id":"%s","aulaId":"%s","professorNome":"Professor Aula","presente":true}]
+                        """.formatted(UUID.randomUUID(), aulaId)));
+
+        client.get().uri("/api/aulas/{id}/frequencia-professor", aulaId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-aula-freq-prof-read-1")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].aulaId").isEqualTo(aulaId.toString());
+
+        MONOLITH.takeRequest();
+        var request = PEDAGOGICAL.takeRequest();
+        assertThat(request.getPath()).isEqualTo("/internal/v1/aulas/" + aulaId + "/frequencia-professor");
+    }
+
+    @Test
+    void deveConsumirPedagogicalServiceNoRegistroDeFrequenciaAluno() throws InterruptedException {
+        UUID aulaId = UUID.randomUUID();
+        UUID matriculaId = UUID.randomUUID();
+        String requestBody = """
+                {"matriculaId":"%s","situacao":"PRESENTE","justificativa":"Participou"}
+                """.formatted(matriculaId);
+
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse()
+                .setResponseCode(201)
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"id":"%s","aulaId":"%s","matriculaId":"%s","alunoNome":"Aluno Aula","situacao":"PRESENTE"}
+                        """.formatted(UUID.randomUUID(), aulaId, matriculaId)));
+
+        client.post().uri("/api/aulas/{id}/frequencias-alunos", aulaId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-aula-freq-aluno-write-1")
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody()
+                .jsonPath("$.aulaId").isEqualTo(aulaId.toString())
+                .jsonPath("$.matriculaId").isEqualTo(matriculaId.toString());
+
+        MONOLITH.takeRequest();
+        var request = PEDAGOGICAL.takeRequest();
+        assertThat(request.getPath()).isEqualTo("/internal/v1/aulas/" + aulaId + "/frequencias-alunos");
+        assertThat(request.getBody().readUtf8()).isEqualTo(requestBody);
+    }
+
+    @Test
+    void deveConsumirPedagogicalServiceNaListagemDeFrequenciasAlunos() throws InterruptedException {
+        UUID aulaId = UUID.randomUUID();
+        UUID matriculaId = UUID.randomUUID();
+
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{"id":"%s","aulaId":"%s","matriculaId":"%s","alunoNome":"Aluno Aula","situacao":"PRESENTE"}]
+                        """.formatted(UUID.randomUUID(), aulaId, matriculaId)));
+
+        client.get().uri("/api/aulas/{id}/frequencias-alunos", aulaId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-aula-freq-aluno-read-1")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].aulaId").isEqualTo(aulaId.toString())
+                .jsonPath("$[0].matriculaId").isEqualTo(matriculaId.toString());
+
+        MONOLITH.takeRequest();
+        var request = PEDAGOGICAL.takeRequest();
+        assertThat(request.getPath()).isEqualTo("/internal/v1/aulas/" + aulaId + "/frequencias-alunos");
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {

@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.professor.adapter.in.web.dto.AulaRequest;
 import br.com.escola.professor.adapter.in.web.dto.AulaResponse;
+import br.com.escola.professor.adapter.in.web.dto.FrequenciaAlunoRequest;
+import br.com.escola.professor.adapter.in.web.dto.FrequenciaAlunoResponse;
+import br.com.escola.professor.adapter.in.web.dto.FrequenciaProfessorRequest;
+import br.com.escola.professor.adapter.in.web.dto.FrequenciaProfessorResponse;
 import br.com.escola.professor.application.service.DiarioAulaService;
 import jakarta.validation.Valid;
 
@@ -45,5 +49,31 @@ public class AulaInternalController {
     @GetMapping("/{id}")
     public AulaResponse buscarPorId(@PathVariable @NonNull UUID id) {
         return diarioAulaService.buscarAulaPorId(id);
+    }
+
+    @PostMapping("/{id}/frequencia-professor")
+    @ResponseStatus(HttpStatus.CREATED)
+    public FrequenciaProfessorResponse registrarFrequenciaProfessor(
+            @PathVariable @NonNull UUID id,
+            @Valid @RequestBody FrequenciaProfessorRequest request) {
+        return diarioAulaService.registrarFrequenciaProfessor(id, request);
+    }
+
+    @GetMapping("/{id}/frequencia-professor")
+    public List<FrequenciaProfessorResponse> listarFrequenciaProfessor(@PathVariable @NonNull UUID id) {
+        return diarioAulaService.listarFrequenciaProfessor(id);
+    }
+
+    @PostMapping("/{id}/frequencias-alunos")
+    @ResponseStatus(HttpStatus.CREATED)
+    public FrequenciaAlunoResponse registrarFrequenciaAluno(
+            @PathVariable @NonNull UUID id,
+            @Valid @RequestBody FrequenciaAlunoRequest request) {
+        return diarioAulaService.registrarFrequenciaAluno(id, request);
+    }
+
+    @GetMapping("/{id}/frequencias-alunos")
+    public List<FrequenciaAlunoResponse> listarFrequenciasAlunos(@PathVariable @NonNull UUID id) {
+        return diarioAulaService.listarFrequenciasAlunos(id);
     }
 }

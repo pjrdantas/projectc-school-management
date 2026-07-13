@@ -41,4 +41,20 @@ public class AulaReadController {
             @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
         return consultarAulaUseCase.buscarPorId(authorization, correlationId, id);
     }
+
+    @GetMapping("/api/aulas/{id}/frequencia-professor")
+    public Mono<ResponseEntity<String>> listarFrequenciaProfessor(
+            @PathVariable UUID id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return consultarAulaUseCase.listarFrequenciaProfessor(authorization, correlationId, id);
+    }
+
+    @GetMapping("/api/aulas/{id}/frequencias-alunos")
+    public Mono<ResponseEntity<String>> listarFrequenciasAlunos(
+            @PathVariable UUID id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return consultarAulaUseCase.listarFrequenciasAlunos(authorization, correlationId, id);
+    }
 }

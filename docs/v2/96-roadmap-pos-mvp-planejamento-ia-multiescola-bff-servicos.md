@@ -6665,3 +6665,38 @@ Entregue nesta fase:
 
 Contagem regressiva funcional estimada do `pedagogical-service`: 1 fase
 restante no escopo atual planejado.
+
+### Fase 132 - Fechamento funcional de `frequencias` no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o bloco final de `frequencias` foi migrado no menor recorte operacional
+  remanescente do dominio pedagogico, preservando os contratos externos atuais
+  `POST /api/aulas/{id}/frequencia-professor`,
+  `GET /api/aulas/{id}/frequencia-professor`,
+  `POST /api/aulas/{id}/frequencias-alunos` e
+  `GET /api/aulas/{id}/frequencias-alunos`;
+- o `school-management-service` passou a expor
+  `POST /internal/aulas/{id}/frequencia-professor`,
+  `GET /internal/aulas/{id}/frequencia-professor`,
+  `POST /internal/aulas/{id}/frequencias-alunos` e
+  `GET /internal/aulas/{id}/frequencias-alunos`, reaproveitando
+  `DiarioAulaService` como autoridade funcional do legado;
+- o `pedagogical-service` passou a publicar
+  `POST /internal/v1/aulas/{id}/frequencia-professor`,
+  `GET /internal/v1/aulas/{id}/frequencia-professor`,
+  `POST /internal/v1/aulas/{id}/frequencias-alunos` e
+  `GET /internal/v1/aulas/{id}/frequencias-alunos`, completando a fronteira
+  backend/backend do dominio pedagogico planejado;
+- o `school-management-bff` passou a oficializar essas quatro rotas consumindo
+  o `pedagogical-service`, preservando bearer, correlation ID, contexto interno
+  e os payloads externos atuais;
+- com isso, o `pedagogical-service` encerra o escopo funcional planejado nas
+  10 fases fechadas para este micro-servico, sem abrir novas rotas fora do
+  roadmap atual;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, payload e
+  propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 0 fases
+restantes no escopo atual planejado.

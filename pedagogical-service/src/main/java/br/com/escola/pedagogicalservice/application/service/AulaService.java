@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import br.com.escola.pedagogicalservice.application.context.InternalRequestContext;
 import br.com.escola.pedagogicalservice.application.dto.AulaResponse;
+import br.com.escola.pedagogicalservice.application.dto.FrequenciaAlunoResponse;
+import br.com.escola.pedagogicalservice.application.dto.FrequenciaProfessorResponse;
 import br.com.escola.pedagogicalservice.application.port.in.AulaUseCase;
 import br.com.escola.pedagogicalservice.application.port.out.AulaPort;
 
@@ -36,5 +38,39 @@ public class AulaService implements AulaUseCase {
     @Override
     public AulaResponse buscarPorId(String authorization, InternalRequestContext context, UUID aulaId) {
         return aulaPort.buscarPorId(authorization, context, aulaId);
+    }
+
+    @Override
+    public FrequenciaProfessorResponse registrarFrequenciaProfessor(
+            String authorization,
+            InternalRequestContext context,
+            UUID aulaId,
+            String requestBody) {
+        return aulaPort.registrarFrequenciaProfessor(authorization, context, aulaId, requestBody);
+    }
+
+    @Override
+    public List<FrequenciaProfessorResponse> listarFrequenciaProfessor(
+            String authorization,
+            InternalRequestContext context,
+            UUID aulaId) {
+        return aulaPort.listarFrequenciaProfessor(authorization, context, aulaId);
+    }
+
+    @Override
+    public FrequenciaAlunoResponse registrarFrequenciaAluno(
+            String authorization,
+            InternalRequestContext context,
+            UUID aulaId,
+            String requestBody) {
+        return aulaPort.registrarFrequenciaAluno(authorization, context, aulaId, requestBody);
+    }
+
+    @Override
+    public List<FrequenciaAlunoResponse> listarFrequenciasAlunos(
+            String authorization,
+            InternalRequestContext context,
+            UUID aulaId) {
+        return aulaPort.listarFrequenciasAlunos(authorization, context, aulaId);
     }
 }

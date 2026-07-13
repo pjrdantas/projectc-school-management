@@ -15,6 +15,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import br.com.escola.pedagogicalservice.application.context.InternalHeaders;
 import br.com.escola.pedagogicalservice.application.context.InternalRequestContext;
 import br.com.escola.pedagogicalservice.application.dto.AulaResponse;
+import br.com.escola.pedagogicalservice.application.dto.FrequenciaAlunoResponse;
+import br.com.escola.pedagogicalservice.application.dto.FrequenciaProfessorResponse;
 import br.com.escola.pedagogicalservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.pedagogicalservice.application.exception.PedagogicalServiceResourceNotFoundException;
 import br.com.escola.pedagogicalservice.application.port.out.AulaPort;
@@ -109,6 +111,118 @@ public class MonolithAulaClient implements AulaPort {
         } catch (ResourceAccessException exception) {
             meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaBuscarPorId", "result", "unavailable").increment();
             throw new DownstreamUnavailableException("Monolito indisponivel para consulta de aula", exception);
+        }
+    }
+
+    @Override
+    public FrequenciaProfessorResponse registrarFrequenciaProfessor(
+            String authorization,
+            InternalRequestContext context,
+            UUID aulaId,
+            String requestBody) {
+        try {
+            FrequenciaProfessorResponse response = restClient.post()
+                    .uri("/internal/aulas/{id}/frequencia-professor", aulaId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .headers(headers -> enrichHeaders(headers, authorization, context))
+                    .body(requestBody)
+                    .retrieve()
+                    .body(FrequenciaProfessorResponse.class);
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaProfessorCriar", "result", "success").increment();
+            return response;
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaProfessorCriar", "result", "not_found").increment();
+                throw new PedagogicalServiceResourceNotFoundException("Dependencia de frequencia de professor nao encontrada");
+            }
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaProfessorCriar", "result", "http_error").increment();
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaProfessorCriar", "result", "unavailable").increment();
+            throw new DownstreamUnavailableException("Monolito indisponivel para frequencia de professor", exception);
+        }
+    }
+
+    @Override
+    public List<FrequenciaProfessorResponse> listarFrequenciaProfessor(
+            String authorization,
+            InternalRequestContext context,
+            UUID aulaId) {
+        try {
+            List<FrequenciaProfessorResponse> response = restClient.get()
+                    .uri("/internal/aulas/{id}/frequencia-professor", aulaId)
+                    .headers(headers -> enrichHeaders(headers, authorization, context))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<FrequenciaProfessorResponse>>() {
+                    });
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaProfessorListar", "result", "success").increment();
+            return response == null ? List.of() : response;
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaProfessorListar", "result", "not_found").increment();
+                throw new PedagogicalServiceResourceNotFoundException("Consulta de frequencia de professor nao encontrada");
+            }
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaProfessorListar", "result", "http_error").increment();
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaProfessorListar", "result", "unavailable").increment();
+            throw new DownstreamUnavailableException("Monolito indisponivel para consulta de frequencia de professor", exception);
+        }
+    }
+
+    @Override
+    public FrequenciaAlunoResponse registrarFrequenciaAluno(
+            String authorization,
+            InternalRequestContext context,
+            UUID aulaId,
+            String requestBody) {
+        try {
+            FrequenciaAlunoResponse response = restClient.post()
+                    .uri("/internal/aulas/{id}/frequencias-alunos", aulaId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .headers(headers -> enrichHeaders(headers, authorization, context))
+                    .body(requestBody)
+                    .retrieve()
+                    .body(FrequenciaAlunoResponse.class);
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaAlunoCriar", "result", "success").increment();
+            return response;
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaAlunoCriar", "result", "not_found").increment();
+                throw new PedagogicalServiceResourceNotFoundException("Dependencia de frequencia de aluno nao encontrada");
+            }
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaAlunoCriar", "result", "http_error").increment();
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaAlunoCriar", "result", "unavailable").increment();
+            throw new DownstreamUnavailableException("Monolito indisponivel para frequencia de aluno", exception);
+        }
+    }
+
+    @Override
+    public List<FrequenciaAlunoResponse> listarFrequenciasAlunos(
+            String authorization,
+            InternalRequestContext context,
+            UUID aulaId) {
+        try {
+            List<FrequenciaAlunoResponse> response = restClient.get()
+                    .uri("/internal/aulas/{id}/frequencias-alunos", aulaId)
+                    .headers(headers -> enrichHeaders(headers, authorization, context))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<FrequenciaAlunoResponse>>() {
+                    });
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaAlunoListar", "result", "success").increment();
+            return response == null ? List.of() : response;
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaAlunoListar", "result", "not_found").increment();
+                throw new PedagogicalServiceResourceNotFoundException("Consulta de frequencia de aluno nao encontrada");
+            }
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaAlunoListar", "result", "http_error").increment();
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            meterRegistry.counter("pedagogical.monolith.requests", "route", "aulaFrequenciaAlunoListar", "result", "unavailable").increment();
+            throw new DownstreamUnavailableException("Monolito indisponivel para consulta de frequencia de aluno", exception);
         }
     }
 

@@ -2776,3 +2776,34 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   ambos em `BUILD SUCCESS`.
 - Contagem funcional estimada do `pedagogical-service`: 1 fase restante no
   escopo atual planejado.
+
+### Fase 132
+
+- A Fase 10 do `pedagogical-service` fechou o bloco final de `frequencias`
+  ligado a `aulas`, preservando os contratos publicos
+  `POST /api/aulas/{id}/frequencia-professor`,
+  `GET /api/aulas/{id}/frequencia-professor`,
+  `POST /api/aulas/{id}/frequencias-alunos` e
+  `GET /api/aulas/{id}/frequencias-alunos`.
+- O `school-management-service` passou a expor os equivalentes internos
+  `POST /internal/aulas/{id}/frequencia-professor`,
+  `GET /internal/aulas/{id}/frequencia-professor`,
+  `POST /internal/aulas/{id}/frequencias-alunos` e
+  `GET /internal/aulas/{id}/frequencias-alunos`, reaproveitando
+  `DiarioAulaService` sem ampliar escopo para checagens ou fluxos paralelos.
+- O `pedagogical-service` passou a expor
+  `POST /internal/v1/aulas/{id}/frequencia-professor`,
+  `GET /internal/v1/aulas/{id}/frequencia-professor`,
+  `POST /internal/v1/aulas/{id}/frequencias-alunos` e
+  `GET /internal/v1/aulas/{id}/frequencias-alunos` consumindo o monolito pelo
+  contrato interno novo.
+- O `school-management-bff` passou a oficializar essas quatro rotas consumindo
+  o `pedagogical-service`, preservando bearer, correlation ID e contexto
+  autenticado.
+- A validacao desta fase ficou restrita aos modulos tocados e foi executada
+  com `mvn -f school-management-service/pom.xml "-Dtest=AulaInternalControllerTest" test`
+  e com
+  `mvn -pl pedagogical-service,school-management-bff "-Dtest=PedagogicalInternalControllerIntegrationTest,PedagogicalAulaProxyIntegrationTest" test`,
+  ambos em `BUILD SUCCESS`.
+- Contagem funcional estimada do `pedagogical-service`: 0 fases restantes no
+  escopo atual planejado.

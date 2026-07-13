@@ -45,4 +45,46 @@ public class AulaProxyService implements ConsultarAulaUseCase, CriarAulaUseCase 
         return authContextPort.resolve(query)
                 .flatMap(context -> pedagogicalAulaPort.buscarPorId(aulaId, query, context));
     }
+
+    @Override
+    public Mono<ResponseEntity<String>> registrarFrequenciaProfessor(
+            String authorization,
+            String correlationId,
+            UUID aulaId,
+            String requestBody) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> pedagogicalAulaPort.registrarFrequenciaProfessor(aulaId, requestBody, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> listarFrequenciaProfessor(
+            String authorization,
+            String correlationId,
+            UUID aulaId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> pedagogicalAulaPort.listarFrequenciaProfessor(aulaId, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> registrarFrequenciaAluno(
+            String authorization,
+            String correlationId,
+            UUID aulaId,
+            String requestBody) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> pedagogicalAulaPort.registrarFrequenciaAluno(aulaId, requestBody, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> listarFrequenciasAlunos(
+            String authorization,
+            String correlationId,
+            UUID aulaId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> pedagogicalAulaPort.listarFrequenciasAlunos(aulaId, query, context));
+    }
 }

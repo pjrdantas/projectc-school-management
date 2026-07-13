@@ -26,6 +26,8 @@ import br.com.escola.pedagogicalservice.application.context.InternalRequestConte
 import br.com.escola.pedagogicalservice.application.dto.AvaliacaoResponse;
 import br.com.escola.pedagogicalservice.application.dto.AulaResponse;
 import br.com.escola.pedagogicalservice.application.dto.BoletimResponse;
+import br.com.escola.pedagogicalservice.application.dto.FrequenciaAlunoResponse;
+import br.com.escola.pedagogicalservice.application.dto.FrequenciaProfessorResponse;
 import br.com.escola.pedagogicalservice.application.dto.HistoricoEscolarTelaResponse;
 import br.com.escola.pedagogicalservice.application.dto.NotaAlunoResponse;
 import br.com.escola.pedagogicalservice.application.port.in.AvaliacaoUseCase;
@@ -157,6 +159,42 @@ public class PedagogicalInternalController {
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
             @PathVariable @NonNull UUID id) {
         return aulaUseCase.buscarPorId(authorization, context, id);
+    }
+
+    @PostMapping("/aulas/{id}/frequencia-professor")
+    @ResponseStatus(HttpStatus.CREATED)
+    public FrequenciaProfessorResponse registrarFrequenciaProfessor(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID id,
+            @RequestBody String requestBody) {
+        return aulaUseCase.registrarFrequenciaProfessor(authorization, context, id, requestBody);
+    }
+
+    @GetMapping("/aulas/{id}/frequencia-professor")
+    public List<FrequenciaProfessorResponse> listarFrequenciaProfessor(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID id) {
+        return aulaUseCase.listarFrequenciaProfessor(authorization, context, id);
+    }
+
+    @PostMapping("/aulas/{id}/frequencias-alunos")
+    @ResponseStatus(HttpStatus.CREATED)
+    public FrequenciaAlunoResponse registrarFrequenciaAluno(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID id,
+            @RequestBody String requestBody) {
+        return aulaUseCase.registrarFrequenciaAluno(authorization, context, id, requestBody);
+    }
+
+    @GetMapping("/aulas/{id}/frequencias-alunos")
+    public List<FrequenciaAlunoResponse> listarFrequenciasAlunos(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID id) {
+        return aulaUseCase.listarFrequenciasAlunos(authorization, context, id);
     }
 
     @GetMapping("/diarios-classe")
