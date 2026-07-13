@@ -3,21 +3,128 @@ package br.com.escola.historico.adapter.in.web.internal;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarRequest;
+import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarResponse;
 import br.com.escola.historico.adapter.in.web.dto.HistoricoEscolarTelaResponse;
 import br.com.escola.historico.application.service.HistoricoEscolarService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 class HistoricoEscolarInternalControllerTest {
+
+    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+
+    @Test
+    void deveCriarHistoricoNoContratoInterno() throws Exception {
+        HistoricoEscolarService service = Mockito.mock(HistoricoEscolarService.class);
+        UUID historicoId = UUID.randomUUID();
+        when(service.criar(Mockito.any(HistoricoEscolarRequest.class))).thenReturn(new HistoricoEscolarResponse(
+                historicoId,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "Escola",
+                "Aluno",
+                "RG",
+                "RA",
+                "RM",
+                LocalDate.of(2010, 1, 1),
+                "Cidade",
+                "SP",
+                "Brasil",
+                "Escola Municipal",
+                "Rua A",
+                "Cidade",
+                "00000-000",
+                "1133334444",
+                "escola@example.com",
+                2025,
+                "ENSINO FUNDAMENTAL",
+                LocalDate.of(2026, 7, 12),
+                "Diretor",
+                "RG",
+                "Gerente",
+                "RG",
+                "123",
+                LocalDate.of(2026, 7, 12),
+                "1",
+                "2",
+                "Observacao",
+                List.of()));
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new HistoricoEscolarInternalController(service)).build();
+
+        mockMvc.perform(post("/internal/historicos-escolares")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request())))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(historicoId.toString()))
+                .andExpect(jsonPath("$.nomeAluno").value("Aluno"));
+
+        verify(service).criar(Mockito.any(HistoricoEscolarRequest.class));
+    }
+
+    @Test
+    void deveAtualizarHistoricoNoContratoInterno() throws Exception {
+        HistoricoEscolarService service = Mockito.mock(HistoricoEscolarService.class);
+        UUID historicoId = UUID.randomUUID();
+        when(service.atualizar(Mockito.eq(historicoId), Mockito.any(HistoricoEscolarRequest.class))).thenReturn(new HistoricoEscolarResponse(
+                historicoId,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "Escola",
+                "Aluno Atualizado",
+                "RG",
+                "RA",
+                "RM",
+                LocalDate.of(2010, 1, 1),
+                "Cidade",
+                "SP",
+                "Brasil",
+                "Escola Municipal",
+                "Rua A",
+                "Cidade",
+                "00000-000",
+                "1133334444",
+                "escola@example.com",
+                2025,
+                "ENSINO FUNDAMENTAL",
+                LocalDate.of(2026, 7, 12),
+                "Diretor",
+                "RG",
+                "Gerente",
+                "RG",
+                "123",
+                LocalDate.of(2026, 7, 12),
+                "1",
+                "2",
+                "Observacao",
+                List.of()));
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new HistoricoEscolarInternalController(service)).build();
+
+        mockMvc.perform(put("/internal/historicos-escolares/{id}", historicoId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(historicoId.toString()))
+                .andExpect(jsonPath("$.nomeAluno").value("Aluno Atualizado"));
+
+        verify(service).atualizar(Mockito.eq(historicoId), Mockito.any(HistoricoEscolarRequest.class));
+    }
 
     @Test
     void deveCarregarHistoricoNovoNoContratoInterno() throws Exception {
@@ -102,6 +209,38 @@ class HistoricoEscolarInternalControllerTest {
                 "Observacoes",
                 new HistoricoEscolarTelaResponse.Certificado(5, "Diretor", "Escola", "RG", "2026", "DOE", "2026-07-12",
                         "Gerente", "RGG", "Diretor", "RGD"),
+                List.of());
+    }
+
+    private HistoricoEscolarRequest request() {
+        return new HistoricoEscolarRequest(
+                UUID.randomUUID(),
+                "Aluno",
+                "RG",
+                "RA",
+                "RM",
+                LocalDate.of(2010, 1, 1),
+                "Cidade",
+                "SP",
+                "Brasil",
+                "Escola Municipal",
+                "Rua A",
+                "Cidade",
+                "00000-000",
+                "1133334444",
+                "escola@example.com",
+                2025,
+                "ENSINO FUNDAMENTAL",
+                LocalDate.of(2026, 7, 12),
+                "Diretor",
+                "RG",
+                "Gerente",
+                "RG",
+                "123",
+                LocalDate.of(2026, 7, 12),
+                "1",
+                "2",
+                "Observacao",
                 List.of());
     }
 }

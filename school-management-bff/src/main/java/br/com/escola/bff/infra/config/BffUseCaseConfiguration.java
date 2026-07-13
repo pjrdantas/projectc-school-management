@@ -36,6 +36,7 @@ import br.com.escola.bff.application.port.out.PeopleFuncionarioReadPort;
 import br.com.escola.bff.application.port.out.PeoplePessoaReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalBoletimReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarReadPort;
+import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarWritePort;
 import br.com.escola.bff.application.service.AlunoResponsavelReadProxyService;
 import br.com.escola.bff.application.service.BoletimReadProxyService;
 import br.com.escola.bff.application.service.CadastroPessoaReadProxyService;
@@ -47,6 +48,7 @@ import br.com.escola.bff.application.service.EscolaOrigemReadProxyService;
 import br.com.escola.bff.application.service.EscolaOrigemWriteProxyService;
 import br.com.escola.bff.application.service.FuncionarioReadProxyService;
 import br.com.escola.bff.application.service.HistoricoEscolarReadProxyService;
+import br.com.escola.bff.application.service.HistoricoEscolarWriteProxyService;
 import br.com.escola.bff.application.service.MatriculaReadProxyService;
 import br.com.escola.bff.application.service.PeriodoLetivoWriteRoutingService;
 import br.com.escola.bff.application.service.PessoaCatalogReadProxyService;
@@ -70,6 +72,8 @@ import br.com.escola.bff.application.usecase.ConsultarPessoaDetalheUseCase;
 import br.com.escola.bff.application.port.out.PeopleProfessorReadPort;
 import br.com.escola.bff.application.usecase.ConsultarFuncionarioUseCase;
 import br.com.escola.bff.application.usecase.ConsultarHistoricoEscolarUseCase;
+import br.com.escola.bff.application.usecase.CriarHistoricoEscolarUseCase;
+import br.com.escola.bff.application.usecase.AtualizarHistoricoEscolarUseCase;
 import br.com.escola.bff.application.usecase.ConsultarMatriculaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarProfessorUseCase;
 import br.com.escola.bff.application.usecase.ConsultarTransferenciaUseCase;
@@ -116,6 +120,20 @@ public class BffUseCaseConfiguration {
             AuthContextPort authContextPort,
             PedagogicalHistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort) {
         return new HistoricoEscolarReadProxyService(authContextPort, pedagogicalHistoricoEscolarReadPort);
+    }
+
+    @Bean
+    CriarHistoricoEscolarUseCase criarHistoricoEscolarUseCase(
+            AuthContextPort authContextPort,
+            PedagogicalHistoricoEscolarWritePort pedagogicalHistoricoEscolarWritePort) {
+        return new HistoricoEscolarWriteProxyService(authContextPort, pedagogicalHistoricoEscolarWritePort);
+    }
+
+    @Bean
+    AtualizarHistoricoEscolarUseCase atualizarHistoricoEscolarUseCase(
+            AuthContextPort authContextPort,
+            PedagogicalHistoricoEscolarWritePort pedagogicalHistoricoEscolarWritePort) {
+        return new HistoricoEscolarWriteProxyService(authContextPort, pedagogicalHistoricoEscolarWritePort);
     }
 
     @Bean

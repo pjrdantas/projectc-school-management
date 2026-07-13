@@ -43,6 +43,7 @@ features:
   enrollment-document-read-proxy-enabled: ${ENROLLMENT_DOCUMENT_READ_PROXY_ENABLED:true}
   enrollment-document-write-proxy-enabled: ${ENROLLMENT_DOCUMENT_WRITE_PROXY_ENABLED:true}
   pedagogical-read-proxy-enabled: ${PEDAGOGICAL_READ_PROXY_ENABLED:true}
+  pedagogical-write-proxy-enabled: ${PEDAGOGICAL_WRITE_PROXY_ENABLED:true}
   catalog-read-cutover:
     enabled: ${CATALOG_READ_CUTOVER_ENABLED:false}
     report-path: ${CATALOG_READ_CUTOVER_REPORT_PATH:}

@@ -2,6 +2,8 @@ package br.com.escola.pedagogicalservice.interfaces.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -273,6 +275,76 @@ class PedagogicalInternalControllerIntegrationTest {
 
         RecordedRequest recorded = aguardarRequisicao("GET", "/internal/historicos-escolares/" + historicoId + "/carregamento");
         assertThat(recorded.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-5");
+    }
+
+    @Test
+    void deveCriarHistoricoEscolarNoContratoInterno() throws Exception {
+        UUID alunoId = UUID.randomUUID();
+        UUID historicoId = UUID.randomUUID();
+        String requestBody = """
+                {
+                  "nomeAluno":"Aluno Pedagogico",
+                  "alunoId":"%s",
+                  "componentesCurriculares":[]
+                }
+                """.formatted(alunoId);
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(201)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {"id":"%s","alunoId":"%s","nomeAluno":"Aluno Pedagogico","componentesCurriculares":[]}
+                        """.formatted(historicoId, alunoId)));
+
+        mockMvc.perform(post("/internal/v1/historicos-escolares")
+                        .contentType("application/json")
+                        .content(requestBody)
+                        .header("X-Internal-Token", "pedagogical-token")
+                        .header("X-Correlation-Id", "corr-pedagogical-6")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer pedagogical-user-token"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(historicoId.toString()))
+                .andExpect(jsonPath("$.alunoId").value(alunoId.toString()));
+
+        RecordedRequest recorded = aguardarRequisicao("POST", "/internal/historicos-escolares");
+        assertThat(recorded.getBody().readUtf8()).isEqualTo(requestBody);
+    }
+
+    @Test
+    void deveAtualizarHistoricoEscolarNoContratoInterno() throws Exception {
+        UUID historicoId = UUID.randomUUID();
+        UUID alunoId = UUID.randomUUID();
+        String requestBody = """
+                {
+                  "nomeAluno":"Aluno Atualizado",
+                  "alunoId":"%s",
+                  "componentesCurriculares":[]
+                }
+                """.formatted(alunoId);
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {"id":"%s","alunoId":"%s","nomeAluno":"Aluno Atualizado","componentesCurriculares":[]}
+                        """.formatted(historicoId, alunoId)));
+
+        mockMvc.perform(put("/internal/v1/historicos-escolares/{id}", historicoId)
+                        .contentType("application/json")
+                        .content(requestBody)
+                        .header("X-Internal-Token", "pedagogical-token")
+                        .header("X-Correlation-Id", "corr-pedagogical-7")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer pedagogical-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(historicoId.toString()))
+                .andExpect(jsonPath("$.nomeAluno").value("Aluno Atualizado"));
+
+        RecordedRequest recorded = aguardarRequisicao("PUT", "/internal/historicos-escolares/" + historicoId);
+        assertThat(recorded.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-7");
+        assertThat(recorded.getBody().readUtf8()).isEqualTo(requestBody);
     }
 
     private RecordedRequest aguardarRequisicao(String method, String path) throws InterruptedException {

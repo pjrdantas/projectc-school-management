@@ -2631,3 +2631,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   com testes focados no monolito, no `pedagogical-service` e no BFF.
 - Contagem funcional estimada do `pedagogical-service`: 7 fases restantes no
   escopo atual planejado.
+
+### Fase 126
+
+- A Fase 4 do `pedagogical-service` abriu a primeira escrita minima de
+  `historico escolar`, preservando os contratos atuais de
+  `POST /api/historicos-escolares` e
+  `PUT /api/historicos-escolares/{id}`.
+- O `school-management-service` passou a expor
+  `POST /internal/historicos-escolares` e
+  `PUT /internal/historicos-escolares/{id}` reaproveitando o
+  `HistoricoEscolarService` atual, sem ampliar escopo para importacao de PDF,
+  diario de classe ou geracao por boletim.
+- O `pedagogical-service` passou a expor
+  `POST /internal/v1/historicos-escolares` e
+  `PUT /internal/v1/historicos-escolares/{id}` como fronteira backend/backend
+  do write minimo.
+- O `school-management-bff` passou a oficializar esses dois writes consumindo o
+  `pedagogical-service`, preservando o payload externo atual e o contexto
+  autenticado.
+- A validacao desta fase ficou restrita aos modulos tocados e sera executada
+  com testes focados no monolito, no `pedagogical-service` e no BFF.
+- Contagem funcional estimada do `pedagogical-service`: 6 fases restantes no
+  escopo atual planejado.

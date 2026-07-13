@@ -6486,3 +6486,30 @@ Entregue nesta fase:
 
 Contagem regressiva funcional estimada do `pedagogical-service`: 7 fases
 restantes no escopo atual planejado.
+
+### Fase 126 - Escrita minima de `historico escolar` no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o bloco de `historico escolar` avancou para a primeira escrita minima segura,
+  preservando o contrato externo atual de `POST /api/historicos-escolares` e
+  `PUT /api/historicos-escolares/{id}` sem abrir importacao de PDF, diario de
+  classe ou refatoracao ampla;
+- o `school-management-service` passou a expor
+  `POST /internal/historicos-escolares` e
+  `PUT /internal/historicos-escolares/{id}`, reaproveitando
+  `HistoricoEscolarService.criar(...)` e `atualizar(...)`;
+- o `pedagogical-service` passou a publicar
+  `POST /internal/v1/historicos-escolares` e
+  `PUT /internal/v1/historicos-escolares/{id}` como proxy controlado do
+  monolito, mantendo o legado como autoridade funcional;
+- o `school-management-bff` passou a oficializar esses dois writes consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno e
+  o payload externo atual;
+- o carregamento operacional da fase anterior foi preservado intacto;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, payload e
+  propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 6 fases
+restantes no escopo atual planejado.
