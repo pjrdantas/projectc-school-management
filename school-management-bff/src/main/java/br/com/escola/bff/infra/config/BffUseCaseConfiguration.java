@@ -50,6 +50,7 @@ import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarWritePo
 import br.com.escola.bff.application.port.out.PlanningAiBibliotecaReadPort;
 import br.com.escola.bff.application.port.out.PlanningAiConteudoReadPort;
 import br.com.escola.bff.application.port.out.PlanningAiConteudoDetailReadPort;
+import br.com.escola.bff.application.port.out.PlanningAiConteudoVersaoApprovePort;
 import br.com.escola.bff.application.port.out.PlanningAiConteudoVersaoReadPort;
 import br.com.escola.bff.application.port.out.PlanningAiConteudoVersaoWritePort;
 import br.com.escola.bff.application.port.out.PlanningAiConteudoWritePort;
@@ -75,6 +76,7 @@ import br.com.escola.bff.application.service.HistoricoEscolarWriteProxyService;
 import br.com.escola.bff.application.service.InstitutionalTenantReadProxyService;
 import br.com.escola.bff.application.service.MatriculaReadProxyService;
 import br.com.escola.bff.application.service.PlanejamentoIaConteudoDetailReadProxyService;
+import br.com.escola.bff.application.service.PlanejamentoIaConteudoVersaoApproveProxyService;
 import br.com.escola.bff.application.service.PeriodoLetivoWriteRoutingService;
 import br.com.escola.bff.application.service.PlanejamentoIaConteudoReadProxyService;
 import br.com.escola.bff.application.service.PlanejamentoIaConteudoVersaoReadProxyService;
@@ -104,6 +106,7 @@ import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaConteudoDeta
 import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaConteudoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaConteudoVersaoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaInteracaoUseCase;
+import br.com.escola.bff.application.usecase.AprovarPlanejamentoIaConteudoVersaoUseCase;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoUseCase;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoVersaoUseCase;
 import br.com.escola.bff.application.usecase.CriarAvaliacaoUseCase;
@@ -379,6 +382,15 @@ public class BffUseCaseConfiguration {
         return new PlanejamentoIaConteudoVersaoWriteProxyService(
                 authContextPort,
                 planningAiConteudoVersaoWritePort);
+    }
+
+    @Bean
+    AprovarPlanejamentoIaConteudoVersaoUseCase aprovarPlanejamentoIaConteudoVersaoUseCase(
+            AuthContextPort authContextPort,
+            PlanningAiConteudoVersaoApprovePort planningAiConteudoVersaoApprovePort) {
+        return new PlanejamentoIaConteudoVersaoApproveProxyService(
+                authContextPort,
+                planningAiConteudoVersaoApprovePort);
     }
 
     @Bean

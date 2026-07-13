@@ -14,26 +14,24 @@ import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoVersaoUs
 import br.com.escola.bff.interfaces.advice.BffExceptionHandler;
 import reactor.core.publisher.Mono;
 
-class PlanejamentoIaConteudoVersaoWriteControllerTest {
+class PlanejamentoIaConteudoVersaoApproveControllerTest {
 
     @Test
-    void deveExporContratoCompativelNaCriacaoOficialDeVersaoConteudoIa() {
+    void deveExporContratoCompativelNaAprovacaoOficialDeVersaoConteudoIa() {
         UUID conteudoId = UUID.fromString("00000000-0000-0000-0000-000000001011");
         CriarPlanejamentoIaConteudoUseCase criarConteudoUseCase =
                 (authorization, correlationId, planejamentoId, requestBody) -> Mono.error(new UnsupportedOperationException());
         CriarPlanejamentoIaConteudoVersaoUseCase criarVersaoUseCase =
-                (authorization, correlationId, requestedConteudoId, requestBody) -> Mono.just(ResponseEntity.status(201)
-                        .body("""
-                                {
-                                  "id":"00000000-0000-0000-0000-000000001111",
-                                  "conteudoGeradoId":"00000000-0000-0000-0000-000000001011",
-                                  "numeroVersao":2,
-                                  "conteudo":"Conteudo revisado",
-                                  "motivoAlteracao":"Ajuste do professor"
-                                }
-                                """));
-        AprovarPlanejamentoIaConteudoVersaoUseCase aprovarVersaoUseCase =
                 (authorization, correlationId, requestedConteudoId, requestBody) -> Mono.error(new UnsupportedOperationException());
+        AprovarPlanejamentoIaConteudoVersaoUseCase aprovarVersaoUseCase =
+                (authorization, correlationId, requestedConteudoId, requestBody) -> Mono.just(ResponseEntity.ok("""
+                        {
+                          "id":"00000000-0000-0000-0000-000000001011",
+                          "versao":2,
+                          "status":"APROVADO",
+                          "aprovadoPeloProfessor":true
+                        }
+                        """));
 
         WebTestClient client = WebTestClient.bindToController(
                         new PlanejamentoIaConteudoWriteController(
@@ -43,17 +41,18 @@ class PlanejamentoIaConteudoVersaoWriteControllerTest {
                 .controllerAdvice(new BffExceptionHandler())
                 .build();
 
-        client.post().uri("/api/ia/conteudos/{conteudoId}/versoes", conteudoId)
+        client.patch().uri("/api/ia/conteudos/{conteudoId}/aprovar-versao", conteudoId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                .header(TrustedHeaders.CORRELATION_ID, "corr-planejamento-versao-write-1")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-planejamento-versao-approve-1")
                 .header(HttpHeaders.CONTENT_TYPE, "application/json")
                 .bodyValue("""
-                        {"conteudo":"Conteudo revisado","motivoAlteracao":"Ajuste do professor"}
+                        {"numeroVersao":2,"publicarBiblioteca":false}
                         """)
                 .exchange()
-                .expectStatus().isCreated()
+                .expectStatus().isOk()
                 .expectBody()
-                .jsonPath("$.conteudoGeradoId").isEqualTo(conteudoId.toString())
-                .jsonPath("$.numeroVersao").isEqualTo(2);
+                .jsonPath("$.versao").isEqualTo(2)
+                .jsonPath("$.status").isEqualTo("APROVADO")
+                .jsonPath("$.aprovadoPeloProfessor").isEqualTo(true);
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.bff.application.context.TrustedHeaders;
+import br.com.escola.bff.application.usecase.AprovarPlanejamentoIaConteudoVersaoUseCase;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoUseCase;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoVersaoUseCase;
 import reactor.core.publisher.Mono;
@@ -24,12 +25,15 @@ public class PlanejamentoIaConteudoWriteController {
 
     private final CriarPlanejamentoIaConteudoUseCase criarPlanejamentoIaConteudoUseCase;
     private final CriarPlanejamentoIaConteudoVersaoUseCase criarPlanejamentoIaConteudoVersaoUseCase;
+    private final AprovarPlanejamentoIaConteudoVersaoUseCase aprovarPlanejamentoIaConteudoVersaoUseCase;
 
     public PlanejamentoIaConteudoWriteController(
             CriarPlanejamentoIaConteudoUseCase criarPlanejamentoIaConteudoUseCase,
-            CriarPlanejamentoIaConteudoVersaoUseCase criarPlanejamentoIaConteudoVersaoUseCase) {
+            CriarPlanejamentoIaConteudoVersaoUseCase criarPlanejamentoIaConteudoVersaoUseCase,
+            AprovarPlanejamentoIaConteudoVersaoUseCase aprovarPlanejamentoIaConteudoVersaoUseCase) {
         this.criarPlanejamentoIaConteudoUseCase = criarPlanejamentoIaConteudoUseCase;
         this.criarPlanejamentoIaConteudoVersaoUseCase = criarPlanejamentoIaConteudoVersaoUseCase;
+        this.aprovarPlanejamentoIaConteudoVersaoUseCase = aprovarPlanejamentoIaConteudoVersaoUseCase;
     }
 
     @PostMapping("/api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos")
@@ -54,6 +58,19 @@ public class PlanejamentoIaConteudoWriteController {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
         return criarPlanejamentoIaConteudoVersaoUseCase.executar(
+                authorization,
+                correlationId,
+                conteudoId,
+                requestBody);
+    }
+
+    @org.springframework.web.bind.annotation.PatchMapping("/api/ia/conteudos/{conteudoId}/aprovar-versao")
+    public Mono<ResponseEntity<String>> aprovarVersao(
+            @PathVariable UUID conteudoId,
+            @RequestBody String requestBody,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return aprovarPlanejamentoIaConteudoVersaoUseCase.executar(
                 authorization,
                 correlationId,
                 conteudoId,
