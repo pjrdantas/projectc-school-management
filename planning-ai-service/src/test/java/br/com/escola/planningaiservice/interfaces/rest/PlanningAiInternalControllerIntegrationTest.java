@@ -295,41 +295,34 @@ class PlanningAiInternalControllerIntegrationTest {
     void deveListarInteracoesNoContratoInterno() throws Exception {
         UUID planejamentoId = UUID.randomUUID();
         UUID interacaoId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+        UUID usuarioId = UUID.randomUUID();
 
-        mockWebServer.enqueue(new MockResponse()
-                .setHeader("Content-Type", "application/json")
-                .setBody("""
-                        [
-                          {
-                            "id":"%s",
-                            "planejamentoBimestralId":"%s",
-                            "escolaId":"%s",
-                            "escolaNome":"Escola Central",
-                            "promptProfessor":"Monte uma atividade sobre fracoes",
-                            "respostaIA":"Sugestao de atividade",
-                            "modeloIA":"gpt-4.1",
-                            "tokensEntrada":120,
-                            "tokensSaida":340,
-                            "custoEstimado":1.25,
-                            "createdAt":"2026-07-13T11:00:00"
-                          }
-                        ]
-                        """.formatted(interacaoId, planejamentoId, UUID.randomUUID())));
+        var interaction = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiInteractionJpaEntity();
+        interaction.setId(interacaoId);
+        interaction.setEscolaId(escolaId);
+        interaction.setPlanejamentoBimestralId(planejamentoId);
+        interaction.setUsuarioId(usuarioId);
+        interaction.setPromptProfessor("Monte uma atividade sobre fracoes");
+        interaction.setRespostaIa("Sugestao de atividade");
+        interaction.setModeloIa("gpt-4.1");
+        interaction.setTokensEntrada(120);
+        interaction.setTokensSaida(340);
+        interaction.setCustoEstimado(new java.math.BigDecimal("1.25"));
+        interaction.setCreatedAt(java.time.LocalDateTime.parse("2026-07-13T11:00:00"));
+        interactionRepository.save(interaction);
 
         mockMvc.perform(get("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/interacoes", planejamentoId)
                         .header("X-Internal-Token", "planning-token")
                         .header("X-Correlation-Id", "corr-planning-4")
-                        .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("X-Usuario-Id", usuarioId)
+                        .header("X-Escola-Id", escolaId)
                         .header("Authorization", "Bearer planning-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(interacaoId.toString()))
                 .andExpect(jsonPath("$[0].planejamentoBimestralId").value(planejamentoId.toString()))
                 .andExpect(jsonPath("$[0].modeloIA").value("gpt-4.1"));
-
-        RecordedRequest recorded = aguardarRequisicao();
-        assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/interacoes");
-        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+        assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
     }
 
     @Test
@@ -354,6 +347,45 @@ class PlanningAiInternalControllerIntegrationTest {
                         .header("Authorization", "Bearer planning-user-token"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/interacoes");
+    }
+
+    @Test
+    void deveUsarFallbackDoMonolitoQuandoNaoHouverInteracoesLocais() throws Exception {
+        UUID planejamentoId = UUID.randomUUID();
+        UUID interacaoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [
+                          {
+                            "id":"%s",
+                            "planejamentoBimestralId":"%s",
+                            "escolaId":"%s",
+                            "escolaNome":"Escola Central",
+                            "promptProfessor":"Fallback",
+                            "respostaIA":"Resposta do monolito",
+                            "modeloIA":"gpt-4.1",
+                            "tokensEntrada":100,
+                            "tokensSaida":200,
+                            "custoEstimado":1.00,
+                            "createdAt":"2026-07-13T11:00:00"
+                          }
+                        ]
+                        """.formatted(interacaoId, planejamentoId, UUID.randomUUID())));
+
+        mockMvc.perform(get("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/interacoes", planejamentoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-4b")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(interacaoId.toString()))
+                .andExpect(jsonPath("$[0].respostaIA").value("Resposta do monolito"));
 
         RecordedRequest recorded = aguardarRequisicao();
         assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/interacoes");

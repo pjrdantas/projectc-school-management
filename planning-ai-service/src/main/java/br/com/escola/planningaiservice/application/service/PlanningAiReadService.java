@@ -21,12 +21,15 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
 
     private final PlanningAiReadPort planningAiReadPort;
     private final PlanningAiGenerationPersistenceService planningAiGenerationPersistenceService;
+    private final PlanningAiInteractionReadService planningAiInteractionReadService;
 
     public PlanningAiReadService(
             PlanningAiReadPort planningAiReadPort,
-            PlanningAiGenerationPersistenceService planningAiGenerationPersistenceService) {
+            PlanningAiGenerationPersistenceService planningAiGenerationPersistenceService,
+            PlanningAiInteractionReadService planningAiInteractionReadService) {
         this.planningAiReadPort = planningAiReadPort;
         this.planningAiGenerationPersistenceService = planningAiGenerationPersistenceService;
+        this.planningAiInteractionReadService = planningAiInteractionReadService;
     }
 
     @Override
@@ -51,10 +54,12 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             String authorization,
             InternalRequestContext context,
             UUID planejamentoId) {
-        return planningAiReadPort.listarInteracoes(
-                authorization,
-                context,
-                planejamentoId);
+        List<PlanejamentoIaInteracaoResponse> localInteractions = planningAiInteractionReadService
+                .listarPorEscolaEPlanejamento(context.escolaId(), planejamentoId);
+        if (!localInteractions.isEmpty()) {
+            return localInteractions;
+        }
+        return planningAiReadPort.listarInteracoes(authorization, context, planejamentoId);
     }
 
     @Override
