@@ -36,6 +36,7 @@ import br.com.escola.bff.application.port.out.PeopleFuncionarioReadPort;
 import br.com.escola.bff.application.port.out.PeoplePessoaReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalAulaPort;
 import br.com.escola.bff.application.port.out.PedagogicalBoletimReadPort;
+import br.com.escola.bff.application.port.out.PedagogicalDiarioClasseReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarWritePort;
 import br.com.escola.bff.application.service.AulaProxyService;
@@ -46,6 +47,7 @@ import br.com.escola.bff.application.service.CatalogReadRoutingService;
 import br.com.escola.bff.application.service.DisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.DocumentoAlunoReadProxyService;
 import br.com.escola.bff.application.service.DocumentoReadProxyService;
+import br.com.escola.bff.application.service.DiarioClasseReadProxyService;
 import br.com.escola.bff.application.service.EscolaOrigemReadProxyService;
 import br.com.escola.bff.application.service.EscolaOrigemWriteProxyService;
 import br.com.escola.bff.application.service.FuncionarioReadProxyService;
@@ -65,6 +67,7 @@ import br.com.escola.bff.application.usecase.ConsultarCadastroPessoaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAulaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarBoletimUseCase;
+import br.com.escola.bff.application.usecase.ConsultarDiarioClasseUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoAlunoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarEscolaOrigemUseCase;
@@ -131,6 +134,13 @@ public class BffUseCaseConfiguration {
             AuthContextPort authContextPort,
             PedagogicalAulaPort pedagogicalAulaPort) {
         return new AulaProxyService(authContextPort, pedagogicalAulaPort);
+    }
+
+    @Bean
+    ConsultarDiarioClasseUseCase consultarDiarioClasseUseCase(
+            AuthContextPort authContextPort,
+            PedagogicalDiarioClasseReadPort pedagogicalDiarioClasseReadPort) {
+        return new DiarioClasseReadProxyService(authContextPort, pedagogicalDiarioClasseReadPort);
     }
 
     @Bean

@@ -6542,3 +6542,31 @@ Entregue nesta fase:
 
 Contagem regressiva funcional estimada do `pedagogical-service`: 5 fases
 restantes no escopo atual planejado.
+
+### Fase 128 - Primeiro recorte read-only de `diario de classe` no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o bloco de `diario de classe` foi iniciado pelo menor recorte oficial e
+  read-only recomendado antes de escrita e checagens: o carregamento mensal
+  consolidado de `GET /api/diarios-classe`;
+- o `school-management-service` passou a expor
+  `GET /internal/diarios-classe`, reaproveitando
+  `DiarioClasseConsultaService.carregar(...)` sem abrir ainda
+  `PUT /api/diarios-classe/{idDiarioClasse}` nem as rotas de checagem por
+  coordenacao ou direcao;
+- o `pedagogical-service` passou a publicar
+  `GET /internal/v1/diarios-classe`, mantendo o monolito como autoridade
+  funcional e preservando exatamente o payload consolidado do diario;
+- o `school-management-bff` passou a oficializar
+  `GET /api/diarios-classe` consumindo o `pedagogical-service`, preservando
+  bearer, correlation ID, contexto interno e todos os query params atuais do
+  contrato publico;
+- o bloco de escrita do diario e as checagens ficaram explicitamente fora desta
+  fase para nao colidir com as fases posteriores de governanca operacional;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, query params,
+  payload e propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 4 fases
+restantes no escopo atual planejado.

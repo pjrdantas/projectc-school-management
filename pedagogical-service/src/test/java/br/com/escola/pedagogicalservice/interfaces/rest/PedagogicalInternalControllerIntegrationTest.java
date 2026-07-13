@@ -325,6 +325,61 @@ class PedagogicalInternalControllerIntegrationTest {
     }
 
     @Test
+    void deveCarregarDiarioClasseNoContratoInterno() throws Exception {
+        UUID professorId = UUID.randomUUID();
+        UUID turmaId = UUID.randomUUID();
+        UUID disciplinaId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "cabecalho":{
+                            "idProfessor":"%s",
+                            "idTurma":"%s",
+                            "idDisciplina":"%s",
+                            "anoLetivo":2058,
+                            "mes":6
+                          },
+                          "alunos":[{"nome":"Aluno Diario","frequencias":{"12":"P"}}],
+                          "conteudosPlanejados":[{"periodo":"Aula 1","descricao":"Conteudo planejado"}],
+                          "observacoes":["Observacao interna"],
+                          "avaliacoes":[{"descricao":"Prova mensal","valor":"0 a 10"}],
+                          "assinatura":{"nomeProfessor":"","dataAssinatura":""},
+                          "bloqueado":false
+                        }
+                        """.formatted(professorId, turmaId, disciplinaId)));
+
+        mockMvc.perform(get("/internal/v1/diarios-classe")
+                        .param("idProfessor", professorId.toString())
+                        .param("idTurma", turmaId.toString())
+                        .param("idDisciplina", disciplinaId.toString())
+                        .param("anoLetivo", "2058")
+                        .param("mes", "6")
+                        .param("dataReferencia", "2058-06-26")
+                        .header("X-Internal-Token", "pedagogical-token")
+                        .header("X-Correlation-Id", "corr-pedagogical-diario-1")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer pedagogical-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cabecalho.idProfessor").value(professorId.toString()))
+                .andExpect(jsonPath("$.cabecalho.idTurma").value(turmaId.toString()))
+                .andExpect(jsonPath("$.cabecalho.idDisciplina").value(disciplinaId.toString()))
+                .andExpect(jsonPath("$.alunos[0].nome").value("Aluno Diario"))
+                .andExpect(jsonPath("$.conteudosPlanejados[0].descricao").value("Conteudo planejado"))
+                .andExpect(jsonPath("$.bloqueado").value(false));
+
+        RecordedRequest recorded = aguardarRequisicao(
+                "GET",
+                "/internal/diarios-classe?idProfessor=" + professorId
+                        + "&idTurma=" + turmaId
+                        + "&idDisciplina=" + disciplinaId
+                        + "&anoLetivo=2058&mes=6&dataReferencia=2058-06-26");
+        assertThat(recorded.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-diario-1");
+    }
+
+    @Test
     void deveCarregarHistoricoNovoNoContratoInterno() throws Exception {
         UUID alunoId = UUID.randomUUID();
         UUID matriculaId = UUID.randomUUID();

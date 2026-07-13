@@ -1,11 +1,13 @@
 package br.com.escola.pedagogicalservice.interfaces.rest;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +30,7 @@ import br.com.escola.pedagogicalservice.application.port.in.AulaUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.HistoricoEscolarReadUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.HistoricoEscolarWriteUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.BoletimQueryUseCase;
+import br.com.escola.pedagogicalservice.application.port.in.DiarioClasseReadUseCase;
 
 @RestController
 @RequestMapping({ "/internal/v1", "/internal" })
@@ -35,16 +38,19 @@ public class PedagogicalInternalController {
 
     private final BoletimQueryUseCase boletimQueryUseCase;
     private final AulaUseCase aulaUseCase;
+    private final DiarioClasseReadUseCase diarioClasseReadUseCase;
     private final HistoricoEscolarReadUseCase historicoEscolarReadUseCase;
     private final HistoricoEscolarWriteUseCase historicoEscolarWriteUseCase;
 
     public PedagogicalInternalController(
             BoletimQueryUseCase boletimQueryUseCase,
             AulaUseCase aulaUseCase,
+            DiarioClasseReadUseCase diarioClasseReadUseCase,
             HistoricoEscolarReadUseCase historicoEscolarReadUseCase,
             HistoricoEscolarWriteUseCase historicoEscolarWriteUseCase) {
         this.boletimQueryUseCase = boletimQueryUseCase;
         this.aulaUseCase = aulaUseCase;
+        this.diarioClasseReadUseCase = diarioClasseReadUseCase;
         this.historicoEscolarReadUseCase = historicoEscolarReadUseCase;
         this.historicoEscolarWriteUseCase = historicoEscolarWriteUseCase;
     }
@@ -89,6 +95,27 @@ public class PedagogicalInternalController {
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
             @PathVariable @NonNull UUID id) {
         return aulaUseCase.buscarPorId(authorization, context, id);
+    }
+
+    @GetMapping("/diarios-classe")
+    public ResponseEntity<String> carregarDiarioClasse(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @RequestParam UUID idProfessor,
+            @RequestParam UUID idTurma,
+            @RequestParam UUID idDisciplina,
+            @RequestParam Integer anoLetivo,
+            @RequestParam Integer mes,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataReferencia) {
+        return diarioClasseReadUseCase.carregar(
+                authorization,
+                context,
+                idProfessor,
+                idTurma,
+                idDisciplina,
+                anoLetivo,
+                mes,
+                dataReferencia);
     }
 
     @PostMapping("/historicos-escolares")

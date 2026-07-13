@@ -2678,3 +2678,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   ambos em `BUILD SUCCESS`.
 - Contagem funcional estimada do `pedagogical-service`: 5 fases restantes no
   escopo atual planejado.
+
+### Fase 128
+
+- A Fase 6 do `pedagogical-service` iniciou o bloco read-only de
+  `diario de classe` pelo menor recorte oficial de baixo risco:
+  `GET /api/diarios-classe`.
+- O `school-management-service` passou a expor
+  `GET /internal/diarios-classe`, reaproveitando
+  `DiarioClasseConsultaService.carregar(...)` e mantendo fora desta fase a
+  escrita do diario e as checagens por coordenacao/direcao.
+- O `pedagogical-service` passou a expor
+  `GET /internal/v1/diarios-classe` consumindo o monolito por contrato interno
+  proprio e preservando o payload mensal consolidado.
+- O `school-management-bff` passou a oficializar
+  `GET /api/diarios-classe` consumindo o `pedagogical-service`, preservando os
+  query params atuais, bearer, correlation ID e contexto autenticado.
+- A validacao desta fase ficou restrita aos modulos tocados e foi executada com
+  `mvn -f school-management-service/pom.xml "-Dtest=DiarioClasseInternalControllerTest" test`
+  e com
+  `mvn -pl pedagogical-service,school-management-bff "-Dtest=PedagogicalInternalControllerIntegrationTest,PedagogicalDiarioClasseReadProxyIntegrationTest" test`,
+  ambos em `BUILD SUCCESS`.
+- Contagem funcional estimada do `pedagogical-service`: 4 fases restantes no
+  escopo atual planejado.
