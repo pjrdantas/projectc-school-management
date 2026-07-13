@@ -2654,3 +2654,27 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   com testes focados no monolito, no `pedagogical-service` e no BFF.
 - Contagem funcional estimada do `pedagogical-service`: 6 fases restantes no
   escopo atual planejado.
+
+### Fase 127
+
+- A Fase 5 do `pedagogical-service` abriu o bloco minimo de `aulas` antes do
+  `diario de classe`, preservando os contratos publicos
+  `POST /api/aulas`, `GET /api/aulas` e `GET /api/aulas/{id}`.
+- O `school-management-service` passou a expor
+  `POST /internal/aulas`, `GET /internal/aulas` e `GET /internal/aulas/{id}`,
+  reaproveitando `DiarioAulaService` sem incluir ainda frequencia de professor
+  ou aluno.
+- O `pedagogical-service` passou a expor
+  `POST /internal/v1/aulas`, `GET /internal/v1/aulas` e
+  `GET /internal/v1/aulas/{id}` consumindo o monolito pelo contrato interno
+  novo.
+- O `school-management-bff` passou a oficializar essas tres rotas consumindo o
+  `pedagogical-service`, preservando filtros, bearer, correlation ID e contexto
+  autenticado.
+- A validacao desta fase ficou restrita aos modulos tocados e foi executada
+  com `mvn -f school-management-service/pom.xml "-Dtest=AulaInternalControllerTest" test`
+  e com
+  `mvn -pl pedagogical-service,school-management-bff "-Dtest=PedagogicalInternalControllerIntegrationTest,PedagogicalAulaProxyIntegrationTest" test`,
+  ambos em `BUILD SUCCESS`.
+- Contagem funcional estimada do `pedagogical-service`: 5 fases restantes no
+  escopo atual planejado.

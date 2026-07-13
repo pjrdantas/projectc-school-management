@@ -6513,3 +6513,32 @@ Entregue nesta fase:
 
 Contagem regressiva funcional estimada do `pedagogical-service`: 6 fases
 restantes no escopo atual planejado.
+
+### Fase 127 - Bloco minimo de `aulas` read/write no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o dominio de `aulas` foi aberto pelo menor recorte operacional seguro antes
+  de `diario de classe`, `avaliacoes` e `frequencias`: criacao, listagem e
+  detalhamento por id, preservando os contratos externos atuais
+  `POST /api/aulas`, `GET /api/aulas` e `GET /api/aulas/{id}`;
+- o `school-management-service` passou a expor
+  `POST /internal/aulas`, `GET /internal/aulas` e `GET /internal/aulas/{id}`,
+  reaproveitando `DiarioAulaService` sem migrar ainda frequencia de professor
+  ou aluno;
+- o `pedagogical-service` passou a publicar
+  `POST /internal/v1/aulas`, `GET /internal/v1/aulas` e
+  `GET /internal/v1/aulas/{id}`, mantendo o monolito como autoridade
+  funcional e separando o contrato backend/backend do primeiro bloco de aula;
+- o `school-management-bff` passou a oficializar essas tres rotas consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno,
+  filtros de consulta e o payload externo atual;
+- o bloco de frequencias permaneceu explicitamente fora desta fase para nao
+  colidir com as fases posteriores de `diario de classe`, `avaliacoes`, `notas`
+  e `frequencias`;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, query params,
+  payload e propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 5 fases
+restantes no escopo atual planejado.

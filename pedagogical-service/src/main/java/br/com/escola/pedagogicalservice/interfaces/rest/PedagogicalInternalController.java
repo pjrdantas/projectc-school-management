@@ -21,8 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.pedagogicalservice.application.context.InternalHeaders;
 import br.com.escola.pedagogicalservice.application.context.InternalRequestContext;
+import br.com.escola.pedagogicalservice.application.dto.AulaResponse;
 import br.com.escola.pedagogicalservice.application.dto.BoletimResponse;
 import br.com.escola.pedagogicalservice.application.dto.HistoricoEscolarTelaResponse;
+import br.com.escola.pedagogicalservice.application.port.in.AulaUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.HistoricoEscolarReadUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.HistoricoEscolarWriteUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.BoletimQueryUseCase;
@@ -32,14 +34,17 @@ import br.com.escola.pedagogicalservice.application.port.in.BoletimQueryUseCase;
 public class PedagogicalInternalController {
 
     private final BoletimQueryUseCase boletimQueryUseCase;
+    private final AulaUseCase aulaUseCase;
     private final HistoricoEscolarReadUseCase historicoEscolarReadUseCase;
     private final HistoricoEscolarWriteUseCase historicoEscolarWriteUseCase;
 
     public PedagogicalInternalController(
             BoletimQueryUseCase boletimQueryUseCase,
+            AulaUseCase aulaUseCase,
             HistoricoEscolarReadUseCase historicoEscolarReadUseCase,
             HistoricoEscolarWriteUseCase historicoEscolarWriteUseCase) {
         this.boletimQueryUseCase = boletimQueryUseCase;
+        this.aulaUseCase = aulaUseCase;
         this.historicoEscolarReadUseCase = historicoEscolarReadUseCase;
         this.historicoEscolarWriteUseCase = historicoEscolarWriteUseCase;
     }
@@ -58,6 +63,32 @@ public class PedagogicalInternalController {
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
             @PathVariable @NonNull UUID matriculaId) {
         return boletimQueryUseCase.listarFechamentosPorMatricula(authorization, context, matriculaId);
+    }
+
+    @PostMapping("/aulas")
+    @ResponseStatus(HttpStatus.CREATED)
+    public AulaResponse criarAula(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @RequestBody String requestBody) {
+        return aulaUseCase.criar(authorization, context, requestBody);
+    }
+
+    @GetMapping("/aulas")
+    public List<AulaResponse> listarAulas(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @RequestParam(required = false) UUID professorTurmaDisciplinaId,
+            @RequestParam(required = false) UUID turmaId) {
+        return aulaUseCase.listar(authorization, context, professorTurmaDisciplinaId, turmaId);
+    }
+
+    @GetMapping("/aulas/{id}")
+    public AulaResponse buscarAulaPorId(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID id) {
+        return aulaUseCase.buscarPorId(authorization, context, id);
     }
 
     @PostMapping("/historicos-escolares")

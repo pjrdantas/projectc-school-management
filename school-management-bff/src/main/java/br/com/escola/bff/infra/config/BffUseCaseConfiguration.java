@@ -34,9 +34,11 @@ import br.com.escola.bff.application.port.out.PeopleAlunoResponsavelReadPort;
 import br.com.escola.bff.application.port.out.PeopleCatalogReadPort;
 import br.com.escola.bff.application.port.out.PeopleFuncionarioReadPort;
 import br.com.escola.bff.application.port.out.PeoplePessoaReadPort;
+import br.com.escola.bff.application.port.out.PedagogicalAulaPort;
 import br.com.escola.bff.application.port.out.PedagogicalBoletimReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarWritePort;
+import br.com.escola.bff.application.service.AulaProxyService;
 import br.com.escola.bff.application.service.AlunoResponsavelReadProxyService;
 import br.com.escola.bff.application.service.BoletimReadProxyService;
 import br.com.escola.bff.application.service.CadastroPessoaReadProxyService;
@@ -61,10 +63,12 @@ import br.com.escola.bff.application.service.TurmaDisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.TurmaWriteRoutingService;
 import br.com.escola.bff.application.usecase.ConsultarCadastroPessoaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
+import br.com.escola.bff.application.usecase.ConsultarAulaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarBoletimUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoAlunoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarEscolaOrigemUseCase;
+import br.com.escola.bff.application.usecase.CriarAulaUseCase;
 import br.com.escola.bff.application.usecase.CriarEscolaOrigemUseCase;
 import br.com.escola.bff.application.usecase.CriarTransferenciaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPessoaCatalogoUseCase;
@@ -113,6 +117,20 @@ public class BffUseCaseConfiguration {
             AuthContextPort authContextPort,
             PedagogicalBoletimReadPort pedagogicalBoletimReadPort) {
         return new BoletimReadProxyService(authContextPort, pedagogicalBoletimReadPort);
+    }
+
+    @Bean
+    ConsultarAulaUseCase consultarAulaUseCase(
+            AuthContextPort authContextPort,
+            PedagogicalAulaPort pedagogicalAulaPort) {
+        return new AulaProxyService(authContextPort, pedagogicalAulaPort);
+    }
+
+    @Bean
+    CriarAulaUseCase criarAulaUseCase(
+            AuthContextPort authContextPort,
+            PedagogicalAulaPort pedagogicalAulaPort) {
+        return new AulaProxyService(authContextPort, pedagogicalAulaPort);
     }
 
     @Bean
