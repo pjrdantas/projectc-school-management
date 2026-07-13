@@ -88,6 +88,48 @@ class InstitutionalTenantReadProxyIntegrationTest {
     }
 
     @Test
+    void deveFazerFallbackParaMonolitoQuandoInstitutionalTenantFalhar() throws InterruptedException {
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao"
+                        }
+                        """));
+
+        INSTITUTIONAL_TENANT.enqueue(new MockResponse().setResponseCode(503));
+
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola fallback"
+                        }
+                        """));
+
+        client.get().uri("/api/auth/tenant/ativa")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-tenant-fallback")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.escolaNome").isEqualTo("Escola fallback");
+
+        var contextRequest = MONOLITH.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+
+        var tenantRequest = INSTITUTIONAL_TENANT.takeRequest();
+        assertThat(tenantRequest.getPath()).isEqualTo("/internal/v1/tenant/ativa");
+
+        var monolithFallback = MONOLITH.takeRequest();
+        assertThat(monolithFallback.getPath()).isEqualTo("/api/auth/contexto-atual");
+    }
+
+    @Test
     void deveExigirBearerTokenNaLeituraOficialDoTenantAtivo() {
         client.get().uri("/api/auth/tenant/ativa")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-tenant-2")

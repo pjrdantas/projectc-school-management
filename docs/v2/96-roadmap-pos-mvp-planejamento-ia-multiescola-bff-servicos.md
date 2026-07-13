@@ -6824,3 +6824,30 @@ Entregue nesta fase:
 
 Contagem regressiva da macrofase inicial de identidade e tenant: 2 fases
 restantes no escopo fechado atual.
+
+### Fase 137 - Endurecimento operacional do ciclo autenticado multiescola
+
+Entregue nesta fase:
+
+- o `school-management-bff` recebeu cutover operacional proprio para o bloco
+  identity/tenant ja oficializado, cobrindo
+  `GET /api/auth/escolas`, `POST /api/auth/escola-ativa` e
+  `GET /api/auth/tenant/ativa`;
+- foram introduzidas flags por rota e fallback simples para o monolito em caso
+  de indisponibilidade dos servicos novos, permitindo rollback operacional sem
+  tocar frontend nem contratos publicos;
+- o fallback de sessao multiescola foi ligado aos contratos internos estaveis
+  do monolito `GET /internal/auth/escolas` e
+  `POST /internal/auth/escola-ativa`;
+- o fallback da leitura de tenant ativo foi ligado ao contrato publico estavel
+  `GET /api/auth/contexto-atual`, convertendo a resposta do monolito para o
+  payload minimo de tenant ativo;
+- foram adicionadas metricas Micrometer e health indicator dedicados ao bloco
+  identity/tenant para observar roteamento direto, sucesso em servico novo,
+  falha e fallback para o monolito;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=AuthSessionProxyIntegrationTest,InstitutionalTenantReadProxyIntegrationTest,AuthSessionMonolithIntegrationTest,AuthSessionFallbackIntegrationTest" test`,
+  cobrindo operacao nominal, rollback por flag e fallback automatico.
+
+Contagem regressiva da macrofase inicial de identidade e tenant: 1 fase
+restante no escopo fechado atual.

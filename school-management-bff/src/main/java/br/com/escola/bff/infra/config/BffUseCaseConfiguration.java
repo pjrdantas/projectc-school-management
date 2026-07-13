@@ -24,11 +24,15 @@ import br.com.escola.bff.application.port.out.EnrollmentDocumentMatriculaReadPor
 import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaReadPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaWritePort;
 import br.com.escola.bff.application.port.out.IdentityAccessSessionPort;
+import br.com.escola.bff.application.port.out.IdentityTenantCutoverPolicyPort;
+import br.com.escola.bff.application.port.out.IdentityTenantObservabilityPort;
 import br.com.escola.bff.application.port.out.InstitutionalTenantReadPort;
 import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
+import br.com.escola.bff.application.port.out.MonolithAuthSessionPort;
 import br.com.escola.bff.application.port.out.MonolithDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.MonolithPeriodoLetivoWritePort;
 import br.com.escola.bff.application.port.out.MonolithSerieWritePort;
+import br.com.escola.bff.application.port.out.MonolithTenantReadPort;
 import br.com.escola.bff.application.port.out.MonolithTurmaDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.MonolithTurmaWritePort;
 import br.com.escola.bff.application.port.out.PeopleCadastroReadPort;
@@ -125,22 +129,46 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarAuthSessionUseCase consultarAuthSessionUseCase(
             AuthContextPort authContextPort,
-            IdentityAccessSessionPort identityAccessSessionPort) {
-        return new AuthSessionProxyService(authContextPort, identityAccessSessionPort);
+            IdentityAccessSessionPort identityAccessSessionPort,
+            MonolithAuthSessionPort monolithAuthSessionPort,
+            IdentityTenantCutoverPolicyPort cutoverPolicyPort,
+            IdentityTenantObservabilityPort observabilityPort) {
+        return new AuthSessionProxyService(
+                authContextPort,
+                identityAccessSessionPort,
+                monolithAuthSessionPort,
+                cutoverPolicyPort,
+                observabilityPort);
     }
 
     @Bean
     SelecionarEscolaAtivaUseCase selecionarEscolaAtivaUseCase(
             AuthContextPort authContextPort,
-            IdentityAccessSessionPort identityAccessSessionPort) {
-        return new AuthSessionProxyService(authContextPort, identityAccessSessionPort);
+            IdentityAccessSessionPort identityAccessSessionPort,
+            MonolithAuthSessionPort monolithAuthSessionPort,
+            IdentityTenantCutoverPolicyPort cutoverPolicyPort,
+            IdentityTenantObservabilityPort observabilityPort) {
+        return new AuthSessionProxyService(
+                authContextPort,
+                identityAccessSessionPort,
+                monolithAuthSessionPort,
+                cutoverPolicyPort,
+                observabilityPort);
     }
 
     @Bean
     ConsultarTenantAtivoUseCase consultarTenantAtivoUseCase(
             AuthContextPort authContextPort,
-            InstitutionalTenantReadPort institutionalTenantReadPort) {
-        return new InstitutionalTenantReadProxyService(authContextPort, institutionalTenantReadPort);
+            InstitutionalTenantReadPort institutionalTenantReadPort,
+            MonolithTenantReadPort monolithTenantReadPort,
+            IdentityTenantCutoverPolicyPort cutoverPolicyPort,
+            IdentityTenantObservabilityPort observabilityPort) {
+        return new InstitutionalTenantReadProxyService(
+                authContextPort,
+                institutionalTenantReadPort,
+                monolithTenantReadPort,
+                cutoverPolicyPort,
+                observabilityPort);
     }
 
     @Bean

@@ -56,6 +56,13 @@ features:
   enrollment-document-write-proxy-enabled: ${ENROLLMENT_DOCUMENT_WRITE_PROXY_ENABLED:true}
   pedagogical-read-proxy-enabled: ${PEDAGOGICAL_READ_PROXY_ENABLED:true}
   pedagogical-write-proxy-enabled: ${PEDAGOGICAL_WRITE_PROXY_ENABLED:true}
+  identity-tenant-cutover:
+    enabled: ${IDENTITY_TENANT_CUTOVER_ENABLED:true}
+    fallback-to-monolith-on-error: ${IDENTITY_TENANT_FALLBACK_TO_MONOLITH_ON_ERROR:true}
+    routes:
+      auth-escolas: ${IDENTITY_TENANT_ROUTE_AUTH_ESCOLAS:true}
+      auth-escola-ativa: ${IDENTITY_TENANT_ROUTE_AUTH_ESCOLA_ATIVA:true}
+      auth-tenant-ativa: ${IDENTITY_TENANT_ROUTE_AUTH_TENANT_ATIVA:true}
   catalog-read-cutover:
     enabled: ${CATALOG_READ_CUTOVER_ENABLED:false}
     report-path: ${CATALOG_READ_CUTOVER_REPORT_PATH:}

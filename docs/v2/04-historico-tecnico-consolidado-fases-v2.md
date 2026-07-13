@@ -2900,3 +2900,30 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   em `BUILD SUCCESS`.
 - Contagem regressiva da macrofase inicial de identidade e tenant: 2 fases
   restantes no escopo fechado atual.
+
+### Fase 137
+
+- A Fase 5 da macrofase de identidade e tenant endureceu operacionalmente o
+  bloco ja oficializado no `school-management-bff` para
+  `GET /api/auth/escolas`, `POST /api/auth/escola-ativa` e
+  `GET /api/auth/tenant/ativa`.
+- Foi introduzido um cutover operacional proprio para identity/tenant no BFF,
+  com flags por rota, fallback simples para o monolito em caso de falha dos
+  servicos novos e possibilidade de rollback completo apenas desabilitando o
+  cutover.
+- As rotas de sessao multiescola passaram a fazer fallback para os endpoints
+  internos do monolito `GET /internal/auth/escolas` e
+  `POST /internal/auth/escola-ativa` quando o `identity-access-service` estiver
+  indisponivel ou quando o cutover estiver desabilitado.
+- A leitura publica de tenant ativo passou a fazer fallback para o contrato
+  estavel `GET /api/auth/contexto-atual` no monolito quando o
+  `institutional-tenant-service` estiver indisponivel ou quando o cutover
+  estiver desabilitado.
+- Tambem foram adicionados metricas Micrometer e health indicator dedicados ao
+  bloco identity/tenant, permitindo observar roteamento direto, sucesso em
+  servico novo, falha e fallback para o monolito.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=AuthSessionProxyIntegrationTest,InstitutionalTenantReadProxyIntegrationTest,AuthSessionMonolithIntegrationTest,AuthSessionFallbackIntegrationTest" test`
+  em `BUILD SUCCESS`.
+- Contagem regressiva da macrofase inicial de identidade e tenant: 1 fase
+  restante no escopo fechado atual.
