@@ -6,6 +6,7 @@ import java.util.UUID;
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
+import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
 import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
 
 public interface PlanningAiReadUseCase {
@@ -29,6 +30,11 @@ public interface PlanningAiReadUseCase {
             UUID planejamentoId);
 
     ConteudoIaResponse buscarConteudo(
+            String authorization,
+            InternalRequestContext context,
+            UUID conteudoId);
+
+    List<ConteudoIaVersaoResponse> listarVersoes(
             String authorization,
             InternalRequestContext context,
             UUID conteudoId);

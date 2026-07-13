@@ -16,6 +16,7 @@ import br.com.escola.planningaiservice.application.context.InternalHeaders;
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
+import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
 import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
 import br.com.escola.planningaiservice.application.port.in.PlanningAiReadUseCase;
 
@@ -74,6 +75,17 @@ public class PlanningAiInternalController {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
         return planningAiReadUseCase.buscarConteudo(
+                authorization,
+                context,
+                conteudoId);
+    }
+
+    @GetMapping("/ia/conteudos/{conteudoId}/versoes")
+    public List<ConteudoIaVersaoResponse> listarVersoes(
+            @PathVariable UUID conteudoId,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
+        return planningAiReadUseCase.listarVersoes(
                 authorization,
                 context,
                 conteudoId);

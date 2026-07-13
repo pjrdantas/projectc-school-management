@@ -14,6 +14,7 @@ import org.springframework.web.util.UriBuilder;
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
+import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
 import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
 import br.com.escola.planningaiservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.planningaiservice.application.exception.PlanningAiServiceResourceNotFoundException;
@@ -129,6 +130,32 @@ public class MonolithPlanningAiReadClient implements PlanningAiReadPort {
         } catch (ResourceAccessException exception) {
             throw new DownstreamUnavailableException(
                     "Monolito indisponivel para consulta de conteudo de planejamento IA",
+                    exception);
+        }
+    }
+
+    @Override
+    public List<ConteudoIaVersaoResponse> listarVersoes(
+            String authorization,
+            InternalRequestContext context,
+            UUID conteudoId) {
+        try {
+            List<ConteudoIaVersaoResponse> response = restClient.get()
+                    .uri("/api/ia/conteudos/{conteudoId}/versoes", conteudoId)
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, authorization))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<ConteudoIaVersaoResponse>>() {
+                    });
+            return response == null ? List.of() : response;
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                throw new PlanningAiServiceResourceNotFoundException(
+                        "Consulta de versoes de conteudo de planejamento IA nao encontrada");
+            }
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            throw new DownstreamUnavailableException(
+                    "Monolito indisponivel para consulta de versoes de conteudo de planejamento IA",
                     exception);
         }
     }

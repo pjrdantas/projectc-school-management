@@ -3127,3 +3127,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoDetailReadControllerTest,PlanningAiConteudoDetailReadProxyIntegrationTest" test`.
 - Contagem regressiva da macrofase inicial de `planning-ai-service`: 2 fases
   restantes no escopo fechado atual.
+
+### Fase 147
+
+- A Fase 9 da macrofase inicial de `planning-ai-service` abriu o proximo
+  recorte interno read-only em `GET /internal/v1/ia/conteudos/{conteudoId}/versoes`.
+- O servico novo passou a consumir o contrato atual do monolito
+  `GET /api/ia/conteudos/{conteudoId}/versoes`, preservando o payload
+  funcional das versoes do conteudo gerado.
+- Foi criado DTO proprio para versoes de conteudo IA no codigo novo,
+  desacoplando esse contrato do detalhe principal do conteudo.
+- O comportamento de erro para conteudo inexistente foi mantido como
+  `404 RESOURCE_NOT_FOUND`.
+- Esta fase permaneceu sem BFF, sem escrita migrada, sem criacao de versao,
+  sem aprovacao e sem publicacao, porque o objetivo foi abrir apenas o proximo
+  bloco interno de leitura com menor risco.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva da macrofase inicial de `planning-ai-service`: 1 fase
+  restante no escopo fechado atual.

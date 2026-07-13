@@ -359,6 +359,69 @@ class PlanningAiInternalControllerIntegrationTest {
         assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId);
     }
 
+    @Test
+    void deveListarVersoesNoContratoInterno() throws Exception {
+        UUID conteudoId = UUID.randomUUID();
+        UUID versaoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [
+                          {
+                            "id":"%s",
+                            "conteudoGeradoId":"%s",
+                            "numeroVersao":2,
+                            "conteudo":"Conteudo revisado",
+                            "motivoAlteracao":"Ajuste do professor",
+                            "createdAt":"2026-07-13T11:20:00"
+                          }
+                        ]
+                        """.formatted(versaoId, conteudoId)));
+
+        mockMvc.perform(get("/internal/v1/ia/conteudos/{conteudoId}/versoes", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-10")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(versaoId.toString()))
+                .andExpect(jsonPath("$[0].conteudoGeradoId").value(conteudoId.toString()))
+                .andExpect(jsonPath("$[0].numeroVersao").value(2));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/versoes");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+    }
+
+    @Test
+    void devePropagarNotFoundQuandoConteudoNaoExisteNasVersoes() throws Exception {
+        UUID conteudoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(404)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "error":"RESOURCE_NOT_FOUND",
+                          "message":"Conteudo IA nao encontrado"
+                        }
+                        """));
+
+        mockMvc.perform(get("/internal/v1/ia/conteudos/{conteudoId}/versoes", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-11")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/versoes");
+    }
+
     private RecordedRequest aguardarRequisicao() throws InterruptedException {
         RecordedRequest recorded = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
         assertThat(recorded).isNotNull();

@@ -7090,3 +7090,25 @@ Entregue nesta fase:
 
 Contagem regressiva da macrofase inicial de `planning-ai-service`: 2 fases
 restantes no escopo fechado atual.
+
+### Fase 147 - Leitura interna inicial das versoes de conteudo IA
+
+Entregue nesta fase:
+
+- o `planning-ai-service` abriu o proximo recorte read-only interno do bloco em
+  `GET /internal/v1/ia/conteudos/{conteudoId}/versoes`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `GET /api/ia/conteudos/{conteudoId}/versoes`, preservando o payload oficial
+  de versoes do conteudo gerado;
+- foi criado DTO proprio de versao de conteudo IA no codigo novo, isolando esse
+  contrato do detalhe principal do conteudo;
+- o comportamento de erro para conteudo inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional do monolito;
+- para manter o recorte minimo seguro, esta fase permaneceu sem BFF, sem
+  escrita migrada, sem criacao de versao, sem aprovacao e sem publicacao;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo contrato interno da nova rota,
+  propagacao de bearer e preservacao de `404` para conteudo inexistente.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 1 fase
+restante no escopo fechado atual.
