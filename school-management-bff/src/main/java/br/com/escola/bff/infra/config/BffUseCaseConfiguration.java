@@ -34,12 +34,14 @@ import br.com.escola.bff.application.port.out.PeopleAlunoResponsavelReadPort;
 import br.com.escola.bff.application.port.out.PeopleCatalogReadPort;
 import br.com.escola.bff.application.port.out.PeopleFuncionarioReadPort;
 import br.com.escola.bff.application.port.out.PeoplePessoaReadPort;
+import br.com.escola.bff.application.port.out.PedagogicalAvaliacaoPort;
 import br.com.escola.bff.application.port.out.PedagogicalAulaPort;
 import br.com.escola.bff.application.port.out.PedagogicalBoletimReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalDiarioClasseReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalDiarioClasseWritePort;
 import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarWritePort;
+import br.com.escola.bff.application.service.AvaliacaoProxyService;
 import br.com.escola.bff.application.service.AulaProxyService;
 import br.com.escola.bff.application.service.AlunoResponsavelReadProxyService;
 import br.com.escola.bff.application.service.BoletimReadProxyService;
@@ -67,12 +69,14 @@ import br.com.escola.bff.application.service.TurmaDisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.TurmaWriteRoutingService;
 import br.com.escola.bff.application.usecase.ConsultarCadastroPessoaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
+import br.com.escola.bff.application.usecase.ConsultarAvaliacaoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAulaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarBoletimUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDiarioClasseUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoAlunoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarEscolaOrigemUseCase;
+import br.com.escola.bff.application.usecase.CriarAvaliacaoUseCase;
 import br.com.escola.bff.application.usecase.CriarAulaUseCase;
 import br.com.escola.bff.application.usecase.CriarEscolaOrigemUseCase;
 import br.com.escola.bff.application.usecase.CriarTransferenciaUseCase;
@@ -123,6 +127,20 @@ public class BffUseCaseConfiguration {
             AuthContextPort authContextPort,
             PedagogicalBoletimReadPort pedagogicalBoletimReadPort) {
         return new BoletimReadProxyService(authContextPort, pedagogicalBoletimReadPort);
+    }
+
+    @Bean
+    ConsultarAvaliacaoUseCase consultarAvaliacaoUseCase(
+            AuthContextPort authContextPort,
+            PedagogicalAvaliacaoPort pedagogicalAvaliacaoPort) {
+        return new AvaliacaoProxyService(authContextPort, pedagogicalAvaliacaoPort);
+    }
+
+    @Bean
+    CriarAvaliacaoUseCase criarAvaliacaoUseCase(
+            AuthContextPort authContextPort,
+            PedagogicalAvaliacaoPort pedagogicalAvaliacaoPort) {
+        return new AvaliacaoProxyService(authContextPort, pedagogicalAvaliacaoPort);
     }
 
     @Bean

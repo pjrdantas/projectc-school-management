@@ -232,6 +232,157 @@ class PedagogicalInternalControllerIntegrationTest {
     }
 
     @Test
+    void deveCriarAvaliacaoNoContratoInterno() throws Exception {
+        UUID alocacaoId = UUID.randomUUID();
+        UUID avaliacaoId = UUID.randomUUID();
+        String requestBody = """
+                {
+                  "professorTurmaDisciplinaId":"%s",
+                  "titulo":"Prova fase 130",
+                  "descricao":"Avaliacao integrada",
+                  "dataAplicacao":"2039-04-15",
+                  "valorMaximo":10.00,
+                  "peso":1.00,
+                  "tipoAvaliacao":"PROVA"
+                }
+                """.formatted(alocacaoId);
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(201)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "id":"%s",
+                          "professorTurmaDisciplinaId":"%s",
+                          "professorId":"00000000-0000-0000-0000-000000000101",
+                          "professorNome":"Professor Avaliacao",
+                          "turmaId":"00000000-0000-0000-0000-000000000071",
+                          "turmaNome":"Turma Avaliacao",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao",
+                          "disciplinaId":"00000000-0000-0000-0000-000000000081",
+                          "disciplinaNome":"Matematica",
+                          "titulo":"Prova fase 130",
+                          "descricao":"Avaliacao integrada",
+                          "dataAplicacao":"2039-04-15",
+                          "valorMaximo":10.00,
+                          "peso":1.00,
+                          "tipoAvaliacao":"PROVA",
+                          "createdAt":"2039-04-15T07:00:00"
+                        }
+                        """.formatted(avaliacaoId, alocacaoId)));
+
+        mockMvc.perform(post("/internal/v1/avaliacoes")
+                        .contentType("application/json")
+                        .content(requestBody)
+                        .header("X-Internal-Token", "pedagogical-token")
+                        .header("X-Correlation-Id", "corr-pedagogical-avaliacao-1")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer pedagogical-user-token"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(avaliacaoId.toString()))
+                .andExpect(jsonPath("$.professorTurmaDisciplinaId").value(alocacaoId.toString()))
+                .andExpect(jsonPath("$.turmaNome").value("Turma Avaliacao"));
+
+        RecordedRequest recorded = aguardarRequisicao("POST", "/internal/avaliacoes");
+        assertThat(recorded.getBody().readUtf8()).isEqualTo(requestBody);
+    }
+
+    @Test
+    void deveListarAvaliacoesNoContratoInterno() throws Exception {
+        UUID alocacaoId = UUID.randomUUID();
+        UUID turmaId = UUID.randomUUID();
+        UUID avaliacaoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [
+                          {
+                            "id":"%s",
+                            "professorTurmaDisciplinaId":"%s",
+                            "professorId":"00000000-0000-0000-0000-000000000101",
+                            "professorNome":"Professor Avaliacao",
+                            "turmaId":"%s",
+                            "turmaNome":"Turma Avaliacao",
+                            "escolaId":"00000000-0000-0000-0000-000000000047",
+                            "escolaNome":"Escola padrao",
+                            "disciplinaId":"00000000-0000-0000-0000-000000000081",
+                            "disciplinaNome":"Matematica",
+                            "titulo":"Prova fase 130",
+                            "descricao":"Avaliacao integrada",
+                            "dataAplicacao":"2039-04-15",
+                            "valorMaximo":10.00,
+                            "peso":1.00,
+                            "tipoAvaliacao":"PROVA",
+                            "createdAt":"2039-04-15T07:00:00"
+                          }
+                        ]
+                        """.formatted(avaliacaoId, alocacaoId, turmaId)));
+
+        mockMvc.perform(get("/internal/v1/avaliacoes")
+                        .param("professorTurmaDisciplinaId", alocacaoId.toString())
+                        .param("turmaId", turmaId.toString())
+                        .header("X-Internal-Token", "pedagogical-token")
+                        .header("X-Correlation-Id", "corr-pedagogical-avaliacao-2")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer pedagogical-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(avaliacaoId.toString()))
+                .andExpect(jsonPath("$[0].professorTurmaDisciplinaId").value(alocacaoId.toString()))
+                .andExpect(jsonPath("$[0].turmaId").value(turmaId.toString()));
+
+        RecordedRequest recorded = aguardarRequisicao(
+                "GET",
+                "/internal/avaliacoes?professorTurmaDisciplinaId=" + alocacaoId + "&turmaId=" + turmaId);
+        assertThat(recorded.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-avaliacao-2");
+    }
+
+    @Test
+    void deveBuscarAvaliacaoPorIdNoContratoInterno() throws Exception {
+        UUID avaliacaoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "id":"%s",
+                          "professorTurmaDisciplinaId":"00000000-0000-0000-0000-000000000111",
+                          "professorId":"00000000-0000-0000-0000-000000000101",
+                          "professorNome":"Professor Avaliacao",
+                          "turmaId":"00000000-0000-0000-0000-000000000071",
+                          "turmaNome":"Turma Avaliacao",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao",
+                          "disciplinaId":"00000000-0000-0000-0000-000000000081",
+                          "disciplinaNome":"Matematica",
+                          "titulo":"Prova fase 130",
+                          "descricao":"Avaliacao integrada",
+                          "dataAplicacao":"2039-04-15",
+                          "valorMaximo":10.00,
+                          "peso":1.00,
+                          "tipoAvaliacao":"PROVA",
+                          "createdAt":"2039-04-15T07:00:00"
+                        }
+                        """.formatted(avaliacaoId)));
+
+        mockMvc.perform(get("/internal/v1/avaliacoes/{id}", avaliacaoId)
+                        .header("X-Internal-Token", "pedagogical-token")
+                        .header("X-Correlation-Id", "corr-pedagogical-avaliacao-3")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", "00000000-0000-0000-0000-000000000047")
+                        .header("Authorization", "Bearer pedagogical-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(avaliacaoId.toString()))
+                .andExpect(jsonPath("$.turmaNome").value("Turma Avaliacao"));
+
+        RecordedRequest recorded = aguardarRequisicao("GET", "/internal/avaliacoes/" + avaliacaoId);
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer pedagogical-user-token");
+    }
+
+    @Test
     void deveListarAulasNoContratoInterno() throws Exception {
         UUID alocacaoId = UUID.randomUUID();
         UUID turmaId = UUID.randomUUID();

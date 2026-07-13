@@ -23,9 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.pedagogicalservice.application.context.InternalHeaders;
 import br.com.escola.pedagogicalservice.application.context.InternalRequestContext;
+import br.com.escola.pedagogicalservice.application.dto.AvaliacaoResponse;
 import br.com.escola.pedagogicalservice.application.dto.AulaResponse;
 import br.com.escola.pedagogicalservice.application.dto.BoletimResponse;
 import br.com.escola.pedagogicalservice.application.dto.HistoricoEscolarTelaResponse;
+import br.com.escola.pedagogicalservice.application.port.in.AvaliacaoUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.AulaUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.HistoricoEscolarReadUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.HistoricoEscolarWriteUseCase;
@@ -38,6 +40,7 @@ import br.com.escola.pedagogicalservice.application.port.in.DiarioClasseWriteUse
 public class PedagogicalInternalController {
 
     private final BoletimQueryUseCase boletimQueryUseCase;
+    private final AvaliacaoUseCase avaliacaoUseCase;
     private final AulaUseCase aulaUseCase;
     private final DiarioClasseReadUseCase diarioClasseReadUseCase;
     private final DiarioClasseWriteUseCase diarioClasseWriteUseCase;
@@ -46,12 +49,14 @@ public class PedagogicalInternalController {
 
     public PedagogicalInternalController(
             BoletimQueryUseCase boletimQueryUseCase,
+            AvaliacaoUseCase avaliacaoUseCase,
             AulaUseCase aulaUseCase,
             DiarioClasseReadUseCase diarioClasseReadUseCase,
             DiarioClasseWriteUseCase diarioClasseWriteUseCase,
             HistoricoEscolarReadUseCase historicoEscolarReadUseCase,
             HistoricoEscolarWriteUseCase historicoEscolarWriteUseCase) {
         this.boletimQueryUseCase = boletimQueryUseCase;
+        this.avaliacaoUseCase = avaliacaoUseCase;
         this.aulaUseCase = aulaUseCase;
         this.diarioClasseReadUseCase = diarioClasseReadUseCase;
         this.diarioClasseWriteUseCase = diarioClasseWriteUseCase;
@@ -82,6 +87,32 @@ public class PedagogicalInternalController {
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
             @RequestBody String requestBody) {
         return aulaUseCase.criar(authorization, context, requestBody);
+    }
+
+    @PostMapping("/avaliacoes")
+    @ResponseStatus(HttpStatus.CREATED)
+    public AvaliacaoResponse criarAvaliacao(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @RequestBody String requestBody) {
+        return avaliacaoUseCase.criar(authorization, context, requestBody);
+    }
+
+    @GetMapping("/avaliacoes")
+    public List<AvaliacaoResponse> listarAvaliacoes(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @RequestParam(required = false) UUID professorTurmaDisciplinaId,
+            @RequestParam(required = false) UUID turmaId) {
+        return avaliacaoUseCase.listar(authorization, context, professorTurmaDisciplinaId, turmaId);
+    }
+
+    @GetMapping("/avaliacoes/{id}")
+    public AvaliacaoResponse buscarAvaliacaoPorId(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID id) {
+        return avaliacaoUseCase.buscarPorId(authorization, context, id);
     }
 
     @GetMapping("/aulas")

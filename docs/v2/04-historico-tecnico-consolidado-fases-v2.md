@@ -2724,3 +2724,28 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   ambos em `BUILD SUCCESS`.
 - Contagem funcional estimada do `pedagogical-service`: 3 fases restantes no
   escopo atual planejado.
+
+### Fase 130
+
+- A Fase 8 do `pedagogical-service` abriu o bloco minimo de `avaliacoes`
+  antes de `notas` e `frequencias`, preservando os contratos publicos
+  `POST /api/avaliacoes`, `GET /api/avaliacoes` e `GET /api/avaliacoes/{id}`.
+- O `school-management-service` passou a expor
+  `POST /internal/avaliacoes`, `GET /internal/avaliacoes` e
+  `GET /internal/avaliacoes/{id}`, reaproveitando `AvaliacaoService` sem
+  incluir ainda `POST /api/avaliacoes/{id}/notas` nem
+  `GET /api/avaliacoes/{id}/notas`.
+- O `pedagogical-service` passou a expor
+  `POST /internal/v1/avaliacoes`, `GET /internal/v1/avaliacoes` e
+  `GET /internal/v1/avaliacoes/{id}` consumindo o monolito pelo contrato
+  interno novo.
+- O `school-management-bff` passou a oficializar essas tres rotas consumindo o
+  `pedagogical-service`, preservando filtros, bearer, correlation ID e contexto
+  autenticado.
+- A validacao desta fase ficou restrita aos modulos tocados e foi executada
+  com `mvn -f school-management-service/pom.xml "-Dtest=AvaliacaoInternalControllerTest" test`
+  e com
+  `mvn -pl pedagogical-service,school-management-bff "-Dtest=PedagogicalInternalControllerIntegrationTest,PedagogicalAvaliacaoProxyIntegrationTest" test`,
+  ambos em `BUILD SUCCESS`.
+- Contagem funcional estimada do `pedagogical-service`: 2 fases restantes no
+  escopo atual planejado.

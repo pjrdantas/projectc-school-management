@@ -6599,3 +6599,33 @@ Entregue nesta fase:
 
 Contagem regressiva funcional estimada do `pedagogical-service`: 3 fases
 restantes no escopo atual planejado.
+
+### Fase 130 - Bloco minimo de `avaliacoes` read/write no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o dominio de `avaliacoes` foi aberto pelo menor recorte operacional seguro
+  antes de `notas` e `frequencias`: criacao, listagem e detalhamento por id,
+  preservando os contratos externos atuais `POST /api/avaliacoes`,
+  `GET /api/avaliacoes` e `GET /api/avaliacoes/{id}`;
+- o `school-management-service` passou a expor
+  `POST /internal/avaliacoes`, `GET /internal/avaliacoes` e
+  `GET /internal/avaliacoes/{id}`, reaproveitando `AvaliacaoService` sem
+  migrar ainda o lancamento e a consulta de `notas` por avaliacao;
+- o `pedagogical-service` passou a publicar
+  `POST /internal/v1/avaliacoes`, `GET /internal/v1/avaliacoes` e
+  `GET /internal/v1/avaliacoes/{id}`, mantendo o monolito como autoridade
+  funcional e separando o contrato backend/backend do primeiro bloco de
+  avaliacao;
+- o `school-management-bff` passou a oficializar essas tres rotas consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno,
+  filtros de consulta e o payload externo atual;
+- as rotas `POST /api/avaliacoes/{id}/notas` e `GET /api/avaliacoes/{id}/notas`
+  permaneceram explicitamente fora desta fase para compor a fase seguinte de
+  `notas e frequencias`;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, query params,
+  payload e propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 2 fases
+restantes no escopo atual planejado.
