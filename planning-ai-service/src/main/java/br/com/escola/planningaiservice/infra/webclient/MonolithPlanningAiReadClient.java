@@ -109,6 +109,30 @@ public class MonolithPlanningAiReadClient implements PlanningAiReadPort {
         }
     }
 
+    @Override
+    public ConteudoIaResponse buscarConteudo(
+            String authorization,
+            InternalRequestContext context,
+            UUID conteudoId) {
+        try {
+            return restClient.get()
+                    .uri("/api/ia/conteudos/{conteudoId}", conteudoId)
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, authorization))
+                    .retrieve()
+                    .body(ConteudoIaResponse.class);
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                throw new PlanningAiServiceResourceNotFoundException(
+                        "Consulta de conteudo de planejamento IA nao encontrada");
+            }
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            throw new DownstreamUnavailableException(
+                    "Monolito indisponivel para consulta de conteudo de planejamento IA",
+                    exception);
+        }
+    }
+
     private java.net.URI bibliotecaUri(
             UriBuilder uriBuilder,
             UUID professorId,

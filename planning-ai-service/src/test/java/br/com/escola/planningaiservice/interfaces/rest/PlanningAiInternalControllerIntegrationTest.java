@@ -285,6 +285,80 @@ class PlanningAiInternalControllerIntegrationTest {
         assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/conteudos");
     }
 
+    @Test
+    void deveBuscarConteudoNoContratoInterno() throws Exception {
+        UUID conteudoId = UUID.randomUUID();
+        UUID planejamentoId = UUID.randomUUID();
+        UUID interacaoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "id":"%s",
+                          "planejamentoBimestralId":"%s",
+                          "interacaoId":"%s",
+                          "escolaId":"%s",
+                          "escolaNome":"Escola Central",
+                          "titulo":"Lista de fracoes",
+                          "conteudo":"Conteudo gerado",
+                          "versao":1,
+                          "hashConteudo":"abc123",
+                          "aprovadoPeloProfessor":false,
+                          "reutilizavel":true,
+                          "ativo":true,
+                          "status":"GERADO",
+                          "statusDescricao":"Gerado",
+                          "tipoConteudo":"ATIVIDADE",
+                          "tipoConteudoDescricao":"Atividade",
+                          "createdAt":"2026-07-13T11:10:00",
+                          "updatedAt":"2026-07-13T11:10:00"
+                        }
+                        """.formatted(conteudoId, planejamentoId, interacaoId, UUID.randomUUID())));
+
+        mockMvc.perform(get("/internal/v1/ia/conteudos/{conteudoId}", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-8")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(conteudoId.toString()))
+                .andExpect(jsonPath("$.planejamentoBimestralId").value(planejamentoId.toString()))
+                .andExpect(jsonPath("$.tipoConteudo").value("ATIVIDADE"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId);
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+    }
+
+    @Test
+    void devePropagarNotFoundQuandoConteudoNaoExiste() throws Exception {
+        UUID conteudoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(404)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "error":"RESOURCE_NOT_FOUND",
+                          "message":"Conteudo IA nao encontrado"
+                        }
+                        """));
+
+        mockMvc.perform(get("/internal/v1/ia/conteudos/{conteudoId}", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-9")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId);
+    }
+
     private RecordedRequest aguardarRequisicao() throws InterruptedException {
         RecordedRequest recorded = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
         assertThat(recorded).isNotNull();

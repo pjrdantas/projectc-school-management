@@ -67,4 +67,15 @@ public class PlanningAiInternalController {
                 context,
                 planejamentoId);
     }
+
+    @GetMapping("/ia/conteudos/{conteudoId}")
+    public ConteudoIaResponse buscarConteudo(
+            @PathVariable UUID conteudoId,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
+        return planningAiReadUseCase.buscarConteudo(
+                authorization,
+                context,
+                conteudoId);
+    }
 }

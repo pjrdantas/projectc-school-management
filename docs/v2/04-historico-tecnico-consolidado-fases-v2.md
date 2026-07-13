@@ -3090,3 +3090,40 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoReadControllerTest,PlanningAiConteudoReadProxyIntegrationTest" test`.
 - Contagem regressiva da macrofase inicial de `planning-ai-service`: 4 fases
   restantes no escopo fechado atual.
+
+### Fase 145
+
+- A Fase 7 da macrofase inicial de `planning-ai-service` abriu o proximo
+  recorte interno read-only em `GET /internal/v1/ia/conteudos/{conteudoId}`.
+- O servico novo passou a consumir o contrato atual do monolito
+  `GET /api/ia/conteudos/{conteudoId}`, preservando o payload funcional de
+  detalhe do conteudo gerado no fluxo de planejamento e IA.
+- Foi reaproveitado o DTO proprio de conteudo gerado ja existente no codigo
+  novo, sem duplicar o contrato do detalhe por ID.
+- O comportamento de erro para conteudo inexistente foi mantido como
+  `404 RESOURCE_NOT_FOUND`.
+- Esta fase permaneceu sem BFF, sem escrita migrada, sem geracao nova, sem
+  versoes, sem aprovacao e sem publicacao, porque o objetivo foi abrir apenas o
+  proximo bloco interno de leitura com menor risco.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva da macrofase inicial de `planning-ai-service`: 3 fases
+  restantes no escopo fechado atual.
+
+### Fase 146
+
+- A Fase 8 da macrofase inicial de `planning-ai-service` oficializou no
+  `school-management-bff` a rota publica `GET /api/ia/conteudos/{conteudoId}`.
+- O BFF passou a consumir o contrato interno
+  `GET /internal/v1/ia/conteudos/{conteudoId}` do servico novo, preservando o
+  payload funcional de detalhe do conteudo gerado.
+- Foi criado proxy dedicado no BFF para essa leitura, reutilizando o client
+  HTTP do `planning-ai-service` e o contexto autenticado atual do monolito para
+  resolver `X-Usuario-Id` e `X-Escola-Id`.
+- Esta fase permaneceu sem cutover, sem fallback e sem qualquer escrita
+  migrada, porque o objetivo foi somente oficializar o proximo contrato
+  read-only ja aberto no servico novo.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoDetailReadControllerTest,PlanningAiConteudoDetailReadProxyIntegrationTest" test`.
+- Contagem regressiva da macrofase inicial de `planning-ai-service`: 2 fases
+  restantes no escopo fechado atual.

@@ -7042,3 +7042,51 @@ Entregue nesta fase:
 
 Contagem regressiva da macrofase inicial de `planning-ai-service`: 4 fases
 restantes no escopo fechado atual.
+
+### Fase 145 - Leitura interna inicial de conteudo de planejamento IA por ID
+
+Entregue nesta fase:
+
+- o `planning-ai-service` abriu o proximo recorte read-only interno do bloco em
+  `GET /internal/v1/ia/conteudos/{conteudoId}`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `GET /api/ia/conteudos/{conteudoId}`, preservando o payload oficial de
+  detalhe do conteudo gerado;
+- foi reaproveitado o DTO proprio de conteudo gerado ja aberto na fase
+  anterior, evitando duplicacao de contrato no codigo novo;
+- o comportamento de erro para conteudo inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional do monolito;
+- para manter o recorte minimo seguro, esta fase permaneceu sem BFF, sem
+  escrita migrada, sem geracao nova, sem versoes, sem aprovacao e sem
+  publicacao na biblioteca;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo contrato interno da nova rota,
+  propagacao de bearer e preservacao de `404` para conteudo inexistente.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 3 fases
+restantes no escopo fechado atual.
+
+### Fase 146 - Oficializacao inicial do detalhe de conteudo IA via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar a rota publica
+  `GET /api/ia/conteudos/{conteudoId}`;
+- a rota publica reutiliza o contrato interno ja aberto na fase anterior em
+  `GET /internal/v1/ia/conteudos/{conteudoId}`, preservando o payload oficial
+  de detalhe do conteudo gerado;
+- o BFF resolve o contexto autenticado atual no monolito apenas para montar os
+  headers internos `X-Usuario-Id` e `X-Escola-Id` exigidos pelo
+  `planning-ai-service`;
+- foi criado no BFF um proxy dedicado para o detalhe de conteudo IA,
+  reutilizando o mesmo client properties e a mesma feature flag de leitura do
+  `planning-ai-service`;
+- para manter o menor recorte seguro, esta fase nao abriu geracao, versoes,
+  aprovacao, publicacao, escrita migrada, cutover ou fallback;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoDetailReadControllerTest,PlanningAiConteudoDetailReadProxyIntegrationTest" test`,
+  cobrindo contrato da rota publica, propagacao de bearer/correlation ID,
+  resolucao de contexto autenticado e chamada interna ao servico novo.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 2 fases
+restantes no escopo fechado atual.

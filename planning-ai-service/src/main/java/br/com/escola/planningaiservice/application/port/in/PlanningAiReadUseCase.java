@@ -27,4 +27,9 @@ public interface PlanningAiReadUseCase {
             String authorization,
             InternalRequestContext context,
             UUID planejamentoId);
+
+    ConteudoIaResponse buscarConteudo(
+            String authorization,
+            InternalRequestContext context,
+            UUID conteudoId);
 }

@@ -49,6 +49,7 @@ import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarReadPor
 import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarWritePort;
 import br.com.escola.bff.application.port.out.PlanningAiBibliotecaReadPort;
 import br.com.escola.bff.application.port.out.PlanningAiConteudoReadPort;
+import br.com.escola.bff.application.port.out.PlanningAiConteudoDetailReadPort;
 import br.com.escola.bff.application.port.out.PlanningAiInteracaoReadPort;
 import br.com.escola.bff.application.service.AvaliacaoProxyService;
 import br.com.escola.bff.application.service.AulaProxyService;
@@ -70,6 +71,7 @@ import br.com.escola.bff.application.service.HistoricoEscolarReadProxyService;
 import br.com.escola.bff.application.service.HistoricoEscolarWriteProxyService;
 import br.com.escola.bff.application.service.InstitutionalTenantReadProxyService;
 import br.com.escola.bff.application.service.MatriculaReadProxyService;
+import br.com.escola.bff.application.service.PlanejamentoIaConteudoDetailReadProxyService;
 import br.com.escola.bff.application.service.PeriodoLetivoWriteRoutingService;
 import br.com.escola.bff.application.service.PlanejamentoIaConteudoReadProxyService;
 import br.com.escola.bff.application.service.PlanejamentoIaInteracaoReadProxyService;
@@ -92,6 +94,7 @@ import br.com.escola.bff.application.usecase.ConsultarDiarioClasseUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoAlunoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarEscolaOrigemUseCase;
+import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaConteudoDetailUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaConteudoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaInteracaoUseCase;
 import br.com.escola.bff.application.usecase.CriarAvaliacaoUseCase;
@@ -331,6 +334,15 @@ public class BffUseCaseConfiguration {
         return new PlanejamentoIaConteudoReadProxyService(
                 authContextPort,
                 planningAiConteudoReadPort);
+    }
+
+    @Bean
+    ConsultarPlanejamentoIaConteudoDetailUseCase consultarPlanejamentoIaConteudoDetailUseCase(
+            AuthContextPort authContextPort,
+            PlanningAiConteudoDetailReadPort planningAiConteudoDetailReadPort) {
+        return new PlanejamentoIaConteudoDetailReadProxyService(
+                authContextPort,
+                planningAiConteudoDetailReadPort);
     }
 
     @Bean
