@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.bff.application.context.TrustedHeaders;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoUseCase;
+import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoVersaoUseCase;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -22,10 +23,13 @@ import reactor.core.publisher.Mono;
 public class PlanejamentoIaConteudoWriteController {
 
     private final CriarPlanejamentoIaConteudoUseCase criarPlanejamentoIaConteudoUseCase;
+    private final CriarPlanejamentoIaConteudoVersaoUseCase criarPlanejamentoIaConteudoVersaoUseCase;
 
     public PlanejamentoIaConteudoWriteController(
-            CriarPlanejamentoIaConteudoUseCase criarPlanejamentoIaConteudoUseCase) {
+            CriarPlanejamentoIaConteudoUseCase criarPlanejamentoIaConteudoUseCase,
+            CriarPlanejamentoIaConteudoVersaoUseCase criarPlanejamentoIaConteudoVersaoUseCase) {
         this.criarPlanejamentoIaConteudoUseCase = criarPlanejamentoIaConteudoUseCase;
+        this.criarPlanejamentoIaConteudoVersaoUseCase = criarPlanejamentoIaConteudoVersaoUseCase;
     }
 
     @PostMapping("/api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos")
@@ -39,6 +43,20 @@ public class PlanejamentoIaConteudoWriteController {
                 authorization,
                 correlationId,
                 planejamentoId,
+                requestBody);
+    }
+
+    @PostMapping("/api/ia/conteudos/{conteudoId}/versoes")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<ResponseEntity<String>> criarVersao(
+            @PathVariable UUID conteudoId,
+            @RequestBody String requestBody,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return criarPlanejamentoIaConteudoVersaoUseCase.executar(
+                authorization,
+                correlationId,
+                conteudoId,
                 requestBody);
     }
 }

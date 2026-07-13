@@ -7226,3 +7226,28 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
 5 fases restantes no escopo fechado atual.
+
+### Fase 152 - Oficializacao inicial da criacao de versao de conteudo IA no BFF
+
+Entregue nesta fase:
+
+- foi oficializado no `school-management-bff` o contrato publico
+  `POST /api/ia/conteudos/{conteudoId}/versoes`;
+- a nova rota publica ficou desacoplada por porta propria de escrita de versao
+  e cliente HTTP dedicado para o `planning-ai-service`, sem reabrir os contratos
+  read-only nem misturar com aprovacao/publicacao;
+- o BFF passou a resolver o contexto autenticado atual pelo `AuthContextPort` e
+  a propagar `Authorization`, `X-Internal-Token`, `X-Correlation-Id`,
+  `X-Usuario-Id` e `X-Escola-Id` para o contrato interno
+  `POST /internal/v1/ia/conteudos/{conteudoId}/versoes`;
+- a oficializacao reutiliza a mesma flag de escrita
+  `features.planning-ai-write-proxy-enabled`, mantendo separado o eixo de
+  escrita da flag ja existente de leitura;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoVersaoWriteControllerTest,PlanningAiConteudoVersaoWriteProxyIntegrationTest" test`,
+  cobrindo contrato publico e integracao ponta a ponta do proxy;
+- permanecem explicitamente fora desta fase aprovacao de versao, publicacao na
+  biblioteca, persistencia propria e qualquer refatoracao ampla.
+
+Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
+4 fases restantes no escopo fechado atual.

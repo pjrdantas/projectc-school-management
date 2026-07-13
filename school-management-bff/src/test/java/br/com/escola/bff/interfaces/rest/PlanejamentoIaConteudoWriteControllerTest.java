@@ -9,6 +9,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import br.com.escola.bff.application.context.TrustedHeaders;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoUseCase;
+import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoVersaoUseCase;
 import br.com.escola.bff.interfaces.advice.BffExceptionHandler;
 import reactor.core.publisher.Mono;
 
@@ -28,8 +29,11 @@ class PlanejamentoIaConteudoWriteControllerTest {
                                   "status":"GERADO"
                                 }
                                 """));
+        CriarPlanejamentoIaConteudoVersaoUseCase criarVersaoUseCase =
+                (authorization, correlationId, conteudoId, requestBody) -> Mono.error(new UnsupportedOperationException());
 
-        WebTestClient client = WebTestClient.bindToController(new PlanejamentoIaConteudoWriteController(useCase))
+        WebTestClient client = WebTestClient.bindToController(
+                        new PlanejamentoIaConteudoWriteController(useCase, criarVersaoUseCase))
                 .controllerAdvice(new BffExceptionHandler())
                 .build();
 
