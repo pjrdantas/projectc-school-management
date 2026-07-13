@@ -82,6 +82,66 @@ class PlanningAiInternalControllerIntegrationTest {
         UUID professorId = UUID.randomUUID();
         UUID disciplinaId = UUID.randomUUID();
         UUID conteudoId = UUID.randomUUID();
+        UUID bibliotecaId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+
+        var content = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiGeneratedContentJpaEntity();
+        content.setId(conteudoId);
+        content.setEscolaId(escolaId);
+        content.setPlanejamentoBimestralId(UUID.randomUUID());
+        content.setTitulo("Lista");
+        content.setConteudo("Conteudo gerado");
+        content.setVersao(1);
+        content.setHashConteudo("abc123");
+        content.setAprovadoPeloProfessor(false);
+        content.setReutilizavel(true);
+        content.setAtivo(true);
+        content.setStatus("APROVADO");
+        content.setTipoConteudo("ATIVIDADE");
+        content.setCreatedAt(java.time.LocalDateTime.parse("2026-07-13T10:15:30"));
+        content.setUpdatedAt(java.time.LocalDateTime.parse("2026-07-13T10:15:30"));
+        contentRepository.save(content);
+
+        var library = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PedagogicalContentLibraryJpaEntity();
+        library.setId(bibliotecaId);
+        library.setEscolaId(escolaId);
+        library.setConteudoOrigem(content);
+        library.setProfessorId(professorId);
+        library.setDisciplinaId(disciplinaId);
+        library.setTipoConteudo("ATIVIDADE");
+        library.setTitulo("Lista");
+        library.setTema("Fracoes");
+        library.setConteudo("Conteudo gerado");
+        library.setOrigem("PLANEJAMENTO_IA");
+        library.setReutilizavel(true);
+        library.setAtivo(true);
+        library.setCreatedAt(java.time.LocalDateTime.parse("2026-07-13T10:15:30"));
+        library.setUpdatedAt(java.time.LocalDateTime.parse("2026-07-13T10:15:30"));
+        libraryRepository.save(library);
+
+        mockMvc.perform(get("/internal/v1/biblioteca-conteudos-pedagogicos")
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-1")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer planning-user-token")
+                        .param("professorId", professorId.toString())
+                        .param("disciplinaId", disciplinaId.toString())
+                        .param("tipoConteudo", "ATIVIDADE")
+                        .param("tema", "Fracoes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(bibliotecaId.toString()))
+                .andExpect(jsonPath("$[0].professorId").value(professorId.toString()))
+                .andExpect(jsonPath("$[0].tipoConteudo").value("ATIVIDADE"));
+
+        assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
+    }
+
+    @Test
+    void deveUsarFallbackDoMonolitoQuandoNaoHouverBibliotecaLocal() throws Exception {
+        UUID professorId = UUID.randomUUID();
+        UUID disciplinaId = UUID.randomUUID();
+        UUID bibliotecaId = UUID.randomUUID();
 
         mockWebServer.enqueue(new MockResponse()
                 .setHeader("Content-Type", "application/json")
@@ -107,11 +167,11 @@ class PlanningAiInternalControllerIntegrationTest {
                             "updatedAt":"2026-07-13T10:15:30"
                           }
                         ]
-                        """.formatted(conteudoId, UUID.randomUUID(), professorId, disciplinaId)));
+                        """.formatted(bibliotecaId, UUID.randomUUID(), professorId, disciplinaId)));
 
         mockMvc.perform(get("/internal/v1/biblioteca-conteudos-pedagogicos")
                         .header("X-Internal-Token", "planning-token")
-                        .header("X-Correlation-Id", "corr-planning-1")
+                        .header("X-Correlation-Id", "corr-planning-1b")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", UUID.randomUUID())
                         .header("Authorization", "Bearer planning-user-token")
@@ -120,7 +180,7 @@ class PlanningAiInternalControllerIntegrationTest {
                         .param("tipoConteudo", "ATIVIDADE")
                         .param("tema", "Fracoes"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(conteudoId.toString()))
+                .andExpect(jsonPath("$[0].id").value(bibliotecaId.toString()))
                 .andExpect(jsonPath("$[0].professorNome").value("Professor Um"))
                 .andExpect(jsonPath("$[0].tipoConteudo").value("ATIVIDADE"));
 

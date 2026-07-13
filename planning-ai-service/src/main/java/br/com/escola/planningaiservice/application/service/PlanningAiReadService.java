@@ -25,6 +25,7 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
     private final PlanningAiContentReadService planningAiContentReadService;
     private final PlanningAiContentVersionReadService planningAiContentVersionReadService;
     private final PlanningAiLibraryPublicationPersistenceService planningAiLibraryPublicationPersistenceService;
+    private final PlanningAiLibraryReadService planningAiLibraryReadService;
 
     public PlanningAiReadService(
             PlanningAiReadPort planningAiReadPort,
@@ -32,13 +33,15 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             PlanningAiInteractionReadService planningAiInteractionReadService,
             PlanningAiContentReadService planningAiContentReadService,
             PlanningAiContentVersionReadService planningAiContentVersionReadService,
-            PlanningAiLibraryPublicationPersistenceService planningAiLibraryPublicationPersistenceService) {
+            PlanningAiLibraryPublicationPersistenceService planningAiLibraryPublicationPersistenceService,
+            PlanningAiLibraryReadService planningAiLibraryReadService) {
         this.planningAiReadPort = planningAiReadPort;
         this.planningAiGenerationPersistenceService = planningAiGenerationPersistenceService;
         this.planningAiInteractionReadService = planningAiInteractionReadService;
         this.planningAiContentReadService = planningAiContentReadService;
         this.planningAiContentVersionReadService = planningAiContentVersionReadService;
         this.planningAiLibraryPublicationPersistenceService = planningAiLibraryPublicationPersistenceService;
+        this.planningAiLibraryReadService = planningAiLibraryReadService;
     }
 
     @Override
@@ -49,6 +52,11 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             UUID disciplinaId,
             String tipoConteudo,
             String tema) {
+        List<BibliotecaConteudoPedagogicoResponse> localLibrary = planningAiLibraryReadService
+                .listar(context.escolaId(), professorId, disciplinaId, tipoConteudo, tema);
+        if (!localLibrary.isEmpty()) {
+            return localLibrary;
+        }
         return planningAiReadPort.listarBiblioteca(
                 authorization,
                 context,

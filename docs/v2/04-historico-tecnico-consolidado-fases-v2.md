@@ -3463,3 +3463,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service test`.
 - Contagem regressiva do novo ciclo fechado de persistencia propria do
   `planning-ai-service`: 1 fase restante no escopo fechado atual.
+
+### Fase 164
+
+- A Fase 8 do novo ciclo fechado de persistencia propria do
+  `planning-ai-service` migrou a leitura interna da biblioteca pedagogica para
+  priorizar a base local do servico.
+- O contrato `GET /internal/v1/biblioteca-conteudos-pedagogicos` foi preservado
+  e passou a consultar primeiro a persistencia propria por `escolaId`, com
+  filtros opcionais de `professorId`, `disciplinaId`, `tipoConteudo` e `tema`,
+  retornando o mesmo DTO interno.
+- Quando o filtro nao encontra publicacoes locais, o servico mantem fallback
+  explicito para o monolito, sem alterar contrato externo nem o comportamento
+  funcional esperado.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Com a Fase 164, o ciclo fechado de 8 fases da persistencia propria
+  incremental do `planning-ai-service` fica concluido no recorte planejado
+  atual.
+- Contagem regressiva do novo ciclo fechado de persistencia propria do
+  `planning-ai-service`: 0 fases restantes no escopo fechado atual.

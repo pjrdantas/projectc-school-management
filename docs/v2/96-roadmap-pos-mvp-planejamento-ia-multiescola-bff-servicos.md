@@ -7506,3 +7506,28 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado de persistencia propria do
 `planning-ai-service`: 1 fase restante no escopo fechado atual.
+
+### Fase 164 - Leitura local prioritaria da biblioteca pedagogica
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a priorizar a persistencia propria para a
+  leitura interna `GET /internal/v1/biblioteca-conteudos-pedagogicos`;
+- a consulta local foi limitada ao menor recorte seguro ja populado no servico
+  novo: `escolaId` com filtros opcionais de `professorId`, `disciplinaId`,
+  `tipoConteudo` e `tema`, retornando o mesmo DTO interno estabilizado;
+- quando o filtro nao encontrar nada na base propria, o servico continua com
+  fallback para o monolito, preservando o comportamento funcional enquanto o
+  historico local ainda nao cobre publicacoes anteriores a este ciclo;
+- nenhuma rota publica foi alterada, nao houve mudanca no BFF e esta fase
+  conclui o recorte planejado de leituras e gravacoes locais minimas sem abrir
+  sincronizacao retroativa geral;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo leitura local sem downstream e
+  fallback ao monolito quando a base propria nao atender ao filtro solicitado.
+
+- com esta fase, o ciclo fechado de 8 fases da persistencia propria incremental
+  do `planning-ai-service` fica concluido no recorte planejado atual.
+
+Contagem regressiva do novo ciclo fechado de persistencia propria do
+`planning-ai-service`: 0 fases restantes no escopo fechado atual.
