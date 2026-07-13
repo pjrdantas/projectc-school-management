@@ -6700,3 +6700,29 @@ Entregue nesta fase:
 
 Contagem regressiva funcional estimada do `pedagogical-service`: 0 fases
 restantes no escopo atual planejado.
+
+Definicao objetiva da proxima macrofase backend:
+
+- com o `pedagogical-service` funcionalmente encerrado em 10 fases, a proxima
+  frente sugerida pelo roadmap passa a ser a extracao fisica da familia
+  `identity-access-service` e `institutional-tenant-service`, porque o backend
+  atual ja fechou as fronteiras internas minimas de sessao, vinculo
+  usuario-escola, tenant ativo e selecao de escola no fluxo autenticado;
+- para manter contagem fechada e evitar abertura simultanea difusa, a definicao
+  inicial passa a tratar `identity-access-service` como proximo micro-servico
+  lider da macrofase, com `institutional-tenant-service` como servico irmao da
+  mesma frente;
+- quantidade fechada inicial desta macrofase: 6 fases totais;
+- distribuicao proposta das 6 fases:
+  1. abertura fisica minima do `identity-access-service` consumindo contratos
+     internos ja estabilizados de autenticacao e sessao;
+  2. abertura fisica minima do `institutional-tenant-service` consumindo os
+     contratos internos ja estabilizados de escola ativa e vinculo
+     usuario-escola;
+  3. oficializacao controlada do bloco minimo de autenticacao/sessao via BFF ou
+     consumidores internos, sem romper compatibilidade externa;
+  4. oficializacao controlada do bloco minimo de tenant/vinculo de escola;
+  5. endurecimento operacional do ciclo autenticado multiescola, mantendo
+     fallback e rollback simples;
+  6. fechamento formal do primeiro bloco oficial de identidade e tenant no
+     codigo novo, com contagem zerada dessa macrofase.

@@ -2807,3 +2807,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   ambos em `BUILD SUCCESS`.
 - Contagem funcional estimada do `pedagogical-service`: 0 fases restantes no
   escopo atual planejado.
+
+- Com a Fase 132, o `pedagogical-service` fica formalmente encerrado no plano
+  funcional fechado de 10 fases.
+- A proxima macrofase backend sugerida pelo roadmap passa a ser a abertura
+  fisica da familia `identity-access-service` e
+  `institutional-tenant-service`.
+- Para manter a execucao objetiva, a definicao inicial fica fechada em 6 fases
+  totais, lideradas pelo `identity-access-service` e acompanhadas pelo
+  `institutional-tenant-service` como servico irmao da mesma frente.
