@@ -2959,3 +2959,31 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - O proximo recorte futuro sugerido, quando houver decisao de reabrir esta
   frente, e migrar de forma controlada `login`/`refresh`/`logout` e remover a
   dependencia do BFF de `GET /api/auth/contexto-atual`.
+
+### Fase 139
+
+- A nova macrofase aberta apos o encerramento de identity/tenant passa a ser o
+  `planning-ai-service`, com plano funcional fechado de 10 fases para o
+  primeiro ciclo completo deste micro-servico.
+- A Fase 1 escolheu deliberadamente o menor recorte read-only seguro do bloco
+  de planejamento e IA: a leitura da biblioteca pedagogica em
+  `GET /api/biblioteca-conteudos-pedagogicos`, sem abrir ainda geracao,
+  aprovacao, versoes, publicacao ou qualquer persistencia nova.
+- Foi criado o modulo `planning-ai-service` no monorepo, com runtime Spring
+  Boot proprio, contrato interno `GET /internal/v1/biblioteca-conteudos-pedagogicos`,
+  validacao de contexto interno, tratamento de erro proprio e cliente HTTP
+  dedicado para consumir o contrato atual do monolito.
+- O novo servico preserva os filtros `professorId`, `disciplinaId`,
+  `tipoConteudo` e `tema`, e preserva tambem o comportamento funcional de
+  `404 RESOURCE_NOT_FOUND` quando `tipoConteudo` for invalido.
+- Fica registrado desde ja que a primeira rota publica candidata a
+  oficializacao futura no `school-management-bff` e
+  `GET /api/biblioteca-conteudos-pedagogicos`, por reutilizar exatamente a
+  fronteira interna aberta nesta fase.
+- Esta fase permaneceu sem BFF, sem escrita migrada e sem adotar ainda
+  MongoDB, Kafka ou Redis, porque o objetivo foi somente abrir o servico fisico
+  pelo menor bloco integravel palpavel.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva da macrofase inicial de `planning-ai-service`: 9 fases
+  restantes no escopo fechado atual.

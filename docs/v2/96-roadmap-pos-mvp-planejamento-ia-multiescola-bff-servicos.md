@@ -6886,3 +6886,36 @@ Fechamento da macrofase:
 - o proximo recorte futuro sugerido para esta frente, se ela for reaberta, e a
   migracao controlada de `login`/`refresh`/`logout` e a remocao da dependencia
   de `GET /api/auth/contexto-atual` no BFF.
+
+### Fase 139 - Abertura fisica inicial do `planning-ai-service`
+
+Entregue nesta fase:
+
+- foi definida a contagem fechada de 10 fases para o desenvolvimento inicial
+  completo do `planning-ai-service`, para evitar reabertura difusa de escopo;
+- o servico fisico `planning-ai-service` foi criado no monorepo como novo
+  runtime Spring Boot, com contrato interno, token interno, cliente HTTP
+  dedicado para o monolito e tratamento de erro proprio;
+- o menor recorte seguro escolhido para a fase 1 foi a leitura da biblioteca
+  pedagogica de IA, porque ja existe um contrato estavel no monolito em
+  `GET /api/biblioteca-conteudos-pedagogicos` e nao exige abrir escrita nem
+  persistencia propria neste primeiro passo;
+- o novo servico passou a expor
+  `GET /internal/v1/biblioteca-conteudos-pedagogicos`, preservando os filtros
+  `professorId`, `disciplinaId`, `tipoConteudo` e `tema`;
+- o tratamento de `tipoConteudo` invalido foi preservado no novo servico como
+  `404 RESOURCE_NOT_FOUND`, mantendo o comportamento funcional ja endurecido no
+  monolito;
+- a primeira rota publica sugerida para oficializacao futura no
+  `school-management-bff` fica objetivamente definida como
+  `GET /api/biblioteca-conteudos-pedagogicos`, reaproveitando este contrato
+  interno novo sem abrir ainda geracao, aprovacao, versoes ou publicacao;
+- esta fase permaneceu propositalmente sem BFF, sem persistencia propria, sem
+  MongoDB/Kafka/Redis e sem qualquer escrita migrada;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo rota interna, protecao por token
+  interno, propagacao de bearer e query string e preservacao de `404` para
+  `tipoConteudo` invalido.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 9 fases
+restantes no escopo fechado atual.

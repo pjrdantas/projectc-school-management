@@ -1,0 +1,10 @@
+server:
+  port: 8096
+
+planning-ai:
+  internal-api:
+    token: ${PLANNING_AI_INTERNAL_TOKEN:}
+  monolith:
+    base-url: ${PLANNING_AI_MONOLITH_BASE_URL:http://localhost:8080}
+    connect-timeout: 2s
+    read-timeout: 5s
