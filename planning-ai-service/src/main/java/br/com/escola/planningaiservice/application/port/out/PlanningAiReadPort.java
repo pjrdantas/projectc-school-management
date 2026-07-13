@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
+import br.com.escola.planningaiservice.application.dto.AprovarVersaoConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
@@ -52,4 +53,10 @@ public interface PlanningAiReadPort {
             InternalRequestContext context,
             UUID conteudoId,
             CriarVersaoConteudoIaRequest request);
+
+    ConteudoIaResponse aprovarVersao(
+            String authorization,
+            InternalRequestContext context,
+            UUID conteudoId,
+            AprovarVersaoConteudoIaRequest request);
 }

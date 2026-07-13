@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
+import br.com.escola.planningaiservice.application.dto.AprovarVersaoConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
@@ -105,6 +106,19 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             UUID conteudoId,
             CriarVersaoConteudoIaRequest request) {
         return planningAiReadPort.criarVersao(
+                authorization,
+                context,
+                conteudoId,
+                request);
+    }
+
+    @Override
+    public ConteudoIaResponse aprovarVersao(
+            String authorization,
+            InternalRequestContext context,
+            UUID conteudoId,
+            AprovarVersaoConteudoIaRequest request) {
+        return planningAiReadPort.aprovarVersao(
                 authorization,
                 context,
                 conteudoId,

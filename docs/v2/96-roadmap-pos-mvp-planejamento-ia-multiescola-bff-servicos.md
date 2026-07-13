@@ -7251,3 +7251,29 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
 4 fases restantes no escopo fechado atual.
+
+### Fase 153 - Abertura interna inicial da aprovacao de versao de conteudo IA
+
+Entregue nesta fase:
+
+- foi aberto no `planning-ai-service` o contrato interno
+  `PATCH /internal/v1/ia/conteudos/{conteudoId}/aprovar-versao`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `PATCH /api/ia/conteudos/{conteudoId}/aprovar-versao`, preservando o payload
+  oficial do conteudo aprovado e o contrato de entrada de aprovacao;
+- foi criado DTO proprio de request para aprovacao de versao no codigo novo,
+  com as mesmas validacoes basicas de `numeroVersao` e `publicarBiblioteca`;
+- o client HTTP do `planning-ai-service` foi ajustado para uma request factory
+  compativel com `PATCH`, evitando acoplamento ao comportamento limitado da
+  implementacao anterior baseada em `SimpleClientHttpRequestFactory`;
+- o comportamento de erro para conteudo inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional atual;
+- para manter o menor recorte seguro, esta fase permaneceu sem BFF e sem abrir
+  ainda o recorte de publicacao dedicada na biblioteca;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service "-Dtest=PlanningAiInternalControllerIntegrationTest" test`,
+  cobrindo aprovacao interna, propagacao de bearer, encaminhamento do payload,
+  suporte a `PATCH` e preservacao de `404`.
+
+Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
+3 fases restantes no escopo fechado atual.

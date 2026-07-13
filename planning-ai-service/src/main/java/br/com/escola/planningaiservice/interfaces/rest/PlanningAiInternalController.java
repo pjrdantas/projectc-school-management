@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.escola.planningaiservice.application.context.InternalHeaders;
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
+import br.com.escola.planningaiservice.application.dto.AprovarVersaoConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
@@ -108,6 +110,19 @@ public class PlanningAiInternalController {
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
             @Valid @RequestBody CriarVersaoConteudoIaRequest request) {
         return planningAiReadUseCase.criarVersao(
+                authorization,
+                context,
+                conteudoId,
+                request);
+    }
+
+    @PatchMapping("/ia/conteudos/{conteudoId}/aprovar-versao")
+    public ConteudoIaResponse aprovarVersao(
+            @PathVariable UUID conteudoId,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @Valid @RequestBody AprovarVersaoConteudoIaRequest request) {
+        return planningAiReadUseCase.aprovarVersao(
                 authorization,
                 context,
                 conteudoId,

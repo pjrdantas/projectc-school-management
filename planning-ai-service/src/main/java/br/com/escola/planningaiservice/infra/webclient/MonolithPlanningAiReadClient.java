@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
@@ -12,6 +13,7 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriBuilder;
 
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
+import br.com.escola.planningaiservice.application.dto.AprovarVersaoConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
@@ -210,6 +212,32 @@ public class MonolithPlanningAiReadClient implements PlanningAiReadPort {
         } catch (ResourceAccessException exception) {
             throw new DownstreamUnavailableException(
                     "Monolito indisponivel para criacao de versao de conteudo de planejamento IA",
+                    exception);
+        }
+    }
+
+    @Override
+    public ConteudoIaResponse aprovarVersao(
+            String authorization,
+            InternalRequestContext context,
+            UUID conteudoId,
+            AprovarVersaoConteudoIaRequest request) {
+        try {
+            return restClient.method(HttpMethod.PATCH)
+                    .uri("/api/ia/conteudos/{conteudoId}/aprovar-versao", conteudoId)
+                    .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, authorization))
+                    .body(request)
+                    .retrieve()
+                    .body(ConteudoIaResponse.class);
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                throw new PlanningAiServiceResourceNotFoundException(
+                        "Aprovacao de versao de conteudo de planejamento IA nao encontrada");
+            }
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            throw new DownstreamUnavailableException(
+                    "Monolito indisponivel para aprovacao de versao de conteudo de planejamento IA",
                     exception);
         }
     }

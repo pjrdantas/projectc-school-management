@@ -3259,3 +3259,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoVersaoWriteControllerTest,PlanningAiConteudoVersaoWriteProxyIntegrationTest" test`.
 - Contagem regressiva do novo ciclo de escrita minima do
   `planning-ai-service`: 4 fases restantes no escopo fechado atual.
+
+### Fase 153
+
+- A Fase 5 do novo ciclo de escrita minima do `planning-ai-service` abriu no
+  servico novo o contrato interno
+  `PATCH /internal/v1/ia/conteudos/{conteudoId}/aprovar-versao`.
+- O `planning-ai-service` passou a consumir o contrato atual do monolito
+  `PATCH /api/ia/conteudos/{conteudoId}/aprovar-versao`, preservando o payload
+  funcional do conteudo aprovado e o contrato de entrada da aprovacao.
+- Foi criado DTO proprio de request para aprovacao de versao de conteudo IA no
+  codigo novo, com as mesmas validacoes basicas do contrato atual.
+- O client HTTP do servico novo foi ajustado para uma request factory
+  compativel com `PATCH`, garantindo estabilidade do novo recorte sem ampliar o
+  escopo funcional.
+- O comportamento de erro para conteudo inexistente foi mantido como
+  `404 RESOURCE_NOT_FOUND`.
+- Esta fase permaneceu sem BFF e sem publicacao dedicada, porque o objetivo foi
+  abrir a terceira escrita interna do ciclo pelo menor risco.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service "-Dtest=PlanningAiInternalControllerIntegrationTest" test`.
+- Contagem regressiva do novo ciclo de escrita minima do
+  `planning-ai-service`: 3 fases restantes no escopo fechado atual.

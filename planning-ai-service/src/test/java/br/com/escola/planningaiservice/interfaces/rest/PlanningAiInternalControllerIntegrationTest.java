@@ -2,6 +2,7 @@ package br.com.escola.planningaiservice.interfaces.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -534,6 +535,101 @@ class PlanningAiInternalControllerIntegrationTest {
         RecordedRequest recorded = aguardarRequisicao();
         assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/versoes");
         assertThat(recorded.getMethod()).isEqualTo("POST");
+    }
+
+    @Test
+    void deveAprovarVersaoNoContratoInterno() throws Exception {
+        UUID conteudoId = UUID.randomUUID();
+        UUID planejamentoId = UUID.randomUUID();
+        UUID interacaoId = UUID.randomUUID();
+
+        String requestBody = """
+                {
+                  "numeroVersao": 2,
+                  "publicarBiblioteca": false
+                }
+                """;
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "id":"%s",
+                          "planejamentoBimestralId":"%s",
+                          "interacaoId":"%s",
+                          "escolaId":"%s",
+                          "escolaNome":"Escola Central",
+                          "titulo":"Lista de fracoes",
+                          "conteudo":"Conteudo revisado",
+                          "versao":2,
+                          "hashConteudo":"abc123",
+                          "aprovadoPeloProfessor":true,
+                          "reutilizavel":true,
+                          "ativo":true,
+                          "status":"APROVADO",
+                          "statusDescricao":"Aprovado",
+                          "tipoConteudo":"ATIVIDADE",
+                          "tipoConteudoDescricao":"Atividade",
+                          "createdAt":"2026-07-13T12:20:00",
+                          "updatedAt":"2026-07-13T12:25:00"
+                        }
+                        """.formatted(conteudoId, planejamentoId, interacaoId, UUID.randomUUID())));
+
+        mockMvc.perform(patch("/internal/v1/ia/conteudos/{conteudoId}/aprovar-versao", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-16")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(conteudoId.toString()))
+                .andExpect(jsonPath("$.versao").value(2))
+                .andExpect(jsonPath("$.status").value("APROVADO"))
+                .andExpect(jsonPath("$.aprovadoPeloProfessor").value(true));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/aprovar-versao");
+        assertThat(recorded.getMethod()).isEqualTo("PATCH");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+        assertThat(recorded.getBody().readUtf8())
+                .isEqualTo("{\"numeroVersao\":2,\"publicarBiblioteca\":false}");
+    }
+
+    @Test
+    void devePropagarNotFoundQuandoConteudoNaoExisteNaAprovacaoDeVersao() throws Exception {
+        UUID conteudoId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(404)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "error":"RESOURCE_NOT_FOUND",
+                          "message":"Conteudo IA nao encontrado"
+                        }
+                        """));
+
+        mockMvc.perform(patch("/internal/v1/ia/conteudos/{conteudoId}/aprovar-versao", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-17")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer planning-user-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "numeroVersao": 2,
+                                  "publicarBiblioteca": false
+                                }
+                                """))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/aprovar-versao");
+        assertThat(recorded.getMethod()).isEqualTo("PATCH");
     }
 
     @Test
