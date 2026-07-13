@@ -7112,3 +7112,42 @@ Entregue nesta fase:
 
 Contagem regressiva da macrofase inicial de `planning-ai-service`: 1 fase
 restante no escopo fechado atual.
+
+### Fase 148 - Oficializacao inicial das versoes de conteudo IA via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar a rota publica
+  `GET /api/ia/conteudos/{conteudoId}/versoes`;
+- a rota publica reutiliza o contrato interno ja aberto na fase anterior em
+  `GET /internal/v1/ia/conteudos/{conteudoId}/versoes`, preservando o payload
+  oficial de versoes do conteudo gerado;
+- o BFF resolve o contexto autenticado atual no monolito apenas para montar os
+  headers internos `X-Usuario-Id` e `X-Escola-Id` exigidos pelo
+  `planning-ai-service`;
+- foi criado no BFF um proxy dedicado para as versoes de conteudo IA,
+  reutilizando o mesmo client properties e a mesma feature flag de leitura do
+  `planning-ai-service`;
+- para manter o menor recorte seguro, esta fase nao abriu geracao, criacao de
+  versao, aprovacao, publicacao, escrita migrada, cutover ou fallback;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoVersaoReadControllerTest,PlanningAiConteudoVersaoReadProxyIntegrationTest" test`,
+  cobrindo contrato da rota publica, propagacao de bearer/correlation ID,
+  resolucao de contexto autenticado e chamada interna ao servico novo.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 0 fases
+restantes no escopo fechado atual.
+
+Fechamento da macrofase:
+
+- a macrofase inicial do `planning-ai-service` fica encerrada no plano
+  funcional fechado de 10 fases;
+- ficam oficializadas no `school-management-bff` as leituras publicas
+  `GET /api/biblioteca-conteudos-pedagogicos`,
+  `GET /api/planejamentos-bimestrais/{planejamentoId}/ia/interacoes`,
+  `GET /api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`,
+  `GET /api/ia/conteudos/{conteudoId}` e
+  `GET /api/ia/conteudos/{conteudoId}/versoes`;
+- permanecem explicitamente fora deste ciclo inicial qualquer geracao,
+  criacao de versao, aprovacao, publicacao na biblioteca, persistencia propria
+  e adocao de MongoDB/Kafka/Redis.

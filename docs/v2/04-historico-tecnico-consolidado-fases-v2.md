@@ -3146,3 +3146,31 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service test`.
 - Contagem regressiva da macrofase inicial de `planning-ai-service`: 1 fase
   restante no escopo fechado atual.
+
+### Fase 148
+
+- A Fase 10 da macrofase inicial de `planning-ai-service` oficializou no
+  `school-management-bff` a rota publica
+  `GET /api/ia/conteudos/{conteudoId}/versoes`.
+- O BFF passou a consumir o contrato interno
+  `GET /internal/v1/ia/conteudos/{conteudoId}/versoes` do servico novo,
+  preservando o payload funcional das versoes do conteudo gerado.
+- Foi criado proxy dedicado no BFF para essa leitura, reutilizando o client
+  HTTP do `planning-ai-service` e o contexto autenticado atual do monolito para
+  resolver `X-Usuario-Id` e `X-Escola-Id`.
+- Esta fase permaneceu sem cutover, sem fallback e sem qualquer escrita
+  migrada, porque o objetivo foi somente oficializar o ultimo contrato
+  read-only do ciclo inicial.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoVersaoReadControllerTest,PlanningAiConteudoVersaoReadProxyIntegrationTest" test`.
+- Contagem regressiva da macrofase inicial de `planning-ai-service`: 0 fases
+  restantes no escopo fechado atual.
+
+- Com a Fase 148, a macrofase inicial do `planning-ai-service` fica
+  formalmente encerrada no plano funcional fechado de 10 fases.
+- Ficam oficializadas no `school-management-bff` as leituras publicas de
+  biblioteca pedagogica, interacoes de planejamento IA, conteudos por
+  planejamento, detalhe de conteudo e versoes de conteudo.
+- Permanecem explicitamente fora deste ciclo inicial qualquer geracao,
+  criacao de versao, aprovacao, publicacao na biblioteca, persistencia propria
+  e adocao de MongoDB, Kafka ou Redis.
