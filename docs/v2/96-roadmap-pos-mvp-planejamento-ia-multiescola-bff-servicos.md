@@ -6395,3 +6395,35 @@ Entregue nesta fase:
 
 Contagem regressiva funcional estimada do `enrollment-document-service`: 0
 fases restantes no escopo atual planejado.
+
+### Fase 123 - Abertura fisica do `pedagogical-service` com primeiro recorte oficial de `boletim`
+
+Entregue nesta fase:
+
+- o `enrollment-document-service` foi mantido como encerrado no escopo atual e
+  a proxima macrofase backend passou a ser o `pedagogical-service`, ja previsto
+  no roadmap como servico de execucao academica oficial;
+- a macrofase foi delimitada de forma fechada em 10 fases totais, escolhendo
+  nesta primeira o menor recorte integravel e read-only ja operacional no
+  legado: `GET /api/matriculas/{matriculaId}/boletim`;
+- o `school-management-service` passou a expor o contrato interno
+  `GET /internal/boletins/matriculas/{matriculaId}`, reaproveitando o
+  `BoletimService` existente e sem abrir escrita, fechamento, historico,
+  avaliacao ou frequencia nesta etapa;
+- foi criado o modulo fisico `pedagogical-service` no monorepo, com estrutura
+  em camadas, validacao de headers internos, tratamento de erro proprio e
+  cliente HTTP para consumir o monolito por esse contrato interno;
+- o `pedagogical-service` passou a publicar
+  `GET /internal/v1/matriculas/{matriculaId}/boletim`, separando o contrato
+  backend/backend do primeiro recorte de leitura academica oficial de
+  `boletim`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/matriculas/{matriculaId}/boletim` consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno e
+  o payload externo atual sem tocar frontend;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, payload e
+  propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 9 fases
+restantes no escopo atual planejado.

@@ -2552,3 +2552,32 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `enrollment-document-service` e no monolito.
 - Contagem funcional estimada do `enrollment-document-service`: 0 fases
   restantes no escopo atual planejado.
+
+### Fase 123
+
+- O `enrollment-document-service` foi mantido como encerrado. A macrofase
+  seguinte passou a ser a abertura fisica do `pedagogical-service`, servico ja
+  previsto no roadmap para `aula, frequencia, avaliacao, notas, boletim e
+  historico`.
+- A contagem dessa nova macrofase foi fechada em 10 fases totais e a Fase 123
+  escolheu o menor recorte read-only integravel ja operacional no legado:
+  `GET /api/matriculas/{matriculaId}/boletim`.
+- O `school-management-service` passou a expor
+  `GET /internal/boletins/matriculas/{matriculaId}` reaproveitando o
+  `BoletimService`, sem abrir ainda `fechamento`, `historico`, `avaliacao`,
+  `frequencia` ou persistencia propria.
+- Foi criado o modulo `pedagogical-service` com estrutura em camadas,
+  `application.yml`, validacao de contexto interno, tratamento de erro proprio
+  e cliente HTTP para consumir o monolito por esse contrato minimo.
+- O `pedagogical-service` passou a expor
+  `GET /internal/v1/matriculas/{matriculaId}/boletim` e o
+  `school-management-bff` passou a oficializar
+  `GET /api/matriculas/{matriculaId}/boletim`, preservando o contrato externo
+  atual e a propagacao de bearer, correlation ID e headers internos.
+- A validacao desta fase ficou restrita aos modulos tocados e foi executada com
+  `mvn -f school-management-service/pom.xml "-Dtest=BoletimInternalControllerTest" test`
+  e com
+  `mvn -pl pedagogical-service,school-management-bff "-Dtest=PedagogicalInternalControllerIntegrationTest,PedagogicalBoletimReadProxyIntegrationTest" test`,
+  ambos em `BUILD SUCCESS`.
+- Contagem funcional estimada do `pedagogical-service`: 9 fases restantes no
+  escopo atual planejado.

@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: pedagogical-service
+
+server:
+  port: 8095
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+pedagogical:
+  internal-api:
+    token: ${PEDAGOGICAL_INTERNAL_API_TOKEN:pedagogical-internal-local-token}
+  monolith:
+    base-url: ${PEDAGOGICAL_MONOLITH_BASE_URL:http://localhost:8080}
+    connect-timeout: ${PEDAGOGICAL_MONOLITH_CONNECT_TIMEOUT:2s}
+    read-timeout: ${PEDAGOGICAL_MONOLITH_READ_TIMEOUT:5s}

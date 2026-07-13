@@ -23,6 +23,7 @@
         <module>academic-professor-service</module>
         <module>people-service</module>
         <module>enrollment-document-service</module>
+        <module>pedagogical-service</module>
     </modules>
 
     <properties>

@@ -34,7 +34,9 @@ import br.com.escola.bff.application.port.out.PeopleAlunoResponsavelReadPort;
 import br.com.escola.bff.application.port.out.PeopleCatalogReadPort;
 import br.com.escola.bff.application.port.out.PeopleFuncionarioReadPort;
 import br.com.escola.bff.application.port.out.PeoplePessoaReadPort;
+import br.com.escola.bff.application.port.out.PedagogicalBoletimReadPort;
 import br.com.escola.bff.application.service.AlunoResponsavelReadProxyService;
+import br.com.escola.bff.application.service.BoletimReadProxyService;
 import br.com.escola.bff.application.service.CadastroPessoaReadProxyService;
 import br.com.escola.bff.application.service.CatalogReadRoutingService;
 import br.com.escola.bff.application.service.DisciplinaWriteRoutingService;
@@ -55,6 +57,7 @@ import br.com.escola.bff.application.service.TurmaDisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.TurmaWriteRoutingService;
 import br.com.escola.bff.application.usecase.ConsultarCadastroPessoaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
+import br.com.escola.bff.application.usecase.ConsultarBoletimUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoAlunoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarEscolaOrigemUseCase;
@@ -96,6 +99,13 @@ public class BffUseCaseConfiguration {
             AuthContextPort authContextPort,
             PeopleAlunoResponsavelReadPort peopleAlunoResponsavelReadPort) {
         return new AlunoResponsavelReadProxyService(authContextPort, peopleAlunoResponsavelReadPort);
+    }
+
+    @Bean
+    ConsultarBoletimUseCase consultarBoletimUseCase(
+            AuthContextPort authContextPort,
+            PedagogicalBoletimReadPort pedagogicalBoletimReadPort) {
+        return new BoletimReadProxyService(authContextPort, pedagogicalBoletimReadPort);
     }
 
     @Bean

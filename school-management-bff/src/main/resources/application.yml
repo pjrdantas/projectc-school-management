@@ -29,6 +29,11 @@ clients:
     connect-timeout: ${ENROLLMENT_DOCUMENT_SERVICE_CONNECT_TIMEOUT:2s}
     response-timeout: ${ENROLLMENT_DOCUMENT_SERVICE_RESPONSE_TIMEOUT:3s}
     internal-token: ${ENROLLMENT_DOCUMENT_INTERNAL_API_TOKEN:}
+  pedagogical-service:
+    base-url: ${PEDAGOGICAL_SERVICE_BASE_URL:http://localhost:8095}
+    connect-timeout: ${PEDAGOGICAL_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${PEDAGOGICAL_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${PEDAGOGICAL_INTERNAL_API_TOKEN:}
 
 features:
   disciplinas-proxy-enabled: ${DISCIPLINAS_PROXY_ENABLED:true}
@@ -37,6 +42,7 @@ features:
   people-read-proxy-enabled: ${PEOPLE_READ_PROXY_ENABLED:true}
   enrollment-document-read-proxy-enabled: ${ENROLLMENT_DOCUMENT_READ_PROXY_ENABLED:true}
   enrollment-document-write-proxy-enabled: ${ENROLLMENT_DOCUMENT_WRITE_PROXY_ENABLED:true}
+  pedagogical-read-proxy-enabled: ${PEDAGOGICAL_READ_PROXY_ENABLED:true}
   catalog-read-cutover:
     enabled: ${CATALOG_READ_CUTOVER_ENABLED:false}
     report-path: ${CATALOG_READ_CUTOVER_REPORT_PATH:}
