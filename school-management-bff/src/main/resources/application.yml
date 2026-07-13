@@ -44,6 +44,11 @@ clients:
     connect-timeout: ${PEDAGOGICAL_SERVICE_CONNECT_TIMEOUT:2s}
     response-timeout: ${PEDAGOGICAL_SERVICE_RESPONSE_TIMEOUT:3s}
     internal-token: ${PEDAGOGICAL_INTERNAL_API_TOKEN:}
+  planning-ai-service:
+    base-url: ${PLANNING_AI_SERVICE_BASE_URL:http://localhost:8096}
+    connect-timeout: ${PLANNING_AI_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${PLANNING_AI_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${PLANNING_AI_INTERNAL_API_TOKEN:}
 
 features:
   disciplinas-proxy-enabled: ${DISCIPLINAS_PROXY_ENABLED:true}
@@ -56,6 +61,7 @@ features:
   enrollment-document-write-proxy-enabled: ${ENROLLMENT_DOCUMENT_WRITE_PROXY_ENABLED:true}
   pedagogical-read-proxy-enabled: ${PEDAGOGICAL_READ_PROXY_ENABLED:true}
   pedagogical-write-proxy-enabled: ${PEDAGOGICAL_WRITE_PROXY_ENABLED:true}
+  planning-ai-read-proxy-enabled: ${PLANNING_AI_READ_PROXY_ENABLED:true}
   identity-tenant-cutover:
     enabled: ${IDENTITY_TENANT_CUTOVER_ENABLED:true}
     fallback-to-monolith-on-error: ${IDENTITY_TENANT_FALLBACK_TO_MONOLITH_ON_ERROR:true}

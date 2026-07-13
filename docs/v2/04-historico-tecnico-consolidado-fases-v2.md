@@ -2987,3 +2987,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service test`.
 - Contagem regressiva da macrofase inicial de `planning-ai-service`: 9 fases
   restantes no escopo fechado atual.
+
+### Fase 140
+
+- A Fase 2 da macrofase inicial de `planning-ai-service` oficializou no
+  `school-management-bff` a primeira leitura publica deste micro-servico em
+  `GET /api/biblioteca-conteudos-pedagogicos`.
+- O BFF passou a consumir o contrato interno
+  `GET /internal/v1/biblioteca-conteudos-pedagogicos` do servico novo,
+  preservando os filtros `professorId`, `disciplinaId`, `tipoConteudo` e
+  `tema`.
+- Foi criado cliente HTTP dedicado do BFF para o `planning-ai-service`, com
+  token interno proprio e feature flag especifica para este proxy de leitura.
+- O BFF continua usando o contexto autenticado atual do monolito apenas para
+  resolver `X-Usuario-Id` e `X-Escola-Id` na chamada interna, sem abrir ainda
+  geracao de conteudo, versoes, aprovacao, publicacao ou escrita migrada.
+- Esta fase nao introduziu cutover, fallback ou persistencia propria, porque o
+  objetivo foi somente oficializar a primeira rota publica segura do bloco.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=BibliotecaConteudoPedagogicoReadControllerTest,PlanningAiBibliotecaReadProxyIntegrationTest" test`.
+- Contagem regressiva da macrofase inicial de `planning-ai-service`: 8 fases
+  restantes no escopo fechado atual.

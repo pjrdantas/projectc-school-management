@@ -6919,3 +6919,30 @@ Entregue nesta fase:
 
 Contagem regressiva da macrofase inicial de `planning-ai-service`: 9 fases
 restantes no escopo fechado atual.
+
+### Fase 140 - Oficializacao inicial da biblioteca pedagogica via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar a primeira rota publica do
+  `planning-ai-service`, exatamente em
+  `GET /api/biblioteca-conteudos-pedagogicos`;
+- a rota publica reutiliza o contrato interno ja aberto na fase anterior em
+  `GET /internal/v1/biblioteca-conteudos-pedagogicos`, preservando os filtros
+  `professorId`, `disciplinaId`, `tipoConteudo` e `tema`;
+- o BFF resolve o contexto autenticado atual no monolito apenas para montar os
+  headers internos `X-Usuario-Id` e `X-Escola-Id` exigidos pelo
+  `planning-ai-service`, sem abrir ainda nenhuma mudanca em geracao, versoes,
+  aprovacao ou publicacao de conteudo;
+- foi criado cliente HTTP dedicado do BFF para o `planning-ai-service`, com
+  token interno proprio e feature flag especifica para esta leitura oficial;
+- para preservar o menor recorte seguro, esta fase nao introduziu cutover,
+  fallback, escrita migrada, persistencia propria nem novas rotas publicas do
+  bloco de planejamento e IA;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=BibliotecaConteudoPedagogicoReadControllerTest,PlanningAiBibliotecaReadProxyIntegrationTest" test`,
+  cobrindo contrato da rota publica, propagacao de bearer/correlation ID,
+  resolucao de contexto autenticado e chamada interna ao servico novo.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 8 fases
+restantes no escopo fechado atual.

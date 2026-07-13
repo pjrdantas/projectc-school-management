@@ -47,10 +47,12 @@ import br.com.escola.bff.application.port.out.PedagogicalDiarioClasseReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalDiarioClasseWritePort;
 import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarWritePort;
+import br.com.escola.bff.application.port.out.PlanningAiBibliotecaReadPort;
 import br.com.escola.bff.application.service.AvaliacaoProxyService;
 import br.com.escola.bff.application.service.AulaProxyService;
 import br.com.escola.bff.application.service.AlunoResponsavelReadProxyService;
 import br.com.escola.bff.application.service.AuthSessionProxyService;
+import br.com.escola.bff.application.service.BibliotecaConteudoPedagogicoReadProxyService;
 import br.com.escola.bff.application.service.BoletimReadProxyService;
 import br.com.escola.bff.application.service.CadastroPessoaReadProxyService;
 import br.com.escola.bff.application.service.CatalogReadRoutingService;
@@ -80,6 +82,7 @@ import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAuthSessionUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAvaliacaoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAulaUseCase;
+import br.com.escola.bff.application.usecase.ConsultarBibliotecaConteudoPedagogicoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarBoletimUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDiarioClasseUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoAlunoUseCase;
@@ -295,6 +298,15 @@ public class BffUseCaseConfiguration {
             AuthContextPort authContextPort,
             EnrollmentDocumentReadPort enrollmentDocumentReadPort) {
         return new DocumentoReadProxyService(authContextPort, enrollmentDocumentReadPort);
+    }
+
+    @Bean
+    ConsultarBibliotecaConteudoPedagogicoUseCase consultarBibliotecaConteudoPedagogicoUseCase(
+            AuthContextPort authContextPort,
+            PlanningAiBibliotecaReadPort planningAiBibliotecaReadPort) {
+        return new BibliotecaConteudoPedagogicoReadProxyService(
+                authContextPort,
+                planningAiBibliotecaReadPort);
     }
 
     @Bean
