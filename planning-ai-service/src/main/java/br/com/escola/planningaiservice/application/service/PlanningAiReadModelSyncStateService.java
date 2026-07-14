@@ -17,6 +17,7 @@ public class PlanningAiReadModelSyncStateService {
     private static final String SCOPE_INTERACTIONS = "INTERACTIONS_PLANNING";
     private static final String SCOPE_CONTENTS = "CONTENTS_PLANNING";
     private static final String SCOPE_CONTENT_NOT_FOUND = "CONTENT_NOT_FOUND";
+    private static final String SCOPE_CONTENT_VERSIONS_NOT_FOUND = "CONTENT_VERSIONS_NOT_FOUND";
     private static final String SCOPE_VERSIONS = "VERSIONS_CONTENT";
 
     private final PlanningAiReadModelSyncStateJpaRepository repository;
@@ -54,6 +55,10 @@ public class PlanningAiReadModelSyncStateService {
         return repository.existsById(syncId(SCOPE_VERSIONS, escolaId, conteudoId, ""));
     }
 
+    public boolean contentVersionsNotFound(UUID escolaId, UUID conteudoId) {
+        return repository.existsById(syncId(SCOPE_CONTENT_VERSIONS_NOT_FOUND, escolaId, conteudoId, ""));
+    }
+
     @Transactional
     public void markLibrarySynced(
             UUID escolaId,
@@ -82,6 +87,11 @@ public class PlanningAiReadModelSyncStateService {
     @Transactional
     public void markVersionsSynced(UUID escolaId, UUID conteudoId) {
         save(SCOPE_VERSIONS, escolaId, conteudoId, "");
+    }
+
+    @Transactional
+    public void markContentVersionsNotFound(UUID escolaId, UUID conteudoId) {
+        save(SCOPE_CONTENT_VERSIONS_NOT_FOUND, escolaId, conteudoId, "");
     }
 
     private void save(String scope, UUID escolaId, UUID referenciaId, String queryKey) {

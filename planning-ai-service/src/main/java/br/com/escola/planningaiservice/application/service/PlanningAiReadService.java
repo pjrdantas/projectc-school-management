@@ -153,17 +153,26 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
         if (!localVersions.isEmpty()) {
             return localVersions;
         }
+        if (planningAiReadModelSyncStateService.contentVersionsNotFound(context.escolaId(), conteudoId)) {
+            throw new PlanningAiServiceResourceNotFoundException(
+                    "Consulta de versoes de conteudo de planejamento IA nao encontrada");
+        }
         if (planningAiReadModelSyncStateService.versionsSynced(context.escolaId(), conteudoId)) {
             return List.of();
         }
-        List<ConteudoIaVersaoResponse> response = planningAiReadModelSyncService.syncVersions(
-                context,
-                planningAiReadPort.listarVersoes(
-                        authorization,
-                        context,
-                        conteudoId));
-        planningAiReadModelSyncStateService.markVersionsSynced(context.escolaId(), conteudoId);
-        return response;
+        try {
+            List<ConteudoIaVersaoResponse> response = planningAiReadModelSyncService.syncVersions(
+                    context,
+                    planningAiReadPort.listarVersoes(
+                            authorization,
+                            context,
+                            conteudoId));
+            planningAiReadModelSyncStateService.markVersionsSynced(context.escolaId(), conteudoId);
+            return response;
+        } catch (PlanningAiServiceResourceNotFoundException exception) {
+            planningAiReadModelSyncStateService.markContentVersionsNotFound(context.escolaId(), conteudoId);
+            throw exception;
+        }
     }
 
     private ConteudoIaResponse buscarConteudoComFallbackControlado(

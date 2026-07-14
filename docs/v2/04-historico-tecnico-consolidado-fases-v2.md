@@ -3634,3 +3634,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service test`.
 - Contagem regressiva do novo ciclo fechado de autonomia final do
   `planning-ai-service`: 1 fase restante no escopo fechado atual.
+
+### Fase 174
+
+- O `planning-ai-service` passou a registrar ausencia confirmada tambem para
+  `GET /internal/v1/ia/conteudos/{conteudoId}/versoes` quando o monolito
+  responde `404 RESOURCE_NOT_FOUND`.
+- Com isso, a segunda consulta de versoes para o mesmo `conteudoId` e
+  `escolaId` devolve o mesmo `404` diretamente do servico novo, sem repetir
+  fallback desnecessario.
+- A leitura local continua prevalecendo quando o conteudo e suas versoes
+  existirem na base propria.
+- Com a Fase 174, o ciclo fechado de autonomia final do
+  `planning-ai-service` fica concluido no recorte planejado atual.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva do novo ciclo fechado de autonomia final do
+  `planning-ai-service`: 0 fases restantes no escopo fechado atual.
