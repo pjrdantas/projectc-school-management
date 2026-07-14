@@ -7708,3 +7708,25 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado de autonomia final do
 `planning-ai-service`: 2 fases restantes no escopo fechado atual.
+
+### Fase 173 - Estado de ausencia confirmada para leitura por ID de conteudo IA
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a registrar ausencia confirmada para
+  `GET /internal/v1/ia/conteudos/{conteudoId}` quando o contrato oficial do
+  monolito responde `404 RESOURCE_NOT_FOUND`;
+- com isso, buscas seguintes para o mesmo `conteudoId` e `escolaId` passam a
+  devolver o mesmo `404` diretamente do servico novo, sem novo fallback
+  desnecessario;
+- a leitura local continua tendo prioridade absoluta: se o conteudo existir na
+  persistencia propria, a resposta segue local mesmo que tenha havido ausencia
+  confirmada anteriormente;
+- esta fase ficou restrita ao recorte de leitura por ID de conteudo IA e nao
+  abriu cache equivalente para outros `404` ainda;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo primeira ausencia via monolito e
+  segunda ausencia servida localmente sem novo downstream.
+
+Contagem regressiva do novo ciclo fechado de autonomia final do
+`planning-ai-service`: 1 fase restante no escopo fechado atual.

@@ -885,6 +885,45 @@ class PlanningAiInternalControllerIntegrationTest {
     }
 
     @Test
+    void deveEvitarNovoFallbackQuandoConteudoPorIdJaFoiConfirmadoComoInexistente() throws Exception {
+        UUID conteudoId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(404)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "error":"RESOURCE_NOT_FOUND",
+                          "message":"Conteudo IA nao encontrado"
+                        }
+                        """));
+
+        mockMvc.perform(get("/internal/v1/ia/conteudos/{conteudoId}", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-8d")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId);
+
+        mockMvc.perform(get("/internal/v1/ia/conteudos/{conteudoId}", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-8e")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
+
+        assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
+    }
+
+    @Test
     void deveCriarVersaoNoContratoInterno() throws Exception {
         UUID conteudoId = UUID.randomUUID();
         UUID versaoId = UUID.randomUUID();

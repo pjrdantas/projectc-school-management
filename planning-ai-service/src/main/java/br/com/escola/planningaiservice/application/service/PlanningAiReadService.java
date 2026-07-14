@@ -13,6 +13,7 @@ import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
 import br.com.escola.planningaiservice.application.dto.CriarVersaoConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.GerarConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
+import br.com.escola.planningaiservice.application.exception.PlanningAiServiceResourceNotFoundException;
 import br.com.escola.planningaiservice.application.port.in.PlanningAiReadUseCase;
 import br.com.escola.planningaiservice.application.port.out.PlanningAiReadPort;
 
@@ -136,12 +137,10 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             InternalRequestContext context,
             UUID conteudoId) {
         return planningAiContentReadService.buscarPorIdEEscola(conteudoId, context.escolaId())
-                .orElseGet(() -> planningAiReadModelSyncService.syncContent(
+                .orElseGet(() -> buscarConteudoComFallbackControlado(
+                        authorization,
                         context,
-                        planningAiReadPort.buscarConteudo(
-                                authorization,
-                                context,
-                                conteudoId)));
+                        conteudoId));
     }
 
     @Override
@@ -165,6 +164,27 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
                         conteudoId));
         planningAiReadModelSyncStateService.markVersionsSynced(context.escolaId(), conteudoId);
         return response;
+    }
+
+    private ConteudoIaResponse buscarConteudoComFallbackControlado(
+            String authorization,
+            InternalRequestContext context,
+            UUID conteudoId) {
+        if (planningAiReadModelSyncStateService.contentNotFound(context.escolaId(), conteudoId)) {
+            throw new PlanningAiServiceResourceNotFoundException(
+                    "Consulta de conteudo de planejamento IA nao encontrada");
+        }
+        try {
+            return planningAiReadModelSyncService.syncContent(
+                    context,
+                    planningAiReadPort.buscarConteudo(
+                            authorization,
+                            context,
+                            conteudoId));
+        } catch (PlanningAiServiceResourceNotFoundException exception) {
+            planningAiReadModelSyncStateService.markContentNotFound(context.escolaId(), conteudoId);
+            throw exception;
+        }
     }
 
     @Override
