@@ -3731,3 +3731,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=EscolaOrigemReadProxyIntegrationTest,TransferenciaReadProxyIntegrationTest,DocumentoAlunoReadProxyIntegrationTest,DocumentoReadProxyIntegrationTest,MatriculaReadProxyIntegrationTest,PedagogicalBoletimReadProxyIntegrationTest,PedagogicalDiarioClasseReadProxyIntegrationTest,PedagogicalHistoricoEscolarReadProxyIntegrationTest" test`.
 - Contagem regressiva do novo ciclo fechado do `identity-access-service`: 6
   fases restantes no escopo fechado atual.
+
+### Fase 179
+
+- O `school-management-bff` passou a consumir o contexto autenticado interno do
+  `identity-access-service` tambem nas leituras oficiais de
+  `planning-ai-service`.
+- A troca ficou restrita aos proxies read-only ja desacoplados:
+  `biblioteca`, `interacoes`, `conteudos`, `conteudo por id` e `versoes`.
+- Com isso, o bloco oficial de leitura de planejamento e conteudo IA deixa de
+  depender diretamente do endpoint publico legado `/api/auth/contexto-atual`.
+- `aula` e `avaliacao` ficaram de fora desta fase porque hoje ainda
+  compartilham implementacao com fluxos de escrita no BFF, e o recorte permaneceu
+  estritamente read-only.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=PlanningAiBibliotecaReadProxyIntegrationTest,PlanningAiConteudoReadProxyIntegrationTest,PlanningAiConteudoDetailReadProxyIntegrationTest,PlanningAiConteudoVersaoReadProxyIntegrationTest,PlanningAiInteracaoReadProxyIntegrationTest" test`.
+- Contagem regressiva do novo ciclo fechado do `identity-access-service`: 5
+  fases restantes no escopo fechado atual.

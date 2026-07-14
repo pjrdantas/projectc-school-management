@@ -328,7 +328,7 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarBibliotecaConteudoPedagogicoUseCase consultarBibliotecaConteudoPedagogicoUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PlanningAiBibliotecaReadPort planningAiBibliotecaReadPort) {
         return new BibliotecaConteudoPedagogicoReadProxyService(
                 authContextPort,
@@ -337,7 +337,7 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarPlanejamentoIaInteracaoUseCase consultarPlanejamentoIaInteracaoUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PlanningAiInteracaoReadPort planningAiInteracaoReadPort) {
         return new PlanejamentoIaInteracaoReadProxyService(
                 authContextPort,
@@ -346,7 +346,7 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarPlanejamentoIaConteudoUseCase consultarPlanejamentoIaConteudoUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PlanningAiConteudoReadPort planningAiConteudoReadPort) {
         return new PlanejamentoIaConteudoReadProxyService(
                 authContextPort,
@@ -355,7 +355,7 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarPlanejamentoIaConteudoDetailUseCase consultarPlanejamentoIaConteudoDetailUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PlanningAiConteudoDetailReadPort planningAiConteudoDetailReadPort) {
         return new PlanejamentoIaConteudoDetailReadProxyService(
                 authContextPort,
@@ -364,7 +364,7 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarPlanejamentoIaConteudoVersaoUseCase consultarPlanejamentoIaConteudoVersaoUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PlanningAiConteudoVersaoReadPort planningAiConteudoVersaoReadPort) {
         return new PlanejamentoIaConteudoVersaoReadProxyService(
                 authContextPort,

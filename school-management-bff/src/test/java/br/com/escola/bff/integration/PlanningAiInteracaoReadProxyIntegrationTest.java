@@ -24,6 +24,7 @@ import okhttp3.mockwebserver.MockWebServer;
 class PlanningAiInteracaoReadProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
+    private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer PLANNING_AI = startServer();
 
     @Autowired
@@ -32,6 +33,8 @@ class PlanningAiInteracaoReadProxyIntegrationTest {
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.planning-ai-service.base-url", () -> PLANNING_AI.url("/").toString());
         registry.add("clients.planning-ai-service.internal-token", () -> "planning-ai-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
@@ -40,6 +43,7 @@ class PlanningAiInteracaoReadProxyIntegrationTest {
     @AfterAll
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
+        IDENTITY_ACCESS.shutdown();
         PLANNING_AI.shutdown();
     }
 
@@ -47,7 +51,7 @@ class PlanningAiInteracaoReadProxyIntegrationTest {
     void deveConsumirPlanningAiServiceNaListagemOficialDeInteracoesPlanejamentoIa() throws InterruptedException {
         String planejamentoId = "00000000-0000-0000-0000-000000000511";
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -84,7 +88,7 @@ class PlanningAiInteracaoReadProxyIntegrationTest {
                 .jsonPath("$[0].planejamentoBimestralId").isEqualTo(planejamentoId)
                 .jsonPath("$[0].modeloIA").isEqualTo("gpt-4.1");
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var planningRequest = PLANNING_AI.takeRequest();
         assertThat(planningRequest.getPath())
                 .isEqualTo("/internal/v1/planejamentos-bimestrais/" + planejamentoId + "/ia/interacoes");

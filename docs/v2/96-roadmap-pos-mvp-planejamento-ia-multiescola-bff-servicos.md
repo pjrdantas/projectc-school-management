@@ -7865,3 +7865,29 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `identity-access-service`: 6 fases
 restantes no escopo fechado atual.
+
+### Fase 179 - Contexto interno oficial para leituras de `planning-ai-service`
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a resolver o contexto autenticado via
+  `identity-access-service` tambem nas leituras oficiais de
+  `planning-ai-service`;
+- a troca foi aplicada apenas aos proxies read-only ja desacoplados por
+  servico: `biblioteca`, `interacoes`, `conteudos`, `conteudo por id` e
+  `versoes`;
+- com isso, o bloco oficial de leitura de planejamento e conteudo IA deixa de
+  depender diretamente de `/api/auth/contexto-atual` no monolito para montar
+  headers internos;
+- `aula` e `avaliacao` permaneceram fora desta fase porque os proxies atuais no
+  BFF ainda misturam leitura e escrita na mesma classe, o que violaria o
+  recorte read-only desta etapa;
+- a fase permaneceu estritamente read-only no BFF: nao houve mudanca de
+  contratos externos, nao houve alteracao de escrita e nao houve refatoracao
+  ampla dos proxies pedagogicos mistos;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PlanningAiBibliotecaReadProxyIntegrationTest,PlanningAiConteudoReadProxyIntegrationTest,PlanningAiConteudoDetailReadProxyIntegrationTest,PlanningAiConteudoVersaoReadProxyIntegrationTest,PlanningAiInteracaoReadProxyIntegrationTest" test`,
+  cobrindo todo o recorte desta fase.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 5 fases
+restantes no escopo fechado atual.

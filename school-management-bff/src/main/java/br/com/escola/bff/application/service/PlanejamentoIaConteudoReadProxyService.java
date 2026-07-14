@@ -5,18 +5,18 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
-import br.com.escola.bff.application.port.out.AuthContextPort;
+import br.com.escola.bff.application.port.out.InternalAuthContextPort;
 import br.com.escola.bff.application.port.out.PlanningAiConteudoReadPort;
 import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaConteudoUseCase;
 import reactor.core.publisher.Mono;
 
 public class PlanejamentoIaConteudoReadProxyService implements ConsultarPlanejamentoIaConteudoUseCase {
 
-    private final AuthContextPort authContextPort;
+    private final InternalAuthContextPort authContextPort;
     private final PlanningAiConteudoReadPort planningAiConteudoReadPort;
 
     public PlanejamentoIaConteudoReadProxyService(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PlanningAiConteudoReadPort planningAiConteudoReadPort) {
         this.authContextPort = authContextPort;
         this.planningAiConteudoReadPort = planningAiConteudoReadPort;
