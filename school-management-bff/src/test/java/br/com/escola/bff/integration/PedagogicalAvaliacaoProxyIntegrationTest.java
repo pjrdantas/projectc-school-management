@@ -17,14 +17,17 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import br.com.escola.bff.application.context.TrustedHeaders;
+import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 class PedagogicalAvaliacaoProxyIntegrationTest {
 
-    private static final MockWebServer MONOLITH = startServer();
+    private static final MockWebServer IDENTITY_ACCESS = startIdentityAccessServer();
+    private static final MockWebServer MONOLITH = startMonolithServer();
     private static final MockWebServer PEDAGOGICAL = startServer();
 
     @Autowired
@@ -32,6 +35,8 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
+        registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
         registry.add("clients.pedagogical-service.base-url", () -> PEDAGOGICAL.url("/").toString());
         registry.add("clients.pedagogical-service.internal-token", () -> "pedagogical-internal-token");
@@ -40,6 +45,7 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
 
     @AfterAll
     static void stopServers() throws IOException {
+        IDENTITY_ACCESS.shutdown();
         MONOLITH.shutdown();
         PEDAGOGICAL.shutdown();
     }
@@ -50,12 +56,6 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
         String requestBody = """
                 {"professorTurmaDisciplinaId":"%s","titulo":"Prova fase 130","descricao":"Avaliacao integrada","dataAplicacao":"2039-04-15","valorMaximo":10.00,"peso":1.00,"tipoAvaliacao":"PROVA"}
                 """.formatted(alocacaoId);
-
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
-                        """));
 
         PEDAGOGICAL.enqueue(new MockResponse()
                 .setResponseCode(201)
@@ -86,12 +86,6 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
         UUID turmaId = UUID.randomUUID();
         UUID avaliacaoId = UUID.randomUUID();
 
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
-                        """));
-
         PEDAGOGICAL.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -110,7 +104,7 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
                 .jsonPath("$[0].id").isEqualTo(avaliacaoId.toString())
                 .jsonPath("$[0].turmaId").isEqualTo(turmaId.toString());
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes?professorTurmaDisciplinaId=" + alocacaoId + "&turmaId=" + turmaId);
     }
@@ -118,12 +112,6 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
     @Test
     void deveConsumirPedagogicalServiceNaBuscaDeAvaliacaoPorId() throws InterruptedException {
         UUID avaliacaoId = UUID.randomUUID();
-
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
-                        """));
 
         PEDAGOGICAL.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -140,7 +128,7 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
                 .jsonPath("$.id").isEqualTo(avaliacaoId.toString())
                 .jsonPath("$.turmaNome").isEqualTo("Turma Avaliacao");
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes/" + avaliacaoId);
         assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-avaliacao-read-2");
@@ -153,12 +141,6 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
         String requestBody = """
                 {"matriculaId":"%s","nota":8.50,"observacao":"Boa participacao"}
                 """.formatted(matriculaId);
-
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
-                        """));
 
         PEDAGOGICAL.enqueue(new MockResponse()
                 .setResponseCode(201)
@@ -188,12 +170,6 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
     void deveConsumirPedagogicalServiceNaListagemDeNotasPorAvaliacao() throws InterruptedException {
         UUID avaliacaoId = UUID.randomUUID();
 
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
-                        """));
-
         PEDAGOGICAL.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -209,7 +185,7 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
                 .jsonPath("$[0].avaliacaoId").isEqualTo(avaliacaoId.toString())
                 .jsonPath("$[0].alunoNome").isEqualTo("Aluno Nota");
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes/" + avaliacaoId + "/notas");
     }
@@ -217,12 +193,6 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
     @Test
     void deveConsumirPedagogicalServiceNaListagemDeNotasPorMatricula() throws InterruptedException {
         UUID matriculaId = UUID.randomUUID();
-
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
-                        """));
 
         PEDAGOGICAL.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -239,7 +209,7 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
                 .jsonPath("$[0].matriculaId").isEqualTo(matriculaId.toString())
                 .jsonPath("$[0].alunoNome").isEqualTo("Aluno Matricula Nota");
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/matriculas/" + matriculaId + "/notas");
         assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-nota-read-2");
@@ -253,5 +223,41 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
         } catch (IOException exception) {
             throw new ExceptionInInitializerError(exception);
         }
+    }
+
+    private static MockWebServer startMonolithServer() {
+        MockWebServer server = startServer();
+        server.setDispatcher(new Dispatcher() {
+            @Override
+            public MockResponse dispatch(RecordedRequest request) {
+                if ("/api/auth/contexto-atual".equals(request.getPath())) {
+                    return authContextResponse();
+                }
+                return new MockResponse().setResponseCode(404);
+            }
+        });
+        return server;
+    }
+
+    private static MockWebServer startIdentityAccessServer() {
+        MockWebServer server = startServer();
+        server.setDispatcher(new Dispatcher() {
+            @Override
+            public MockResponse dispatch(RecordedRequest request) {
+                if ("/internal/v1/auth/contexto-atual".equals(request.getPath())) {
+                    return authContextResponse();
+                }
+                return new MockResponse().setResponseCode(404);
+            }
+        });
+        return server;
+    }
+
+    private static MockResponse authContextResponse() {
+        return new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """);
     }
 }

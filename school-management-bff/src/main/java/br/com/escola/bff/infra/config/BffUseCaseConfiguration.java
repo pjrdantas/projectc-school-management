@@ -58,7 +58,8 @@ import br.com.escola.bff.application.port.out.PlanningAiConteudoVersaoReadPort;
 import br.com.escola.bff.application.port.out.PlanningAiConteudoVersaoWritePort;
 import br.com.escola.bff.application.port.out.PlanningAiConteudoWritePort;
 import br.com.escola.bff.application.port.out.PlanningAiInteracaoReadPort;
-import br.com.escola.bff.application.service.AvaliacaoProxyService;
+import br.com.escola.bff.application.service.AvaliacaoReadProxyService;
+import br.com.escola.bff.application.service.AvaliacaoWriteProxyService;
 import br.com.escola.bff.application.service.AulaReadProxyService;
 import br.com.escola.bff.application.service.AulaWriteProxyService;
 import br.com.escola.bff.application.service.AlunoResponsavelReadProxyService;
@@ -217,16 +218,16 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarAvaliacaoUseCase consultarAvaliacaoUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PedagogicalAvaliacaoPort pedagogicalAvaliacaoPort) {
-        return new AvaliacaoProxyService(authContextPort, pedagogicalAvaliacaoPort);
+        return new AvaliacaoReadProxyService(authContextPort, pedagogicalAvaliacaoPort);
     }
 
     @Bean
     CriarAvaliacaoUseCase criarAvaliacaoUseCase(
             AuthContextPort authContextPort,
             PedagogicalAvaliacaoPort pedagogicalAvaliacaoPort) {
-        return new AvaliacaoProxyService(authContextPort, pedagogicalAvaliacaoPort);
+        return new AvaliacaoWriteProxyService(authContextPort, pedagogicalAvaliacaoPort);
     }
 
     @Bean

@@ -3766,3 +3766,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=PedagogicalAulaProxyIntegrationTest" test`.
 - Contagem regressiva do novo ciclo fechado do `identity-access-service`: 4
   fases restantes no escopo fechado atual.
+
+### Fase 181
+
+- O `school-management-bff` separou fisicamente o proxy de `avaliacao` em
+  leitura e escrita, substituindo a implementacao unica por
+  `AvaliacaoReadProxyService` e `AvaliacaoWriteProxyService`.
+- A leitura oficial de `avaliacao` passou a consumir o contexto autenticado
+  interno do `identity-access-service`, enquanto a criacao e o lancamento de
+  nota permaneceram no `AuthContextPort` legado sem mudanca de contrato externo.
+- Com isso, `listar avaliacao`, `buscar por id`, `listar notas por avaliacao` e
+  `listar notas por matricula` deixam de depender diretamente do endpoint
+  publico legado `/api/auth/contexto-atual`.
+- O `PedagogicalAvaliacaoProxyIntegrationTest` foi ajustado para refletir a
+  nova separacao read/write e manter a validacao estavel do recorte.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=PedagogicalAvaliacaoProxyIntegrationTest" test`.
+- Contagem regressiva do novo ciclo fechado do `identity-access-service`: 3
+  fases restantes no escopo fechado atual.

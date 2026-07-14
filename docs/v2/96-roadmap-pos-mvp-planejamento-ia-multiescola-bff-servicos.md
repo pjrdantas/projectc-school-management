@@ -7916,3 +7916,30 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `identity-access-service`: 4 fases
 restantes no escopo fechado atual.
+
+### Fase 181 - Separacao read/write do proxy de `avaliacao` no BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` deixou de concentrar leitura e escrita de
+  `avaliacao` na mesma classe, com separacao fisica entre
+  `AvaliacaoReadProxyService` e `AvaliacaoWriteProxyService`;
+- o contrato de leitura oficial de `avaliacao` passou a resolver o contexto
+  autenticado via `identity-access-service`, enquanto a criacao de avaliacao e
+  o lancamento de nota permaneceram no `AuthContextPort` legado sem mudanca de
+  contrato externo;
+- a mudanca preservou o mesmo `PedagogicalAvaliacaoPort`, mantendo o recorte
+  estritamente no desacoplamento do caso de uso no BFF e sem refatoracao ampla
+  do client HTTP;
+- com isso, `listar avaliacao`, `buscar avaliacao por id`, `listar notas por
+  avaliacao` e `listar notas por matricula` deixam de depender diretamente de
+  `/api/auth/contexto-atual` no monolito;
+- a fase continuou sem alterar frontend e sem migrar escrita, fechando o ultimo
+  proxy pedagogico oficial que ainda misturava leitura e escrita no mesmo
+  servico do BFF;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PedagogicalAvaliacaoProxyIntegrationTest" test`,
+  cobrindo leitura e escrita de `avaliacao` apos a separacao.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 3 fases
+restantes no escopo fechado atual.
