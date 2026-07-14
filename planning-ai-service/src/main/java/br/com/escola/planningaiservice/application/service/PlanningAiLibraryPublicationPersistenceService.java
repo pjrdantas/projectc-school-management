@@ -44,9 +44,12 @@ public class PlanningAiLibraryPublicationPersistenceService {
                 .orElseGet(PedagogicalContentLibraryJpaEntity::new);
         library.setId(response.id());
         library.setEscolaId(context.escolaId());
+        library.setEscolaNome(response.escolaNome());
         library.setConteudoOrigem(content);
         library.setProfessorId(response.professorId());
+        library.setProfessorNome(response.professorNome());
         library.setDisciplinaId(response.disciplinaId());
+        library.setDisciplinaNome(response.disciplinaNome());
         library.setTipoConteudo(response.tipoConteudo());
         library.setTitulo(response.titulo());
         library.setTema(response.tema());

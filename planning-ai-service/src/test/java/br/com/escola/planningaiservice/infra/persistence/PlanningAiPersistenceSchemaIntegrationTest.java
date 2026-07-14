@@ -42,6 +42,7 @@ class PlanningAiPersistenceSchemaIntegrationTest {
         PlanningAiInteractionJpaEntity interaction = new PlanningAiInteractionJpaEntity();
         interaction.setId(UUID.randomUUID());
         interaction.setEscolaId(escolaId);
+        interaction.setEscolaNome("Escola Central");
         interaction.setPlanejamentoBimestralId(planejamentoId);
         interaction.setUsuarioId(UUID.randomUUID());
         interaction.setPromptProfessor("Monte uma atividade sobre fracoes");
@@ -56,6 +57,7 @@ class PlanningAiPersistenceSchemaIntegrationTest {
         PlanningAiGeneratedContentJpaEntity content = new PlanningAiGeneratedContentJpaEntity();
         content.setId(UUID.randomUUID());
         content.setEscolaId(escolaId);
+        content.setEscolaNome("Escola Central");
         content.setPlanejamentoBimestralId(planejamentoId);
         content.setInteracao(interaction);
         content.setTitulo("Sugestao - Fracoes");
@@ -85,9 +87,12 @@ class PlanningAiPersistenceSchemaIntegrationTest {
         PedagogicalContentLibraryJpaEntity library = new PedagogicalContentLibraryJpaEntity();
         library.setId(UUID.randomUUID());
         library.setEscolaId(escolaId);
+        library.setEscolaNome("Escola Central");
         library.setConteudoOrigem(content);
         library.setProfessorId(UUID.randomUUID());
+        library.setProfessorNome("Professor Um");
         library.setDisciplinaId(UUID.randomUUID());
+        library.setDisciplinaNome("Matematica");
         library.setTipoConteudo("ATIVIDADE");
         library.setTitulo("Lista de fracoes");
         library.setTema("Fracoes");
@@ -102,11 +107,23 @@ class PlanningAiPersistenceSchemaIntegrationTest {
         assertThat(interactionRepository.findById(interaction.getId())).isPresent();
         assertThat(contentRepository.findById(content.getId())).isPresent();
         assertThat(versionRepository.findById(version.getId())).isPresent();
+        assertThat(interactionRepository.findById(interaction.getId()))
+                .get()
+                .extracting(PlanningAiInteractionJpaEntity::getEscolaNome)
+                .isEqualTo("Escola Central");
+        assertThat(contentRepository.findById(content.getId()))
+                .get()
+                .extracting(PlanningAiGeneratedContentJpaEntity::getEscolaNome)
+                .isEqualTo("Escola Central");
         assertThat(libraryRepository.findById(library.getId()))
                 .get()
-                .extracting(PedagogicalContentLibraryJpaEntity::getConteudoOrigem)
-                .extracting(PlanningAiGeneratedContentJpaEntity::getId)
-                .isEqualTo(content.getId());
+                .satisfies(saved -> {
+                    assertThat(saved.getEscolaNome()).isEqualTo("Escola Central");
+                    assertThat(saved.getProfessorNome()).isEqualTo("Professor Um");
+                    assertThat(saved.getDisciplinaNome()).isEqualTo("Matematica");
+                    assertThat(saved.getConteudoOrigem()).isNotNull();
+                    assertThat(saved.getConteudoOrigem().getId()).isEqualTo(content.getId());
+                });
     }
 
     @Test
@@ -116,9 +133,12 @@ class PlanningAiPersistenceSchemaIntegrationTest {
         PedagogicalContentLibraryJpaEntity library = new PedagogicalContentLibraryJpaEntity();
         library.setId(UUID.randomUUID());
         library.setEscolaId(escolaId);
+        library.setEscolaNome("Escola Central");
         library.setConteudoOrigem(null);
         library.setProfessorId(UUID.randomUUID());
+        library.setProfessorNome("Professor Um");
         library.setDisciplinaId(UUID.randomUUID());
+        library.setDisciplinaNome("Matematica");
         library.setTipoConteudo("ATIVIDADE");
         library.setTitulo("Lista sincronizada");
         library.setTema("Fracoes");
@@ -133,7 +153,11 @@ class PlanningAiPersistenceSchemaIntegrationTest {
         assertThat(libraryRepository.findById(library.getId()))
                 .isPresent()
                 .get()
-                .extracting(PedagogicalContentLibraryJpaEntity::getConteudoOrigem)
-                .isNull();
+                .satisfies(saved -> {
+                    assertThat(saved.getConteudoOrigem()).isNull();
+                    assertThat(saved.getEscolaNome()).isEqualTo("Escola Central");
+                    assertThat(saved.getProfessorNome()).isEqualTo("Professor Um");
+                    assertThat(saved.getDisciplinaNome()).isEqualTo("Matematica");
+                });
     }
 }

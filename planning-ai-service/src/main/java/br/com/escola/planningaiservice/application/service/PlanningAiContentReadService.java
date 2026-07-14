@@ -41,7 +41,7 @@ public class PlanningAiContentReadService {
                 entity.getPlanejamentoBimestralId(),
                 entity.getInteracao() == null ? null : entity.getInteracao().getId(),
                 entity.getEscolaId(),
-                null,
+                entity.getEscolaNome(),
                 entity.getTitulo(),
                 entity.getConteudo(),
                 entity.getVersao(),

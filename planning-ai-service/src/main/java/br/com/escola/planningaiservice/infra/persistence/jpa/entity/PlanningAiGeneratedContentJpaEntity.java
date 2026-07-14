@@ -22,6 +22,9 @@ public class PlanningAiGeneratedContentJpaEntity {
     @Column(name = "id_escola", nullable = false)
     private UUID escolaId;
 
+    @Column(name = "escola_nome", length = 180)
+    private String escolaNome;
+
     @Column(name = "id_planejamento_bimestral", nullable = false)
     private UUID planejamentoBimestralId;
 
@@ -80,6 +83,14 @@ public class PlanningAiGeneratedContentJpaEntity {
 
     public UUID getPlanejamentoBimestralId() {
         return planejamentoBimestralId;
+    }
+
+    public String getEscolaNome() {
+        return escolaNome;
+    }
+
+    public void setEscolaNome(String escolaNome) {
+        this.escolaNome = escolaNome;
     }
 
     public void setPlanejamentoBimestralId(UUID planejamentoBimestralId) {

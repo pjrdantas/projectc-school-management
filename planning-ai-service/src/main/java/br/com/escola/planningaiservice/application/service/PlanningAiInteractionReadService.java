@@ -32,7 +32,7 @@ public class PlanningAiInteractionReadService {
                 entity.getId(),
                 entity.getPlanejamentoBimestralId(),
                 entity.getEscolaId(),
-                null,
+                entity.getEscolaNome(),
                 entity.getPromptProfessor(),
                 entity.getRespostaIa(),
                 entity.getModeloIa(),

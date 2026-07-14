@@ -88,6 +88,7 @@ class PlanningAiInternalControllerIntegrationTest {
         var content = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiGeneratedContentJpaEntity();
         content.setId(conteudoId);
         content.setEscolaId(escolaId);
+        content.setEscolaNome("Escola Central");
         content.setPlanejamentoBimestralId(UUID.randomUUID());
         content.setTitulo("Lista");
         content.setConteudo("Conteudo gerado");
@@ -105,9 +106,12 @@ class PlanningAiInternalControllerIntegrationTest {
         var library = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PedagogicalContentLibraryJpaEntity();
         library.setId(bibliotecaId);
         library.setEscolaId(escolaId);
+        library.setEscolaNome("Escola Central");
         library.setConteudoOrigem(content);
         library.setProfessorId(professorId);
+        library.setProfessorNome("Professor Um");
         library.setDisciplinaId(disciplinaId);
+        library.setDisciplinaNome("Matematica");
         library.setTipoConteudo("ATIVIDADE");
         library.setTitulo("Lista");
         library.setTema("Fracoes");
@@ -132,6 +136,9 @@ class PlanningAiInternalControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(bibliotecaId.toString()))
                 .andExpect(jsonPath("$[0].professorId").value(professorId.toString()))
+                .andExpect(jsonPath("$[0].escolaNome").value("Escola Central"))
+                .andExpect(jsonPath("$[0].professorNome").value("Professor Um"))
+                .andExpect(jsonPath("$[0].disciplinaNome").value("Matematica"))
                 .andExpect(jsonPath("$[0].tipoConteudo").value("ATIVIDADE"))
                 .andExpect(jsonPath("$[0].tipoConteudoDescricao").value("Atividade"));
 
@@ -184,6 +191,8 @@ class PlanningAiInternalControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(bibliotecaId.toString()))
                 .andExpect(jsonPath("$[0].professorNome").value("Professor Um"))
+                .andExpect(jsonPath("$[0].escolaNome").value("Escola Central"))
+                .andExpect(jsonPath("$[0].disciplinaNome").value("Matematica"))
                 .andExpect(jsonPath("$[0].tipoConteudo").value("ATIVIDADE"));
 
         RecordedRequest recorded = aguardarRequisicao();
@@ -197,7 +206,10 @@ class PlanningAiInternalControllerIntegrationTest {
                 .get()
                 .satisfies(library -> {
                     assertThat(library.getEscolaId()).isEqualTo(escolaId);
+                    assertThat(library.getEscolaNome()).isEqualTo("Escola Central");
                     assertThat(library.getConteudoOrigem()).isNull();
+                    assertThat(library.getProfessorNome()).isEqualTo("Professor Um");
+                    assertThat(library.getDisciplinaNome()).isEqualTo("Matematica");
                 });
 
         mockMvc.perform(get("/internal/v1/biblioteca-conteudos-pedagogicos")
@@ -212,7 +224,9 @@ class PlanningAiInternalControllerIntegrationTest {
                         .param("tema", "Fracoes"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(bibliotecaId.toString()))
-                .andExpect(jsonPath("$[0].professorNome").doesNotExist())
+                .andExpect(jsonPath("$[0].escolaNome").value("Escola Central"))
+                .andExpect(jsonPath("$[0].professorNome").value("Professor Um"))
+                .andExpect(jsonPath("$[0].disciplinaNome").value("Matematica"))
                 .andExpect(jsonPath("$[0].tipoConteudo").value("ATIVIDADE"));
 
         assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
@@ -270,6 +284,7 @@ class PlanningAiInternalControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(conteudoId.toString()))
                 .andExpect(jsonPath("$.planejamentoBimestralId").value(planejamentoId.toString()))
+                .andExpect(jsonPath("$.escolaNome").value("Escola Central"))
                 .andExpect(jsonPath("$.tipoConteudo").value("ATIVIDADE"));
 
         RecordedRequest recorded = aguardarRequisicao();
@@ -281,6 +296,7 @@ class PlanningAiInternalControllerIntegrationTest {
                 .get()
                 .satisfies(interaction -> {
                     assertThat(interaction.getEscolaId()).isEqualTo(escolaId);
+                    assertThat(interaction.getEscolaNome()).isEqualTo("Escola Central");
                     assertThat(interaction.getPlanejamentoBimestralId()).isEqualTo(planejamentoId);
                     assertThat(interaction.getUsuarioId()).isEqualTo(usuarioId);
                     assertThat(interaction.getPromptProfessor()).isEqualTo("Monte uma atividade sobre fracoes");
@@ -291,6 +307,7 @@ class PlanningAiInternalControllerIntegrationTest {
                 .get()
                 .satisfies(content -> {
                     assertThat(content.getEscolaId()).isEqualTo(escolaId);
+                    assertThat(content.getEscolaNome()).isEqualTo("Escola Central");
                     assertThat(content.getPlanejamentoBimestralId()).isEqualTo(planejamentoId);
                     assertThat(content.getInteracao()).isNotNull();
                     assertThat(content.getInteracao().getId()).isEqualTo(interacaoId);
@@ -387,6 +404,7 @@ class PlanningAiInternalControllerIntegrationTest {
         var interaction = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiInteractionJpaEntity();
         interaction.setId(interacaoId);
         interaction.setEscolaId(escolaId);
+        interaction.setEscolaNome("Escola Central");
         interaction.setPlanejamentoBimestralId(planejamentoId);
         interaction.setUsuarioId(usuarioId);
         interaction.setPromptProfessor("Monte uma atividade sobre fracoes");
@@ -407,6 +425,7 @@ class PlanningAiInternalControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(interacaoId.toString()))
                 .andExpect(jsonPath("$[0].planejamentoBimestralId").value(planejamentoId.toString()))
+                .andExpect(jsonPath("$[0].escolaNome").value("Escola Central"))
                 .andExpect(jsonPath("$[0].modeloIA").value("gpt-4.1"));
         assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
     }
@@ -472,11 +491,16 @@ class PlanningAiInternalControllerIntegrationTest {
                         .header("Authorization", "Bearer planning-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(interacaoId.toString()))
+                .andExpect(jsonPath("$[0].escolaNome").value("Escola Central"))
                 .andExpect(jsonPath("$[0].respostaIA").value("Resposta do monolito"));
 
         RecordedRequest recorded = aguardarRequisicao();
         assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/interacoes");
-        assertThat(interactionRepository.findById(interacaoId)).isPresent();
+        assertThat(interactionRepository.findById(interacaoId))
+                .isPresent()
+                .get()
+                .extracting(br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiInteractionJpaEntity::getEscolaNome)
+                .isEqualTo("Escola Central");
 
         mockMvc.perform(get("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/interacoes", planejamentoId)
                         .header("X-Internal-Token", "planning-token")
@@ -485,7 +509,8 @@ class PlanningAiInternalControllerIntegrationTest {
                         .header("X-Escola-Id", escolaId)
                         .header("Authorization", "Bearer planning-user-token"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(interacaoId.toString()));
+                .andExpect(jsonPath("$[0].id").value(interacaoId.toString()))
+                .andExpect(jsonPath("$[0].escolaNome").value("Escola Central"));
 
         assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
     }
@@ -500,6 +525,7 @@ class PlanningAiInternalControllerIntegrationTest {
         var interaction = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiInteractionJpaEntity();
         interaction.setId(interacaoId);
         interaction.setEscolaId(escolaId);
+        interaction.setEscolaNome("Escola Central");
         interaction.setPlanejamentoBimestralId(planejamentoId);
         interaction.setPromptProfessor("Monte uma atividade sobre fracoes");
         interaction.setRespostaIa("Sugestao de atividade");
@@ -509,6 +535,7 @@ class PlanningAiInternalControllerIntegrationTest {
         var content = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiGeneratedContentJpaEntity();
         content.setId(conteudoId);
         content.setEscolaId(escolaId);
+        content.setEscolaNome("Escola Central");
         content.setPlanejamentoBimestralId(planejamentoId);
         content.setInteracao(interaction);
         content.setTitulo("Lista de fracoes");
@@ -533,6 +560,7 @@ class PlanningAiInternalControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(conteudoId.toString()))
                 .andExpect(jsonPath("$[0].planejamentoBimestralId").value(planejamentoId.toString()))
+                .andExpect(jsonPath("$[0].escolaNome").value("Escola Central"))
                 .andExpect(jsonPath("$[0].tipoConteudo").value("ATIVIDADE"))
                 .andExpect(jsonPath("$[0].statusDescricao").value("Gerado"))
                 .andExpect(jsonPath("$[0].tipoConteudoDescricao").value("Atividade"));
@@ -609,11 +637,16 @@ class PlanningAiInternalControllerIntegrationTest {
                         .header("Authorization", "Bearer planning-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(conteudoId.toString()))
+                .andExpect(jsonPath("$[0].escolaNome").value("Escola Central"))
                 .andExpect(jsonPath("$[0].conteudo").value("Conteudo do monolito"));
 
         RecordedRequest recorded = aguardarRequisicao();
         assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/conteudos");
-        assertThat(contentRepository.findById(conteudoId)).isPresent();
+        assertThat(contentRepository.findById(conteudoId))
+                .isPresent()
+                .get()
+                .extracting(br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiGeneratedContentJpaEntity::getEscolaNome)
+                .isEqualTo("Escola Central");
 
         mockMvc.perform(get("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos", planejamentoId)
                         .header("X-Internal-Token", "planning-token")
@@ -622,7 +655,8 @@ class PlanningAiInternalControllerIntegrationTest {
                         .header("X-Escola-Id", escolaId)
                         .header("Authorization", "Bearer planning-user-token"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(conteudoId.toString()));
+                .andExpect(jsonPath("$[0].id").value(conteudoId.toString()))
+                .andExpect(jsonPath("$[0].escolaNome").value("Escola Central"));
 
         assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
     }
@@ -637,6 +671,7 @@ class PlanningAiInternalControllerIntegrationTest {
         var interaction = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiInteractionJpaEntity();
         interaction.setId(interacaoId);
         interaction.setEscolaId(escolaId);
+        interaction.setEscolaNome("Escola Central");
         interaction.setPlanejamentoBimestralId(planejamentoId);
         interaction.setPromptProfessor("Monte uma atividade sobre fracoes");
         interaction.setRespostaIa("Sugestao de atividade");
@@ -646,6 +681,7 @@ class PlanningAiInternalControllerIntegrationTest {
         var content = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiGeneratedContentJpaEntity();
         content.setId(conteudoId);
         content.setEscolaId(escolaId);
+        content.setEscolaNome("Escola Central");
         content.setPlanejamentoBimestralId(planejamentoId);
         content.setInteracao(interaction);
         content.setTitulo("Lista de fracoes");
@@ -670,6 +706,7 @@ class PlanningAiInternalControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(conteudoId.toString()))
                 .andExpect(jsonPath("$.planejamentoBimestralId").value(planejamentoId.toString()))
+                .andExpect(jsonPath("$.escolaNome").value("Escola Central"))
                 .andExpect(jsonPath("$.tipoConteudo").value("ATIVIDADE"))
                 .andExpect(jsonPath("$.statusDescricao").value("Gerado"))
                 .andExpect(jsonPath("$.tipoConteudoDescricao").value("Atividade"));
@@ -717,12 +754,17 @@ class PlanningAiInternalControllerIntegrationTest {
                         .header("Authorization", "Bearer planning-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(conteudoId.toString()))
+                .andExpect(jsonPath("$.escolaNome").value("Escola Central"))
                 .andExpect(jsonPath("$.conteudo").value("Conteudo do monolito"));
 
         RecordedRequest recorded = aguardarRequisicao();
         assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId);
         assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
-        assertThat(contentRepository.findById(conteudoId)).isPresent();
+        assertThat(contentRepository.findById(conteudoId))
+                .isPresent()
+                .get()
+                .extracting(br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiGeneratedContentJpaEntity::getEscolaNome)
+                .isEqualTo("Escola Central");
 
         mockMvc.perform(get("/internal/v1/ia/conteudos/{conteudoId}", conteudoId)
                         .header("X-Internal-Token", "planning-token")
@@ -731,7 +773,8 @@ class PlanningAiInternalControllerIntegrationTest {
                         .header("X-Escola-Id", escolaId)
                         .header("Authorization", "Bearer planning-user-token"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(conteudoId.toString()));
+                .andExpect(jsonPath("$.id").value(conteudoId.toString()))
+                .andExpect(jsonPath("$.escolaNome").value("Escola Central"));
 
         assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
     }

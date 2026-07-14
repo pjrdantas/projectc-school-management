@@ -7663,3 +7663,26 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado de autonomia final do
 `planning-ai-service`: 4 fases restantes no escopo fechado atual.
+
+### Fase 171 - Persistencia local de metadados descritivos do read model
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a persistir no read model local os metadados
+  descritivos que ja chegam no payload oficial do monolito, sem introduzir
+  novas dependencias com outros servicos;
+- `planejamento_ia_interacao` e `planejamento_ia_conteudo_gerado` passaram a
+  guardar `escolaNome`, e `biblioteca_conteudo_pedagogico` passou a guardar
+  `escolaNome`, `professorNome` e `disciplinaNome`;
+- a sincronizacao por fallback e as gravacoes aditivas ja existentes passaram a
+  preencher esses campos, permitindo que a segunda leitura local preserve os
+  mesmos nomes descritivos ja recebidos na primeira resposta oficial;
+- com isso, o servico reduz mais um gap funcional do fallback: a leitura local
+  deixa de perder nomes de escola, professor e disciplina em recortes ja
+  hidratados;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo migration incremental,
+  persistencia dos novos campos e leituras locais reaproveitando esses nomes.
+
+Contagem regressiva do novo ciclo fechado de autonomia final do
+`planning-ai-service`: 3 fases restantes no escopo fechado atual.

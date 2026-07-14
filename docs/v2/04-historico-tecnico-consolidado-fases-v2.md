@@ -3582,3 +3582,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service test`.
 - Contagem regressiva do novo ciclo fechado de autonomia final do
   `planning-ai-service`: 4 fases restantes no escopo fechado atual.
+
+### Fase 171
+
+- O `planning-ai-service` passou a persistir no read model local os metadados
+  descritivos que ja chegam no payload oficial do monolito, sem abrir chamada
+  nova para nomes de escola, professor ou disciplina.
+- `planejamento_ia_interacao` e `planejamento_ia_conteudo_gerado` passaram a
+  armazenar `escolaNome`; `biblioteca_conteudo_pedagogico` passou a armazenar
+  `escolaNome`, `professorNome` e `disciplinaNome`.
+- A sincronizacao por fallback e as persistencias aditivas ja existentes foram
+  ajustadas para preencher esses campos, permitindo que leituras locais
+  reaproveitem os mesmos nomes descritivos ja vistos na primeira resposta
+  oficial.
+- Com isso, a segunda leitura local dos recortes ja hidratados deixa de perder
+  nomes de escola, professor e disciplina.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva do novo ciclo fechado de autonomia final do
+  `planning-ai-service`: 3 fases restantes no escopo fechado atual.

@@ -22,6 +22,9 @@ public class PedagogicalContentLibraryJpaEntity {
     @Column(name = "id_escola", nullable = false)
     private UUID escolaId;
 
+    @Column(name = "escola_nome", length = 180)
+    private String escolaNome;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_conteudo_origem")
     private PlanningAiGeneratedContentJpaEntity conteudoOrigem;
@@ -29,8 +32,14 @@ public class PedagogicalContentLibraryJpaEntity {
     @Column(name = "id_professor")
     private UUID professorId;
 
+    @Column(name = "professor_nome", length = 180)
+    private String professorNome;
+
     @Column(name = "id_disciplina")
     private UUID disciplinaId;
+
+    @Column(name = "disciplina_nome", length = 180)
+    private String disciplinaNome;
 
     @Column(name = "tipo_conteudo", nullable = false, length = 60)
     private String tipoConteudo;
@@ -79,6 +88,14 @@ public class PedagogicalContentLibraryJpaEntity {
         return conteudoOrigem;
     }
 
+    public String getEscolaNome() {
+        return escolaNome;
+    }
+
+    public void setEscolaNome(String escolaNome) {
+        this.escolaNome = escolaNome;
+    }
+
     public void setConteudoOrigem(PlanningAiGeneratedContentJpaEntity conteudoOrigem) {
         this.conteudoOrigem = conteudoOrigem;
     }
@@ -95,8 +112,24 @@ public class PedagogicalContentLibraryJpaEntity {
         return disciplinaId;
     }
 
+    public String getProfessorNome() {
+        return professorNome;
+    }
+
+    public void setProfessorNome(String professorNome) {
+        this.professorNome = professorNome;
+    }
+
     public void setDisciplinaId(UUID disciplinaId) {
         this.disciplinaId = disciplinaId;
+    }
+
+    public String getDisciplinaNome() {
+        return disciplinaNome;
+    }
+
+    public void setDisciplinaNome(String disciplinaNome) {
+        this.disciplinaNome = disciplinaNome;
     }
 
     public String getTipoConteudo() {

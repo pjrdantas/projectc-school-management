@@ -45,6 +45,7 @@ public class PlanningAiContentApprovalPersistenceService {
         content.setConteudo(response.conteudo());
         content.setVersao(response.versao());
         content.setHashConteudo(response.hashConteudo());
+        content.setEscolaNome(response.escolaNome());
         content.setAprovadoPeloProfessor(Boolean.TRUE.equals(response.aprovadoPeloProfessor()));
         content.setReutilizavel(Boolean.TRUE.equals(response.reutilizavel()));
         content.setAtivo(Boolean.TRUE.equals(response.ativo()));

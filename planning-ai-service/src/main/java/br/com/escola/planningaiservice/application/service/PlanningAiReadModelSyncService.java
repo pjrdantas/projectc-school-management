@@ -88,6 +88,7 @@ public class PlanningAiReadModelSyncService {
                 .orElseGet(PlanningAiInteractionJpaEntity::new);
         interaction.setId(response.id());
         interaction.setEscolaId(context.escolaId());
+        interaction.setEscolaNome(response.escolaNome());
         interaction.setPlanejamentoBimestralId(response.planejamentoBimestralId());
         interaction.setPromptProfessor(response.promptProfessor());
         interaction.setRespostaIa(response.respostaIA());
@@ -106,6 +107,7 @@ public class PlanningAiReadModelSyncService {
                 .orElseGet(PlanningAiGeneratedContentJpaEntity::new);
         content.setId(response.id());
         content.setEscolaId(context.escolaId());
+        content.setEscolaNome(response.escolaNome());
         content.setPlanejamentoBimestralId(response.planejamentoBimestralId());
         content.setInteracao(resolveInteraction(response.interacaoId()));
         content.setTitulo(response.titulo());
@@ -151,9 +153,12 @@ public class PlanningAiReadModelSyncService {
                 .orElseGet(PedagogicalContentLibraryJpaEntity::new);
         library.setId(response.id());
         library.setEscolaId(context.escolaId());
+        library.setEscolaNome(response.escolaNome());
         library.setConteudoOrigem(null);
         library.setProfessorId(response.professorId());
+        library.setProfessorNome(response.professorNome());
         library.setDisciplinaId(response.disciplinaId());
+        library.setDisciplinaNome(response.disciplinaNome());
         library.setTipoConteudo(response.tipoConteudo());
         library.setTitulo(response.titulo());
         library.setTema(response.tema());

@@ -50,6 +50,7 @@ public class PlanningAiGenerationPersistenceService {
                 .orElseGet(PlanningAiInteractionJpaEntity::new);
         interaction.setId(response.interacaoId());
         interaction.setEscolaId(context.escolaId());
+        interaction.setEscolaNome(response.escolaNome());
         interaction.setPlanejamentoBimestralId(response.planejamentoBimestralId());
         interaction.setUsuarioId(context.usuarioId());
         interaction.setPromptProfessor(request.promptProfessor());
@@ -71,6 +72,7 @@ public class PlanningAiGenerationPersistenceService {
                 .orElseGet(PlanningAiGeneratedContentJpaEntity::new);
         content.setId(response.id());
         content.setEscolaId(context.escolaId());
+        content.setEscolaNome(response.escolaNome());
         content.setPlanejamentoBimestralId(response.planejamentoBimestralId());
         content.setInteracao(interaction);
         content.setTitulo(response.titulo() != null ? response.titulo() : request.titulo());
