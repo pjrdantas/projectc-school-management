@@ -83,13 +83,17 @@ class PedagogicalDiarioClasseReadProxyIntegrationTest {
                 .jsonPath("$.alunos[0].nome").isEqualTo("Aluno Diario")
                 .jsonPath("$.bloqueado").isEqualTo(false);
 
-        IDENTITY_ACCESS.takeRequest();
+        var authRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(authRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
+        assertThat(authRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
+        assertThat(authRequest.getHeader("X-Internal-Token")).isEqualTo("identity-access-internal-token");
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/diarios-classe?idProfessor=" + professorId
                 + "&idTurma=" + turmaId
                 + "&idDisciplina=" + disciplinaId
                 + "&anoLetivo=2058&mes=6&dataReferencia=2058-06-26");
         assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-diario-read-1");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

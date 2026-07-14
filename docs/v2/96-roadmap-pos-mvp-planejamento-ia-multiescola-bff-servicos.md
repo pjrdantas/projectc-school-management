@@ -7969,3 +7969,27 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `identity-access-service`: 2 fases
 restantes no escopo fechado atual.
+
+### Fase 183 - Verificacao transversal do bloco pedagogico oficial de leitura
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a ter verificacoes explicitas de que todo o
+  bloco pedagogico oficial de leitura resolve contexto por
+  `identity-access-service` e nao toca o endpoint publico legado
+  `/api/auth/contexto-atual` do monolito;
+- `boletim`, `diario-classe` e `historico-escolar` receberam o mesmo nivel de
+  prova objetiva que ja havia sido aplicado na consolidacao de `aula` e
+  `avaliacao`, com assercoes sobre o path interno
+  `/internal/v1/auth/contexto-atual`, headers propagados e ausencia de chamadas
+  ao `MONOLITH`;
+- com isso, o bloco oficial pedagogico de leitura no BFF fica fechado nao
+  apenas em implementacao, mas tambem em cobertura de integracao transversal
+  coerente para os cinco contratos read-only oficiais do dominio;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem mudanca de
+  contratos publicos e sem migracao de escrita;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PedagogicalBoletimReadProxyIntegrationTest,PedagogicalDiarioClasseReadProxyIntegrationTest,PedagogicalHistoricoEscolarReadProxyIntegrationTest,PedagogicalAulaReadProxyIntegrationTest,PedagogicalAvaliacaoReadProxyIntegrationTest" test`.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 1 fase
+restante no escopo fechado atual.

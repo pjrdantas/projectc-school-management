@@ -78,10 +78,14 @@ class PedagogicalHistoricoEscolarReadProxyIntegrationTest {
                 .jsonPath("$.contexto.idMatricula").isEqualTo(matriculaId.toString())
                 .jsonPath("$.contexto.modo").isEqualTo("CADASTRO");
 
-        IDENTITY_ACCESS.takeRequest();
+        var authRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(authRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
+        assertThat(authRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
+        assertThat(authRequest.getHeader("X-Internal-Token")).isEqualTo("identity-access-internal-token");
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/historicos-escolares/novo?idAluno=" + alunoId + "&idMatricula=" + matriculaId + "&modo=CADASTRO");
         assertThat(request.getHeader("X-Internal-Token")).isEqualTo("pedagogical-internal-token");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
@@ -109,10 +113,14 @@ class PedagogicalHistoricoEscolarReadProxyIntegrationTest {
                 .jsonPath("$.contexto.idHistoricoEscolar").isEqualTo(historicoId.toString())
                 .jsonPath("$.contexto.modo").isEqualTo("EDICAO");
 
-        IDENTITY_ACCESS.takeRequest();
+        var authRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(authRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
+        assertThat(authRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
+        assertThat(authRequest.getHeader("X-Internal-Token")).isEqualTo("identity-access-internal-token");
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/historicos-escolares/" + historicoId + "/carregamento");
         assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-history-2");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

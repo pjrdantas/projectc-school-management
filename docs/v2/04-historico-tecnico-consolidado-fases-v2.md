@@ -3803,3 +3803,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=PedagogicalAulaReadProxyIntegrationTest,PedagogicalAulaWriteProxyIntegrationTest,PedagogicalAvaliacaoReadProxyIntegrationTest,PedagogicalAvaliacaoWriteProxyIntegrationTest" test`.
 - Contagem regressiva do novo ciclo fechado do `identity-access-service`: 2
   fases restantes no escopo fechado atual.
+
+### Fase 183
+
+- O `school-management-bff` passou a validar de forma transversal que todo o
+  bloco pedagogico oficial de leitura usa `identity-access-service` para
+  resolver contexto e nao faz chamadas ao endpoint publico legado
+  `/api/auth/contexto-atual`.
+- `boletim`, `diario-classe` e `historico-escolar` receberam assercoes
+  explicitas sobre o path `/internal/v1/auth/contexto-atual`, headers
+  propagados e ausencia de chamadas ao `MONOLITH`.
+- Com isso, a cobertura de integracao do bloco pedagogico oficial de leitura
+  fica uniforme para `boletim`, `diario-classe`, `historico-escolar`, `aula` e
+  `avaliacao`.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=PedagogicalBoletimReadProxyIntegrationTest,PedagogicalDiarioClasseReadProxyIntegrationTest,PedagogicalHistoricoEscolarReadProxyIntegrationTest,PedagogicalAulaReadProxyIntegrationTest,PedagogicalAvaliacaoReadProxyIntegrationTest" test`.
+- Contagem regressiva do novo ciclo fechado do `identity-access-service`: 1
+  fase restante no escopo fechado atual.
