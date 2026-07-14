@@ -30,6 +30,13 @@ public class IdentityAccessInternalController {
         this.identityAccessUseCase = identityAccessUseCase;
     }
 
+    @GetMapping("/auth/contexto-atual")
+    public ResponseEntity<AuthContextResponse> consultarContextoAtual(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
+        return ResponseEntity.ok(identityAccessUseCase.consultarContextoAtual(authorization, context));
+    }
+
     @GetMapping("/auth/escolas")
     public List<EscolaSessaoResponse> listarEscolasDisponiveis(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,

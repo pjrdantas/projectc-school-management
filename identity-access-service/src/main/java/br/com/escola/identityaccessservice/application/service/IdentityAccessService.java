@@ -21,6 +21,13 @@ public class IdentityAccessService implements IdentityAccessUseCase {
     }
 
     @Override
+    public AuthContextResponse consultarContextoAtual(
+            String authorization,
+            InternalRequestContext context) {
+        return identityAccessPort.consultarContextoAtual(authorization, context);
+    }
+
+    @Override
     public List<EscolaSessaoResponse> listarEscolasDisponiveis(
             String authorization,
             InternalRequestContext context) {

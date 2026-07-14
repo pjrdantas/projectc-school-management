@@ -88,6 +88,38 @@ class IdentityAccessInternalControllerIntegrationTest {
     }
 
     @Test
+    void deveConsultarContextoAtualNoContratoInterno() throws Exception {
+        UUID usuarioId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "usuarioId":"%s",
+                          "escolaId":"%s",
+                          "escolaNome":"Escola Contexto",
+                          "username":"usuario.contexto"
+                        }
+                        """.formatted(usuarioId, escolaId)));
+
+        mockMvc.perform(get("/internal/v1/auth/contexto-atual")
+                        .header("X-Internal-Token", "identity-token")
+                        .header("X-Correlation-Id", "corr-identity-ctx")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", "Bearer identity-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.usuarioId").value(usuarioId.toString()))
+                .andExpect(jsonPath("$.escolaId").value(escolaId.toString()))
+                .andExpect(jsonPath("$.escolaNome").value("Escola Contexto"))
+                .andExpect(jsonPath("$.username").value("usuario.contexto"));
+
+        RecordedRequest recorded = aguardarRequisicao("GET", "/api/auth/contexto-atual");
+        assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer identity-user-token");
+    }
+
+    @Test
     void deveSelecionarEscolaAtivaNoContratoInterno() throws Exception {
         UUID usuarioId = UUID.randomUUID();
         UUID escolaId = UUID.randomUUID();

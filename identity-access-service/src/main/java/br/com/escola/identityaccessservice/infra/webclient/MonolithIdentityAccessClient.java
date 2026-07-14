@@ -28,6 +28,26 @@ public class MonolithIdentityAccessClient implements IdentityAccessPort {
     }
 
     @Override
+    public AuthContextResponse consultarContextoAtual(
+            String authorization,
+            InternalRequestContext context) {
+        try {
+            return restClient.get()
+                    .uri("/api/auth/contexto-atual")
+                    .headers(headers -> enrichHeaders(headers, authorization))
+                    .retrieve()
+                    .body(AuthContextResponse.class);
+        } catch (RestClientResponseException exception) {
+            if (exception.getStatusCode().value() == 404) {
+                throw new IdentityAccessServiceResourceNotFoundException("Contexto autenticado nao encontrado");
+            }
+            throw exception;
+        } catch (ResourceAccessException exception) {
+            throw new DownstreamUnavailableException("Monolito indisponivel para contexto autenticado", exception);
+        }
+    }
+
+    @Override
     public List<EscolaSessaoResponse> listarEscolasDisponiveis(
             String authorization,
             InternalRequestContext context) {

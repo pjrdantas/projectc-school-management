@@ -7754,3 +7754,39 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado de autonomia final do
 `planning-ai-service`: 0 fases restantes no escopo fechado atual.
+
+### Novo ciclo fechado priorizado apos o `planning-ai-service`
+
+Contagem fechada definida para o proximo bloco de desenvolvimento backend:
+
+1. `identity-access-service`: 10 fases (`175` a `184`).
+2. `institutional-tenant-service`: 8 fases (`185` a `192`).
+3. `dashboard-query-service`: 10 fases (`193` a `202`).
+4. `academic-catalog-service`: 4 fases residuais (`203` a `206`).
+
+Esse novo ciclo totaliza 32 fases fechadas de evolucao backend priorizada apos
+o encerramento do recorte atual do `planning-ai-service`.
+
+### Fase 175 - Contexto autenticado interno no `identity-access-service`
+
+Entregue nesta fase:
+
+- foi iniciada a nova sequencia fechada do `identity-access-service` pelo menor
+  recorte remanescente de baixo risco: a leitura interna de contexto
+  autenticado atual;
+- o servico novo passou a publicar
+  `GET /internal/v1/auth/contexto-atual`, preservando o monolito como
+  autoridade funcional nesta etapa e sem abrir ainda `login`, `refresh` ou
+  `logout` no codigo novo;
+- o contrato interno reutiliza o payload ja estabilizado de
+  `AuthContextResponse`, reduzindo o gap para retirar o BFF da dependencia
+  direta do endpoint publico `/api/auth/contexto-atual` do monolito nas
+  proximas fases;
+- a fase permaneceu estritamente backend/backend, sem mudar contratos externos,
+  sem cutover do BFF e sem migracao de persistencia;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl identity-access-service test`, cobrindo o novo endpoint interno,
+  propagacao do bearer e a regressao do modulo.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 9 fases
+restantes no escopo fechado atual.

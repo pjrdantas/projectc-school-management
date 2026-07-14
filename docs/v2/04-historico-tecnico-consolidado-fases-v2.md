@@ -3651,3 +3651,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service test`.
 - Contagem regressiva do novo ciclo fechado de autonomia final do
   `planning-ai-service`: 0 fases restantes no escopo fechado atual.
+
+### Fase 175
+
+- Foi aberto o novo ciclo fechado do `identity-access-service`, agora com
+  contagem total de 10 fases (`175` a `184`) para fechar o bloco remanescente
+  de identidade e acesso apos o encerramento do recorte atual do
+  `planning-ai-service`.
+- O menor recorte escolhido para iniciar esse novo ciclo foi a leitura interna
+  de contexto autenticado atual, sem abrir ainda escrita migrada e sem mexer em
+  `login`, `refresh` ou `logout`.
+- O `identity-access-service` passou a expor
+  `GET /internal/v1/auth/contexto-atual`, reutilizando o payload interno
+  `AuthContextResponse` e encapsulando no codigo novo a chamada ao endpoint
+  legado `/api/auth/contexto-atual`.
+- Com isso, a proxima etapa ja pode mover o BFF para consumir o servico novo na
+  resolucao de contexto autenticado, reduzindo dependencia direta do monolito
+  nas rotas ja oficializadas de sessao e tenant.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl identity-access-service test`.
+- Contagem regressiva do novo ciclo fechado do `identity-access-service`: 9
+  fases restantes no escopo fechado atual.

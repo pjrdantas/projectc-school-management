@@ -9,6 +9,10 @@ import br.com.escola.identityaccessservice.application.dto.EscolaSessaoResponse;
 
 public interface IdentityAccessPort {
 
+    AuthContextResponse consultarContextoAtual(
+            String authorization,
+            InternalRequestContext context);
+
     List<EscolaSessaoResponse> listarEscolasDisponiveis(
             String authorization,
             InternalRequestContext context);
