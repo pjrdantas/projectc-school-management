@@ -3835,3 +3835,35 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=OfficialReadContextDecouplingIntegrationSuiteTest" test`.
 - Contagem regressiva do novo ciclo fechado do `identity-access-service`: 0
   fases restantes no escopo fechado atual.
+
+### Fase 185
+
+- Foi iniciado o novo ciclo fechado do `institutional-tenant-service` pelo
+  menor recorte oficial ja exposto no BFF: a leitura de `tenant ativo`.
+- O `school-management-bff` recebeu a suite
+  `InstitutionalTenantOfficialReadIntegrationSuiteTest` como artefato nominal do
+  primeiro bloco oficial desse ciclo.
+- O teste de `tenant ativo` passou a comprovar explicitamente a ausencia de
+  chamadas ao `MONOLITH` no caminho bem-sucedido, alem do uso de
+  `identity-access-service` e `institutional-tenant-service`.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialReadIntegrationSuiteTest" test`.
+- Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
+  7 fases restantes no escopo fechado atual.
+
+### Fase 186
+
+- Foi aberto o segundo bloco oficial do `institutional-tenant-service` no BFF,
+  agora para o fluxo oficial de `escola ativa`.
+- O `school-management-bff` recebeu a suite
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest` como artefato
+  nominal desse bloco multiescola.
+- O teste de sucesso da troca de escola ativa passou a comprovar explicitamente
+  a propagacao dos headers internos e a ausencia de chamadas ao `MONOLITH`
+  quando o fluxo segue pelo servico novo.
+- A suite tambem cobre o fallback controlado para o legado quando
+  `identity-access-service` falha nessa troca.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest" test`.
+- Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
+  6 fases restantes no escopo fechado atual.

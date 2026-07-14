@@ -90,6 +90,7 @@ class InstitutionalTenantReadProxyIntegrationTest {
         assertThat(tenantRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-tenant-1");
         assertThat(tenantRequest.getHeader("X-Usuario-Id")).isEqualTo("00000000-0000-0000-0000-000000000101");
         assertThat(tenantRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test

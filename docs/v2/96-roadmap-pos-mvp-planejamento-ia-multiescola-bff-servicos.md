@@ -8016,3 +8016,52 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `identity-access-service`: 0 fases
 restantes no escopo fechado atual.
+
+### Fase 185 - Primeiro bloco oficial de leitura do `institutional-tenant-service`
+
+Entregue nesta fase:
+
+- foi iniciada a sequencia fechada do `institutional-tenant-service` pelo menor
+  recorte oficial ja exposto no BFF: a leitura de `tenant ativo`;
+- o `school-management-bff` passou a contar com a suite nominal
+  `InstitutionalTenantOfficialReadIntegrationSuiteTest` como artefato oficial do
+  primeiro bloco desse novo ciclo;
+- o teste da leitura oficial de `tenant ativo` foi reforcado para provar nao
+  apenas o uso de `identity-access-service` e do
+  `institutional-tenant-service`, mas tambem a ausencia de chamadas ao
+  `MONOLITH` no caminho bem-sucedido;
+- com isso, o primeiro contrato oficial do `institutional-tenant-service` fica
+  materializado com validacao nomeada, reexecutavel e alinhada ao criterio de
+  desacoplamento usado no encerramento do ciclo anterior;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contratos publicos e sem mexer ainda em `escola ativa`;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialReadIntegrationSuiteTest" test`,
+  resultando em `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 7
+fases restantes no escopo fechado atual.
+
+### Fase 186 - Segundo bloco oficial de multiescola para `escola ativa`
+
+Entregue nesta fase:
+
+- foi aberto o segundo recorte natural do `institutional-tenant-service` no
+  BFF, agora voltado ao fluxo oficial de `escola ativa`;
+- o `school-management-bff` recebeu a suite
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest` como artefato
+  nominal do bloco multiescola de sessao oficial;
+- o teste de sucesso da troca oficial de escola ativa foi reforcado para provar
+  a propagacao dos headers internos derivados do contexto autenticado e a
+  ausencia de chamadas ao `MONOLITH` quando o fluxo segue pelo servico novo;
+- a suite tambem cobre o fallback controlado para o legado quando
+  `identity-access-service` falha na troca de escola ativa, preservando o
+  comportamento operacional previsto no cutover;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contratos publicos e sem avancar ainda para novos contratos institucionais;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest" test`,
+  resultando em `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 6
+fases restantes no escopo fechado atual.

@@ -90,6 +90,7 @@ class AuthSessionProxyIntegrationTest {
         assertThat(identityRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-auth-1");
         assertThat(identityRequest.getHeader("X-Usuario-Id")).isEqualTo("00000000-0000-0000-0000-000000000101");
         assertThat(identityRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
@@ -136,6 +137,9 @@ class AuthSessionProxyIntegrationTest {
         assertThat(identityRequest.getPath()).isEqualTo("/internal/v1/auth/escola-ativa");
         assertThat(identityRequest.getMethod()).isEqualTo("POST");
         assertThat(identityRequest.getBody().readUtf8()).contains("00000000-0000-0000-0000-000000000099");
+        assertThat(identityRequest.getHeader("X-Usuario-Id")).isEqualTo("00000000-0000-0000-0000-000000000101");
+        assertThat(identityRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
