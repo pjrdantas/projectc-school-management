@@ -143,6 +143,7 @@ class PlanningAiInternalControllerIntegrationTest {
         UUID professorId = UUID.randomUUID();
         UUID disciplinaId = UUID.randomUUID();
         UUID bibliotecaId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
 
         mockWebServer.enqueue(new MockResponse()
                 .setHeader("Content-Type", "application/json")
@@ -174,7 +175,7 @@ class PlanningAiInternalControllerIntegrationTest {
                         .header("X-Internal-Token", "planning-token")
                         .header("X-Correlation-Id", "corr-planning-1b")
                         .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
                         .header("Authorization", "Bearer planning-user-token")
                         .param("professorId", professorId.toString())
                         .param("disciplinaId", disciplinaId.toString())
@@ -191,6 +192,30 @@ class PlanningAiInternalControllerIntegrationTest {
                         + "&disciplinaId=" + disciplinaId
                         + "&tipoConteudo=ATIVIDADE&tema=Fracoes");
         assertThat(recorded.getHeader("Authorization")).isEqualTo("Bearer planning-user-token");
+        assertThat(libraryRepository.findById(bibliotecaId))
+                .isPresent()
+                .get()
+                .satisfies(library -> {
+                    assertThat(library.getEscolaId()).isEqualTo(escolaId);
+                    assertThat(library.getConteudoOrigem()).isNull();
+                });
+
+        mockMvc.perform(get("/internal/v1/biblioteca-conteudos-pedagogicos")
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-1c")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer planning-user-token")
+                        .param("professorId", professorId.toString())
+                        .param("disciplinaId", disciplinaId.toString())
+                        .param("tipoConteudo", "ATIVIDADE")
+                        .param("tema", "Fracoes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(bibliotecaId.toString()))
+                .andExpect(jsonPath("$[0].professorNome").doesNotExist())
+                .andExpect(jsonPath("$[0].tipoConteudo").value("ATIVIDADE"));
+
+        assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
     }
 
     @Test

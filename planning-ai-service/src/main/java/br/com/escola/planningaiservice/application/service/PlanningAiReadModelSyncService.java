@@ -6,12 +6,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
+import br.com.escola.planningaiservice.application.dto.BibliotecaConteudoPedagogicoResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
 import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
+import br.com.escola.planningaiservice.infra.persistence.jpa.entity.PedagogicalContentLibraryJpaEntity;
 import br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiContentVersionJpaEntity;
 import br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiGeneratedContentJpaEntity;
 import br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiInteractionJpaEntity;
+import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PedagogicalContentLibraryJpaRepository;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PlanningAiContentVersionJpaRepository;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PlanningAiGeneratedContentJpaRepository;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PlanningAiInteractionJpaRepository;
@@ -22,14 +25,17 @@ public class PlanningAiReadModelSyncService {
     private final PlanningAiInteractionJpaRepository interactionRepository;
     private final PlanningAiGeneratedContentJpaRepository contentRepository;
     private final PlanningAiContentVersionJpaRepository versionRepository;
+    private final PedagogicalContentLibraryJpaRepository libraryRepository;
 
     public PlanningAiReadModelSyncService(
             PlanningAiInteractionJpaRepository interactionRepository,
             PlanningAiGeneratedContentJpaRepository contentRepository,
-            PlanningAiContentVersionJpaRepository versionRepository) {
+            PlanningAiContentVersionJpaRepository versionRepository,
+            PedagogicalContentLibraryJpaRepository libraryRepository) {
         this.interactionRepository = interactionRepository;
         this.contentRepository = contentRepository;
         this.versionRepository = versionRepository;
+        this.libraryRepository = libraryRepository;
     }
 
     @Transactional
@@ -64,6 +70,14 @@ public class PlanningAiReadModelSyncService {
             InternalRequestContext context,
             List<ConteudoIaVersaoResponse> responses) {
         responses.forEach(response -> upsertVersion(context, response));
+        return responses;
+    }
+
+    @Transactional
+    public List<BibliotecaConteudoPedagogicoResponse> syncLibrary(
+            InternalRequestContext context,
+            List<BibliotecaConteudoPedagogicoResponse> responses) {
+        responses.forEach(response -> upsertLibraryEntry(context, response));
         return responses;
     }
 
@@ -128,6 +142,28 @@ public class PlanningAiReadModelSyncService {
         version.setMotivoAlteracao(response.motivoAlteracao());
         version.setCreatedAt(response.createdAt());
         versionRepository.save(version);
+    }
+
+    private void upsertLibraryEntry(
+            InternalRequestContext context,
+            BibliotecaConteudoPedagogicoResponse response) {
+        PedagogicalContentLibraryJpaEntity library = libraryRepository.findById(response.id())
+                .orElseGet(PedagogicalContentLibraryJpaEntity::new);
+        library.setId(response.id());
+        library.setEscolaId(context.escolaId());
+        library.setConteudoOrigem(null);
+        library.setProfessorId(response.professorId());
+        library.setDisciplinaId(response.disciplinaId());
+        library.setTipoConteudo(response.tipoConteudo());
+        library.setTitulo(response.titulo());
+        library.setTema(response.tema());
+        library.setConteudo(response.conteudo());
+        library.setOrigem(response.origem());
+        library.setReutilizavel(Boolean.TRUE.equals(response.reutilizavel()));
+        library.setAtivo(Boolean.TRUE.equals(response.ativo()));
+        library.setCreatedAt(response.createdAt());
+        library.setUpdatedAt(response.updatedAt());
+        libraryRepository.save(library);
     }
 
     private PlanningAiInteractionJpaEntity resolveInteraction(java.util.UUID interactionId) {

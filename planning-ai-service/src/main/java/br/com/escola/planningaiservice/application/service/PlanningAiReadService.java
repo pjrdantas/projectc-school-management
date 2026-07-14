@@ -66,13 +66,15 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
         if (!localLibrary.isEmpty()) {
             return localLibrary;
         }
-        return planningAiReadPort.listarBiblioteca(
-                authorization,
+        return planningAiReadModelSyncService.syncLibrary(
                 context,
-                professorId,
-                disciplinaId,
-                tipoConteudo,
-                tema);
+                planningAiReadPort.listarBiblioteca(
+                        authorization,
+                        context,
+                        professorId,
+                        disciplinaId,
+                        tipoConteudo,
+                        tema));
     }
 
     @Override

@@ -23,7 +23,7 @@ public class PedagogicalContentLibraryJpaEntity {
     private UUID escolaId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_conteudo_origem", nullable = false)
+    @JoinColumn(name = "id_conteudo_origem")
     private PlanningAiGeneratedContentJpaEntity conteudoOrigem;
 
     @Column(name = "id_professor")

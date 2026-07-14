@@ -3565,3 +3565,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service test`.
 - Contagem regressiva do novo ciclo fechado de autonomia final do
   `planning-ai-service`: 5 fases restantes no escopo fechado atual.
+
+### Fase 170
+
+- A leitura interna `GET /internal/v1/biblioteca-conteudos-pedagogicos` do
+  `planning-ai-service` passou a hidratar aditivamente a persistencia propria
+  quando precisa usar o fallback oficial do monolito por ausencia local.
+- Para suportar esse recorte legado sem correlacao fragil, a tabela
+  `biblioteca_conteudo_pedagogico` do servico novo passou a aceitar
+  `id_conteudo_origem` nulo apenas para registros sincronizados por fallback.
+- Com isso, a primeira chamada preserva o contrato atual e as leituras
+  seguintes do mesmo filtro podem ser atendidas localmente sem novo downstream.
+- As publicacoes feitas pelo proprio `planning-ai-service` continuam gravando
+  `conteudoOrigem` normalmente quando a origem existe no banco novo.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva do novo ciclo fechado de autonomia final do
+  `planning-ai-service`: 4 fases restantes no escopo fechado atual.

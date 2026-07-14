@@ -7638,3 +7638,28 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado de autonomia final do
 `planning-ai-service`: 5 fases restantes no escopo fechado atual.
+
+### Fase 170 - Hidratacao local da biblioteca pedagogica apos fallback de leitura
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a hidratar localmente tambem a leitura interna
+  `GET /internal/v1/biblioteca-conteudos-pedagogicos` quando o recorte ainda
+  nao existir na base propria e for necessario consultar o contrato oficial do
+  monolito;
+- para viabilizar essa sincronizacao sem heuristica frágil e sem alterar os
+  contratos externos existentes, a persistencia local passou a aceitar
+  `id_conteudo_origem` nulo apenas para registros de biblioteca vindos desse
+  fallback legado;
+- com isso, a primeira resposta continua preservando o contrato atual da
+  biblioteca, e as consultas seguintes do mesmo filtro podem ser atendidas pela
+  base propria sem novo downstream;
+- as publicacoes locais ja existentes continuam gravando `conteudoOrigem`
+  normalmente quando o vinculo de origem existir no servico novo;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo migration incremental,
+  persistencia sincronizada sem `conteudoOrigem` e segunda leitura servida
+  localmente.
+
+Contagem regressiva do novo ciclo fechado de autonomia final do
+`planning-ai-service`: 4 fases restantes no escopo fechado atual.

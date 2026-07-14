@@ -108,4 +108,32 @@ class PlanningAiPersistenceSchemaIntegrationTest {
                 .extracting(PlanningAiGeneratedContentJpaEntity::getId)
                 .isEqualTo(content.getId());
     }
+
+    @Test
+    void devePermitirPersistirBibliotecaSincronizadaSemConteudoOrigem() {
+        UUID escolaId = UUID.randomUUID();
+
+        PedagogicalContentLibraryJpaEntity library = new PedagogicalContentLibraryJpaEntity();
+        library.setId(UUID.randomUUID());
+        library.setEscolaId(escolaId);
+        library.setConteudoOrigem(null);
+        library.setProfessorId(UUID.randomUUID());
+        library.setDisciplinaId(UUID.randomUUID());
+        library.setTipoConteudo("ATIVIDADE");
+        library.setTitulo("Lista sincronizada");
+        library.setTema("Fracoes");
+        library.setConteudo("Conteudo legado");
+        library.setOrigem("PLANEJAMENTO_IA");
+        library.setReutilizavel(true);
+        library.setAtivo(true);
+        library.setCreatedAt(LocalDateTime.now());
+        library.setUpdatedAt(LocalDateTime.now());
+        libraryRepository.save(library);
+
+        assertThat(libraryRepository.findById(library.getId()))
+                .isPresent()
+                .get()
+                .extracting(PedagogicalContentLibraryJpaEntity::getConteudoOrigem)
+                .isNull();
+    }
 }
