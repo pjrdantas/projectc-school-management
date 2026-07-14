@@ -7891,3 +7891,28 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `identity-access-service`: 5 fases
 restantes no escopo fechado atual.
+
+### Fase 180 - Separacao read/write do proxy de `aula` no BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` deixou de concentrar leitura e escrita de `aula`
+  na mesma classe, com separacao fisica entre `AulaReadProxyService` e
+  `AulaWriteProxyService`;
+- o contrato de leitura oficial de `aula` passou a resolver o contexto
+  autenticado via `identity-access-service`, enquanto os fluxos de escrita
+  permaneceram no `AuthContextPort` legado sem mudanca de contrato externo;
+- a mudanca preservou o mesmo `PedagogicalAulaPort`, evitando refatoracao ampla
+  no client HTTP e mantendo o recorte restrito ao desacoplamento do caso de uso
+  no BFF;
+- com isso, `listar aula`, `buscar aula por id`, `listar frequencia do
+  professor` e `listar frequencias de alunos` deixam de depender diretamente de
+  `/api/auth/contexto-atual` no monolito;
+- a fase continuou sem alterar frontend, sem migrar escrita e sem tocar ainda o
+  proxy misto de `avaliacao`;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PedagogicalAulaProxyIntegrationTest" test`,
+  cobrindo leitura e escrita de `aula` apos a separacao.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 4 fases
+restantes no escopo fechado atual.

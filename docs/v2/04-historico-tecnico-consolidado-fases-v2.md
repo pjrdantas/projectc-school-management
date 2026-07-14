@@ -3748,3 +3748,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=PlanningAiBibliotecaReadProxyIntegrationTest,PlanningAiConteudoReadProxyIntegrationTest,PlanningAiConteudoDetailReadProxyIntegrationTest,PlanningAiConteudoVersaoReadProxyIntegrationTest,PlanningAiInteracaoReadProxyIntegrationTest" test`.
 - Contagem regressiva do novo ciclo fechado do `identity-access-service`: 5
   fases restantes no escopo fechado atual.
+
+### Fase 180
+
+- O `school-management-bff` separou fisicamente o proxy de `aula` em leitura e
+  escrita, substituindo a implementacao unica por `AulaReadProxyService` e
+  `AulaWriteProxyService`.
+- A leitura oficial de `aula` passou a consumir o contexto autenticado interno
+  do `identity-access-service`, enquanto os fluxos de escrita permaneceram no
+  `AuthContextPort` legado sem mudanca de contrato externo.
+- Com isso, `listar aula`, `buscar por id`, `listar frequencia do professor` e
+  `listar frequencias de alunos` deixam de depender diretamente do endpoint
+  publico legado `/api/auth/contexto-atual`.
+- O `PedagogicalAulaProxyIntegrationTest` foi ajustado para refletir a nova
+  separacao read/write e manter a validacao estavel do recorte.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=PedagogicalAulaProxyIntegrationTest" test`.
+- Contagem regressiva do novo ciclo fechado do `identity-access-service`: 4
+  fases restantes no escopo fechado atual.
