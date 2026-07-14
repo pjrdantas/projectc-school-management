@@ -7993,3 +7993,26 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `identity-access-service`: 1 fase
 restante no escopo fechado atual.
+
+### Fase 184 - Oficializacao final do ciclo de leitura desacoplada no BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a ter uma suite oficial unica de validacao
+  do estado final de leitura desacoplada no BFF:
+  `OfficialReadContextDecouplingIntegrationSuiteTest`;
+- essa suite consolida a verificacao dos contratos oficiais de leitura do bloco
+  pedagogico ja desacoplado (`boletim`, `diario-classe`, `historico-escolar`,
+  `aula` e `avaliacao`), servindo como ponto unico e explicito de oficializacao
+  do ciclo no modulo;
+- com isso, o encerramento do ciclo do `identity-access-service` no BFF deixa
+  de depender apenas de comandos manuais dispersos e passa a ter um artefato
+  tecnico nominal, reexecutavel e alinhado ao recorte oficializado;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contratos publicos e sem migracao de escrita;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=OfficialReadContextDecouplingIntegrationSuiteTest" test`,
+  resultando em `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 0 fases
+restantes no escopo fechado atual.

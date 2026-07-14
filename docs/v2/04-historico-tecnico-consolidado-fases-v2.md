@@ -3820,3 +3820,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=PedagogicalBoletimReadProxyIntegrationTest,PedagogicalDiarioClasseReadProxyIntegrationTest,PedagogicalHistoricoEscolarReadProxyIntegrationTest,PedagogicalAulaReadProxyIntegrationTest,PedagogicalAvaliacaoReadProxyIntegrationTest" test`.
 - Contagem regressiva do novo ciclo fechado do `identity-access-service`: 1
   fase restante no escopo fechado atual.
+
+### Fase 184
+
+- O `school-management-bff` recebeu a suite
+  `OfficialReadContextDecouplingIntegrationSuiteTest` como artefato oficial de
+  validacao do estado final de leitura desacoplada no BFF.
+- Essa suite consolida a verificacao dos contratos oficiais de leitura do bloco
+  pedagogico ja desacoplado: `boletim`, `diario-classe`,
+  `historico-escolar`, `aula` e `avaliacao`.
+- Com isso, o encerramento do ciclo do `identity-access-service` no BFF passa a
+  ter um ponto unico, nomeado e reexecutavel de oficializacao tecnica.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=OfficialReadContextDecouplingIntegrationSuiteTest" test`.
+- Contagem regressiva do novo ciclo fechado do `identity-access-service`: 0
+  fases restantes no escopo fechado atual.
