@@ -24,6 +24,7 @@ import br.com.escola.bff.application.port.out.EnrollmentDocumentMatriculaReadPor
 import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaReadPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaWritePort;
 import br.com.escola.bff.application.port.out.IdentityAccessSessionPort;
+import br.com.escola.bff.application.port.out.InternalAuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityTenantCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.IdentityTenantObservabilityPort;
@@ -142,14 +143,14 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarPessoaCatalogoUseCase consultarPessoaCatalogoUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PeopleCatalogReadPort peopleCatalogReadPort) {
         return new PessoaCatalogReadProxyService(authContextPort, peopleCatalogReadPort);
     }
 
     @Bean
     ConsultarCadastroPessoaUseCase consultarCadastroPessoaUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PeopleCadastroReadPort peopleCadastroReadPort) {
         return new CadastroPessoaReadProxyService(authContextPort, peopleCadastroReadPort);
     }
@@ -201,7 +202,7 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarAlunoResponsavelUseCase consultarAlunoResponsavelUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PeopleAlunoResponsavelReadPort peopleAlunoResponsavelReadPort) {
         return new AlunoResponsavelReadProxyService(authContextPort, peopleAlunoResponsavelReadPort);
     }
@@ -278,21 +279,21 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarPessoaDetalheUseCase consultarPessoaDetalheUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PeoplePessoaReadPort peoplePessoaReadPort) {
         return new PessoaDetailReadProxyService(authContextPort, peoplePessoaReadPort);
     }
 
     @Bean
     ConsultarFuncionarioUseCase consultarFuncionarioUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PeopleFuncionarioReadPort peopleFuncionarioReadPort) {
         return new FuncionarioReadProxyService(authContextPort, peopleFuncionarioReadPort);
     }
 
     @Bean
     ConsultarProfessorUseCase consultarProfessorUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PeopleProfessorReadPort peopleProfessorReadPort) {
         return new ProfessorReadProxyService(authContextPort, peopleProfessorReadPort);
     }
@@ -431,7 +432,7 @@ public class BffUseCaseConfiguration {
     RouteCatalogReadUseCase routeCatalogReadUseCase(
             MonolithCatalogReadPort monolithCatalogReadPort,
             AcademicCatalogReadPort academicCatalogReadPort,
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             CatalogReadCutoverPolicyPort cutoverPolicyPort,
             CatalogReadObservabilityPort observabilityPort) {
         return new CatalogReadRoutingService(

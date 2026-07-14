@@ -5,18 +5,18 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
-import br.com.escola.bff.application.port.out.AuthContextPort;
+import br.com.escola.bff.application.port.out.InternalAuthContextPort;
 import br.com.escola.bff.application.port.out.PeopleProfessorReadPort;
 import br.com.escola.bff.application.usecase.ConsultarProfessorUseCase;
 import reactor.core.publisher.Mono;
 
 public class ProfessorReadProxyService implements ConsultarProfessorUseCase {
 
-    private final AuthContextPort authContextPort;
+    private final InternalAuthContextPort authContextPort;
     private final PeopleProfessorReadPort peopleProfessorReadPort;
 
     public ProfessorReadProxyService(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PeopleProfessorReadPort peopleProfessorReadPort) {
         this.authContextPort = authContextPort;
         this.peopleProfessorReadPort = peopleProfessorReadPort;

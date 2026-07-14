@@ -25,6 +25,7 @@ import okhttp3.mockwebserver.MockWebServer;
 class PessoaDetailReadProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
+    private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer PEOPLE = startServer();
 
     @Autowired
@@ -33,6 +34,8 @@ class PessoaDetailReadProxyIntegrationTest {
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.people-service.base-url", () -> PEOPLE.url("/").toString());
         registry.add("clients.people-service.internal-token", () -> "people-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
@@ -41,6 +44,7 @@ class PessoaDetailReadProxyIntegrationTest {
     @AfterAll
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
+        IDENTITY_ACCESS.shutdown();
         PEOPLE.shutdown();
     }
 
@@ -48,7 +52,7 @@ class PessoaDetailReadProxyIntegrationTest {
     void deveConsumirPeopleServiceNoDetalheDePessoa() throws InterruptedException {
         UUID pessoaId = UUID.fromString("00000000-0000-0000-0000-000000000401");
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -75,7 +79,8 @@ class PessoaDetailReadProxyIntegrationTest {
                 .expectBody()
                 .jsonPath("$.id").isEqualTo(pessoaId.toString());
 
-        MONOLITH.takeRequest();
+        var contextRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var peopleRequest = PEOPLE.takeRequest();
         assertThat(peopleRequest.getPath()).isEqualTo("/internal/v1/pessoas/" + pessoaId);
     }
@@ -84,7 +89,7 @@ class PessoaDetailReadProxyIntegrationTest {
     void deveConsumirPeopleServiceNoDocumentoPorId() throws InterruptedException {
         UUID documentoId = UUID.fromString("00000000-0000-0000-0000-000000000501");
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -111,7 +116,8 @@ class PessoaDetailReadProxyIntegrationTest {
                 .expectBody()
                 .jsonPath("$.documentoId").isEqualTo(documentoId.toString());
 
-        MONOLITH.takeRequest();
+        var contextRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var peopleRequest = PEOPLE.takeRequest();
         assertThat(peopleRequest.getPath()).isEqualTo("/internal/v1/documentos/" + documentoId);
     }

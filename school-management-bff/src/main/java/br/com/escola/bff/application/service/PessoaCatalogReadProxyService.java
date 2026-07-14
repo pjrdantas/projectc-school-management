@@ -3,18 +3,18 @@ package br.com.escola.bff.application.service;
 import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
-import br.com.escola.bff.application.port.out.AuthContextPort;
+import br.com.escola.bff.application.port.out.InternalAuthContextPort;
 import br.com.escola.bff.application.port.out.PeopleCatalogReadPort;
 import br.com.escola.bff.application.usecase.ConsultarPessoaCatalogoUseCase;
 import reactor.core.publisher.Mono;
 
 public class PessoaCatalogReadProxyService implements ConsultarPessoaCatalogoUseCase {
 
-    private final AuthContextPort authContextPort;
+    private final InternalAuthContextPort authContextPort;
     private final PeopleCatalogReadPort peopleCatalogReadPort;
 
     public PessoaCatalogReadProxyService(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PeopleCatalogReadPort peopleCatalogReadPort) {
         this.authContextPort = authContextPort;
         this.peopleCatalogReadPort = peopleCatalogReadPort;

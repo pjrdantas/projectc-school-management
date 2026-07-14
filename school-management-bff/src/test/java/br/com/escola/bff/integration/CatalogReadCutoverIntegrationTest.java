@@ -35,6 +35,8 @@ class CatalogReadCutoverIntegrationTest {
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.catalog-service.base-url", () -> CATALOG.url("/").toString());
         registry.add("clients.catalog-service.internal-token", () -> "internal-token");
         registry.add("features.catalog-read-cutover.enabled", () -> true);
@@ -90,7 +92,7 @@ class CatalogReadCutoverIntegrationTest {
                 .jsonPath("$[0].nome").isEqualTo("Matematica catalog");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         assertThat(contextRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
 
         var catalogRequest = CATALOG.takeRequest();
@@ -128,7 +130,7 @@ class CatalogReadCutoverIntegrationTest {
                 .jsonPath("$.codigo").isEqualTo("MANHA");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var monolithFallback = MONOLITH.takeRequest();
         assertThat(monolithFallback.getPath()).isEqualTo("/api/turnos/00000000-0000-0000-0000-000000000051");
         var catalogRequest = CATALOG.takeRequest();
@@ -166,7 +168,7 @@ class CatalogReadCutoverIntegrationTest {
                 .jsonPath("$[0].nome").isEqualTo("1 Ano");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
 
         var catalogRequest = CATALOG.takeRequest();
         assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/series");
@@ -204,7 +206,7 @@ class CatalogReadCutoverIntegrationTest {
                 .jsonPath("$.nome").isEqualTo("1 Ano");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
 
         var catalogRequest = CATALOG.takeRequest();
         assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/series/00000000-0000-0000-0000-000000000061");
@@ -243,7 +245,7 @@ class CatalogReadCutoverIntegrationTest {
                 .jsonPath("$[0].nome").isEqualTo("Turma A");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
 
         var catalogRequest = CATALOG.takeRequest();
         assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/turmas");
@@ -280,7 +282,7 @@ class CatalogReadCutoverIntegrationTest {
                 .jsonPath("$.nome").isEqualTo("Turma A");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var monolithFallback = MONOLITH.takeRequest();
         assertThat(monolithFallback.getPath()).isEqualTo("/api/turmas/00000000-0000-0000-0000-000000000071");
         var catalogRequest = CATALOG.takeRequest();
@@ -318,7 +320,7 @@ class CatalogReadCutoverIntegrationTest {
                 .jsonPath("$[0].nome").isEqualTo("Matematica");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
 
         var catalogRequest = CATALOG.takeRequest();
         assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/turmas/00000000-0000-0000-0000-000000000071/disciplinas");
@@ -351,7 +353,7 @@ class CatalogReadCutoverIntegrationTest {
                 .jsonPath("$[0].codigo").isEqualTo("MANHA");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
 
         var catalogRequest = CATALOG.takeRequest();
         assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/turnos");
@@ -384,7 +386,7 @@ class CatalogReadCutoverIntegrationTest {
                 .jsonPath("$[0].codigo").isEqualTo("MANHA");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
 
         var catalogRequest = CATALOG.takeRequest();
         assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/turnos");
@@ -418,7 +420,7 @@ class CatalogReadCutoverIntegrationTest {
                 .jsonPath("$[0].codigo").isEqualTo("ENSINO_FUNDAMENTAL");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var monolithFallback = MONOLITH.takeRequest();
         assertThat(monolithFallback.getPath()).isEqualTo("/api/academico/catalogos/niveis-ensino");
         var catalogRequest = CATALOG.takeRequest();

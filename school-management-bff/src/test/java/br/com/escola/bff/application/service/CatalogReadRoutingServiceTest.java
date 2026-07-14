@@ -11,9 +11,9 @@ import br.com.escola.bff.application.dto.AuthSessionContext;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
 import br.com.escola.bff.application.port.out.AcademicCatalogReadPort;
-import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.CatalogReadCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogReadObservabilityPort;
+import br.com.escola.bff.application.port.out.InternalAuthContextPort;
 import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -24,7 +24,7 @@ class CatalogReadRoutingServiceTest {
     void deveUsarMonolitoQuandoCutoverNaoEstiverLiberado() {
         MonolithCatalogReadPort monolith = (path, query) -> Mono.just(ResponseEntity.ok("monolith"));
         AcademicCatalogReadPort catalog = (path, query, context) -> Mono.just(ResponseEntity.ok("catalog"));
-        AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(java.util.UUID.randomUUID(), java.util.UUID.randomUUID()));
+        InternalAuthContextPort authContext = query -> Mono.just(new AuthSessionContext(java.util.UUID.randomUUID(), java.util.UUID.randomUUID()));
         CatalogReadCutoverPolicyPort decider = new FixedDecider(false, true);
         CatalogReadObservabilityPort observability = new NoOpObservability();
 
@@ -44,7 +44,7 @@ class CatalogReadRoutingServiceTest {
         };
         AcademicCatalogReadPort catalog = (path, query, context) ->
                 Mono.error(new DownstreamUnavailableException("catalog indisponivel"));
-        AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(java.util.UUID.randomUUID(), java.util.UUID.randomUUID()));
+        InternalAuthContextPort authContext = query -> Mono.just(new AuthSessionContext(java.util.UUID.randomUUID(), java.util.UUID.randomUUID()));
         CatalogReadCutoverPolicyPort decider = new FixedDecider(true, true);
         CatalogReadObservabilityPort observability = new NoOpObservability();
 

@@ -5,9 +5,9 @@ import org.springframework.http.ResponseEntity;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
 import br.com.escola.bff.application.port.out.AcademicCatalogReadPort;
-import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.CatalogReadCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogReadObservabilityPort;
+import br.com.escola.bff.application.port.out.InternalAuthContextPort;
 import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
 import br.com.escola.bff.application.usecase.RouteCatalogReadUseCase;
 import reactor.core.publisher.Mono;
@@ -16,14 +16,14 @@ public class CatalogReadRoutingService implements RouteCatalogReadUseCase {
 
     private final MonolithCatalogReadPort monolithCatalogReadPort;
     private final AcademicCatalogReadPort academicCatalogReadPort;
-    private final AuthContextPort authContextPort;
+    private final InternalAuthContextPort authContextPort;
     private final CatalogReadCutoverPolicyPort cutoverPolicyPort;
     private final CatalogReadObservabilityPort observabilityPort;
 
     public CatalogReadRoutingService(
             MonolithCatalogReadPort monolithCatalogReadPort,
             AcademicCatalogReadPort academicCatalogReadPort,
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             CatalogReadCutoverPolicyPort cutoverPolicyPort,
             CatalogReadObservabilityPort observabilityPort) {
         this.monolithCatalogReadPort = monolithCatalogReadPort;

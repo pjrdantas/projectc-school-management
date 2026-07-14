@@ -3692,3 +3692,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=AuthSessionProxyIntegrationTest,AuthSessionFallbackIntegrationTest,InstitutionalTenantReadProxyIntegrationTest" test`.
 - Contagem regressiva do novo ciclo fechado do `identity-access-service`: 8
   fases restantes no escopo fechado atual.
+
+### Fase 177
+
+- O `school-management-bff` passou a consumir o contexto autenticado interno do
+  `identity-access-service` tambem nas leituras oficiais mais estaveis de
+  `people-service` e `academic-catalog-service`.
+- O recorte cobriu `CatalogReadRoutingService` e os proxies oficiais de leitura
+  de pessoas ja estabilizados no BFF, sem tocar os fluxos de escrita e sem
+  expandir ainda para `planning-ai-service`, `pedagogical-service` ou
+  `enrollment-document-service`.
+- Foi criada a porta `InternalAuthContextPort`, reutilizando o mesmo cliente
+  HTTP interno da fase anterior e removendo o acoplamento do nome
+  `IdentityTenant` dos novos consumidores de leitura.
+- Com isso, esse bloco oficial de leitura deixa de depender diretamente do
+  endpoint publico legado `/api/auth/contexto-atual` para materializar os
+  headers internos `X-Usuario-Id` e `X-Escola-Id`.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=CatalogReadRoutingServiceTest,CatalogReadCutoverIntegrationTest,PessoaCatalogReadProxyIntegrationTest,PessoaDetailReadProxyIntegrationTest,FuncionarioReadProxyIntegrationTest,ProfessorReadProxyIntegrationTest,AlunoResponsavelReadProxyIntegrationTest" test`.
+- Contagem regressiva do novo ciclo fechado do `identity-access-service`: 7
+  fases restantes no escopo fechado atual.

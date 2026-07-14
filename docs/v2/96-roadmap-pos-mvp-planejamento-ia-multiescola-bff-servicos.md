@@ -7814,3 +7814,29 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `identity-access-service`: 8 fases
 restantes no escopo fechado atual.
+
+### Fase 177 - Contexto interno oficial para leituras de `people` e catalogo no BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a resolver o contexto autenticado via
+  `identity-access-service` tambem nos proxies de leitura mais estaveis e
+  reutilizados de `people-service` e `academic-catalog-service`;
+- o recorte cobriu as leituras oficiais de catalogo academico roteadas por
+  cutover e as leituras oficiais de pessoas ja estabilizadas no BFF, sem tocar
+  ainda os blocos de escrita, `planning-ai-service`, `pedagogical-service` ou
+  `enrollment-document-service`;
+- foi introduzida a porta interna mais geral `InternalAuthContextPort`,
+  reaproveitando o cliente HTTP ja aberto na fase anterior para o
+  `identity-access-service` e removendo o acoplamento do nome
+  `IdentityTenant` desses novos consumidores de leitura;
+- com isso, as leituras oficiais de `people-service` e
+  `academic-catalog-service` deixam de depender diretamente de
+  `/api/auth/contexto-atual` no monolito para montar `X-Usuario-Id` e
+  `X-Escola-Id`;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=CatalogReadRoutingServiceTest,CatalogReadCutoverIntegrationTest,PessoaCatalogReadProxyIntegrationTest,PessoaDetailReadProxyIntegrationTest,FuncionarioReadProxyIntegrationTest,ProfessorReadProxyIntegrationTest,AlunoResponsavelReadProxyIntegrationTest" test`,
+  cobrindo people, catalogo e a regressao unitaria do roteador de cutover.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 7 fases
+restantes no escopo fechado atual.

@@ -3,18 +3,18 @@ package br.com.escola.bff.application.service;
 import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
-import br.com.escola.bff.application.port.out.AuthContextPort;
+import br.com.escola.bff.application.port.out.InternalAuthContextPort;
 import br.com.escola.bff.application.port.out.PeopleCadastroReadPort;
 import br.com.escola.bff.application.usecase.ConsultarCadastroPessoaUseCase;
 import reactor.core.publisher.Mono;
 
 public class CadastroPessoaReadProxyService implements ConsultarCadastroPessoaUseCase {
 
-    private final AuthContextPort authContextPort;
+    private final InternalAuthContextPort authContextPort;
     private final PeopleCadastroReadPort peopleCadastroReadPort;
 
     public CadastroPessoaReadProxyService(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PeopleCadastroReadPort peopleCadastroReadPort) {
         this.authContextPort = authContextPort;
         this.peopleCadastroReadPort = peopleCadastroReadPort;

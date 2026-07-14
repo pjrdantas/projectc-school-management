@@ -25,6 +25,7 @@ import okhttp3.mockwebserver.MockWebServer;
 class AlunoResponsavelReadProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
+    private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer PEOPLE = startServer();
 
     @Autowired
@@ -33,6 +34,8 @@ class AlunoResponsavelReadProxyIntegrationTest {
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.people-service.base-url", () -> PEOPLE.url("/").toString());
         registry.add("clients.people-service.internal-token", () -> "people-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
@@ -41,6 +44,7 @@ class AlunoResponsavelReadProxyIntegrationTest {
     @AfterAll
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
+        IDENTITY_ACCESS.shutdown();
         PEOPLE.shutdown();
     }
 
@@ -48,7 +52,7 @@ class AlunoResponsavelReadProxyIntegrationTest {
     void deveConsumirPeopleServiceNaLeituraOficialDeResponsaveisPorAluno() throws InterruptedException {
         UUID alunoId = UUID.fromString("00000000-0000-0000-0000-000000000301");
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -76,7 +80,8 @@ class AlunoResponsavelReadProxyIntegrationTest {
                 .expectBody()
                 .jsonPath("$[0].nomeCompleto").isEqualTo("Responsavel Teste");
 
-        MONOLITH.takeRequest();
+        var contextRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var peopleRequest = PEOPLE.takeRequest();
         assertThat(peopleRequest.getPath()).isEqualTo("/internal/v1/alunos/" + alunoId + "/responsaveis");
         assertThat(peopleRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
