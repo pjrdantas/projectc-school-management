@@ -3867,3 +3867,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest" test`.
 - Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
   6 fases restantes no escopo fechado atual.
+
+### Fase 187
+
+- O `school-management-bff` recebeu a suite
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest` como ponto unico de
+  validacao do bloco multiescola oficial ja desacoplado.
+- Essa suite consolida `tenant ativo` e `escola ativa`, incluindo o fluxo
+  oficial pelo servico novo e o fallback controlado quando previsto no cutover.
+- Com isso, o ciclo do `institutional-tenant-service` passa a ter um artefato
+  tecnico unico, reexecutavel e alinhado ao padrao de oficializacao adotado no
+  ciclo anterior.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialContextIntegrationSuiteTest" test`.
+- Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
+  5 fases restantes no escopo fechado atual.

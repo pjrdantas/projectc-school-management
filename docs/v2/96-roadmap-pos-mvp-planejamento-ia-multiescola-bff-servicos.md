@@ -8065,3 +8065,26 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 6
 fases restantes no escopo fechado atual.
+
+### Fase 187 - Suite consolidada do bloco multiescola oficial no BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a contar com uma suite consolidada unica do
+  bloco multiescola oficial ja desacoplado:
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest`;
+- essa suite unifica, sob um mesmo ponto nominal de validacao, os contratos
+  oficiais de `tenant ativo` e `escola ativa`, incluindo sucesso no servico
+  novo e fallback controlado para o legado quando previsto pelo cutover;
+- com isso, o ciclo do `institutional-tenant-service` deixa de depender de duas
+  suites dispersas para o bloco multiescola basico e passa a ter um artefato
+  tecnico unico, reexecutavel e alinhado ao padrao adotado no encerramento do
+  ciclo do `identity-access-service`;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contratos publicos e sem abrir ainda novos recortes institucionais;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialContextIntegrationSuiteTest" test`,
+  resultando em `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 5
+fases restantes no escopo fechado atual.
