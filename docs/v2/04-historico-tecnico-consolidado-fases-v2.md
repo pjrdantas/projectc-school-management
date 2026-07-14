@@ -3784,3 +3784,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=PedagogicalAvaliacaoProxyIntegrationTest" test`.
 - Contagem regressiva do novo ciclo fechado do `identity-access-service`: 3
   fases restantes no escopo fechado atual.
+
+### Fase 182
+
+- O `school-management-bff` consolidou a validacao do bloco pedagogico com
+  suites separadas de leitura e escrita para `aula` e `avaliacao`, removendo a
+  ambiguidade dos testes mistos anteriores.
+- Os testes read-only de `aula` e `avaliacao` agora comprovam explicitamente o
+  uso de `identity-access-service` para resolver contexto e a ausencia de
+  chamadas ao endpoint publico legado `/api/auth/contexto-atual`.
+- Os testes de escrita desses mesmos blocos passaram a comprovar
+  explicitamente a permanencia do `AuthContextPort` legado, sem mudanca de
+  contrato externo.
+- Com isso, o ciclo read-only pedagogico no BFF fica fechado com evidencias
+  objetivas para `boletim`, `diario-classe`, `historico-escolar`, `aula` e
+  `avaliacao`.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=PedagogicalAulaReadProxyIntegrationTest,PedagogicalAulaWriteProxyIntegrationTest,PedagogicalAvaliacaoReadProxyIntegrationTest,PedagogicalAvaliacaoWriteProxyIntegrationTest" test`.
+- Contagem regressiva do novo ciclo fechado do `identity-access-service`: 2
+  fases restantes no escopo fechado atual.

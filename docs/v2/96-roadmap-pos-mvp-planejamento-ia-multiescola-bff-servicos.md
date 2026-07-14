@@ -7943,3 +7943,29 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `identity-access-service`: 3 fases
 restantes no escopo fechado atual.
+
+### Fase 182 - Consolidacao objetiva do ciclo read-only pedagogico no BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a validar `aula` e `avaliacao` com suites de
+  integracao separadas entre leitura e escrita, removendo a ambiguidade dos
+  testes mistos anteriores;
+- os testes read-only de `aula` e `avaliacao` agora provam explicitamente que o
+  contexto autenticado vem de `identity-access-service`, e tambem que nao ha
+  chamada ao endpoint publico legado `/api/auth/contexto-atual` do monolito
+  nesses fluxos;
+- os testes de escrita de `aula` e `avaliacao` passaram a provar o comportamento
+  complementar: escrita continua no `AuthContextPort` legado, sem tocar ainda o
+  contrato externo dessa parte do bloco pedagogico;
+- com isso, o bloco oficial pedagogico de leitura no BFF fica consolidado com
+  evidencias objetivas para `boletim`, `diario-classe`, `historico-escolar`,
+  `aula` e `avaliacao`, todos desacoplados da resolucao publica de contexto do
+  monolito;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contratos publicos e sem migracao de escrita;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PedagogicalAulaReadProxyIntegrationTest,PedagogicalAulaWriteProxyIntegrationTest,PedagogicalAvaliacaoReadProxyIntegrationTest,PedagogicalAvaliacaoWriteProxyIntegrationTest" test`.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 2 fases
+restantes no escopo fechado atual.

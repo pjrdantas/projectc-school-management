@@ -17,17 +17,15 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import br.com.escola.bff.application.context.TrustedHeaders;
-import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
-class PedagogicalAvaliacaoProxyIntegrationTest {
+class PedagogicalAvaliacaoReadProxyIntegrationTest {
 
-    private static final MockWebServer IDENTITY_ACCESS = startIdentityAccessServer();
-    private static final MockWebServer MONOLITH = startMonolithServer();
+    private static final MockWebServer MONOLITH = startServer();
+    private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer PEDAGOGICAL = startServer();
 
     @Autowired
@@ -45,46 +43,22 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
 
     @AfterAll
     static void stopServers() throws IOException {
-        IDENTITY_ACCESS.shutdown();
         MONOLITH.shutdown();
+        IDENTITY_ACCESS.shutdown();
         PEDAGOGICAL.shutdown();
     }
 
     @Test
-    void deveConsumirPedagogicalServiceNaCriacaoDeAvaliacao() throws InterruptedException {
-        UUID alocacaoId = UUID.randomUUID();
-        String requestBody = """
-                {"professorTurmaDisciplinaId":"%s","titulo":"Prova fase 130","descricao":"Avaliacao integrada","dataAplicacao":"2039-04-15","valorMaximo":10.00,"peso":1.00,"tipoAvaliacao":"PROVA"}
-                """.formatted(alocacaoId);
-
-        PEDAGOGICAL.enqueue(new MockResponse()
-                .setResponseCode(201)
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {"id":"%s","professorTurmaDisciplinaId":"%s","turmaNome":"Turma Avaliacao","tipoAvaliacao":"PROVA"}
-                        """.formatted(UUID.randomUUID(), alocacaoId)));
-
-        client.post().uri("/api/avaliacoes")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(requestBody)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
-                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-avaliacao-write-1")
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody()
-                .jsonPath("$.professorTurmaDisciplinaId").isEqualTo(alocacaoId.toString());
-
-        MONOLITH.takeRequest();
-        var request = PEDAGOGICAL.takeRequest();
-        assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes");
-        assertThat(request.getBody().readUtf8()).isEqualTo(requestBody);
-    }
-
-    @Test
-    void deveConsumirPedagogicalServiceNaListagemDeAvaliacoes() throws InterruptedException {
+    void deveConsumirIdentityAccessEpedagogicalServiceNaListagemDeAvaliacoes() throws InterruptedException {
         UUID alocacaoId = UUID.randomUUID();
         UUID turmaId = UUID.randomUUID();
         UUID avaliacaoId = UUID.randomUUID();
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
 
         PEDAGOGICAL.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -104,14 +78,22 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
                 .jsonPath("$[0].id").isEqualTo(avaliacaoId.toString())
                 .jsonPath("$[0].turmaId").isEqualTo(turmaId.toString());
 
-        IDENTITY_ACCESS.takeRequest();
+        var authRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(authRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes?professorTurmaDisciplinaId=" + alocacaoId + "&turmaId=" + turmaId);
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveConsumirPedagogicalServiceNaBuscaDeAvaliacaoPorId() throws InterruptedException {
+    void deveConsumirIdentityAccessEpedagogicalServiceNaBuscaDeAvaliacaoPorId() throws InterruptedException {
         UUID avaliacaoId = UUID.randomUUID();
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
 
         PEDAGOGICAL.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -132,43 +114,18 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes/" + avaliacaoId);
         assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-avaliacao-read-2");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveConsumirPedagogicalServiceNoLancamentoDeNota() throws InterruptedException {
+    void deveConsumirIdentityAccessEpedagogicalServiceNaListagemDeNotasPorAvaliacao() throws InterruptedException {
         UUID avaliacaoId = UUID.randomUUID();
-        UUID matriculaId = UUID.randomUUID();
-        String requestBody = """
-                {"matriculaId":"%s","nota":8.50,"observacao":"Boa participacao"}
-                """.formatted(matriculaId);
 
-        PEDAGOGICAL.enqueue(new MockResponse()
-                .setResponseCode(201)
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
-                        {"id":"%s","avaliacaoId":"%s","matriculaId":"%s","alunoNome":"Aluno Nota","nota":8.50}
-                        """.formatted(UUID.randomUUID(), avaliacaoId, matriculaId)));
-
-        client.post().uri("/api/avaliacoes/{id}/notas", avaliacaoId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(requestBody)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
-                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-nota-write-1")
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody()
-                .jsonPath("$.avaliacaoId").isEqualTo(avaliacaoId.toString())
-                .jsonPath("$.matriculaId").isEqualTo(matriculaId.toString());
-
-        MONOLITH.takeRequest();
-        var request = PEDAGOGICAL.takeRequest();
-        assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes/" + avaliacaoId + "/notas");
-        assertThat(request.getBody().readUtf8()).isEqualTo(requestBody);
-    }
-
-    @Test
-    void deveConsumirPedagogicalServiceNaListagemDeNotasPorAvaliacao() throws InterruptedException {
-        UUID avaliacaoId = UUID.randomUUID();
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
 
         PEDAGOGICAL.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -188,11 +145,18 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
         IDENTITY_ACCESS.takeRequest();
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes/" + avaliacaoId + "/notas");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveConsumirPedagogicalServiceNaListagemDeNotasPorMatricula() throws InterruptedException {
+    void deveConsumirIdentityAccessEpedagogicalServiceNaListagemDeNotasPorMatricula() throws InterruptedException {
         UUID matriculaId = UUID.randomUUID();
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
 
         PEDAGOGICAL.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -213,6 +177,7 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/matriculas/" + matriculaId + "/notas");
         assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-nota-read-2");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {
@@ -223,41 +188,5 @@ class PedagogicalAvaliacaoProxyIntegrationTest {
         } catch (IOException exception) {
             throw new ExceptionInInitializerError(exception);
         }
-    }
-
-    private static MockWebServer startMonolithServer() {
-        MockWebServer server = startServer();
-        server.setDispatcher(new Dispatcher() {
-            @Override
-            public MockResponse dispatch(RecordedRequest request) {
-                if ("/api/auth/contexto-atual".equals(request.getPath())) {
-                    return authContextResponse();
-                }
-                return new MockResponse().setResponseCode(404);
-            }
-        });
-        return server;
-    }
-
-    private static MockWebServer startIdentityAccessServer() {
-        MockWebServer server = startServer();
-        server.setDispatcher(new Dispatcher() {
-            @Override
-            public MockResponse dispatch(RecordedRequest request) {
-                if ("/internal/v1/auth/contexto-atual".equals(request.getPath())) {
-                    return authContextResponse();
-                }
-                return new MockResponse().setResponseCode(404);
-            }
-        });
-        return server;
-    }
-
-    private static MockResponse authContextResponse() {
-        return new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
-                        """);
     }
 }
