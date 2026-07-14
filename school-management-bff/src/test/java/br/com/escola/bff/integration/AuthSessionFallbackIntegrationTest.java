@@ -47,7 +47,7 @@ class AuthSessionFallbackIntegrationTest {
 
     @Test
     void deveFazerFallbackParaMonolitoQuandoIdentityAccessFalharNaTrocaDeEscolaAtiva() throws InterruptedException {
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -82,8 +82,8 @@ class AuthSessionFallbackIntegrationTest {
                 .expectBody()
                 .jsonPath("$.escolaNome").isEqualTo("Escola monolito fallback");
 
-        var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        var contextRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
 
         var identityRequest = IDENTITY_ACCESS.takeRequest();
         assertThat(identityRequest.getPath()).isEqualTo("/internal/v1/auth/escola-ativa");

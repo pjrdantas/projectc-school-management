@@ -4,9 +4,9 @@ import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
-import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityTenantCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.IdentityTenantObservabilityPort;
+import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
 import br.com.escola.bff.application.port.out.InstitutionalTenantReadPort;
 import br.com.escola.bff.application.port.out.MonolithTenantReadPort;
 import br.com.escola.bff.application.usecase.ConsultarTenantAtivoUseCase;
@@ -14,14 +14,14 @@ import reactor.core.publisher.Mono;
 
 public class InstitutionalTenantReadProxyService implements ConsultarTenantAtivoUseCase {
 
-    private final AuthContextPort authContextPort;
+    private final IdentityTenantAuthContextPort authContextPort;
     private final InstitutionalTenantReadPort institutionalTenantReadPort;
     private final MonolithTenantReadPort monolithTenantReadPort;
     private final IdentityTenantCutoverPolicyPort cutoverPolicyPort;
     private final IdentityTenantObservabilityPort observabilityPort;
 
     public InstitutionalTenantReadProxyService(
-            AuthContextPort authContextPort,
+            IdentityTenantAuthContextPort authContextPort,
             InstitutionalTenantReadPort institutionalTenantReadPort,
             MonolithTenantReadPort monolithTenantReadPort,
             IdentityTenantCutoverPolicyPort cutoverPolicyPort,

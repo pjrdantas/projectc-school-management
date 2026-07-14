@@ -24,6 +24,7 @@ import br.com.escola.bff.application.port.out.EnrollmentDocumentMatriculaReadPor
 import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaReadPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaWritePort;
 import br.com.escola.bff.application.port.out.IdentityAccessSessionPort;
+import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityTenantCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.IdentityTenantObservabilityPort;
 import br.com.escola.bff.application.port.out.InstitutionalTenantReadPort;
@@ -155,7 +156,7 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarAuthSessionUseCase consultarAuthSessionUseCase(
-            AuthContextPort authContextPort,
+            IdentityTenantAuthContextPort authContextPort,
             IdentityAccessSessionPort identityAccessSessionPort,
             MonolithAuthSessionPort monolithAuthSessionPort,
             IdentityTenantCutoverPolicyPort cutoverPolicyPort,
@@ -170,7 +171,7 @@ public class BffUseCaseConfiguration {
 
     @Bean
     SelecionarEscolaAtivaUseCase selecionarEscolaAtivaUseCase(
-            AuthContextPort authContextPort,
+            IdentityTenantAuthContextPort authContextPort,
             IdentityAccessSessionPort identityAccessSessionPort,
             MonolithAuthSessionPort monolithAuthSessionPort,
             IdentityTenantCutoverPolicyPort cutoverPolicyPort,
@@ -185,7 +186,7 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarTenantAtivoUseCase consultarTenantAtivoUseCase(
-            AuthContextPort authContextPort,
+            IdentityTenantAuthContextPort authContextPort,
             InstitutionalTenantReadPort institutionalTenantReadPort,
             MonolithTenantReadPort monolithTenantReadPort,
             IdentityTenantCutoverPolicyPort cutoverPolicyPort,

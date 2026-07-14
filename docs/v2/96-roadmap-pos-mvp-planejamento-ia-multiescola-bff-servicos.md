@@ -7790,3 +7790,27 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `identity-access-service`: 9 fases
 restantes no escopo fechado atual.
+
+### Fase 176 - Cutover do contexto autenticado do bloco oficial de `identity/tenant`
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a resolver o contexto autenticado do bloco
+  oficial ja migrado (`GET /api/auth/escolas`,
+  `POST /api/auth/escola-ativa` e `GET /api/auth/tenant/ativa`) consumindo
+  `GET /internal/v1/auth/contexto-atual` no `identity-access-service`;
+- para manter o menor recorte seguro, a troca foi isolada a esse bloco
+  `identity/tenant`, sem substituir ainda o resolvedor global de contexto usado
+  pelos demais dominios do BFF;
+- foi criado cliente HTTP dedicado no BFF para contexto interno de
+  `identity-access-service`, com token interno proprio e preservacao de bearer e
+  correlation ID;
+- o fallback operacional existente permaneceu inalterado: se
+  `identity-access-service` ou `institutional-tenant-service` falharem, o BFF
+  continua retornando ao contrato do monolito ja usado como rollback;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=AuthSessionProxyIntegrationTest,AuthSessionFallbackIntegrationTest,InstitutionalTenantReadProxyIntegrationTest" test`,
+  cobrindo o novo contexto interno e o fallback do bloco oficial.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 8 fases
+restantes no escopo fechado atual.

@@ -24,6 +24,7 @@ import okhttp3.mockwebserver.MockWebServer;
 class InstitutionalTenantReadProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
+    private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer INSTITUTIONAL_TENANT = startServer();
 
     @Autowired
@@ -32,6 +33,8 @@ class InstitutionalTenantReadProxyIntegrationTest {
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.institutional-tenant-service.base-url", () -> INSTITUTIONAL_TENANT.url("/").toString());
         registry.add("clients.institutional-tenant-service.internal-token", () -> "institutional-tenant-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
@@ -40,12 +43,13 @@ class InstitutionalTenantReadProxyIntegrationTest {
     @AfterAll
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
+        IDENTITY_ACCESS.shutdown();
         INSTITUTIONAL_TENANT.shutdown();
     }
 
     @Test
     void deveConsumirInstitutionalTenantServiceNaLeituraOficialDoTenantAtivo() throws InterruptedException {
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -75,8 +79,9 @@ class InstitutionalTenantReadProxyIntegrationTest {
                 .jsonPath("$.escolaId").isEqualTo("00000000-0000-0000-0000-000000000047")
                 .jsonPath("$.escolaNome").isEqualTo("Escola padrao");
 
-        var authRequest = MONOLITH.takeRequest();
-        assertThat(authRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        var authRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(authRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
+        assertThat(authRequest.getHeader("X-Internal-Token")).isEqualTo("identity-access-internal-token");
 
         var tenantRequest = INSTITUTIONAL_TENANT.takeRequest();
         assertThat(tenantRequest.getPath()).isEqualTo("/internal/v1/tenant/ativa");
@@ -89,7 +94,7 @@ class InstitutionalTenantReadProxyIntegrationTest {
 
     @Test
     void deveFazerFallbackParaMonolitoQuandoInstitutionalTenantFalhar() throws InterruptedException {
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -119,8 +124,8 @@ class InstitutionalTenantReadProxyIntegrationTest {
                 .expectBody()
                 .jsonPath("$.escolaNome").isEqualTo("Escola fallback");
 
-        var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        var contextRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
 
         var tenantRequest = INSTITUTIONAL_TENANT.takeRequest();
         assertThat(tenantRequest.getPath()).isEqualTo("/internal/v1/tenant/ativa");

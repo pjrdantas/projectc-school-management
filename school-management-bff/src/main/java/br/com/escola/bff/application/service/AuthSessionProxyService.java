@@ -4,9 +4,9 @@ import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
-import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityTenantCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.IdentityTenantObservabilityPort;
+import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityAccessSessionPort;
 import br.com.escola.bff.application.port.out.MonolithAuthSessionPort;
 import br.com.escola.bff.application.usecase.ConsultarAuthSessionUseCase;
@@ -15,14 +15,14 @@ import reactor.core.publisher.Mono;
 
 public class AuthSessionProxyService implements ConsultarAuthSessionUseCase, SelecionarEscolaAtivaUseCase {
 
-    private final AuthContextPort authContextPort;
+    private final IdentityTenantAuthContextPort authContextPort;
     private final IdentityAccessSessionPort identityAccessSessionPort;
     private final MonolithAuthSessionPort monolithAuthSessionPort;
     private final IdentityTenantCutoverPolicyPort cutoverPolicyPort;
     private final IdentityTenantObservabilityPort observabilityPort;
 
     public AuthSessionProxyService(
-            AuthContextPort authContextPort,
+            IdentityTenantAuthContextPort authContextPort,
             IdentityAccessSessionPort identityAccessSessionPort,
             MonolithAuthSessionPort monolithAuthSessionPort,
             IdentityTenantCutoverPolicyPort cutoverPolicyPort,

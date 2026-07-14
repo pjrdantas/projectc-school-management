@@ -45,7 +45,7 @@ class AuthSessionProxyIntegrationTest {
 
     @Test
     void deveConsumirIdentityAccessServiceNaListagemOficialDeEscolasDaSessao() throws InterruptedException {
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -77,8 +77,11 @@ class AuthSessionProxyIntegrationTest {
                 .expectBody()
                 .jsonPath("$[0].ativa").isEqualTo(true);
 
-        var authRequest = MONOLITH.takeRequest();
-        assertThat(authRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        var contextRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
+        assertThat(contextRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
+        assertThat(contextRequest.getHeader("X-Internal-Token")).isEqualTo("identity-access-internal-token");
+        assertThat(contextRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-auth-1");
 
         var identityRequest = IDENTITY_ACCESS.takeRequest();
         assertThat(identityRequest.getPath()).isEqualTo("/internal/v1/auth/escolas");
@@ -91,7 +94,7 @@ class AuthSessionProxyIntegrationTest {
 
     @Test
     void deveConsumirIdentityAccessServiceNaTrocaOficialDeEscolaAtiva() throws InterruptedException {
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -127,7 +130,8 @@ class AuthSessionProxyIntegrationTest {
                 .jsonPath("$.escolaId").isEqualTo("00000000-0000-0000-0000-000000000099")
                 .jsonPath("$.escolaNome").isEqualTo("Escola Secundaria");
 
-        MONOLITH.takeRequest();
+        var contextRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var identityRequest = IDENTITY_ACCESS.takeRequest();
         assertThat(identityRequest.getPath()).isEqualTo("/internal/v1/auth/escola-ativa");
         assertThat(identityRequest.getMethod()).isEqualTo("POST");

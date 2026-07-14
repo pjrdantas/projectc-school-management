@@ -3672,3 +3672,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl identity-access-service test`.
 - Contagem regressiva do novo ciclo fechado do `identity-access-service`: 9
   fases restantes no escopo fechado atual.
+
+### Fase 176
+
+- O `school-management-bff` passou a consumir
+  `GET /internal/v1/auth/contexto-atual` do `identity-access-service` para
+  resolver o contexto autenticado do bloco oficial ja migrado de sessao e
+  tenant.
+- A troca ficou isolada aos proxies de `GET /api/auth/escolas`,
+  `POST /api/auth/escola-ativa` e `GET /api/auth/tenant/ativa`, sem substituir
+  ainda o `AuthContextPort` global usado pelos demais dominios do BFF.
+- Foi criado um cliente dedicado de contexto interno no BFF, com token interno
+  do `identity-access-service`, preservando bearer e correlation ID nas chamadas
+  ao servico novo.
+- O fallback operacional anterior permaneceu valido: quando os servicos novos
+  falham, o BFF continua voltando ao contrato do monolito para responder o
+  bloco oficial.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=AuthSessionProxyIntegrationTest,AuthSessionFallbackIntegrationTest,InstitutionalTenantReadProxyIntegrationTest" test`.
+- Contagem regressiva do novo ciclo fechado do `identity-access-service`: 8
+  fases restantes no escopo fechado atual.
