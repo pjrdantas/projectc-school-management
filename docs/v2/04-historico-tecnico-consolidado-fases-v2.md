@@ -3601,3 +3601,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl planning-ai-service test`.
 - Contagem regressiva do novo ciclo fechado de autonomia final do
   `planning-ai-service`: 3 fases restantes no escopo fechado atual.
+
+### Fase 172
+
+- O `planning-ai-service` passou a registrar estado de sincronizacao por escopo
+  de leitura para listas internas: interacoes por planejamento, conteudos por
+  planejamento, versoes por conteudo e consultas filtradas da biblioteca.
+- Com isso, quando o monolito responde lista vazia, o servico guarda que aquele
+  recorte ja foi sincronizado e evita repetir fallback desnecessario nas
+  leituras seguintes identicas.
+- A leitura local continua respondendo imediatamente quando houver registros, e
+  agora tambem pode responder vazio localmente quando o snapshot oficial ja
+  confirmou ausencia de dados naquele escopo.
+- Esta fase nao abriu cache de `404` por ID e nao alterou contratos externos.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl planning-ai-service test`.
+- Contagem regressiva do novo ciclo fechado de autonomia final do
+  `planning-ai-service`: 2 fases restantes no escopo fechado atual.

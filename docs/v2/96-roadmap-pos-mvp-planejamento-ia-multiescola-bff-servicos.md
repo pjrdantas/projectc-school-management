@@ -7686,3 +7686,25 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado de autonomia final do
 `planning-ai-service`: 3 fases restantes no escopo fechado atual.
+
+### Fase 172 - Estado de sincronizacao para listas vazias do read model local
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a persistir estado de sincronizacao por escopo
+  de leitura para listas internas, cobrindo interacoes por planejamento,
+  conteudos por planejamento, versoes por conteudo e filtros da biblioteca;
+- com isso, quando o contrato oficial do monolito responde lista vazia, o
+  servico registra que aquele escopo ja foi sincronizado e deixa de repetir
+  fallback desnecessario nas leituras seguintes identicas;
+- a leitura local continua prioritaria quando houver dados, e agora tambem pode
+  responder vazio de forma local quando o snapshot oficial ja confirmou ausencia
+  de registros naquele recorte;
+- essa etapa nao abriu cache de `404` por ID nem alterou contratos externos; o
+  foco ficou restrito ao menor gap remanescente de fallback repetido em listas;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo migration incremental,
+  persistencia do estado de sync e segunda leitura vazia sem novo downstream.
+
+Contagem regressiva do novo ciclo fechado de autonomia final do
+`planning-ai-service`: 2 fases restantes no escopo fechado atual.

@@ -14,10 +14,12 @@ import br.com.escola.planningaiservice.infra.persistence.jpa.entity.PedagogicalC
 import br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiContentVersionJpaEntity;
 import br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiGeneratedContentJpaEntity;
 import br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiInteractionJpaEntity;
+import br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiReadModelSyncStateJpaEntity;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PedagogicalContentLibraryJpaRepository;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PlanningAiContentVersionJpaRepository;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PlanningAiGeneratedContentJpaRepository;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PlanningAiInteractionJpaRepository;
+import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PlanningAiReadModelSyncStateJpaRepository;
 
 @SpringBootTest
 class PlanningAiPersistenceSchemaIntegrationTest {
@@ -33,6 +35,9 @@ class PlanningAiPersistenceSchemaIntegrationTest {
 
     @Autowired
     private PedagogicalContentLibraryJpaRepository libraryRepository;
+
+    @Autowired
+    private PlanningAiReadModelSyncStateJpaRepository syncStateRepository;
 
     @Test
     void devePersistirBaseMinimaDoNovoBancoLocal() {
@@ -159,5 +164,23 @@ class PlanningAiPersistenceSchemaIntegrationTest {
                     assertThat(saved.getProfessorNome()).isEqualTo("Professor Um");
                     assertThat(saved.getDisciplinaNome()).isEqualTo("Matematica");
                 });
+    }
+
+    @Test
+    void devePersistirEstadoDeSincronizacaoDeLeituraMesmoSemDadosLocais() {
+        PlanningAiReadModelSyncStateJpaEntity state = new PlanningAiReadModelSyncStateJpaEntity();
+        state.setId("LIBRARY_QUERY|escola|");
+        state.setScope("LIBRARY_QUERY");
+        state.setEscolaId(UUID.randomUUID());
+        state.setReferenciaId(null);
+        state.setQueryKey("");
+        state.setSyncedAt(LocalDateTime.now());
+        syncStateRepository.save(state);
+
+        assertThat(syncStateRepository.findById(state.getId()))
+                .isPresent()
+                .get()
+                .extracting(PlanningAiReadModelSyncStateJpaEntity::getScope)
+                .isEqualTo("LIBRARY_QUERY");
     }
 }

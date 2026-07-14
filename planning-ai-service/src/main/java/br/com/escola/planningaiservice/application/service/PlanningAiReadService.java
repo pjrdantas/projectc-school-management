@@ -29,6 +29,7 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
     private final PlanningAiContentVersionPersistenceService planningAiContentVersionPersistenceService;
     private final PlanningAiContentApprovalPersistenceService planningAiContentApprovalPersistenceService;
     private final PlanningAiReadModelSyncService planningAiReadModelSyncService;
+    private final PlanningAiReadModelSyncStateService planningAiReadModelSyncStateService;
 
     public PlanningAiReadService(
             PlanningAiReadPort planningAiReadPort,
@@ -40,7 +41,8 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
             PlanningAiLibraryReadService planningAiLibraryReadService,
             PlanningAiContentVersionPersistenceService planningAiContentVersionPersistenceService,
             PlanningAiContentApprovalPersistenceService planningAiContentApprovalPersistenceService,
-            PlanningAiReadModelSyncService planningAiReadModelSyncService) {
+            PlanningAiReadModelSyncService planningAiReadModelSyncService,
+            PlanningAiReadModelSyncStateService planningAiReadModelSyncStateService) {
         this.planningAiReadPort = planningAiReadPort;
         this.planningAiGenerationPersistenceService = planningAiGenerationPersistenceService;
         this.planningAiInteractionReadService = planningAiInteractionReadService;
@@ -51,6 +53,7 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
         this.planningAiContentVersionPersistenceService = planningAiContentVersionPersistenceService;
         this.planningAiContentApprovalPersistenceService = planningAiContentApprovalPersistenceService;
         this.planningAiReadModelSyncService = planningAiReadModelSyncService;
+        this.planningAiReadModelSyncStateService = planningAiReadModelSyncStateService;
     }
 
     @Override
@@ -66,7 +69,10 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
         if (!localLibrary.isEmpty()) {
             return localLibrary;
         }
-        return planningAiReadModelSyncService.syncLibrary(
+        if (planningAiReadModelSyncStateService.librarySynced(context.escolaId(), professorId, disciplinaId, tipoConteudo, tema)) {
+            return List.of();
+        }
+        List<BibliotecaConteudoPedagogicoResponse> response = planningAiReadModelSyncService.syncLibrary(
                 context,
                 planningAiReadPort.listarBiblioteca(
                         authorization,
@@ -75,6 +81,13 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
                         disciplinaId,
                         tipoConteudo,
                         tema));
+        planningAiReadModelSyncStateService.markLibrarySynced(
+                context.escolaId(),
+                professorId,
+                disciplinaId,
+                tipoConteudo,
+                tema);
+        return response;
     }
 
     @Override
@@ -87,9 +100,14 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
         if (!localInteractions.isEmpty()) {
             return localInteractions;
         }
-        return planningAiReadModelSyncService.syncInteractions(
+        if (planningAiReadModelSyncStateService.interactionsSynced(context.escolaId(), planejamentoId)) {
+            return List.of();
+        }
+        List<PlanejamentoIaInteracaoResponse> response = planningAiReadModelSyncService.syncInteractions(
                 context,
                 planningAiReadPort.listarInteracoes(authorization, context, planejamentoId));
+        planningAiReadModelSyncStateService.markInteractionsSynced(context.escolaId(), planejamentoId);
+        return response;
     }
 
     @Override
@@ -102,9 +120,14 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
         if (!localContents.isEmpty()) {
             return localContents;
         }
-        return planningAiReadModelSyncService.syncContents(
+        if (planningAiReadModelSyncStateService.contentsSynced(context.escolaId(), planejamentoId)) {
+            return List.of();
+        }
+        List<ConteudoIaResponse> response = planningAiReadModelSyncService.syncContents(
                 context,
                 planningAiReadPort.listarConteudos(authorization, context, planejamentoId));
+        planningAiReadModelSyncStateService.markContentsSynced(context.escolaId(), planejamentoId);
+        return response;
     }
 
     @Override
@@ -131,12 +154,17 @@ public class PlanningAiReadService implements PlanningAiReadUseCase {
         if (!localVersions.isEmpty()) {
             return localVersions;
         }
-        return planningAiReadModelSyncService.syncVersions(
+        if (planningAiReadModelSyncStateService.versionsSynced(context.escolaId(), conteudoId)) {
+            return List.of();
+        }
+        List<ConteudoIaVersaoResponse> response = planningAiReadModelSyncService.syncVersions(
                 context,
                 planningAiReadPort.listarVersoes(
                         authorization,
                         context,
                         conteudoId));
+        planningAiReadModelSyncStateService.markVersionsSynced(context.escolaId(), conteudoId);
+        return response;
     }
 
     @Override

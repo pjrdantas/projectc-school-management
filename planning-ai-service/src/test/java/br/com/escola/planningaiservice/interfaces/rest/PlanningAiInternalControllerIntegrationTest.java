@@ -26,6 +26,7 @@ import br.com.escola.planningaiservice.infra.persistence.jpa.repository.Planning
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PlanningAiInteractionJpaRepository;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PedagogicalContentLibraryJpaRepository;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PlanningAiContentVersionJpaRepository;
+import br.com.escola.planningaiservice.infra.persistence.jpa.repository.PlanningAiReadModelSyncStateJpaRepository;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -52,8 +53,12 @@ class PlanningAiInternalControllerIntegrationTest {
     @Autowired
     private PedagogicalContentLibraryJpaRepository libraryRepository;
 
+    @Autowired
+    private PlanningAiReadModelSyncStateJpaRepository syncStateRepository;
+
     @BeforeEach
     void limparPersistenciaLocal() {
+        syncStateRepository.deleteAll();
         libraryRepository.deleteAll();
         versionRepository.deleteAll();
         contentRepository.deleteAll();
@@ -228,6 +233,40 @@ class PlanningAiInternalControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].professorNome").value("Professor Um"))
                 .andExpect(jsonPath("$[0].disciplinaNome").value("Matematica"))
                 .andExpect(jsonPath("$[0].tipoConteudo").value("ATIVIDADE"));
+
+        assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
+    }
+
+    @Test
+    void deveEvitarNovoFallbackQuandoBibliotecaJaFoiSincronizadaComoVazia() throws Exception {
+        UUID escolaId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("[]"));
+
+        mockMvc.perform(get("/internal/v1/biblioteca-conteudos-pedagogicos")
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-1d")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer planning-user-token")
+                        .param("tipoConteudo", "ATIVIDADE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/biblioteca-conteudos-pedagogicos?tipoConteudo=ATIVIDADE");
+
+        mockMvc.perform(get("/internal/v1/biblioteca-conteudos-pedagogicos")
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-1e")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer planning-user-token")
+                        .param("tipoConteudo", "ATIVIDADE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
 
         assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
     }
@@ -516,6 +555,39 @@ class PlanningAiInternalControllerIntegrationTest {
     }
 
     @Test
+    void deveEvitarNovoFallbackQuandoInteracoesJaForamSincronizadasComoVazias() throws Exception {
+        UUID planejamentoId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("[]"));
+
+        mockMvc.perform(get("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/interacoes", planejamentoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-4d")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/interacoes");
+
+        mockMvc.perform(get("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/interacoes", planejamentoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-4e")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+
+        assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
+    }
+
+    @Test
     void deveListarConteudosNoContratoInterno() throws Exception {
         UUID planejamentoId = UUID.randomUUID();
         UUID conteudoId = UUID.randomUUID();
@@ -657,6 +729,39 @@ class PlanningAiInternalControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(conteudoId.toString()))
                 .andExpect(jsonPath("$[0].escolaNome").value("Escola Central"));
+
+        assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
+    }
+
+    @Test
+    void deveEvitarNovoFallbackQuandoConteudosJaForamSincronizadosComoVazios() throws Exception {
+        UUID planejamentoId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("[]"));
+
+        mockMvc.perform(get("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos", planejamentoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-6d")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/planejamentos-bimestrais/" + planejamentoId + "/ia/conteudos");
+
+        mockMvc.perform(get("/internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos", planejamentoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-6e")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
 
         assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
     }
@@ -1309,6 +1414,57 @@ class PlanningAiInternalControllerIntegrationTest {
                         .header("Authorization", "Bearer planning-user-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(versaoId.toString()));
+
+        assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
+    }
+
+    @Test
+    void deveEvitarNovoFallbackQuandoVersoesJaForamSincronizadasComoVazias() throws Exception {
+        UUID conteudoId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+
+        var content = new br.com.escola.planningaiservice.infra.persistence.jpa.entity.PlanningAiGeneratedContentJpaEntity();
+        content.setId(conteudoId);
+        content.setEscolaId(escolaId);
+        content.setEscolaNome("Escola Central");
+        content.setPlanejamentoBimestralId(UUID.randomUUID());
+        content.setTitulo("Lista de fracoes");
+        content.setConteudo("Conteudo gerado");
+        content.setVersao(1);
+        content.setHashConteudo("abc123");
+        content.setAprovadoPeloProfessor(false);
+        content.setReutilizavel(true);
+        content.setAtivo(true);
+        content.setStatus("GERADO");
+        content.setTipoConteudo("ATIVIDADE");
+        content.setCreatedAt(java.time.LocalDateTime.parse("2026-07-13T11:10:00"));
+        content.setUpdatedAt(java.time.LocalDateTime.parse("2026-07-13T11:10:00"));
+        contentRepository.save(content);
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("[]"));
+
+        mockMvc.perform(get("/internal/v1/ia/conteudos/{conteudoId}/versoes", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-10d")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+
+        RecordedRequest recorded = aguardarRequisicao();
+        assertThat(recorded.getPath()).isEqualTo("/api/ia/conteudos/" + conteudoId + "/versoes");
+
+        mockMvc.perform(get("/internal/v1/ia/conteudos/{conteudoId}/versoes", conteudoId)
+                        .header("X-Internal-Token", "planning-token")
+                        .header("X-Correlation-Id", "corr-planning-10e")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", escolaId)
+                        .header("Authorization", "Bearer planning-user-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
 
         assertThat(mockWebServer.takeRequest(250, TimeUnit.MILLISECONDS)).isNull();
     }
