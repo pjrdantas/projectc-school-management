@@ -24,6 +24,7 @@ import okhttp3.mockwebserver.MockWebServer;
 class EscolaOrigemReadProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
+    private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer ENROLLMENT_DOCUMENT = startServer();
 
     @Autowired
@@ -32,6 +33,8 @@ class EscolaOrigemReadProxyIntegrationTest {
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.enrollment-document-service.base-url", () -> ENROLLMENT_DOCUMENT.url("/").toString());
         registry.add("clients.enrollment-document-service.internal-token", () -> "enrollment-document-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
@@ -40,6 +43,7 @@ class EscolaOrigemReadProxyIntegrationTest {
     @AfterAll
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
+        IDENTITY_ACCESS.shutdown();
         ENROLLMENT_DOCUMENT.shutdown();
     }
 
@@ -47,7 +51,7 @@ class EscolaOrigemReadProxyIntegrationTest {
     void deveConsumirEnrollmentDocumentServiceNaBuscaOficialDeEscolaOrigemPorId() throws InterruptedException {
         String escolaOrigemId = "00000000-0000-0000-0000-000000000081";
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -79,7 +83,7 @@ class EscolaOrigemReadProxyIntegrationTest {
                 .jsonPath("$.id").isEqualTo(escolaOrigemId)
                 .jsonPath("$.nomeEscola").isEqualTo("Escola Origem Oficial");
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var enrollmentRequest = ENROLLMENT_DOCUMENT.takeRequest();
         assertThat(enrollmentRequest.getPath()).isEqualTo("/internal/v1/escolas-origem/" + escolaOrigemId);
         assertThat(enrollmentRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
@@ -91,7 +95,7 @@ class EscolaOrigemReadProxyIntegrationTest {
 
     @Test
     void deveConsumirEnrollmentDocumentServiceNaListagemOficialDeEscolasOrigem() throws InterruptedException {
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -121,7 +125,7 @@ class EscolaOrigemReadProxyIntegrationTest {
                 .expectBody()
                 .jsonPath("$[0].nomeEscola").isEqualTo("Escola Origem Oficial");
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var enrollmentRequest = ENROLLMENT_DOCUMENT.takeRequest();
         assertThat(enrollmentRequest.getPath()).isEqualTo("/internal/v1/escolas-origem");
         assertThat(enrollmentRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-escola-origem-list-2");

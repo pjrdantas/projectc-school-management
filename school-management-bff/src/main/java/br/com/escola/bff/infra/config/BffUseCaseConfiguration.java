@@ -209,7 +209,7 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarBoletimUseCase consultarBoletimUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PedagogicalBoletimReadPort pedagogicalBoletimReadPort) {
         return new BoletimReadProxyService(authContextPort, pedagogicalBoletimReadPort);
     }
@@ -244,7 +244,7 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarDiarioClasseUseCase consultarDiarioClasseUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PedagogicalDiarioClasseReadPort pedagogicalDiarioClasseReadPort) {
         return new DiarioClasseReadProxyService(authContextPort, pedagogicalDiarioClasseReadPort);
     }
@@ -258,7 +258,7 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarHistoricoEscolarUseCase consultarHistoricoEscolarUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PedagogicalHistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort) {
         return new HistoricoEscolarReadProxyService(authContextPort, pedagogicalHistoricoEscolarReadPort);
     }
@@ -300,28 +300,28 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarEscolaOrigemUseCase consultarEscolaOrigemUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             EnrollmentDocumentEscolaOrigemReadPort enrollmentDocumentEscolaOrigemReadPort) {
         return new EscolaOrigemReadProxyService(authContextPort, enrollmentDocumentEscolaOrigemReadPort);
     }
 
     @Bean
     ConsultarTransferenciaUseCase consultarTransferenciaUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             EnrollmentDocumentTransferenciaReadPort enrollmentDocumentTransferenciaReadPort) {
         return new TransferenciaReadProxyService(authContextPort, enrollmentDocumentTransferenciaReadPort);
     }
 
     @Bean
     ConsultarDocumentoAlunoUseCase consultarDocumentoAlunoUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             EnrollmentDocumentAlunoReadPort enrollmentDocumentAlunoReadPort) {
         return new DocumentoAlunoReadProxyService(authContextPort, enrollmentDocumentAlunoReadPort);
     }
 
     @Bean
     ConsultarDocumentoUseCase consultarDocumentoUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             EnrollmentDocumentReadPort enrollmentDocumentReadPort) {
         return new DocumentoReadProxyService(authContextPort, enrollmentDocumentReadPort);
     }
@@ -409,7 +409,7 @@ public class BffUseCaseConfiguration {
 
     @Bean
     ConsultarMatriculaUseCase consultarMatriculaUseCase(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             EnrollmentDocumentMatriculaReadPort enrollmentDocumentMatriculaReadPort) {
         return new MatriculaReadProxyService(authContextPort, enrollmentDocumentMatriculaReadPort);
     }

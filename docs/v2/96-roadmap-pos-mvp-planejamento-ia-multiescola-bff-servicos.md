@@ -7840,3 +7840,28 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `identity-access-service`: 7 fases
 restantes no escopo fechado atual.
+
+### Fase 178 - Contexto interno oficial para leituras de `enrollment-document` e pedagogico read-only
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a resolver o contexto autenticado via
+  `identity-access-service` tambem nas leituras oficiais de
+  `enrollment-document-service`;
+- no bloco pedagogico, a troca foi aplicada apenas aos proxies de leitura com
+  servico dedicado (`boletim`, `diario-classe` e `historico-escolar`), sem
+  tocar `aula` e `avaliacao` porque esses fluxos ainda compartilham classe com
+  escrita;
+- com isso, `escolas-origem`, `transferencias`, `documentos`, `documentos de
+  aluno`, `matriculas`, `boletim`, `diario-classe` e `historico-escolar`
+  deixam de depender diretamente de `/api/auth/contexto-atual` no monolito para
+  montar headers internos;
+- a fase permaneceu estritamente read-only no BFF: nao houve mudanca de
+  contratos externos, nao houve alteracao de escrita e nao houve expansao para
+  `planning-ai-service` nesta etapa;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=EscolaOrigemReadProxyIntegrationTest,TransferenciaReadProxyIntegrationTest,DocumentoAlunoReadProxyIntegrationTest,DocumentoReadProxyIntegrationTest,MatriculaReadProxyIntegrationTest,PedagogicalBoletimReadProxyIntegrationTest,PedagogicalDiarioClasseReadProxyIntegrationTest,PedagogicalHistoricoEscolarReadProxyIntegrationTest" test`,
+  cobrindo todo o recorte desta fase.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 6 fases
+restantes no escopo fechado atual.

@@ -24,6 +24,7 @@ import okhttp3.mockwebserver.MockWebServer;
 class DocumentoReadProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
+    private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer ENROLLMENT_DOCUMENT = startServer();
 
     @Autowired
@@ -32,6 +33,8 @@ class DocumentoReadProxyIntegrationTest {
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.enrollment-document-service.base-url", () -> ENROLLMENT_DOCUMENT.url("/").toString());
         registry.add("clients.enrollment-document-service.internal-token", () -> "enrollment-document-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
@@ -40,6 +43,7 @@ class DocumentoReadProxyIntegrationTest {
     @AfterAll
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
+        IDENTITY_ACCESS.shutdown();
         ENROLLMENT_DOCUMENT.shutdown();
     }
 
@@ -47,7 +51,7 @@ class DocumentoReadProxyIntegrationTest {
     void deveConsumirEnrollmentDocumentServiceNaListagemOficialDeDocumentosPorEntidade() throws InterruptedException {
         String entidadeId = "00000000-0000-0000-0000-000000000701";
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -86,7 +90,7 @@ class DocumentoReadProxyIntegrationTest {
                 .jsonPath("$[0].entidadeTipo").isEqualTo("MATRICULA")
                 .jsonPath("$[0].entidadeId").isEqualTo(entidadeId);
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var enrollmentRequest = ENROLLMENT_DOCUMENT.takeRequest();
         assertThat(enrollmentRequest.getPath())
                 .isEqualTo("/internal/v1/documentos?entidadeTipo=MATRICULA&entidadeId=" + entidadeId);

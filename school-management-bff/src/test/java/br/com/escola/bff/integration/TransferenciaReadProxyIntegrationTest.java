@@ -24,6 +24,7 @@ import okhttp3.mockwebserver.MockWebServer;
 class TransferenciaReadProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
+    private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer ENROLLMENT_DOCUMENT = startServer();
 
     @Autowired
@@ -32,6 +33,8 @@ class TransferenciaReadProxyIntegrationTest {
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.enrollment-document-service.base-url", () -> ENROLLMENT_DOCUMENT.url("/").toString());
         registry.add("clients.enrollment-document-service.internal-token", () -> "enrollment-document-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
@@ -40,6 +43,7 @@ class TransferenciaReadProxyIntegrationTest {
     @AfterAll
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
+        IDENTITY_ACCESS.shutdown();
         ENROLLMENT_DOCUMENT.shutdown();
     }
 
@@ -47,7 +51,7 @@ class TransferenciaReadProxyIntegrationTest {
     void deveConsumirEnrollmentDocumentServiceNaBuscaOficialDeTransferenciaPorId() throws InterruptedException {
         String transferenciaId = "00000000-0000-0000-0000-000000000091";
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -78,7 +82,7 @@ class TransferenciaReadProxyIntegrationTest {
                 .jsonPath("$.id").isEqualTo(transferenciaId)
                 .jsonPath("$.statusTransferencia").isEqualTo("EM_ANDAMENTO");
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var enrollmentRequest = ENROLLMENT_DOCUMENT.takeRequest();
         assertThat(enrollmentRequest.getPath()).isEqualTo("/internal/v1/transferencias/" + transferenciaId);
         assertThat(enrollmentRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
@@ -92,7 +96,7 @@ class TransferenciaReadProxyIntegrationTest {
     void deveConsumirEnrollmentDocumentServiceNaListagemOficialDeTransferenciasPorAluno() throws InterruptedException {
         String alunoId = "00000000-0000-0000-0000-000000000021";
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -123,7 +127,7 @@ class TransferenciaReadProxyIntegrationTest {
                 .jsonPath("$[0].alunoId").isEqualTo(alunoId)
                 .jsonPath("$[0].statusTransferencia").isEqualTo("EM_ANDAMENTO");
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var enrollmentRequest = ENROLLMENT_DOCUMENT.takeRequest();
         assertThat(enrollmentRequest.getPath()).isEqualTo("/internal/v1/transferencias/alunos/" + alunoId);
         assertThat(enrollmentRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-transferencia-list-2");

@@ -3712,3 +3712,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=CatalogReadRoutingServiceTest,CatalogReadCutoverIntegrationTest,PessoaCatalogReadProxyIntegrationTest,PessoaDetailReadProxyIntegrationTest,FuncionarioReadProxyIntegrationTest,ProfessorReadProxyIntegrationTest,AlunoResponsavelReadProxyIntegrationTest" test`.
 - Contagem regressiva do novo ciclo fechado do `identity-access-service`: 7
   fases restantes no escopo fechado atual.
+
+### Fase 178
+
+- O `school-management-bff` passou a consumir o contexto autenticado interno do
+  `identity-access-service` tambem nas leituras oficiais de
+  `enrollment-document-service`.
+- No bloco pedagogico, a troca ficou restrita aos proxies com servico de
+  leitura dedicado: `boletim`, `diario-classe` e `historico-escolar`.
+- `aula` e `avaliacao` ficaram de fora desta fase porque hoje compartilham
+  implementacao com fluxos de escrita, e o recorte permaneceu estritamente
+  read-only.
+- Com isso, as leituras oficiais de matricula, documento, documento de aluno,
+  escola de origem, transferencia, boletim, diario de classe e historico
+  escolar deixam de depender diretamente do endpoint publico legado
+  `/api/auth/contexto-atual`.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=EscolaOrigemReadProxyIntegrationTest,TransferenciaReadProxyIntegrationTest,DocumentoAlunoReadProxyIntegrationTest,DocumentoReadProxyIntegrationTest,MatriculaReadProxyIntegrationTest,PedagogicalBoletimReadProxyIntegrationTest,PedagogicalDiarioClasseReadProxyIntegrationTest,PedagogicalHistoricoEscolarReadProxyIntegrationTest" test`.
+- Contagem regressiva do novo ciclo fechado do `identity-access-service`: 6
+  fases restantes no escopo fechado atual.

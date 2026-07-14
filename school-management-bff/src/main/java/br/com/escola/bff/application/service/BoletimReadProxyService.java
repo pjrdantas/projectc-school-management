@@ -5,18 +5,18 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
-import br.com.escola.bff.application.port.out.AuthContextPort;
+import br.com.escola.bff.application.port.out.InternalAuthContextPort;
 import br.com.escola.bff.application.port.out.PedagogicalBoletimReadPort;
 import br.com.escola.bff.application.usecase.ConsultarBoletimUseCase;
 import reactor.core.publisher.Mono;
 
 public class BoletimReadProxyService implements ConsultarBoletimUseCase {
 
-    private final AuthContextPort authContextPort;
+    private final InternalAuthContextPort authContextPort;
     private final PedagogicalBoletimReadPort pedagogicalBoletimReadPort;
 
     public BoletimReadProxyService(
-            AuthContextPort authContextPort,
+            InternalAuthContextPort authContextPort,
             PedagogicalBoletimReadPort pedagogicalBoletimReadPort) {
         this.authContextPort = authContextPort;
         this.pedagogicalBoletimReadPort = pedagogicalBoletimReadPort;

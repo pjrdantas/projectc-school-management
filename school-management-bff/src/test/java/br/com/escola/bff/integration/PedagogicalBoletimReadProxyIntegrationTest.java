@@ -25,6 +25,7 @@ import okhttp3.mockwebserver.MockWebServer;
 class PedagogicalBoletimReadProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
+    private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer PEDAGOGICAL = startServer();
 
     @Autowired
@@ -33,6 +34,8 @@ class PedagogicalBoletimReadProxyIntegrationTest {
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.pedagogical-service.base-url", () -> PEDAGOGICAL.url("/").toString());
         registry.add("clients.pedagogical-service.internal-token", () -> "pedagogical-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
@@ -41,6 +44,7 @@ class PedagogicalBoletimReadProxyIntegrationTest {
     @AfterAll
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
+        IDENTITY_ACCESS.shutdown();
         PEDAGOGICAL.shutdown();
     }
 
@@ -48,7 +52,7 @@ class PedagogicalBoletimReadProxyIntegrationTest {
     void deveConsumirPedagogicalServiceNaConsultaDeBoletim() throws InterruptedException {
         UUID matriculaId = UUID.randomUUID();
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -78,7 +82,7 @@ class PedagogicalBoletimReadProxyIntegrationTest {
                 .jsonPath("$.alunoNome").isEqualTo("Aluno BFF")
                 .jsonPath("$.itens[0].disciplinaNome").isEqualTo("Matematica");
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var pedagogicalRequest = PEDAGOGICAL.takeRequest();
         assertThat(pedagogicalRequest.getPath()).isEqualTo("/internal/v1/matriculas/" + matriculaId + "/boletim");
         assertThat(pedagogicalRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
@@ -91,7 +95,7 @@ class PedagogicalBoletimReadProxyIntegrationTest {
     void deveConsumirPedagogicalServiceNaListagemDeFechamentosDeBoletim() throws InterruptedException {
         UUID matriculaId = UUID.randomUUID();
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -123,7 +127,7 @@ class PedagogicalBoletimReadProxyIntegrationTest {
                 .jsonPath("$[0].periodoReferencia").isEqualTo("1BIM")
                 .jsonPath("$[0].persistido").isEqualTo(true);
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var pedagogicalRequest = PEDAGOGICAL.takeRequest();
         assertThat(pedagogicalRequest.getPath()).isEqualTo("/internal/v1/matriculas/" + matriculaId + "/boletim/fechamentos");
         assertThat(pedagogicalRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");

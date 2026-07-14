@@ -25,6 +25,7 @@ import okhttp3.mockwebserver.MockWebServer;
 class PedagogicalDiarioClasseReadProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
+    private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer PEDAGOGICAL = startServer();
 
     @Autowired
@@ -33,6 +34,8 @@ class PedagogicalDiarioClasseReadProxyIntegrationTest {
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.pedagogical-service.base-url", () -> PEDAGOGICAL.url("/").toString());
         registry.add("clients.pedagogical-service.internal-token", () -> "pedagogical-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
@@ -41,6 +44,7 @@ class PedagogicalDiarioClasseReadProxyIntegrationTest {
     @AfterAll
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
+        IDENTITY_ACCESS.shutdown();
         PEDAGOGICAL.shutdown();
     }
 
@@ -50,7 +54,7 @@ class PedagogicalDiarioClasseReadProxyIntegrationTest {
         UUID turmaId = UUID.randomUUID();
         UUID disciplinaId = UUID.randomUUID();
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
@@ -79,7 +83,7 @@ class PedagogicalDiarioClasseReadProxyIntegrationTest {
                 .jsonPath("$.alunos[0].nome").isEqualTo("Aluno Diario")
                 .jsonPath("$.bloqueado").isEqualTo(false);
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/diarios-classe?idProfessor=" + professorId
                 + "&idTurma=" + turmaId

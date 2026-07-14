@@ -25,6 +25,7 @@ import okhttp3.mockwebserver.MockWebServer;
 class PedagogicalHistoricoEscolarReadProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
+    private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer PEDAGOGICAL = startServer();
 
     @Autowired
@@ -33,6 +34,8 @@ class PedagogicalHistoricoEscolarReadProxyIntegrationTest {
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.pedagogical-service.base-url", () -> PEDAGOGICAL.url("/").toString());
         registry.add("clients.pedagogical-service.internal-token", () -> "pedagogical-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
@@ -41,6 +44,7 @@ class PedagogicalHistoricoEscolarReadProxyIntegrationTest {
     @AfterAll
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
+        IDENTITY_ACCESS.shutdown();
         PEDAGOGICAL.shutdown();
     }
 
@@ -49,7 +53,7 @@ class PedagogicalHistoricoEscolarReadProxyIntegrationTest {
         UUID alunoId = UUID.randomUUID();
         UUID matriculaId = UUID.randomUUID();
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
@@ -74,7 +78,7 @@ class PedagogicalHistoricoEscolarReadProxyIntegrationTest {
                 .jsonPath("$.contexto.idMatricula").isEqualTo(matriculaId.toString())
                 .jsonPath("$.contexto.modo").isEqualTo("CADASTRO");
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/historicos-escolares/novo?idAluno=" + alunoId + "&idMatricula=" + matriculaId + "&modo=CADASTRO");
         assertThat(request.getHeader("X-Internal-Token")).isEqualTo("pedagogical-internal-token");
@@ -84,7 +88,7 @@ class PedagogicalHistoricoEscolarReadProxyIntegrationTest {
     void deveConsumirPedagogicalServiceNoCarregamentoDeEdicaoDeHistorico() throws InterruptedException {
         UUID historicoId = UUID.randomUUID();
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
@@ -105,7 +109,7 @@ class PedagogicalHistoricoEscolarReadProxyIntegrationTest {
                 .jsonPath("$.contexto.idHistoricoEscolar").isEqualTo(historicoId.toString())
                 .jsonPath("$.contexto.modo").isEqualTo("EDICAO");
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/historicos-escolares/" + historicoId + "/carregamento");
         assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-history-2");
