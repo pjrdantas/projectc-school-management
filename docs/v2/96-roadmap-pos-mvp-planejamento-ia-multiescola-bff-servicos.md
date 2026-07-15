@@ -8168,3 +8168,31 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 2
 fases restantes no escopo fechado atual.
+
+### Fase 191 - Canonicalizacao das suites intermediarias no artefato oficial
+
+Entregue nesta fase:
+
+- as suites intermediarias historicas do ciclo
+  `InstitutionalTenantOfficialReadIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest` e
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest` passaram a atuar
+  como aliases explicitos do artefato canonico
+  `InstitutionalTenantOfficialResilienceSuiteTest`;
+- com isso, qualquer reexecucao operacional ainda apoiada nos nomes antigos
+  passa a validar exatamente o mesmo bloco institucional oficial endurecido, sem
+  fragmentar novamente a leitura do ciclo em suites parciais;
+- o `school-management-bff` fica com um unico ponto real de validacao do eixo
+  multiescola institucional, preservando compatibilidade nominal com os artefatos
+  criados nas fases anteriores;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contrato publico e sem abrir migracao de escrita;
+- a validacao ficou restrita ao modulo tocado por reexecucao nominal
+  individual de `InstitutionalTenantOfficialReadIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest` e
+  `InstitutionalTenantOfficialResilienceSuiteTest`, todos resultando em
+  `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 1
+fase restante no escopo fechado atual.

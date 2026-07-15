@@ -3938,3 +3938,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialResilienceSuiteTest" test`.
 - Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
   2 fases restantes no escopo fechado atual.
+
+### Fase 191
+
+- As suites intermediarias historicas
+  `InstitutionalTenantOfficialReadIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest` e
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest` passaram a atuar como
+  aliases do artefato canonico
+  `InstitutionalTenantOfficialResilienceSuiteTest`.
+- Com isso, qualquer reexecucao ainda baseada nos nomes anteriores passa a
+  validar exatamente o mesmo bloco institucional oficial endurecido, sem
+  fragmentar novamente o ciclo em suites parciais.
+- O `school-management-bff` passa a ter um unico ponto real de validacao do
+  eixo multiescola institucional, preservando compatibilidade nominal com os
+  artefatos das fases anteriores.
+- A validacao desta fase ficou restrita ao modulo tocado por reexecucao
+  nominal individual de `InstitutionalTenantOfficialReadIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest` e
+  `InstitutionalTenantOfficialResilienceSuiteTest`.
+- Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
+  1 fase restante no escopo fechado atual.
