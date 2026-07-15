@@ -8274,3 +8274,26 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 8 fases
 restantes no escopo fechado atual.
+
+### Fase 195 - Oficializacao da leitura de `dashboard/diretor`
+
+Entregue nesta fase:
+
+- o `dashboard-query-service` passou a expor o terceiro contrato interno
+  oficial do ciclo: `GET /internal/v1/dashboard/diretor`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/diretor` consumindo o novo servico, preservando bearer,
+  correlation ID e contexto autenticado resolvido via
+  `identity-access-service`;
+- o payload externo do diretor foi preservado integralmente, incluindo os
+  indicadores agregados de alunos, turmas, professores, aulas, avaliacoes e
+  pendencias operacionais;
+- o fallback operacional permaneceu no BFF para indisponibilidade de
+  `identity-access-service` ou `dashboard-query-service`, retornando ao
+  endpoint legado do monolito sem alterar contrato externo;
+- a validacao ficou restrita aos modulos tocados com
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff "-Dtest=DashboardDiretorReadProxyIntegrationTest" test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 7 fases
+restantes no escopo fechado atual.
