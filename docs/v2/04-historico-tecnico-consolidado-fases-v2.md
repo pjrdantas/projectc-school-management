@@ -4004,3 +4004,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=DashboardAcademicoReadProxyIntegrationTest" test`.
 - Contagem regressiva do novo ciclo fechado do `dashboard-query-service`:
   9 fases restantes no escopo fechado atual.
+
+### Fase 194
+
+- O `dashboard-query-service` passou a publicar
+  `GET /internal/v1/dashboard/secretaria` como segundo contrato interno
+  oficial do ciclo.
+- O `school-management-bff` passou a oficializar
+  `GET /api/dashboard/secretaria` via `dashboard-query-service`, preservando
+  bearer, correlation ID e contexto autenticado resolvido por
+  `identity-access-service`.
+- O payload externo da secretaria foi mantido sem alteracoes, incluindo
+  matriculas em andamento, documentos pendentes, transferencias e solicitacoes
+  de exclusao pendentes.
+- O fallback operacional permaneceu no BFF: se `identity-access-service` ou
+  `dashboard-query-service` falharem nessa leitura, o retorno volta para o
+  endpoint legado `/api/dashboard/secretaria` do monolito.
+- A validacao desta fase ficou restrita aos modulos tocados com
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff "-Dtest=DashboardSecretariaReadProxyIntegrationTest" test`.
+- Contagem regressiva do novo ciclo fechado do `dashboard-query-service`:
+  8 fases restantes no escopo fechado atual.

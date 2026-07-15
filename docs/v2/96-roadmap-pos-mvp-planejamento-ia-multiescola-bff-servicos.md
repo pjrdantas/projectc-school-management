@@ -8251,3 +8251,26 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 9 fases
 restantes no escopo fechado atual.
+
+### Fase 194 - Oficializacao da leitura de `dashboard/secretaria`
+
+Entregue nesta fase:
+
+- o `dashboard-query-service` passou a expor o segundo contrato interno oficial
+  do ciclo: `GET /internal/v1/dashboard/secretaria`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/secretaria` consumindo o novo servico, preservando
+  bearer, correlation ID e contexto autenticado resolvido via
+  `identity-access-service`;
+- o payload externo da secretaria foi preservado integralmente, incluindo os
+  indicadores especificos de matriculas em andamento, documentos pendentes,
+  transferencias e solicitacoes de exclusao;
+- o fallback operacional permaneceu no BFF para indisponibilidade de
+  `identity-access-service` ou `dashboard-query-service`, retornando ao
+  endpoint legado do monolito sem alterar contrato externo;
+- a validacao ficou restrita aos modulos tocados com
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff "-Dtest=DashboardSecretariaReadProxyIntegrationTest" test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 8 fases
+restantes no escopo fechado atual.
