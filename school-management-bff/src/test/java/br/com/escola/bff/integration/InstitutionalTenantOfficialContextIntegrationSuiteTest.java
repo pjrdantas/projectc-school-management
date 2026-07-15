@@ -9,5 +9,6 @@ import org.junit.platform.suite.api.Suite;
 @SelectClasses({
         InstitutionalTenantOfficialResilienceSuiteTest.class
 })
-class InstitutionalTenantOfficialContextIntegrationSuiteTest {
+@Deprecated(forRemoval = false)
+public class InstitutionalTenantOfficialContextIntegrationSuiteTest {
 }

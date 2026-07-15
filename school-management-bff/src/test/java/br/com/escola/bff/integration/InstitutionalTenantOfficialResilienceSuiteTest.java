@@ -14,5 +14,5 @@ import br.com.escola.bff.application.service.IdentityTenantContextFallbackObserv
         AuthSessionFallbackIntegrationTest.class,
         IdentityTenantContextFallbackObservabilityTest.class
 })
-class InstitutionalTenantOfficialResilienceSuiteTest {
+public class InstitutionalTenantOfficialResilienceSuiteTest {
 }

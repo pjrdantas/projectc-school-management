@@ -3960,3 +3960,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `InstitutionalTenantOfficialResilienceSuiteTest`.
 - Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
   1 fase restante no escopo fechado atual.
+
+### Fase 192
+
+- `InstitutionalTenantOfficialResilienceSuiteTest` foi consolidada como
+  referencia operacional final do bloco institucional oficializado no
+  `school-management-bff`.
+- As suites historicas
+  `InstitutionalTenantOfficialReadIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest` e
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest` foram mantidas apenas
+  como aliases de compatibilidade nominal e marcadas como legado controlado no
+  proprio codigo de teste.
+- Com isso, o ciclo do `institutional-tenant-service` fecha com um unico
+  artefato canonico de revalidacao e sem reabrir a fragmentacao tecnica das
+  fases intermediarias.
+- A validacao desta fase ficou restrita ao modulo tocado por reexecucao
+  nominal individual de `InstitutionalTenantOfficialReadIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest` e
+  `InstitutionalTenantOfficialResilienceSuiteTest`.
+- Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
+  0 fases restantes no escopo fechado atual.

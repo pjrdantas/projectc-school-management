@@ -8196,3 +8196,31 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 1
 fase restante no escopo fechado atual.
+
+### Fase 192 - Oficializacao operacional final do ciclo institucional no BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a tratar
+  `InstitutionalTenantOfficialResilienceSuiteTest` como referencia operacional
+  final do bloco institucional oficializado;
+- os aliases historicos
+  `InstitutionalTenantOfficialReadIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest` e
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest` foram mantidos apenas
+  por compatibilidade nominal e marcados como legado controlado dentro do
+  proprio codigo de teste;
+- com isso, o ciclo fechado do `institutional-tenant-service` termina com um
+  unico artefato canonico de revalidacao e tres entradas nominais herdadas, sem
+  reabrir fragmentacao tecnica nem alterar contrato publico;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem mexer no
+  legado de negocio e sem abrir escrita migrada;
+- a validacao ficou restrita ao modulo tocado por reexecucao nominal
+  individual de `InstitutionalTenantOfficialReadIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest` e
+  `InstitutionalTenantOfficialResilienceSuiteTest`, todos resultando em
+  `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 0
+fases restantes no escopo fechado atual.
