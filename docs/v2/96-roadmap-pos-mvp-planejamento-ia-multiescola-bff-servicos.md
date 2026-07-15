@@ -8224,3 +8224,30 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 0
 fases restantes no escopo fechado atual.
+
+### Fase 193 - Abertura oficial do `dashboard-query-service` pelo dashboard academico
+
+Entregue nesta fase:
+
+- foi iniciado o ciclo fechado do `dashboard-query-service` pelo menor recorte
+  publico de leitura ja isolado no monolito atual:
+  `GET /api/dashboard/academico`;
+- foi criado o modulo `dashboard-query-service` no monorepo com runtime minimo,
+  token interno, client dedicado ao monolito e contrato interno
+  `GET /internal/v1/dashboard/academico`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/academico` consumindo o novo servico, com preservacao de
+  bearer, correlation ID e contexto autenticado resolvido via
+  `identity-access-service`;
+- para manter o menor recorte seguro, o BFF ganhou fallback para o monolito
+  quando `identity-access-service` ou `dashboard-query-service` estiverem
+  indisponiveis, sem abrir ainda `frontend`, `snapshot`, `alerta`, `dashboard`
+  por publico, configuracao ou widgets;
+- a validacao ficou restrita aos modulos tocados com
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff "-Dtest=DashboardAcademicoReadProxyIntegrationTest" test`,
+  cobrindo contrato interno, propagacao de headers e fallback da primeira rota
+  oficial do novo servico.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 9 fases
+restantes no escopo fechado atual.

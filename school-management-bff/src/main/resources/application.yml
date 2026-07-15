@@ -34,6 +34,11 @@ clients:
     connect-timeout: ${INSTITUTIONAL_TENANT_SERVICE_CONNECT_TIMEOUT:2s}
     response-timeout: ${INSTITUTIONAL_TENANT_SERVICE_RESPONSE_TIMEOUT:3s}
     internal-token: ${INSTITUTIONAL_TENANT_INTERNAL_API_TOKEN:}
+  dashboard-query-service:
+    base-url: ${DASHBOARD_QUERY_SERVICE_BASE_URL:http://localhost:8097}
+    connect-timeout: ${DASHBOARD_QUERY_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${DASHBOARD_QUERY_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${DASHBOARD_QUERY_INTERNAL_API_TOKEN:}
   enrollment-document-service:
     base-url: ${ENROLLMENT_DOCUMENT_SERVICE_BASE_URL:http://localhost:8094}
     connect-timeout: ${ENROLLMENT_DOCUMENT_SERVICE_CONNECT_TIMEOUT:2s}
@@ -57,6 +62,7 @@ features:
   people-read-proxy-enabled: ${PEOPLE_READ_PROXY_ENABLED:true}
   identity-access-read-proxy-enabled: ${IDENTITY_ACCESS_READ_PROXY_ENABLED:true}
   institutional-tenant-read-proxy-enabled: ${INSTITUTIONAL_TENANT_READ_PROXY_ENABLED:true}
+  dashboard-read-proxy-enabled: ${DASHBOARD_READ_PROXY_ENABLED:true}
   enrollment-document-read-proxy-enabled: ${ENROLLMENT_DOCUMENT_READ_PROXY_ENABLED:true}
   enrollment-document-write-proxy-enabled: ${ENROLLMENT_DOCUMENT_WRITE_PROXY_ENABLED:true}
   pedagogical-read-proxy-enabled: ${PEDAGOGICAL_READ_PROXY_ENABLED:true}

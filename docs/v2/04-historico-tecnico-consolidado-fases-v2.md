@@ -3982,3 +3982,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `InstitutionalTenantOfficialResilienceSuiteTest`.
 - Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
   0 fases restantes no escopo fechado atual.
+
+### Fase 193
+
+- Foi iniciado o ciclo fechado do `dashboard-query-service` pelo menor recorte
+  oficial de leitura ja estabilizado no backend atual:
+  `GET /api/dashboard/academico`.
+- Foi criado o modulo `dashboard-query-service` no monorepo, com runtime
+  proprio minimo, token interno, client de leitura para o monolito e contrato
+  interno `GET /internal/v1/dashboard/academico`.
+- O `school-management-bff` passou a oficializar
+  `GET /api/dashboard/academico` via `dashboard-query-service`, preservando
+  bearer, correlation ID e contexto autenticado resolvido por
+  `identity-access-service`.
+- O fallback operacional ficou no BFF: se `identity-access-service` ou
+  `dashboard-query-service` falharem nessa leitura, o retorno volta para o
+  endpoint legado `/api/dashboard/academico` do monolito sem alterar payload
+  externo.
+- A validacao desta fase ficou restrita aos modulos tocados com
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff "-Dtest=DashboardAcademicoReadProxyIntegrationTest" test`.
+- Contagem regressiva do novo ciclo fechado do `dashboard-query-service`:
+  9 fases restantes no escopo fechado atual.
