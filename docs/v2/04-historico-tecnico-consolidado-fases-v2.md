@@ -3902,3 +3902,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialContextIntegrationSuiteTest" test`.
 - Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
   4 fases restantes no escopo fechado atual.
+
+### Fase 189
+
+- O `school-management-bff` passou a separar explicitamente a falha de
+  resolucao de contexto em `identity-access-service` da falha de leitura no
+  `institutional-tenant-service` dentro do bloco institucional oficial.
+- Os fluxos `GET /api/auth/escolas` e `GET /api/auth/tenant/ativa` foram
+  endurecidos para manter fallback ao monolito tambem quando
+  `GET /internal/v1/auth/contexto-atual` fica indisponivel antes da chamada
+  institucional.
+- Os testes de integracao passaram a comprovar esse fallback por queda de
+  `identity-access-service`, incluindo a ausencia de chamada ao
+  `institutional-tenant-service` nesse caminho.
+- Foi adicionada cobertura unitaria para garantir que a observabilidade
+  registre `identity_access` como alvo da falha e do fallback quando o problema
+  ocorre na resolucao de contexto.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=AuthSessionFallbackIntegrationTest,InstitutionalTenantReadProxyIntegrationTest,IdentityTenantContextFallbackObservabilityTest" test`.
+- Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
+  3 fases restantes no escopo fechado atual.

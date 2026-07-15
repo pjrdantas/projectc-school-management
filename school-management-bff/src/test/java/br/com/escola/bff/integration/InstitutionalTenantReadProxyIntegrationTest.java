@@ -3,6 +3,7 @@ package br.com.escola.bff.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
@@ -130,6 +131,36 @@ class InstitutionalTenantReadProxyIntegrationTest {
 
         var tenantRequest = INSTITUTIONAL_TENANT.takeRequest();
         assertThat(tenantRequest.getPath()).isEqualTo("/internal/v1/tenant/ativa");
+
+        var monolithFallback = MONOLITH.takeRequest();
+        assertThat(monolithFallback.getPath()).isEqualTo("/api/auth/contexto-atual");
+    }
+
+    @Test
+    void deveFazerFallbackParaMonolitoQuandoIdentityAccessFalharNaResolucaoDeContexto() throws InterruptedException {
+        IDENTITY_ACCESS.enqueue(new MockResponse().setResponseCode(503));
+
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola fallback contexto"
+                        }
+                        """));
+
+        client.get().uri("/api/auth/tenant/ativa")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-tenant-context-fallback")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.escolaNome").isEqualTo("Escola fallback contexto");
+
+        var contextRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
+        assertThat(INSTITUTIONAL_TENANT.takeRequest(200, TimeUnit.MILLISECONDS)).isNull();
 
         var monolithFallback = MONOLITH.takeRequest();
         assertThat(monolithFallback.getPath()).isEqualTo("/api/auth/contexto-atual");

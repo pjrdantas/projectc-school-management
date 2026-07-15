@@ -3,6 +3,7 @@ package br.com.escola.bff.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
@@ -86,6 +87,38 @@ class AuthSessionFallbackIntegrationTest {
 
         var institutionalRequest = INSTITUTIONAL_TENANT.takeRequest();
         assertThat(institutionalRequest.getPath()).isEqualTo("/internal/v1/tenant/escolas");
+
+        var monolithFallback = MONOLITH.takeRequest();
+        assertThat(monolithFallback.getPath()).isEqualTo("/internal/auth/escolas");
+    }
+
+    @Test
+    void deveFazerFallbackParaMonolitoQuandoIdentityAccessFalharNaResolucaoDeContextoDaListagemDeEscolas()
+            throws InterruptedException {
+        IDENTITY_ACCESS.enqueue(new MockResponse().setResponseCode(503));
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [
+                          {
+                            "escolaId":"00000000-0000-0000-0000-000000000047",
+                            "escolaNome":"Escola fallback contexto",
+                            "ativa":true
+                          }
+                        ]
+                        """));
+
+        client.get().uri("/api/auth/escolas")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-auth-school-list-context-fallback")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].escolaNome").isEqualTo("Escola fallback contexto");
+
+        var contextRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
+        assertThat(INSTITUTIONAL_TENANT.takeRequest(200, TimeUnit.MILLISECONDS)).isNull();
 
         var monolithFallback = MONOLITH.takeRequest();
         assertThat(monolithFallback.getPath()).isEqualTo("/internal/auth/escolas");

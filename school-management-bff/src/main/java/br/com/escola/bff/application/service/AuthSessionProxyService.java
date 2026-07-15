@@ -50,17 +50,18 @@ public class AuthSessionProxyService implements ConsultarAuthSessionUseCase, Sel
                 .flatMap(context -> institutionalTenantReadPort.listarEscolasDisponiveis(query, context)
                         .doOnSuccess(response -> observabilityPort.recordServiceSuccess(
                                 decision,
-                                "institutional_tenant")))
-                .onErrorResume(DownstreamUnavailableException.class, error -> {
-                    observabilityPort.recordServiceFailure(decision, "institutional_tenant", error);
-                    return cutoverPolicyPort.fallbackToMonolithOnError()
-                            ? monolithAuthSessionPort.listarEscolas(query)
-                                    .doOnSuccess(response -> observabilityPort.recordFallbackToMonolith(
-                                            decision,
-                                            "institutional_tenant",
-                                            error))
-                            : Mono.error(error);
-                });
+                                "institutional_tenant"))
+                        .onErrorMap(
+                                DownstreamUnavailableException.class,
+                                InstitutionalTenantReadFailureException::new))
+                .onErrorResume(DownstreamUnavailableException.class,
+                        error -> fallbackListarEscolasParaMonolito(decision, query, "identity_access", error))
+                .onErrorResume(InstitutionalTenantReadFailureException.class,
+                        error -> fallbackListarEscolasParaMonolito(
+                                decision,
+                                query,
+                                "institutional_tenant",
+                                error.cause()));
     }
 
     @Override
@@ -87,5 +88,31 @@ public class AuthSessionProxyService implements ConsultarAuthSessionUseCase, Sel
                                             error))
                             : Mono.error(error);
                 });
+    }
+
+    private Mono<ResponseEntity<String>> fallbackListarEscolasParaMonolito(
+            IdentityTenantCutoverDecision decision,
+            CatalogReadQuery query,
+            String target,
+            DownstreamUnavailableException error) {
+        observabilityPort.recordServiceFailure(decision, target, error);
+        return cutoverPolicyPort.fallbackToMonolithOnError()
+                ? monolithAuthSessionPort.listarEscolas(query)
+                        .doOnSuccess(response -> observabilityPort.recordFallbackToMonolith(
+                                decision,
+                                target,
+                                error))
+                : Mono.error(error);
+    }
+
+    private static final class InstitutionalTenantReadFailureException extends RuntimeException {
+
+        private InstitutionalTenantReadFailureException(DownstreamUnavailableException cause) {
+            super(cause);
+        }
+
+        private DownstreamUnavailableException cause() {
+            return (DownstreamUnavailableException) getCause();
+        }
     }
 }

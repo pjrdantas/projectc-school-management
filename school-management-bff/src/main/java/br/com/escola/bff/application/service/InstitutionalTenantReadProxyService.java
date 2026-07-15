@@ -45,16 +45,43 @@ public class InstitutionalTenantReadProxyService implements ConsultarTenantAtivo
                 .flatMap(context -> institutionalTenantReadPort.consultarTenantAtivo(query, context)
                         .doOnSuccess(response -> observabilityPort.recordServiceSuccess(
                                 decision,
-                                "institutional_tenant")))
-                .onErrorResume(DownstreamUnavailableException.class, error -> {
-                    observabilityPort.recordServiceFailure(decision, "institutional_tenant", error);
-                    return cutoverPolicyPort.fallbackToMonolithOnError()
-                            ? monolithTenantReadPort.consultarTenantAtivo(query)
-                                    .doOnSuccess(response -> observabilityPort.recordFallbackToMonolith(
-                                            decision,
-                                            "institutional_tenant",
-                                            error))
-                            : Mono.error(error);
-                });
+                                "institutional_tenant"))
+                        .onErrorMap(
+                                DownstreamUnavailableException.class,
+                                InstitutionalTenantReadFailureException::new))
+                .onErrorResume(DownstreamUnavailableException.class,
+                        error -> fallbackTenantAtivoParaMonolito(decision, query, "identity_access", error))
+                .onErrorResume(InstitutionalTenantReadFailureException.class,
+                        error -> fallbackTenantAtivoParaMonolito(
+                                decision,
+                                query,
+                                "institutional_tenant",
+                                error.cause()));
+    }
+
+    private Mono<ResponseEntity<String>> fallbackTenantAtivoParaMonolito(
+            IdentityTenantCutoverDecision decision,
+            CatalogReadQuery query,
+            String target,
+            DownstreamUnavailableException error) {
+        observabilityPort.recordServiceFailure(decision, target, error);
+        return cutoverPolicyPort.fallbackToMonolithOnError()
+                ? monolithTenantReadPort.consultarTenantAtivo(query)
+                        .doOnSuccess(response -> observabilityPort.recordFallbackToMonolith(
+                                decision,
+                                target,
+                                error))
+                : Mono.error(error);
+    }
+
+    private static final class InstitutionalTenantReadFailureException extends RuntimeException {
+
+        private InstitutionalTenantReadFailureException(DownstreamUnavailableException cause) {
+            super(cause);
+        }
+
+        private DownstreamUnavailableException cause() {
+            return (DownstreamUnavailableException) getCause();
+        }
     }
 }

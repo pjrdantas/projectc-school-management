@@ -8114,3 +8114,34 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 4
 fases restantes no escopo fechado atual.
+
+### Fase 189 - Endurecimento do fallback de contexto no bloco institucional oficial
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a separar explicitamente, no bloco
+  institucional oficial, a falha de resolucao de contexto em
+  `identity-access-service` da falha de leitura no
+  `institutional-tenant-service`, evitando que a observabilidade trate os dois
+  hops como se fossem o mesmo alvo;
+- os fluxos oficiais `GET /api/auth/escolas` e `GET /api/auth/tenant/ativa`
+  foram endurecidos para manter fallback controlado ao monolito tambem quando a
+  indisponibilidade ocorre antes da chamada institucional, ainda na resolucao de
+  `GET /internal/v1/auth/contexto-atual`;
+- os testes de integracao passaram a materializar esse caminho de fallback por
+  queda de `identity-access-service`, comprovando que o BFF retorna ao legado
+  sem acionar o `institutional-tenant-service` quando o contexto autenticado nao
+  pode ser resolvido;
+- foi adicionada cobertura unitaria objetiva para garantir que a
+  observabilidade registre `identity_access` como alvo da falha e do fallback
+  quando o erro acontece nesse hop, preservando `institutional_tenant` apenas
+  para a falha do segundo passo;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alterar
+  contrato publico externo e sem abrir ainda migracao de escrita de
+  `escola ativa`;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=AuthSessionFallbackIntegrationTest,InstitutionalTenantReadProxyIntegrationTest,IdentityTenantContextFallbackObservabilityTest" test`,
+  resultando em `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 3
+fases restantes no escopo fechado atual.
