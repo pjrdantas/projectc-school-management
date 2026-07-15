@@ -3922,3 +3922,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=AuthSessionFallbackIntegrationTest,InstitutionalTenantReadProxyIntegrationTest,IdentityTenantContextFallbackObservabilityTest" test`.
 - Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
   3 fases restantes no escopo fechado atual.
+
+### Fase 190
+
+- O `school-management-bff` recebeu a suite
+  `InstitutionalTenantOfficialResilienceSuiteTest` como ponto unico de
+  validacao do bloco institucional oficial ja endurecido.
+- Essa suite consolida leitura oficial, fallback por falha do
+  `institutional-tenant-service`, fallback por indisponibilidade de
+  `identity-access-service` na resolucao de contexto e a verificacao objetiva
+  da observabilidade desse hop.
+- Com isso, o ciclo passa a ter um artefato nominal unico para revalidar a
+  resiliencia do eixo multiescola institucional ja oficializado.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialResilienceSuiteTest" test`.
+- Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
+  2 fases restantes no escopo fechado atual.

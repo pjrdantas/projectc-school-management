@@ -20,7 +20,7 @@ import br.com.escola.bff.application.port.out.MonolithTenantReadPort;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-class IdentityTenantContextFallbackObservabilityTest {
+public class IdentityTenantContextFallbackObservabilityTest {
 
     @Test
     void deveRegistrarIdentityAccessQuandoFallbackDeListagemFalharNaResolucaoDeContexto() {

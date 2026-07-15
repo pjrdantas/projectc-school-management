@@ -8145,3 +8145,26 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 3
 fases restantes no escopo fechado atual.
+
+### Fase 190 - Suite nominal unica do bloco institucional endurecido
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a contar com uma suite nominal unica para o
+  bloco institucional oficial ja endurecido:
+  `InstitutionalTenantOfficialResilienceSuiteTest`;
+- essa suite consolida, sob um ponto unico de validacao, os cenarios de leitura
+  oficial, fallback por falha do `institutional-tenant-service`, fallback por
+  indisponibilidade de `identity-access-service` na resolucao de contexto e a
+  verificacao objetiva da observabilidade desse hop;
+- com isso, o ciclo deixa de depender de uma combinacao manual entre classes de
+  integracao e teste unitario para revalidar a resiliencia do eixo multiescola
+  institucional ja oficializado;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contrato publico e sem abrir ainda migracao de escrita de `escola ativa`;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialResilienceSuiteTest" test`,
+  resultando em `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 2
+fases restantes no escopo fechado atual.
