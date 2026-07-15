@@ -25,6 +25,7 @@ class AuthSessionFallbackIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
     private static final MockWebServer IDENTITY_ACCESS = startServer();
+    private static final MockWebServer INSTITUTIONAL_TENANT = startServer();
 
     @Autowired
     private WebTestClient client;
@@ -34,6 +35,8 @@ class AuthSessionFallbackIntegrationTest {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
         registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
         registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
+        registry.add("clients.institutional-tenant-service.base-url", () -> INSTITUTIONAL_TENANT.url("/").toString());
+        registry.add("clients.institutional-tenant-service.internal-token", () -> "institutional-tenant-internal-token");
         registry.add("features.identity-tenant-cutover.enabled", () -> true);
         registry.add("features.identity-tenant-cutover.fallback-to-monolith-on-error", () -> true);
         registry.add("management.health.redis.enabled", () -> false);
@@ -43,6 +46,49 @@ class AuthSessionFallbackIntegrationTest {
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
         IDENTITY_ACCESS.shutdown();
+        INSTITUTIONAL_TENANT.shutdown();
+    }
+
+    @Test
+    void deveFazerFallbackParaMonolitoQuandoInstitutionalTenantFalharNaListagemDeEscolas() throws InterruptedException {
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao"
+                        }
+                        """));
+        INSTITUTIONAL_TENANT.enqueue(new MockResponse().setResponseCode(503));
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [
+                          {
+                            "escolaId":"00000000-0000-0000-0000-000000000047",
+                            "escolaNome":"Escola fallback",
+                            "ativa":true
+                          }
+                        ]
+                        """));
+
+        client.get().uri("/api/auth/escolas")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-auth-school-list-fallback")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].escolaNome").isEqualTo("Escola fallback");
+
+        var contextRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
+
+        var institutionalRequest = INSTITUTIONAL_TENANT.takeRequest();
+        assertThat(institutionalRequest.getPath()).isEqualTo("/internal/v1/tenant/escolas");
+
+        var monolithFallback = MONOLITH.takeRequest();
+        assertThat(monolithFallback.getPath()).isEqualTo("/internal/auth/escolas");
     }
 
     @Test

@@ -27,6 +27,20 @@ public class InstitutionalTenantReadClient extends AbstractDownstreamClientSuppo
     }
 
     @Override
+    public Mono<ResponseEntity<String>> listarEscolasDisponiveis(CatalogReadQuery query, AuthSessionContext context) {
+        return webClient.get()
+                .uri("/internal/v1/tenant/escolas")
+                .header(HttpHeaders.AUTHORIZATION, query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Institutional tenant service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Institutional tenant service indisponivel"));
+    }
+
+    @Override
     public Mono<ResponseEntity<String>> consultarTenantAtivo(CatalogReadQuery query, AuthSessionContext context) {
         return webClient.get()
                 .uri("/internal/v1/tenant/ativa")

@@ -8,6 +8,7 @@ import br.com.escola.bff.application.port.out.IdentityTenantCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.IdentityTenantObservabilityPort;
 import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityAccessSessionPort;
+import br.com.escola.bff.application.port.out.InstitutionalTenantReadPort;
 import br.com.escola.bff.application.port.out.MonolithAuthSessionPort;
 import br.com.escola.bff.application.usecase.ConsultarAuthSessionUseCase;
 import br.com.escola.bff.application.usecase.SelecionarEscolaAtivaUseCase;
@@ -17,6 +18,7 @@ public class AuthSessionProxyService implements ConsultarAuthSessionUseCase, Sel
 
     private final IdentityTenantAuthContextPort authContextPort;
     private final IdentityAccessSessionPort identityAccessSessionPort;
+    private final InstitutionalTenantReadPort institutionalTenantReadPort;
     private final MonolithAuthSessionPort monolithAuthSessionPort;
     private final IdentityTenantCutoverPolicyPort cutoverPolicyPort;
     private final IdentityTenantObservabilityPort observabilityPort;
@@ -24,11 +26,13 @@ public class AuthSessionProxyService implements ConsultarAuthSessionUseCase, Sel
     public AuthSessionProxyService(
             IdentityTenantAuthContextPort authContextPort,
             IdentityAccessSessionPort identityAccessSessionPort,
+            InstitutionalTenantReadPort institutionalTenantReadPort,
             MonolithAuthSessionPort monolithAuthSessionPort,
             IdentityTenantCutoverPolicyPort cutoverPolicyPort,
             IdentityTenantObservabilityPort observabilityPort) {
         this.authContextPort = authContextPort;
         this.identityAccessSessionPort = identityAccessSessionPort;
+        this.institutionalTenantReadPort = institutionalTenantReadPort;
         this.monolithAuthSessionPort = monolithAuthSessionPort;
         this.cutoverPolicyPort = cutoverPolicyPort;
         this.observabilityPort = observabilityPort;
@@ -43,15 +47,17 @@ public class AuthSessionProxyService implements ConsultarAuthSessionUseCase, Sel
                     .doOnSuccess(response -> observabilityPort.recordDirectMonolith(decision));
         }
         return authContextPort.resolve(query)
-                .flatMap(context -> identityAccessSessionPort.listarEscolas(query, context)
-                        .doOnSuccess(response -> observabilityPort.recordServiceSuccess(decision, "identity_access")))
+                .flatMap(context -> institutionalTenantReadPort.listarEscolasDisponiveis(query, context)
+                        .doOnSuccess(response -> observabilityPort.recordServiceSuccess(
+                                decision,
+                                "institutional_tenant")))
                 .onErrorResume(DownstreamUnavailableException.class, error -> {
-                    observabilityPort.recordServiceFailure(decision, "identity_access", error);
+                    observabilityPort.recordServiceFailure(decision, "institutional_tenant", error);
                     return cutoverPolicyPort.fallbackToMonolithOnError()
                             ? monolithAuthSessionPort.listarEscolas(query)
                                     .doOnSuccess(response -> observabilityPort.recordFallbackToMonolith(
                                             decision,
-                                            "identity_access",
+                                            "institutional_tenant",
                                             error))
                             : Mono.error(error);
                 });

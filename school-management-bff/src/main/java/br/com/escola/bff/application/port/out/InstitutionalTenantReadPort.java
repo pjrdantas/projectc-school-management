@@ -8,5 +8,7 @@ import reactor.core.publisher.Mono;
 
 public interface InstitutionalTenantReadPort {
 
+    Mono<ResponseEntity<String>> listarEscolasDisponiveis(CatalogReadQuery query, AuthSessionContext context);
+
     Mono<ResponseEntity<String>> consultarTenantAtivo(CatalogReadQuery query, AuthSessionContext context);
 }

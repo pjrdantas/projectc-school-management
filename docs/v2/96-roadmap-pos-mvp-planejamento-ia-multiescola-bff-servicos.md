@@ -8088,3 +8088,29 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 5
 fases restantes no escopo fechado atual.
+
+### Fase 188 - Oficializacao da listagem de escolas de sessao pelo `institutional-tenant-service`
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar o contrato publico
+  `GET /api/auth/escolas` pelo `institutional-tenant-service`, mantendo o
+  `identity-access-service` apenas como origem do contexto autenticado usado na
+  chamada interna;
+- o proxy de sessao do BFF foi ajustado para separar explicitamente o papel de
+  resolucao de contexto (`identity-access-service`) do papel de leitura
+  institucional (`institutional-tenant-service`) na listagem oficial de escolas;
+- a integracao interna do `institutional-tenant-service` no BFF passou a cobrir
+  o contrato `GET /internal/v1/tenant/escolas`, com propagacao dos headers
+  autenticados e token interno proprio do servico;
+- o fallback controlado para o legado foi preservado quando o
+  `institutional-tenant-service` falha nessa leitura, sem alterar ainda o fluxo
+  oficial de `escola ativa`, que permanece no recorte anterior desta macrofase;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contrato publico externo e sem refatoracao ampla fora do recorte integravel;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialContextIntegrationSuiteTest" test`,
+  resultando em `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 4
+fases restantes no escopo fechado atual.

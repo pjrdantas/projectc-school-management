@@ -161,12 +161,14 @@ public class BffUseCaseConfiguration {
     ConsultarAuthSessionUseCase consultarAuthSessionUseCase(
             IdentityTenantAuthContextPort authContextPort,
             IdentityAccessSessionPort identityAccessSessionPort,
+            InstitutionalTenantReadPort institutionalTenantReadPort,
             MonolithAuthSessionPort monolithAuthSessionPort,
             IdentityTenantCutoverPolicyPort cutoverPolicyPort,
             IdentityTenantObservabilityPort observabilityPort) {
         return new AuthSessionProxyService(
                 authContextPort,
                 identityAccessSessionPort,
+                institutionalTenantReadPort,
                 monolithAuthSessionPort,
                 cutoverPolicyPort,
                 observabilityPort);
@@ -176,12 +178,14 @@ public class BffUseCaseConfiguration {
     SelecionarEscolaAtivaUseCase selecionarEscolaAtivaUseCase(
             IdentityTenantAuthContextPort authContextPort,
             IdentityAccessSessionPort identityAccessSessionPort,
+            InstitutionalTenantReadPort institutionalTenantReadPort,
             MonolithAuthSessionPort monolithAuthSessionPort,
             IdentityTenantCutoverPolicyPort cutoverPolicyPort,
             IdentityTenantObservabilityPort observabilityPort) {
         return new AuthSessionProxyService(
                 authContextPort,
                 identityAccessSessionPort,
+                institutionalTenantReadPort,
                 monolithAuthSessionPort,
                 cutoverPolicyPort,
                 observabilityPort);

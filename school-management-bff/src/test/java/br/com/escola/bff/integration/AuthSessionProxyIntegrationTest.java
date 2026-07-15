@@ -25,6 +25,7 @@ class AuthSessionProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
     private static final MockWebServer IDENTITY_ACCESS = startServer();
+    private static final MockWebServer INSTITUTIONAL_TENANT = startServer();
 
     @Autowired
     private WebTestClient client;
@@ -34,6 +35,8 @@ class AuthSessionProxyIntegrationTest {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
         registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
         registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
+        registry.add("clients.institutional-tenant-service.base-url", () -> INSTITUTIONAL_TENANT.url("/").toString());
+        registry.add("clients.institutional-tenant-service.internal-token", () -> "institutional-tenant-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
     }
 
@@ -41,6 +44,7 @@ class AuthSessionProxyIntegrationTest {
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
         IDENTITY_ACCESS.shutdown();
+        INSTITUTIONAL_TENANT.shutdown();
     }
 
     @Test
@@ -55,7 +59,7 @@ class AuthSessionProxyIntegrationTest {
                         }
                         """));
 
-        IDENTITY_ACCESS.enqueue(new MockResponse()
+        INSTITUTIONAL_TENANT.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setHeader(TrustedHeaders.CORRELATION_ID, "corr-auth-1")
                 .setBody("""
@@ -83,13 +87,13 @@ class AuthSessionProxyIntegrationTest {
         assertThat(contextRequest.getHeader("X-Internal-Token")).isEqualTo("identity-access-internal-token");
         assertThat(contextRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-auth-1");
 
-        var identityRequest = IDENTITY_ACCESS.takeRequest();
-        assertThat(identityRequest.getPath()).isEqualTo("/internal/v1/auth/escolas");
-        assertThat(identityRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
-        assertThat(identityRequest.getHeader("X-Internal-Token")).isEqualTo("identity-access-internal-token");
-        assertThat(identityRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-auth-1");
-        assertThat(identityRequest.getHeader("X-Usuario-Id")).isEqualTo("00000000-0000-0000-0000-000000000101");
-        assertThat(identityRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
+        var institutionalRequest = INSTITUTIONAL_TENANT.takeRequest();
+        assertThat(institutionalRequest.getPath()).isEqualTo("/internal/v1/tenant/escolas");
+        assertThat(institutionalRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
+        assertThat(institutionalRequest.getHeader("X-Internal-Token")).isEqualTo("institutional-tenant-internal-token");
+        assertThat(institutionalRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-auth-1");
+        assertThat(institutionalRequest.getHeader("X-Usuario-Id")).isEqualTo("00000000-0000-0000-0000-000000000101");
+        assertThat(institutionalRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
         assertThat(MONOLITH.getRequestCount()).isZero();
     }
 

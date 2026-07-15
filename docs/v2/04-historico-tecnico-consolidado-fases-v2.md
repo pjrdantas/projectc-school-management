@@ -3882,3 +3882,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialContextIntegrationSuiteTest" test`.
 - Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
   5 fases restantes no escopo fechado atual.
+
+### Fase 188
+
+- O `school-management-bff` passou a oficializar o contrato publico
+  `GET /api/auth/escolas` pelo `institutional-tenant-service`, preservando o
+  `identity-access-service` apenas para resolver o contexto autenticado da
+  sessao.
+- O proxy de sessao do BFF foi ajustado para separar explicitamente a leitura
+  institucional da resolucao de contexto, reduzindo o acoplamento anterior com
+  `identity-access-service` na listagem de escolas da sessao.
+- O client interno do `institutional-tenant-service` no BFF passou a cobrir
+  `GET /internal/v1/tenant/escolas`, com token interno proprio e propagacao dos
+  headers de autenticacao contextual.
+- O fallback controlado para o legado foi mantido quando o
+  `institutional-tenant-service` falha nessa leitura, sem alterar ainda o fluxo
+  de `escola ativa`.
+- A validacao desta fase ficou restrita ao modulo tocado e foi executada com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialContextIntegrationSuiteTest" test`.
+- Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`:
+  4 fases restantes no escopo fechado atual.
