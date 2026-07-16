@@ -4126,3 +4126,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff -Dtest=DashboardIndicadorSnapshotReadProxyIntegrationTest test`.
 - Contagem regressiva do novo ciclo fechado do `dashboard-query-service`:
   3 fases restantes no escopo fechado atual.
+
+### Fase 200
+
+- O `dashboard-query-service` passou a publicar
+  `GET /internal/v1/dashboard/snapshots/historico/publicos/{publicoCodigo}`
+  como oitavo contrato interno oficial do ciclo de leitura de dashboard.
+- O `school-management-bff` passou a oficializar
+  `GET /api/dashboard/snapshots/historico/publicos/{publicoCodigo}` via
+  `dashboard-query-service`, preservando bearer, correlation ID, payload legado
+  e os filtros opcionais `codigoIndicador`, `dataInicio`, `dataFim` e
+  `professorId`.
+- O recorte permaneceu estritamente read-only; geracao e escrita de snapshots
+  continuam no monolito fora desta etapa.
+- O fallback para o monolito continua ativo quando o
+  `identity-access-service` ou o `dashboard-query-service` falharem nessa
+  leitura, retornando ao endpoint legado
+  `/api/dashboard/snapshots/historico/publicos/{publicoCodigo}`.
+- Validacao executada apenas nos modulos tocados:
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff -Dtest=DashboardIndicadorHistoricoReadProxyIntegrationTest test`.
+- Contagem regressiva do novo ciclo fechado do `dashboard-query-service`:
+  2 fases restantes no escopo fechado atual.
