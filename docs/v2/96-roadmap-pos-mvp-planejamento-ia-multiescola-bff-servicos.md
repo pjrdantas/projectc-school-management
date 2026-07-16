@@ -6255,6 +6255,25 @@ Entregue nesta fase:
   `GET /api/responsaveis/{id}` e
   `GET /api/alunos/{alunoId}/responsaveis`.
 
+### Fase 206 - Inicio da remocao progressiva da dependencia funcional do monolito em `responsibles-service`
+
+Entregue nesta fase:
+
+- foi introduzida no `responsibles-service` a infraestrutura opt-in do read
+  model local minimo para `GET /api/responsaveis` e
+  `GET /api/responsaveis/{id}`, com properties proprias, migration Flyway
+  dedicada e adapter JDBC local;
+- a tabela local minima `responsavel` foi formalizada apenas com os campos ja
+  exigidos pelo contrato atual de leitura ampla e detalhe, sem backfill e sem
+  migrar escrita nesta etapa;
+- o `ResponsavelQueryService` passou a preferir a leitura local de lista e
+  detalhe quando o read model estiver habilitado e configurado, mantendo
+  fallback obrigatorio ao monolito quando o dado local ainda nao existir ou
+  ocorrer erro no adapter;
+- o contrato externo no `school-management-bff` permaneceu inalterado; esta
+  fase atua somente dentro do `responsibles-service` para preparar o proximo
+  ciclo de independencia funcional real.
+
 ### Fase 115 - Abertura fisica do `enrollment-document-service` por `transferencia`
 
 Entregue nesta fase:

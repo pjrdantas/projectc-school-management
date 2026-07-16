@@ -2422,6 +2422,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=ResponsavelReadControllerTest,ResponsavelReadProxyIntegrationTest" test`,
   ambos em `BUILD SUCCESS`.
 
+### Fase 206
+
+- Foi iniciada a remocao progressiva da dependencia funcional do monolito
+  dentro do `responsibles-service` sem alterar o contrato externo no BFF.
+- O modulo ganhou read model local minimo opt-in para lista e detalhe de
+  `responsavel`, com migration Flyway propria e adapter JDBC local.
+- O `ResponsavelQueryService` passou a tentar a leitura local em
+  `GET /api/responsaveis` e `GET /api/responsaveis/{id}` quando o read model
+  estiver habilitado, preservando fallback obrigatorio ao monolito nesta
+  primeira etapa, ainda sem backfill e sem escrita migrada.
+- A validacao do modulo tocado foi executada com
+  `mvn -pl responsibles-service test`,
+  em `BUILD SUCCESS`.
+
 ### Fase 115
 
 - O `people-service` foi mantido como encerrado. A nova macrofase backend passa
