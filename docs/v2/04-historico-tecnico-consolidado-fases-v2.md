@@ -2389,6 +2389,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=AlunoResponsavelReadControllerTest,AlunoResponsavelReadProxyIntegrationTest" test`,
   ambos em `BUILD SUCCESS`.
 
+### Fase 204
+
+- O proximo bloco de leitura de `responsibles-service` foi aberto sem escrita
+  migrada e sem reabrir o `people-service`.
+- O contrato oficial `GET /api/alunos/{alunoId}/responsaveis` permaneceu no
+  `school-management-bff`, mas passou a ser atendido pelo
+  `responsibles-service`.
+- O `responsibles-service` passou a expor
+  `GET /internal/v1/alunos/{alunoId}/responsaveis`, isolando nesse servico o
+  vinculo oficial `aluno -> responsaveis` enquanto o acesso ao legado segue
+  encapsulado apenas no client interno dedicado.
+- A validacao do modulo tocado foi executada com
+  `mvn -pl responsibles-service test`
+  e com
+  `mvn -pl school-management-bff "-Dtest=AlunoResponsavelReadControllerTest,AlunoResponsavelReadProxyIntegrationTest" test`,
+  ambos em `BUILD SUCCESS`.
+
 ### Fase 115
 
 - O `people-service` foi mantido como encerrado. A nova macrofase backend passa

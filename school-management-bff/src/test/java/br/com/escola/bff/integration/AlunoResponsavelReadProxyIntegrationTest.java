@@ -26,7 +26,7 @@ class AlunoResponsavelReadProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
     private static final MockWebServer IDENTITY_ACCESS = startServer();
-    private static final MockWebServer PEOPLE = startServer();
+    private static final MockWebServer RESPONSIBLES = startServer();
 
     @Autowired
     private WebTestClient client;
@@ -36,8 +36,8 @@ class AlunoResponsavelReadProxyIntegrationTest {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
         registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
         registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
-        registry.add("clients.people-service.base-url", () -> PEOPLE.url("/").toString());
-        registry.add("clients.people-service.internal-token", () -> "people-internal-token");
+        registry.add("clients.responsibles-service.base-url", () -> RESPONSIBLES.url("/").toString());
+        registry.add("clients.responsibles-service.internal-token", () -> "responsibles-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
     }
 
@@ -45,11 +45,11 @@ class AlunoResponsavelReadProxyIntegrationTest {
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
         IDENTITY_ACCESS.shutdown();
-        PEOPLE.shutdown();
+        RESPONSIBLES.shutdown();
     }
 
     @Test
-    void deveConsumirPeopleServiceNaLeituraOficialDeResponsaveisPorAluno() throws InterruptedException {
+    void deveConsumirResponsiblesServiceNaLeituraOficialDeResponsaveisPorAluno() throws InterruptedException {
         UUID alunoId = UUID.fromString("00000000-0000-0000-0000-000000000301");
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -62,7 +62,7 @@ class AlunoResponsavelReadProxyIntegrationTest {
                         }
                         """));
 
-        PEOPLE.enqueue(new MockResponse()
+        RESPONSIBLES.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         [{
@@ -82,13 +82,13 @@ class AlunoResponsavelReadProxyIntegrationTest {
 
         var contextRequest = IDENTITY_ACCESS.takeRequest();
         assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
-        var peopleRequest = PEOPLE.takeRequest();
-        assertThat(peopleRequest.getPath()).isEqualTo("/internal/v1/alunos/" + alunoId + "/responsaveis");
-        assertThat(peopleRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
-        assertThat(peopleRequest.getHeader("X-Internal-Token")).isEqualTo("people-internal-token");
-        assertThat(peopleRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-resp-1");
-        assertThat(peopleRequest.getHeader("X-Usuario-Id")).isEqualTo("00000000-0000-0000-0000-000000000101");
-        assertThat(peopleRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
+        var responsiblesRequest = RESPONSIBLES.takeRequest();
+        assertThat(responsiblesRequest.getPath()).isEqualTo("/internal/v1/alunos/" + alunoId + "/responsaveis");
+        assertThat(responsiblesRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
+        assertThat(responsiblesRequest.getHeader("X-Internal-Token")).isEqualTo("responsibles-internal-token");
+        assertThat(responsiblesRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-resp-1");
+        assertThat(responsiblesRequest.getHeader("X-Usuario-Id")).isEqualTo("00000000-0000-0000-0000-000000000101");
+        assertThat(responsiblesRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
     }
 
     private static MockWebServer startServer() {

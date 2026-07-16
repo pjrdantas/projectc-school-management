@@ -89,4 +89,37 @@ class ResponsavelInternalControllerIntegrationTest {
         assertThat(request.getHeader("X-Usuario-Id")).isEqualTo(usuarioId.toString());
         assertThat(request.getHeader("X-Escola-Id")).isEqualTo(escolaId.toString());
     }
+
+    @Test
+    void deveConsultarResponsaveisPorAlunoNoContratoInterno() throws Exception {
+        UUID alunoId = UUID.fromString("00000000-0000-0000-0000-000000000301");
+        UUID usuarioId = UUID.fromString("00000000-0000-0000-0000-000000000101");
+        UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [{
+                          "id":"00000000-0000-0000-0000-000000000401",
+                          "nomeCompleto":"Responsavel Vinculado"
+                        }]
+                        """));
+
+        mockMvc.perform(get("/internal/v1/alunos/{alunoId}/responsaveis", alunoId)
+                        .header("Authorization", "Bearer opaque-token")
+                        .header("X-Internal-Token", "responsibles-token")
+                        .header("X-Correlation-Id", "corr-responsavel-2")
+                        .header("X-Usuario-Id", usuarioId)
+                        .header("X-Escola-Id", escolaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("00000000-0000-0000-0000-000000000401"))
+                .andExpect(jsonPath("$[0].nomeCompleto").value("Responsavel Vinculado"));
+
+        var request = mockWebServer.takeRequest();
+        assertThat(request.getPath()).isEqualTo("/api/alunos/" + alunoId + "/responsaveis");
+        assertThat(request.getHeader("Authorization")).isEqualTo("Bearer opaque-token");
+        assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-responsavel-2");
+        assertThat(request.getHeader("X-Usuario-Id")).isEqualTo(usuarioId.toString());
+        assertThat(request.getHeader("X-Escola-Id")).isEqualTo(escolaId.toString());
+    }
 }

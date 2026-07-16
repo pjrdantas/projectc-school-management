@@ -39,6 +39,22 @@ public class MonolithResponsavelReadClient implements ResponsavelReadPort {
                         .body(readBody(response)));
     }
 
+    @Override
+    public ResponseEntity<String> listarResponsaveisPorAluno(
+            String authorization,
+            InternalRequestContext context,
+            UUID alunoId) {
+        return withHeaders(restClient.get().uri("/api/alunos/{alunoId}/responsaveis", alunoId), authorization, context)
+                .exchange((request, response) -> ResponseEntity.status(response.getStatusCode())
+                        .headers(headers -> {
+                            MediaType contentType = response.getHeaders().getContentType();
+                            if (contentType != null) {
+                                headers.setContentType(contentType);
+                            }
+                        })
+                        .body(readBody(response)));
+    }
+
     private RestClient.RequestHeadersSpec<?> withHeaders(
             RestClient.RequestHeadersSpec<?> spec,
             String authorization,

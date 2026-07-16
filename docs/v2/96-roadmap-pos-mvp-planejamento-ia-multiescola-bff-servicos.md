@@ -503,8 +503,8 @@ proprietario futuro de todas as familias REST encontradas no monolito.
 | --- | --- | --- |
 | `/api/auth`, `/api/usuarios`, `/api/perfis`, `/api/permissoes` | identity-access | BFF continua sendo a fachada externa |
 | `/api/periodos-letivos`, `/api/series`, `/api/turnos`, `/api/turmas`, `/api/disciplinas`, `/api/catalogos/academicos` | academic-catalog | primeiro corte pelo strangler |
-| `/api/alunos`, `/api/alunos/{id}/responsaveis`, `/api/pessoas/catalogos`, consultas cadastrais | people | exclusao coordenada com enrollment |
-| detalhe minimo de `/api/responsaveis/{id}` | responsibles | servico novo aberto sem listar `/api/responsaveis` |
+| `/api/alunos`, `/api/pessoas/catalogos`, consultas cadastrais | people | exclusao coordenada com enrollment |
+| `/api/alunos/{id}/responsaveis`, detalhe minimo de `/api/responsaveis/{id}` | responsibles | leitura oficial separada antes da listagem ampla |
 | CRUD de `/api/professores` | people | alocacoes nao pertencem ao people service |
 | alocacoes de professor e `/api/turmas/{id}/professores` | pedagogical | referencia professor e turma somente por ID |
 | `/api/matriculas`, seus catalogos, etapas e documentos | enrollment-document | validacoes externas por portas |
@@ -6217,6 +6217,24 @@ Entregue nesta fase:
 Contagem regressiva da nova macrofase de `responsaveis`: 0 fases restantes
 neste ciclo fechado. O `people-service` continua encerrado e o
 `responsibles-service` passa a concentrar a proxima evolucao desse dominio.
+
+### Fase 204 - Primeiro bloco de vinculo `aluno -> responsaveis` hospedado no `responsibles-service`
+
+Entregue nesta fase:
+
+- o contrato publico `GET /api/alunos/{alunoId}/responsaveis` foi mantido no
+  `school-management-bff`, mas deixou de consumir o `people-service` e passou a
+  consumir o `responsibles-service`;
+- o `responsibles-service` passou a expor internamente
+  `GET /internal/v1/alunos/{alunoId}/responsaveis`, isolando nesse servico o
+  bloco oficial minimo de leitura por vinculo com `aluno`;
+- a dependencia no legado permaneceu somente como passthrough controlado no
+  `responsibles-service`, via `GET /api/alunos/{alunoId}/responsaveis`, sem
+  migrar escrita, sem shadow/read model proprio nesta etapa e sem alterar o
+  frontend;
+- com isso, o dominio de `responsaveis` passa a concentrar no servico novo os
+  dois contratos oficiais minimos ja abertos neste ciclo:
+  `GET /api/responsaveis/{id}` e `GET /api/alunos/{alunoId}/responsaveis`.
 
 ### Fase 115 - Abertura fisica do `enrollment-document-service` por `transferencia`
 

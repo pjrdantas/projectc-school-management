@@ -25,4 +25,12 @@ public class ResponsavelQueryService implements ResponsavelQueryUseCase {
             UUID responsavelId) {
         return responsavelReadPort.buscarResponsavelPorId(authorization, context, responsavelId);
     }
+
+    @Override
+    public ResponseEntity<String> listarResponsaveisPorAluno(
+            String authorization,
+            InternalRequestContext context,
+            UUID alunoId) {
+        return responsavelReadPort.listarResponsaveisPorAluno(authorization, context, alunoId);
+    }
 }

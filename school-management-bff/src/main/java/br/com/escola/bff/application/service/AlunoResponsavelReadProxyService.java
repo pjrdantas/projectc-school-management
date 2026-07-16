@@ -6,20 +6,20 @@ import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
-import br.com.escola.bff.application.port.out.PeopleAlunoResponsavelReadPort;
+import br.com.escola.bff.application.port.out.ResponsiblesAlunoResponsavelReadPort;
 import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
 import reactor.core.publisher.Mono;
 
 public class AlunoResponsavelReadProxyService implements ConsultarAlunoResponsavelUseCase {
 
     private final InternalAuthContextPort authContextPort;
-    private final PeopleAlunoResponsavelReadPort peopleAlunoResponsavelReadPort;
+    private final ResponsiblesAlunoResponsavelReadPort responsiblesAlunoResponsavelReadPort;
 
     public AlunoResponsavelReadProxyService(
             InternalAuthContextPort authContextPort,
-            PeopleAlunoResponsavelReadPort peopleAlunoResponsavelReadPort) {
+            ResponsiblesAlunoResponsavelReadPort responsiblesAlunoResponsavelReadPort) {
         this.authContextPort = authContextPort;
-        this.peopleAlunoResponsavelReadPort = peopleAlunoResponsavelReadPort;
+        this.responsiblesAlunoResponsavelReadPort = responsiblesAlunoResponsavelReadPort;
     }
 
     @Override
@@ -29,6 +29,6 @@ public class AlunoResponsavelReadProxyService implements ConsultarAlunoResponsav
             UUID alunoId) {
         CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
         return authContextPort.resolve(query)
-                .flatMap(context -> peopleAlunoResponsavelReadPort.listarResponsaveisPorAluno(alunoId, query, context));
+                .flatMap(context -> responsiblesAlunoResponsavelReadPort.listarResponsaveisPorAluno(alunoId, query, context));
     }
 }

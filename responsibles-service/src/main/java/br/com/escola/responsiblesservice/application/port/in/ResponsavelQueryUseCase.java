@@ -12,4 +12,9 @@ public interface ResponsavelQueryUseCase {
             String authorization,
             InternalRequestContext context,
             UUID responsavelId);
+
+    ResponseEntity<String> listarResponsaveisPorAluno(
+            String authorization,
+            InternalRequestContext context,
+            UUID alunoId);
 }

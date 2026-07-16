@@ -33,4 +33,12 @@ public class ResponsavelInternalController {
             @PathVariable @NonNull UUID id) {
         return responsavelQueryUseCase.buscarResponsavelPorId(authorization, context, id);
     }
+
+    @GetMapping("/alunos/{alunoId}/responsaveis")
+    public ResponseEntity<String> listarResponsaveisPorAluno(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID alunoId) {
+        return responsavelQueryUseCase.listarResponsaveisPorAluno(authorization, context, alunoId);
+    }
 }

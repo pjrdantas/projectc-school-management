@@ -62,6 +62,7 @@ import br.com.escola.bff.application.port.out.PeopleAlunoResponsavelReadPort;
 import br.com.escola.bff.application.port.out.PeopleCatalogReadPort;
 import br.com.escola.bff.application.port.out.PeopleFuncionarioReadPort;
 import br.com.escola.bff.application.port.out.PeoplePessoaReadPort;
+import br.com.escola.bff.application.port.out.ResponsiblesAlunoResponsavelReadPort;
 import br.com.escola.bff.application.port.out.ResponsiblesReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalAvaliacaoPort;
 import br.com.escola.bff.application.port.out.PedagogicalAulaPort;
@@ -252,8 +253,8 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarAlunoResponsavelUseCase consultarAlunoResponsavelUseCase(
             InternalAuthContextPort authContextPort,
-            PeopleAlunoResponsavelReadPort peopleAlunoResponsavelReadPort) {
-        return new AlunoResponsavelReadProxyService(authContextPort, peopleAlunoResponsavelReadPort);
+            ResponsiblesAlunoResponsavelReadPort responsiblesAlunoResponsavelReadPort) {
+        return new AlunoResponsavelReadProxyService(authContextPort, responsiblesAlunoResponsavelReadPort);
     }
 
     @Bean
