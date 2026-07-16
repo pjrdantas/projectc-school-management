@@ -8320,3 +8320,25 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 6 fases
 restantes no escopo fechado atual.
+
+### Fase 197 - Oficializacao da leitura de `dashboard/alertas`
+
+Entregue nesta fase:
+
+- o `dashboard-query-service` passou a expor o quinto contrato interno oficial
+  do ciclo: `GET /internal/v1/dashboard/alertas`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/alertas`, preservando bearer, correlation ID, o
+  parametro `publicoCodigo` e o `professorId` opcional para o publico
+  `PROFESSOR`;
+- o payload externo de alertas foi preservado integralmente, incluindo
+  severidade, titulo, mensagem, valor e limite por alerta agregado;
+- o fallback operacional permaneceu no BFF para indisponibilidade de
+  `identity-access-service` ou `dashboard-query-service`, retornando ao
+  endpoint legado do monolito sem alterar contrato externo;
+- a validacao ficou restrita aos modulos tocados com
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff "-Dtest=DashboardAlertaReadProxyIntegrationTest" test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 5 fases
+restantes no escopo fechado atual.

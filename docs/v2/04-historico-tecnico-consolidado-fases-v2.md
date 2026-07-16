@@ -4067,3 +4067,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=DashboardProfessorReadProxyIntegrationTest" test`.
 - Contagem regressiva do novo ciclo fechado do `dashboard-query-service`:
   6 fases restantes no escopo fechado atual.
+
+### Fase 197
+
+- O `dashboard-query-service` passou a publicar
+  `GET /internal/v1/dashboard/alertas` como quinto contrato interno oficial do
+  ciclo.
+- O `school-management-bff` passou a oficializar `GET /api/dashboard/alertas`
+  via `dashboard-query-service`, preservando bearer, correlation ID,
+  `publicoCodigo` e o `professorId` opcional para o publico `PROFESSOR`.
+- O payload externo de alertas foi mantido sem alteracoes, incluindo
+  severidade, titulo, mensagem, valor e limite por alerta agregado.
+- O fallback operacional permaneceu no BFF: se `identity-access-service` ou
+  `dashboard-query-service` falharem nessa leitura, o retorno volta para o
+  endpoint legado `/api/dashboard/alertas` do monolito.
+- A validacao desta fase ficou restrita aos modulos tocados com
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff "-Dtest=DashboardAlertaReadProxyIntegrationTest" test`.
+- Contagem regressiva do novo ciclo fechado do `dashboard-query-service`:
+  5 fases restantes no escopo fechado atual.
