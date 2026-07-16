@@ -6312,6 +6312,27 @@ Entregue nesta fase:
   do fallback ao monolito; esta fase entrega somente a massa local controlada
   do vinculo para o proximo corte de independencia funcional.
 
+### Fase 209 - Primeiro adapter de leitura local para `GET /api/alunos/{alunoId}/responsaveis`
+
+Entregue nesta fase:
+
+- o `ResponsavelQueryService` passou a preferir leitura local tambem para
+  `GET /api/alunos/{alunoId}/responsaveis` quando o read model estiver
+  habilitado com `local-read-routing-enabled`, mantendo fallback ao monolito;
+- para preservar o contrato real da rota, o read model local foi estendido com
+  o catalogo minimo `parentesco`, via migration
+  `V3__create_responsibles_link_catalog_read_model.sql`, e o ciclo controlado
+  de backfill passou a sincronizar `responsavel`, `parentesco` e
+  `aluno_responsavel`;
+- foi implementado no `responsibles-service` o primeiro adapter JDBC local da
+  leitura por aluno, materializando `nomeCompleto`, dados de contato, endereco,
+  `parentesco`, `responsavelFinanceiro`, `responsavelPedagogico`,
+  `autorizadoRetirar` e `createdAt` a partir do read model local;
+- por seguranca funcional, quando o read model nao encontra vinculos locais
+  para o aluno, a rota continua caindo em fallback ao monolito, evitando
+  mascarar diferenca entre aluno inexistente e aluno existente sem
+  responsaveis.
+
 ### Fase 115 - Abertura fisica do `enrollment-document-service` por `transferencia`
 
 Entregue nesta fase:

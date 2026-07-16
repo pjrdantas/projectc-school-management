@@ -113,6 +113,30 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
+    private static final String KINSHIP_SOURCE_QUERY = """
+            SELECT id_parentesco, codigo, descricao
+            FROM parentesco
+            ORDER BY codigo
+            LIMIT ?
+            """;
+
+    private static final String KINSHIP_TARGET_QUERY = """
+            SELECT id_parentesco, codigo, descricao
+            FROM parentesco
+            ORDER BY codigo
+            """;
+
+    private static final String KINSHIP_UPDATE_QUERY = """
+            UPDATE parentesco
+               SET codigo = ?, descricao = ?
+             WHERE id_parentesco = ?
+            """;
+
+    private static final String KINSHIP_INSERT_QUERY = """
+            INSERT INTO parentesco (id_parentesco, codigo, descricao)
+            VALUES (?, ?, ?)
+            """;
+
     private final ResponsiblesReadModelSourceProperties sourceProperties;
     private final ResponsiblesReadModelMigrationProperties targetProperties;
 
@@ -128,6 +152,7 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
         if (!StringUtils.hasText(sourceProperties.sourceUrl()) || !StringUtils.hasText(targetProperties.url())) {
             return List.of(
                     blockedReport("responsavel", "id_responsavel", backfillEnabled),
+                    blockedReport("parentesco", "id_parentesco", backfillEnabled),
                     blockedReport("aluno_responsavel", "id_aluno_responsavel", backfillEnabled));
         }
 
@@ -164,6 +189,27 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
                     sourceRows.size(),
                     targetRows.size(),
                     backfilledRecords));
+
+            List<ParentescoRow> sourceKinships = readKinshipSourceRows(source, batchSize);
+            int backfilledKinships = 0;
+            if (backfillEnabled) {
+                for (ParentescoRow row : sourceKinships) {
+                    backfilledKinships += upsertKinship(target, row);
+                }
+            }
+            List<ParentescoRow> targetKinships = readKinshipTargetRows(target);
+            reports.add(new TableOperationReport(
+                    "parentesco",
+                    "id_parentesco",
+                    "monolith_jdbc",
+                    "responsibles_read_model",
+                    "success",
+                    "responsibles-read-model-backfill-completed",
+                    backfillEnabled,
+                    true,
+                    sourceKinships.size(),
+                    targetKinships.size(),
+                    backfilledKinships));
 
             List<AlunoResponsavelRow> sourceStudentLinks = readStudentLinkSourceRows(source, batchSize);
             int backfilledStudentLinks = 0;
@@ -255,6 +301,30 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
         }
     }
 
+    private List<ParentescoRow> readKinshipSourceRows(Connection source, int batchSize) throws SQLException {
+        try (var statement = source.prepareStatement(KINSHIP_SOURCE_QUERY)) {
+            statement.setInt(1, Math.max(batchSize, 1));
+            try (var resultSet = statement.executeQuery()) {
+                List<ParentescoRow> rows = new ArrayList<>();
+                while (resultSet.next()) {
+                    rows.add(mapKinship(resultSet));
+                }
+                return rows;
+            }
+        }
+    }
+
+    private List<ParentescoRow> readKinshipTargetRows(Connection target) throws SQLException {
+        try (var statement = target.prepareStatement(KINSHIP_TARGET_QUERY);
+                var resultSet = statement.executeQuery()) {
+            List<ParentescoRow> rows = new ArrayList<>();
+            while (resultSet.next()) {
+                rows.add(mapKinship(resultSet));
+            }
+            return rows;
+        }
+    }
+
     private int upsert(Connection target, ResponsavelRow row) throws SQLException {
         try (var update = target.prepareStatement(UPDATE_QUERY)) {
             bindUpdate(update, row);
@@ -279,6 +349,24 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
         }
         try (var insert = target.prepareStatement(STUDENT_LINK_INSERT_QUERY)) {
             bindStudentLinkInsert(insert, row);
+            return insert.executeUpdate();
+        }
+    }
+
+    private int upsertKinship(Connection target, ParentescoRow row) throws SQLException {
+        try (var update = target.prepareStatement(KINSHIP_UPDATE_QUERY)) {
+            update.setString(1, row.codigo());
+            update.setString(2, row.descricao());
+            update.setObject(3, row.id());
+            int updated = update.executeUpdate();
+            if (updated > 0) {
+                return updated;
+            }
+        }
+        try (var insert = target.prepareStatement(KINSHIP_INSERT_QUERY)) {
+            insert.setObject(1, row.id());
+            insert.setString(2, row.codigo());
+            insert.setString(3, row.descricao());
             return insert.executeUpdate();
         }
     }
@@ -377,6 +465,13 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
                 createdAt == null ? null : createdAt.toLocalDateTime());
     }
 
+    private ParentescoRow mapKinship(java.sql.ResultSet resultSet) throws SQLException {
+        return new ParentescoRow(
+                resultSet.getObject("id_parentesco", UUID.class),
+                resultSet.getString("codigo"),
+                resultSet.getString("descricao"));
+    }
+
     private boolean readBoolean(java.sql.ResultSet resultSet, String column) throws SQLException {
         boolean value = resultSet.getBoolean(column);
         return resultSet.wasNull() ? false : value;
@@ -426,6 +521,18 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
             Objects.requireNonNull(id);
             Objects.requireNonNull(alunoId);
             Objects.requireNonNull(responsavelId);
+        }
+    }
+
+    private record ParentescoRow(
+            UUID id,
+            String codigo,
+            String descricao) {
+
+        private ParentescoRow {
+            Objects.requireNonNull(id);
+            Objects.requireNonNull(codigo);
+            Objects.requireNonNull(descricao);
         }
     }
 }

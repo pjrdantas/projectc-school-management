@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.escola.responsiblesservice.application.context.InternalRequestContext;
+import br.com.escola.responsiblesservice.application.dto.ResponsavelAlunoVinculadoReadModelResponse;
 import br.com.escola.responsiblesservice.application.dto.ResponsavelReadModelResponse;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelLocalReadPort;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelReadPort;
@@ -29,6 +30,7 @@ class ResponsavelQueryServiceTest {
         ResponsavelQueryService service = new ResponsavelQueryService(
                 provider(new FakeLocalReadPort(
                         Optional.of(List.of(responsavel("Maria Local"))),
+                        Optional.empty(),
                         Optional.empty(),
                         false)),
                 new FakeMonolithReadPort(monolithCalls),
@@ -48,12 +50,50 @@ class ResponsavelQueryServiceTest {
         AtomicInteger monolithCalls = new AtomicInteger();
         UUID responsavelId = UUID.fromString("00000000-0000-0000-0000-000000000601");
         ResponsavelQueryService service = new ResponsavelQueryService(
-                provider(new FakeLocalReadPort(Optional.empty(), Optional.empty(), false)),
+                provider(new FakeLocalReadPort(Optional.empty(), Optional.empty(), Optional.empty(), false)),
                 new FakeMonolithReadPort(monolithCalls),
                 new ResponsiblesReadModelProperties(true, false, true, false, 500, false, true),
                 new ObjectMapper().findAndRegisterModules());
 
         var response = service.buscarResponsavelPorId("Bearer token", context(), responsavelId);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).contains("Monolito");
+        assertThat(monolithCalls).hasValue(1);
+    }
+
+    @Test
+    void devePreferirLeituraLocalPorAlunoQuandoVinculoExisteNoReadModel() {
+        AtomicInteger monolithCalls = new AtomicInteger();
+        ResponsavelQueryService service = new ResponsavelQueryService(
+                provider(new FakeLocalReadPort(
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.of(List.of(responsavelVinculado("Mae Local"))),
+                        false)),
+                new FakeMonolithReadPort(monolithCalls),
+                new ResponsiblesReadModelProperties(true, false, true, false, 500, false, true),
+                new ObjectMapper().findAndRegisterModules());
+
+        var response = service.listarResponsaveisPorAluno("Bearer token", context(),
+                UUID.fromString("00000000-0000-0000-0000-000000000401"));
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).contains("Mae Local");
+        assertThat(monolithCalls).hasValue(0);
+    }
+
+    @Test
+    void deveFazerFallbackParaOMonolitoQuandoVinculoLocalNaoExiste() {
+        AtomicInteger monolithCalls = new AtomicInteger();
+        ResponsavelQueryService service = new ResponsavelQueryService(
+                provider(new FakeLocalReadPort(Optional.empty(), Optional.empty(), Optional.empty(), false)),
+                new FakeMonolithReadPort(monolithCalls),
+                new ResponsiblesReadModelProperties(true, false, true, false, 500, false, true),
+                new ObjectMapper().findAndRegisterModules());
+
+        var response = service.listarResponsaveisPorAluno("Bearer token", context(),
+                UUID.fromString("00000000-0000-0000-0000-000000000401"));
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody()).contains("Monolito");
@@ -111,17 +151,42 @@ class ResponsavelQueryServiceTest {
                 LocalDateTime.of(2026, 7, 16, 10, 0));
     }
 
+    private ResponsavelAlunoVinculadoReadModelResponse responsavelVinculado(String nome) {
+        return new ResponsavelAlunoVinculadoReadModelResponse(
+                UUID.fromString("00000000-0000-0000-0000-000000000601"),
+                nome,
+                "98765432100",
+                "maria@example.com",
+                "11988887777",
+                "1234567",
+                "01001000",
+                "Rua Central",
+                "100",
+                "Casa",
+                "Centro",
+                "Sao Paulo",
+                "SP",
+                "MAE",
+                true,
+                false,
+                true,
+                LocalDateTime.of(2026, 7, 16, 10, 0));
+    }
+
     private static class FakeLocalReadPort implements ResponsavelLocalReadPort {
         private final Optional<List<ResponsavelReadModelResponse>> listResponse;
         private final Optional<ResponsavelReadModelResponse> detailResponse;
+        private final Optional<List<ResponsavelAlunoVinculadoReadModelResponse>> studentLinkResponse;
         private final boolean fail;
 
         private FakeLocalReadPort(
                 Optional<List<ResponsavelReadModelResponse>> listResponse,
                 Optional<ResponsavelReadModelResponse> detailResponse,
+                Optional<List<ResponsavelAlunoVinculadoReadModelResponse>> studentLinkResponse,
                 boolean fail) {
             this.listResponse = listResponse;
             this.detailResponse = detailResponse;
+            this.studentLinkResponse = studentLinkResponse;
             this.fail = fail;
         }
 
@@ -139,6 +204,16 @@ class ResponsavelQueryServiceTest {
                 throw new IllegalStateException("forced-local-error");
             }
             return detailResponse;
+        }
+
+        @Override
+        public Optional<List<ResponsavelAlunoVinculadoReadModelResponse>> listarResponsaveisPorAluno(
+                UUID alunoId,
+                UUID escolaId) {
+            if (fail) {
+                throw new IllegalStateException("forced-local-error");
+            }
+            return studentLinkResponse;
         }
     }
 
@@ -180,7 +255,8 @@ class ResponsavelQueryServiceTest {
             calls.incrementAndGet();
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body("[]");
+                    .body("[{\"id\":\"" + UUID.fromString("00000000-0000-0000-0000-000000000601")
+                            + "\",\"nomeCompleto\":\"Monolito\",\"parentesco\":\"MAE\"}]");
         }
     }
 }

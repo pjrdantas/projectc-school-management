@@ -4269,3 +4269,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   leitura oficial de `GET /api/alunos/{alunoId}/responsaveis`.
 - Validacao executada apenas no modulo tocado:
   `mvn -pl responsibles-service test`.
+
+### Fase 209
+
+- O `responsibles-service` passou a ativar o primeiro adapter de leitura local
+  para `GET /api/alunos/{alunoId}/responsaveis`, reutilizando o read model
+  local do dominio antes de recorrer ao monolito.
+- Para manter o contrato da rota com `parentesco`, foi adicionada a migration
+  `V3__create_responsibles_link_catalog_read_model.sql` e o backfill controlado
+  passou a sincronizar tambem a tabela local `parentesco`, alem de
+  `responsavel` e `aluno_responsavel`.
+- O adapter JDBC local passou a retornar os campos do vinculo e do detalhe do
+  responsavel (`parentesco`, `responsavelFinanceiro`,
+  `responsavelPedagogico`, `autorizadoRetirar`, RG e endereco), mas continua
+  em fallback quando nao encontra vinculos locais para o aluno, preservando o
+  comportamento funcional do contrato oficial.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl responsibles-service clean test`.

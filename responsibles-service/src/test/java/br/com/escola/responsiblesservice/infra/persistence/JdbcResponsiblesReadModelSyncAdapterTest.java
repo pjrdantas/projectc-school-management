@@ -16,7 +16,7 @@ import br.com.escola.responsiblesservice.infra.config.ResponsiblesReadModelSourc
 class JdbcResponsiblesReadModelSyncAdapterTest {
 
     @Test
-    void deveExecutarBackfillControladoDasTabelasResponsavelEAlunoResponsavel() throws Exception {
+    void deveExecutarBackfillControladoDasTabelasResponsavelParentescoEAlunoResponsavel() throws Exception {
         String sourceUrl = h2Url("responsibles_sync_source_" + UUID.randomUUID());
         String targetUrl = h2Url("responsibles_sync_target_" + UUID.randomUUID());
         criarSchemaOrigem(sourceUrl);
@@ -28,13 +28,16 @@ class JdbcResponsiblesReadModelSyncAdapterTest {
 
         var reports = adapter.synchronize(true, 100);
 
-        assertThat(reports).hasSize(2);
+        assertThat(reports).hasSize(3);
         assertThat(reports).allMatch(report -> report.status().equals("success"));
         assertThat(reports.get(0).table()).isEqualTo("responsavel");
         assertThat(reports.get(0).backfilledRecords()).isEqualTo(1);
-        assertThat(reports.get(1).table()).isEqualTo("aluno_responsavel");
+        assertThat(reports.get(1).table()).isEqualTo("parentesco");
         assertThat(reports.get(1).backfilledRecords()).isEqualTo(1);
+        assertThat(reports.get(2).table()).isEqualTo("aluno_responsavel");
+        assertThat(reports.get(2).backfilledRecords()).isEqualTo(1);
         assertThat(contarLinhasDestino(targetUrl, "responsavel")).isEqualTo(1);
+        assertThat(contarLinhasDestino(targetUrl, "parentesco")).isEqualTo(1);
         assertThat(contarLinhasDestino(targetUrl, "aluno_responsavel")).isEqualTo(1);
     }
 
@@ -46,7 +49,7 @@ class JdbcResponsiblesReadModelSyncAdapterTest {
 
         var reports = adapter.synchronize(true, 100);
 
-        assertThat(reports).hasSize(2);
+        assertThat(reports).hasSize(3);
         assertThat(reports).allMatch(report -> report.status().equals("blocked"));
     }
 
@@ -74,6 +77,13 @@ class JdbcResponsiblesReadModelSyncAdapterTest {
                         id_responsavel UUID PRIMARY KEY,
                         id_pessoa UUID NOT NULL,
                         created_at TIMESTAMP NOT NULL
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE parentesco (
+                        id_parentesco UUID PRIMARY KEY,
+                        codigo VARCHAR(40) NOT NULL,
+                        descricao VARCHAR(120) NOT NULL
                     )
                     """);
             statement.execute("""
@@ -119,6 +129,10 @@ class JdbcResponsiblesReadModelSyncAdapterTest {
             statement.execute("""
                     INSERT INTO responsavel (id_responsavel, id_pessoa, created_at) VALUES
                     ('00000000-0000-0000-0000-000000000601', '00000000-0000-0000-0000-000000000701', TIMESTAMP '2026-07-16 10:00:00')
+                    """);
+            statement.execute("""
+                    INSERT INTO parentesco (id_parentesco, codigo, descricao) VALUES
+                    ('00000000-0000-0000-0000-000000000301', 'MAE', 'Mae')
                     """);
             statement.execute("""
                     INSERT INTO aluno_responsavel (
@@ -167,6 +181,15 @@ class JdbcResponsiblesReadModelSyncAdapterTest {
                         id_escola UUID NOT NULL,
                         escola_nome VARCHAR(150),
                         created_at TIMESTAMP NOT NULL
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE parentesco (
+                        id_parentesco UUID NOT NULL PRIMARY KEY,
+                        codigo VARCHAR(40) NOT NULL,
+                        descricao VARCHAR(120) NOT NULL,
+                        CONSTRAINT uk_parentesco_codigo
+                            UNIQUE (codigo)
                     )
                     """);
             statement.execute("""

@@ -6,10 +6,12 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
+import br.com.escola.responsiblesservice.application.dto.ResponsavelAlunoVinculadoReadModelResponse;
 import br.com.escola.responsiblesservice.infra.config.ResponsiblesReadModelMigrationProperties;
 
 class JdbcResponsavelReadModelAdapterTest {
@@ -46,6 +48,43 @@ class JdbcResponsavelReadModelAdapterTest {
         assertThat(response.get().cpf()).isEqualTo("98765432100");
     }
 
+    @Test
+    void deveListarResponsaveisPorAlunoComCamposDoVinculoNoReadModelLocal() throws Exception {
+        String url = h2Url("responsibles_read_student_link_" + UUID.randomUUID());
+        UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
+        UUID alunoId = UUID.fromString("00000000-0000-0000-0000-000000000401");
+        criarSchemaEPopular(url);
+        JdbcResponsavelReadModelAdapter adapter = new JdbcResponsavelReadModelAdapter(
+                new ResponsiblesReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+
+        Optional<List<ResponsavelAlunoVinculadoReadModelResponse>> response = adapter.listarResponsaveisPorAluno(alunoId,
+                escolaId);
+
+        assertThat(response).isPresent();
+        assertThat(response.orElseThrow()).singleElement().satisfies(responsavel -> {
+            assertThat(responsavel.nomeCompleto()).isEqualTo("Maria Souza");
+            assertThat(responsavel.parentesco()).isEqualTo("MAE");
+            assertThat(responsavel.responsavelFinanceiro()).isTrue();
+            assertThat(responsavel.responsavelPedagogico()).isFalse();
+            assertThat(responsavel.autorizadoRetirar()).isTrue();
+        });
+    }
+
+    @Test
+    void deveFazerFallbackQuandoAlunoNaoTemVinculoNoReadModelLocal() throws Exception {
+        String url = h2Url("responsibles_read_student_link_missing_" + UUID.randomUUID());
+        UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
+        criarSchemaEPopular(url);
+        JdbcResponsavelReadModelAdapter adapter = new JdbcResponsavelReadModelAdapter(
+                new ResponsiblesReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+
+        var response = adapter.listarResponsaveisPorAluno(
+                UUID.fromString("00000000-0000-0000-0000-000000000499"),
+                escolaId);
+
+        assertThat(response).isEmpty();
+    }
+
     private String h2Url(String dbName) {
         return "jdbc:h2:mem:" + dbName + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1";
     }
@@ -74,6 +113,29 @@ class JdbcResponsavelReadModelAdapterTest {
                     )
                     """);
             statement.execute("""
+                    CREATE TABLE parentesco (
+                        id_parentesco UUID NOT NULL PRIMARY KEY,
+                        codigo VARCHAR(40) NOT NULL,
+                        descricao VARCHAR(120) NOT NULL
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE aluno_responsavel (
+                        id_aluno_responsavel UUID NOT NULL PRIMARY KEY,
+                        id_aluno UUID NOT NULL,
+                        id_responsavel UUID NOT NULL,
+                        id_parentesco UUID,
+                        responsavel_financeiro BOOLEAN NOT NULL DEFAULT FALSE,
+                        responsavel_pedagogico BOOLEAN NOT NULL DEFAULT FALSE,
+                        autorizado_retirar BOOLEAN NOT NULL DEFAULT FALSE,
+                        created_at TIMESTAMP NOT NULL,
+                        CONSTRAINT fk_parentesco
+                            FOREIGN KEY (id_parentesco) REFERENCES parentesco(id_parentesco),
+                        CONSTRAINT fk_responsavel
+                            FOREIGN KEY (id_responsavel) REFERENCES responsavel(id_responsavel)
+                    )
+                    """);
+            statement.execute("""
                     INSERT INTO responsavel (
                         id_responsavel, nome_completo, cpf, email, telefone, rg,
                         cep, logradouro, numero, complemento, bairro, cidade, uf,
@@ -94,6 +156,28 @@ class JdbcResponsavelReadModelAdapterTest {
                         'SP',
                         '00000000-0000-0000-0000-000000000047',
                         'Escola padrao',
+                        TIMESTAMP '2026-07-16 10:00:00'
+                    )
+                    """);
+            statement.execute("""
+                    INSERT INTO parentesco (id_parentesco, codigo, descricao) VALUES (
+                        '00000000-0000-0000-0000-000000000301',
+                        'MAE',
+                        'Mae'
+                    )
+                    """);
+            statement.execute("""
+                    INSERT INTO aluno_responsavel (
+                        id_aluno_responsavel, id_aluno, id_responsavel, id_parentesco,
+                        responsavel_financeiro, responsavel_pedagogico, autorizado_retirar, created_at
+                    ) VALUES (
+                        '00000000-0000-0000-0000-000000000501',
+                        '00000000-0000-0000-0000-000000000401',
+                        '00000000-0000-0000-0000-000000000601',
+                        '00000000-0000-0000-0000-000000000301',
+                        TRUE,
+                        FALSE,
+                        TRUE,
                         TIMESTAMP '2026-07-16 10:00:00'
                     )
                     """);

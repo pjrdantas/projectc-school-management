@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import br.com.escola.responsiblesservice.application.dto.ResponsavelAlunoVinculadoReadModelResponse;
 import br.com.escola.responsiblesservice.application.dto.ResponsavelReadModelResponse;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelLocalReadPort;
 import br.com.escola.responsiblesservice.infra.config.ResponsiblesReadModelMigrationProperties;
@@ -38,6 +39,33 @@ public class JdbcResponsavelReadModelAdapter implements ResponsavelLocalReadPort
             FROM responsavel
             WHERE id_responsavel = ?
               AND id_escola = ?
+            """;
+
+    private static final String STUDENT_LINK_QUERY = """
+            SELECT r.id_responsavel,
+                   r.nome_completo,
+                   r.cpf,
+                   r.email,
+                   r.telefone,
+                   r.rg,
+                   r.cep,
+                   r.logradouro,
+                   r.numero,
+                   r.complemento,
+                   r.bairro,
+                   r.cidade,
+                   r.uf,
+                   p.codigo AS parentesco_codigo,
+                   ar.responsavel_financeiro,
+                   ar.responsavel_pedagogico,
+                   ar.autorizado_retirar,
+                   r.created_at
+            FROM aluno_responsavel ar
+              JOIN responsavel r ON r.id_responsavel = ar.id_responsavel
+              LEFT JOIN parentesco p ON p.id_parentesco = ar.id_parentesco
+            WHERE ar.id_aluno = ?
+              AND r.id_escola = ?
+            ORDER BY r.nome_completo
             """;
 
     private final ResponsiblesReadModelMigrationProperties properties;
@@ -96,6 +124,29 @@ public class JdbcResponsavelReadModelAdapter implements ResponsavelLocalReadPort
         }
     }
 
+    @Override
+    public Optional<List<ResponsavelAlunoVinculadoReadModelResponse>> listarResponsaveisPorAluno(
+            UUID alunoId,
+            UUID escolaId) {
+        requireUrl();
+        loadDriver();
+
+        try (var connection = DriverManager.getConnection(properties.url(), properties.username(), properties.password());
+                var statement = connection.prepareStatement(STUDENT_LINK_QUERY)) {
+            statement.setObject(1, alunoId);
+            statement.setObject(2, escolaId);
+            try (var resultSet = statement.executeQuery()) {
+                List<ResponsavelAlunoVinculadoReadModelResponse> responsaveis = new ArrayList<>();
+                while (resultSet.next()) {
+                    responsaveis.add(mapStudentLink(resultSet));
+                }
+                return responsaveis.isEmpty() ? Optional.empty() : Optional.of(List.copyOf(responsaveis));
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("responsibles-local-read-student-link-failed", exception);
+        }
+    }
+
     private ResponsavelReadModelResponse map(ResultSet resultSet) throws SQLException {
         Timestamp createdAt = resultSet.getTimestamp("created_at");
         return new ResponsavelReadModelResponse(
@@ -114,6 +165,29 @@ public class JdbcResponsavelReadModelAdapter implements ResponsavelLocalReadPort
                 resultSet.getString("uf"),
                 resultSet.getObject("id_escola", UUID.class),
                 resultSet.getString("escola_nome"),
+                createdAt == null ? null : createdAt.toLocalDateTime());
+    }
+
+    private ResponsavelAlunoVinculadoReadModelResponse mapStudentLink(ResultSet resultSet) throws SQLException {
+        Timestamp createdAt = resultSet.getTimestamp("created_at");
+        return new ResponsavelAlunoVinculadoReadModelResponse(
+                resultSet.getObject("id_responsavel", UUID.class),
+                resultSet.getString("nome_completo"),
+                resultSet.getString("cpf"),
+                resultSet.getString("email"),
+                resultSet.getString("telefone"),
+                resultSet.getString("rg"),
+                resultSet.getString("cep"),
+                resultSet.getString("logradouro"),
+                resultSet.getString("numero"),
+                resultSet.getString("complemento"),
+                resultSet.getString("bairro"),
+                resultSet.getString("cidade"),
+                resultSet.getString("uf"),
+                resultSet.getString("parentesco_codigo"),
+                getBoolean(resultSet, "responsavel_financeiro"),
+                getBoolean(resultSet, "responsavel_pedagogico"),
+                getBoolean(resultSet, "autorizado_retirar"),
                 createdAt == null ? null : createdAt.toLocalDateTime());
     }
 
@@ -140,5 +214,10 @@ public class JdbcResponsavelReadModelAdapter implements ResponsavelLocalReadPort
 
     private String normalizeValue(String value) {
         return StringUtils.hasText(value) ? value.trim() : null;
+    }
+
+    private Boolean getBoolean(ResultSet resultSet, String column) throws SQLException {
+        boolean value = resultSet.getBoolean(column);
+        return resultSet.wasNull() ? null : value;
     }
 }

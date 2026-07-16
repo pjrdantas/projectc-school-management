@@ -87,6 +87,21 @@ public class ResponsavelQueryService implements ResponsavelQueryUseCase {
             String authorization,
             InternalRequestContext context,
             UUID alunoId) {
+        if (readModelProperties.enabled() && readModelProperties.localReadRoutingEnabled()) {
+            ResponsavelLocalReadPort localReadPort = responsavelLocalReadPortProvider.getIfAvailable();
+            if (localReadPort != null) {
+                try {
+                    var localResponse = localReadPort.listarResponsaveisPorAluno(alunoId, context.escolaId());
+                    if (localResponse.isPresent()) {
+                        return json(localResponse.get());
+                    }
+                } catch (RuntimeException exception) {
+                    if (!readModelProperties.fallbackEnabled()) {
+                        throw exception;
+                    }
+                }
+            }
+        }
         return responsavelReadPort.listarResponsaveisPorAluno(authorization, context, alunoId);
     }
 
