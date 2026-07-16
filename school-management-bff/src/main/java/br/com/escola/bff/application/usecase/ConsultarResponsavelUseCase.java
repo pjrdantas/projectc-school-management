@@ -8,6 +8,12 @@ import reactor.core.publisher.Mono;
 
 public interface ConsultarResponsavelUseCase {
 
+    Mono<ResponseEntity<String>> listarResponsaveis(
+            String authorization,
+            String correlationId,
+            String nome,
+            String cpf);
+
     Mono<ResponseEntity<String>> buscarResponsavelPorId(
             String authorization,
             String correlationId,

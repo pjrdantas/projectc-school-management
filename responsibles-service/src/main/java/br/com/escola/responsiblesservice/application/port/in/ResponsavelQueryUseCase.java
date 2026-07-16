@@ -8,6 +8,12 @@ import br.com.escola.responsiblesservice.application.context.InternalRequestCont
 
 public interface ResponsavelQueryUseCase {
 
+    ResponseEntity<String> listarResponsaveis(
+            String authorization,
+            InternalRequestContext context,
+            String nome,
+            String cpf);
+
     ResponseEntity<String> buscarResponsavelPorId(
             String authorization,
             InternalRequestContext context,

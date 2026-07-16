@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,6 +25,15 @@ public class ResponsavelInternalController {
 
     public ResponsavelInternalController(ResponsavelQueryUseCase responsavelQueryUseCase) {
         this.responsavelQueryUseCase = responsavelQueryUseCase;
+    }
+
+    @GetMapping("/responsaveis")
+    public ResponseEntity<String> listarResponsaveis(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) String cpf) {
+        return responsavelQueryUseCase.listarResponsaveis(authorization, context, nome, cpf);
     }
 
     @GetMapping("/responsaveis/{id}")

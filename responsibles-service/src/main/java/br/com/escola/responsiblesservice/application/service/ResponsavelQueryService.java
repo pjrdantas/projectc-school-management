@@ -19,6 +19,15 @@ public class ResponsavelQueryService implements ResponsavelQueryUseCase {
     }
 
     @Override
+    public ResponseEntity<String> listarResponsaveis(
+            String authorization,
+            InternalRequestContext context,
+            String nome,
+            String cpf) {
+        return responsavelReadPort.listarResponsaveis(authorization, context, nome, cpf);
+    }
+
+    @Override
     public ResponseEntity<String> buscarResponsavelPorId(
             String authorization,
             InternalRequestContext context,

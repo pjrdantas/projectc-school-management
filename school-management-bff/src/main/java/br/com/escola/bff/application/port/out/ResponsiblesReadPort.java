@@ -10,6 +10,12 @@ import reactor.core.publisher.Mono;
 
 public interface ResponsiblesReadPort {
 
+    Mono<ResponseEntity<String>> listarResponsaveis(
+            String nome,
+            String cpf,
+            CatalogReadQuery query,
+            AuthSessionContext context);
+
     Mono<ResponseEntity<String>> buscarResponsavelPorId(
             UUID responsavelId,
             CatalogReadQuery query,

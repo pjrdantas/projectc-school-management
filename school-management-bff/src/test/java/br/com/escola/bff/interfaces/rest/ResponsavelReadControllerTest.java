@@ -18,6 +18,33 @@ import reactor.core.publisher.Mono;
 class ResponsavelReadControllerTest {
 
     @Test
+    void deveDelegarLeituraOficialDeResponsaveisComFiltrosMinimos() {
+        ConsultarResponsavelUseCase useCase = org.mockito.Mockito.mock(ConsultarResponsavelUseCase.class);
+        when(useCase.listarResponsaveis("Bearer token", "corr-responsavel-0", "Maria", "98765432100"))
+                .thenReturn(Mono.just(ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body("""
+                                [{"id":"00000000-0000-0000-0000-000000000601","nomeCompleto":"Maria Souza"}]
+                                """)));
+
+        WebTestClient client = WebTestClient.bindToController(new ResponsavelReadController(useCase))
+                .build();
+
+        client.get().uri(uriBuilder -> uriBuilder.path("/api/responsaveis")
+                        .queryParam("nome", "Maria")
+                        .queryParam("cpf", "98765432100")
+                        .build())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-responsavel-0")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].nomeCompleto").isEqualTo("Maria Souza");
+
+        verify(useCase).listarResponsaveis("Bearer token", "corr-responsavel-0", "Maria", "98765432100");
+    }
+
+    @Test
     void deveDelegarLeituraOficialDeResponsavelPorId() {
         ConsultarResponsavelUseCase useCase = org.mockito.Mockito.mock(ConsultarResponsavelUseCase.class);
         UUID responsavelId = UUID.fromString("00000000-0000-0000-0000-000000000601");

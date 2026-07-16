@@ -6236,6 +6236,25 @@ Entregue nesta fase:
   dois contratos oficiais minimos ja abertos neste ciclo:
   `GET /api/responsaveis/{id}` e `GET /api/alunos/{alunoId}/responsaveis`.
 
+### Fase 205 - Consolidacao da leitura ampla minima de `responsaveis` no `responsibles-service`
+
+Entregue nesta fase:
+
+- o menor recorte seguro para a leitura ampla foi fechado como a propria
+  semantica ja existente no legado para `GET /api/responsaveis`, limitada aos
+  filtros opcionais `nome` e `cpf`, sem paginacao nova, sem reordenacao e sem
+  escrita migrada;
+- o `school-management-bff` passou a oficializar `GET /api/responsaveis`
+  consumindo o `responsibles-service`, preservando o contrato externo atual;
+- o `responsibles-service` passou a expor internamente
+  `GET /internal/v1/responsaveis`, encapsulando o passthrough ao legado com os
+  mesmos filtros minimos `nome` e `cpf`;
+- com isso, o bloco oficial minimo de leitura de `responsaveis` fica
+  consolidado no servico novo para:
+  `GET /api/responsaveis`,
+  `GET /api/responsaveis/{id}` e
+  `GET /api/alunos/{alunoId}/responsaveis`.
+
 ### Fase 115 - Abertura fisica do `enrollment-document-service` por `transferencia`
 
 Entregue nesta fase:

@@ -23,6 +23,17 @@ public class ResponsavelReadProxyService implements ConsultarResponsavelUseCase 
     }
 
     @Override
+    public Mono<ResponseEntity<String>> listarResponsaveis(
+            String authorization,
+            String correlationId,
+            String nome,
+            String cpf) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> responsiblesReadPort.listarResponsaveis(nome, cpf, query, context));
+    }
+
+    @Override
     public Mono<ResponseEntity<String>> buscarResponsavelPorId(
             String authorization,
             String correlationId,

@@ -49,6 +49,44 @@ class ResponsavelReadProxyIntegrationTest {
     }
 
     @Test
+    void deveConsumirResponsiblesServiceNaListagemMinimaDeResponsaveis() throws InterruptedException {
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao"
+                        }
+                        """));
+
+        RESPONSIBLES.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{
+                          "id":"00000000-0000-0000-0000-000000000601",
+                          "nomeCompleto":"Maria Souza"
+                        }]
+                        """));
+
+        client.get().uri(uriBuilder -> uriBuilder.path("/api/responsaveis")
+                        .queryParam("nome", "Maria")
+                        .queryParam("cpf", "98765432100")
+                        .build())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-responsavel-0")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].nomeCompleto").isEqualTo("Maria Souza");
+
+        var contextRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
+        var responsiblesRequest = RESPONSIBLES.takeRequest();
+        assertThat(responsiblesRequest.getPath()).isEqualTo("/internal/v1/responsaveis?nome=Maria&cpf=98765432100");
+    }
+
+    @Test
     void deveConsumirResponsiblesServiceNoDetalheDeResponsavel() throws InterruptedException {
         UUID responsavelId = UUID.fromString("00000000-0000-0000-0000-000000000601");
 
