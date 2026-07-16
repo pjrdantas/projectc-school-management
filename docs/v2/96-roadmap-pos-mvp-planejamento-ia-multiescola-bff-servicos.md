@@ -8342,3 +8342,23 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 5 fases
 restantes no escopo fechado atual.
+
+### Fase 198 - Oficializacao da leitura de `dashboard/frontend`
+
+- o `dashboard-query-service` passou a expor o sexto contrato interno oficial
+  do ciclo: `GET /internal/v1/dashboard/frontend`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/frontend`, preservando bearer, correlation ID, o
+  payload legado e os filtros opcionais `usuarioId` e `professorId`;
+- o fluxo continua somente de leitura, sem migracao de escrita de
+  configuracoes, snapshots ou administracao de dashboard nesta etapa;
+- o fallback para o monolito continua ativo quando falharem a resolucao de
+  contexto no `identity-access-service` ou a leitura no
+  `dashboard-query-service`, retornando ao endpoint legado
+  `/api/dashboard/frontend`;
+- validacao executada apenas nos modulos tocados:
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff -Dtest=DashboardFrontendReadProxyIntegrationTest test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 4 fases
+restantes no escopo fechado atual.
