@@ -4148,3 +4148,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff -Dtest=DashboardIndicadorHistoricoReadProxyIntegrationTest test`.
 - Contagem regressiva do novo ciclo fechado do `dashboard-query-service`:
   2 fases restantes no escopo fechado atual.
+
+### Fase 201
+
+- O `dashboard-query-service` passou a publicar
+  `GET /internal/v1/dashboard/configuracoes/publicos` como nono contrato
+  interno oficial do ciclo de leitura de dashboard.
+- O `school-management-bff` passou a oficializar
+  `GET /api/dashboard/configuracoes/publicos` via `dashboard-query-service`,
+  preservando bearer, correlation ID e o payload legado da listagem de
+  publicos.
+- O recorte permaneceu estritamente read-only; criacao, atualizacao e exclusao
+  de publicos, dashboards e widgets continuam no monolito fora desta etapa.
+- O fallback para o monolito continua ativo quando o
+  `identity-access-service` ou o `dashboard-query-service` falharem nessa
+  leitura, retornando ao endpoint legado
+  `/api/dashboard/configuracoes/publicos`.
+- Validacao executada apenas nos modulos tocados:
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff -Dtest=DashboardPublicoReadProxyIntegrationTest test`.
+- Contagem regressiva do novo ciclo fechado do `dashboard-query-service`:
+  1 fase restante no escopo fechado atual.

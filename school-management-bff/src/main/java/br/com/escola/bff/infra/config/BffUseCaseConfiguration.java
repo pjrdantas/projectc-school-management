@@ -23,6 +23,7 @@ import br.com.escola.bff.application.port.out.DashboardFrontendReadPort;
 import br.com.escola.bff.application.port.out.DashboardIndicadorHistoricoReadPort;
 import br.com.escola.bff.application.port.out.DashboardIndicadorSnapshotReadPort;
 import br.com.escola.bff.application.port.out.DashboardProfessorReadPort;
+import br.com.escola.bff.application.port.out.DashboardPublicoReadPort;
 import br.com.escola.bff.application.port.out.DashboardSecretariaReadPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentAlunoReadPort;
 import br.com.escola.bff.application.port.out.EnrollmentDocumentReadPort;
@@ -44,6 +45,7 @@ import br.com.escola.bff.application.port.out.MonolithDashboardFrontendReadPort;
 import br.com.escola.bff.application.port.out.MonolithDashboardIndicadorHistoricoReadPort;
 import br.com.escola.bff.application.port.out.MonolithDashboardIndicadorSnapshotReadPort;
 import br.com.escola.bff.application.port.out.MonolithDashboardProfessorReadPort;
+import br.com.escola.bff.application.port.out.MonolithDashboardPublicoReadPort;
 import br.com.escola.bff.application.port.out.MonolithDashboardSecretariaReadPort;
 import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
 import br.com.escola.bff.application.port.out.MonolithAuthSessionPort;
@@ -91,6 +93,7 @@ import br.com.escola.bff.application.service.DashboardFrontendReadProxyService;
 import br.com.escola.bff.application.service.DashboardIndicadorHistoricoReadProxyService;
 import br.com.escola.bff.application.service.DashboardIndicadorSnapshotReadProxyService;
 import br.com.escola.bff.application.service.DashboardProfessorReadProxyService;
+import br.com.escola.bff.application.service.DashboardPublicoReadProxyService;
 import br.com.escola.bff.application.service.DashboardSecretariaReadProxyService;
 import br.com.escola.bff.application.service.DisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.DocumentoAlunoReadProxyService;
@@ -136,6 +139,7 @@ import br.com.escola.bff.application.usecase.ConsultarDashboardFrontendUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDashboardIndicadorHistoricoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDashboardProfessorUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDashboardSecretariaUseCase;
+import br.com.escola.bff.application.usecase.ListarDashboardPublicoUseCase;
 import br.com.escola.bff.application.usecase.ListarDashboardIndicadorSnapshotUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoAlunoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoUseCase;
@@ -298,6 +302,17 @@ public class BffUseCaseConfiguration {
                 authContextPort,
                 dashboardIndicadorHistoricoReadPort,
                 monolithDashboardIndicadorHistoricoReadPort);
+    }
+
+    @Bean
+    ListarDashboardPublicoUseCase listarDashboardPublicoUseCase(
+            InternalAuthContextPort authContextPort,
+            DashboardPublicoReadPort dashboardPublicoReadPort,
+            MonolithDashboardPublicoReadPort monolithDashboardPublicoReadPort) {
+        return new DashboardPublicoReadProxyService(
+                authContextPort,
+                dashboardPublicoReadPort,
+                monolithDashboardPublicoReadPort);
     }
 
     @Bean
