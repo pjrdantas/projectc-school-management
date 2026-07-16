@@ -8297,3 +8297,26 @@ Entregue nesta fase:
 
 Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 7 fases
 restantes no escopo fechado atual.
+
+### Fase 196 - Oficializacao da leitura de `dashboard/professores/{professorId}`
+
+Entregue nesta fase:
+
+- o `dashboard-query-service` passou a expor o quarto contrato interno oficial
+  do ciclo: `GET /internal/v1/dashboard/professores/{professorId}`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/professores/{professorId}` consumindo o novo servico,
+  preservando bearer, correlation ID e contexto autenticado resolvido via
+  `identity-access-service`;
+- o payload externo do professor foi preservado integralmente, incluindo
+  indicadores de aulas, frequencias, avaliacoes, planejamentos e o bloco de
+  turmas vinculadas por professor;
+- o fallback operacional permaneceu no BFF para indisponibilidade de
+  `identity-access-service` ou `dashboard-query-service`, retornando ao
+  endpoint legado do monolito sem alterar contrato externo;
+- a validacao ficou restrita aos modulos tocados com
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff "-Dtest=DashboardProfessorReadProxyIntegrationTest" test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 6 fases
+restantes no escopo fechado atual.

@@ -4046,3 +4046,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff "-Dtest=DashboardDiretorReadProxyIntegrationTest" test`.
 - Contagem regressiva do novo ciclo fechado do `dashboard-query-service`:
   7 fases restantes no escopo fechado atual.
+
+### Fase 196
+
+- O `dashboard-query-service` passou a publicar
+  `GET /internal/v1/dashboard/professores/{professorId}` como quarto contrato
+  interno oficial do ciclo.
+- O `school-management-bff` passou a oficializar
+  `GET /api/dashboard/professores/{professorId}` via
+  `dashboard-query-service`, preservando bearer, correlation ID e contexto
+  autenticado resolvido por `identity-access-service`.
+- O payload externo do professor foi mantido sem alteracoes, incluindo os
+  indicadores de aulas, frequencias, avaliacoes, planejamentos e a lista de
+  turmas vinculadas.
+- O fallback operacional permaneceu no BFF: se `identity-access-service` ou
+  `dashboard-query-service` falharem nessa leitura, o retorno volta para o
+  endpoint legado `/api/dashboard/professores/{professorId}` do monolito.
+- A validacao desta fase ficou restrita aos modulos tocados com
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff "-Dtest=DashboardProfessorReadProxyIntegrationTest" test`.
+- Contagem regressiva do novo ciclo fechado do `dashboard-query-service`:
+  6 fases restantes no escopo fechado atual.
