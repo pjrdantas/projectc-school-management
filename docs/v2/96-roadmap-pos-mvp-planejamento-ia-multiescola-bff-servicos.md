@@ -503,7 +503,8 @@ proprietario futuro de todas as familias REST encontradas no monolito.
 | --- | --- | --- |
 | `/api/auth`, `/api/usuarios`, `/api/perfis`, `/api/permissoes` | identity-access | BFF continua sendo a fachada externa |
 | `/api/periodos-letivos`, `/api/series`, `/api/turnos`, `/api/turmas`, `/api/disciplinas`, `/api/catalogos/academicos` | academic-catalog | primeiro corte pelo strangler |
-| `/api/alunos`, `/api/responsaveis`, `/api/alunos/{id}/responsaveis`, `/api/pessoas/catalogos`, consultas cadastrais | people | exclusao coordenada com enrollment |
+| `/api/alunos`, `/api/alunos/{id}/responsaveis`, `/api/pessoas/catalogos`, consultas cadastrais | people | exclusao coordenada com enrollment |
+| detalhe minimo de `/api/responsaveis/{id}` | responsibles | servico novo aberto sem listar `/api/responsaveis` |
 | CRUD de `/api/professores` | people | alocacoes nao pertencem ao people service |
 | alocacoes de professor e `/api/turmas/{id}/professores` | pedagogical | referencia professor e turma somente por ID |
 | `/api/matriculas`, seus catalogos, etapas e documentos | enrollment-document | validacoes externas por portas |
@@ -6195,9 +6196,27 @@ Entregue nesta fase:
   fechamento por depender de contrato de listagem mais amplo e semantica de
   filtro ainda nao migrada.
 
-Contagem regressiva da nova macrofase de `responsaveis`: 1 fase restante
-exata. O `people-service` continua fechado; o que resta e apenas concluir ou
-encerrar esta nova macrofase independente.
+### Fase 203 - Abertura fisica do `responsibles-service` com detalhe minimo oficial por id
+
+Entregue nesta fase:
+
+- a macrofase backend de `responsaveis` foi concluida pelo menor recorte ainda
+  pendente, sem reabrir `people-service`, sem migrar escrita e sem tocar no
+  frontend;
+- foi aberto fisicamente o novo modulo `responsibles-service`, com contrato
+  interno `GET /internal/v1/responsaveis/{id}` protegido por token interno e
+  dependencia legada isolada em client dedicado para `GET /api/responsaveis/{id}`;
+- o `school-management-bff` passou a oficializar `GET /api/responsaveis/{id}`
+  consumindo o `responsibles-service`, preservando o contrato externo atual por
+  id e mantendo a listagem ampla `GET /api/responsaveis` fora do recorte;
+- o modelo de dados local desta abertura permanece deliberadamente minimo:
+  nesta primeira implementacao nao houve shadow/read model proprio de
+  `responsavel`, apenas separacao do contrato interno e do acoplamento com o
+  legado em servico novo independente.
+
+Contagem regressiva da nova macrofase de `responsaveis`: 0 fases restantes
+neste ciclo fechado. O `people-service` continua encerrado e o
+`responsibles-service` passa a concentrar a proxima evolucao desse dominio.
 
 ### Fase 115 - Abertura fisica do `enrollment-document-service` por `transferencia`
 

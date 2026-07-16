@@ -2379,10 +2379,10 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `GET /api/alunos/{alunoId}/responsaveis` consumindo o
   `people-service`, preservando o contrato externo atual e mantendo
   `GET /api/responsaveis` fora do recorte inicial.
-- A contagem dessa nova macrofase fica fechada em 2 fases totais:
-  a Fase 114, concluida, e 1 unica fase restante para decidir e, se aprovado,
-  oficializar o detalhe minimo de `responsavel` por id. Nao existe reabertura
-  do `people-service` nessa contagem.
+- A contagem dessa nova macrofase ficou fechada em 2 fases totais:
+  a Fase 114, concluida, e a Fase 203, que abriu fisicamente o
+  `responsibles-service` e oficializou o detalhe minimo de `responsavel` por
+  id. Nao existe reabertura do `people-service` nessa contagem.
 - A validacao do modulo tocado foi executada com
   `mvn -pl people-service "-Dtest=JdbcAlunoResponsavelAdapterTest,PessoaInternalQueryControllerIntegrationTest,PeopleReadModelMigrationRunnerTest,PessoaQueryServiceTest,JdbcPeopleCatalogReadModelSyncAdapterTest" test`
   e com

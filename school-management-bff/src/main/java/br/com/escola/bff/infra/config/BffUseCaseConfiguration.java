@@ -62,6 +62,7 @@ import br.com.escola.bff.application.port.out.PeopleAlunoResponsavelReadPort;
 import br.com.escola.bff.application.port.out.PeopleCatalogReadPort;
 import br.com.escola.bff.application.port.out.PeopleFuncionarioReadPort;
 import br.com.escola.bff.application.port.out.PeoplePessoaReadPort;
+import br.com.escola.bff.application.port.out.ResponsiblesReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalAvaliacaoPort;
 import br.com.escola.bff.application.port.out.PedagogicalAulaPort;
 import br.com.escola.bff.application.port.out.PedagogicalBoletimReadPort;
@@ -122,6 +123,7 @@ import br.com.escola.bff.application.service.PlanejamentoIaInteracaoReadProxySer
 import br.com.escola.bff.application.service.PessoaCatalogReadProxyService;
 import br.com.escola.bff.application.service.PessoaDetailReadProxyService;
 import br.com.escola.bff.application.service.ProfessorReadProxyService;
+import br.com.escola.bff.application.service.ResponsavelReadProxyService;
 import br.com.escola.bff.application.service.SerieWriteRoutingService;
 import br.com.escola.bff.application.service.TransferenciaReadProxyService;
 import br.com.escola.bff.application.service.TransferenciaWriteProxyService;
@@ -170,6 +172,7 @@ import br.com.escola.bff.application.usecase.AtualizarHistoricoEscolarUseCase;
 import br.com.escola.bff.application.usecase.SalvarDiarioClasseUseCase;
 import br.com.escola.bff.application.usecase.ConsultarMatriculaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarProfessorUseCase;
+import br.com.escola.bff.application.usecase.ConsultarResponsavelUseCase;
 import br.com.escola.bff.application.usecase.ConsultarTenantAtivoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarTransferenciaUseCase;
 import br.com.escola.bff.application.usecase.CreateDisciplinaUseCase;
@@ -251,6 +254,13 @@ public class BffUseCaseConfiguration {
             InternalAuthContextPort authContextPort,
             PeopleAlunoResponsavelReadPort peopleAlunoResponsavelReadPort) {
         return new AlunoResponsavelReadProxyService(authContextPort, peopleAlunoResponsavelReadPort);
+    }
+
+    @Bean
+    ConsultarResponsavelUseCase consultarResponsavelUseCase(
+            InternalAuthContextPort authContextPort,
+            ResponsiblesReadPort responsiblesReadPort) {
+        return new ResponsavelReadProxyService(authContextPort, responsiblesReadPort);
     }
 
     @Bean

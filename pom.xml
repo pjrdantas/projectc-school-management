@@ -25,6 +25,7 @@
         <module>academic-catalog-service</module>
         <module>academic-professor-service</module>
         <module>people-service</module>
+        <module>responsibles-service</module>
         <module>enrollment-document-service</module>
         <module>pedagogical-service</module>
         <module>planning-ai-service</module>
