@@ -6274,6 +6274,24 @@ Entregue nesta fase:
   fase atua somente dentro do `responsibles-service` para preparar o proximo
   ciclo de independencia funcional real.
 
+### Fase 207 - Primeiro backfill controlado do read model local de `responsaveis`
+
+Entregue nesta fase:
+
+- foi implementado o primeiro backfill controlado do read model local de
+  `responsaveis`, ainda opt-in e restrito a uma unica tabela local
+  `responsavel`;
+- o `responsibles-service` ganhou properties de origem dedicadas
+  (`responsibles.read-model.source.*`), batch configuravel e runner de startup
+  para executar o ciclo apenas quando `backfill-enabled` estiver ligado;
+- o adapter JDBC de sincronizacao passou a ler a origem diretamente do banco do
+  monolito com join em `responsavel`, `pessoa`, `escola`, `pessoa_endereco`
+  principal e `endereco`, preenchendo no destino exatamente os campos exigidos
+  pelos contratos de lista e detalhe ja oficializados;
+- nao houve ainda reconciliacao completa, cutover automatico, backfill de
+  vinculos `aluno_responsavel` nem remocao do fallback ao monolito; esta fase
+  prepara apenas a primeira massa controlada de dados locais para o dominio.
+
 ### Fase 115 - Abertura fisica do `enrollment-document-service` por `transferencia`
 
 Entregue nesta fase:

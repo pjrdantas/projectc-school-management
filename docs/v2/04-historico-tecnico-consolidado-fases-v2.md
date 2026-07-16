@@ -2436,6 +2436,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl responsibles-service test`,
   em `BUILD SUCCESS`.
 
+### Fase 207
+
+- Foi implementado o primeiro backfill controlado do read model local dentro do
+  `responsibles-service`, ainda sem alterar o contrato externo no BFF.
+- O modulo passou a ter source properties opt-in, batch configuravel,
+  coordinator, startup runner e adapter JDBC de sincronizacao apenas da tabela
+  local `responsavel`.
+- O SQL de origem do backfill passou a materializar o payload completo de
+  leitura minima de `responsavel` a partir do banco do monolito, incluindo
+  escola e endereco principal, para sustentar futuramente `GET /api/responsaveis`
+  e `GET /api/responsaveis/{id}` com base local real.
+- A validacao do modulo tocado foi executada com
+  `mvn -pl responsibles-service test`,
+  em `BUILD SUCCESS`.
+
 ### Fase 115
 
 - O `people-service` foi mantido como encerrado. A nova macrofase backend passa

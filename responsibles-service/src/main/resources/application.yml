@@ -14,8 +14,15 @@ responsibles:
     enabled: ${RESPONSIBLES_READ_MODEL_ENABLED:false}
     migration-enabled: ${RESPONSIBLES_READ_MODEL_MIGRATION_ENABLED:false}
     local-read-routing-enabled: ${RESPONSIBLES_LOCAL_READ_ROUTING_ENABLED:false}
+    backfill-enabled: ${RESPONSIBLES_READ_MODEL_BACKFILL_ENABLED:false}
+    backfill-batch-size: ${RESPONSIBLES_READ_MODEL_BACKFILL_BATCH_SIZE:500}
     fail-on-error: ${RESPONSIBLES_READ_MODEL_FAIL_ON_ERROR:false}
     fallback-enabled: ${RESPONSIBLES_READ_MODEL_FALLBACK_ENABLED:true}
+    source:
+      source-url: ${RESPONSIBLES_READ_MODEL_SOURCE_URL:}
+      source-username: ${RESPONSIBLES_READ_MODEL_SOURCE_USERNAME:}
+      source-password: ${RESPONSIBLES_READ_MODEL_SOURCE_PASSWORD:}
+      source-driver-class-name: ${RESPONSIBLES_READ_MODEL_SOURCE_DRIVER:}
     schema-migration:
       url: ${RESPONSIBLES_READ_MODEL_DB_URL:}
       username: ${RESPONSIBLES_READ_MODEL_DB_USERNAME:}

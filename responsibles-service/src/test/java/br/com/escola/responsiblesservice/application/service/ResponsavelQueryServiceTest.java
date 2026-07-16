@@ -32,7 +32,7 @@ class ResponsavelQueryServiceTest {
                         Optional.empty(),
                         false)),
                 new FakeMonolithReadPort(monolithCalls),
-                new ResponsiblesReadModelProperties(true, false, true, false, true),
+                new ResponsiblesReadModelProperties(true, false, true, false, 500, false, true),
                 new ObjectMapper().findAndRegisterModules());
 
         var response = service.listarResponsaveis("Bearer token", context(), "Maria", null);
@@ -50,7 +50,7 @@ class ResponsavelQueryServiceTest {
         ResponsavelQueryService service = new ResponsavelQueryService(
                 provider(new FakeLocalReadPort(Optional.empty(), Optional.empty(), false)),
                 new FakeMonolithReadPort(monolithCalls),
-                new ResponsiblesReadModelProperties(true, false, true, false, true),
+                new ResponsiblesReadModelProperties(true, false, true, false, 500, false, true),
                 new ObjectMapper().findAndRegisterModules());
 
         var response = service.buscarResponsavelPorId("Bearer token", context(), responsavelId);
