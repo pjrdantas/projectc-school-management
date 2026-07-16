@@ -8362,3 +8362,23 @@ restantes no escopo fechado atual.
 
 Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 4 fases
 restantes no escopo fechado atual.
+
+### Fase 199 - Oficializacao da leitura de `dashboard/snapshots/publicos/{publicoCodigo}`
+
+- o `dashboard-query-service` passou a expor o setimo contrato interno oficial
+  do ciclo: `GET /internal/v1/dashboard/snapshots/publicos/{publicoCodigo}`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/snapshots/publicos/{publicoCodigo}`, preservando bearer,
+  correlation ID, payload legado e o filtro opcional `referenciaData`;
+- o recorte permaneceu estritamente read-only; historico, geracao e escrita de
+  snapshots continuam fora desta etapa;
+- o fallback para o monolito continua ativo quando falharem a resolucao de
+  contexto no `identity-access-service` ou a leitura no
+  `dashboard-query-service`, retornando ao endpoint legado
+  `/api/dashboard/snapshots/publicos/{publicoCodigo}`;
+- validacao executada apenas nos modulos tocados:
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff -Dtest=DashboardIndicadorSnapshotReadProxyIntegrationTest test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 3 fases
+restantes no escopo fechado atual.
