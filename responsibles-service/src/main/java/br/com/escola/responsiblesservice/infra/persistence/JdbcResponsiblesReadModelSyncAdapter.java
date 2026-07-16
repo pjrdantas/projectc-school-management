@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
@@ -71,6 +72,47 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
+    private static final String STUDENT_LINK_SOURCE_QUERY = """
+            SELECT id_aluno_responsavel,
+                   id_aluno,
+                   id_responsavel,
+                   id_parentesco,
+                   responsavel_financeiro,
+                   responsavel_pedagogico,
+                   autorizado_retirar,
+                   created_at
+            FROM aluno_responsavel
+            ORDER BY id_aluno, id_responsavel
+            LIMIT ?
+            """;
+
+    private static final String STUDENT_LINK_TARGET_QUERY = """
+            SELECT id_aluno_responsavel,
+                   id_aluno,
+                   id_responsavel,
+                   id_parentesco,
+                   responsavel_financeiro,
+                   responsavel_pedagogico,
+                   autorizado_retirar,
+                   created_at
+            FROM aluno_responsavel
+            ORDER BY id_aluno, id_responsavel
+            """;
+
+    private static final String STUDENT_LINK_UPDATE_QUERY = """
+            UPDATE aluno_responsavel
+               SET id_aluno = ?, id_responsavel = ?, id_parentesco = ?, responsavel_financeiro = ?,
+                   responsavel_pedagogico = ?, autorizado_retirar = ?, created_at = ?
+             WHERE id_aluno_responsavel = ?
+            """;
+
+    private static final String STUDENT_LINK_INSERT_QUERY = """
+            INSERT INTO aluno_responsavel (
+                id_aluno_responsavel, id_aluno, id_responsavel, id_parentesco,
+                responsavel_financeiro, responsavel_pedagogico, autorizado_retirar, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """;
+
     private final ResponsiblesReadModelSourceProperties sourceProperties;
     private final ResponsiblesReadModelMigrationProperties targetProperties;
 
@@ -84,18 +126,9 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
     @Override
     public List<TableOperationReport> synchronize(boolean backfillEnabled, int batchSize) {
         if (!StringUtils.hasText(sourceProperties.sourceUrl()) || !StringUtils.hasText(targetProperties.url())) {
-            return List.of(new TableOperationReport(
-                    "responsavel",
-                    "id_responsavel",
-                    "monolith_jdbc",
-                    "responsibles_read_model",
-                    "blocked",
-                    "responsibles-read-model-source-or-target-url-required",
-                    backfillEnabled,
-                    true,
-                    0,
-                    0,
-                    0));
+            return List.of(
+                    blockedReport("responsavel", "id_responsavel", backfillEnabled),
+                    blockedReport("aluno_responsavel", "id_aluno_responsavel", backfillEnabled));
         }
 
         loadDriver(sourceProperties.sourceDriverClassName());
@@ -109,6 +142,8 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
                         targetProperties.url(),
                         targetProperties.username(),
                         targetProperties.password())) {
+            List<TableOperationReport> reports = new ArrayList<>();
+
             List<ResponsavelRow> sourceRows = readSourceRows(source, batchSize);
             int backfilledRecords = 0;
             if (backfillEnabled) {
@@ -117,7 +152,7 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
                 }
             }
             List<ResponsavelRow> targetRows = readTargetRows(target);
-            return List.of(new TableOperationReport(
+            reports.add(new TableOperationReport(
                     "responsavel",
                     "id_responsavel",
                     "monolith_jdbc",
@@ -129,9 +164,47 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
                     sourceRows.size(),
                     targetRows.size(),
                     backfilledRecords));
+
+            List<AlunoResponsavelRow> sourceStudentLinks = readStudentLinkSourceRows(source, batchSize);
+            int backfilledStudentLinks = 0;
+            if (backfillEnabled) {
+                for (AlunoResponsavelRow row : sourceStudentLinks) {
+                    backfilledStudentLinks += upsertStudentLink(target, row);
+                }
+            }
+            List<AlunoResponsavelRow> targetStudentLinks = readStudentLinkTargetRows(target);
+            reports.add(new TableOperationReport(
+                    "aluno_responsavel",
+                    "id_aluno_responsavel",
+                    "monolith_jdbc",
+                    "responsibles_read_model",
+                    "success",
+                    "responsibles-read-model-backfill-completed",
+                    backfillEnabled,
+                    true,
+                    sourceStudentLinks.size(),
+                    targetStudentLinks.size(),
+                    backfilledStudentLinks));
+
+            return List.copyOf(reports);
         } catch (SQLException exception) {
             throw new IllegalStateException("responsibles-read-model-sync-failed", exception);
         }
+    }
+
+    private TableOperationReport blockedReport(String table, String keyColumn, boolean backfillEnabled) {
+        return new TableOperationReport(
+                table,
+                keyColumn,
+                "monolith_jdbc",
+                "responsibles_read_model",
+                "blocked",
+                "responsibles-read-model-source-or-target-url-required",
+                backfillEnabled,
+                true,
+                0,
+                0,
+                0);
     }
 
     private List<ResponsavelRow> readSourceRows(Connection source, int batchSize) throws SQLException {
@@ -158,6 +231,30 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
         }
     }
 
+    private List<AlunoResponsavelRow> readStudentLinkSourceRows(Connection source, int batchSize) throws SQLException {
+        try (var statement = source.prepareStatement(STUDENT_LINK_SOURCE_QUERY)) {
+            statement.setInt(1, Math.max(batchSize, 1));
+            try (var resultSet = statement.executeQuery()) {
+                List<AlunoResponsavelRow> rows = new ArrayList<>();
+                while (resultSet.next()) {
+                    rows.add(mapStudentLink(resultSet));
+                }
+                return rows;
+            }
+        }
+    }
+
+    private List<AlunoResponsavelRow> readStudentLinkTargetRows(Connection target) throws SQLException {
+        try (var statement = target.prepareStatement(STUDENT_LINK_TARGET_QUERY);
+                var resultSet = statement.executeQuery()) {
+            List<AlunoResponsavelRow> rows = new ArrayList<>();
+            while (resultSet.next()) {
+                rows.add(mapStudentLink(resultSet));
+            }
+            return rows;
+        }
+    }
+
     private int upsert(Connection target, ResponsavelRow row) throws SQLException {
         try (var update = target.prepareStatement(UPDATE_QUERY)) {
             bindUpdate(update, row);
@@ -168,6 +265,20 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
         }
         try (var insert = target.prepareStatement(INSERT_QUERY)) {
             bindInsert(insert, row);
+            return insert.executeUpdate();
+        }
+    }
+
+    private int upsertStudentLink(Connection target, AlunoResponsavelRow row) throws SQLException {
+        try (var update = target.prepareStatement(STUDENT_LINK_UPDATE_QUERY)) {
+            bindStudentLinkUpdate(update, row);
+            int updated = update.executeUpdate();
+            if (updated > 0) {
+                return updated;
+            }
+        }
+        try (var insert = target.prepareStatement(STUDENT_LINK_INSERT_QUERY)) {
+            bindStudentLinkInsert(insert, row);
             return insert.executeUpdate();
         }
     }
@@ -210,6 +321,28 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
         statement.setTimestamp(16, row.createdAt() == null ? null : Timestamp.valueOf(row.createdAt()));
     }
 
+    private void bindStudentLinkUpdate(java.sql.PreparedStatement statement, AlunoResponsavelRow row) throws SQLException {
+        statement.setObject(1, row.alunoId());
+        statement.setObject(2, row.responsavelId());
+        statement.setObject(3, row.parentescoId());
+        statement.setBoolean(4, row.responsavelFinanceiro());
+        statement.setBoolean(5, row.responsavelPedagogico());
+        statement.setBoolean(6, row.autorizadoRetirar());
+        statement.setTimestamp(7, row.createdAt() == null ? null : Timestamp.valueOf(row.createdAt()));
+        statement.setObject(8, row.id());
+    }
+
+    private void bindStudentLinkInsert(java.sql.PreparedStatement statement, AlunoResponsavelRow row) throws SQLException {
+        statement.setObject(1, row.id());
+        statement.setObject(2, row.alunoId());
+        statement.setObject(3, row.responsavelId());
+        statement.setObject(4, row.parentescoId());
+        statement.setBoolean(5, row.responsavelFinanceiro());
+        statement.setBoolean(6, row.responsavelPedagogico());
+        statement.setBoolean(7, row.autorizadoRetirar());
+        statement.setTimestamp(8, row.createdAt() == null ? null : Timestamp.valueOf(row.createdAt()));
+    }
+
     private ResponsavelRow map(java.sql.ResultSet resultSet) throws SQLException {
         Timestamp createdAt = resultSet.getTimestamp("created_at");
         return new ResponsavelRow(
@@ -229,6 +362,24 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
                 resultSet.getObject("id_escola", UUID.class),
                 resultSet.getString("escola_nome"),
                 createdAt == null ? null : createdAt.toLocalDateTime());
+    }
+
+    private AlunoResponsavelRow mapStudentLink(java.sql.ResultSet resultSet) throws SQLException {
+        Timestamp createdAt = resultSet.getTimestamp("created_at");
+        return new AlunoResponsavelRow(
+                resultSet.getObject("id_aluno_responsavel", UUID.class),
+                resultSet.getObject("id_aluno", UUID.class),
+                resultSet.getObject("id_responsavel", UUID.class),
+                resultSet.getObject("id_parentesco", UUID.class),
+                readBoolean(resultSet, "responsavel_financeiro"),
+                readBoolean(resultSet, "responsavel_pedagogico"),
+                readBoolean(resultSet, "autorizado_retirar"),
+                createdAt == null ? null : createdAt.toLocalDateTime());
+    }
+
+    private boolean readBoolean(java.sql.ResultSet resultSet, String column) throws SQLException {
+        boolean value = resultSet.getBoolean(column);
+        return resultSet.wasNull() ? false : value;
     }
 
     private void loadDriver(String driverClassName) {
@@ -259,5 +410,22 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
             UUID escolaId,
             String escolaNome,
             java.time.LocalDateTime createdAt) {
+    }
+
+    private record AlunoResponsavelRow(
+            UUID id,
+            UUID alunoId,
+            UUID responsavelId,
+            UUID parentescoId,
+            boolean responsavelFinanceiro,
+            boolean responsavelPedagogico,
+            boolean autorizadoRetirar,
+            java.time.LocalDateTime createdAt) {
+
+        private AlunoResponsavelRow {
+            Objects.requireNonNull(id);
+            Objects.requireNonNull(alunoId);
+            Objects.requireNonNull(responsavelId);
+        }
     }
 }

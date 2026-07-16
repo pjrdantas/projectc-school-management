@@ -16,7 +16,7 @@ import br.com.escola.responsiblesservice.infra.config.ResponsiblesReadModelSourc
 class JdbcResponsiblesReadModelSyncAdapterTest {
 
     @Test
-    void deveExecutarBackfillControladoDaTabelaResponsavel() throws Exception {
+    void deveExecutarBackfillControladoDasTabelasResponsavelEAlunoResponsavel() throws Exception {
         String sourceUrl = h2Url("responsibles_sync_source_" + UUID.randomUUID());
         String targetUrl = h2Url("responsibles_sync_target_" + UUID.randomUUID());
         criarSchemaOrigem(sourceUrl);
@@ -28,10 +28,14 @@ class JdbcResponsiblesReadModelSyncAdapterTest {
 
         var reports = adapter.synchronize(true, 100);
 
-        assertThat(reports).hasSize(1);
-        assertThat(reports.getFirst().status()).isEqualTo("success");
-        assertThat(reports.getFirst().backfilledRecords()).isEqualTo(1);
-        assertThat(contarLinhasDestino(targetUrl)).isEqualTo(1);
+        assertThat(reports).hasSize(2);
+        assertThat(reports).allMatch(report -> report.status().equals("success"));
+        assertThat(reports.get(0).table()).isEqualTo("responsavel");
+        assertThat(reports.get(0).backfilledRecords()).isEqualTo(1);
+        assertThat(reports.get(1).table()).isEqualTo("aluno_responsavel");
+        assertThat(reports.get(1).backfilledRecords()).isEqualTo(1);
+        assertThat(contarLinhasDestino(targetUrl, "responsavel")).isEqualTo(1);
+        assertThat(contarLinhasDestino(targetUrl, "aluno_responsavel")).isEqualTo(1);
     }
 
     @Test
@@ -42,8 +46,8 @@ class JdbcResponsiblesReadModelSyncAdapterTest {
 
         var reports = adapter.synchronize(true, 100);
 
-        assertThat(reports).hasSize(1);
-        assertThat(reports.getFirst().status()).isEqualTo("blocked");
+        assertThat(reports).hasSize(2);
+        assertThat(reports).allMatch(report -> report.status().equals("blocked"));
     }
 
     private String h2Url(String dbName) {
@@ -69,6 +73,18 @@ class JdbcResponsiblesReadModelSyncAdapterTest {
                     CREATE TABLE responsavel (
                         id_responsavel UUID PRIMARY KEY,
                         id_pessoa UUID NOT NULL,
+                        created_at TIMESTAMP NOT NULL
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE aluno_responsavel (
+                        id_aluno_responsavel UUID PRIMARY KEY,
+                        id_aluno UUID NOT NULL,
+                        id_responsavel UUID NOT NULL,
+                        id_parentesco UUID,
+                        responsavel_financeiro BOOLEAN NOT NULL,
+                        responsavel_pedagogico BOOLEAN NOT NULL,
+                        autorizado_retirar BOOLEAN NOT NULL,
                         created_at TIMESTAMP NOT NULL
                     )
                     """);
@@ -105,6 +121,21 @@ class JdbcResponsiblesReadModelSyncAdapterTest {
                     ('00000000-0000-0000-0000-000000000601', '00000000-0000-0000-0000-000000000701', TIMESTAMP '2026-07-16 10:00:00')
                     """);
             statement.execute("""
+                    INSERT INTO aluno_responsavel (
+                        id_aluno_responsavel, id_aluno, id_responsavel, id_parentesco,
+                        responsavel_financeiro, responsavel_pedagogico, autorizado_retirar, created_at
+                    ) VALUES (
+                        '00000000-0000-0000-0000-000000000501',
+                        '00000000-0000-0000-0000-000000000401',
+                        '00000000-0000-0000-0000-000000000601',
+                        '00000000-0000-0000-0000-000000000301',
+                        TRUE,
+                        FALSE,
+                        TRUE,
+                        TIMESTAMP '2026-07-16 10:00:00'
+                    )
+                    """);
+            statement.execute("""
                     INSERT INTO endereco (id_endereco, cep, logradouro, numero, complemento, bairro, cidade, uf) VALUES
                     ('00000000-0000-0000-0000-000000000801', '01001000', 'Rua Central', '100', 'Casa', 'Centro', 'Sao Paulo', 'SP')
                     """);
@@ -138,12 +169,28 @@ class JdbcResponsiblesReadModelSyncAdapterTest {
                         created_at TIMESTAMP NOT NULL
                     )
                     """);
+            statement.execute("""
+                    CREATE TABLE aluno_responsavel (
+                        id_aluno_responsavel UUID NOT NULL PRIMARY KEY,
+                        id_aluno UUID NOT NULL,
+                        id_responsavel UUID NOT NULL,
+                        id_parentesco UUID,
+                        responsavel_financeiro BOOLEAN NOT NULL DEFAULT FALSE,
+                        responsavel_pedagogico BOOLEAN NOT NULL DEFAULT FALSE,
+                        autorizado_retirar BOOLEAN NOT NULL DEFAULT FALSE,
+                        created_at TIMESTAMP NOT NULL,
+                        CONSTRAINT fk_responsavel
+                            FOREIGN KEY (id_responsavel) REFERENCES responsavel(id_responsavel),
+                        CONSTRAINT uk_aluno_responsavel
+                            UNIQUE (id_aluno, id_responsavel)
+                    )
+                    """);
         }
     }
 
-    private int contarLinhasDestino(String url) throws SQLException {
+    private int contarLinhasDestino(String url, String tabela) throws SQLException {
         try (var connection = DriverManager.getConnection(url, "sa", "");
-                var statement = connection.prepareStatement("SELECT COUNT(*) FROM responsavel");
+                var statement = connection.prepareStatement("SELECT COUNT(*) FROM " + tabela);
                 var resultSet = statement.executeQuery()) {
             resultSet.next();
             return resultSet.getInt(1);

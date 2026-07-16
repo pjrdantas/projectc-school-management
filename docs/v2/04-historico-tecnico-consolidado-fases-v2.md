@@ -4252,3 +4252,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff -Dtest=DashboardConfiguracaoReadProxyIntegrationTest test`.
 - Contagem regressiva do novo ciclo fechado do `dashboard-query-service`:
   0 fases restantes no escopo fechado atual.
+
+### Fase 208
+
+- O `responsibles-service` passou a incluir a segunda tabela local minima do
+  dominio no ciclo controlado de backfill: `aluno_responsavel`.
+- A migration
+  `V2__create_responsibles_student_link_read_model.sql` formalizou o schema
+  local do vinculo com `id_aluno_responsavel`, `id_aluno`, `id_responsavel`,
+  `id_parentesco`, `responsavel_financeiro`, `responsavel_pedagogico`,
+  `autorizado_retirar` e `created_at`, sem abrir escrita e sem criar tabela
+  local adicional de `aluno` nesta etapa.
+- O adapter JDBC de sincronizacao do read model passou a fazer upsert opt-in de
+  `aluno_responsavel` no mesmo ciclo em que ja fazia o backfill de
+  `responsavel`, preservando IDs do monolito e mantendo o fallback atual para a
+  leitura oficial de `GET /api/alunos/{alunoId}/responsaveis`.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl responsibles-service test`.

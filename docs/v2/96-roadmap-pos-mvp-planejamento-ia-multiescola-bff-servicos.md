@@ -6292,6 +6292,26 @@ Entregue nesta fase:
   vinculos `aluno_responsavel` nem remocao do fallback ao monolito; esta fase
   prepara apenas a primeira massa controlada de dados locais para o dominio.
 
+### Fase 208 - Segundo backfill controlado do vinculo `aluno_responsavel`
+
+Entregue nesta fase:
+
+- o ciclo controlado de backfill do `responsibles-service` foi expandido para
+  incluir a segunda tabela local minima do dominio: `aluno_responsavel`;
+- o schema local do read model ganhou a migration
+  `V2__create_responsibles_student_link_read_model.sql`, preservando
+  `id_aluno_responsavel`, `id_aluno`, `id_responsavel`, `id_parentesco`,
+  `responsavel_financeiro`, `responsavel_pedagogico`, `autorizado_retirar` e
+  `created_at`, sem abrir escrita e sem introduzir tabela local adicional de
+  `aluno` nesta etapa;
+- o adapter JDBC de sincronizacao passou a ler `aluno_responsavel` direto do
+  banco do monolito e a fazer upsert controlado no read model local, mantendo
+  no mesmo ciclo o backfill anterior de `responsavel`;
+- nao houve ainda ativacao de leitura local para
+  `GET /api/alunos/{alunoId}/responsaveis`, reconciliacao completa nem remocao
+  do fallback ao monolito; esta fase entrega somente a massa local controlada
+  do vinculo para o proximo corte de independencia funcional.
+
 ### Fase 115 - Abertura fisica do `enrollment-document-service` por `transferencia`
 
 Entregue nesta fase:
