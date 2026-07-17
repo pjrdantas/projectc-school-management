@@ -45,7 +45,7 @@ public class IdentityTenantContextFallbackObservabilityTest {
                 })
                 .verify();
 
-        assertThat(observability.failureTarget).isEqualTo("identity_access");
+        assertThat(observability.failureTarget).isNull();
         assertThat(observability.fallbackTarget).isNull();
     }
 
@@ -70,7 +70,7 @@ public class IdentityTenantContextFallbackObservabilityTest {
                 })
                 .verify();
 
-        assertThat(observability.failureTarget).isEqualTo("identity_access");
+        assertThat(observability.failureTarget).isNull();
         assertThat(observability.fallbackTarget).isNull();
     }
 

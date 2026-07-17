@@ -4,7 +4,9 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import br.com.escola.bff.application.dto.AuthSessionContext;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
@@ -33,17 +35,15 @@ public class PainelConfiguracaoReadClient extends AbstractDownstreamClientSuppor
             String publicoCodigo,
             CatalogReadQuery query,
             AuthSessionContext context) {
+        var uriBuilder = UriComponentsBuilder.fromPath("/internal/v1/dashboard/configuracoes/dashboards");
+        if (publicoPainelId != null) {
+            uriBuilder.queryParam("publicoPainelId", publicoPainelId);
+        }
+        if (StringUtils.hasText(publicoCodigo)) {
+            uriBuilder.queryParam("publicoCodigo", publicoCodigo);
+        }
         return webClient.get()
-                .uri(uriBuilder -> {
-                    var builder = uriBuilder.path("/internal/v1/dashboard/configuracoes/dashboards");
-                    if (publicoPainelId != null) {
-                        builder.queryParam("publicoPainelId", publicoPainelId);
-                    }
-                    if (publicoCodigo != null) {
-                        builder.queryParam("publicoCodigo", publicoCodigo);
-                    }
-                    return builder.build();
-                })
+                .uri(uriBuilder.build(true).toUriString())
                 .header("Authorization", query.authorization())
                 .header("X-Internal-Token", properties.internalToken())
                 .header("X-Correlation-Id", query.correlationId())

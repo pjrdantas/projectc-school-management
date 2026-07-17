@@ -112,7 +112,7 @@ class PainelProfessorReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoPainelQueryFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoPainelQueryFalhar() throws InterruptedException {
         UUID professorId = UUID.fromString("00000000-0000-0000-0000-000000000401");
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -127,83 +127,40 @@ class PainelProfessorReadProxyIntegrationTest {
 
         DASHBOARD_QUERY.enqueue(new MockResponse().setResponseCode(503));
 
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {
-                          "escolaId":"00000000-0000-0000-0000-000000000047",
-                          "escolaNome":"Escola fallback",
-                          "professorId":"00000000-0000-0000-0000-000000000401",
-                          "turmasVinculadas":1,
-                          "alocacoesAtivas":1,
-                          "aulasPlanejadas":1,
-                          "aulasRealizadas":1,
-                          "frequenciasPendentes":1,
-                          "avaliacoesRegistradas":1,
-                          "avaliacoesComNotasPendentes":1,
-                          "planejamentosBimestrais":1,
-                          "planejamentosBimestraisPendentes":1,
-                          "turmas":[]
-                        }
-                        """));
-
         client.get().uri("/api/dashboard/professores/{professorId}", professorId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-prof-2")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.escolaNome").isEqualTo("Escola fallback");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         IDENTITY_ACCESS.takeRequest();
         var dashboardRequest = DASHBOARD_QUERY.takeRequest();
         assertThat(dashboardRequest.getPath()).isEqualTo("/internal/v1/dashboard/professores/" + professorId);
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/professores/" + professorId);
-        assertThat(monolithRequest.getHeader(TrustedHeaders.CORRELATION_ID)).isEqualTo("corr-dashboard-prof-2");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoIdentityAccessFalharNaResolucaoDeContexto() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoIdentityAccessFalharNaResolucaoDeContexto() throws InterruptedException {
         UUID professorId = UUID.fromString("00000000-0000-0000-0000-000000000401");
 
         IDENTITY_ACCESS.enqueue(new MockResponse().setResponseCode(503));
-
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {
-                          "escolaId":"00000000-0000-0000-0000-000000000047",
-                          "escolaNome":"Escola fallback contexto",
-                          "professorId":"00000000-0000-0000-0000-000000000401",
-                          "turmasVinculadas":1,
-                          "alocacoesAtivas":1,
-                          "aulasPlanejadas":1,
-                          "aulasRealizadas":1,
-                          "frequenciasPendentes":1,
-                          "avaliacoesRegistradas":1,
-                          "avaliacoesComNotasPendentes":1,
-                          "planejamentosBimestrais":1,
-                          "planejamentosBimestraisPendentes":1,
-                          "turmas":[]
-                        }
-                        """));
 
         client.get().uri("/api/dashboard/professores/{professorId}", professorId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-prof-3")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.escolaNome").isEqualTo("Escola fallback contexto");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         var authRequest = IDENTITY_ACCESS.takeRequest();
         assertThat(authRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         assertThat(DASHBOARD_QUERY.takeRequest(200, TimeUnit.MILLISECONDS)).isNull();
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/professores/" + professorId);
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

@@ -5,7 +5,9 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import br.com.escola.bff.application.context.TrustedHeaders;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
@@ -29,17 +31,15 @@ public class LegacyPainelConfiguracaoReadClient extends AbstractDownstreamClient
             UUID publicoPainelId,
             String publicoCodigo,
             CatalogReadQuery query) {
+        var uriBuilder = UriComponentsBuilder.fromPath("/api/dashboard/configuracoes/dashboards");
+        if (publicoPainelId != null) {
+            uriBuilder.queryParam("publicoPainelId", publicoPainelId);
+        }
+        if (StringUtils.hasText(publicoCodigo)) {
+            uriBuilder.queryParam("publicoCodigo", publicoCodigo);
+        }
         return webClient.get()
-                .uri(uriBuilder -> {
-                    var builder = uriBuilder.path("/api/dashboard/configuracoes/dashboards");
-                    if (publicoPainelId != null) {
-                        builder.queryParam("publicoPainelId", publicoPainelId);
-                    }
-                    if (publicoCodigo != null) {
-                        builder.queryParam("publicoCodigo", publicoCodigo);
-                    }
-                    return builder.build();
-                })
+                .uri(uriBuilder.build(true).toUriString())
                 .header(HttpHeaders.AUTHORIZATION, query.authorization())
                 .header(TrustedHeaders.CORRELATION_ID, query.correlationId())
                 .exchangeToMono(response -> handle(response, "Monolito indisponivel para dashboards de configuracao"))

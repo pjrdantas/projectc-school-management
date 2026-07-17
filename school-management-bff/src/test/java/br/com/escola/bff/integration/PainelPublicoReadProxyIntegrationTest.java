@@ -95,7 +95,7 @@ class PainelPublicoReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoPainelQueryServiceEstiverIndisponivel() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoPainelQueryServiceEstiverIndisponivel() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -107,51 +107,31 @@ class PainelPublicoReadProxyIntegrationTest {
                         """));
 
         DASHBOARD_QUERY.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [{
-                          "id":"00000000-0000-0000-0000-000000000602",
-                          "codigo":"DASH-CONF-SECRETARIA",
-                          "descricao":"Secretaria monolito"
-                        }]
-                        """));
 
         client.get().uri("/api/dashboard/configuracoes/publicos")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-publico-2")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].descricao").isEqualTo("Secretaria monolito");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/configuracoes/publicos");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoIdentityAccessFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoIdentityAccessFalhar() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [{
-                          "id":"00000000-0000-0000-0000-000000000603",
-                          "codigo":"DASH-CONF-PROFESSOR",
-                          "descricao":"Professor fallback"
-                        }]
-                        """));
 
         client.get().uri("/api/dashboard/configuracoes/publicos")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-publico-3")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].descricao").isEqualTo("Professor fallback");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/configuracoes/publicos");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

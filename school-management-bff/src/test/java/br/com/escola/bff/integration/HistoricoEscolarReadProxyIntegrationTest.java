@@ -124,7 +124,7 @@ class HistoricoEscolarReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoNoCarregamentoNovoQuandoPedagogicalServiceFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeNoCarregamentoNovoQuandoPedagogicalServiceFalhar() throws InterruptedException {
         UUID alunoId = UUID.randomUUID();
         UUID matriculaId = UUID.randomUUID();
 
@@ -135,11 +135,6 @@ class HistoricoEscolarReadProxyIntegrationTest {
                         """));
 
         PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {"contexto":{"idAluno":"%s","idMatricula":"%s","modo":"CADASTRO"}}
-                        """.formatted(alunoId, matriculaId)));
 
         client.get().uri(uriBuilder -> uriBuilder.path("/api/historicos-escolares/novo")
                         .queryParam("idAluno", alunoId)
@@ -148,18 +143,17 @@ class HistoricoEscolarReadProxyIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-history-3")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.contexto.idAluno").isEqualTo(alunoId.toString());
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         assertThat(PEDAGOGICAL.takeRequest().getPath()).isEqualTo(
                 "/internal/v1/historicos-escolares/novo?idAluno=" + alunoId + "&idMatricula=" + matriculaId + "&modo=CADASTRO");
-        assertThat(MONOLITH.takeRequest().getPath()).isEqualTo(
-                "/api/historicos-escolares/novo?idAluno=" + alunoId + "&idMatricula=" + matriculaId + "&modo=CADASTRO");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoNoCarregamentoDeEdicaoQuandoPedagogicalServiceFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeNoCarregamentoDeEdicaoQuandoPedagogicalServiceFalhar() throws InterruptedException {
         UUID historicoId = UUID.randomUUID();
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -169,22 +163,17 @@ class HistoricoEscolarReadProxyIntegrationTest {
                         """));
 
         PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {"contexto":{"idHistoricoEscolar":"%s","modo":"EDICAO"}}
-                        """.formatted(historicoId)));
 
         client.get().uri("/api/historicos-escolares/{id}/carregamento", historicoId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-history-4")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.contexto.idHistoricoEscolar").isEqualTo(historicoId.toString());
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         assertThat(PEDAGOGICAL.takeRequest().getPath()).isEqualTo("/internal/v1/historicos-escolares/" + historicoId + "/carregamento");
-        assertThat(MONOLITH.takeRequest().getPath()).isEqualTo("/api/historicos-escolares/" + historicoId + "/carregamento");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

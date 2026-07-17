@@ -106,7 +106,7 @@ class PainelIndicadorSnapshotReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoPainelQueryServiceEstiverIndisponivel() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoPainelQueryServiceEstiverIndisponivel() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -118,66 +118,31 @@ class PainelIndicadorSnapshotReadProxyIntegrationTest {
                         """));
 
         DASHBOARD_QUERY.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setHeader(TrustedHeaders.CORRELATION_ID, "corr-dashboard-snapshot-2")
-                .setBody("""
-                        [{
-                          "id":"00000000-0000-0000-0000-000000000502",
-                          "publicoPainelId":"00000000-0000-0000-0000-000000000202",
-                          "publicoCodigo":"DASH-SNAP-DIRETOR",
-                          "escolaId":"00000000-0000-0000-0000-000000000047",
-                          "escolaNome":"Escola monolito",
-                          "codigoIndicador":"TOTAL_MATRICULAS",
-                          "descricao":"Total de matriculas",
-                          "valorNumeric":118,
-                          "valorTexto":"118",
-                          "referenciaData":"2026-07-16"
-                        }]
-                        """));
 
         client.get().uri("/api/dashboard/snapshots/publicos/dash-snap-diretor")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-snapshot-2")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].escolaNome").isEqualTo("Escola monolito");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/snapshots/publicos/dash-snap-diretor");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoIdentityAccessFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoIdentityAccessFalhar() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [{
-                          "id":"00000000-0000-0000-0000-000000000503",
-                          "publicoPainelId":"00000000-0000-0000-0000-000000000203",
-                          "publicoCodigo":"DASH-SNAP-DIRETOR",
-                          "escolaId":"00000000-0000-0000-0000-000000000047",
-                          "escolaNome":"Fallback monolito",
-                          "codigoIndicador":"TOTAL_MATRICULAS",
-                          "descricao":"Total de matriculas",
-                          "valorNumeric":117,
-                          "valorTexto":"117",
-                          "referenciaData":"2026-07-16"
-                        }]
-                        """));
 
         client.get().uri("/api/dashboard/snapshots/publicos/dash-snap-diretor")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-snapshot-3")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].escolaNome").isEqualTo("Fallback monolito");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/snapshots/publicos/dash-snap-diretor");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

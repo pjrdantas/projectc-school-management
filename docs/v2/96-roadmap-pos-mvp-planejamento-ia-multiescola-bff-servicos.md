@@ -8931,6 +8931,19 @@ Definicao objetiva:
   `school-management-bff` para leituras ja oficializadas nos servicos novos;
 - o criterio dessa fase e deixar o BFF dependente apenas dos servicos novos nos
   fluxos que ja tiverem autonomia comprovada.
+- Fase concluida em `school-management-bff` para o bloco de leituras read-only
+  ja oficializado: `responsaveis`, `aluno-responsavel`, `consulta-cadastral`,
+  `boletim`, `aulas`, `avaliacoes`, `diario-classe`, `historico-escolar`,
+  `dashboard/**`, `tenant ativo`, `auth/escolas` e leituras de catalogo ja
+  publicadas pelo `academic-catalog-service`.
+- Os proxies de leitura do BFF deixaram de cair operacionalmente no monolito
+  quando o servico novo ou a resolucao oficial de contexto falha; nesses
+  cenarios o contrato externo passa a responder explicitamente
+  `503 CATALOG_UNAVAILABLE`.
+- A validacao da fase ficou concentrada no modulo tocado
+  `school-management-bff`, com suite direcionada de `83` testes verdes para o
+  recorte D3 e rerun do `mvn -pl school-management-bff test` para confirmar que
+  o endurecimento nao quebrou os demais fluxos do BFF.
 
 ### Fase D4 - Fechamento final de `identity-access-service`
 

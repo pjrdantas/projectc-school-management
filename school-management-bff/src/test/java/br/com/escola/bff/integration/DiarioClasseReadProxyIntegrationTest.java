@@ -97,7 +97,7 @@ class DiarioClasseReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoNaLeituraDeDiarioClasseQuandoPedagogicalServiceFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeNaLeituraDeDiarioClasseQuandoPedagogicalServiceFalhar() throws InterruptedException {
         UUID professorId = UUID.randomUUID();
         UUID turmaId = UUID.randomUUID();
         UUID disciplinaId = UUID.randomUUID();
@@ -109,11 +109,6 @@ class DiarioClasseReadProxyIntegrationTest {
                         """));
 
         PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {"cabecalho":{"idProfessor":"%s","idTurma":"%s","idDisciplina":"%s","anoLetivo":2058,"mes":6},"alunos":[{"nome":"Aluno Diario Monolito"}],"bloqueado":true}
-                        """.formatted(professorId, turmaId, disciplinaId)));
 
         client.get().uri(uriBuilder -> uriBuilder.path("/api/diarios-classe")
                         .queryParam("idProfessor", professorId)
@@ -126,17 +121,16 @@ class DiarioClasseReadProxyIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-diario-read-2")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.alunos[0].nome").isEqualTo("Aluno Diario Monolito")
-                .jsonPath("$.bloqueado").isEqualTo(true);
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         String expectedPath = "/api/diarios-classe?idProfessor=" + professorId
                 + "&idTurma=" + turmaId
                 + "&idDisciplina=" + disciplinaId
                 + "&anoLetivo=2058&mes=6&dataReferencia=2058-06-26";
         assertThat(PEDAGOGICAL.takeRequest().getPath()).isEqualTo(expectedPath.replace("/api/", "/internal/v1/"));
-        assertThat(MONOLITH.takeRequest().getPath()).isEqualTo(expectedPath);
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

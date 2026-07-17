@@ -148,7 +148,7 @@ class PainelAlertaReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoPainelQueryFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoPainelQueryFalhar() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -161,35 +161,19 @@ class PainelAlertaReadProxyIntegrationTest {
 
         DASHBOARD_QUERY.enqueue(new MockResponse().setResponseCode(503));
 
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [{
-                          "publicoCodigo":"DIRETOR",
-                          "professorId":null,
-                          "codigo":"TURMAS_LOTADAS",
-                          "severidade":"CRITICO",
-                          "titulo":"Turmas lotadas",
-                          "mensagem":"Existem turmas sem vagas disponíveis.",
-                          "valor":2,
-                          "limite":0
-                        }]
-                        """));
-
         client.get().uri(uriBuilder -> uriBuilder.path("/api/dashboard/alertas")
                         .queryParam("publicoCodigo", "diretor")
                         .build())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-alerta-3")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].codigo").isEqualTo("TURMAS_LOTADAS");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         IDENTITY_ACCESS.takeRequest();
         DASHBOARD_QUERY.takeRequest();
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/alertas?publicoCodigo=diretor");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

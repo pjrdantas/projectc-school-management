@@ -106,7 +106,7 @@ class PainelFrontendReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoPainelQueryServiceEstiverIndisponivel() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoPainelQueryServiceEstiverIndisponivel() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -118,21 +118,6 @@ class PainelFrontendReadProxyIntegrationTest {
                         """));
 
         DASHBOARD_QUERY.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setHeader(TrustedHeaders.CORRELATION_ID, "corr-dashboard-frontend-2")
-                .setBody("""
-                        {
-                          "publicoCodigo":"DIRETOR",
-                          "usuarioId":"00000000-0000-0000-0000-000000000101",
-                          "professorId":null,
-                          "resumo":{"escolaNome":"Escola monolito","totalMatriculas":118},
-                          "alertas":[],
-                          "dashboards":[],
-                          "configuracoesUsuario":[],
-                          "historico":[]
-                        }
-                        """));
 
         client.get().uri(uriBuilder -> uriBuilder.path("/api/dashboard/frontend")
                         .queryParam("publicoCodigo", "diretor")
@@ -140,31 +125,16 @@ class PainelFrontendReadProxyIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-frontend-2")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.resumo.escolaNome").isEqualTo("Escola monolito");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/frontend?publicoCodigo=diretor");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoIdentityAccessFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoIdentityAccessFalhar() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {
-                          "publicoCodigo":"DIRETOR",
-                          "usuarioId":null,
-                          "professorId":null,
-                          "resumo":{"escolaNome":"Fallback monolito","totalMatriculas":117},
-                          "alertas":[],
-                          "dashboards":[],
-                          "configuracoesUsuario":[],
-                          "historico":[]
-                        }
-                        """));
 
         client.get().uri(uriBuilder -> uriBuilder.path("/api/dashboard/frontend")
                         .queryParam("publicoCodigo", "diretor")
@@ -172,12 +142,11 @@ class PainelFrontendReadProxyIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-frontend-3")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.resumo.escolaNome").isEqualTo("Fallback monolito");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/frontend?publicoCodigo=diretor");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

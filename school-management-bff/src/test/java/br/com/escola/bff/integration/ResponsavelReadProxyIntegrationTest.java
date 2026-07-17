@@ -124,7 +124,7 @@ class ResponsavelReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoNaListagemQuandoResponsavelCatalogoServiceFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeNaListagemQuandoResponsavelCatalogoServiceFalhar() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -136,14 +136,6 @@ class ResponsavelReadProxyIntegrationTest {
                         """));
 
         RESPONSIBLES.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [{
-                          "id":"00000000-0000-0000-0000-000000000601",
-                          "nomeCompleto":"Monolito Lista"
-                        }]
-                        """));
 
         client.get().uri(uriBuilder -> uriBuilder.path("/api/responsaveis")
                         .queryParam("nome", "Maria")
@@ -151,16 +143,16 @@ class ResponsavelReadProxyIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-responsavel-fallback-0")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].nomeCompleto").isEqualTo("Monolito Lista");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         assertThat(RESPONSIBLES.takeRequest().getPath()).isEqualTo("/internal/v1/responsaveis?nome=Maria");
-        assertThat(MONOLITH.takeRequest().getPath()).isEqualTo("/api/responsaveis?nome=Maria");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoNoDetalheQuandoResponsavelCatalogoServiceFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeNoDetalheQuandoResponsavelCatalogoServiceFalhar() throws InterruptedException {
         UUID responsavelId = UUID.fromString("00000000-0000-0000-0000-000000000601");
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -174,25 +166,17 @@ class ResponsavelReadProxyIntegrationTest {
                         """));
 
         RESPONSIBLES.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {
-                          "id":"%s",
-                          "nomeCompleto":"Monolito Detalhe"
-                        }
-                        """.formatted(responsavelId)));
 
         client.get().uri("/api/responsaveis/{id}", responsavelId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-responsavel-fallback-1")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.nomeCompleto").isEqualTo("Monolito Detalhe");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         assertThat(RESPONSIBLES.takeRequest().getPath()).isEqualTo("/internal/v1/responsaveis/" + responsavelId);
-        assertThat(MONOLITH.takeRequest().getPath()).isEqualTo("/api/responsaveis/" + responsavelId);
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

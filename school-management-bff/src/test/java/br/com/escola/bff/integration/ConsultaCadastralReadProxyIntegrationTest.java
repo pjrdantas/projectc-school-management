@@ -24,6 +24,7 @@ import okhttp3.mockwebserver.MockWebServer;
 class ConsultaCadastralReadProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
+    private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer PEOPLE = startServer();
 
     @Autowired
@@ -32,6 +33,8 @@ class ConsultaCadastralReadProxyIntegrationTest {
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.people-service.base-url", () -> PEOPLE.url("/").toString());
         registry.add("clients.people-service.internal-token", () -> "people-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
@@ -40,12 +43,13 @@ class ConsultaCadastralReadProxyIntegrationTest {
     @AfterAll
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
+        IDENTITY_ACCESS.shutdown();
         PEOPLE.shutdown();
     }
 
     @Test
     void deveConsumirPeopleServiceNaConsultaCadastralOficial() throws InterruptedException {
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -78,12 +82,14 @@ class ConsultaCadastralReadProxyIntegrationTest {
                 .expectBody()
                 .jsonPath("$.content[0].nomeAluno").isEqualTo("Aluno Teste");
 
-        MONOLITH.takeRequest();
+        var authRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(authRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var peopleRequest = PEOPLE.takeRequest();
         assertThat(peopleRequest.getPath()).startsWith("/internal/v1/pessoas/consulta-cadastral?");
         assertThat(peopleRequest.getPath()).contains("nomeAluno=Aluno");
         assertThat(peopleRequest.getPath()).contains("page=0");
         assertThat(peopleRequest.getPath()).contains("size=20");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

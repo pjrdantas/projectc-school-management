@@ -2,7 +2,9 @@ package br.com.escola.bff.infra.webclient;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import br.com.escola.bff.application.dto.AuthSessionContext;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
@@ -34,25 +36,23 @@ public class ConsultaCadastralReadClient extends AbstractDownstreamClientSupport
             String cpfResponsavel,
             int page,
             int size) {
+        var uriBuilder = UriComponentsBuilder.fromPath("/internal/v1/pessoas/consulta-cadastral")
+                .queryParam("page", page)
+                .queryParam("size", size);
+        if (StringUtils.hasText(nomeAluno)) {
+            uriBuilder.queryParam("nomeAluno", nomeAluno);
+        }
+        if (StringUtils.hasText(cpfAluno)) {
+            uriBuilder.queryParam("cpfAluno", cpfAluno);
+        }
+        if (StringUtils.hasText(nomeResponsavel)) {
+            uriBuilder.queryParam("nomeResponsavel", nomeResponsavel);
+        }
+        if (StringUtils.hasText(cpfResponsavel)) {
+            uriBuilder.queryParam("cpfResponsavel", cpfResponsavel);
+        }
         return webClient.get()
-                .uri(uriBuilder -> {
-                    var builder = uriBuilder.path("/internal/v1/pessoas/consulta-cadastral")
-                            .queryParam("page", page)
-                            .queryParam("size", size);
-                    if (nomeAluno != null) {
-                        builder.queryParam("nomeAluno", nomeAluno);
-                    }
-                    if (cpfAluno != null) {
-                        builder.queryParam("cpfAluno", cpfAluno);
-                    }
-                    if (nomeResponsavel != null) {
-                        builder.queryParam("nomeResponsavel", nomeResponsavel);
-                    }
-                    if (cpfResponsavel != null) {
-                        builder.queryParam("cpfResponsavel", cpfResponsavel);
-                    }
-                    return builder.build();
-                })
+                .uri(uriBuilder.build(true).toUriString())
                 .header("Authorization", query.authorization())
                 .header("X-Internal-Token", properties.internalToken())
                 .header("X-Correlation-Id", query.correlationId())

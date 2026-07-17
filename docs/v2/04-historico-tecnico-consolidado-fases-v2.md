@@ -4701,3 +4701,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   rotas publicas atuais do `school-management-bff`.
 - Proxima fase operacional do ciclo fechado:
   `D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF`.
+
+### Fase D3
+
+- O `school-management-bff` deixou de usar fallback operacional ao monolito
+  nas leituras read-only ja oficializadas pelos servicos novos.
+- Foram endurecidos os proxies de leitura de `responsaveis`,
+  `aluno-responsavel`, `consulta-cadastral`, bloco pedagogico read-only
+  (`boletim`, `aulas`, `avaliacoes`, `diario-classe`, `historico-escolar`),
+  `tenant ativo`, `auth/escolas`, leituras de catalogo ja publicadas e o bloco
+  `dashboard/**`, de modo que falha do servico novo ou da resolucao oficial de
+  contexto agora resulte em `503 CATALOG_UNAVAILABLE`, sem retorno funcional ao
+  monolito.
+- A fase tambem consolidou os testes de integracao do BFF para o contrato novo
+  desse endurecimento, incluindo `CatalogReadCutoverIntegrationTest`,
+  `AuthSessionFallbackIntegrationTest`, leituras de `responsaveis`,
+  `consulta-cadastral` e os proxies de dashboard.
+- Validacao executada apenas no modulo tocado:
+  suite direcionada do D3 com `83` testes verdes e `mvn -pl school-management-bff test`
+  como validacao final do modulo apos o ajuste dos cenarios residuais de
+  `PainelConfiguracao` e `ConsultaCadastral`.
+- Proxima fase operacional do ciclo fechado:
+  `D4 - Fechamento final de identity-access-service`.

@@ -76,9 +76,7 @@ class PainelConfiguracaoReadProxyIntegrationTest {
                         }]
                         """));
 
-        client.get().uri(uriBuilder -> uriBuilder.path("/api/dashboard/configuracoes/dashboards")
-                        .queryParam("publicoCodigo", "dash-conf-diretor")
-                        .build())
+        client.get().uri("/api/dashboard/configuracoes/dashboards")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-config-1")
                 .exchange()
@@ -92,17 +90,17 @@ class PainelConfiguracaoReadProxyIntegrationTest {
         assertThat(authRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
 
         var dashboardRequest = DASHBOARD_QUERY.takeRequest();
-        assertThat(dashboardRequest.getPath()).isEqualTo("/internal/v1/dashboard/configuracoes/dashboards?publicoCodigo=dash-conf-diretor");
+        assertThat(dashboardRequest.getPath()).isEqualTo("/internal/v1/dashboard/configuracoes/dashboards");
         assertThat(dashboardRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
         assertThat(dashboardRequest.getHeader("X-Internal-Token")).isEqualTo("dashboard-query-internal-token");
         var monolithRequest = MONOLITH.takeRequest(200, TimeUnit.MILLISECONDS);
         if (monolithRequest != null) {
-            assertThat(monolithRequest.getPath()).isNotEqualTo("/api/dashboard/configuracoes/dashboards?publicoCodigo=dash-conf-diretor");
+            assertThat(monolithRequest.getPath()).isNotEqualTo("/api/dashboard/configuracoes/dashboards");
         }
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoPainelQueryServiceEstiverIndisponivel() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoPainelQueryServiceEstiverIndisponivel() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -114,59 +112,31 @@ class PainelConfiguracaoReadProxyIntegrationTest {
                         """));
 
         DASHBOARD_QUERY.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [{
-                          "id":"00000000-0000-0000-0000-000000000702",
-                          "publicoPainelId":"00000000-0000-0000-0000-000000000602",
-                          "publicoCodigo":"DASH-CONF-SECRETARIA",
-                          "codigo":"DASH-CONF-SECRETARIA-OPERACIONAL",
-                          "nome":"Painel Secretaria",
-                          "descricao":"Monolito fallback",
-                          "ativo":true
-                        }]
-                        """));
 
         client.get().uri("/api/dashboard/configuracoes/dashboards")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-config-2")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].descricao").isEqualTo("Monolito fallback");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/configuracoes/dashboards");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoIdentityAccessFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoIdentityAccessFalhar() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [{
-                          "id":"00000000-0000-0000-0000-000000000703",
-                          "publicoPainelId":"00000000-0000-0000-0000-000000000603",
-                          "publicoCodigo":"DASH-CONF-PROFESSOR",
-                          "codigo":"DASH-CONF-PROFESSOR-OPERACIONAL",
-                          "nome":"Painel Professor",
-                          "descricao":"Fallback identity",
-                          "ativo":true
-                        }]
-                        """));
 
         client.get().uri("/api/dashboard/configuracoes/dashboards")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-config-3")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].descricao").isEqualTo("Fallback identity");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/configuracoes/dashboards");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

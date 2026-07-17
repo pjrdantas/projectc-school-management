@@ -95,7 +95,7 @@ class TenantAtivoReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoTenantAtivoFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoTenantAtivoFalhar() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -108,23 +108,13 @@ class TenantAtivoReadProxyIntegrationTest {
 
         INSTITUTIONAL_TENANT.enqueue(new MockResponse().setResponseCode(503));
 
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {
-                          "usuarioId":"00000000-0000-0000-0000-000000000101",
-                          "escolaId":"00000000-0000-0000-0000-000000000047",
-                          "escolaNome":"Escola fallback"
-                        }
-                        """));
-
         client.get().uri("/api/auth/tenant/ativa")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-tenant-fallback")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.escolaNome").isEqualTo("Escola fallback");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         var contextRequest = IDENTITY_ACCESS.takeRequest();
         assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
@@ -132,38 +122,26 @@ class TenantAtivoReadProxyIntegrationTest {
         var tenantRequest = INSTITUTIONAL_TENANT.takeRequest();
         assertThat(tenantRequest.getPath()).isEqualTo("/internal/v1/tenant/ativa");
 
-        var monolithFallback = MONOLITH.takeRequest();
-        assertThat(monolithFallback.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoIdentityAccessFalharNaResolucaoDeContexto() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoIdentityAccessFalharNaResolucaoDeContexto() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse().setResponseCode(503));
-
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {
-                          "usuarioId":"00000000-0000-0000-0000-000000000101",
-                          "escolaId":"00000000-0000-0000-0000-000000000047",
-                          "escolaNome":"Escola fallback contexto"
-                        }
-                        """));
 
         client.get().uri("/api/auth/tenant/ativa")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-tenant-context-fallback")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.escolaNome").isEqualTo("Escola fallback contexto");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         var contextRequest = IDENTITY_ACCESS.takeRequest();
         assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         assertThat(INSTITUTIONAL_TENANT.takeRequest(200, TimeUnit.MILLISECONDS)).isNull();
 
-        var monolithFallback = MONOLITH.takeRequest();
-        assertThat(monolithFallback.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test

@@ -144,7 +144,7 @@ class BoletimReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoNaConsultaDeBoletimQuandoPedagogicalServiceFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeNaConsultaDeBoletimQuandoPedagogicalServiceFalhar() throws InterruptedException {
         UUID matriculaId = UUID.randomUUID();
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -158,30 +158,21 @@ class BoletimReadProxyIntegrationTest {
                         """));
 
         PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {
-                          "matriculaId":"%s",
-                          "alunoNome":"Aluno Monolito",
-                          "itens":[{"disciplinaNome":"Historia"}]
-                        }
-                        """.formatted(matriculaId)));
 
         client.get().uri("/api/matriculas/{matriculaId}/boletim", matriculaId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-bff-fallback-1")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.alunoNome").isEqualTo("Aluno Monolito");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         assertThat(PEDAGOGICAL.takeRequest().getPath()).isEqualTo("/internal/v1/matriculas/" + matriculaId + "/boletim");
-        assertThat(MONOLITH.takeRequest().getPath()).isEqualTo("/api/matriculas/" + matriculaId + "/boletim");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoNaListagemDeFechamentosQuandoPedagogicalServiceFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeNaListagemDeFechamentosQuandoPedagogicalServiceFalhar() throws InterruptedException {
         UUID matriculaId = UUID.randomUUID();
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -195,26 +186,17 @@ class BoletimReadProxyIntegrationTest {
                         """));
 
         PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [{
-                          "matriculaId":"%s",
-                          "periodoReferencia":"2BIM",
-                          "persistido":true
-                        }]
-                        """.formatted(matriculaId)));
 
         client.get().uri("/api/matriculas/{matriculaId}/boletim/fechamentos", matriculaId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-bff-fallback-2")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].periodoReferencia").isEqualTo("2BIM");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         assertThat(PEDAGOGICAL.takeRequest().getPath()).isEqualTo("/internal/v1/matriculas/" + matriculaId + "/boletim/fechamentos");
-        assertThat(MONOLITH.takeRequest().getPath()).isEqualTo("/api/matriculas/" + matriculaId + "/boletim/fechamentos");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

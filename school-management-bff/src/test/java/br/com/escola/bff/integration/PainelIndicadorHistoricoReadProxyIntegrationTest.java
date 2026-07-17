@@ -113,7 +113,7 @@ class PainelIndicadorHistoricoReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoPainelQueryServiceEstiverIndisponivel() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoPainelQueryServiceEstiverIndisponivel() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -125,59 +125,31 @@ class PainelIndicadorHistoricoReadProxyIntegrationTest {
                         """));
 
         DASHBOARD_QUERY.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [{
-                          "publicoCodigo":"DASH-SNAP-DIRETOR",
-                          "codigoIndicador":"TOTAL_MATRICULAS",
-                          "descricao":"Total de matriculas",
-                          "valorAtual":118,
-                          "valorAnterior":117,
-                          "variacaoPercentual":0.85,
-                          "pontos":[]
-                        }]
-                        """));
 
         client.get().uri("/api/dashboard/snapshots/historico/publicos/dash-snap-diretor")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-historico-2")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].valorAtual").isEqualTo(118);
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/snapshots/historico/publicos/dash-snap-diretor");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoIdentityAccessFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoIdentityAccessFalhar() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [{
-                          "publicoCodigo":"DASH-SNAP-DIRETOR",
-                          "codigoIndicador":"TOTAL_MATRICULAS",
-                          "descricao":"Total de matriculas",
-                          "valorAtual":117,
-                          "valorAnterior":116,
-                          "variacaoPercentual":0.86,
-                          "pontos":[]
-                        }]
-                        """));
 
         client.get().uri("/api/dashboard/snapshots/historico/publicos/dash-snap-diretor")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-historico-3")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].valorAtual").isEqualTo(117);
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/snapshots/historico/publicos/dash-snap-diretor");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

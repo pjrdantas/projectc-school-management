@@ -191,7 +191,7 @@ class AulaReadProxyIntegrationTest {
     }
 
     @Test
-    void deveUsarMonolitoQuandoPedagogicalEstiverIndisponivelNaListagemDeAulas() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoPedagogicalEstiverIndisponivelNaListagemDeAulas() throws InterruptedException {
         UUID alocacaoId = UUID.randomUUID();
         UUID turmaId = UUID.randomUUID();
         UUID aulaId = UUID.randomUUID();
@@ -203,11 +203,6 @@ class AulaReadProxyIntegrationTest {
                         """));
 
         PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [{"id":"%s","professorTurmaDisciplinaId":"%s","turmaId":"%s","turmaNome":"Turma Aula Monolito","realizada":false}]
-                        """.formatted(aulaId, alocacaoId, turmaId)));
 
         client.get().uri(uriBuilder -> uriBuilder.path("/api/aulas")
                         .queryParam("professorTurmaDisciplinaId", alocacaoId)
@@ -216,24 +211,20 @@ class AulaReadProxyIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-aula-read-fallback-1")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].id").isEqualTo(aulaId.toString())
-                .jsonPath("$[0].turmaNome").isEqualTo("Turma Aula Monolito");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         IDENTITY_ACCESS.takeRequest();
         var pedagogicalRequest = PEDAGOGICAL.takeRequest();
         assertThat(pedagogicalRequest.getPath()).isEqualTo(
                 "/internal/v1/aulas?professorTurmaDisciplinaId=" + alocacaoId + "&turmaId=" + turmaId);
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo(
-                "/api/aulas?professorTurmaDisciplinaId=" + alocacaoId + "&turmaId=" + turmaId);
-        assertThat(monolithRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-aula-read-fallback-1");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveUsarMonolitoQuandoPedagogicalEstiverIndisponivelNaBuscaDeAulaPorId() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoPedagogicalEstiverIndisponivelNaBuscaDeAulaPorId() throws InterruptedException {
         UUID aulaId = UUID.randomUUID();
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -243,29 +234,22 @@ class AulaReadProxyIntegrationTest {
                         """));
 
         PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {"id":"%s","turmaNome":"Turma Aula Monolito","realizada":false}
-                        """.formatted(aulaId)));
 
         client.get().uri("/api/aulas/{id}", aulaId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-aula-read-fallback-1b")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.id").isEqualTo(aulaId.toString())
-                .jsonPath("$.turmaNome").isEqualTo("Turma Aula Monolito");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         IDENTITY_ACCESS.takeRequest();
         PEDAGOGICAL.takeRequest();
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/aulas/" + aulaId);
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveUsarMonolitoQuandoPedagogicalEstiverIndisponivelNaFrequenciaProfessor() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoPedagogicalEstiverIndisponivelNaFrequenciaProfessor() throws InterruptedException {
         UUID aulaId = UUID.randomUUID();
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -275,29 +259,22 @@ class AulaReadProxyIntegrationTest {
                         """));
 
         PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [{"id":"%s","aulaId":"%s","professorNome":"Professor Monolito","presente":true}]
-                        """.formatted(UUID.randomUUID(), aulaId)));
 
         client.get().uri("/api/aulas/{id}/frequencia-professor", aulaId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-aula-read-fallback-2")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].aulaId").isEqualTo(aulaId.toString())
-                .jsonPath("$[0].professorNome").isEqualTo("Professor Monolito");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         IDENTITY_ACCESS.takeRequest();
         PEDAGOGICAL.takeRequest();
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/aulas/" + aulaId + "/frequencia-professor");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveUsarMonolitoQuandoPedagogicalEstiverIndisponivelNaFrequenciaAluno() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoPedagogicalEstiverIndisponivelNaFrequenciaAluno() throws InterruptedException {
         UUID aulaId = UUID.randomUUID();
         UUID matriculaId = UUID.randomUUID();
 
@@ -308,25 +285,18 @@ class AulaReadProxyIntegrationTest {
                         """));
 
         PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [{"id":"%s","aulaId":"%s","matriculaId":"%s","alunoNome":"Aluno Monolito","situacao":"PRESENTE"}]
-                        """.formatted(UUID.randomUUID(), aulaId, matriculaId)));
 
         client.get().uri("/api/aulas/{id}/frequencias-alunos", aulaId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-aula-read-fallback-3")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].aulaId").isEqualTo(aulaId.toString())
-                .jsonPath("$[0].matriculaId").isEqualTo(matriculaId.toString());
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         IDENTITY_ACCESS.takeRequest();
         PEDAGOGICAL.takeRequest();
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/aulas/" + aulaId + "/frequencias-alunos");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

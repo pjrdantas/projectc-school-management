@@ -111,7 +111,7 @@ class PainelSecretariaReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoPainelQueryFalhar() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoPainelQueryFalhar() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -124,85 +124,38 @@ class PainelSecretariaReadProxyIntegrationTest {
 
         DASHBOARD_QUERY.enqueue(new MockResponse().setResponseCode(503));
 
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {
-                          "escolaId":"00000000-0000-0000-0000-000000000047",
-                          "escolaNome":"Escola fallback",
-                          "totalMatriculas":1,
-                          "matriculasSolicitadas":0,
-                          "matriculasEmAndamento":1,
-                          "matriculasAguardandoDocumentos":0,
-                          "matriculasAguardandoHistoricoEscolar":0,
-                          "matriculasComDocumentosPendentes":1,
-                          "matriculasAptasRematricula":1,
-                          "boletinsFechados":1,
-                          "historicosInternosGerados":1,
-                          "transferencias":1,
-                          "solicitacoesExclusaoPendentes":1,
-                          "matriculasPorStatus":[],
-                          "turmasComVagas":[]
-                        }
-                        """));
-
         client.get().uri("/api/dashboard/secretaria")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-sec-2")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.escolaNome").isEqualTo("Escola fallback");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         IDENTITY_ACCESS.takeRequest();
         var dashboardRequest = DASHBOARD_QUERY.takeRequest();
         assertThat(dashboardRequest.getPath()).isEqualTo("/internal/v1/dashboard/secretaria");
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/secretaria");
-        assertThat(monolithRequest.getHeader(TrustedHeaders.CORRELATION_ID)).isEqualTo("corr-dashboard-sec-2");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoIdentityAccessFalharNaResolucaoDeContexto() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoIdentityAccessFalharNaResolucaoDeContexto() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse().setResponseCode(503));
-
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {
-                          "escolaId":"00000000-0000-0000-0000-000000000047",
-                          "escolaNome":"Escola fallback contexto",
-                          "totalMatriculas":1,
-                          "matriculasSolicitadas":0,
-                          "matriculasEmAndamento":1,
-                          "matriculasAguardandoDocumentos":0,
-                          "matriculasAguardandoHistoricoEscolar":0,
-                          "matriculasComDocumentosPendentes":1,
-                          "matriculasAptasRematricula":1,
-                          "boletinsFechados":1,
-                          "historicosInternosGerados":1,
-                          "transferencias":1,
-                          "solicitacoesExclusaoPendentes":1,
-                          "matriculasPorStatus":[],
-                          "turmasComVagas":[]
-                        }
-                        """));
 
         client.get().uri("/api/dashboard/secretaria")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-dashboard-sec-3")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.escolaNome").isEqualTo("Escola fallback contexto");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         var authRequest = IDENTITY_ACCESS.takeRequest();
         assertThat(authRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         assertThat(DASHBOARD_QUERY.takeRequest(200, TimeUnit.MILLISECONDS)).isNull();
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/dashboard/secretaria");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

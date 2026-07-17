@@ -51,7 +51,7 @@ class AuthSessionFallbackIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoTenantAtivoFalharNaListagemDeEscolas() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoTenantAtivoFalharNaListagemDeEscolas() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -62,25 +62,14 @@ class AuthSessionFallbackIntegrationTest {
                         }
                         """));
         INSTITUTIONAL_TENANT.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [
-                          {
-                            "escolaId":"00000000-0000-0000-0000-000000000047",
-                            "escolaNome":"Escola fallback",
-                            "ativa":true
-                          }
-                        ]
-                        """));
 
         client.get().uri("/api/auth/escolas")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-auth-school-list-fallback")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].escolaNome").isEqualTo("Escola fallback");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         var contextRequest = IDENTITY_ACCESS.takeRequest();
         assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
@@ -88,44 +77,31 @@ class AuthSessionFallbackIntegrationTest {
         var institutionalRequest = INSTITUTIONAL_TENANT.takeRequest();
         assertThat(institutionalRequest.getPath()).isEqualTo("/internal/v1/tenant/escolas");
 
-        var monolithFallback = MONOLITH.takeRequest();
-        assertThat(monolithFallback.getPath()).isEqualTo("/internal/auth/escolas");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoIdentityAccessFalharNaResolucaoDeContextoDaListagemDeEscolas()
+    void deveRetornarIndisponibilidadeQuandoIdentityAccessFalharNaResolucaoDeContextoDaListagemDeEscolas()
             throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [
-                          {
-                            "escolaId":"00000000-0000-0000-0000-000000000047",
-                            "escolaNome":"Escola fallback contexto",
-                            "ativa":true
-                          }
-                        ]
-                        """));
 
         client.get().uri("/api/auth/escolas")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
                 .header(TrustedHeaders.CORRELATION_ID, "corr-auth-school-list-context-fallback")
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$[0].escolaNome").isEqualTo("Escola fallback contexto");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         var contextRequest = IDENTITY_ACCESS.takeRequest();
         assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         assertThat(INSTITUTIONAL_TENANT.takeRequest(200, TimeUnit.MILLISECONDS)).isNull();
 
-        var monolithFallback = MONOLITH.takeRequest();
-        assertThat(monolithFallback.getPath()).isEqualTo("/internal/auth/escolas");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoIdentityAccessFalharNaTrocaDeEscolaAtiva() throws InterruptedException {
+    void deveRetornarIndisponibilidadeQuandoIdentityAccessFalharNaTrocaDeEscolaAtiva() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -136,16 +112,6 @@ class AuthSessionFallbackIntegrationTest {
                         }
                         """));
         IDENTITY_ACCESS.enqueue(new MockResponse().setResponseCode(503));
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        {
-                          "usuarioId":"00000000-0000-0000-0000-000000000101",
-                          "escolaId":"00000000-0000-0000-0000-000000000099",
-                          "escolaNome":"Escola monolito fallback",
-                          "username":"usuario.teste"
-                        }
-                        """));
 
         client.post().uri("/api/auth/escola-ativa")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
@@ -157,9 +123,9 @@ class AuthSessionFallbackIntegrationTest {
                         }
                         """)
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isEqualTo(503)
                 .expectBody()
-                .jsonPath("$.escolaNome").isEqualTo("Escola monolito fallback");
+                .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         var contextRequest = IDENTITY_ACCESS.takeRequest();
         assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
@@ -167,9 +133,7 @@ class AuthSessionFallbackIntegrationTest {
         var identityRequest = IDENTITY_ACCESS.takeRequest();
         assertThat(identityRequest.getPath()).isEqualTo("/internal/v1/auth/escola-ativa");
 
-        var monolithFallback = MONOLITH.takeRequest();
-        assertThat(monolithFallback.getPath()).isEqualTo("/internal/auth/escola-ativa");
-        assertThat(monolithFallback.getBody().readUtf8()).contains("00000000-0000-0000-0000-000000000099");
+        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {
