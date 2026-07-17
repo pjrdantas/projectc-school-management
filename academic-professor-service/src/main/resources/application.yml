@@ -33,6 +33,7 @@ professor:
     local-persistence:
       enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_ENABLED:false}
       fail-on-error: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_FAIL_ON_ERROR:false}
+      listar-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_LISTAR_CUTOVER_ENABLED:false}
       buscar-por-id-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_BUSCAR_POR_ID_CUTOVER_ENABLED:false}
       listar-alocacoes-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_LISTAR_ALOCACOES_CUTOVER_ENABLED:false}
       listar-por-turma-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_LISTAR_POR_TURMA_CUTOVER_ENABLED:false}

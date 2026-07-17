@@ -9170,6 +9170,11 @@ Definicao objetiva:
   (`professor.shadow.local-persistence.listar-por-turma-cutover-enabled`),
   retornando `503 DOWNSTREAM_UNAVAILABLE` quando o sync local da turma ainda
   nao estiver completo, sem consultar o monolito.
+- sexto recorte operacional ja executado: `GET /internal/v1/professores`
+  ganhou o cutover local sem fallback por propriedade
+  (`professor.shadow.local-persistence.listar-cutover-enabled`), retornando
+  `503 DOWNSTREAM_UNAVAILABLE` quando o sync local de professores da escola
+  ainda nao estiver completo, sem consultar o monolito.
 
 ### Fase D10 - Fechamento final de `enrollment-document-service`
 

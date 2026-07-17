@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record PersistenciaLocalProperties(
         boolean enabled,
         boolean failOnError,
+        boolean listarCutoverEnabled,
         boolean buscarPorIdCutoverEnabled,
         boolean listarAlocacoesCutoverEnabled,
         boolean listarPorTurmaCutoverEnabled) {

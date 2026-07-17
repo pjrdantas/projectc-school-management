@@ -53,18 +53,28 @@ public class LeituraLocalAdapter implements LeituraLocalPort {
     }
 
     @Override
-    public boolean supportsListarProfessores(InternalRequestContext context) {
+    public ReadDecision decidirListarProfessores(InternalRequestContext context) {
         if (!properties.enabled()) {
             registrarDecisao("listar", "disabled", "feature_disabled");
-            return false;
+            return new ReadDecision(false, false);
         }
 
         boolean supported = syncStateRepository.findById(context.escolaId())
                 .map(state -> Boolean.TRUE.equals(state.getProfessoresCompletos()))
                 .orElse(false);
 
-        registrarDecisao("listar", supported ? "local" : "fallback", supported ? "sync_state_complete" : "sync_state_incomplete");
-        return supported;
+        if (supported) {
+            registrarDecisao("listar", "local", "sync_state_complete");
+            return new ReadDecision(true, false);
+        }
+
+        if (properties.listarCutoverEnabled()) {
+            registrarDecisao("listar", "local", "cutover_sync_state_incomplete");
+            return new ReadDecision(false, true);
+        }
+
+        registrarDecisao("listar", "fallback", "sync_state_incomplete");
+        return new ReadDecision(false, false);
     }
 
     @Override

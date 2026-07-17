@@ -13,7 +13,7 @@ public interface LeituraLocalPort {
     record ReadDecision(boolean useLocal, boolean cutoverBlocked) {
     }
 
-    boolean supportsListarProfessores(InternalRequestContext context);
+    ReadDecision decidirListarProfessores(InternalRequestContext context);
 
     List<ResumoResponse> listarProfessores(InternalRequestContext context);
 

@@ -30,8 +30,13 @@ public class ConsultaService implements ConsultaUseCase {
 
     @Override
     public List<ResumoResponse> listarProfessores(String authorization, InternalRequestContext context) {
-        if (professorShadowLocalReadPort.supportsListarProfessores(context)) {
+        var readDecision = professorShadowLocalReadPort.decidirListarProfessores(context);
+        if (readDecision.useLocal()) {
             return professorShadowLocalReadPort.listarProfessores(context);
+        }
+        if (readDecision.cutoverBlocked()) {
+            throw new DownstreamUnavailableException(
+                    "Persistencia local de professores ainda nao esta apta para cutover");
         }
         return professorReadPort.listarProfessores(authorization, context);
     }

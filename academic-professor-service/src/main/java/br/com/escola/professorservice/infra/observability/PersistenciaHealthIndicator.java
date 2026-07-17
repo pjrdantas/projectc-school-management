@@ -68,6 +68,7 @@ public class PersistenciaHealthIndicator implements HealthIndicator {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("enabled", properties.enabled());
         details.put("failOnError", properties.failOnError());
+        details.put("listarCutoverEnabled", properties.listarCutoverEnabled());
         details.put("buscarPorIdCutoverEnabled", properties.buscarPorIdCutoverEnabled());
         details.put("listarAlocacoesCutoverEnabled", properties.listarAlocacoesCutoverEnabled());
         details.put("listarPorTurmaCutoverEnabled", properties.listarPorTurmaCutoverEnabled());
@@ -159,6 +160,10 @@ public class PersistenciaHealthIndicator implements HealthIndicator {
 
             if ("listar".equals(route.operation())) {
                 detalhe.put("syncStateSummary", syncStates.get("professores"));
+                detalhe.put("cutoverEnabled", properties.listarCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
+                detalhe.put("localCutoverBlockedTotal",
+                        totalReadRequests(route.operation(), "local", "cutover_sync_state_incomplete"));
             } else if ("listarAlocacoes".equals(route.operation())) {
                 detalhe.put("syncStateSummary", syncStates.get("alocacoesPorProfessor"));
                 detalhe.put("cutoverEnabled", properties.listarAlocacoesCutoverEnabled());
@@ -212,6 +217,9 @@ public class PersistenciaHealthIndicator implements HealthIndicator {
     }
 
     private String estrategiaLeitura(ReadRouteDescriptor route) {
+        if ("listar".equals(route.operation()) && properties.listarCutoverEnabled()) {
+            return "complete_sync_state_required_no_fallback";
+        }
         if ("buscarPorId".equals(route.operation()) && properties.buscarPorIdCutoverEnabled()) {
             return "local_record_presence_required_no_fallback";
         }
