@@ -13,18 +13,22 @@ import br.com.escola.professorservice.application.exception.DownstreamUnavailabl
 import br.com.escola.professorservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.professorservice.application.port.in.ConsultaUseCase;
 import br.com.escola.professorservice.application.port.out.ConsultaPort;
+import br.com.escola.professorservice.application.port.out.FuncionarioElegivelPort;
 import br.com.escola.professorservice.application.port.out.LeituraLocalPort;
 
 @Service
 public class ConsultaService implements ConsultaUseCase {
 
     private final ConsultaPort professorReadPort;
+    private final FuncionarioElegivelPort funcionarioElegivelPort;
     private final LeituraLocalPort professorShadowLocalReadPort;
 
     public ConsultaService(
             ConsultaPort professorReadPort,
+            FuncionarioElegivelPort funcionarioElegivelPort,
             LeituraLocalPort professorShadowLocalReadPort) {
         this.professorReadPort = professorReadPort;
+        this.funcionarioElegivelPort = funcionarioElegivelPort;
         this.professorShadowLocalReadPort = professorShadowLocalReadPort;
     }
 
@@ -90,7 +94,7 @@ public class ConsultaService implements ConsultaUseCase {
     public List<FuncionarioElegivelResponse> listarFuncionariosElegiveis(
             String authorization,
             InternalRequestContext context) {
-        return professorReadPort.listarFuncionariosElegiveis(authorization, context);
+        return funcionarioElegivelPort.listarFuncionariosElegiveis(authorization, context);
     }
 }
 

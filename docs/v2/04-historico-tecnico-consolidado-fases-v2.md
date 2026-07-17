@@ -4757,6 +4757,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   responde `503 DOWNSTREAM_UNAVAILABLE` sem consultar o monolito. O actuator
   `professorShadowPersistence` passou a expor tambem essa estrategia, a flag e
   a contagem de bloqueios de cutover na listagem por escola.
+- A setima subfase operacional de `D9` separou a dependencia residual de
+  `funcionarios-elegiveis` do restante das leituras do agregado `professor` no
+  `academic-professor-service`. `ConsultaPort` deixou de carregar essa
+  responsabilidade, que passou a ficar isolada em `FuncionarioElegivelPort`
+  com adapter legado proprio. Com isso, o owner oficial passou a distinguir
+  explicitamente as leituras do agregado `professor` das dependencias
+  cadastrais residuais ainda atendidas pelo legado, sem alterar a rota
+  `GET /internal/v1/professores/funcionarios-elegiveis` nem abrir escrita.
 - Proxima fase operacional do ciclo fechado:
   `D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF`.
 

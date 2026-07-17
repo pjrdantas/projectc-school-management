@@ -9175,6 +9175,11 @@ Definicao objetiva:
   (`professor.shadow.local-persistence.listar-cutover-enabled`), retornando
   `503 DOWNSTREAM_UNAVAILABLE` quando o sync local de professores da escola
   ainda nao estiver completo, sem consultar o monolito.
+- setimo recorte operacional ja executado: a dependencia residual de
+  `GET /internal/v1/professores/funcionarios-elegiveis` foi separada das
+  leituras do agregado `professor` em uma porta propria
+  (`FuncionarioElegivelPort`), deixando `ConsultaPort` restrita ao dominio de
+  `professor` e isolando o insumo cadastral ainda servido pelo legado.
 
 ### Fase D10 - Fechamento final de `enrollment-document-service`
 

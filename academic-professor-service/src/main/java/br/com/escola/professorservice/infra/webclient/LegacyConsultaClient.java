@@ -13,7 +13,6 @@ import org.springframework.web.client.RestClientResponseException;
 
 import br.com.escola.professorservice.application.context.InternalHeaders;
 import br.com.escola.professorservice.application.context.InternalRequestContext;
-import br.com.escola.professorservice.application.dto.FuncionarioElegivelResponse;
 import br.com.escola.professorservice.application.dto.AlocacaoResponse;
 import br.com.escola.professorservice.application.dto.ResumoResponse;
 import br.com.escola.professorservice.application.exception.DownstreamUnavailableException;
@@ -120,28 +119,6 @@ public class LegacyConsultaClient implements ConsultaPort {
         } catch (ResourceAccessException exception) {
             registrarErro("listarPorTurma", exception);
             throw new DownstreamUnavailableException("Monolito indisponivel para leitura shadow por turma", exception);
-        }
-    }
-
-    @Override
-    public List<FuncionarioElegivelResponse> listarFuncionariosElegiveis(
-            String authorization,
-            InternalRequestContext context) {
-        try {
-            List<FuncionarioElegivelResponse> response = restClient.get()
-                    .uri("/internal/funcionarios/professor-elegiveis")
-                    .headers(headers -> enrichHeaders(headers, authorization, context))
-                    .retrieve()
-                    .body(new ParameterizedTypeReference<List<FuncionarioElegivelResponse>>() {
-                    });
-            registrarRequisicao("listarFuncionariosElegiveis", "success");
-            return response == null ? List.of() : response;
-        } catch (RestClientResponseException exception) {
-            registrarErro("listarFuncionariosElegiveis", exception);
-            throw exception;
-        } catch (ResourceAccessException exception) {
-            registrarErro("listarFuncionariosElegiveis", exception);
-            throw new DownstreamUnavailableException("Monolito indisponivel para leitura shadow de funcionarios", exception);
         }
     }
 
