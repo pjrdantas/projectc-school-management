@@ -9139,6 +9139,25 @@ Quantidade fechada deste ciclo preparatorio: **8 fases**.
 - revisar classes locais, entidades, repositories, services, controllers,
   exceptions e testes para remover designacoes de dominio externo e padroes
   herdados que ainda misturem contexto local com contexto remoto.
+- conclusao operacional da fase:
+  - o `planning-ai-service` teve rename estrutural de `application`,
+    `controllers`, `services`, `ports`, `exceptions`, `configuration`,
+    `webclient`, `persistence`, `state`, entidades, repositories e testes para
+    remover `PlanningAi*` e `Monolith*` do nome das classes, alem de alinhar o
+    bloco de biblioteca local antes nomeado com `PedagogicalContentLibrary*`;
+  - o `dashboard-query-service` teve rename estrutural de `application`,
+    `controllers`, `services`, `exceptions`, `configuration`, `webclient`,
+    DTOs, adapters e testes para remover `Dashboard*` e `Monolith*` do nome
+    das classes, preservando apenas a semantica local de `Painel*`;
+  - a busca estrutural por `class|record|interface|enum` nao encontrou mais
+    classes Java nesses dois modulos com `PlanningAi`, `Dashboard` ou
+    `Monolith` no nome.
+- validacao executada nos modulos tocados:
+  - `mvn -pl planning-ai-service -DskipTests compile`: sucesso;
+  - `mvn -pl planning-ai-service clean test`: sucesso;
+  - `mvn -pl dashboard-query-service -DskipTests compile`: sucesso;
+  - `mvn -pl dashboard-query-service clean test`: sucesso.
+- contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 1.
 
 ### Fase N8 - Verificacao transversal e bloqueio arquitetural
 

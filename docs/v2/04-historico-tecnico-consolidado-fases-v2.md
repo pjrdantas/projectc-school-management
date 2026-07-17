@@ -4596,3 +4596,27 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl pedagogical-service clean test`, todos com sucesso.
 - Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura:
   2 fases restantes.
+
+### Fase N7
+
+- `planning-ai-service` e `dashboard-query-service` passaram pelo saneamento
+  nominal das classes para remover os marcadores `PlanningAi`, `Dashboard` e
+  `Monolith` quando esses termos nao expressavam o papel local da classe.
+- No `planning-ai-service`, o rename atingiu `application`, `controllers`,
+  `services`, `ports`, `exceptions`, `configuration`, `webclient`,
+  `persistence`, `state`, entidades, repositories e testes; o bloco de
+  biblioteca antes nomeado como `PedagogicalContentLibrary*` tambem foi
+  alinhado para nomenclatura local.
+- No `dashboard-query-service`, o rename atingiu `application`,
+  `controllers`, `services`, `exceptions`, `configuration`, `webclient`,
+  DTOs, adapters e testes, consolidando a semantica local em `Painel*`.
+- A varredura estrutural confirmou a limpeza do passivo nominal principal da
+  fase; nao restaram classes Java nesses dois modulos com `PlanningAi`,
+  `Dashboard` ou `Monolith` no nome.
+- Validacao executada apenas nos modulos tocados:
+  `mvn -pl planning-ai-service -DskipTests compile`,
+  `mvn -pl planning-ai-service clean test`,
+  `mvn -pl dashboard-query-service -DskipTests compile` e
+  `mvn -pl dashboard-query-service clean test`, todos com sucesso.
+- Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura:
+  1 fase restante.
