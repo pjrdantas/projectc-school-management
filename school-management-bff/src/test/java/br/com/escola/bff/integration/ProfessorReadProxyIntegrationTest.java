@@ -25,7 +25,7 @@ class ProfessorReadProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
     private static final MockWebServer IDENTITY_ACCESS = startServer();
-    private static final MockWebServer PEOPLE = startServer();
+    private static final MockWebServer ACADEMIC_PROFESSOR = startServer();
 
     @Autowired
     private WebTestClient client;
@@ -35,8 +35,10 @@ class ProfessorReadProxyIntegrationTest {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
         registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
         registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
-        registry.add("clients.people-service.base-url", () -> PEOPLE.url("/").toString());
-        registry.add("clients.people-service.internal-token", () -> "people-internal-token");
+        registry.add("clients.academic-professor-service.base-url", () -> ACADEMIC_PROFESSOR.url("/").toString());
+        registry.add("clients.academic-professor-service.connect-timeout", () -> "2s");
+        registry.add("clients.academic-professor-service.response-timeout", () -> "2s");
+        registry.add("clients.academic-professor-service.internal-token", () -> "academic-professor-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
     }
 
@@ -44,11 +46,11 @@ class ProfessorReadProxyIntegrationTest {
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
         IDENTITY_ACCESS.shutdown();
-        PEOPLE.shutdown();
+        ACADEMIC_PROFESSOR.shutdown();
     }
 
     @Test
-    void deveConsumirPeopleServiceNaListagemOficialDeProfessores() throws InterruptedException {
+    void deveConsumirAcademicProfessorServiceNaListagemOficialDeProfessores() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -59,7 +61,7 @@ class ProfessorReadProxyIntegrationTest {
                         }
                         """));
 
-        PEOPLE.enqueue(new MockResponse()
+        ACADEMIC_PROFESSOR.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         [{
@@ -86,17 +88,17 @@ class ProfessorReadProxyIntegrationTest {
         assertThat(authRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
         assertThat(authRequest.getHeader(TrustedHeaders.CORRELATION_ID)).isEqualTo("corr-prof-1");
 
-        var peopleRequest = PEOPLE.takeRequest();
-        assertThat(peopleRequest.getPath()).isEqualTo("/internal/v1/professores");
-        assertThat(peopleRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
-        assertThat(peopleRequest.getHeader("X-Internal-Token")).isEqualTo("people-internal-token");
-        assertThat(peopleRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-prof-1");
-        assertThat(peopleRequest.getHeader("X-Usuario-Id")).isEqualTo("00000000-0000-0000-0000-000000000101");
-        assertThat(peopleRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
+        var professorRequest = ACADEMIC_PROFESSOR.takeRequest();
+        assertThat(professorRequest.getPath()).isEqualTo("/internal/v1/professores");
+        assertThat(professorRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
+        assertThat(professorRequest.getHeader("X-Internal-Token")).isEqualTo("academic-professor-internal-token");
+        assertThat(professorRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-prof-1");
+        assertThat(professorRequest.getHeader("X-Usuario-Id")).isEqualTo("00000000-0000-0000-0000-000000000101");
+        assertThat(professorRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
     }
 
     @Test
-    void deveConsumirPeopleServiceNaBuscaOficialDeProfessorPorId() throws InterruptedException {
+    void deveConsumirAcademicProfessorServiceNaBuscaOficialDeProfessorPorId() throws InterruptedException {
         String professorId = "00000000-0000-0000-0000-000000000011";
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -109,7 +111,7 @@ class ProfessorReadProxyIntegrationTest {
                         }
                         """));
 
-        PEOPLE.enqueue(new MockResponse()
+        ACADEMIC_PROFESSOR.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -132,8 +134,8 @@ class ProfessorReadProxyIntegrationTest {
                 .jsonPath("$.nomeCompleto").isEqualTo("Ana Souza");
 
         IDENTITY_ACCESS.takeRequest();
-        var peopleRequest = PEOPLE.takeRequest();
-        assertThat(peopleRequest.getPath()).isEqualTo("/internal/v1/professores/" + professorId);
+        var professorRequest = ACADEMIC_PROFESSOR.takeRequest();
+        assertThat(professorRequest.getPath()).isEqualTo("/internal/v1/professores/" + professorId);
     }
 
     private static MockWebServer startServer() {

@@ -4712,6 +4712,11 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   leitura do mapa oficial em `docs/v2`, leitura dos contratos internos atuais
   de `academic-professor-service` e `people-service`, e cruzamento com as
   rotas publicas atuais do `school-management-bff`.
+- A primeira subfase operacional de `D9` reroteou no
+  `school-management-bff` as leituras publicas `GET /api/professores` e
+  `GET /api/professores/{professorId}` para o
+  `academic-professor-service`, preservando contrato externo e mantendo o
+  `people-service` apenas no papel de apoio cadastral fora desse agregado.
 - Proxima fase operacional do ciclo fechado:
   `D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF`.
 

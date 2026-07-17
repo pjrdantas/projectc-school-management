@@ -8,21 +8,21 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import br.com.escola.bff.application.dto.AuthSessionContext;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
-import br.com.escola.bff.application.port.out.ProfessorCadastroReadPort;
-import br.com.escola.bff.infra.config.CadastroPessoaClientProperties;
+import br.com.escola.bff.application.port.out.ProfessorReadPort;
+import br.com.escola.bff.infra.config.ProfessorServiceClientProperties;
 import reactor.core.publisher.Mono;
 
 @Component
-public class ProfessorCadastroReadClient extends AbstractDownstreamClientSupport implements ProfessorCadastroReadPort {
+public class ProfessorReadClient extends AbstractDownstreamClientSupport implements ProfessorReadPort {
 
     private final WebClient webClient;
-    private final CadastroPessoaClientProperties properties;
+    private final ProfessorServiceClientProperties properties;
 
-    public ProfessorCadastroReadClient(
-            @Qualifier("peopleServiceWebClient")
-            WebClient peopleServiceWebClient,
-            CadastroPessoaClientProperties properties) {
-        this.webClient = peopleServiceWebClient;
+    public ProfessorReadClient(
+            @Qualifier("academicProfessorServiceWebClient")
+            WebClient academicProfessorServiceWebClient,
+            ProfessorServiceClientProperties properties) {
+        this.webClient = academicProfessorServiceWebClient;
         this.properties = properties;
     }
 
@@ -37,9 +37,9 @@ public class ProfessorCadastroReadClient extends AbstractDownstreamClientSupport
                 .header("X-Correlation-Id", query.correlationId())
                 .header("X-Usuario-Id", context.usuarioId().toString())
                 .header("X-Escola-Id", context.escolaId().toString())
-                .exchangeToMono(response -> handle(response, "People service retornou erro interno"))
+                .exchangeToMono(response -> handle(response, "Academic professor service retornou erro interno"))
                 .timeout(properties.responseTimeout())
-                .onErrorMap(error -> mapTransportError(error, "People service indisponivel"));
+                .onErrorMap(error -> mapTransportError(error, "Academic professor service indisponivel"));
     }
 
     @Override
@@ -54,10 +54,8 @@ public class ProfessorCadastroReadClient extends AbstractDownstreamClientSupport
                 .header("X-Correlation-Id", query.correlationId())
                 .header("X-Usuario-Id", context.usuarioId().toString())
                 .header("X-Escola-Id", context.escolaId().toString())
-                .exchangeToMono(response -> handle(response, "People service retornou erro interno"))
+                .exchangeToMono(response -> handle(response, "Academic professor service retornou erro interno"))
                 .timeout(properties.responseTimeout())
-                .onErrorMap(error -> mapTransportError(error, "People service indisponivel"));
+                .onErrorMap(error -> mapTransportError(error, "Academic professor service indisponivel"));
     }
 }
-
-

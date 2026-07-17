@@ -156,6 +156,20 @@ public class LegacyClientConfiguration {
     }
 
     @Bean
+    WebClient academicProfessorServiceWebClient(ProfessorServiceClientProperties properties) {
+        HttpClient httpClient = HttpClient.create()
+                .option(
+                        io.netty.channel.ChannelOption.CONNECT_TIMEOUT_MILLIS,
+                        Math.toIntExact(properties.connectTimeout().toMillis()))
+                .responseTimeout(properties.responseTimeout());
+
+        return WebClient.builder()
+                .baseUrl(properties.baseUrl().toString())
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .build();
+    }
+
+    @Bean
     CircuitBreakerRegistry circuitBreakerRegistry(LegacyCircuitBreakerProperties properties) {
         CircuitBreakerConfig config = CircuitBreakerConfig.custom()
                 .failureRateThreshold(properties.failureRateThreshold())

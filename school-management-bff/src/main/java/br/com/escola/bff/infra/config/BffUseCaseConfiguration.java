@@ -163,7 +163,7 @@ import br.com.escola.bff.application.usecase.CriarEscolaOrigemUseCase;
 import br.com.escola.bff.application.usecase.CriarTransferenciaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPessoaCatalogoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPessoaDetalheUseCase;
-import br.com.escola.bff.application.port.out.ProfessorCadastroReadPort;
+import br.com.escola.bff.application.port.out.ProfessorReadPort;
 import br.com.escola.bff.application.usecase.ConsultarFuncionarioUseCase;
 import br.com.escola.bff.application.usecase.ConsultarHistoricoEscolarUseCase;
 import br.com.escola.bff.application.usecase.CriarHistoricoEscolarUseCase;
@@ -441,8 +441,8 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarProfessorUseCase consultarProfessorUseCase(
             InternalAuthContextPort authContextPort,
-            ProfessorCadastroReadPort peopleProfessorReadPort) {
-        return new ProfessorReadProxyService(authContextPort, peopleProfessorReadPort);
+            ProfessorReadPort professorReadPort) {
+        return new ProfessorReadProxyService(authContextPort, professorReadPort);
     }
 
     @Bean

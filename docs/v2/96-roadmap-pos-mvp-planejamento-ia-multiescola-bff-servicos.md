@@ -8919,11 +8919,23 @@ Definicao objetiva:
 - impacto oficial nas proximas fases:
   - `D9` deixa de ser fase de decisao e passa a ser fase de fechamento final
     do owner ja definido `academic-professor-service`;
-  - o `school-management-bff` devera ser reroteado em `D9` para consumir o
-    owner oficial do dominio de professores, eliminando o caminho publico que
-    hoje ainda le professor resumo via `people-service`;
-  - qualquer documentacao anterior que associava o CRUD publico de
-    `professores` a `people-service` fica superada por esta decisao.
+- o `school-management-bff` devera ser reroteado em `D9` para consumir o
+  owner oficial do dominio de professores, eliminando o caminho publico que
+  hoje ainda le professor resumo via `people-service`;
+- qualquer documentacao anterior que associava o CRUD publico de
+  `professores` a `people-service` fica superada por esta decisao.
+- primeiro recorte executado em 17/07/2026:
+  o `school-management-bff` deixou de ler `GET /api/professores` e
+  `GET /api/professores/{id}` via `people-service` e passou a consumir
+  diretamente o owner oficial `academic-professor-service` pelos contratos
+  internos `GET /internal/v1/professores` e
+  `GET /internal/v1/professores/{id}`.
+- o contrato publico foi preservado sem alteracao de payload no BFF; a troca
+  ficou restrita ao adapter de leitura e as propriedades do client interno do
+  servico oficial.
+- validacao objetiva do primeiro recorte:
+  `mvn -pl school-management-bff "-Dtest=ProfessorReadControllerTest,ProfessorReadProxyIntegrationTest" test"`
+  com `BUILD SUCCESS`.
 
 ### Fase D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF
 

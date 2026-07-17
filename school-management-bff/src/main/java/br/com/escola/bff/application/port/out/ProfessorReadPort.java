@@ -8,10 +8,9 @@ import br.com.escola.bff.application.dto.AuthSessionContext;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import reactor.core.publisher.Mono;
 
-public interface ProfessorCadastroReadPort {
+public interface ProfessorReadPort {
 
     Mono<ResponseEntity<String>> listarProfessores(CatalogReadQuery query, AuthSessionContext context);
 
     Mono<ResponseEntity<String>> buscarProfessorPorId(UUID professorId, CatalogReadQuery query, AuthSessionContext context);
 }
-

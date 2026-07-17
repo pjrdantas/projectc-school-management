@@ -6,27 +6,27 @@ import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
-import br.com.escola.bff.application.port.out.ProfessorCadastroReadPort;
+import br.com.escola.bff.application.port.out.ProfessorReadPort;
 import br.com.escola.bff.application.usecase.ConsultarProfessorUseCase;
 import reactor.core.publisher.Mono;
 
 public class ProfessorReadProxyService implements ConsultarProfessorUseCase {
 
     private final InternalAuthContextPort authContextPort;
-    private final ProfessorCadastroReadPort peopleProfessorReadPort;
+    private final ProfessorReadPort professorReadPort;
 
     public ProfessorReadProxyService(
             InternalAuthContextPort authContextPort,
-            ProfessorCadastroReadPort peopleProfessorReadPort) {
+            ProfessorReadPort professorReadPort) {
         this.authContextPort = authContextPort;
-        this.peopleProfessorReadPort = peopleProfessorReadPort;
+        this.professorReadPort = professorReadPort;
     }
 
     @Override
     public Mono<ResponseEntity<String>> listarProfessores(String authorization, String correlationId) {
         CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
         return authContextPort.resolve(query)
-                .flatMap(context -> peopleProfessorReadPort.listarProfessores(query, context));
+                .flatMap(context -> professorReadPort.listarProfessores(query, context));
     }
 
     @Override
@@ -36,7 +36,7 @@ public class ProfessorReadProxyService implements ConsultarProfessorUseCase {
             UUID professorId) {
         CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
         return authContextPort.resolve(query)
-                .flatMap(context -> peopleProfessorReadPort.buscarProfessorPorId(professorId, query, context));
+                .flatMap(context -> professorReadPort.buscarProfessorPorId(professorId, query, context));
     }
 }
 
