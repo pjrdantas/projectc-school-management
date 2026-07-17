@@ -22,13 +22,13 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-import br.com.escola.responsiblesservice.infra.config.ResponsiblesMonolithClientProperties;
+import br.com.escola.responsiblesservice.infra.config.OrigemAtualClientProperties;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@EnableConfigurationProperties(ResponsiblesMonolithClientProperties.class)
+@EnableConfigurationProperties(OrigemAtualClientProperties.class)
 @ImportAutoConfiguration({
         RestClientAutoConfiguration.class,
         HttpMessageConvertersAutoConfiguration.class
@@ -157,3 +157,4 @@ class ResponsavelInternalControllerIntegrationTest {
         assertThat(request.getHeader("X-Escola-Id")).isEqualTo(escolaId.toString());
     }
 }
+

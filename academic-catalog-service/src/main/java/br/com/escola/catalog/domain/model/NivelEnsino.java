@@ -9,8 +9,9 @@ public record NivelEnsino(
         String descricao) {
 
     public NivelEnsino {
-        id = CatalogAssertions.notNull(id, "id");
-        codigo = CatalogAssertions.notBlank(codigo, "codigo").toUpperCase(Locale.ROOT);
-        descricao = CatalogAssertions.notBlank(descricao, "descricao");
+        id = Validacoes.notNull(id, "id");
+        codigo = Validacoes.notBlank(codigo, "codigo").toUpperCase(Locale.ROOT);
+        descricao = Validacoes.notBlank(descricao, "descricao");
     }
 }
+

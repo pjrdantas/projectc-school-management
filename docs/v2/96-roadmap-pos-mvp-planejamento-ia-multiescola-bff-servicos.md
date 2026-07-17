@@ -9058,6 +9058,28 @@ Quantidade fechada deste ciclo preparatorio: **8 fases**.
 - aplicar a mesma limpeza ao catalogo academico e ao bloco de professores,
   inclusive resolvendo o caso especial de classes que usam `Professor`,
   `Catalog` ou `Academic*` como marcador indevido de contexto externo.
+- conclusao operacional da fase:
+  - o `academic-catalog-service` teve rename estrutural de `application`,
+    `usecase`, `port`, `controller`, `exception handler`, `exception`,
+    `migration`, `cache`, `mapper`, `adapter`, `configuration` e testes para
+    remover marcadores como `Academic*` e `Catalog*` do nome das classes;
+  - o `academic-professor-service` teve rename estrutural de `application`,
+    `usecase`, `port`, `controller`, `exception handler`, `exception`,
+    `migration`, `observability`, `webclient`, `persistence`, `entity`,
+    `repository`, `configuration` e testes para remover marcadores como
+    `Professor*`, `Shadow*`, `Academic*` e `Monolith*` do nome das classes;
+  - um ajuste fino adicional foi necessario no `academic-professor-service`
+    para propagar o rename do nested record de migracao e manter a suite
+    compilavel;
+  - a busca estrutural por `class|record|interface|enum` nao encontrou mais
+    classes Java nesses dois modulos com `Academic`, `Catalog`, `Professor`,
+    `Shadow` ou `Monolith` no nome.
+- validacao executada nos modulos tocados:
+  - `mvn -pl academic-catalog-service -DskipTests compile`: sucesso;
+  - `mvn -pl academic-catalog-service clean test`: sucesso;
+  - `mvn -pl academic-professor-service -DskipTests compile`: sucesso;
+  - `mvn -pl academic-professor-service clean test`: sucesso.
+- contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 4.
 
 ### Fase N5 - Saneamento nominal de `people-service` e `responsibles-service`
 
@@ -9066,12 +9088,51 @@ Quantidade fechada deste ciclo preparatorio: **8 fases**.
 - eliminar a mistura entre identidade nominal local e dominios remotos como
   `monolith`, `responsibles`, `people` ou equivalentes quando o nome nao
   representar o proprio bounded context da classe.
+- conclusao operacional da fase:
+  - o `people-service` teve rename estrutural de `application`, `state`,
+    `service`, `port`, `exception`, `observability`, `migration`, `bootstrap`,
+    `webclient`, `configuration`, `persistence` e testes para remover
+    marcadores como `People*` e `Monolith*` do nome das classes;
+  - o `responsibles-service` teve o mesmo saneamento estrutural para remover
+    `Responsibles*` e `Monolith*` de `application`, `state`, `service`,
+    `port`, `observability`, `migration`, `bootstrap`, `webclient`,
+    `configuration`, `persistence` e testes;
+  - a varredura estrutural confirmou a eliminacao do passivo nominal principal
+    desta fase: nao restaram classes Java nesses dois modulos com `People`,
+    `Responsibles` ou `Monolith` no nome;
+  - os nomes remanescentes como `Pessoa*`, `Responsavel*` e `Catalogo*`
+    permaneceram por representarem o papel local real da classe ou por nao
+    fazerem parte do passivo nominal desta etapa.
+- validacao executada nos modulos tocados:
+  - `mvn -pl people-service -DskipTests compile`: sucesso;
+  - `mvn -pl people-service clean test`: sucesso;
+  - `mvn -pl responsibles-service -DskipTests compile`: sucesso;
+  - `mvn -pl responsibles-service clean test`: sucesso.
+- contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 3.
 
 ### Fase N6 - Saneamento nominal de `enrollment-document-service` e `pedagogical-service`
 
 - limpar nomes acoplados aos dominios externos nesses dois servicos,
   preservando apenas a semantica local das responsabilidades internas;
 - incluir controllers internos, exceptions, client configurations e testes.
+- conclusao operacional da fase:
+  - o `enrollment-document-service` teve rename estrutural de `application`,
+    `controller`, `exception handler`, `exception`, `webclient`,
+    `configuration` e teste para remover `EnrollmentDocument*` e `Monolith*`
+    do nome das classes;
+  - o `pedagogical-service` teve rename estrutural de `application`,
+    `controller`, `exception handler`, `exception`, `webclient`,
+    `configuration`, DTO pontual e teste para remover `Pedagogical*` e
+    `Monolith*` do nome das classes;
+  - a busca estrutural por `class|record|interface|enum` nao encontrou mais
+    classes Java nesses dois modulos com `EnrollmentDocument`, `Pedagogical`
+    ou `Monolith` no nome.
+- validacao executada nos modulos tocados:
+  - `mvn -pl enrollment-document-service -DskipTests compile`: sucesso;
+  - `mvn -pl enrollment-document-service clean test`: sucesso;
+  - `mvn -pl pedagogical-service -DskipTests compile`: sucesso;
+  - `mvn -pl pedagogical-service clean test`: sucesso.
+- contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 2.
 
 ### Fase N7 - Saneamento nominal de `planning-ai-service` e `dashboard-query-service`
 

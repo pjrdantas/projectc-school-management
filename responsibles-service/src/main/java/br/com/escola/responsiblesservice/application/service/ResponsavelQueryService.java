@@ -12,7 +12,7 @@ import br.com.escola.responsiblesservice.application.dto.ResponsavelReadModelRes
 import br.com.escola.responsiblesservice.application.port.in.ResponsavelQueryUseCase;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelLocalReadPort;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelReadPort;
-import br.com.escola.responsiblesservice.infra.config.ResponsiblesReadModelProperties;
+import br.com.escola.responsiblesservice.infra.config.LeituraModeloProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -21,15 +21,15 @@ public class ResponsavelQueryService implements ResponsavelQueryUseCase {
 
     private final ObjectProvider<ResponsavelLocalReadPort> responsavelLocalReadPortProvider;
     private final ResponsavelReadPort responsavelReadPort;
-    private final ResponsiblesReadModelProperties readModelProperties;
-    private final ResponsiblesReadModelRouteGuard routeGuard;
+    private final LeituraModeloProperties readModelProperties;
+    private final LeituraModeloRouteGuard routeGuard;
     private final ObjectMapper objectMapper;
 
     public ResponsavelQueryService(
             ObjectProvider<ResponsavelLocalReadPort> responsavelLocalReadPortProvider,
             ResponsavelReadPort responsavelReadPort,
-            ResponsiblesReadModelProperties readModelProperties,
-            ResponsiblesReadModelRouteGuard routeGuard,
+            LeituraModeloProperties readModelProperties,
+            LeituraModeloRouteGuard routeGuard,
             ObjectMapper objectMapper) {
         this.responsavelLocalReadPortProvider = responsavelLocalReadPortProvider;
         this.responsavelReadPort = responsavelReadPort;
@@ -118,3 +118,4 @@ public class ResponsavelQueryService implements ResponsavelQueryUseCase {
         }
     }
 }
+

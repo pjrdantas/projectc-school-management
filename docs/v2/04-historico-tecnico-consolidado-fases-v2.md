@@ -4532,3 +4532,67 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl institutional-tenant-service clean test`, todos com sucesso.
 - Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura:
   5 fases restantes.
+
+### Fase N4
+
+- `academic-catalog-service` e `academic-professor-service` passaram pelo
+  saneamento nominal das classes para remover marcadores como `Academic`,
+  `Catalog`, `Professor`, `Shadow` e `Monolith` quando eles nao expressavam o
+  papel local da classe dentro do proprio runtime.
+- No `academic-catalog-service`, o rename atingiu `controllers`, `services`,
+  `usecases`, `ports`, `exceptions`, `migration`, `cache`, `mapper`,
+  `adapter`, `configuration` e testes.
+- No `academic-professor-service`, o rename atingiu `controllers`, `services`,
+  `usecases`, `ports`, `exceptions`, `migration`, `observability`,
+  `webclients`, `adapters`, `entities`, `repositories`, `configuration` e
+  testes; houve ainda um ajuste fino complementar na snapshot de migracao para
+  propagar um nested record renomeado.
+- Validacao executada apenas nos modulos tocados:
+  `mvn -pl academic-catalog-service -DskipTests compile`,
+  `mvn -pl academic-catalog-service clean test`,
+  `mvn -pl academic-professor-service -DskipTests compile` e
+  `mvn -pl academic-professor-service clean test`, todos com sucesso.
+- Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura:
+  4 fases restantes.
+
+### Fase N5
+
+- `people-service` e `responsibles-service` passaram pelo saneamento nominal
+  das classes para remover os marcadores `People`, `Responsibles` e
+  `Monolith` quando esses termos nao expressavam o papel local da classe.
+- No `people-service`, o rename atingiu `state`, `services`, `ports`,
+  `exceptions`, `observability`, `migration`, `bootstrap`, `webclients`,
+  `configuration`, `persistence` e testes.
+- No `responsibles-service`, o rename atingiu `state`, `services`, `ports`,
+  `observability`, `migration`, `bootstrap`, `webclients`, `configuration`,
+  `persistence` e testes.
+- A varredura estrutural confirmou a limpeza do passivo nominal principal da
+  fase; os nomes remanescentes ligados a `Pessoa`, `Responsavel` e `Catalogo`
+  foram mantidos por refletirem o papel local real das classes nesta etapa.
+- Validacao executada apenas nos modulos tocados:
+  `mvn -pl people-service -DskipTests compile`,
+  `mvn -pl people-service clean test`,
+  `mvn -pl responsibles-service -DskipTests compile` e
+  `mvn -pl responsibles-service clean test`, todos com sucesso.
+- Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura:
+  3 fases restantes.
+
+### Fase N6
+
+- `enrollment-document-service` e `pedagogical-service` passaram pelo
+  saneamento nominal das classes para remover os marcadores
+  `EnrollmentDocument`, `Pedagogical` e `Monolith` quando esses termos nao
+  expressavam o papel local da classe.
+- No `enrollment-document-service`, o rename atingiu `controller`,
+  `exception handler`, `exception`, `webclient`, `configuration`,
+  `application` e teste.
+- No `pedagogical-service`, o rename atingiu `controller`, `exception
+  handler`, `exception`, `webclients`, `configuration`, um DTO pontual,
+  `application` e teste.
+- Validacao executada apenas nos modulos tocados:
+  `mvn -pl enrollment-document-service -DskipTests compile`,
+  `mvn -pl enrollment-document-service clean test`,
+  `mvn -pl pedagogical-service -DskipTests compile` e
+  `mvn -pl pedagogical-service clean test`, todos com sucesso.
+- Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura:
+  2 fases restantes.

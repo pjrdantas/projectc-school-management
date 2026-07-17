@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import br.com.escola.catalog.domain.exception.CatalogDomainException;
+import br.com.escola.catalog.domain.exception.DominioException;
 import br.com.escola.catalog.domain.valueobject.EscolaId;
 
 public record PeriodoLetivo(
@@ -18,16 +18,17 @@ public record PeriodoLetivo(
         LocalDateTime createdAt) {
 
     public PeriodoLetivo {
-        id = CatalogAssertions.notNull(id, "id");
-        escolaId = CatalogAssertions.notNull(escolaId, "escolaId");
-        nome = CatalogAssertions.notBlank(nome, "nome");
-        ano = CatalogAssertions.positive(ano, "ano");
-        dataInicio = CatalogAssertions.notNull(dataInicio, "dataInicio");
-        dataFim = CatalogAssertions.notNull(dataFim, "dataFim");
-        createdAt = CatalogAssertions.notNull(createdAt, "createdAt");
+        id = Validacoes.notNull(id, "id");
+        escolaId = Validacoes.notNull(escolaId, "escolaId");
+        nome = Validacoes.notBlank(nome, "nome");
+        ano = Validacoes.positive(ano, "ano");
+        dataInicio = Validacoes.notNull(dataInicio, "dataInicio");
+        dataFim = Validacoes.notNull(dataFim, "dataFim");
+        createdAt = Validacoes.notNull(createdAt, "createdAt");
         if (dataFim.isBefore(dataInicio)) {
-            throw new CatalogDomainException("dataFim nao pode ser anterior a dataInicio");
+            throw new DominioException("dataFim nao pode ser anterior a dataInicio");
         }
     }
 }
+
 

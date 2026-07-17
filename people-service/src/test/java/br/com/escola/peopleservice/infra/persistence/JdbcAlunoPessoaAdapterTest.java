@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import br.com.escola.peopleservice.infra.config.PeopleReadModelMigrationProperties;
+import br.com.escola.peopleservice.infra.config.LeituraModeloMigrationProperties;
 
 class JdbcAlunoPessoaAdapterTest {
 
@@ -22,7 +22,7 @@ class JdbcAlunoPessoaAdapterTest {
         UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
         criarSchemaEPopular(url);
         JdbcAlunoPessoaAdapter adapter = new JdbcAlunoPessoaAdapter(
-                new PeopleReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         var response = adapter.buscarVinculoPorAlunoId(alunoId, escolaId);
 
@@ -38,7 +38,7 @@ class JdbcAlunoPessoaAdapterTest {
         UUID alunoId = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         criarSchemaEPopular(url);
         JdbcAlunoPessoaAdapter adapter = new JdbcAlunoPessoaAdapter(
-                new PeopleReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         var response = adapter.buscarVinculoPorAlunoId(
                 alunoId,
@@ -74,4 +74,5 @@ class JdbcAlunoPessoaAdapterTest {
         }
     }
 }
+
 

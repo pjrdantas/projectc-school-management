@@ -1,0 +1,80 @@
+package br.com.escola.professorservice.application.service;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import br.com.escola.professorservice.application.context.InternalRequestContext;
+import br.com.escola.professorservice.application.dto.FuncionarioElegivelResponse;
+import br.com.escola.professorservice.application.dto.AlocacaoResponse;
+import br.com.escola.professorservice.application.dto.ResumoResponse;
+import br.com.escola.professorservice.application.exception.RecursoNaoEncontradoException;
+import br.com.escola.professorservice.application.port.in.ConsultaUseCase;
+import br.com.escola.professorservice.application.port.out.ConsultaPort;
+import br.com.escola.professorservice.application.port.out.LeituraLocalPort;
+
+@Service
+public class ConsultaService implements ConsultaUseCase {
+
+    private final ConsultaPort professorReadPort;
+    private final LeituraLocalPort professorShadowLocalReadPort;
+
+    public ConsultaService(
+            ConsultaPort professorReadPort,
+            LeituraLocalPort professorShadowLocalReadPort) {
+        this.professorReadPort = professorReadPort;
+        this.professorShadowLocalReadPort = professorShadowLocalReadPort;
+    }
+
+    @Override
+    public List<ResumoResponse> listarProfessores(String authorization, InternalRequestContext context) {
+        if (professorShadowLocalReadPort.supportsListarProfessores(context)) {
+            return professorShadowLocalReadPort.listarProfessores(context);
+        }
+        return professorReadPort.listarProfessores(authorization, context);
+    }
+
+    @Override
+    public ResumoResponse buscarProfessorPorId(String authorization, InternalRequestContext context, UUID professorId) {
+        var local = professorShadowLocalReadPort.buscarProfessorPorId(context, professorId);
+        if (local.isPresent()) {
+            return local.orElseThrow();
+        }
+        if (professorShadowLocalReadPort.supportsBuscarProfessorPorIdCutover(context)) {
+            throw new RecursoNaoEncontradoException("Professor não encontrado");
+        }
+        return professorReadPort.buscarProfessorPorId(authorization, context, professorId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Professor não encontrado"));
+    }
+
+    @Override
+    public List<AlocacaoResponse> listarAlocacoes(
+            String authorization,
+            InternalRequestContext context,
+            UUID professorId) {
+        if (professorShadowLocalReadPort.supportsListarAlocacoes(context, professorId)) {
+            return professorShadowLocalReadPort.listarAlocacoes(context, professorId);
+        }
+        return professorReadPort.listarAlocacoes(authorization, context, professorId);
+    }
+
+    @Override
+    public List<AlocacaoResponse> listarProfessoresPorTurma(
+            String authorization,
+            InternalRequestContext context,
+            UUID turmaId) {
+        if (professorShadowLocalReadPort.supportsListarProfessoresPorTurma(context, turmaId)) {
+            return professorShadowLocalReadPort.listarProfessoresPorTurma(context, turmaId);
+        }
+        return professorReadPort.listarProfessoresPorTurma(authorization, context, turmaId);
+    }
+
+    @Override
+    public List<FuncionarioElegivelResponse> listarFuncionariosElegiveis(
+            String authorization,
+            InternalRequestContext context) {
+        return professorReadPort.listarFuncionariosElegiveis(authorization, context);
+    }
+}
+

@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import br.com.escola.peopleservice.infra.config.PeopleReadModelMigrationProperties;
+import br.com.escola.peopleservice.infra.config.LeituraModeloMigrationProperties;
 
 class JdbcPessoaDocumentoMetadataAdapterTest {
 
@@ -77,7 +77,7 @@ class JdbcPessoaDocumentoMetadataAdapterTest {
     @Test
     void deveFalharQuandoUrlLocalNaoFoiConfigurada() {
         JdbcPessoaDocumentoMetadataAdapter adapter = new JdbcPessoaDocumentoMetadataAdapter(
-                new PeopleReadModelMigrationProperties("", "sa", "", "org.h2.Driver", List.of()));
+                new LeituraModeloMigrationProperties("", "sa", "", "org.h2.Driver", List.of()));
 
         assertThatThrownBy(() -> adapter.listarDocumentosPorPessoa(PESSOA_ID, ESCOLA_ID))
                 .isInstanceOf(IllegalStateException.class)
@@ -86,7 +86,7 @@ class JdbcPessoaDocumentoMetadataAdapterTest {
 
     private JdbcPessoaDocumentoMetadataAdapter adapter(String url) {
         return new JdbcPessoaDocumentoMetadataAdapter(
-                new PeopleReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
     }
 
     private String h2Url(String dbName) {
@@ -187,4 +187,5 @@ class JdbcPessoaDocumentoMetadataAdapterTest {
         }
     }
 }
+
 

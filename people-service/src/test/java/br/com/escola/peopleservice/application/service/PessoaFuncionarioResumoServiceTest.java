@@ -9,10 +9,10 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 
-import br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary;
+import br.com.escola.peopleservice.application.state.LeituraModeloSyncSummary;
 import br.com.escola.peopleservice.application.dto.PessoaFuncionarioResumoResponse;
 import br.com.escola.peopleservice.application.port.out.PessoaFuncionarioResumoPort;
-import br.com.escola.peopleservice.infra.config.PeopleReadModelProperties;
+import br.com.escola.peopleservice.infra.config.LeituraModeloProperties;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 class PessoaFuncionarioResumoServiceTest {
@@ -25,7 +25,7 @@ class PessoaFuncionarioResumoServiceTest {
         PessoaFuncionarioResumoService service =
                 new PessoaFuncionarioResumoService(
                         provider(port),
-                        guard(new PeopleReadModelSyncState(), meterRegistry),
+                        guard(new LeituraModeloSyncState(), meterRegistry),
                         meterRegistry);
 
         Optional<PessoaFuncionarioResumoResponse> response =
@@ -134,18 +134,18 @@ class PessoaFuncionarioResumoServiceTest {
                 true);
     }
 
-    private PeopleReadSourcePolicy guard(
-            PeopleReadModelSyncState state,
+    private OrigemLeituraPolicy guard(
+            LeituraModeloSyncState state,
             SimpleMeterRegistry meterRegistry) {
-        return new PeopleReadSourcePolicy(
-                new PeopleReadModelProperties(true, true, true, false, true, true, 500, true),
+        return new OrigemLeituraPolicy(
+                new LeituraModeloProperties(true, true, true, false, true, true, 500, true),
                 meterRegistry,
                 state);
     }
 
-    private PeopleReadModelSyncState greenState() {
-        PeopleReadModelSyncState state = new PeopleReadModelSyncState();
-        state.update(new PeopleReadModelSyncSummary(
+    private LeituraModeloSyncState greenState() {
+        LeituraModeloSyncState state = new LeituraModeloSyncState();
+        state.update(new LeituraModeloSyncSummary(
                 true,
                 true,
                 "completed",
@@ -203,5 +203,6 @@ class PessoaFuncionarioResumoServiceTest {
         }
     }
 }
+
 
 

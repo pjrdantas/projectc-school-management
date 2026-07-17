@@ -6,7 +6,7 @@ import java.util.UUID;
 import br.com.escola.pedagogicalservice.application.context.InternalRequestContext;
 import br.com.escola.pedagogicalservice.application.dto.AulaResponse;
 import br.com.escola.pedagogicalservice.application.dto.FrequenciaAlunoResponse;
-import br.com.escola.pedagogicalservice.application.dto.FrequenciaProfessorResponse;
+import br.com.escola.pedagogicalservice.application.dto.FrequenciaDocenteResponse;
 
 public interface AulaPort {
 
@@ -26,13 +26,13 @@ public interface AulaPort {
             InternalRequestContext context,
             UUID aulaId);
 
-    FrequenciaProfessorResponse registrarFrequenciaProfessor(
+    FrequenciaDocenteResponse registrarFrequenciaProfessor(
             String authorization,
             InternalRequestContext context,
             UUID aulaId,
             String requestBody);
 
-    List<FrequenciaProfessorResponse> listarFrequenciaProfessor(
+    List<FrequenciaDocenteResponse> listarFrequenciaProfessor(
             String authorization,
             InternalRequestContext context,
             UUID aulaId);
@@ -48,3 +48,4 @@ public interface AulaPort {
             InternalRequestContext context,
             UUID aulaId);
 }
+

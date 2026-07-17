@@ -18,15 +18,16 @@ public record Turma(
         LocalDateTime createdAt) {
 
     public Turma {
-        id = CatalogAssertions.notNull(id, "id");
-        escolaId = CatalogAssertions.notNull(escolaId, "escolaId");
-        codigo = CatalogAssertions.notBlank(codigo, "codigo");
-        nome = CatalogAssertions.notBlank(nome, "nome");
-        capacidade = CatalogAssertions.positive(capacidade, "capacidade");
-        periodoLetivoId = CatalogAssertions.notNull(periodoLetivoId, "periodoLetivoId");
-        serieId = CatalogAssertions.notNull(serieId, "serieId");
-        turnoId = CatalogAssertions.notNull(turnoId, "turnoId");
-        createdAt = CatalogAssertions.notNull(createdAt, "createdAt");
+        id = Validacoes.notNull(id, "id");
+        escolaId = Validacoes.notNull(escolaId, "escolaId");
+        codigo = Validacoes.notBlank(codigo, "codigo");
+        nome = Validacoes.notBlank(nome, "nome");
+        capacidade = Validacoes.positive(capacidade, "capacidade");
+        periodoLetivoId = Validacoes.notNull(periodoLetivoId, "periodoLetivoId");
+        serieId = Validacoes.notNull(serieId, "serieId");
+        turnoId = Validacoes.notNull(turnoId, "turnoId");
+        createdAt = Validacoes.notNull(createdAt, "createdAt");
     }
 }
+
 

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import br.com.escola.pedagogicalservice.application.context.InternalRequestContext;
 import br.com.escola.pedagogicalservice.application.dto.AulaResponse;
 import br.com.escola.pedagogicalservice.application.dto.FrequenciaAlunoResponse;
-import br.com.escola.pedagogicalservice.application.dto.FrequenciaProfessorResponse;
+import br.com.escola.pedagogicalservice.application.dto.FrequenciaDocenteResponse;
 import br.com.escola.pedagogicalservice.application.port.in.AulaUseCase;
 import br.com.escola.pedagogicalservice.application.port.out.AulaPort;
 
@@ -41,7 +41,7 @@ public class AulaService implements AulaUseCase {
     }
 
     @Override
-    public FrequenciaProfessorResponse registrarFrequenciaProfessor(
+    public FrequenciaDocenteResponse registrarFrequenciaProfessor(
             String authorization,
             InternalRequestContext context,
             UUID aulaId,
@@ -50,7 +50,7 @@ public class AulaService implements AulaUseCase {
     }
 
     @Override
-    public List<FrequenciaProfessorResponse> listarFrequenciaProfessor(
+    public List<FrequenciaDocenteResponse> listarFrequenciaProfessor(
             String authorization,
             InternalRequestContext context,
             UUID aulaId) {
@@ -74,3 +74,4 @@ public class AulaService implements AulaUseCase {
         return aulaPort.listarFrequenciasAlunos(authorization, context, aulaId);
     }
 }
+

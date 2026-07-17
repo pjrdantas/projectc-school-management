@@ -12,7 +12,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 import br.com.escola.responsiblesservice.application.dto.ResponsavelAlunoVinculadoReadModelResponse;
-import br.com.escola.responsiblesservice.infra.config.ResponsiblesReadModelMigrationProperties;
+import br.com.escola.responsiblesservice.infra.config.LeituraModeloMigrationProperties;
 
 class JdbcResponsavelReadModelAdapterTest {
 
@@ -22,7 +22,7 @@ class JdbcResponsavelReadModelAdapterTest {
         UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
         criarSchemaEPopular(url);
         JdbcResponsavelReadModelAdapter adapter = new JdbcResponsavelReadModelAdapter(
-                new ResponsiblesReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         var response = adapter.listarResponsaveis(escolaId, "Maria", "98765432100");
 
@@ -39,7 +39,7 @@ class JdbcResponsavelReadModelAdapterTest {
         UUID responsavelId = UUID.fromString("00000000-0000-0000-0000-000000000601");
         criarSchemaEPopular(url);
         JdbcResponsavelReadModelAdapter adapter = new JdbcResponsavelReadModelAdapter(
-                new ResponsiblesReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         var response = adapter.buscarResponsavelPorId(responsavelId, escolaId);
 
@@ -55,7 +55,7 @@ class JdbcResponsavelReadModelAdapterTest {
         UUID alunoId = UUID.fromString("00000000-0000-0000-0000-000000000401");
         criarSchemaEPopular(url);
         JdbcResponsavelReadModelAdapter adapter = new JdbcResponsavelReadModelAdapter(
-                new ResponsiblesReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         Optional<List<ResponsavelAlunoVinculadoReadModelResponse>> response = adapter.listarResponsaveisPorAluno(alunoId,
                 escolaId);
@@ -76,7 +76,7 @@ class JdbcResponsavelReadModelAdapterTest {
         UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
         criarSchemaEPopular(url);
         JdbcResponsavelReadModelAdapter adapter = new JdbcResponsavelReadModelAdapter(
-                new ResponsiblesReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         var response = adapter.listarResponsaveisPorAluno(
                 UUID.fromString("00000000-0000-0000-0000-000000000499"),
@@ -184,3 +184,4 @@ class JdbcResponsavelReadModelAdapterTest {
         }
     }
 }
+

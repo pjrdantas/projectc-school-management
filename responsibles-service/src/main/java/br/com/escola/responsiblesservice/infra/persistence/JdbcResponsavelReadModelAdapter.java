@@ -16,7 +16,7 @@ import org.springframework.util.StringUtils;
 import br.com.escola.responsiblesservice.application.dto.ResponsavelAlunoVinculadoReadModelResponse;
 import br.com.escola.responsiblesservice.application.dto.ResponsavelReadModelResponse;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelLocalReadPort;
-import br.com.escola.responsiblesservice.infra.config.ResponsiblesReadModelMigrationProperties;
+import br.com.escola.responsiblesservice.infra.config.LeituraModeloMigrationProperties;
 
 @Component
 public class JdbcResponsavelReadModelAdapter implements ResponsavelLocalReadPort {
@@ -68,9 +68,9 @@ public class JdbcResponsavelReadModelAdapter implements ResponsavelLocalReadPort
             ORDER BY r.nome_completo
             """;
 
-    private final ResponsiblesReadModelMigrationProperties properties;
+    private final LeituraModeloMigrationProperties properties;
 
-    public JdbcResponsavelReadModelAdapter(ResponsiblesReadModelMigrationProperties properties) {
+    public JdbcResponsavelReadModelAdapter(LeituraModeloMigrationProperties properties) {
         this.properties = properties;
     }
 
@@ -221,3 +221,4 @@ public class JdbcResponsavelReadModelAdapter implements ResponsavelLocalReadPort
         return resultSet.wasNull() ? null : value;
     }
 }
+

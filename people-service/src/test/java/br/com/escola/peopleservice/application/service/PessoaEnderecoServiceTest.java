@@ -8,10 +8,10 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary;
+import br.com.escola.peopleservice.application.state.LeituraModeloSyncSummary;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.port.out.PessoaEnderecoPort;
-import br.com.escola.peopleservice.infra.config.PeopleReadModelProperties;
+import br.com.escola.peopleservice.infra.config.LeituraModeloProperties;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 class PessoaEnderecoServiceTest {
@@ -22,7 +22,7 @@ class PessoaEnderecoServiceTest {
         CountingEnderecoPort port = new CountingEnderecoPort(endereco());
         PessoaEnderecoService service = new PessoaEnderecoService(
                 port,
-                guard(new PeopleReadModelSyncState(), meterRegistry),
+                guard(new LeituraModeloSyncState(), meterRegistry),
                 meterRegistry);
 
         Optional<PessoaEnderecoResponse> response = service.buscarEnderecoPrincipalPorPessoa(
@@ -78,18 +78,18 @@ class PessoaEnderecoServiceTest {
                 "result", "fallback_error").count()).isEqualTo(1.0d);
     }
 
-    private PeopleReadSourcePolicy guard(
-            PeopleReadModelSyncState state,
+    private OrigemLeituraPolicy guard(
+            LeituraModeloSyncState state,
             SimpleMeterRegistry meterRegistry) {
-        return new PeopleReadSourcePolicy(
-                new PeopleReadModelProperties(true, true, true, false, true, true, 500, true),
+        return new OrigemLeituraPolicy(
+                new LeituraModeloProperties(true, true, true, false, true, true, 500, true),
                 meterRegistry,
                 state);
     }
 
-    private PeopleReadModelSyncState greenState() {
-        PeopleReadModelSyncState state = new PeopleReadModelSyncState();
-        state.update(new PeopleReadModelSyncSummary(
+    private LeituraModeloSyncState greenState() {
+        LeituraModeloSyncState state = new LeituraModeloSyncState();
+        state.update(new LeituraModeloSyncSummary(
                 true,
                 true,
                 "completed",
@@ -164,5 +164,6 @@ class PessoaEnderecoServiceTest {
         }
     }
 }
+
 
 

@@ -15,12 +15,12 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class PessoaDocumentoMetadataService {
 
     private final ObjectProvider<PessoaDocumentoMetadataPort> documentoPortProvider;
-    private final PeopleReadSourcePolicy readRoutingPolicy;
+    private final OrigemLeituraPolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
     public PessoaDocumentoMetadataService(
             ObjectProvider<PessoaDocumentoMetadataPort> documentoPortProvider,
-            PeopleReadSourcePolicy readRoutingPolicy,
+            OrigemLeituraPolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
         this.documentoPortProvider = documentoPortProvider;
         this.readRoutingPolicy = readRoutingPolicy;
@@ -79,4 +79,5 @@ public class PessoaDocumentoMetadataService {
                 .increment();
     }
 }
+
 

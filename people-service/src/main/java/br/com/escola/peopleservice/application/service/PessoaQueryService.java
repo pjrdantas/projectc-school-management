@@ -15,7 +15,7 @@ import br.com.escola.peopleservice.application.dto.PessoaFuncionarioResumoRespon
 import br.com.escola.peopleservice.application.dto.PessoaProfessorResumoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResponsavelVinculadoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
-import br.com.escola.peopleservice.application.exception.PeopleServiceResourceNotFoundException;
+import br.com.escola.peopleservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.peopleservice.application.port.in.PessoaQueryUseCase;
 import br.com.escola.peopleservice.application.port.out.PessoaCatalogoPort;
 import br.com.escola.peopleservice.application.port.out.PessoaPort;
@@ -36,7 +36,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     private final PessoaDocumentoMetadataService pessoaDocumentoMetadataService;
     private final PessoaFuncionarioResumoService pessoaFuncionarioResumoService;
     private final PessoaProfessorResumoService pessoaProfessorResumoService;
-    private final PeopleReadSourcePolicy readRoutingPolicy;
+    private final OrigemLeituraPolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
     public PessoaQueryService(
@@ -50,7 +50,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             PessoaDocumentoMetadataService pessoaDocumentoMetadataService,
             PessoaFuncionarioResumoService pessoaFuncionarioResumoService,
             PessoaProfessorResumoService pessoaProfessorResumoService,
-            PeopleReadSourcePolicy readRoutingPolicy,
+            OrigemLeituraPolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
         this.pessoaReadPort = pessoaReadPort;
         this.catalogoPort = catalogoPort;
@@ -112,7 +112,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             InternalRequestContext context,
             UUID pessoaId) {
         return pessoaEnderecoService.buscarEnderecoPrincipalPorPessoa(pessoaId, context.escolaId())
-                .orElseThrow(() -> new PeopleServiceResourceNotFoundException("Endereco principal nao encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Endereco principal nao encontrado"));
     }
 
     @Override
@@ -129,7 +129,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             InternalRequestContext context,
             UUID pessoaId) {
         return pessoaContatoService.buscarContatoPorPessoa(pessoaId, context.escolaId())
-                .orElseThrow(() -> new PeopleServiceResourceNotFoundException("Contato nao encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Contato nao encontrado"));
     }
 
     @Override
@@ -138,7 +138,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             InternalRequestContext context,
             UUID documentoId) {
         return pessoaDocumentoMetadataService.buscarDocumentoPorId(documentoId, context.escolaId())
-                .orElseThrow(() -> new PeopleServiceResourceNotFoundException("Documento nao encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Documento nao encontrado"));
     }
 
     @Override
@@ -155,7 +155,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             InternalRequestContext context,
             UUID funcionarioId) {
         return pessoaFuncionarioResumoService.buscarFuncionarioPorId(funcionarioId, context.escolaId())
-                .orElseThrow(() -> new PeopleServiceResourceNotFoundException("Funcionario nao encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Funcionario nao encontrado"));
     }
 
     @Override
@@ -171,7 +171,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             InternalRequestContext context,
             UUID professorId) {
         return pessoaProfessorResumoService.buscarProfessorPorId(professorId, context.escolaId())
-                .orElseThrow(() -> new PeopleServiceResourceNotFoundException("Professor nao encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Professor nao encontrado"));
     }
 
     @Override
@@ -197,7 +197,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             }
         }
         return pessoaReadPort.buscarPessoaPorId(authorization, context, pessoaId)
-                .orElseThrow(() -> new PeopleServiceResourceNotFoundException("Pessoa nao encontrada"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa nao encontrada"));
     }
 
     @Override
@@ -256,7 +256,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             }
         }
         return pessoaReadPort.listarResponsaveisPorAluno(authorization, context, alunoId)
-                .orElseThrow(() -> new PeopleServiceResourceNotFoundException("Aluno nao encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno nao encontrado"));
     }
 
     private void registrarLeituraLocal(String operation, String result) {
@@ -283,4 +283,5 @@ public class PessoaQueryService implements PessoaQueryUseCase {
                 .increment();
     }
 }
+
 

@@ -13,14 +13,14 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 import br.com.escola.peopleservice.application.dto.PessoaResponsavelVinculadoResponse;
-import br.com.escola.peopleservice.infra.config.PeopleReadModelMigrationProperties;
+import br.com.escola.peopleservice.infra.config.LeituraModeloMigrationProperties;
 
 class JdbcAlunoResponsavelAdapterTest {
 
     @Test
     void bloqueiaLeituraLocalQuandoUrlNaoEstaConfigurada() {
         JdbcAlunoResponsavelAdapter adapter = new JdbcAlunoResponsavelAdapter(
-                new PeopleReadModelMigrationProperties("", "", "", "", List.of()));
+                new LeituraModeloMigrationProperties("", "", "", "", List.of()));
 
         assertThatThrownBy(() -> adapter.consultarCadastro(null, null, null, null, 0, 20))
                 .isInstanceOf(IllegalStateException.class)
@@ -33,7 +33,7 @@ class JdbcAlunoResponsavelAdapterTest {
         criarSchema(url);
         popularDados(url);
         JdbcAlunoResponsavelAdapter adapter = new JdbcAlunoResponsavelAdapter(
-                new PeopleReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         var page = adapter.consultarCadastro("Ana", null, "Rita", null, 0, 10);
 
@@ -55,7 +55,7 @@ class JdbcAlunoResponsavelAdapterTest {
         criarSchema(url);
         popularDados(url);
         JdbcAlunoResponsavelAdapter adapter = new JdbcAlunoResponsavelAdapter(
-                new PeopleReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         var page = adapter.consultarCadastro(" ", " ", " ", " ", -1, 200);
 
@@ -295,7 +295,7 @@ class JdbcAlunoResponsavelAdapterTest {
         criarSchema(url);
         popularDados(url);
         JdbcAlunoResponsavelAdapter adapter = new JdbcAlunoResponsavelAdapter(
-                new PeopleReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         Optional<List<PessoaResponsavelVinculadoResponse>> response = adapter.listarResponsaveisPorAluno(
                 UUID.fromString("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa"));
@@ -318,11 +318,12 @@ class JdbcAlunoResponsavelAdapterTest {
         criarSchema(url);
         popularDados(url);
         JdbcAlunoResponsavelAdapter adapter = new JdbcAlunoResponsavelAdapter(
-                new PeopleReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         Optional<List<PessoaResponsavelVinculadoResponse>> response = adapter.listarResponsaveisPorAluno(UUID.randomUUID());
 
         assertThat(response).isEmpty();
     }
 }
+
 

@@ -90,9 +90,9 @@ class PessoaContatoServiceTest {
                 "result", "fallback_adapter_missing").count()).isEqualTo(1.0d);
     }
 
-    private PeopleReadSourcePolicy readRoutingPolicy(boolean localReadEligible, SimpleMeterRegistry meterRegistry) {
-        return new PeopleReadSourcePolicy(
-                new br.com.escola.peopleservice.infra.config.PeopleReadModelProperties(
+    private OrigemLeituraPolicy readRoutingPolicy(boolean localReadEligible, SimpleMeterRegistry meterRegistry) {
+        return new OrigemLeituraPolicy(
+                new br.com.escola.peopleservice.infra.config.LeituraModeloProperties(
                         localReadEligible,
                         false,
                         localReadEligible,
@@ -102,12 +102,12 @@ class PessoaContatoServiceTest {
                         500,
                         true),
                 meterRegistry,
-                localReadEligible ? greenState() : new PeopleReadModelSyncState());
+                localReadEligible ? greenState() : new LeituraModeloSyncState());
     }
 
-    private PeopleReadModelSyncState greenState() {
-        PeopleReadModelSyncState state = new PeopleReadModelSyncState();
-        state.update(new br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary(
+    private LeituraModeloSyncState greenState() {
+        LeituraModeloSyncState state = new LeituraModeloSyncState();
+        state.update(new br.com.escola.peopleservice.application.state.LeituraModeloSyncSummary(
                 true,
                 true,
                 "completed",
@@ -182,3 +182,4 @@ class PessoaContatoServiceTest {
         }
     }
 }
+

@@ -24,8 +24,8 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-import br.com.escola.peopleservice.application.service.PeopleReadModelSyncState;
-import br.com.escola.peopleservice.application.service.PeopleReadModelSyncCoordinator;
+import br.com.escola.peopleservice.application.service.LeituraModeloSyncState;
+import br.com.escola.peopleservice.application.service.LeituraModeloSyncCoordinator;
 import br.com.escola.peopleservice.application.service.PessoaContatoService;
 import br.com.escola.peopleservice.application.service.PessoaDocumentoMetadataService;
 import br.com.escola.peopleservice.application.service.PessoaEnderecoService;
@@ -33,7 +33,7 @@ import br.com.escola.peopleservice.application.service.PessoaFuncionarioResumoSe
 import br.com.escola.peopleservice.application.service.PessoaProfessorResumoService;
 import br.com.escola.peopleservice.application.dto.PessoaContatoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataResponse;
-import br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary;
+import br.com.escola.peopleservice.application.state.LeituraModeloSyncSummary;
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaFuncionarioResumoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaProfessorResumoResponse;
@@ -56,7 +56,7 @@ class PessoaInternalQueryControllerIntegrationTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private PeopleReadModelSyncState peopleReadModelSyncState;
+    private LeituraModeloSyncState peopleReadModelSyncState;
 
     @MockBean
     private PessoaEnderecoService pessoaEnderecoService;
@@ -74,7 +74,7 @@ class PessoaInternalQueryControllerIntegrationTest {
     private PessoaProfessorResumoService pessoaProfessorResumoService;
 
     @MockBean
-    private PeopleReadModelSyncCoordinator peopleReadModelSyncCoordinator;
+    private LeituraModeloSyncCoordinator peopleReadModelSyncCoordinator;
 
     @BeforeAll
     static void beforeAll() throws IOException {
@@ -393,7 +393,7 @@ class PessoaInternalQueryControllerIntegrationTest {
     }
 
     private void marcarReadModelComoVerde() {
-        peopleReadModelSyncState.update(new PeopleReadModelSyncSummary(
+        peopleReadModelSyncState.update(new LeituraModeloSyncSummary(
                 true,
                 true,
                 "completed",
@@ -699,4 +699,5 @@ class PessoaInternalQueryControllerIntegrationTest {
         throw new AssertionError("Requisicao esperada nao encontrada: " + method + " " + path);
     }
 }
+
 

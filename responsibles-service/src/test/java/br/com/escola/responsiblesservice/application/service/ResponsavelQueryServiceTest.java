@@ -20,10 +20,10 @@ import br.com.escola.responsiblesservice.application.dto.ResponsavelAlunoVincula
 import br.com.escola.responsiblesservice.application.dto.ResponsavelReadModelResponse;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelLocalReadPort;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelReadPort;
-import br.com.escola.responsiblesservice.application.state.ResponsiblesReadModelSyncState;
-import br.com.escola.responsiblesservice.application.state.ResponsiblesReadModelSyncSummary;
-import br.com.escola.responsiblesservice.application.state.ResponsiblesReadModelSyncSummary.TableOperationReport;
-import br.com.escola.responsiblesservice.infra.config.ResponsiblesReadModelProperties;
+import br.com.escola.responsiblesservice.application.state.LeituraModeloSyncState;
+import br.com.escola.responsiblesservice.application.state.LeituraModeloSyncSummary;
+import br.com.escola.responsiblesservice.application.state.LeituraModeloSyncSummary.TableOperationReport;
+import br.com.escola.responsiblesservice.infra.config.LeituraModeloProperties;
 
 class ResponsavelQueryServiceTest {
 
@@ -36,8 +36,8 @@ class ResponsavelQueryServiceTest {
                         Optional.empty(),
                         Optional.empty(),
                         false)),
-                new FakeMonolithReadPort(monolithCalls),
-                new ResponsiblesReadModelProperties(true, false, true, false, false, 500, false, true),
+                new FakeOrigemAtualReadPort(monolithCalls),
+                new LeituraModeloProperties(true, false, true, false, false, 500, false, true),
                 routeGuard(false, true),
                 new ObjectMapper().findAndRegisterModules());
 
@@ -55,8 +55,8 @@ class ResponsavelQueryServiceTest {
         UUID responsavelId = UUID.fromString("00000000-0000-0000-0000-000000000601");
         ResponsavelQueryService service = new ResponsavelQueryService(
                 provider(new FakeLocalReadPort(Optional.empty(), Optional.empty(), Optional.empty(), false)),
-                new FakeMonolithReadPort(monolithCalls),
-                new ResponsiblesReadModelProperties(true, false, true, false, false, 500, false, true),
+                new FakeOrigemAtualReadPort(monolithCalls),
+                new LeituraModeloProperties(true, false, true, false, false, 500, false, true),
                 routeGuard(false, true),
                 new ObjectMapper().findAndRegisterModules());
 
@@ -76,8 +76,8 @@ class ResponsavelQueryServiceTest {
                         Optional.empty(),
                         Optional.of(List.of(responsavelVinculado("Mae Local"))),
                         false)),
-                new FakeMonolithReadPort(monolithCalls),
-                new ResponsiblesReadModelProperties(true, false, true, false, false, 500, false, true),
+                new FakeOrigemAtualReadPort(monolithCalls),
+                new LeituraModeloProperties(true, false, true, false, false, 500, false, true),
                 routeGuard(false, true),
                 new ObjectMapper().findAndRegisterModules());
 
@@ -92,8 +92,8 @@ class ResponsavelQueryServiceTest {
     @Test
     void devePermitirCatalogoLocalMesmoQuandoLinksAindaNaoEstaoReconciliados() {
         AtomicInteger monolithCalls = new AtomicInteger();
-        ResponsiblesReadModelSyncState syncState = new ResponsiblesReadModelSyncState();
-        syncState.update(new ResponsiblesReadModelSyncSummary(
+        LeituraModeloSyncState syncState = new LeituraModeloSyncState();
+        syncState.update(new LeituraModeloSyncSummary(
                 true,
                 true,
                 "blocked",
@@ -115,10 +115,10 @@ class ResponsavelQueryServiceTest {
                         Optional.of(responsavel("Catalogo Local")),
                         Optional.empty(),
                         false)),
-                new FakeMonolithReadPort(monolithCalls),
-                new ResponsiblesReadModelProperties(true, false, true, false, true, 500, false, true),
-                new ResponsiblesReadModelRouteGuard(
-                        new ResponsiblesReadModelProperties(true, false, true, false, true, 500, false, true),
+                new FakeOrigemAtualReadPort(monolithCalls),
+                new LeituraModeloProperties(true, false, true, false, true, 500, false, true),
+                new LeituraModeloRouteGuard(
+                        new LeituraModeloProperties(true, false, true, false, true, 500, false, true),
                         syncState),
                 new ObjectMapper().findAndRegisterModules());
 
@@ -143,8 +143,8 @@ class ResponsavelQueryServiceTest {
         AtomicInteger monolithCalls = new AtomicInteger();
         ResponsavelQueryService service = new ResponsavelQueryService(
                 provider(new FakeLocalReadPort(Optional.empty(), Optional.empty(), Optional.empty(), false)),
-                new FakeMonolithReadPort(monolithCalls),
-                new ResponsiblesReadModelProperties(true, false, true, false, false, 500, false, true),
+                new FakeOrigemAtualReadPort(monolithCalls),
+                new LeituraModeloProperties(true, false, true, false, false, 500, false, true),
                 routeGuard(false, true),
                 new ObjectMapper().findAndRegisterModules());
 
@@ -180,10 +180,10 @@ class ResponsavelQueryServiceTest {
         };
     }
 
-    private ResponsiblesReadModelRouteGuard routeGuard(boolean reconciliationEnabled, boolean ready) {
-        ResponsiblesReadModelSyncState syncState = new ResponsiblesReadModelSyncState();
+    private LeituraModeloRouteGuard routeGuard(boolean reconciliationEnabled, boolean ready) {
+        LeituraModeloSyncState syncState = new LeituraModeloSyncState();
         if (ready) {
-            syncState.update(new ResponsiblesReadModelSyncSummary(
+            syncState.update(new LeituraModeloSyncSummary(
                     true,
                     reconciliationEnabled,
                     "completed",
@@ -200,8 +200,8 @@ class ResponsavelQueryServiceTest {
                             table("parentesco", reconciliationEnabled),
                             table("aluno_responsavel", reconciliationEnabled))));
         }
-        return new ResponsiblesReadModelRouteGuard(
-                new ResponsiblesReadModelProperties(true, false, true, false, reconciliationEnabled, 500, false, true),
+        return new LeituraModeloRouteGuard(
+                new LeituraModeloProperties(true, false, true, false, reconciliationEnabled, 500, false, true),
                 syncState);
     }
 
@@ -332,10 +332,10 @@ class ResponsavelQueryServiceTest {
         }
     }
 
-    private static class FakeMonolithReadPort implements ResponsavelReadPort {
+    private static class FakeOrigemAtualReadPort implements ResponsavelReadPort {
         private final AtomicInteger calls;
 
-        private FakeMonolithReadPort(AtomicInteger calls) {
+        private FakeOrigemAtualReadPort(AtomicInteger calls) {
             this.calls = calls;
         }
 
@@ -375,3 +375,4 @@ class ResponsavelQueryServiceTest {
         }
     }
 }
+

@@ -20,7 +20,7 @@ import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageRe
 import br.com.escola.peopleservice.application.dto.PessoaResponsavelResumoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResponsavelVinculadoResponse;
 import br.com.escola.peopleservice.application.port.out.AlunoResponsavelPort;
-import br.com.escola.peopleservice.infra.config.PeopleReadModelMigrationProperties;
+import br.com.escola.peopleservice.infra.config.LeituraModeloMigrationProperties;
 
 @Component
 public class JdbcAlunoResponsavelAdapter implements AlunoResponsavelPort {
@@ -35,9 +35,9 @@ public class JdbcAlunoResponsavelAdapter implements AlunoResponsavelPort {
               AND (? IS NULL OR r.cpf = ?)
             """;
 
-    private final PeopleReadModelMigrationProperties properties;
+    private final LeituraModeloMigrationProperties properties;
 
-    public JdbcAlunoResponsavelAdapter(PeopleReadModelMigrationProperties properties) {
+    public JdbcAlunoResponsavelAdapter(LeituraModeloMigrationProperties properties) {
         this.properties = properties;
     }
 
@@ -373,4 +373,5 @@ public class JdbcAlunoResponsavelAdapter implements AlunoResponsavelPort {
         }
     }
 }
+
 

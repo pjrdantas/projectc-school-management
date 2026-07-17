@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 
 import br.com.escola.peopleservice.application.context.InternalRequestContext;
-import br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary;
+import br.com.escola.peopleservice.application.state.LeituraModeloSyncSummary;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaContatoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageResponse;
@@ -24,7 +24,7 @@ import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 import br.com.escola.peopleservice.application.port.out.PessoaCatalogoPort;
 import br.com.escola.peopleservice.application.port.out.AlunoResponsavelPort;
 import br.com.escola.peopleservice.application.port.out.PessoaReadPort;
-import br.com.escola.peopleservice.infra.config.PeopleReadModelProperties;
+import br.com.escola.peopleservice.infra.config.LeituraModeloProperties;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 class PessoaQueryServiceTest {
@@ -595,7 +595,7 @@ class PessoaQueryServiceTest {
 
     private PessoaAlunoResponsavelCatalogoService catalogoAlunoResponsavelService(
             PessoaCatalogoPort catalogoPort,
-            PeopleReadSourcePolicy readRoutingPolicy,
+            OrigemLeituraPolicy readRoutingPolicy,
             SimpleMeterRegistry meterRegistry) {
         ObjectProvider<PessoaCatalogoPort> provider = new ObjectProvider<>() {
             @Override
@@ -623,14 +623,14 @@ class PessoaQueryServiceTest {
 
     private PessoaEnderecoService enderecoService(
             FakePessoaEnderecoPort enderecoPort,
-            PeopleReadSourcePolicy readRoutingPolicy,
+            OrigemLeituraPolicy readRoutingPolicy,
             SimpleMeterRegistry meterRegistry) {
         return new PessoaEnderecoService(enderecoPort, readRoutingPolicy, meterRegistry);
     }
 
     private PessoaContatoService contatoService(
             FakePessoaContatoPort contatoPort,
-            PeopleReadSourcePolicy readRoutingPolicy,
+            OrigemLeituraPolicy readRoutingPolicy,
             SimpleMeterRegistry meterRegistry) {
         ObjectProvider<br.com.escola.peopleservice.application.port.out.PessoaContatoPort> provider = new ObjectProvider<>() {
             @Override
@@ -658,7 +658,7 @@ class PessoaQueryServiceTest {
 
     private PessoaDocumentoMetadataService documentoMetadataService(
             FakePessoaDocumentoMetadataPort documentoPort,
-            PeopleReadSourcePolicy readRoutingPolicy,
+            OrigemLeituraPolicy readRoutingPolicy,
             SimpleMeterRegistry meterRegistry) {
         ObjectProvider<br.com.escola.peopleservice.application.port.out.PessoaDocumentoMetadataPort> provider = new ObjectProvider<>() {
             @Override
@@ -686,7 +686,7 @@ class PessoaQueryServiceTest {
 
     private PessoaFuncionarioResumoService funcionarioResumoService(
             FakePessoaFuncionarioResumoPort funcionarioPort,
-            PeopleReadSourcePolicy readRoutingPolicy,
+            OrigemLeituraPolicy readRoutingPolicy,
             SimpleMeterRegistry meterRegistry) {
         ObjectProvider<br.com.escola.peopleservice.application.port.out.PessoaFuncionarioResumoPort> provider = new ObjectProvider<>() {
             @Override
@@ -714,7 +714,7 @@ class PessoaQueryServiceTest {
 
     private PessoaProfessorResumoService professorResumoService(
             FakePessoaProfessorResumoPort professorPort,
-            PeopleReadSourcePolicy readRoutingPolicy,
+            OrigemLeituraPolicy readRoutingPolicy,
             SimpleMeterRegistry meterRegistry) {
         ObjectProvider<br.com.escola.peopleservice.application.port.out.PessoaProfessorResumoPort> provider = new ObjectProvider<>() {
             @Override
@@ -814,9 +814,9 @@ class PessoaQueryServiceTest {
                 java.time.LocalDateTime.parse("2026-01-05T10:00:00"));
     }
 
-    private PeopleReadSourcePolicy greenGuard(SimpleMeterRegistry meterRegistry) {
-        PeopleReadModelSyncState state = new PeopleReadModelSyncState();
-        state.update(new PeopleReadModelSyncSummary(
+    private OrigemLeituraPolicy greenGuard(SimpleMeterRegistry meterRegistry) {
+        LeituraModeloSyncState state = new LeituraModeloSyncState();
+        state.update(new LeituraModeloSyncSummary(
                 true,
                 true,
                 "completed",
@@ -831,8 +831,8 @@ class PessoaQueryServiceTest {
                 false,
                 false,
                 List.of()));
-        return new PeopleReadSourcePolicy(
-                new PeopleReadModelProperties(true, false, true, false, true, true, 500, true),
+        return new OrigemLeituraPolicy(
+                new LeituraModeloProperties(true, false, true, false, true, true, 500, true),
                 meterRegistry,
                 state);
     }
@@ -1087,5 +1087,6 @@ class PessoaQueryServiceTest {
         }
     }
 }
+
 
 
