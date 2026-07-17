@@ -4440,3 +4440,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff -Dtest=OfficialReadContextDecouplingIntegrationSuiteTest test`.
 - Contagem regressiva do ciclo residual de resiliencia externa do
   `pedagogical-service`: 1 fase restante.
+
+### Fase 218
+
+- A Fase 4 fechou documentalmente o ciclo residual do `pedagogical-service`,
+  sem reabrir codigo e sem novo escopo funcional alem do recorte operacional ja
+  consolidado nas fases anteriores.
+- Ficou formalizado que o `school-management-bff` ja cobre com fallback
+  read-only ao monolito todo o bloco publico de leitura pedagogica atualmente
+  desacoplado: `boletim`, `diario-classe`, `historico-escolar`, `aulas`,
+  `frequencias`, `avaliacoes` e `notas`.
+- A validacao unica deste fechamento continua sendo a suite
+  `OfficialReadContextDecouplingIntegrationSuiteTest`, ja executada na `Fase 217`,
+  nao sendo necessario novo teste nesta fase documental.
+- Contagem regressiva do ciclo residual de resiliencia externa do
+  `pedagogical-service`: 0 fases restantes.

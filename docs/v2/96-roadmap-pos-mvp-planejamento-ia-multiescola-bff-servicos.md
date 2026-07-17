@@ -8753,3 +8753,24 @@ Contagem regressiva do ciclo residual de resiliencia externa do
 
 Contagem regressiva do ciclo residual de resiliencia externa do
 `pedagogical-service`: 1 fase restante.
+
+### Fase 218 - Fechamento documental do ciclo residual do `pedagogical-service`
+
+- a quarta e ultima fase do ciclo residual do `pedagogical-service` formalizou
+  o encerramento operacional deste recorte no plano v2, sem abrir novos
+  contratos, sem nova validacao funcional e sem reabrir o escopo de dominio ja
+  fechado na `Fase 132`;
+- com as `Fases 215` a `217`, o `school-management-bff` passou a ter fallback
+  read-only ao monolito para todo o bloco publico de leitura pedagogica hoje
+  desacoplado: `boletim`, `diario-classe`, `historico-escolar`, `aulas`,
+  `frequencias`, `avaliacoes` e `notas`;
+- a continuidade funcional externa desse recorte ficou consolidada por uma
+  validacao unica via
+  `OfficialReadContextDecouplingIntegrationSuiteTest`, suficiente para o
+  fechamento deste ciclo residual sem necessidade de nova alteracao em codigo;
+- com isso, o `pedagogical-service` fica operacionalmente encerrado tambem no
+  seu ciclo residual de resiliencia externa, restando apenas futuros retornos
+  se houver novo escopo deliberado fora deste fechamento.
+
+Contagem regressiva do ciclo residual de resiliencia externa do
+`pedagogical-service`: 0 fases restantes.
