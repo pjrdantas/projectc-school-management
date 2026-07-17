@@ -14,7 +14,7 @@ class IdentityTenantCutoverDeciderTest {
         IdentityTenantCutoverProperties properties = new IdentityTenantCutoverProperties(
                 false,
                 true,
-                new IdentityTenantCutoverProperties.RouteFlags(true, true, true));
+                new IdentityTenantCutoverProperties.RouteFlags(true, true));
 
         IdentityTenantCutoverDecider decider = new IdentityTenantCutoverDecider(properties);
 
@@ -27,7 +27,7 @@ class IdentityTenantCutoverDeciderTest {
         IdentityTenantCutoverProperties properties = new IdentityTenantCutoverProperties(
                 true,
                 true,
-                new IdentityTenantCutoverProperties.RouteFlags(true, false, true));
+                new IdentityTenantCutoverProperties.RouteFlags(true, false));
 
         IdentityTenantCutoverDecider decider = new IdentityTenantCutoverDecider(properties);
 

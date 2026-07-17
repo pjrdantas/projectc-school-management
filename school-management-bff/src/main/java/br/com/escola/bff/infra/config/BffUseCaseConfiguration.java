@@ -60,7 +60,6 @@ import br.com.escola.bff.application.port.out.LegacyHistoricoEscolarReadPort;
 import br.com.escola.bff.application.port.out.LegacyPeriodoLetivoWritePort;
 import br.com.escola.bff.application.port.out.LegacyResponsavelReadPort;
 import br.com.escola.bff.application.port.out.LegacySerieWritePort;
-import br.com.escola.bff.application.port.out.LegacyTenantReadPort;
 import br.com.escola.bff.application.port.out.LegacyTurmaDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.LegacyTurmaWritePort;
 import br.com.escola.bff.application.port.out.ConsultaCadastralReadPort;
@@ -237,14 +236,10 @@ public class BffUseCaseConfiguration {
     ConsultarTenantAtivoUseCase consultarTenantAtivoUseCase(
             IdentityTenantAuthContextPort authContextPort,
             TenantAtivoReadPort institutionalTenantReadPort,
-            LegacyTenantReadPort monolithTenantReadPort,
-            IdentityTenantCutoverPolicyPort cutoverPolicyPort,
             IdentityTenantObservabilityPort observabilityPort) {
         return new TenantAtivoReadProxyService(
                 authContextPort,
                 institutionalTenantReadPort,
-                monolithTenantReadPort,
-                cutoverPolicyPort,
                 observabilityPort);
     }
 

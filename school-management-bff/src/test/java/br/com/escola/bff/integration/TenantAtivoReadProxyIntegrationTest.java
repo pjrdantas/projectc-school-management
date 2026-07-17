@@ -24,7 +24,6 @@ import okhttp3.mockwebserver.MockWebServer;
 @AutoConfigureWebTestClient
 class TenantAtivoReadProxyIntegrationTest {
 
-    private static final MockWebServer MONOLITH = startServer();
     private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer INSTITUTIONAL_TENANT = startServer();
 
@@ -33,7 +32,6 @@ class TenantAtivoReadProxyIntegrationTest {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
         registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
         registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.institutional-tenant-service.base-url", () -> INSTITUTIONAL_TENANT.url("/").toString());
@@ -43,7 +41,6 @@ class TenantAtivoReadProxyIntegrationTest {
 
     @AfterAll
     static void stopServers() throws IOException {
-        MONOLITH.shutdown();
         IDENTITY_ACCESS.shutdown();
         INSTITUTIONAL_TENANT.shutdown();
     }
@@ -91,7 +88,6 @@ class TenantAtivoReadProxyIntegrationTest {
         assertThat(tenantRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-tenant-1");
         assertThat(tenantRequest.getHeader("X-Usuario-Id")).isEqualTo("00000000-0000-0000-0000-000000000101");
         assertThat(tenantRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
-        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
@@ -121,8 +117,6 @@ class TenantAtivoReadProxyIntegrationTest {
 
         var tenantRequest = INSTITUTIONAL_TENANT.takeRequest();
         assertThat(tenantRequest.getPath()).isEqualTo("/internal/v1/tenant/ativa");
-
-        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test
@@ -140,8 +134,6 @@ class TenantAtivoReadProxyIntegrationTest {
         var contextRequest = IDENTITY_ACCESS.takeRequest();
         assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         assertThat(INSTITUTIONAL_TENANT.takeRequest(200, TimeUnit.MILLISECONDS)).isNull();
-
-        assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
     @Test

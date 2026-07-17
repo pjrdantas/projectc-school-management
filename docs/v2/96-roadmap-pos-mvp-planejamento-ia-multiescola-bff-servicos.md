@@ -8986,6 +8986,16 @@ Definicao objetiva:
 - validacao objetiva do primeiro recorte:
   `mvn -pl institutional-tenant-service -Dtest=TenantSessaoInternaControllerIntegrationTest test`
   e `mvn -pl institutional-tenant-service test`, ambos com `BUILD SUCCESS`.
+- segundo recorte executado em 17/07/2026:
+  `GET /api/auth/tenant/ativa` no `school-management-bff` deixou de manter
+  qualquer retorno legado ao monolito e passou a operar exclusivamente pelo
+  fluxo oficial com `identity-access-service` e `institutional-tenant-service`.
+- com isso, foram removidos do BFF `LegacyTenantReadPort`,
+  `LegacyTenantReadClient` e a flag operacional dedicada
+  `auth-tenant-ativa` do bloco `identity-tenant-cutover`.
+- validacao objetiva do segundo recorte:
+  `mvn -pl school-management-bff "-Dtest=TenantAtivoReadProxyIntegrationTest,IdentityTenantContextFallbackObservabilityTest,IdentityTenantCutoverDeciderTest,IdentityTenantCutoverHealthIndicatorTest" test`
+  com `BUILD SUCCESS`.
 
 ### Fase D6 - Fechamento final de `academic-catalog-service`
 

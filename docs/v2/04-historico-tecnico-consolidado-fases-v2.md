@@ -4784,7 +4784,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Validacao executada apenas no modulo tocado:
   `mvn -pl institutional-tenant-service -Dtest=TenantSessaoInternaControllerIntegrationTest test`
   e `mvn -pl institutional-tenant-service test`, ambos com `BUILD SUCCESS`.
+- No segundo corte da D5, o `school-management-bff` deixou de manter qualquer
+  retorno legado para `GET /api/auth/tenant/ativa`. O proxy publico agora usa
+  obrigatoriamente `identity-access-service` para resolver contexto e
+  `institutional-tenant-service` para resolver tenant ativo, retornando
+  indisponibilidade quando o caminho novo falha.
+- Como parte desse endurecimento, foram removidos do BFF a porta
+  `LegacyTenantReadPort`, o adapter `LegacyTenantReadClient` e a flag
+  operacional dedicada `auth-tenant-ativa` do bloco de cutover identity/tenant.
+- Validacao executada apenas no modulo tocado para concluir o segundo corte da
+  D5:
+  `mvn -pl school-management-bff "-Dtest=TenantAtivoReadProxyIntegrationTest,IdentityTenantContextFallbackObservabilityTest,IdentityTenantCutoverDeciderTest,IdentityTenantCutoverHealthIndicatorTest" test`
+  com `BUILD SUCCESS`.
 - Proxima fase operacional do ciclo fechado:
-  endurecer o bloco publico `GET /api/auth/tenant/ativa` no
-  `school-management-bff`, removendo qualquer compatibilidade residual do
-  fechamento de tenant antes de avancar para `D6`.
+  abrir `D6` para retomar o fechamento do `academic-catalog-service`.

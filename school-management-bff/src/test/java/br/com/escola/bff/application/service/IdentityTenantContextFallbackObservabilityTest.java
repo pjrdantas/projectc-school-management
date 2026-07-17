@@ -11,9 +11,7 @@ import br.com.escola.bff.application.dto.AuthSessionContext;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
 import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
-import br.com.escola.bff.application.port.out.IdentityTenantCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.IdentityTenantObservabilityPort;
-import br.com.escola.bff.application.port.out.LegacyTenantReadPort;
 import br.com.escola.bff.application.port.out.SessaoAutenticadaPort;
 import br.com.escola.bff.application.port.out.TenantAtivoReadPort;
 import reactor.core.publisher.Mono;
@@ -49,14 +47,11 @@ public class IdentityTenantContextFallbackObservabilityTest {
     void deveRegistrarIdentityAccessQuandoFalhaDeTenantAtivoOcorrerNaResolucaoDeContexto() {
         IdentityTenantAuthContextPort authContextPort = query -> Mono.error(
                 new DownstreamUnavailableException("identity indisponivel"));
-        LegacyTenantReadPort monolithPort = query -> Mono.just(ResponseEntity.ok("monolith-tenant"));
         RecordingObservability observability = new RecordingObservability();
 
         TenantAtivoReadProxyService service = new TenantAtivoReadProxyService(
                 authContextPort,
                 new NoOpTenantAtivoReadPort(),
-                monolithPort,
-                new FixedDecisionPolicy(IdentityTenantRoute.AUTH_TENANT_ATIVA),
                 observability);
 
         StepVerifier.create(service.consultarTenantAtivo("Bearer token", "corr-ctx-2"))
@@ -68,25 +63,6 @@ public class IdentityTenantContextFallbackObservabilityTest {
 
         assertThat(observability.failureTarget).isNull();
         assertThat(observability.fallbackTarget).isNull();
-    }
-
-    private static final class FixedDecisionPolicy implements IdentityTenantCutoverPolicyPort {
-
-        private final IdentityTenantRoute route;
-
-        private FixedDecisionPolicy(IdentityTenantRoute route) {
-            this.route = route;
-        }
-
-        @Override
-        public IdentityTenantCutoverDecision decision(IdentityTenantRoute ignored) {
-            return new IdentityTenantCutoverDecision(route, true, "test");
-        }
-
-        @Override
-        public boolean fallbackToLegacyOnError() {
-            return false;
-        }
     }
 
     private static final class RecordingObservability implements IdentityTenantObservabilityPort {

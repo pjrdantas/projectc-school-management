@@ -13,7 +13,7 @@ class IdentityTenantCutoverHealthIndicatorTest {
         IdentityTenantCutoverProperties properties = new IdentityTenantCutoverProperties(
                 true,
                 true,
-                new IdentityTenantCutoverProperties.RouteFlags(true, false, true));
+                new IdentityTenantCutoverProperties.RouteFlags(true, false));
 
         IdentityTenantCutoverHealthIndicator indicator = new IdentityTenantCutoverHealthIndicator(properties);
 
@@ -22,7 +22,6 @@ class IdentityTenantCutoverHealthIndicatorTest {
         assertThat(indicator.health().getDetails()).containsEntry("fallbackToLegacyOnError", true);
         assertThat(indicator.health().getDetails()).containsEntry("authEscolasEnabled", true);
         assertThat(indicator.health().getDetails()).containsEntry("authEscolaAtivaEnabled", false);
-        assertThat(indicator.health().getDetails()).containsEntry("authTenantAtivaEnabled", true);
     }
 }
 

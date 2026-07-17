@@ -22,7 +22,6 @@ public class IdentityTenantCutoverHealthIndicator implements HealthIndicator {
                 .withDetail("fallbackToLegacyOnError", properties.fallbackToLegacyOnError())
                 .withDetail("authEscolasEnabled", properties.routes().authEscolas())
                 .withDetail("authEscolaAtivaEnabled", properties.routes().authEscolaAtiva())
-                .withDetail("authTenantAtivaEnabled", properties.routes().authTenantAtiva())
                 .build();
     }
 }

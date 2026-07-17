@@ -15,14 +15,13 @@ public record IdentityTenantCutoverProperties(
         return switch (route) {
             case AUTH_ESCOLAS -> routes.authEscolas();
             case AUTH_ESCOLA_ATIVA -> routes.authEscolaAtiva();
-            case AUTH_TENANT_ATIVA -> routes.authTenantAtiva();
+            case AUTH_TENANT_ATIVA -> true;
         };
     }
 
     public record RouteFlags(
             boolean authEscolas,
-            boolean authEscolaAtiva,
-            boolean authTenantAtiva
+            boolean authEscolaAtiva
     ) {}
 }
 
