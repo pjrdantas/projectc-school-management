@@ -4643,3 +4643,34 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   e `mvn -N validate` com sucesso.
 - Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura:
   0 fases restantes.
+
+### Fase D1
+
+- Foi fechado o inventario transversal do que ainda impede o desligamento do
+  `school-management-service`, sem abrir remocao funcional nesta etapa.
+- O inventario consolidou tres blocos obrigatorios do ciclo `D1` a `D16`:
+  rotas publicas do `school-management-bff` ainda presas a portas `Legacy*`,
+  servicos novos que ainda consomem a origem legada por `Legacy*Client` ou
+  `OrigemAtual*Client`, e runners/backfills/migracoes que continuam exigindo
+  `source-url` ou base URL do monolito.
+- A matriz objetiva oficial passou a apontar como bloqueios centrais:
+  autenticacao/tenant com fallback no BFF e clientes legados em
+  `identity-access-service` e `institutional-tenant-service`; catalogo com
+  fallback/read cutover e escritas ainda roteadas ao legado; `people-service`,
+  `responsibles-service`, `pedagogical-service`,
+  `enrollment-document-service`, `dashboard-query-service` e
+  `planning-ai-service` ainda com adapters diretos para a origem legada; e o
+  dominio de `professores` ainda sem ownership final consolidado, com shadow
+  migration e fallback operacional.
+- A fase registrou explicitamente que o criterio de monolito-off exige zerar
+  `Legacy*Port`, `Legacy*Client`, `OrigemAtual*Client`, `*_MONOLITH_BASE_URL`,
+  `*_READ_MODEL_SOURCE_URL` e runners de migracao/backfill dependentes da
+  origem legada no escopo ativo.
+- Validacao executada apenas como inventario tecnico e contratual:
+  buscas estruturais nas classes/configuracoes dos modulos ativos para
+  `Legacy*`, `OrigemAtual*`, `fallbackToLegacyOnError`,
+  `ApplicationRunner`, `source-url` e `*_MONOLITH_BASE_URL`, alem da leitura
+  das rotas publicas atuais do `school-management-bff` e dos contratos
+  internos expostos pelos servicos novos.
+- Proxima fase operacional do ciclo fechado:
+  `D2 - Decisao final do dominio de professores`.
