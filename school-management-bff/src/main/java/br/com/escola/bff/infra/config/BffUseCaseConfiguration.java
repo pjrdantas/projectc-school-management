@@ -55,7 +55,6 @@ import br.com.escola.bff.application.port.out.LegacyDiarioClasseReadPort;
 import br.com.escola.bff.application.port.out.LegacyAlunoResponsavelReadPort;
 import br.com.escola.bff.application.port.out.LegacyHistoricoEscolarReadPort;
 import br.com.escola.bff.application.port.out.LegacyResponsavelReadPort;
-import br.com.escola.bff.application.port.out.LegacyTurmaDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.ConsultaCadastralReadPort;
 import br.com.escola.bff.application.port.out.AlunoResponsavelCadastroReadPort;
 import br.com.escola.bff.application.port.out.PessoaCatalogoReadPort;
@@ -637,16 +636,12 @@ public class BffUseCaseConfiguration {
 
     @Bean
     LinkTurmaDisciplinaUseCase linkTurmaDisciplinaUseCase(
-            LegacyTurmaDisciplinaWritePort monolithTurmaDisciplinaWritePort,
             CatalogoTurmaDisciplinaWritePort academicCatalogTurmaDisciplinaWritePort,
             AuthContextPort authContextPort,
-            CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
         return new TurmaDisciplinaWriteRoutingService(
-                monolithTurmaDisciplinaWritePort,
                 academicCatalogTurmaDisciplinaWritePort,
                 authContextPort,
-                cutoverPolicyPort,
                 observabilityPort);
     }
 }

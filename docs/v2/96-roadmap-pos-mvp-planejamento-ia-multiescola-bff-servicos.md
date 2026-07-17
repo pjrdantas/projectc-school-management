@@ -9077,6 +9077,21 @@ Definicao objetiva:
 - validacao objetiva do quinto recorte:
   `mvn -pl school-management-bff "-Dtest=TurmaWriteRoutingServiceTest,TurmaWriteCutoverIntegrationTest" test`
   com `BUILD SUCCESS`.
+- sexto recorte executado em 17/07/2026:
+  `POST /api/turmas/{turmaId}/disciplinas` no `school-management-bff` deixou de
+  manter qualquer caminho legado e passou a operar exclusivamente como escrita
+  oficial do `academic-catalog-service`, com resolucao obrigatoria de contexto
+  autenticado, propagacao de `Idempotency-Key` e ausencia de fallback ao
+  monolito.
+- como o payload externo (`disciplinaId`, `cargaHoraria`) ja era compativel com
+  o owner oficial, nao houve necessidade de nova adaptacao de contrato no BFF
+  nem de extensao do `academic-catalog-service` para este corte.
+- com isso, foram removidos do BFF `LegacyTurmaDisciplinaWritePort`,
+  `LegacyTurmaDisciplinaWriteClient` e o teste de integracao legado dedicado a
+  `turmas/{turmaId}/disciplinas`.
+- validacao objetiva do sexto recorte:
+  `mvn -pl school-management-bff "-Dtest=TurmaDisciplinaWriteRoutingServiceTest,TurmaDisciplinaWriteCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`.
 
 ### Fase D7 - Fechamento final de `people-service`
 

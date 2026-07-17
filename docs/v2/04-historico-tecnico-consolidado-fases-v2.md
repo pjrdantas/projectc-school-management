@@ -177,6 +177,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   contrato: `Idempotency-Key`, observabilidade, rollback por flag e ausencia de
   fallback automatico para o monolito depois que a escrita tenta o servico
   novo.
+- A decima-oitava subfase da Fase 51D oficializou `POST
+  /api/turmas/{turmaId}/disciplinas` no `school-management-bff` como escrita
+  exclusiva do `academic-catalog-service`. O BFF removeu a porta e o client
+  legados dessa rota, passou a resolver sempre o contexto autenticado antes do
+  envio ao owner oficial e manteve somente `Idempotency-Key`, observabilidade e
+  propagacao do erro do catalogo sem reabrir fallback automatico para o
+  monolito.
 - A decima-oitava subfase da Fase 51D diagnosticou `POST /api/professores` e
   `POST /api/professores/{id}/turmas-disciplinas` e concluiu que a troca para
   cutover no BFF ainda nao e segura. O contrato do monolito depende do dominio
