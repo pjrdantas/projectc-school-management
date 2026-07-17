@@ -7,13 +7,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.client.RestClientResponseException;
 
 import br.com.escola.enrollmentdocumentservice.application.context.InternalHeaders;
-import br.com.escola.enrollmentdocumentservice.application.exception.DownstreamUnavailableException;
-import br.com.escola.enrollmentdocumentservice.application.exception.RecursoNaoEncontradoException;
+import br.com.escola.enrollmentdocumentservice.application.exception.ConflitoNegocioException;
 import br.com.escola.enrollmentdocumentservice.application.exception.InternalApiUnauthorizedException;
 import br.com.escola.enrollmentdocumentservice.application.exception.InvalidRequestContextException;
+import br.com.escola.enrollmentdocumentservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.enrollmentdocumentservice.interfaces.response.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -39,22 +38,11 @@ public class ApiExceptionHandler {
         return response(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", exception.getMessage(), request);
     }
 
-    @ExceptionHandler(DownstreamUnavailableException.class)
-    ResponseEntity<ApiErrorResponse> handleUnavailable(
-            DownstreamUnavailableException exception,
+    @ExceptionHandler(ConflitoNegocioException.class)
+    ResponseEntity<ApiErrorResponse> handleBusinessConflict(
+            ConflitoNegocioException exception,
             HttpServletRequest request) {
-        return response(HttpStatus.SERVICE_UNAVAILABLE, "DOWNSTREAM_UNAVAILABLE", exception.getMessage(), request);
-    }
-
-    @ExceptionHandler(RestClientResponseException.class)
-    ResponseEntity<ApiErrorResponse> handleDownstreamRejected(
-            RestClientResponseException exception,
-            HttpServletRequest request) {
-        HttpStatus status = exception.getStatusCode().is4xxClientError()
-                ? HttpStatus.BAD_GATEWAY
-                : HttpStatus.SERVICE_UNAVAILABLE;
-        String code = exception.getStatusCode().is4xxClientError() ? "DOWNSTREAM_REJECTED" : "DOWNSTREAM_UNAVAILABLE";
-        return response(status, code, "Monolito rejeitou a operacao interna de enrollment/document", request);
+        return response(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", exception.getMessage(), request);
     }
 
     private ResponseEntity<ApiErrorResponse> response(

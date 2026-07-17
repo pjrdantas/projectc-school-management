@@ -4805,6 +4805,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Proxima fase operacional do ciclo fechado:
   `D10 - Fechamento final de enrollment-document-service`.
 
+### Fase D10
+
+- O `enrollment-document-service` foi fechado sem dependencia funcional do
+  monolito no runtime: o client legado `OrigemAtualTransferenciaClient` e sua
+  configuracao associada foram removidos.
+- O modulo passou a sustentar localmente os contratos internos de
+  `escolas-origem`, `transferencias`, `documentos-alunos`, `documentos` e
+  `matriculas` por schema Flyway proprio, entidades JPA, repositorios e adapter
+  de persistencia local, preservando os contratos externos ja oficializados no
+  BFF.
+- O tratamento de erro foi ajustado para conflito de negocio local
+  (`409 BUSINESS_CONFLICT`) e a suite de integracao do modulo foi reescrita
+  para validar o contrato oficial sobre persistencia H2/Flyway, sem proxy de
+  `MockWebServer` para o legado.
+- Validacao executada apenas no modulo tocado para concluir `D10`:
+  `mvn -pl enrollment-document-service -DskipTests compile` e
+  `mvn -pl enrollment-document-service test`, ambos com `BUILD SUCCESS`.
+- Proxima fase operacional do ciclo fechado:
+  `D11 - Fechamento final de pedagogical-service`.
+
 ### Fase D3
 
 - O `school-management-bff` deixou de usar fallback operacional ao monolito
