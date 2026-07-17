@@ -9015,6 +9015,17 @@ Definicao objetiva:
 - validacao objetiva do primeiro recorte:
   `mvn -pl school-management-bff "-Dtest=CatalogReadRoutingServiceTest,CatalogReadCutoverIntegrationTest" test`
   com `BUILD SUCCESS`.
+- segundo recorte executado em 17/07/2026:
+  `POST /api/periodos-letivos` no `school-management-bff` deixou de manter
+  qualquer caminho legado e passou a operar exclusivamente como escrita oficial
+  do `academic-catalog-service`, com resolucao de contexto autenticado,
+  validacao de escopo de `escolaId` e ausencia de fallback ao monolito.
+- com isso, foram removidos do BFF `LegacyPeriodoLetivoWritePort`,
+  `LegacyPeriodoLetivoWriteClient` e o teste de integracao legado dedicado a
+  `periodos-letivos`.
+- validacao objetiva do segundo recorte:
+  `mvn -pl school-management-bff "-Dtest=PeriodoLetivoWriteRoutingServiceTest,PeriodoLetivoWriteCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`.
 
 ### Fase D7 - Fechamento final de `people-service`
 

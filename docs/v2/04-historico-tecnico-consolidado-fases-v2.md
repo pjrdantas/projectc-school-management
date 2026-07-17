@@ -4816,8 +4816,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Validacao executada apenas no modulo tocado:
   `mvn -pl school-management-bff "-Dtest=CatalogReadRoutingServiceTest,CatalogReadCutoverIntegrationTest" test`
   com `BUILD SUCCESS`.
+- No segundo corte da D6, `POST /api/periodos-letivos` deixou de depender do
+  legado no `school-management-bff`. A escrita passou a tratar
+  `academic-catalog-service` como ownership fixo do fluxo oficial, preservando
+  somente a resolucao de contexto autenticado, a validacao de escopo de
+  `escolaId` e a observabilidade do write novo.
+- Com isso, foram removidos do BFF a porta `LegacyPeriodoLetivoWritePort`, o
+  adapter `LegacyPeriodoLetivoWriteClient` e o teste de integracao que validava
+  a rota legada direta de `periodos-letivos`.
+- Validacao executada apenas no modulo tocado para concluir o segundo corte da
+  D6:
+  `mvn -pl school-management-bff "-Dtest=PeriodoLetivoWriteRoutingServiceTest,PeriodoLetivoWriteCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`.
 - Proxima fase operacional do ciclo fechado:
-  atacar as escritas oficiais remanescentes do catalogo no BFF
-  (`LegacyPeriodoLetivoWritePort`, `LegacyDisciplinaWritePort`,
-  `LegacySerieWritePort`, `LegacyTurmaWritePort` e
-  `LegacyTurmaDisciplinaWritePort`).
+  atacar `POST /api/disciplinas` como proximo write oficial remanescente do
+  catalogo no BFF.

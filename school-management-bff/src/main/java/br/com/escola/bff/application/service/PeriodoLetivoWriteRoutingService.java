@@ -9,41 +9,31 @@ import br.com.escola.bff.application.dto.PeriodoLetivoCreateCommand;
 import br.com.escola.bff.application.dto.PeriodoLetivoCreatedResult;
 import br.com.escola.bff.application.port.out.CatalogoPeriodoLetivoWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
-import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
-import br.com.escola.bff.application.port.out.LegacyPeriodoLetivoWritePort;
 import br.com.escola.bff.application.usecase.CreatePeriodoLetivoUseCase;
 import reactor.core.publisher.Mono;
 
 public class PeriodoLetivoWriteRoutingService implements CreatePeriodoLetivoUseCase {
 
-    private final LegacyPeriodoLetivoWritePort monolithWritePort;
     private final CatalogoPeriodoLetivoWritePort catalogWritePort;
     private final AuthContextPort authContextPort;
-    private final CatalogWriteCutoverPolicyPort cutoverPolicyPort;
     private final CatalogWriteObservabilityPort observabilityPort;
 
     public PeriodoLetivoWriteRoutingService(
-            LegacyPeriodoLetivoWritePort monolithWritePort,
             CatalogoPeriodoLetivoWritePort catalogWritePort,
             AuthContextPort authContextPort,
-            CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
-        this.monolithWritePort = monolithWritePort;
         this.catalogWritePort = catalogWritePort;
         this.authContextPort = authContextPort;
-        this.cutoverPolicyPort = cutoverPolicyPort;
         this.observabilityPort = observabilityPort;
     }
 
     @Override
     public Mono<PeriodoLetivoCreatedResult> executar(CatalogWriteQuery query, PeriodoLetivoCreateCommand command) {
-        CatalogWriteCutoverDecision decision = cutoverPolicyPort.decision(CatalogWriteRoute.PERIODOS_LETIVOS);
-        if (!decision.useCatalog()) {
-            return monolithWritePort.criar(query, command)
-                    .doOnSuccess(response -> observabilityPort.recordDirectLegacy(decision));
-        }
-
+        CatalogWriteCutoverDecision decision = new CatalogWriteCutoverDecision(
+                CatalogWriteRoute.PERIODOS_LETIVOS,
+                true,
+                "catalog_official");
         return authContextPort.resolve(new CatalogReadQuery(query.authorization(), query.correlationId()))
                 .map(context -> validateScope(context, command))
                 .flatMap(context -> catalogWritePort.criar(query, context, command)

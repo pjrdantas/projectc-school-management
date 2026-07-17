@@ -55,7 +55,6 @@ import br.com.escola.bff.application.port.out.LegacyDiarioClasseReadPort;
 import br.com.escola.bff.application.port.out.LegacyAlunoResponsavelReadPort;
 import br.com.escola.bff.application.port.out.LegacyDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.LegacyHistoricoEscolarReadPort;
-import br.com.escola.bff.application.port.out.LegacyPeriodoLetivoWritePort;
 import br.com.escola.bff.application.port.out.LegacyResponsavelReadPort;
 import br.com.escola.bff.application.port.out.LegacySerieWritePort;
 import br.com.escola.bff.application.port.out.LegacyTurmaDisciplinaWritePort;
@@ -593,16 +592,12 @@ public class BffUseCaseConfiguration {
 
     @Bean
     CreatePeriodoLetivoUseCase createPeriodoLetivoUseCase(
-            LegacyPeriodoLetivoWritePort monolithPeriodoLetivoWritePort,
             CatalogoPeriodoLetivoWritePort academicCatalogPeriodoLetivoWritePort,
             AuthContextPort authContextPort,
-            CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
         return new PeriodoLetivoWriteRoutingService(
-                monolithPeriodoLetivoWritePort,
                 academicCatalogPeriodoLetivoWritePort,
                 authContextPort,
-                cutoverPolicyPort,
                 observabilityPort);
     }
 
