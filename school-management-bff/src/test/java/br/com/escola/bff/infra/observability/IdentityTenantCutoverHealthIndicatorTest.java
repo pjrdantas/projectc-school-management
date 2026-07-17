@@ -19,9 +19,10 @@ class IdentityTenantCutoverHealthIndicatorTest {
 
         assertThat(indicator.health().getStatus().getCode()).isEqualTo("UP");
         assertThat(indicator.health().getDetails()).containsEntry("cutoverEnabled", true);
-        assertThat(indicator.health().getDetails()).containsEntry("fallbackToMonolithOnError", true);
+        assertThat(indicator.health().getDetails()).containsEntry("fallbackToLegacyOnError", true);
         assertThat(indicator.health().getDetails()).containsEntry("authEscolasEnabled", true);
         assertThat(indicator.health().getDetails()).containsEntry("authEscolaAtivaEnabled", false);
         assertThat(indicator.health().getDetails()).containsEntry("authTenantAtivaEnabled", true);
     }
 }
+

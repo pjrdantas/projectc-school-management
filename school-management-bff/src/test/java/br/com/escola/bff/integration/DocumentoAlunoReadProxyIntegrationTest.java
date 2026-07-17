@@ -48,7 +48,7 @@ class DocumentoAlunoReadProxyIntegrationTest {
     }
 
     @Test
-    void deveConsumirEnrollmentDocumentServiceNaListagemOficialDeDocumentosPorAluno() throws InterruptedException {
+    void deveConsumirDocumentoMatriculaServiceNaListagemOficialDeDocumentosPorAluno() throws InterruptedException {
         String alunoId = "00000000-0000-0000-0000-000000000021";
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -97,7 +97,7 @@ class DocumentoAlunoReadProxyIntegrationTest {
     }
 
     @Test
-    void deveConsumirEnrollmentDocumentServiceNaBuscaOficialDeDocumentoPorId() throws InterruptedException {
+    void deveConsumirDocumentoMatriculaServiceNaBuscaOficialDeDocumentoPorId() throws InterruptedException {
         String documentoId = "00000000-0000-0000-0000-000000000301";
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -151,3 +151,4 @@ class DocumentoAlunoReadProxyIntegrationTest {
         }
     }
 }
+

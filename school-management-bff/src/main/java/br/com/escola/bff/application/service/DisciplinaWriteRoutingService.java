@@ -8,25 +8,25 @@ import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.dto.CatalogWriteQuery;
 import br.com.escola.bff.application.dto.DisciplinaCreateCommand;
 import br.com.escola.bff.application.dto.DisciplinaCreatedResult;
-import br.com.escola.bff.application.port.out.AcademicCatalogDisciplinaWritePort;
+import br.com.escola.bff.application.port.out.CatalogoDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
-import br.com.escola.bff.application.port.out.MonolithDisciplinaWritePort;
+import br.com.escola.bff.application.port.out.LegacyDisciplinaWritePort;
 import br.com.escola.bff.application.usecase.CreateDisciplinaUseCase;
 import reactor.core.publisher.Mono;
 
 public class DisciplinaWriteRoutingService implements CreateDisciplinaUseCase {
 
-    private final MonolithDisciplinaWritePort monolithWritePort;
-    private final AcademicCatalogDisciplinaWritePort catalogWritePort;
+    private final LegacyDisciplinaWritePort monolithWritePort;
+    private final CatalogoDisciplinaWritePort catalogWritePort;
     private final AuthContextPort authContextPort;
     private final CatalogWriteCutoverPolicyPort cutoverPolicyPort;
     private final CatalogWriteObservabilityPort observabilityPort;
 
     public DisciplinaWriteRoutingService(
-            MonolithDisciplinaWritePort monolithWritePort,
-            AcademicCatalogDisciplinaWritePort catalogWritePort,
+            LegacyDisciplinaWritePort monolithWritePort,
+            CatalogoDisciplinaWritePort catalogWritePort,
             AuthContextPort authContextPort,
             CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
@@ -42,14 +42,14 @@ public class DisciplinaWriteRoutingService implements CreateDisciplinaUseCase {
         CatalogWriteCutoverDecision decision = cutoverPolicyPort.decision(CatalogWriteRoute.DISCIPLINAS);
         if (!decision.useCatalog()) {
             return monolithWritePort.criar(query, command)
-                    .doOnSuccess(response -> observabilityPort.recordDirectMonolith(decision));
+                    .doOnSuccess(response -> observabilityPort.recordDirectLegacy(decision));
         }
 
         if (!isCatalogCompatible(command.status())) {
             CatalogWriteCutoverDecision unsupportedDecision =
                     new CatalogWriteCutoverDecision(CatalogWriteRoute.DISCIPLINAS, false, "unsupported_status");
             return monolithWritePort.criar(query, command)
-                    .doOnSuccess(response -> observabilityPort.recordDirectMonolith(unsupportedDecision));
+                    .doOnSuccess(response -> observabilityPort.recordDirectLegacy(unsupportedDecision));
         }
 
         return authContextPort.resolve(new CatalogReadQuery(query.authorization(), query.correlationId()))
@@ -74,3 +74,4 @@ public class DisciplinaWriteRoutingService implements CreateDisciplinaUseCase {
         return context;
     }
 }
+

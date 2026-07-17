@@ -5,7 +5,7 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
-import br.com.escola.bff.application.port.out.EnrollmentDocumentReadPort;
+import br.com.escola.bff.application.port.out.DocumentoMatriculaReadPort;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoUseCase;
 import reactor.core.publisher.Mono;
@@ -13,11 +13,11 @@ import reactor.core.publisher.Mono;
 public class DocumentoReadProxyService implements ConsultarDocumentoUseCase {
 
     private final InternalAuthContextPort authContextPort;
-    private final EnrollmentDocumentReadPort enrollmentDocumentReadPort;
+    private final DocumentoMatriculaReadPort enrollmentDocumentReadPort;
 
     public DocumentoReadProxyService(
             InternalAuthContextPort authContextPort,
-            EnrollmentDocumentReadPort enrollmentDocumentReadPort) {
+            DocumentoMatriculaReadPort enrollmentDocumentReadPort) {
         this.authContextPort = authContextPort;
         this.enrollmentDocumentReadPort = enrollmentDocumentReadPort;
     }
@@ -37,3 +37,4 @@ public class DocumentoReadProxyService implements ConsultarDocumentoUseCase {
                         context));
     }
 }
+

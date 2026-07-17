@@ -5,7 +5,7 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
-import br.com.escola.bff.application.port.out.EnrollmentDocumentEscolaOrigemReadPort;
+import br.com.escola.bff.application.port.out.EscolaOrigemMatriculaReadPort;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
 import br.com.escola.bff.application.usecase.ConsultarEscolaOrigemUseCase;
 import reactor.core.publisher.Mono;
@@ -13,11 +13,11 @@ import reactor.core.publisher.Mono;
 public class EscolaOrigemReadProxyService implements ConsultarEscolaOrigemUseCase {
 
     private final InternalAuthContextPort authContextPort;
-    private final EnrollmentDocumentEscolaOrigemReadPort enrollmentDocumentEscolaOrigemReadPort;
+    private final EscolaOrigemMatriculaReadPort enrollmentDocumentEscolaOrigemReadPort;
 
     public EscolaOrigemReadProxyService(
             InternalAuthContextPort authContextPort,
-            EnrollmentDocumentEscolaOrigemReadPort enrollmentDocumentEscolaOrigemReadPort) {
+            EscolaOrigemMatriculaReadPort enrollmentDocumentEscolaOrigemReadPort) {
         this.authContextPort = authContextPort;
         this.enrollmentDocumentEscolaOrigemReadPort = enrollmentDocumentEscolaOrigemReadPort;
     }
@@ -44,3 +44,4 @@ public class EscolaOrigemReadProxyService implements ConsultarEscolaOrigemUseCas
                         context));
     }
 }
+

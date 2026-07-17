@@ -7,7 +7,7 @@ import br.com.escola.bff.application.service.IdentityTenantRoute;
 @ConfigurationProperties("features.identity-tenant-cutover")
 public record IdentityTenantCutoverProperties(
         boolean enabled,
-        boolean fallbackToMonolithOnError,
+        boolean fallbackToLegacyOnError,
         RouteFlags routes
 ) {
 
@@ -25,3 +25,4 @@ public record IdentityTenantCutoverProperties(
             boolean authTenantAtiva
     ) {}
 }
+

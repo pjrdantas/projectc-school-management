@@ -14,12 +14,12 @@ import br.com.escola.bff.application.dto.TurmaCreateCommand;
 import br.com.escola.bff.application.dto.TurmaCreatedResult;
 import br.com.escola.bff.application.dto.TurnoResolved;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
-import br.com.escola.bff.application.port.out.AcademicCatalogTurnoResolverPort;
-import br.com.escola.bff.application.port.out.AcademicCatalogTurmaWritePort;
+import br.com.escola.bff.application.port.out.CatalogoTurnoResolverPort;
+import br.com.escola.bff.application.port.out.CatalogoTurmaWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
-import br.com.escola.bff.application.port.out.MonolithTurmaWritePort;
+import br.com.escola.bff.application.port.out.LegacyTurmaWritePort;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -27,10 +27,10 @@ class TurmaWriteRoutingServiceTest {
 
     @Test
     void deveUsarMonolitoQuandoCutoverNaoEstiverLiberado() {
-        MonolithTurmaWritePort monolith = (query, command) -> Mono.just(resultado("MANHA", "ATIVA", "monolith"));
-        AcademicCatalogTurmaWritePort catalog = (query, context, turno, command) ->
+        LegacyTurmaWritePort monolith = (query, command) -> Mono.just(resultado("MANHA", "ATIVA", "monolith"));
+        CatalogoTurmaWritePort catalog = (query, context, turno, command) ->
                 Mono.just(resultado("MANHA", "ATIVA", "catalog"));
-        AcademicCatalogTurnoResolverPort resolver = (query, context, turno) ->
+        CatalogoTurnoResolverPort resolver = (query, context, turno) ->
                 Mono.just(new TurnoResolved(UUID.randomUUID(), "MANHA"));
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID()));
         CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, false, "cutover_disabled");
@@ -47,10 +47,10 @@ class TurmaWriteRoutingServiceTest {
     @Test
     void deveUsarMonolitoQuandoStatusNaoForCompativelComCatalogoNovo() {
         AtomicBoolean resolverCalled = new AtomicBoolean(false);
-        MonolithTurmaWritePort monolith = (query, command) -> Mono.just(resultado(command.turno(), command.status(), "monolith"));
-        AcademicCatalogTurmaWritePort catalog = (query, context, turno, command) ->
+        LegacyTurmaWritePort monolith = (query, command) -> Mono.just(resultado(command.turno(), command.status(), "monolith"));
+        CatalogoTurmaWritePort catalog = (query, context, turno, command) ->
                 Mono.just(resultado("MANHA", "ATIVA", "catalog"));
-        AcademicCatalogTurnoResolverPort resolver = (query, context, turno) -> {
+        CatalogoTurnoResolverPort resolver = (query, context, turno) -> {
             resolverCalled.set(true);
             return Mono.just(new TurnoResolved(UUID.randomUUID(), "MANHA"));
         };
@@ -71,12 +71,12 @@ class TurmaWriteRoutingServiceTest {
     @Test
     void deveUsarMonolitoQuandoTurnoNaoForResolvidoNoCatalogoNovo() {
         AtomicBoolean catalogCalled = new AtomicBoolean(false);
-        MonolithTurmaWritePort monolith = (query, command) -> Mono.just(resultado(command.turno(), "ATIVA", "monolith"));
-        AcademicCatalogTurmaWritePort catalog = (query, context, turno, command) -> {
+        LegacyTurmaWritePort monolith = (query, command) -> Mono.just(resultado(command.turno(), "ATIVA", "monolith"));
+        CatalogoTurmaWritePort catalog = (query, context, turno, command) -> {
             catalogCalled.set(true);
             return Mono.just(resultado("MANHA", "ATIVA", "catalog"));
         };
-        AcademicCatalogTurnoResolverPort resolver = (query, context, turno) -> Mono.empty();
+        CatalogoTurnoResolverPort resolver = (query, context, turno) -> Mono.empty();
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID(), "Escola A"));
         CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
         CatalogWriteObservabilityPort observability = new NoOpObservability();
@@ -94,13 +94,13 @@ class TurmaWriteRoutingServiceTest {
     @Test
     void naoDeveFazerFallbackParaMonolitoQuandoCatalogoFalhar() {
         AtomicBoolean monolithCalled = new AtomicBoolean(false);
-        MonolithTurmaWritePort monolith = (query, command) -> {
+        LegacyTurmaWritePort monolith = (query, command) -> {
             monolithCalled.set(true);
             return Mono.just(resultado(command.turno(), command.status(), "monolith"));
         };
-        AcademicCatalogTurmaWritePort catalog = (query, context, turno, command) ->
+        CatalogoTurmaWritePort catalog = (query, context, turno, command) ->
                 Mono.error(new DownstreamUnavailableException("catalog indisponivel"));
-        AcademicCatalogTurnoResolverPort resolver = (query, context, turno) ->
+        CatalogoTurnoResolverPort resolver = (query, context, turno) ->
                 Mono.just(new TurnoResolved(UUID.randomUUID(), "MANHA"));
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID(), "Escola A"));
         CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
@@ -120,10 +120,10 @@ class TurmaWriteRoutingServiceTest {
     void deveRejeitarEscolaIdDiferenteDoContextoAutenticado() {
         UUID escolaContexto = UUID.randomUUID();
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), escolaContexto, "Escola A"));
-        MonolithTurmaWritePort monolith = (query, command) -> Mono.just(resultado(command.turno(), command.status(), "monolith"));
-        AcademicCatalogTurmaWritePort catalog = (query, context, turno, command) ->
+        LegacyTurmaWritePort monolith = (query, command) -> Mono.just(resultado(command.turno(), command.status(), "monolith"));
+        CatalogoTurmaWritePort catalog = (query, context, turno, command) ->
                 Mono.just(resultado("MANHA", "ATIVA", "catalog"));
-        AcademicCatalogTurnoResolverPort resolver = (query, context, turno) ->
+        CatalogoTurnoResolverPort resolver = (query, context, turno) ->
                 Mono.just(new TurnoResolved(UUID.randomUUID(), "MANHA"));
         CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
         CatalogWriteObservabilityPort observability = new NoOpObservability();
@@ -170,8 +170,9 @@ class TurmaWriteRoutingServiceTest {
     }
 
     private static final class NoOpObservability implements CatalogWriteObservabilityPort {
-        @Override public void recordDirectMonolith(CatalogWriteCutoverDecision decision) {}
+        @Override public void recordDirectLegacy(CatalogWriteCutoverDecision decision) {}
         @Override public void recordCatalogSuccess(CatalogWriteCutoverDecision decision) {}
         @Override public void recordCatalogFailure(CatalogWriteCutoverDecision decision, Throwable error) {}
     }
 }
+

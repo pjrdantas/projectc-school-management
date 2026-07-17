@@ -480,6 +480,30 @@ Regras de leitura dessa arvore:
 - `resources/db/migration`: migrations locais do servico, nunca compartilhadas
   entre servicos.
 
+### Regra obrigatoria de nomenclatura entre servicos
+
+Fica registrado como regra arquitetural obrigatoria para todas as proximas
+fases:
+
+- nenhuma classe de um servico pode carregar no nome a designacao de outro
+  dominio, outro servico ou outro bounded context;
+- cada classe deve ser nomeada apenas pelo seu papel local dentro do servico em
+  que vive, e nao pelo nome do dominio externo que ela consome, substitui,
+  espelha ou intercepta;
+- exemplos do que fica proibido daqui em diante:
+  prefixos/sufixos como `People`, `Pedagogical`, `PlanningAi`,
+  `EnrollmentDocument`, `IdentityAccess`, `InstitutionalTenant`,
+  `DashboardQuery`, `Responsibles`, `AcademicCatalog` ou equivalentes em
+  classes cujo papel real nao pertence a esse dominio;
+- quando uma classe precisar integrar com outro servico, essa referencia deve
+  aparecer no contrato tecnico estritamente necessario da porta/client/adapter,
+  sem transformar a identidade nominal da classe em marcador de dominio externo;
+- a existencia de classes atuais fora dessa regra fica reconhecida como
+  passivo tecnico inaceitavel e nao autoriza repetir o padrao nas proximas
+  implementacoes;
+- toda nova fase backend deve respeitar essa regra antes de qualquer nova classe
+  ser criada ou renomeada.
+
 ## Estado final esperado do monolito
 
 `school-management-service` nao desaparece no inicio da migracao. O plano e:
@@ -8774,3 +8798,335 @@ Contagem regressiva do ciclo residual de resiliencia externa do
 
 Contagem regressiva do ciclo residual de resiliencia externa do
 `pedagogical-service`: 0 fases restantes.
+
+## Ciclo fechado para desligamento total do `school-management-service`
+
+Estado atual consolidado em `2026-07-17`:
+
+- o monorepo ja possui runtimes Java para `identity-access-service`,
+  `institutional-tenant-service`, `academic-catalog-service`,
+  `academic-professor-service`, `people-service`, `responsibles-service`,
+  `enrollment-document-service`, `pedagogical-service`,
+  `planning-ai-service` e `dashboard-query-service`;
+- isso nao significa desligamento possivel do monolito, porque ainda existem
+  dependencias funcionais remanescentes em tres frentes:
+  1. contratos publicos ou internos ainda atendidos diretamente pelo
+     `school-management-service`;
+  2. leituras e escritas novas ainda protegidas por fallback/compatibilidade ao
+     monolito;
+  3. dominio de `professores` com runtime proprio fisico
+     (`academic-professor-service`), mas sem papel final consolidado no mapa
+     oficial de ownership do plano;
+- portanto, o desligamento total do `school-management-service` nao e uma
+  extensao automatica do estado atual: ele exige um novo ciclo fechado,
+  completo e deliberado.
+
+Definicao objetiva:
+
+- quantidade fechada para aposentadoria total do monolito:
+  **16 fases**;
+- criterio de pronto desse ciclo:
+  **nenhuma rota publica, nenhuma escrita oficial, nenhum fallback operacional,
+  nenhum adapter interno obrigatorio, nenhum job funcional e nenhuma chamada do
+  frontend/BFF podem depender do `school-management-service`**.
+
+### Fase D1 - Inventario final e prova de dependencia zero desejada
+
+- levantar a lista exata de tudo que ainda impede desligar o monolito:
+  rotas publicas, endpoints internos, escritas, jobs, backfills recorrentes,
+  fallbacks do BFF, consumidores frontend e dependencias cruzadas entre
+  servicos;
+- transformar esse inventario em matriz objetiva `rota -> dono final ->
+  dependencia atual -> acao faltante -> criterio de desligamento`.
+
+### Fase D2 - Decisao final do dominio de `professores`
+
+- resolver explicitamente se o runtime `academic-professor-service`:
+  1. vira servico oficial do mapa final; ou
+  2. e absorvido formalmente por `people-service` e/ou `pedagogical-service`;
+- atualizar o ownership oficial das rotas de `professores`, alocacoes e leituras
+  auxiliares antes de qualquer desligamento do monolito.
+
+### Fase D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF
+
+- remover, rota a rota, os fallbacks operacionais ao monolito hoje mantidos no
+  `school-management-bff` para leituras ja oficializadas nos servicos novos;
+- o criterio dessa fase e deixar o BFF dependente apenas dos servicos novos nos
+  fluxos que ja tiverem autonomia comprovada.
+
+### Fase D4 - Fechamento final de `identity-access-service`
+
+- concluir tudo que ainda faltar para tirar do monolito a autoridade real de
+  autenticacao, sessoes, usuarios, perfis, permissoes e contratos internos
+  relacionados;
+- desligar qualquer dependencia residual do BFF ou de outros servicos do
+  endpoint legado de autenticacao do monolito.
+
+### Fase D5 - Fechamento final de `institutional-tenant-service`
+
+- concluir a autonomia de escola ativa, tenant ativo, listagem institucional e
+  quaisquer fluxos restantes de contexto multiescola ainda protegidos por
+  compatibilidade com o legado;
+- remover fallback ao monolito desse bloco.
+
+### Fase D6 - Fechamento final de `academic-catalog-service`
+
+- concluir o ownership completo do catalogo academico, incluindo leituras,
+  escritas oficiais remanescentes, validacoes cruzadas e remocao dos adapters
+  legados ainda necessarios;
+- garantir que nenhum fluxo academico dependa do monolito para catalogo.
+
+### Fase D7 - Fechamento final de `people-service`
+
+- concluir a autonomia efetiva de `pessoa`, `aluno`, `funcionario`,
+  `consultarCadastro`, `endereco`, contatos e demais fatias ainda mantidas com
+  fallback ou com autoridade de escrita no monolito;
+- fechar tambem a retirada das dependencias legadas de CEP e RH ainda presas ao
+  runtime antigo, quando existirem.
+
+### Fase D8 - Fechamento final de `responsibles-service`
+
+- evoluir `responsibles-service` de dono da leitura segura para dono completo de
+  `responsavel` e `aluno_responsavel`, incluindo o que ainda faltar de modelo
+  local, escrita oficial e remocao do fallback ao monolito;
+- se a decisao arquitetural for recolapsar esse dominio em `people-service`,
+  essa fase passa a executar a consolidacao e nao a duplicacao.
+
+### Fase D9 - Fechamento final do dominio de `professores`
+
+- executar a decisao tomada na `Fase D2`:
+  oficializar `academic-professor-service` ou absorver definitivamente o bloco
+  em outro servico;
+- ao final, `GET/POST /api/professores`, alocacoes e leituras auxiliares devem
+  existir sem nenhuma dependencia funcional do monolito.
+
+### Fase D10 - Fechamento final de `enrollment-document-service`
+
+- concluir toda autonomia de `matriculas`, `documentos`, `documentos-alunos`,
+  `transferencias` e `escolas-origem`, incluindo o que ainda faltar de escrita
+  oficial, saga definitiva, storage final e remocao de compatibilidades
+  residuais com o monolito.
+
+### Fase D11 - Fechamento final de `pedagogical-service`
+
+- avancar do encerramento atual de leitura/fallback para autonomia completa de
+  `aulas`, `frequencias`, `avaliacoes`, `notas`, `diario-classe`, `boletim` e
+  `historicos-escolares`, removendo qualquer escrita ou leitura ainda delegada
+  ao monolito;
+- ao final, o BFF nao pode mais precisar de fallback pedagogico legado.
+
+### Fase D12 - Fechamento final de `planning-ai-service`
+
+- concluir a retirada dos fallbacks e hidratacoes remanescentes que ainda
+  dependam do monolito para IA, biblioteca, versoes, aprovacao ou publicacao;
+- deixar o servico novo como dono integral dos contratos e dados necessarios ao
+  bloco de planejamento e IA.
+
+### Fase D13 - Fechamento final de `dashboard-query-service`
+
+- retirar as leituras e compatibilidades restantes que ainda mantem o
+  `dashboard-query-service` dependente do monolito para dashboards,
+  configuracoes, snapshots ou agregacoes;
+- garantir que o dashboard final opere apenas por projecoes e fontes proprias.
+
+### Fase D14 - Corte externo final sem monolito
+
+- garantir que `school-management-web`, `school-management-bff` e qualquer
+  cliente externo consumam apenas BFF/servicos novos, sem chamada direta ao
+  `school-management-service`;
+- eliminar feature flags de fallback cujo unico destino ainda seja o monolito.
+
+### Fase D15 - Infraestrutura, jobs e operacao monolito-off
+
+- migrar ou aposentar jobs funcionais, schedulers, backfills recorrentes,
+  adapters batch, reconciliadores e rotinas operacionais ainda hospedados no
+  `school-management-service`;
+- provar operacionalmente trafego zero funcional no monolito, com observability
+  suficiente para rollback por servico novo, nao por retorno ao legado.
+
+### Fase D16 - Descomissionamento definitivo do `school-management-service`
+
+- remover o `school-management-service` da topologia operacional ativa,
+  desligando runtime, clientes internos restantes, adapters de compatibilidade e
+  dependencias obrigatorias;
+- decidir se o repositorio mantem o codigo do monolito apenas como referencia
+  historica/arquivada ou se ele passa a um modulo residual sem participacao em
+  producao.
+
+Resumo executivo do ciclo:
+
+1. fases totais para desligar o monolito sem nenhuma dependencia: **16**
+2. fases de definicao/inventario: `D1` e `D2`
+3. fases de autonomia por dominio: `D3` a `D13`
+4. fases de desligamento externo e operacional: `D14` a `D16`
+
+Importante:
+
+- esta secao documenta o **plano fechado** para desligar o
+  `school-management-service`;
+- **nenhuma dessas 16 fases foi iniciada nesta alteracao**;
+- o desenvolvimento so deve comecar depois de escolher explicitamente a
+  `Fase D1` como proximo passo oficial.
+
+## Ciclo preparatorio obrigatorio de saneamento de nomenclatura
+
+Pre-condicao registrada antes de iniciar as 16 fases de desligamento total do
+`school-management-service`:
+
+- o passivo atual de nomenclatura entre dominios foi confirmado como real e
+  transversal, especialmente no `school-management-bff`, mas tambem em servicos
+  como `planning-ai-service`, `dashboard-query-service`,
+  `enrollment-document-service`, `responsibles-service`, `people-service` e
+  `academic-professor-service`;
+- portanto, **as 16 fases `D1` a `D16` ficam bloqueadas ate o fechamento deste
+  ciclo preparatorio**;
+- criterio de pronto deste ciclo:
+  **nenhuma classe, interface, enum, exception, port, client, controller,
+  service, configuration, test ou runner pode carregar no nome a designacao de
+  outro dominio/servico que nao seja o proprio contexto local onde ela vive**.
+
+Quantidade fechada deste ciclo preparatorio: **8 fases**.
+
+### Fase N1 - Inventario nominal e matriz de renomeacao
+
+- levantar a lista completa do passivo nominal por modulo, classificando:
+  `classe atual -> modulo -> papel local real -> nome alvo -> impacto`;
+- separar o que e:
+  1. nome de aplicacao do proprio servico;
+  2. nome tecnico de integracao inevitavel;
+  3. violacao arquitetural efetiva que precisa renomeacao;
+- produzir a matriz objetiva que vai governar as fases seguintes.
+
+### Fase N2 - Saneamento nominal do `school-management-bff`
+
+- renomear ports, clients, services, controllers, exceptions e suites do BFF
+  que hoje usam nomes de dominios externos como identidade principal da classe;
+- manter no BFF apenas nomes baseados no papel local da fachada/proxy/composicao,
+  sem carregar o nome do dominio remoto como identidade da classe.
+- conclusao operacional da fase:
+  - o `school-management-bff` teve renomeacao estrutural em `ports`,
+    `services`, `usecases`, `controllers`, `infra/config`, `infra/webclient` e
+    suites de teste para remover designacoes como `People*`,
+    `Pedagogical*`, `PlanningAi*`, `EnrollmentDocument*`, `Dashboard*`,
+    `AcademicCatalog*`, `InstitutionalTenant*`, `IdentityAccess*`,
+    `Responsibles*` e `Monolith*` do nome das classes;
+  - os tres residuos finais em classes de configuracao tambem foram
+    saneados, com `PeopleServiceClientProperties`,
+    `PedagogicalServiceClientProperties` e
+    `IdentityAccessServiceClientProperties` renomeados para nomes locais do
+    BFF, preservando apenas as chaves externas de `application.yml`;
+  - a varredura estrutural por `class|record|interface|enum` no modulo nao
+    encontrou mais classes Java do BFF com essas designacoes no nome.
+- validacao executada no modulo:
+  - `mvn -pl school-management-bff -DskipTests compile`: sucesso;
+  - `mvn -pl school-management-bff clean test`: a fase de rename permaneceu
+    compilavel, mas a suite completa do modulo expôs falhas funcionais ja no
+    proprio BFF, observadas pelo menos em
+    `AuthSessionFallbackIntegrationTest`,
+    `CatalogReadCutoverIntegrationTest` e
+    `ConsultaCadastralReadProxyIntegrationTest`.
+- contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 6.
+
+### Fase N3 - Saneamento nominal de `identity-access-service` e `institutional-tenant-service`
+
+- ajustar classes internas, controllers, exceptions, configurations e testes
+  desses dois servicos para que o nome reflita apenas o papel local do modulo;
+- impedir que o proprio nome do dominio vaze desnecessariamente para toda a
+  arvore de classes.
+
+### Fase N4 - Saneamento nominal de `academic-catalog-service` e `academic-professor-service`
+
+- aplicar a mesma limpeza ao catalogo academico e ao bloco de professores,
+  inclusive resolvendo o caso especial de classes que usam `Professor`,
+  `Catalog` ou `Academic*` como marcador indevido de contexto externo.
+
+### Fase N5 - Saneamento nominal de `people-service` e `responsibles-service`
+
+- revisar services, ports, sync states, migrations, health indicators,
+  runners, adapters JDBC e testes desses dois servicos;
+- eliminar a mistura entre identidade nominal local e dominios remotos como
+  `monolith`, `responsibles`, `people` ou equivalentes quando o nome nao
+  representar o proprio bounded context da classe.
+
+### Fase N6 - Saneamento nominal de `enrollment-document-service` e `pedagogical-service`
+
+- limpar nomes acoplados aos dominios externos nesses dois servicos,
+  preservando apenas a semantica local das responsabilidades internas;
+- incluir controllers internos, exceptions, client configurations e testes.
+
+### Fase N7 - Saneamento nominal de `planning-ai-service` e `dashboard-query-service`
+
+- revisar classes locais, entidades, repositories, services, controllers,
+  exceptions e testes para remover designacoes de dominio externo e padroes
+  herdados que ainda misturem contexto local com contexto remoto.
+
+### Fase N8 - Verificacao transversal e bloqueio arquitetural
+
+- executar uma verificacao transversal do monorepo para provar que o passivo
+  nominal foi eliminado dentro do criterio definido;
+- registrar regra de validacao objetiva para impedir regressao nas fases
+  futuras.
+
+Ordem obrigatoria:
+
+1. concluir `N1` a `N8`
+2. somente depois liberar `D1` a `D16`
+
+Definicao de governanca:
+
+- o ciclo `N1` a `N8` tem precedencia total sobre o ciclo `D1` a `D16`;
+- iniciar qualquer fase de desligamento do monolito sem concluir o saneamento
+  nominal primeiro passa a violar o roadmap oficial.
+
+### Fase N1 - Inventario nominal e matriz de renomeacao
+
+- foi executado o inventario inicial do passivo nominal em todos os runtimes
+  Java ativos do plano, usando busca objetiva sobre `class`, `interface` e
+  `enum` com designacoes de dominio/servico no nome;
+- o passivo ficou confirmado como concentrado principalmente no
+  `school-management-bff`, mas tambem distribuido pelos servicos novos;
+- contagem inicial de ocorrencias encontradas por modulo:
+  - `school-management-bff`: 255
+  - `dashboard-query-service`: 64
+  - `planning-ai-service`: 32
+  - `people-service`: 31
+  - `responsibles-service`: 19
+  - `pedagogical-service`: 13
+  - `identity-access-service`: 10
+  - `institutional-tenant-service`: 10
+  - `enrollment-document-service`: 7
+  - `academic-professor-service`: 6
+  - `academic-catalog-service`: 5
+- a leitura do inventario separou tres grupos:
+  1. nomes-base do proprio servico, hoje aceitos apenas como passivo herdado a
+     ser revisto nas fases seguintes;
+  2. nomes tecnicos de integracao inevitavel com o legado, sobretudo variantes
+     `Monolith*`, que permanecem considerados violacao nominal e tambem entram
+     no saneamento;
+  3. nomes de classe no BFF e em servicos novos que carregam explicitamente a
+     identidade de outro dominio remoto, caso mais critico do ciclo;
+- matriz objetiva inicial do passivo por modulo:
+
+| Modulo | Volume inicial | Padrões predominantes | Ação alvo |
+| --- | --- | --- | --- |
+| `school-management-bff` | 255 | `People*`, `Pedagogical*`, `PlanningAi*`, `EnrollmentDocument*`, `Dashboard*`, `AcademicCatalog*`, `InstitutionalTenant*`, `IdentityAccess*`, `Responsibles*`, `Monolith*` | renomeação estrutural prioritária na `Fase N2` |
+| `dashboard-query-service` | 64 | `Dashboard*`, `MonolithDashboard*` | renomear classes para papel local de consulta/projeção |
+| `planning-ai-service` | 32 | `PlanningAi*`, `MonolithPlanningAi*`, `PedagogicalContent*` | separar nome do serviço do papel local e limpar acoplamentos externos |
+| `people-service` | 31 | `People*`, `MonolithPessoa*`, `MonolithPeople*` | remover marcadores de domínio no nome das classes locais e dos adapters |
+| `responsibles-service` | 19 | `Responsibles*`, `MonolithResponsavel*` | limpar nomes locais do read model e dos clients legados |
+| `pedagogical-service` | 13 | `Pedagogical*`, `Monolith*` | renomear aplicação, controller, advice e clients para papéis locais |
+| `identity-access-service` | 10 | `IdentityAccess*`, `MonolithIdentityAccess*` | reduzir identidade nominal do serviço ao papel local |
+| `institutional-tenant-service` | 10 | `InstitutionalTenant*`, `MonolithInstitutionalTenant*` | mesmo critério do bloco institucional |
+| `enrollment-document-service` | 7 | `EnrollmentDocument*`, `MonolithEnrollment*` | renomear controller, advice, app e configuração legada |
+| `academic-professor-service` | 6 | `MonolithProfessor*`, `ProfessorShadowMonolith*` | alinhar nomenclatura antes da decisão final do domínio de professores |
+| `academic-catalog-service` | 5 | `AcademicCatalog*` | limpar controllers e application root para nome funcional local |
+
+- conclusao operacional da `Fase N1`:
+  - o passivo nominal existe;
+  - ele e grande o suficiente para justificar o ciclo `N1` a `N8`;
+  - a ordem correta continua sendo iniciar pelo `school-management-bff` na
+    `Fase N2`, porque e ali que o acoplamento nominal entre dominios aparece de
+    forma mais concentrada e mais critica para o strangler.
+
+Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 7
+fases restantes.

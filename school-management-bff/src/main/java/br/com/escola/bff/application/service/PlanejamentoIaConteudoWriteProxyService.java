@@ -6,18 +6,18 @@ import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.port.out.AuthContextPort;
-import br.com.escola.bff.application.port.out.PlanningAiConteudoWritePort;
+import br.com.escola.bff.application.port.out.PlanejamentoIaConteudoWritePort;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoUseCase;
 import reactor.core.publisher.Mono;
 
 public class PlanejamentoIaConteudoWriteProxyService implements CriarPlanejamentoIaConteudoUseCase {
 
     private final AuthContextPort authContextPort;
-    private final PlanningAiConteudoWritePort planningAiConteudoWritePort;
+    private final PlanejamentoIaConteudoWritePort planningAiConteudoWritePort;
 
     public PlanejamentoIaConteudoWriteProxyService(
             AuthContextPort authContextPort,
-            PlanningAiConteudoWritePort planningAiConteudoWritePort) {
+            PlanejamentoIaConteudoWritePort planningAiConteudoWritePort) {
         this.authContextPort = authContextPort;
         this.planningAiConteudoWritePort = planningAiConteudoWritePort;
     }
@@ -37,3 +37,4 @@ public class PlanejamentoIaConteudoWriteProxyService implements CriarPlanejament
                         context));
     }
 }
+

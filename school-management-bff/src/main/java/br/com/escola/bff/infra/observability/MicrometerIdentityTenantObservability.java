@@ -17,7 +17,7 @@ public class MicrometerIdentityTenantObservability implements IdentityTenantObse
     }
 
     @Override
-    public void recordDirectMonolith(IdentityTenantCutoverDecision decision) {
+    public void recordDirectLegacy(IdentityTenantCutoverDecision decision) {
         routeCounter(decision, "monolith", "direct").increment();
     }
 
@@ -33,7 +33,7 @@ public class MicrometerIdentityTenantObservability implements IdentityTenantObse
     }
 
     @Override
-    public void recordFallbackToMonolith(IdentityTenantCutoverDecision decision, String target, Throwable error) {
+    public void recordFallbackToLegacy(IdentityTenantCutoverDecision decision, String target, Throwable error) {
         routeCounter(decision, "monolith", "fallback").increment();
         fallbackCounter(decision, target, error).increment();
     }
@@ -68,3 +68,4 @@ public class MicrometerIdentityTenantObservability implements IdentityTenantObse
                 .register(meterRegistry);
     }
 }
+

@@ -48,7 +48,7 @@ class TransferenciaReadProxyIntegrationTest {
     }
 
     @Test
-    void deveConsumirEnrollmentDocumentServiceNaBuscaOficialDeTransferenciaPorId() throws InterruptedException {
+    void deveConsumirDocumentoMatriculaServiceNaBuscaOficialDeTransferenciaPorId() throws InterruptedException {
         String transferenciaId = "00000000-0000-0000-0000-000000000091";
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -93,7 +93,7 @@ class TransferenciaReadProxyIntegrationTest {
     }
 
     @Test
-    void deveConsumirEnrollmentDocumentServiceNaListagemOficialDeTransferenciasPorAluno() throws InterruptedException {
+    void deveConsumirDocumentoMatriculaServiceNaListagemOficialDeTransferenciasPorAluno() throws InterruptedException {
         String alunoId = "00000000-0000-0000-0000-000000000021";
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -143,3 +143,4 @@ class TransferenciaReadProxyIntegrationTest {
         }
     }
 }
+

@@ -23,7 +23,7 @@ import okhttp3.mockwebserver.MockWebServer;
 @AutoConfigureWebTestClient
 class DisciplinaProxyIntegrationTest {
 
-    private static final MockWebServer MONOLITH = startMonolith();
+    private static final MockWebServer MONOLITH = startLegacy();
 
     @Autowired
     private WebTestClient client;
@@ -35,7 +35,7 @@ class DisciplinaProxyIntegrationTest {
     }
 
     @AfterAll
-    static void stopMonolith() throws IOException {
+    static void stopLegacy() throws IOException {
         MONOLITH.shutdown();
     }
 
@@ -84,7 +84,7 @@ class DisciplinaProxyIntegrationTest {
         assertThat(MONOLITH.getRequestCount()).isEqualTo(requestsBefore);
     }
 
-    private static MockWebServer startMonolith() {
+    private static MockWebServer startLegacy() {
         MockWebServer server = new MockWebServer();
         try {
             server.start();
@@ -94,3 +94,4 @@ class DisciplinaProxyIntegrationTest {
         }
     }
 }
+

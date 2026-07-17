@@ -38,7 +38,8 @@ public class CatalogReadCutoverDecider implements CatalogReadCutoverPolicyPort {
     }
 
     @Override
-    public boolean fallbackToMonolithOnError() {
-        return properties.fallbackToMonolithOnError();
+    public boolean fallbackToLegacyOnError() {
+        return properties.fallbackToLegacyOnError();
     }
 }
+

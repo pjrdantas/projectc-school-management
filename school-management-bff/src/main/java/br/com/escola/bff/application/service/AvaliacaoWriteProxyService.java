@@ -6,18 +6,18 @@ import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.port.out.AuthContextPort;
-import br.com.escola.bff.application.port.out.PedagogicalAvaliacaoPort;
+import br.com.escola.bff.application.port.out.AvaliacaoPort;
 import br.com.escola.bff.application.usecase.CriarAvaliacaoUseCase;
 import reactor.core.publisher.Mono;
 
 public class AvaliacaoWriteProxyService implements CriarAvaliacaoUseCase {
 
     private final AuthContextPort authContextPort;
-    private final PedagogicalAvaliacaoPort pedagogicalAvaliacaoPort;
+    private final AvaliacaoPort pedagogicalAvaliacaoPort;
 
     public AvaliacaoWriteProxyService(
             AuthContextPort authContextPort,
-            PedagogicalAvaliacaoPort pedagogicalAvaliacaoPort) {
+            AvaliacaoPort pedagogicalAvaliacaoPort) {
         this.authContextPort = authContextPort;
         this.pedagogicalAvaliacaoPort = pedagogicalAvaliacaoPort;
     }
@@ -40,3 +40,4 @@ public class AvaliacaoWriteProxyService implements CriarAvaliacaoUseCase {
                 .flatMap(context -> pedagogicalAvaliacaoPort.lancarNota(avaliacaoId, requestBody, query, context));
     }
 }
+

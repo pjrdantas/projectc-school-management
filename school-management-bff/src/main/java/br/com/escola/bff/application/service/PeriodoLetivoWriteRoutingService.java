@@ -7,25 +7,25 @@ import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.dto.CatalogWriteQuery;
 import br.com.escola.bff.application.dto.PeriodoLetivoCreateCommand;
 import br.com.escola.bff.application.dto.PeriodoLetivoCreatedResult;
-import br.com.escola.bff.application.port.out.AcademicCatalogPeriodoLetivoWritePort;
+import br.com.escola.bff.application.port.out.CatalogoPeriodoLetivoWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
-import br.com.escola.bff.application.port.out.MonolithPeriodoLetivoWritePort;
+import br.com.escola.bff.application.port.out.LegacyPeriodoLetivoWritePort;
 import br.com.escola.bff.application.usecase.CreatePeriodoLetivoUseCase;
 import reactor.core.publisher.Mono;
 
 public class PeriodoLetivoWriteRoutingService implements CreatePeriodoLetivoUseCase {
 
-    private final MonolithPeriodoLetivoWritePort monolithWritePort;
-    private final AcademicCatalogPeriodoLetivoWritePort catalogWritePort;
+    private final LegacyPeriodoLetivoWritePort monolithWritePort;
+    private final CatalogoPeriodoLetivoWritePort catalogWritePort;
     private final AuthContextPort authContextPort;
     private final CatalogWriteCutoverPolicyPort cutoverPolicyPort;
     private final CatalogWriteObservabilityPort observabilityPort;
 
     public PeriodoLetivoWriteRoutingService(
-            MonolithPeriodoLetivoWritePort monolithWritePort,
-            AcademicCatalogPeriodoLetivoWritePort catalogWritePort,
+            LegacyPeriodoLetivoWritePort monolithWritePort,
+            CatalogoPeriodoLetivoWritePort catalogWritePort,
             AuthContextPort authContextPort,
             CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
@@ -41,7 +41,7 @@ public class PeriodoLetivoWriteRoutingService implements CreatePeriodoLetivoUseC
         CatalogWriteCutoverDecision decision = cutoverPolicyPort.decision(CatalogWriteRoute.PERIODOS_LETIVOS);
         if (!decision.useCatalog()) {
             return monolithWritePort.criar(query, command)
-                    .doOnSuccess(response -> observabilityPort.recordDirectMonolith(decision));
+                    .doOnSuccess(response -> observabilityPort.recordDirectLegacy(decision));
         }
 
         return authContextPort.resolve(new CatalogReadQuery(query.authorization(), query.correlationId()))
@@ -59,3 +59,4 @@ public class PeriodoLetivoWriteRoutingService implements CreatePeriodoLetivoUseC
         return context;
     }
 }
+

@@ -4,25 +4,25 @@ import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.dto.CatalogWriteQuery;
 import br.com.escola.bff.application.dto.TurmaDisciplinaLinkCommand;
 import br.com.escola.bff.application.dto.TurmaDisciplinaLinkedResult;
-import br.com.escola.bff.application.port.out.AcademicCatalogTurmaDisciplinaWritePort;
+import br.com.escola.bff.application.port.out.CatalogoTurmaDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
-import br.com.escola.bff.application.port.out.MonolithTurmaDisciplinaWritePort;
+import br.com.escola.bff.application.port.out.LegacyTurmaDisciplinaWritePort;
 import br.com.escola.bff.application.usecase.LinkTurmaDisciplinaUseCase;
 import reactor.core.publisher.Mono;
 
 public class TurmaDisciplinaWriteRoutingService implements LinkTurmaDisciplinaUseCase {
 
-    private final MonolithTurmaDisciplinaWritePort monolithWritePort;
-    private final AcademicCatalogTurmaDisciplinaWritePort catalogWritePort;
+    private final LegacyTurmaDisciplinaWritePort monolithWritePort;
+    private final CatalogoTurmaDisciplinaWritePort catalogWritePort;
     private final AuthContextPort authContextPort;
     private final CatalogWriteCutoverPolicyPort cutoverPolicyPort;
     private final CatalogWriteObservabilityPort observabilityPort;
 
     public TurmaDisciplinaWriteRoutingService(
-            MonolithTurmaDisciplinaWritePort monolithWritePort,
-            AcademicCatalogTurmaDisciplinaWritePort catalogWritePort,
+            LegacyTurmaDisciplinaWritePort monolithWritePort,
+            CatalogoTurmaDisciplinaWritePort catalogWritePort,
             AuthContextPort authContextPort,
             CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
@@ -38,7 +38,7 @@ public class TurmaDisciplinaWriteRoutingService implements LinkTurmaDisciplinaUs
         CatalogWriteCutoverDecision decision = cutoverPolicyPort.decision(CatalogWriteRoute.TURMA_DISCIPLINAS);
         if (!decision.useCatalog()) {
             return monolithWritePort.vincular(query, command)
-                    .doOnSuccess(response -> observabilityPort.recordDirectMonolith(decision));
+                    .doOnSuccess(response -> observabilityPort.recordDirectLegacy(decision));
         }
 
         return authContextPort.resolve(new CatalogReadQuery(query.authorization(), query.correlationId()))
@@ -47,3 +47,4 @@ public class TurmaDisciplinaWriteRoutingService implements LinkTurmaDisciplinaUs
                 .doOnError(error -> observabilityPort.recordCatalogFailure(decision, error));
     }
 }
+

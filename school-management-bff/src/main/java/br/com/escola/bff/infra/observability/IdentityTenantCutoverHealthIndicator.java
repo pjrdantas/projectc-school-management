@@ -19,10 +19,11 @@ public class IdentityTenantCutoverHealthIndicator implements HealthIndicator {
     public Health health() {
         return Health.up()
                 .withDetail("cutoverEnabled", properties.enabled())
-                .withDetail("fallbackToMonolithOnError", properties.fallbackToMonolithOnError())
+                .withDetail("fallbackToLegacyOnError", properties.fallbackToLegacyOnError())
                 .withDetail("authEscolasEnabled", properties.routes().authEscolas())
                 .withDetail("authEscolaAtivaEnabled", properties.routes().authEscolaAtiva())
                 .withDetail("authTenantAtivaEnabled", properties.routes().authTenantAtiva())
                 .build();
     }
 }
+

@@ -17,7 +17,7 @@ public class MicrometerCatalogReadObservability implements CatalogReadObservabil
     }
 
     @Override
-    public void recordDirectMonolith(CatalogReadCutoverDecision decision) {
+    public void recordDirectLegacy(CatalogReadCutoverDecision decision) {
         routeCounter(decision, "monolith", "direct").increment();
     }
 
@@ -33,7 +33,7 @@ public class MicrometerCatalogReadObservability implements CatalogReadObservabil
     }
 
     @Override
-    public void recordFallbackToMonolith(CatalogReadCutoverDecision decision, Throwable error) {
+    public void recordFallbackToLegacy(CatalogReadCutoverDecision decision, Throwable error) {
         routeCounter(decision, "monolith", "fallback").increment();
         fallbackCounter(decision, error).increment();
     }
@@ -70,3 +70,4 @@ public class MicrometerCatalogReadObservability implements CatalogReadObservabil
         return decision.route().name().toLowerCase();
     }
 }
+

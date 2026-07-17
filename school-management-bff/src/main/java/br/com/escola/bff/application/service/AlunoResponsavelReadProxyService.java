@@ -7,21 +7,21 @@ import org.springframework.http.ResponseEntity;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
-import br.com.escola.bff.application.port.out.MonolithAlunoResponsavelReadPort;
-import br.com.escola.bff.application.port.out.ResponsiblesAlunoResponsavelReadPort;
+import br.com.escola.bff.application.port.out.LegacyAlunoResponsavelReadPort;
+import br.com.escola.bff.application.port.out.AlunoResponsavelVinculoReadPort;
 import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
 import reactor.core.publisher.Mono;
 
 public class AlunoResponsavelReadProxyService implements ConsultarAlunoResponsavelUseCase {
 
     private final InternalAuthContextPort authContextPort;
-    private final ResponsiblesAlunoResponsavelReadPort responsiblesAlunoResponsavelReadPort;
-    private final MonolithAlunoResponsavelReadPort monolithAlunoResponsavelReadPort;
+    private final AlunoResponsavelVinculoReadPort responsiblesAlunoResponsavelReadPort;
+    private final LegacyAlunoResponsavelReadPort monolithAlunoResponsavelReadPort;
 
     public AlunoResponsavelReadProxyService(
             InternalAuthContextPort authContextPort,
-            ResponsiblesAlunoResponsavelReadPort responsiblesAlunoResponsavelReadPort,
-            MonolithAlunoResponsavelReadPort monolithAlunoResponsavelReadPort) {
+            AlunoResponsavelVinculoReadPort responsiblesAlunoResponsavelReadPort,
+            LegacyAlunoResponsavelReadPort monolithAlunoResponsavelReadPort) {
         this.authContextPort = authContextPort;
         this.responsiblesAlunoResponsavelReadPort = responsiblesAlunoResponsavelReadPort;
         this.monolithAlunoResponsavelReadPort = monolithAlunoResponsavelReadPort;
@@ -37,17 +37,18 @@ public class AlunoResponsavelReadProxyService implements ConsultarAlunoResponsav
                 .flatMap(context -> responsiblesAlunoResponsavelReadPort.listarResponsaveisPorAluno(alunoId, query, context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                ResponsiblesAlunoReadFailureException::new))
+                                ResponsavelCatalogoAlunoReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithAlunoResponsavelReadPort.listarResponsaveisPorAluno(alunoId, query))
-                .onErrorResume(ResponsiblesAlunoReadFailureException.class,
+                .onErrorResume(ResponsavelCatalogoAlunoReadFailureException.class,
                         error -> monolithAlunoResponsavelReadPort.listarResponsaveisPorAluno(alunoId, query));
     }
 
-    private static final class ResponsiblesAlunoReadFailureException extends RuntimeException {
+    private static final class ResponsavelCatalogoAlunoReadFailureException extends RuntimeException {
 
-        private ResponsiblesAlunoReadFailureException(DownstreamUnavailableException cause) {
+        private ResponsavelCatalogoAlunoReadFailureException(DownstreamUnavailableException cause) {
             super(cause);
         }
     }
 }
+

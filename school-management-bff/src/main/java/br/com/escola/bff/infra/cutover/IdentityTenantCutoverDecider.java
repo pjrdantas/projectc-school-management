@@ -28,7 +28,8 @@ public class IdentityTenantCutoverDecider implements IdentityTenantCutoverPolicy
     }
 
     @Override
-    public boolean fallbackToMonolithOnError() {
-        return properties.fallbackToMonolithOnError();
+    public boolean fallbackToLegacyOnError() {
+        return properties.fallbackToLegacyOnError();
     }
 }
+

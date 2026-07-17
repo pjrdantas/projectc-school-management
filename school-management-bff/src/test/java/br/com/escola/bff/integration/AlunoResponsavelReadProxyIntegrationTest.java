@@ -49,7 +49,7 @@ class AlunoResponsavelReadProxyIntegrationTest {
     }
 
     @Test
-    void deveConsumirResponsiblesServiceNaLeituraOficialDeResponsaveisPorAluno() throws InterruptedException {
+    void deveConsumirResponsavelCatalogoServiceNaLeituraOficialDeResponsaveisPorAluno() throws InterruptedException {
         UUID alunoId = UUID.fromString("00000000-0000-0000-0000-000000000301");
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -92,7 +92,7 @@ class AlunoResponsavelReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoResponsiblesServiceFalharNaLeituraPorAluno() throws InterruptedException {
+    void deveFazerFallbackParaMonolitoQuandoResponsavelCatalogoServiceFalharNaLeituraPorAluno() throws InterruptedException {
         UUID alunoId = UUID.fromString("00000000-0000-0000-0000-000000000301");
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -138,3 +138,4 @@ class AlunoResponsavelReadProxyIntegrationTest {
         }
     }
 }
+

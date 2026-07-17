@@ -13,11 +13,11 @@ import br.com.escola.bff.application.dto.CatalogWriteQuery;
 import br.com.escola.bff.application.dto.PeriodoLetivoCreateCommand;
 import br.com.escola.bff.application.dto.PeriodoLetivoCreatedResult;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
-import br.com.escola.bff.application.port.out.AcademicCatalogPeriodoLetivoWritePort;
+import br.com.escola.bff.application.port.out.CatalogoPeriodoLetivoWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
-import br.com.escola.bff.application.port.out.MonolithPeriodoLetivoWritePort;
+import br.com.escola.bff.application.port.out.LegacyPeriodoLetivoWritePort;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -25,8 +25,8 @@ class PeriodoLetivoWriteRoutingServiceTest {
 
     @Test
     void deveUsarMonolitoQuandoCutoverNaoEstiverLiberado() {
-        MonolithPeriodoLetivoWritePort monolith = (query, command) -> Mono.just(resultado("monolith"));
-        AcademicCatalogPeriodoLetivoWritePort catalog = (query, context, command) -> Mono.just(resultado("catalog"));
+        LegacyPeriodoLetivoWritePort monolith = (query, command) -> Mono.just(resultado("monolith"));
+        CatalogoPeriodoLetivoWritePort catalog = (query, context, command) -> Mono.just(resultado("catalog"));
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID()));
         CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, false, "cutover_disabled");
         CatalogWriteObservabilityPort observability = new NoOpObservability();
@@ -46,11 +46,11 @@ class PeriodoLetivoWriteRoutingServiceTest {
     @Test
     void naoDeveFazerFallbackParaMonolitoQuandoCatalogoFalhar() {
         AtomicBoolean monolithCalled = new AtomicBoolean(false);
-        MonolithPeriodoLetivoWritePort monolith = (query, command) -> {
+        LegacyPeriodoLetivoWritePort monolith = (query, command) -> {
             monolithCalled.set(true);
             return Mono.just(resultado("monolith"));
         };
-        AcademicCatalogPeriodoLetivoWritePort catalog = (query, context, command) ->
+        CatalogoPeriodoLetivoWritePort catalog = (query, context, command) ->
                 Mono.error(new DownstreamUnavailableException("catalog indisponivel"));
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID(), "Escola A"));
         CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
@@ -74,8 +74,8 @@ class PeriodoLetivoWriteRoutingServiceTest {
     void deveRejeitarEscolaIdDiferenteDoContextoAutenticado() {
         UUID escolaContexto = UUID.randomUUID();
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), escolaContexto, "Escola A"));
-        MonolithPeriodoLetivoWritePort monolith = (query, command) -> Mono.just(resultado("monolith"));
-        AcademicCatalogPeriodoLetivoWritePort catalog = (query, context, command) -> Mono.just(resultado("catalog"));
+        LegacyPeriodoLetivoWritePort monolith = (query, command) -> Mono.just(resultado("monolith"));
+        CatalogoPeriodoLetivoWritePort catalog = (query, context, command) -> Mono.just(resultado("catalog"));
         CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
         CatalogWriteObservabilityPort observability = new NoOpObservability();
 
@@ -119,8 +119,9 @@ class PeriodoLetivoWriteRoutingServiceTest {
     }
 
     private static final class NoOpObservability implements CatalogWriteObservabilityPort {
-        @Override public void recordDirectMonolith(CatalogWriteCutoverDecision decision) {}
+        @Override public void recordDirectLegacy(CatalogWriteCutoverDecision decision) {}
         @Override public void recordCatalogSuccess(CatalogWriteCutoverDecision decision) {}
         @Override public void recordCatalogFailure(CatalogWriteCutoverDecision decision, Throwable error) {}
     }
 }
+

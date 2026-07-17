@@ -4,18 +4,18 @@ import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.port.out.AuthContextPort;
-import br.com.escola.bff.application.port.out.EnrollmentDocumentEscolaOrigemWritePort;
+import br.com.escola.bff.application.port.out.EscolaOrigemMatriculaWritePort;
 import br.com.escola.bff.application.usecase.CriarEscolaOrigemUseCase;
 import reactor.core.publisher.Mono;
 
 public class EscolaOrigemWriteProxyService implements CriarEscolaOrigemUseCase {
 
     private final AuthContextPort authContextPort;
-    private final EnrollmentDocumentEscolaOrigemWritePort enrollmentDocumentEscolaOrigemWritePort;
+    private final EscolaOrigemMatriculaWritePort enrollmentDocumentEscolaOrigemWritePort;
 
     public EscolaOrigemWriteProxyService(
             AuthContextPort authContextPort,
-            EnrollmentDocumentEscolaOrigemWritePort enrollmentDocumentEscolaOrigemWritePort) {
+            EscolaOrigemMatriculaWritePort enrollmentDocumentEscolaOrigemWritePort) {
         this.authContextPort = authContextPort;
         this.enrollmentDocumentEscolaOrigemWritePort = enrollmentDocumentEscolaOrigemWritePort;
     }
@@ -30,3 +30,4 @@ public class EscolaOrigemWriteProxyService implements CriarEscolaOrigemUseCase {
                 .flatMap(context -> enrollmentDocumentEscolaOrigemWritePort.criarEscolaOrigem(requestBody, query, context));
     }
 }
+

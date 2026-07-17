@@ -48,7 +48,7 @@ class EscolaOrigemReadProxyIntegrationTest {
     }
 
     @Test
-    void deveConsumirEnrollmentDocumentServiceNaBuscaOficialDeEscolaOrigemPorId() throws InterruptedException {
+    void deveConsumirDocumentoMatriculaServiceNaBuscaOficialDeEscolaOrigemPorId() throws InterruptedException {
         String escolaOrigemId = "00000000-0000-0000-0000-000000000081";
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -94,7 +94,7 @@ class EscolaOrigemReadProxyIntegrationTest {
     }
 
     @Test
-    void deveConsumirEnrollmentDocumentServiceNaListagemOficialDeEscolasOrigem() throws InterruptedException {
+    void deveConsumirDocumentoMatriculaServiceNaListagemOficialDeEscolasOrigem() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -141,3 +141,4 @@ class EscolaOrigemReadProxyIntegrationTest {
         }
     }
 }
+

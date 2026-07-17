@@ -7,21 +7,21 @@ import org.springframework.http.ResponseEntity;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
-import br.com.escola.bff.application.port.out.MonolithAulaReadPort;
-import br.com.escola.bff.application.port.out.PedagogicalAulaPort;
+import br.com.escola.bff.application.port.out.LegacyAulaReadPort;
+import br.com.escola.bff.application.port.out.AulaPort;
 import br.com.escola.bff.application.usecase.ConsultarAulaUseCase;
 import reactor.core.publisher.Mono;
 
 public class AulaReadProxyService implements ConsultarAulaUseCase {
 
     private final InternalAuthContextPort authContextPort;
-    private final PedagogicalAulaPort pedagogicalAulaPort;
-    private final MonolithAulaReadPort monolithAulaReadPort;
+    private final AulaPort pedagogicalAulaPort;
+    private final LegacyAulaReadPort monolithAulaReadPort;
 
     public AulaReadProxyService(
             InternalAuthContextPort authContextPort,
-            PedagogicalAulaPort pedagogicalAulaPort,
-            MonolithAulaReadPort monolithAulaReadPort) {
+            AulaPort pedagogicalAulaPort,
+            LegacyAulaReadPort monolithAulaReadPort) {
         this.authContextPort = authContextPort;
         this.pedagogicalAulaPort = pedagogicalAulaPort;
         this.monolithAulaReadPort = monolithAulaReadPort;
@@ -42,10 +42,10 @@ public class AulaReadProxyService implements ConsultarAulaUseCase {
                         context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                PedagogicalAulaReadFailureException::new))
+                                AulaReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithAulaReadPort.listar(professorTurmaDisciplinaId, turmaId, query))
-                .onErrorResume(PedagogicalAulaReadFailureException.class,
+                .onErrorResume(AulaReadFailureException.class,
                         error -> monolithAulaReadPort.listar(professorTurmaDisciplinaId, turmaId, query));
     }
 
@@ -56,10 +56,10 @@ public class AulaReadProxyService implements ConsultarAulaUseCase {
                 .flatMap(context -> pedagogicalAulaPort.buscarPorId(aulaId, query, context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                PedagogicalAulaReadFailureException::new))
+                                AulaReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithAulaReadPort.buscarPorId(aulaId, query))
-                .onErrorResume(PedagogicalAulaReadFailureException.class,
+                .onErrorResume(AulaReadFailureException.class,
                         error -> monolithAulaReadPort.buscarPorId(aulaId, query));
     }
 
@@ -73,10 +73,10 @@ public class AulaReadProxyService implements ConsultarAulaUseCase {
                 .flatMap(context -> pedagogicalAulaPort.listarFrequenciaProfessor(aulaId, query, context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                PedagogicalAulaReadFailureException::new))
+                                AulaReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithAulaReadPort.listarFrequenciaProfessor(aulaId, query))
-                .onErrorResume(PedagogicalAulaReadFailureException.class,
+                .onErrorResume(AulaReadFailureException.class,
                         error -> monolithAulaReadPort.listarFrequenciaProfessor(aulaId, query));
     }
 
@@ -90,17 +90,18 @@ public class AulaReadProxyService implements ConsultarAulaUseCase {
                 .flatMap(context -> pedagogicalAulaPort.listarFrequenciasAlunos(aulaId, query, context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                PedagogicalAulaReadFailureException::new))
+                                AulaReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithAulaReadPort.listarFrequenciasAlunos(aulaId, query))
-                .onErrorResume(PedagogicalAulaReadFailureException.class,
+                .onErrorResume(AulaReadFailureException.class,
                         error -> monolithAulaReadPort.listarFrequenciasAlunos(aulaId, query));
     }
 
-    private static final class PedagogicalAulaReadFailureException extends RuntimeException {
+    private static final class AulaReadFailureException extends RuntimeException {
 
-        private PedagogicalAulaReadFailureException(DownstreamUnavailableException cause) {
+        private AulaReadFailureException(DownstreamUnavailableException cause) {
             super(cause);
         }
     }
 }
+

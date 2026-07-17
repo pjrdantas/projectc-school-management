@@ -14,12 +14,12 @@ import br.com.escola.bff.application.dto.NivelEnsinoResolved;
 import br.com.escola.bff.application.dto.SerieCreateCommand;
 import br.com.escola.bff.application.dto.SerieCreatedResult;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
-import br.com.escola.bff.application.port.out.AcademicCatalogNivelEnsinoResolverPort;
-import br.com.escola.bff.application.port.out.AcademicCatalogSerieWritePort;
+import br.com.escola.bff.application.port.out.CatalogoNivelEnsinoResolverPort;
+import br.com.escola.bff.application.port.out.CatalogoSerieWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
-import br.com.escola.bff.application.port.out.MonolithSerieWritePort;
+import br.com.escola.bff.application.port.out.LegacySerieWritePort;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -27,9 +27,9 @@ class SerieWriteRoutingServiceTest {
 
     @Test
     void deveUsarMonolitoQuandoCutoverNaoEstiverLiberado() {
-        MonolithSerieWritePort monolith = (query, command) -> Mono.just(resultado("ENSINO_FUNDAMENTAL", "monolith"));
-        AcademicCatalogSerieWritePort catalog = (query, context, nivel, command) -> Mono.just(resultado("ENSINO_FUNDAMENTAL", "catalog"));
-        AcademicCatalogNivelEnsinoResolverPort resolver = (query, context, nivel) ->
+        LegacySerieWritePort monolith = (query, command) -> Mono.just(resultado("ENSINO_FUNDAMENTAL", "monolith"));
+        CatalogoSerieWritePort catalog = (query, context, nivel, command) -> Mono.just(resultado("ENSINO_FUNDAMENTAL", "catalog"));
+        CatalogoNivelEnsinoResolverPort resolver = (query, context, nivel) ->
                 Mono.just(new NivelEnsinoResolved(UUID.randomUUID(), "ENSINO_FUNDAMENTAL"));
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID()));
         CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, false, "cutover_disabled");
@@ -46,9 +46,9 @@ class SerieWriteRoutingServiceTest {
     @Test
     void deveUsarMonolitoQuandoNivelEnsinoNaoVierInformado() {
         AtomicBoolean resolverCalled = new AtomicBoolean(false);
-        MonolithSerieWritePort monolith = (query, command) -> Mono.just(resultado(null, "monolith"));
-        AcademicCatalogSerieWritePort catalog = (query, context, nivel, command) -> Mono.just(resultado("ENSINO_FUNDAMENTAL", "catalog"));
-        AcademicCatalogNivelEnsinoResolverPort resolver = (query, context, nivel) -> {
+        LegacySerieWritePort monolith = (query, command) -> Mono.just(resultado(null, "monolith"));
+        CatalogoSerieWritePort catalog = (query, context, nivel, command) -> Mono.just(resultado("ENSINO_FUNDAMENTAL", "catalog"));
+        CatalogoNivelEnsinoResolverPort resolver = (query, context, nivel) -> {
             resolverCalled.set(true);
             return Mono.just(new NivelEnsinoResolved(UUID.randomUUID(), "ENSINO_FUNDAMENTAL"));
         };
@@ -69,12 +69,12 @@ class SerieWriteRoutingServiceTest {
     @Test
     void deveUsarMonolitoQuandoNivelEnsinoNaoForResolvidoNoCatalogoNovo() {
         AtomicBoolean catalogCalled = new AtomicBoolean(false);
-        MonolithSerieWritePort monolith = (query, command) -> Mono.just(resultado(command.nivelEnsino(), "monolith"));
-        AcademicCatalogSerieWritePort catalog = (query, context, nivel, command) -> {
+        LegacySerieWritePort monolith = (query, command) -> Mono.just(resultado(command.nivelEnsino(), "monolith"));
+        CatalogoSerieWritePort catalog = (query, context, nivel, command) -> {
             catalogCalled.set(true);
             return Mono.just(resultado("ENSINO_FUNDAMENTAL", "catalog"));
         };
-        AcademicCatalogNivelEnsinoResolverPort resolver = (query, context, nivel) -> Mono.empty();
+        CatalogoNivelEnsinoResolverPort resolver = (query, context, nivel) -> Mono.empty();
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID(), "Escola A"));
         CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
         CatalogWriteObservabilityPort observability = new NoOpObservability();
@@ -92,13 +92,13 @@ class SerieWriteRoutingServiceTest {
     @Test
     void naoDeveFazerFallbackParaMonolitoQuandoCatalogoFalhar() {
         AtomicBoolean monolithCalled = new AtomicBoolean(false);
-        MonolithSerieWritePort monolith = (query, command) -> {
+        LegacySerieWritePort monolith = (query, command) -> {
             monolithCalled.set(true);
             return Mono.just(resultado(command.nivelEnsino(), "monolith"));
         };
-        AcademicCatalogSerieWritePort catalog = (query, context, nivel, command) ->
+        CatalogoSerieWritePort catalog = (query, context, nivel, command) ->
                 Mono.error(new DownstreamUnavailableException("catalog indisponivel"));
-        AcademicCatalogNivelEnsinoResolverPort resolver = (query, context, nivel) ->
+        CatalogoNivelEnsinoResolverPort resolver = (query, context, nivel) ->
                 Mono.just(new NivelEnsinoResolved(UUID.randomUUID(), "ENSINO_FUNDAMENTAL"));
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID(), "Escola A"));
         CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
@@ -118,9 +118,9 @@ class SerieWriteRoutingServiceTest {
     void deveRejeitarEscolaIdDiferenteDoContextoAutenticado() {
         UUID escolaContexto = UUID.randomUUID();
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), escolaContexto, "Escola A"));
-        MonolithSerieWritePort monolith = (query, command) -> Mono.just(resultado(command.nivelEnsino(), "monolith"));
-        AcademicCatalogSerieWritePort catalog = (query, context, nivel, command) -> Mono.just(resultado("ENSINO_FUNDAMENTAL", "catalog"));
-        AcademicCatalogNivelEnsinoResolverPort resolver = (query, context, nivel) ->
+        LegacySerieWritePort monolith = (query, command) -> Mono.just(resultado(command.nivelEnsino(), "monolith"));
+        CatalogoSerieWritePort catalog = (query, context, nivel, command) -> Mono.just(resultado("ENSINO_FUNDAMENTAL", "catalog"));
+        CatalogoNivelEnsinoResolverPort resolver = (query, context, nivel) ->
                 Mono.just(new NivelEnsinoResolved(UUID.randomUUID(), "ENSINO_FUNDAMENTAL"));
         CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
         CatalogWriteObservabilityPort observability = new NoOpObservability();
@@ -154,8 +154,9 @@ class SerieWriteRoutingServiceTest {
     }
 
     private static final class NoOpObservability implements CatalogWriteObservabilityPort {
-        @Override public void recordDirectMonolith(CatalogWriteCutoverDecision decision) {}
+        @Override public void recordDirectLegacy(CatalogWriteCutoverDecision decision) {}
         @Override public void recordCatalogSuccess(CatalogWriteCutoverDecision decision) {}
         @Override public void recordCatalogFailure(CatalogWriteCutoverDecision decision, Throwable error) {}
     }
 }
+

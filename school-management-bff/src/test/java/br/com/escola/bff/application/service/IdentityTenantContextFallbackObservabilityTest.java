@@ -10,13 +10,13 @@ import org.springframework.http.ResponseEntity;
 import br.com.escola.bff.application.dto.AuthSessionContext;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
-import br.com.escola.bff.application.port.out.IdentityAccessSessionPort;
+import br.com.escola.bff.application.port.out.SessaoAutenticadaPort;
 import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityTenantCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.IdentityTenantObservabilityPort;
-import br.com.escola.bff.application.port.out.InstitutionalTenantReadPort;
-import br.com.escola.bff.application.port.out.MonolithAuthSessionPort;
-import br.com.escola.bff.application.port.out.MonolithTenantReadPort;
+import br.com.escola.bff.application.port.out.TenantAtivoReadPort;
+import br.com.escola.bff.application.port.out.LegacyAuthSessionPort;
+import br.com.escola.bff.application.port.out.LegacyTenantReadPort;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -26,13 +26,13 @@ public class IdentityTenantContextFallbackObservabilityTest {
     void deveRegistrarIdentityAccessQuandoFallbackDeListagemFalharNaResolucaoDeContexto() {
         IdentityTenantAuthContextPort authContextPort = query -> Mono.error(
                 new DownstreamUnavailableException("identity indisponivel"));
-        InstitutionalTenantReadPort institutionalPort = new NoOpInstitutionalTenantReadPort();
-        MonolithAuthSessionPort monolithPort = new StubMonolithAuthSessionPort();
+        TenantAtivoReadPort institutionalPort = new NoOpTenantAtivoReadPort();
+        LegacyAuthSessionPort monolithPort = new StubLegacyAuthSessionPort();
         RecordingObservability observability = new RecordingObservability();
 
         AuthSessionProxyService service = new AuthSessionProxyService(
                 authContextPort,
-                new NoOpIdentityAccessSessionPort(),
+                new NoOpSessaoAutenticadaPort(),
                 institutionalPort,
                 monolithPort,
                 new FixedDecisionPolicy(IdentityTenantRoute.AUTH_ESCOLAS),
@@ -50,12 +50,12 @@ public class IdentityTenantContextFallbackObservabilityTest {
     void deveRegistrarIdentityAccessQuandoFallbackDeTenantAtivoFalharNaResolucaoDeContexto() {
         IdentityTenantAuthContextPort authContextPort = query -> Mono.error(
                 new DownstreamUnavailableException("identity indisponivel"));
-        MonolithTenantReadPort monolithPort = query -> Mono.just(ResponseEntity.ok("monolith-tenant"));
+        LegacyTenantReadPort monolithPort = query -> Mono.just(ResponseEntity.ok("monolith-tenant"));
         RecordingObservability observability = new RecordingObservability();
 
-        InstitutionalTenantReadProxyService service = new InstitutionalTenantReadProxyService(
+        TenantAtivoReadProxyService service = new TenantAtivoReadProxyService(
                 authContextPort,
-                new NoOpInstitutionalTenantReadPort(),
+                new NoOpTenantAtivoReadPort(),
                 monolithPort,
                 new FixedDecisionPolicy(IdentityTenantRoute.AUTH_TENANT_ATIVA),
                 observability);
@@ -82,7 +82,7 @@ public class IdentityTenantContextFallbackObservabilityTest {
         }
 
         @Override
-        public boolean fallbackToMonolithOnError() {
+        public boolean fallbackToLegacyOnError() {
             return true;
         }
     }
@@ -93,7 +93,7 @@ public class IdentityTenantContextFallbackObservabilityTest {
         private String fallbackTarget;
 
         @Override
-        public void recordDirectMonolith(IdentityTenantCutoverDecision decision) {
+        public void recordDirectLegacy(IdentityTenantCutoverDecision decision) {
         }
 
         @Override
@@ -106,12 +106,12 @@ public class IdentityTenantContextFallbackObservabilityTest {
         }
 
         @Override
-        public void recordFallbackToMonolith(IdentityTenantCutoverDecision decision, String target, Throwable error) {
+        public void recordFallbackToLegacy(IdentityTenantCutoverDecision decision, String target, Throwable error) {
             this.fallbackTarget = target;
         }
     }
 
-    private static final class NoOpInstitutionalTenantReadPort implements InstitutionalTenantReadPort {
+    private static final class NoOpTenantAtivoReadPort implements TenantAtivoReadPort {
 
         @Override
         public Mono<ResponseEntity<String>> listarEscolasDisponiveis(CatalogReadQuery query, AuthSessionContext context) {
@@ -124,7 +124,7 @@ public class IdentityTenantContextFallbackObservabilityTest {
         }
     }
 
-    private static final class StubMonolithAuthSessionPort implements MonolithAuthSessionPort {
+    private static final class StubLegacyAuthSessionPort implements LegacyAuthSessionPort {
 
         @Override
         public Mono<ResponseEntity<String>> listarEscolas(CatalogReadQuery query) {
@@ -137,7 +137,7 @@ public class IdentityTenantContextFallbackObservabilityTest {
         }
     }
 
-    private static final class NoOpIdentityAccessSessionPort implements IdentityAccessSessionPort {
+    private static final class NoOpSessaoAutenticadaPort implements SessaoAutenticadaPort {
 
         @Override
         public Mono<ResponseEntity<String>> listarEscolas(CatalogReadQuery query, AuthSessionContext context) {
@@ -153,3 +153,4 @@ public class IdentityTenantContextFallbackObservabilityTest {
         }
     }
 }
+

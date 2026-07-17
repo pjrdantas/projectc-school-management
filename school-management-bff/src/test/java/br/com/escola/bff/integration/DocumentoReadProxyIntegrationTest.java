@@ -48,7 +48,7 @@ class DocumentoReadProxyIntegrationTest {
     }
 
     @Test
-    void deveConsumirEnrollmentDocumentServiceNaListagemOficialDeDocumentosPorEntidade() throws InterruptedException {
+    void deveConsumirDocumentoMatriculaServiceNaListagemOficialDeDocumentosPorEntidade() throws InterruptedException {
         String entidadeId = "00000000-0000-0000-0000-000000000701";
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -111,3 +111,4 @@ class DocumentoReadProxyIntegrationTest {
         }
     }
 }
+

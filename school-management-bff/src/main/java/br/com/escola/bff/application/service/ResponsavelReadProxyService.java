@@ -7,21 +7,21 @@ import org.springframework.http.ResponseEntity;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
-import br.com.escola.bff.application.port.out.MonolithResponsavelReadPort;
-import br.com.escola.bff.application.port.out.ResponsiblesReadPort;
+import br.com.escola.bff.application.port.out.LegacyResponsavelReadPort;
+import br.com.escola.bff.application.port.out.ResponsavelCatalogoReadPort;
 import br.com.escola.bff.application.usecase.ConsultarResponsavelUseCase;
 import reactor.core.publisher.Mono;
 
 public class ResponsavelReadProxyService implements ConsultarResponsavelUseCase {
 
     private final InternalAuthContextPort authContextPort;
-    private final ResponsiblesReadPort responsiblesReadPort;
-    private final MonolithResponsavelReadPort monolithResponsavelReadPort;
+    private final ResponsavelCatalogoReadPort responsiblesReadPort;
+    private final LegacyResponsavelReadPort monolithResponsavelReadPort;
 
     public ResponsavelReadProxyService(
             InternalAuthContextPort authContextPort,
-            ResponsiblesReadPort responsiblesReadPort,
-            MonolithResponsavelReadPort monolithResponsavelReadPort) {
+            ResponsavelCatalogoReadPort responsiblesReadPort,
+            LegacyResponsavelReadPort monolithResponsavelReadPort) {
         this.authContextPort = authContextPort;
         this.responsiblesReadPort = responsiblesReadPort;
         this.monolithResponsavelReadPort = monolithResponsavelReadPort;
@@ -38,10 +38,10 @@ public class ResponsavelReadProxyService implements ConsultarResponsavelUseCase 
                 .flatMap(context -> responsiblesReadPort.listarResponsaveis(nome, cpf, query, context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                ResponsiblesReadFailureException::new))
+                                ResponsavelCatalogoReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithResponsavelReadPort.listarResponsaveis(nome, cpf, query))
-                .onErrorResume(ResponsiblesReadFailureException.class,
+                .onErrorResume(ResponsavelCatalogoReadFailureException.class,
                         error -> monolithResponsavelReadPort.listarResponsaveis(nome, cpf, query));
     }
 
@@ -55,17 +55,18 @@ public class ResponsavelReadProxyService implements ConsultarResponsavelUseCase 
                 .flatMap(context -> responsiblesReadPort.buscarResponsavelPorId(responsavelId, query, context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                ResponsiblesReadFailureException::new))
+                                ResponsavelCatalogoReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithResponsavelReadPort.buscarResponsavelPorId(responsavelId, query))
-                .onErrorResume(ResponsiblesReadFailureException.class,
+                .onErrorResume(ResponsavelCatalogoReadFailureException.class,
                         error -> monolithResponsavelReadPort.buscarResponsavelPorId(responsavelId, query));
     }
 
-    private static final class ResponsiblesReadFailureException extends RuntimeException {
+    private static final class ResponsavelCatalogoReadFailureException extends RuntimeException {
 
-        private ResponsiblesReadFailureException(DownstreamUnavailableException cause) {
+        private ResponsavelCatalogoReadFailureException(DownstreamUnavailableException cause) {
             super(cause);
         }
     }
 }
+

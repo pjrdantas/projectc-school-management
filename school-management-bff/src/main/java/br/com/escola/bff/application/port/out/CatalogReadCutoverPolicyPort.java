@@ -7,5 +7,6 @@ public interface CatalogReadCutoverPolicyPort {
 
     CatalogReadCutoverDecision decision(CatalogReadRoute route);
 
-    boolean fallbackToMonolithOnError();
+    boolean fallbackToLegacyOnError();
 }
+

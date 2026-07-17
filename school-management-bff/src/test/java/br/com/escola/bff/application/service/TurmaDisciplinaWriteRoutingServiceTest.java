@@ -13,11 +13,11 @@ import br.com.escola.bff.application.dto.CatalogWriteQuery;
 import br.com.escola.bff.application.dto.TurmaDisciplinaLinkCommand;
 import br.com.escola.bff.application.dto.TurmaDisciplinaLinkedResult;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
-import br.com.escola.bff.application.port.out.AcademicCatalogTurmaDisciplinaWritePort;
+import br.com.escola.bff.application.port.out.CatalogoTurmaDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
-import br.com.escola.bff.application.port.out.MonolithTurmaDisciplinaWritePort;
+import br.com.escola.bff.application.port.out.LegacyTurmaDisciplinaWritePort;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -25,8 +25,8 @@ class TurmaDisciplinaWriteRoutingServiceTest {
 
     @Test
     void deveUsarMonolitoQuandoCutoverNaoEstiverLiberado() {
-        MonolithTurmaDisciplinaWritePort monolith = (query, command) -> Mono.just(resultado("monolith"));
-        AcademicCatalogTurmaDisciplinaWritePort catalog = (query, context, command) -> Mono.just(resultado("catalog"));
+        LegacyTurmaDisciplinaWritePort monolith = (query, command) -> Mono.just(resultado("monolith"));
+        CatalogoTurmaDisciplinaWritePort catalog = (query, context, command) -> Mono.just(resultado("catalog"));
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID()));
         CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, false, "cutover_disabled");
         CatalogWriteObservabilityPort observability = new NoOpObservability();
@@ -42,11 +42,11 @@ class TurmaDisciplinaWriteRoutingServiceTest {
     @Test
     void naoDeveFazerFallbackParaMonolitoQuandoCatalogoFalhar() {
         AtomicBoolean monolithCalled = new AtomicBoolean(false);
-        MonolithTurmaDisciplinaWritePort monolith = (query, command) -> {
+        LegacyTurmaDisciplinaWritePort monolith = (query, command) -> {
             monolithCalled.set(true);
             return Mono.just(resultado("monolith"));
         };
-        AcademicCatalogTurmaDisciplinaWritePort catalog = (query, context, command) ->
+        CatalogoTurmaDisciplinaWritePort catalog = (query, context, command) ->
                 Mono.error(new DownstreamUnavailableException("catalog indisponivel"));
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID()));
         CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
@@ -81,8 +81,9 @@ class TurmaDisciplinaWriteRoutingServiceTest {
     }
 
     private static final class NoOpObservability implements CatalogWriteObservabilityPort {
-        @Override public void recordDirectMonolith(CatalogWriteCutoverDecision decision) {}
+        @Override public void recordDirectLegacy(CatalogWriteCutoverDecision decision) {}
         @Override public void recordCatalogSuccess(CatalogWriteCutoverDecision decision) {}
         @Override public void recordCatalogFailure(CatalogWriteCutoverDecision decision, Throwable error) {}
     }
 }
+

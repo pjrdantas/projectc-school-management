@@ -8,28 +8,28 @@ import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.dto.CatalogWriteQuery;
 import br.com.escola.bff.application.dto.TurmaCreateCommand;
 import br.com.escola.bff.application.dto.TurmaCreatedResult;
-import br.com.escola.bff.application.port.out.AcademicCatalogTurnoResolverPort;
-import br.com.escola.bff.application.port.out.AcademicCatalogTurmaWritePort;
+import br.com.escola.bff.application.port.out.CatalogoTurnoResolverPort;
+import br.com.escola.bff.application.port.out.CatalogoTurmaWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
-import br.com.escola.bff.application.port.out.MonolithTurmaWritePort;
+import br.com.escola.bff.application.port.out.LegacyTurmaWritePort;
 import br.com.escola.bff.application.usecase.CreateTurmaUseCase;
 import reactor.core.publisher.Mono;
 
 public class TurmaWriteRoutingService implements CreateTurmaUseCase {
 
-    private final MonolithTurmaWritePort monolithWritePort;
-    private final AcademicCatalogTurmaWritePort catalogWritePort;
-    private final AcademicCatalogTurnoResolverPort turnoResolverPort;
+    private final LegacyTurmaWritePort monolithWritePort;
+    private final CatalogoTurmaWritePort catalogWritePort;
+    private final CatalogoTurnoResolverPort turnoResolverPort;
     private final AuthContextPort authContextPort;
     private final CatalogWriteCutoverPolicyPort cutoverPolicyPort;
     private final CatalogWriteObservabilityPort observabilityPort;
 
     public TurmaWriteRoutingService(
-            MonolithTurmaWritePort monolithWritePort,
-            AcademicCatalogTurmaWritePort catalogWritePort,
-            AcademicCatalogTurnoResolverPort turnoResolverPort,
+            LegacyTurmaWritePort monolithWritePort,
+            CatalogoTurmaWritePort catalogWritePort,
+            CatalogoTurnoResolverPort turnoResolverPort,
             AuthContextPort authContextPort,
             CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
@@ -46,14 +46,14 @@ public class TurmaWriteRoutingService implements CreateTurmaUseCase {
         CatalogWriteCutoverDecision decision = cutoverPolicyPort.decision(CatalogWriteRoute.TURMAS);
         if (!decision.useCatalog()) {
             return monolithWritePort.criar(query, command)
-                    .doOnSuccess(response -> observabilityPort.recordDirectMonolith(decision));
+                    .doOnSuccess(response -> observabilityPort.recordDirectLegacy(decision));
         }
 
         if (!isCatalogCompatible(command)) {
             CatalogWriteCutoverDecision unsupportedDecision =
                     new CatalogWriteCutoverDecision(CatalogWriteRoute.TURMAS, false, "unsupported_turno_or_status");
             return monolithWritePort.criar(query, command)
-                    .doOnSuccess(response -> observabilityPort.recordDirectMonolith(unsupportedDecision));
+                    .doOnSuccess(response -> observabilityPort.recordDirectLegacy(unsupportedDecision));
         }
 
         return authContextPort.resolve(new CatalogReadQuery(query.authorization(), query.correlationId()))
@@ -61,18 +61,18 @@ public class TurmaWriteRoutingService implements CreateTurmaUseCase {
                 .flatMap(context -> turnoResolverPort.resolve(query, context, command.turno())
                         .flatMap(turno -> catalogWritePort.criar(query, context, turno, command)
                                 .doOnSuccess(response -> observabilityPort.recordCatalogSuccess(decision)))
-                        .switchIfEmpty(routeToMonolithForUnsupportedTurno(query, command)))
+                        .switchIfEmpty(routeToLegacyForUnsupportedTurno(query, command)))
                 .doOnError(error -> observabilityPort.recordCatalogFailure(decision, error));
     }
 
-    private Mono<TurmaCreatedResult> routeToMonolithForUnsupportedTurno(
+    private Mono<TurmaCreatedResult> routeToLegacyForUnsupportedTurno(
             CatalogWriteQuery query,
             TurmaCreateCommand command) {
         return Mono.defer(() -> {
             CatalogWriteCutoverDecision unsupportedDecision =
                     new CatalogWriteCutoverDecision(CatalogWriteRoute.TURMAS, false, "unsupported_turno_or_status");
             return monolithWritePort.criar(query, command)
-                    .doOnSuccess(response -> observabilityPort.recordDirectMonolith(unsupportedDecision));
+                    .doOnSuccess(response -> observabilityPort.recordDirectLegacy(unsupportedDecision));
         });
     }
 
@@ -101,3 +101,4 @@ public class TurmaWriteRoutingService implements CreateTurmaUseCase {
         return context;
     }
 }
+

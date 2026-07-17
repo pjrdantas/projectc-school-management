@@ -7,21 +7,21 @@ import org.springframework.http.ResponseEntity;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
-import br.com.escola.bff.application.port.out.MonolithAvaliacaoReadPort;
-import br.com.escola.bff.application.port.out.PedagogicalAvaliacaoPort;
+import br.com.escola.bff.application.port.out.LegacyAvaliacaoReadPort;
+import br.com.escola.bff.application.port.out.AvaliacaoPort;
 import br.com.escola.bff.application.usecase.ConsultarAvaliacaoUseCase;
 import reactor.core.publisher.Mono;
 
 public class AvaliacaoReadProxyService implements ConsultarAvaliacaoUseCase {
 
     private final InternalAuthContextPort authContextPort;
-    private final PedagogicalAvaliacaoPort pedagogicalAvaliacaoPort;
-    private final MonolithAvaliacaoReadPort monolithAvaliacaoReadPort;
+    private final AvaliacaoPort pedagogicalAvaliacaoPort;
+    private final LegacyAvaliacaoReadPort monolithAvaliacaoReadPort;
 
     public AvaliacaoReadProxyService(
             InternalAuthContextPort authContextPort,
-            PedagogicalAvaliacaoPort pedagogicalAvaliacaoPort,
-            MonolithAvaliacaoReadPort monolithAvaliacaoReadPort) {
+            AvaliacaoPort pedagogicalAvaliacaoPort,
+            LegacyAvaliacaoReadPort monolithAvaliacaoReadPort) {
         this.authContextPort = authContextPort;
         this.pedagogicalAvaliacaoPort = pedagogicalAvaliacaoPort;
         this.monolithAvaliacaoReadPort = monolithAvaliacaoReadPort;
@@ -42,10 +42,10 @@ public class AvaliacaoReadProxyService implements ConsultarAvaliacaoUseCase {
                         context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                PedagogicalAvaliacaoReadFailureException::new))
+                                AvaliacaoReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithAvaliacaoReadPort.listar(professorTurmaDisciplinaId, turmaId, query))
-                .onErrorResume(PedagogicalAvaliacaoReadFailureException.class,
+                .onErrorResume(AvaliacaoReadFailureException.class,
                         error -> monolithAvaliacaoReadPort.listar(professorTurmaDisciplinaId, turmaId, query));
     }
 
@@ -56,10 +56,10 @@ public class AvaliacaoReadProxyService implements ConsultarAvaliacaoUseCase {
                 .flatMap(context -> pedagogicalAvaliacaoPort.buscarPorId(avaliacaoId, query, context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                PedagogicalAvaliacaoReadFailureException::new))
+                                AvaliacaoReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithAvaliacaoReadPort.buscarPorId(avaliacaoId, query))
-                .onErrorResume(PedagogicalAvaliacaoReadFailureException.class,
+                .onErrorResume(AvaliacaoReadFailureException.class,
                         error -> monolithAvaliacaoReadPort.buscarPorId(avaliacaoId, query));
     }
 
@@ -73,10 +73,10 @@ public class AvaliacaoReadProxyService implements ConsultarAvaliacaoUseCase {
                 .flatMap(context -> pedagogicalAvaliacaoPort.listarNotasPorAvaliacao(avaliacaoId, query, context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                PedagogicalAvaliacaoReadFailureException::new))
+                                AvaliacaoReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithAvaliacaoReadPort.listarNotasPorAvaliacao(avaliacaoId, query))
-                .onErrorResume(PedagogicalAvaliacaoReadFailureException.class,
+                .onErrorResume(AvaliacaoReadFailureException.class,
                         error -> monolithAvaliacaoReadPort.listarNotasPorAvaliacao(avaliacaoId, query));
     }
 
@@ -90,17 +90,18 @@ public class AvaliacaoReadProxyService implements ConsultarAvaliacaoUseCase {
                 .flatMap(context -> pedagogicalAvaliacaoPort.listarNotasPorMatricula(matriculaId, query, context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                PedagogicalAvaliacaoReadFailureException::new))
+                                AvaliacaoReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithAvaliacaoReadPort.listarNotasPorMatricula(matriculaId, query))
-                .onErrorResume(PedagogicalAvaliacaoReadFailureException.class,
+                .onErrorResume(AvaliacaoReadFailureException.class,
                         error -> monolithAvaliacaoReadPort.listarNotasPorMatricula(matriculaId, query));
     }
 
-    private static final class PedagogicalAvaliacaoReadFailureException extends RuntimeException {
+    private static final class AvaliacaoReadFailureException extends RuntimeException {
 
-        private PedagogicalAvaliacaoReadFailureException(DownstreamUnavailableException cause) {
+        private AvaliacaoReadFailureException(DownstreamUnavailableException cause) {
             super(cause);
         }
     }
 }
+

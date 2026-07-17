@@ -5,11 +5,12 @@ import org.junit.platform.suite.api.Suite;
 
 @Suite
 @SelectClasses({
-        PedagogicalBoletimReadProxyIntegrationTest.class,
-        PedagogicalDiarioClasseReadProxyIntegrationTest.class,
-        PedagogicalHistoricoEscolarReadProxyIntegrationTest.class,
-        PedagogicalAulaReadProxyIntegrationTest.class,
-        PedagogicalAvaliacaoReadProxyIntegrationTest.class
+        BoletimReadProxyIntegrationTest.class,
+        DiarioClasseReadProxyIntegrationTest.class,
+        HistoricoEscolarReadProxyIntegrationTest.class,
+        AulaReadProxyIntegrationTest.class,
+        AvaliacaoReadProxyIntegrationTest.class
 })
 class OfficialReadContextDecouplingIntegrationSuiteTest {
 }
+

@@ -7,5 +7,6 @@ public interface IdentityTenantCutoverPolicyPort {
 
     IdentityTenantCutoverDecision decision(IdentityTenantRoute route);
 
-    boolean fallbackToMonolithOnError();
+    boolean fallbackToLegacyOnError();
 }
+

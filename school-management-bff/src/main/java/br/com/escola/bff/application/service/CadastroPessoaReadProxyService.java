@@ -4,18 +4,18 @@ import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
-import br.com.escola.bff.application.port.out.PeopleCadastroReadPort;
+import br.com.escola.bff.application.port.out.ConsultaCadastralReadPort;
 import br.com.escola.bff.application.usecase.ConsultarCadastroPessoaUseCase;
 import reactor.core.publisher.Mono;
 
 public class CadastroPessoaReadProxyService implements ConsultarCadastroPessoaUseCase {
 
     private final InternalAuthContextPort authContextPort;
-    private final PeopleCadastroReadPort peopleCadastroReadPort;
+    private final ConsultaCadastralReadPort peopleCadastroReadPort;
 
     public CadastroPessoaReadProxyService(
             InternalAuthContextPort authContextPort,
-            PeopleCadastroReadPort peopleCadastroReadPort) {
+            ConsultaCadastralReadPort peopleCadastroReadPort) {
         this.authContextPort = authContextPort;
         this.peopleCadastroReadPort = peopleCadastroReadPort;
     }
@@ -43,3 +43,4 @@ public class CadastroPessoaReadProxyService implements ConsultarCadastroPessoaUs
                         size));
     }
 }
+

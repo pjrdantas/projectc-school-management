@@ -6,18 +6,18 @@ import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
-import br.com.escola.bff.application.port.out.PlanningAiConteudoDetailReadPort;
+import br.com.escola.bff.application.port.out.PlanejamentoIaConteudoDetalheReadPort;
 import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaConteudoDetailUseCase;
 import reactor.core.publisher.Mono;
 
 public class PlanejamentoIaConteudoDetailReadProxyService implements ConsultarPlanejamentoIaConteudoDetailUseCase {
 
     private final InternalAuthContextPort authContextPort;
-    private final PlanningAiConteudoDetailReadPort planningAiConteudoDetailReadPort;
+    private final PlanejamentoIaConteudoDetalheReadPort planningAiConteudoDetailReadPort;
 
     public PlanejamentoIaConteudoDetailReadProxyService(
             InternalAuthContextPort authContextPort,
-            PlanningAiConteudoDetailReadPort planningAiConteudoDetailReadPort) {
+            PlanejamentoIaConteudoDetalheReadPort planningAiConteudoDetailReadPort) {
         this.authContextPort = authContextPort;
         this.planningAiConteudoDetailReadPort = planningAiConteudoDetailReadPort;
     }
@@ -35,3 +35,4 @@ public class PlanejamentoIaConteudoDetailReadProxyService implements ConsultarPl
                         context));
     }
 }
+

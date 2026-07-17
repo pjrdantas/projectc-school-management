@@ -4,18 +4,18 @@ import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.port.out.AuthContextPort;
-import br.com.escola.bff.application.port.out.PedagogicalDiarioClasseWritePort;
+import br.com.escola.bff.application.port.out.DiarioClasseWritePort;
 import br.com.escola.bff.application.usecase.SalvarDiarioClasseUseCase;
 import reactor.core.publisher.Mono;
 
 public class DiarioClasseWriteProxyService implements SalvarDiarioClasseUseCase {
 
     private final AuthContextPort authContextPort;
-    private final PedagogicalDiarioClasseWritePort pedagogicalDiarioClasseWritePort;
+    private final DiarioClasseWritePort pedagogicalDiarioClasseWritePort;
 
     public DiarioClasseWriteProxyService(
             AuthContextPort authContextPort,
-            PedagogicalDiarioClasseWritePort pedagogicalDiarioClasseWritePort) {
+            DiarioClasseWritePort pedagogicalDiarioClasseWritePort) {
         this.authContextPort = authContextPort;
         this.pedagogicalDiarioClasseWritePort = pedagogicalDiarioClasseWritePort;
     }
@@ -31,3 +31,4 @@ public class DiarioClasseWriteProxyService implements SalvarDiarioClasseUseCase 
                 .flatMap(context -> pedagogicalDiarioClasseWritePort.salvar(idDiarioClasse, requestBody, query, context));
     }
 }
+

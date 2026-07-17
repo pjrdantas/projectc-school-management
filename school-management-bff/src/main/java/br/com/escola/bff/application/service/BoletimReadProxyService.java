@@ -7,21 +7,21 @@ import org.springframework.http.ResponseEntity;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
-import br.com.escola.bff.application.port.out.MonolithBoletimReadPort;
-import br.com.escola.bff.application.port.out.PedagogicalBoletimReadPort;
+import br.com.escola.bff.application.port.out.LegacyBoletimReadPort;
+import br.com.escola.bff.application.port.out.BoletimReadPort;
 import br.com.escola.bff.application.usecase.ConsultarBoletimUseCase;
 import reactor.core.publisher.Mono;
 
 public class BoletimReadProxyService implements ConsultarBoletimUseCase {
 
     private final InternalAuthContextPort authContextPort;
-    private final PedagogicalBoletimReadPort pedagogicalBoletimReadPort;
-    private final MonolithBoletimReadPort monolithBoletimReadPort;
+    private final BoletimReadPort pedagogicalBoletimReadPort;
+    private final LegacyBoletimReadPort monolithBoletimReadPort;
 
     public BoletimReadProxyService(
             InternalAuthContextPort authContextPort,
-            PedagogicalBoletimReadPort pedagogicalBoletimReadPort,
-            MonolithBoletimReadPort monolithBoletimReadPort) {
+            BoletimReadPort pedagogicalBoletimReadPort,
+            LegacyBoletimReadPort monolithBoletimReadPort) {
         this.authContextPort = authContextPort;
         this.pedagogicalBoletimReadPort = pedagogicalBoletimReadPort;
         this.monolithBoletimReadPort = monolithBoletimReadPort;
@@ -40,10 +40,10 @@ public class BoletimReadProxyService implements ConsultarBoletimUseCase {
                         context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                PedagogicalBoletimReadFailureException::new))
+                                BoletimReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithBoletimReadPort.consultarBoletimPorMatricula(matriculaId, query))
-                .onErrorResume(PedagogicalBoletimReadFailureException.class,
+                .onErrorResume(BoletimReadFailureException.class,
                         error -> monolithBoletimReadPort.consultarBoletimPorMatricula(matriculaId, query));
     }
 
@@ -60,17 +60,18 @@ public class BoletimReadProxyService implements ConsultarBoletimUseCase {
                         context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                PedagogicalBoletimReadFailureException::new))
+                                BoletimReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithBoletimReadPort.listarFechamentosPorMatricula(matriculaId, query))
-                .onErrorResume(PedagogicalBoletimReadFailureException.class,
+                .onErrorResume(BoletimReadFailureException.class,
                         error -> monolithBoletimReadPort.listarFechamentosPorMatricula(matriculaId, query));
     }
 
-    private static final class PedagogicalBoletimReadFailureException extends RuntimeException {
+    private static final class BoletimReadFailureException extends RuntimeException {
 
-        private PedagogicalBoletimReadFailureException(DownstreamUnavailableException cause) {
+        private BoletimReadFailureException(DownstreamUnavailableException cause) {
             super(cause);
         }
     }
 }
+

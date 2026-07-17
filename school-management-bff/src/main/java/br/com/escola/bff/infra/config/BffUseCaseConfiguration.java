@@ -3,90 +3,90 @@ package br.com.escola.bff.infra.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import br.com.escola.bff.application.port.out.AcademicCatalogPeriodoLetivoWritePort;
-import br.com.escola.bff.application.port.out.AcademicCatalogDisciplinaWritePort;
-import br.com.escola.bff.application.port.out.AcademicCatalogNivelEnsinoResolverPort;
-import br.com.escola.bff.application.port.out.AcademicCatalogSerieWritePort;
-import br.com.escola.bff.application.port.out.AcademicCatalogReadPort;
-import br.com.escola.bff.application.port.out.AcademicCatalogTurnoResolverPort;
-import br.com.escola.bff.application.port.out.AcademicCatalogTurmaDisciplinaWritePort;
-import br.com.escola.bff.application.port.out.AcademicCatalogTurmaWritePort;
+import br.com.escola.bff.application.port.out.CatalogoPeriodoLetivoWritePort;
+import br.com.escola.bff.application.port.out.CatalogoDisciplinaWritePort;
+import br.com.escola.bff.application.port.out.CatalogoNivelEnsinoResolverPort;
+import br.com.escola.bff.application.port.out.CatalogoSerieWritePort;
+import br.com.escola.bff.application.port.out.CatalogoReadPort;
+import br.com.escola.bff.application.port.out.CatalogoTurnoResolverPort;
+import br.com.escola.bff.application.port.out.CatalogoTurmaDisciplinaWritePort;
+import br.com.escola.bff.application.port.out.CatalogoTurmaWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.CatalogReadCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogReadObservabilityPort;
 import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
-import br.com.escola.bff.application.port.out.DashboardAcademicoReadPort;
-import br.com.escola.bff.application.port.out.DashboardAlertaReadPort;
-import br.com.escola.bff.application.port.out.DashboardConfiguracaoReadPort;
-import br.com.escola.bff.application.port.out.DashboardDiretorReadPort;
-import br.com.escola.bff.application.port.out.DashboardFrontendReadPort;
-import br.com.escola.bff.application.port.out.DashboardIndicadorHistoricoReadPort;
-import br.com.escola.bff.application.port.out.DashboardIndicadorSnapshotReadPort;
-import br.com.escola.bff.application.port.out.DashboardProfessorReadPort;
-import br.com.escola.bff.application.port.out.DashboardPublicoReadPort;
-import br.com.escola.bff.application.port.out.DashboardSecretariaReadPort;
-import br.com.escola.bff.application.port.out.EnrollmentDocumentAlunoReadPort;
-import br.com.escola.bff.application.port.out.EnrollmentDocumentReadPort;
-import br.com.escola.bff.application.port.out.EnrollmentDocumentEscolaOrigemReadPort;
-import br.com.escola.bff.application.port.out.EnrollmentDocumentEscolaOrigemWritePort;
-import br.com.escola.bff.application.port.out.EnrollmentDocumentMatriculaReadPort;
-import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaReadPort;
-import br.com.escola.bff.application.port.out.EnrollmentDocumentTransferenciaWritePort;
-import br.com.escola.bff.application.port.out.IdentityAccessSessionPort;
+import br.com.escola.bff.application.port.out.PainelAcademicoReadPort;
+import br.com.escola.bff.application.port.out.PainelAlertaReadPort;
+import br.com.escola.bff.application.port.out.PainelConfiguracaoReadPort;
+import br.com.escola.bff.application.port.out.PainelDiretorReadPort;
+import br.com.escola.bff.application.port.out.PainelFrontendReadPort;
+import br.com.escola.bff.application.port.out.PainelIndicadorHistoricoReadPort;
+import br.com.escola.bff.application.port.out.PainelIndicadorSnapshotReadPort;
+import br.com.escola.bff.application.port.out.PainelProfessorReadPort;
+import br.com.escola.bff.application.port.out.PainelPublicoReadPort;
+import br.com.escola.bff.application.port.out.PainelSecretariaReadPort;
+import br.com.escola.bff.application.port.out.DocumentoAlunoMatriculaReadPort;
+import br.com.escola.bff.application.port.out.DocumentoMatriculaReadPort;
+import br.com.escola.bff.application.port.out.EscolaOrigemMatriculaReadPort;
+import br.com.escola.bff.application.port.out.EscolaOrigemMatriculaWritePort;
+import br.com.escola.bff.application.port.out.MatriculaDocumentoReadPort;
+import br.com.escola.bff.application.port.out.TransferenciaMatriculaReadPort;
+import br.com.escola.bff.application.port.out.TransferenciaMatriculaWritePort;
+import br.com.escola.bff.application.port.out.SessaoAutenticadaPort;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityTenantCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.IdentityTenantObservabilityPort;
-import br.com.escola.bff.application.port.out.InstitutionalTenantReadPort;
-import br.com.escola.bff.application.port.out.MonolithDashboardAcademicoReadPort;
-import br.com.escola.bff.application.port.out.MonolithDashboardAlertaReadPort;
-import br.com.escola.bff.application.port.out.MonolithDashboardConfiguracaoReadPort;
-import br.com.escola.bff.application.port.out.MonolithDashboardDiretorReadPort;
-import br.com.escola.bff.application.port.out.MonolithDashboardFrontendReadPort;
-import br.com.escola.bff.application.port.out.MonolithDashboardIndicadorHistoricoReadPort;
-import br.com.escola.bff.application.port.out.MonolithDashboardIndicadorSnapshotReadPort;
-import br.com.escola.bff.application.port.out.MonolithDashboardProfessorReadPort;
-import br.com.escola.bff.application.port.out.MonolithDashboardPublicoReadPort;
-import br.com.escola.bff.application.port.out.MonolithDashboardSecretariaReadPort;
-import br.com.escola.bff.application.port.out.MonolithAulaReadPort;
-import br.com.escola.bff.application.port.out.MonolithAvaliacaoReadPort;
-import br.com.escola.bff.application.port.out.MonolithBoletimReadPort;
-import br.com.escola.bff.application.port.out.MonolithDiarioClasseReadPort;
-import br.com.escola.bff.application.port.out.MonolithAlunoResponsavelReadPort;
-import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
-import br.com.escola.bff.application.port.out.MonolithAuthSessionPort;
-import br.com.escola.bff.application.port.out.MonolithDisciplinaWritePort;
-import br.com.escola.bff.application.port.out.MonolithHistoricoEscolarReadPort;
-import br.com.escola.bff.application.port.out.MonolithPeriodoLetivoWritePort;
-import br.com.escola.bff.application.port.out.MonolithResponsavelReadPort;
-import br.com.escola.bff.application.port.out.MonolithSerieWritePort;
-import br.com.escola.bff.application.port.out.MonolithTenantReadPort;
-import br.com.escola.bff.application.port.out.MonolithTurmaDisciplinaWritePort;
-import br.com.escola.bff.application.port.out.MonolithTurmaWritePort;
-import br.com.escola.bff.application.port.out.PeopleCadastroReadPort;
-import br.com.escola.bff.application.port.out.PeopleAlunoResponsavelReadPort;
-import br.com.escola.bff.application.port.out.PeopleCatalogReadPort;
-import br.com.escola.bff.application.port.out.PeopleFuncionarioReadPort;
-import br.com.escola.bff.application.port.out.PeoplePessoaReadPort;
-import br.com.escola.bff.application.port.out.ResponsiblesAlunoResponsavelReadPort;
-import br.com.escola.bff.application.port.out.ResponsiblesReadPort;
-import br.com.escola.bff.application.port.out.PedagogicalAvaliacaoPort;
-import br.com.escola.bff.application.port.out.PedagogicalAulaPort;
-import br.com.escola.bff.application.port.out.PedagogicalBoletimReadPort;
-import br.com.escola.bff.application.port.out.PedagogicalDiarioClasseReadPort;
-import br.com.escola.bff.application.port.out.PedagogicalDiarioClasseWritePort;
-import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarReadPort;
-import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarWritePort;
-import br.com.escola.bff.application.port.out.PlanningAiBibliotecaReadPort;
-import br.com.escola.bff.application.port.out.PlanningAiConteudoBibliotecaWritePort;
-import br.com.escola.bff.application.port.out.PlanningAiConteudoReadPort;
-import br.com.escola.bff.application.port.out.PlanningAiConteudoDetailReadPort;
-import br.com.escola.bff.application.port.out.PlanningAiConteudoVersaoApprovePort;
-import br.com.escola.bff.application.port.out.PlanningAiConteudoVersaoReadPort;
-import br.com.escola.bff.application.port.out.PlanningAiConteudoVersaoWritePort;
-import br.com.escola.bff.application.port.out.PlanningAiConteudoWritePort;
-import br.com.escola.bff.application.port.out.PlanningAiInteracaoReadPort;
+import br.com.escola.bff.application.port.out.TenantAtivoReadPort;
+import br.com.escola.bff.application.port.out.LegacyPainelAcademicoReadPort;
+import br.com.escola.bff.application.port.out.LegacyPainelAlertaReadPort;
+import br.com.escola.bff.application.port.out.LegacyPainelConfiguracaoReadPort;
+import br.com.escola.bff.application.port.out.LegacyPainelDiretorReadPort;
+import br.com.escola.bff.application.port.out.LegacyPainelFrontendReadPort;
+import br.com.escola.bff.application.port.out.LegacyPainelIndicadorHistoricoReadPort;
+import br.com.escola.bff.application.port.out.LegacyPainelIndicadorSnapshotReadPort;
+import br.com.escola.bff.application.port.out.LegacyPainelProfessorReadPort;
+import br.com.escola.bff.application.port.out.LegacyPainelPublicoReadPort;
+import br.com.escola.bff.application.port.out.LegacyPainelSecretariaReadPort;
+import br.com.escola.bff.application.port.out.LegacyAulaReadPort;
+import br.com.escola.bff.application.port.out.LegacyAvaliacaoReadPort;
+import br.com.escola.bff.application.port.out.LegacyBoletimReadPort;
+import br.com.escola.bff.application.port.out.LegacyDiarioClasseReadPort;
+import br.com.escola.bff.application.port.out.LegacyAlunoResponsavelReadPort;
+import br.com.escola.bff.application.port.out.LegacyCatalogReadPort;
+import br.com.escola.bff.application.port.out.LegacyAuthSessionPort;
+import br.com.escola.bff.application.port.out.LegacyDisciplinaWritePort;
+import br.com.escola.bff.application.port.out.LegacyHistoricoEscolarReadPort;
+import br.com.escola.bff.application.port.out.LegacyPeriodoLetivoWritePort;
+import br.com.escola.bff.application.port.out.LegacyResponsavelReadPort;
+import br.com.escola.bff.application.port.out.LegacySerieWritePort;
+import br.com.escola.bff.application.port.out.LegacyTenantReadPort;
+import br.com.escola.bff.application.port.out.LegacyTurmaDisciplinaWritePort;
+import br.com.escola.bff.application.port.out.LegacyTurmaWritePort;
+import br.com.escola.bff.application.port.out.ConsultaCadastralReadPort;
+import br.com.escola.bff.application.port.out.AlunoResponsavelCadastroReadPort;
+import br.com.escola.bff.application.port.out.PessoaCatalogoReadPort;
+import br.com.escola.bff.application.port.out.FuncionarioCadastroReadPort;
+import br.com.escola.bff.application.port.out.PessoaCadastroReadPort;
+import br.com.escola.bff.application.port.out.AlunoResponsavelVinculoReadPort;
+import br.com.escola.bff.application.port.out.ResponsavelCatalogoReadPort;
+import br.com.escola.bff.application.port.out.AvaliacaoPort;
+import br.com.escola.bff.application.port.out.AulaPort;
+import br.com.escola.bff.application.port.out.BoletimReadPort;
+import br.com.escola.bff.application.port.out.DiarioClasseReadPort;
+import br.com.escola.bff.application.port.out.DiarioClasseWritePort;
+import br.com.escola.bff.application.port.out.HistoricoEscolarReadPort;
+import br.com.escola.bff.application.port.out.HistoricoEscolarWritePort;
+import br.com.escola.bff.application.port.out.PlanejamentoIaBibliotecaReadPort;
+import br.com.escola.bff.application.port.out.PlanejamentoIaConteudoBibliotecaWritePort;
+import br.com.escola.bff.application.port.out.PlanejamentoIaConteudoReadPort;
+import br.com.escola.bff.application.port.out.PlanejamentoIaConteudoDetalheReadPort;
+import br.com.escola.bff.application.port.out.PlanejamentoIaConteudoVersaoApprovePort;
+import br.com.escola.bff.application.port.out.PlanejamentoIaConteudoVersaoReadPort;
+import br.com.escola.bff.application.port.out.PlanejamentoIaConteudoVersaoWritePort;
+import br.com.escola.bff.application.port.out.PlanejamentoIaConteudoWritePort;
+import br.com.escola.bff.application.port.out.PlanejamentoIaInteracaoReadPort;
 import br.com.escola.bff.application.service.AvaliacaoReadProxyService;
 import br.com.escola.bff.application.service.AvaliacaoWriteProxyService;
 import br.com.escola.bff.application.service.AulaReadProxyService;
@@ -97,16 +97,16 @@ import br.com.escola.bff.application.service.BibliotecaConteudoPedagogicoReadPro
 import br.com.escola.bff.application.service.BoletimReadProxyService;
 import br.com.escola.bff.application.service.CadastroPessoaReadProxyService;
 import br.com.escola.bff.application.service.CatalogReadRoutingService;
-import br.com.escola.bff.application.service.DashboardAcademicoReadProxyService;
-import br.com.escola.bff.application.service.DashboardAlertaReadProxyService;
-import br.com.escola.bff.application.service.DashboardConfiguracaoReadProxyService;
-import br.com.escola.bff.application.service.DashboardDiretorReadProxyService;
-import br.com.escola.bff.application.service.DashboardFrontendReadProxyService;
-import br.com.escola.bff.application.service.DashboardIndicadorHistoricoReadProxyService;
-import br.com.escola.bff.application.service.DashboardIndicadorSnapshotReadProxyService;
-import br.com.escola.bff.application.service.DashboardProfessorReadProxyService;
-import br.com.escola.bff.application.service.DashboardPublicoReadProxyService;
-import br.com.escola.bff.application.service.DashboardSecretariaReadProxyService;
+import br.com.escola.bff.application.service.PainelAcademicoReadProxyService;
+import br.com.escola.bff.application.service.PainelAlertaReadProxyService;
+import br.com.escola.bff.application.service.PainelConfiguracaoReadProxyService;
+import br.com.escola.bff.application.service.PainelDiretorReadProxyService;
+import br.com.escola.bff.application.service.PainelFrontendReadProxyService;
+import br.com.escola.bff.application.service.PainelIndicadorHistoricoReadProxyService;
+import br.com.escola.bff.application.service.PainelIndicadorSnapshotReadProxyService;
+import br.com.escola.bff.application.service.PainelProfessorReadProxyService;
+import br.com.escola.bff.application.service.PainelPublicoReadProxyService;
+import br.com.escola.bff.application.service.PainelSecretariaReadProxyService;
 import br.com.escola.bff.application.service.DisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.DocumentoAlunoReadProxyService;
 import br.com.escola.bff.application.service.DocumentoReadProxyService;
@@ -117,7 +117,7 @@ import br.com.escola.bff.application.service.EscolaOrigemWriteProxyService;
 import br.com.escola.bff.application.service.FuncionarioReadProxyService;
 import br.com.escola.bff.application.service.HistoricoEscolarReadProxyService;
 import br.com.escola.bff.application.service.HistoricoEscolarWriteProxyService;
-import br.com.escola.bff.application.service.InstitutionalTenantReadProxyService;
+import br.com.escola.bff.application.service.TenantAtivoReadProxyService;
 import br.com.escola.bff.application.service.MatriculaReadProxyService;
 import br.com.escola.bff.application.service.PlanejamentoIaConteudoBibliotecaWriteProxyService;
 import br.com.escola.bff.application.service.PlanejamentoIaConteudoDetailReadProxyService;
@@ -145,16 +145,16 @@ import br.com.escola.bff.application.usecase.ConsultarAulaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarBibliotecaConteudoPedagogicoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarBoletimUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDiarioClasseUseCase;
-import br.com.escola.bff.application.usecase.ConsultarDashboardAcademicoUseCase;
-import br.com.escola.bff.application.usecase.ConsultarDashboardAlertaUseCase;
-import br.com.escola.bff.application.usecase.ListarDashboardConfiguracaoUseCase;
-import br.com.escola.bff.application.usecase.ConsultarDashboardDiretorUseCase;
-import br.com.escola.bff.application.usecase.ConsultarDashboardFrontendUseCase;
-import br.com.escola.bff.application.usecase.ConsultarDashboardIndicadorHistoricoUseCase;
-import br.com.escola.bff.application.usecase.ConsultarDashboardProfessorUseCase;
-import br.com.escola.bff.application.usecase.ConsultarDashboardSecretariaUseCase;
-import br.com.escola.bff.application.usecase.ListarDashboardPublicoUseCase;
-import br.com.escola.bff.application.usecase.ListarDashboardIndicadorSnapshotUseCase;
+import br.com.escola.bff.application.usecase.ConsultarPainelAcademicoUseCase;
+import br.com.escola.bff.application.usecase.ConsultarPainelAlertaUseCase;
+import br.com.escola.bff.application.usecase.ListarPainelConfiguracaoUseCase;
+import br.com.escola.bff.application.usecase.ConsultarPainelDiretorUseCase;
+import br.com.escola.bff.application.usecase.ConsultarPainelFrontendUseCase;
+import br.com.escola.bff.application.usecase.ConsultarPainelIndicadorHistoricoUseCase;
+import br.com.escola.bff.application.usecase.ConsultarPainelProfessorUseCase;
+import br.com.escola.bff.application.usecase.ConsultarPainelSecretariaUseCase;
+import br.com.escola.bff.application.usecase.ListarPainelPublicoUseCase;
+import br.com.escola.bff.application.usecase.ListarPainelIndicadorSnapshotUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoAlunoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarEscolaOrigemUseCase;
@@ -172,7 +172,7 @@ import br.com.escola.bff.application.usecase.CriarEscolaOrigemUseCase;
 import br.com.escola.bff.application.usecase.CriarTransferenciaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPessoaCatalogoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPessoaDetalheUseCase;
-import br.com.escola.bff.application.port.out.PeopleProfessorReadPort;
+import br.com.escola.bff.application.port.out.ProfessorCadastroReadPort;
 import br.com.escola.bff.application.usecase.ConsultarFuncionarioUseCase;
 import br.com.escola.bff.application.usecase.ConsultarHistoricoEscolarUseCase;
 import br.com.escola.bff.application.usecase.CriarHistoricoEscolarUseCase;
@@ -197,23 +197,23 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarPessoaCatalogoUseCase consultarPessoaCatalogoUseCase(
             InternalAuthContextPort authContextPort,
-            PeopleCatalogReadPort peopleCatalogReadPort) {
+            PessoaCatalogoReadPort peopleCatalogReadPort) {
         return new PessoaCatalogReadProxyService(authContextPort, peopleCatalogReadPort);
     }
 
     @Bean
     ConsultarCadastroPessoaUseCase consultarCadastroPessoaUseCase(
             InternalAuthContextPort authContextPort,
-            PeopleCadastroReadPort peopleCadastroReadPort) {
+            ConsultaCadastralReadPort peopleCadastroReadPort) {
         return new CadastroPessoaReadProxyService(authContextPort, peopleCadastroReadPort);
     }
 
     @Bean
     ConsultarAuthSessionUseCase consultarAuthSessionUseCase(
             IdentityTenantAuthContextPort authContextPort,
-            IdentityAccessSessionPort identityAccessSessionPort,
-            InstitutionalTenantReadPort institutionalTenantReadPort,
-            MonolithAuthSessionPort monolithAuthSessionPort,
+            SessaoAutenticadaPort identityAccessSessionPort,
+            TenantAtivoReadPort institutionalTenantReadPort,
+            LegacyAuthSessionPort monolithAuthSessionPort,
             IdentityTenantCutoverPolicyPort cutoverPolicyPort,
             IdentityTenantObservabilityPort observabilityPort) {
         return new AuthSessionProxyService(
@@ -228,9 +228,9 @@ public class BffUseCaseConfiguration {
     @Bean
     SelecionarEscolaAtivaUseCase selecionarEscolaAtivaUseCase(
             IdentityTenantAuthContextPort authContextPort,
-            IdentityAccessSessionPort identityAccessSessionPort,
-            InstitutionalTenantReadPort institutionalTenantReadPort,
-            MonolithAuthSessionPort monolithAuthSessionPort,
+            SessaoAutenticadaPort identityAccessSessionPort,
+            TenantAtivoReadPort institutionalTenantReadPort,
+            LegacyAuthSessionPort monolithAuthSessionPort,
             IdentityTenantCutoverPolicyPort cutoverPolicyPort,
             IdentityTenantObservabilityPort observabilityPort) {
         return new AuthSessionProxyService(
@@ -245,11 +245,11 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarTenantAtivoUseCase consultarTenantAtivoUseCase(
             IdentityTenantAuthContextPort authContextPort,
-            InstitutionalTenantReadPort institutionalTenantReadPort,
-            MonolithTenantReadPort monolithTenantReadPort,
+            TenantAtivoReadPort institutionalTenantReadPort,
+            LegacyTenantReadPort monolithTenantReadPort,
             IdentityTenantCutoverPolicyPort cutoverPolicyPort,
             IdentityTenantObservabilityPort observabilityPort) {
-        return new InstitutionalTenantReadProxyService(
+        return new TenantAtivoReadProxyService(
                 authContextPort,
                 institutionalTenantReadPort,
                 monolithTenantReadPort,
@@ -260,8 +260,8 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarAlunoResponsavelUseCase consultarAlunoResponsavelUseCase(
             InternalAuthContextPort authContextPort,
-            ResponsiblesAlunoResponsavelReadPort responsiblesAlunoResponsavelReadPort,
-            MonolithAlunoResponsavelReadPort monolithAlunoResponsavelReadPort) {
+            AlunoResponsavelVinculoReadPort responsiblesAlunoResponsavelReadPort,
+            LegacyAlunoResponsavelReadPort monolithAlunoResponsavelReadPort) {
         return new AlunoResponsavelReadProxyService(
                 authContextPort,
                 responsiblesAlunoResponsavelReadPort,
@@ -271,8 +271,8 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarResponsavelUseCase consultarResponsavelUseCase(
             InternalAuthContextPort authContextPort,
-            ResponsiblesReadPort responsiblesReadPort,
-            MonolithResponsavelReadPort monolithResponsavelReadPort) {
+            ResponsavelCatalogoReadPort responsiblesReadPort,
+            LegacyResponsavelReadPort monolithResponsavelReadPort) {
         return new ResponsavelReadProxyService(
                 authContextPort,
                 responsiblesReadPort,
@@ -280,120 +280,120 @@ public class BffUseCaseConfiguration {
     }
 
     @Bean
-    ConsultarDashboardAcademicoUseCase consultarDashboardAcademicoUseCase(
+    ConsultarPainelAcademicoUseCase consultarPainelAcademicoUseCase(
             InternalAuthContextPort authContextPort,
-            DashboardAcademicoReadPort dashboardAcademicoReadPort,
-            MonolithDashboardAcademicoReadPort monolithDashboardAcademicoReadPort) {
-        return new DashboardAcademicoReadProxyService(
+            PainelAcademicoReadPort dashboardAcademicoReadPort,
+            LegacyPainelAcademicoReadPort monolithPainelAcademicoReadPort) {
+        return new PainelAcademicoReadProxyService(
                 authContextPort,
                 dashboardAcademicoReadPort,
-                monolithDashboardAcademicoReadPort);
+                monolithPainelAcademicoReadPort);
     }
 
     @Bean
-    ConsultarDashboardAlertaUseCase consultarDashboardAlertaUseCase(
+    ConsultarPainelAlertaUseCase consultarPainelAlertaUseCase(
             InternalAuthContextPort authContextPort,
-            DashboardAlertaReadPort dashboardAlertaReadPort,
-            MonolithDashboardAlertaReadPort monolithDashboardAlertaReadPort) {
-        return new DashboardAlertaReadProxyService(
+            PainelAlertaReadPort dashboardAlertaReadPort,
+            LegacyPainelAlertaReadPort monolithPainelAlertaReadPort) {
+        return new PainelAlertaReadProxyService(
                 authContextPort,
                 dashboardAlertaReadPort,
-                monolithDashboardAlertaReadPort);
+                monolithPainelAlertaReadPort);
     }
 
     @Bean
-    ConsultarDashboardFrontendUseCase consultarDashboardFrontendUseCase(
+    ConsultarPainelFrontendUseCase consultarPainelFrontendUseCase(
             InternalAuthContextPort authContextPort,
-            DashboardFrontendReadPort dashboardFrontendReadPort,
-            MonolithDashboardFrontendReadPort monolithDashboardFrontendReadPort) {
-        return new DashboardFrontendReadProxyService(
+            PainelFrontendReadPort dashboardFrontendReadPort,
+            LegacyPainelFrontendReadPort monolithPainelFrontendReadPort) {
+        return new PainelFrontendReadProxyService(
                 authContextPort,
                 dashboardFrontendReadPort,
-                monolithDashboardFrontendReadPort);
+                monolithPainelFrontendReadPort);
     }
 
     @Bean
-    ListarDashboardIndicadorSnapshotUseCase listarDashboardIndicadorSnapshotUseCase(
+    ListarPainelIndicadorSnapshotUseCase listarPainelIndicadorSnapshotUseCase(
             InternalAuthContextPort authContextPort,
-            DashboardIndicadorSnapshotReadPort dashboardIndicadorSnapshotReadPort,
-            MonolithDashboardIndicadorSnapshotReadPort monolithDashboardIndicadorSnapshotReadPort) {
-        return new DashboardIndicadorSnapshotReadProxyService(
+            PainelIndicadorSnapshotReadPort dashboardIndicadorSnapshotReadPort,
+            LegacyPainelIndicadorSnapshotReadPort monolithPainelIndicadorSnapshotReadPort) {
+        return new PainelIndicadorSnapshotReadProxyService(
                 authContextPort,
                 dashboardIndicadorSnapshotReadPort,
-                monolithDashboardIndicadorSnapshotReadPort);
+                monolithPainelIndicadorSnapshotReadPort);
     }
 
     @Bean
-    ConsultarDashboardIndicadorHistoricoUseCase consultarDashboardIndicadorHistoricoUseCase(
+    ConsultarPainelIndicadorHistoricoUseCase consultarPainelIndicadorHistoricoUseCase(
             InternalAuthContextPort authContextPort,
-            DashboardIndicadorHistoricoReadPort dashboardIndicadorHistoricoReadPort,
-            MonolithDashboardIndicadorHistoricoReadPort monolithDashboardIndicadorHistoricoReadPort) {
-        return new DashboardIndicadorHistoricoReadProxyService(
+            PainelIndicadorHistoricoReadPort dashboardIndicadorHistoricoReadPort,
+            LegacyPainelIndicadorHistoricoReadPort monolithPainelIndicadorHistoricoReadPort) {
+        return new PainelIndicadorHistoricoReadProxyService(
                 authContextPort,
                 dashboardIndicadorHistoricoReadPort,
-                monolithDashboardIndicadorHistoricoReadPort);
+                monolithPainelIndicadorHistoricoReadPort);
     }
 
     @Bean
-    ListarDashboardPublicoUseCase listarDashboardPublicoUseCase(
+    ListarPainelPublicoUseCase listarPainelPublicoUseCase(
             InternalAuthContextPort authContextPort,
-            DashboardPublicoReadPort dashboardPublicoReadPort,
-            MonolithDashboardPublicoReadPort monolithDashboardPublicoReadPort) {
-        return new DashboardPublicoReadProxyService(
+            PainelPublicoReadPort dashboardPublicoReadPort,
+            LegacyPainelPublicoReadPort monolithPainelPublicoReadPort) {
+        return new PainelPublicoReadProxyService(
                 authContextPort,
                 dashboardPublicoReadPort,
-                monolithDashboardPublicoReadPort);
+                monolithPainelPublicoReadPort);
     }
 
     @Bean
-    ListarDashboardConfiguracaoUseCase listarDashboardConfiguracaoUseCase(
+    ListarPainelConfiguracaoUseCase listarPainelConfiguracaoUseCase(
             InternalAuthContextPort authContextPort,
-            DashboardConfiguracaoReadPort dashboardConfiguracaoReadPort,
-            MonolithDashboardConfiguracaoReadPort monolithDashboardConfiguracaoReadPort) {
-        return new DashboardConfiguracaoReadProxyService(
+            PainelConfiguracaoReadPort dashboardConfiguracaoReadPort,
+            LegacyPainelConfiguracaoReadPort monolithPainelConfiguracaoReadPort) {
+        return new PainelConfiguracaoReadProxyService(
                 authContextPort,
                 dashboardConfiguracaoReadPort,
-                monolithDashboardConfiguracaoReadPort);
+                monolithPainelConfiguracaoReadPort);
     }
 
     @Bean
-    ConsultarDashboardSecretariaUseCase consultarDashboardSecretariaUseCase(
+    ConsultarPainelSecretariaUseCase consultarPainelSecretariaUseCase(
             InternalAuthContextPort authContextPort,
-            DashboardSecretariaReadPort dashboardSecretariaReadPort,
-            MonolithDashboardSecretariaReadPort monolithDashboardSecretariaReadPort) {
-        return new DashboardSecretariaReadProxyService(
+            PainelSecretariaReadPort dashboardSecretariaReadPort,
+            LegacyPainelSecretariaReadPort monolithPainelSecretariaReadPort) {
+        return new PainelSecretariaReadProxyService(
                 authContextPort,
                 dashboardSecretariaReadPort,
-                monolithDashboardSecretariaReadPort);
+                monolithPainelSecretariaReadPort);
     }
 
     @Bean
-    ConsultarDashboardDiretorUseCase consultarDashboardDiretorUseCase(
+    ConsultarPainelDiretorUseCase consultarPainelDiretorUseCase(
             InternalAuthContextPort authContextPort,
-            DashboardDiretorReadPort dashboardDiretorReadPort,
-            MonolithDashboardDiretorReadPort monolithDashboardDiretorReadPort) {
-        return new DashboardDiretorReadProxyService(
+            PainelDiretorReadPort dashboardDiretorReadPort,
+            LegacyPainelDiretorReadPort monolithPainelDiretorReadPort) {
+        return new PainelDiretorReadProxyService(
                 authContextPort,
                 dashboardDiretorReadPort,
-                monolithDashboardDiretorReadPort);
+                monolithPainelDiretorReadPort);
     }
 
     @Bean
-    ConsultarDashboardProfessorUseCase consultarDashboardProfessorUseCase(
+    ConsultarPainelProfessorUseCase consultarPainelProfessorUseCase(
             InternalAuthContextPort authContextPort,
-            DashboardProfessorReadPort dashboardProfessorReadPort,
-            MonolithDashboardProfessorReadPort monolithDashboardProfessorReadPort) {
-        return new DashboardProfessorReadProxyService(
+            PainelProfessorReadPort dashboardProfessorReadPort,
+            LegacyPainelProfessorReadPort monolithPainelProfessorReadPort) {
+        return new PainelProfessorReadProxyService(
                 authContextPort,
                 dashboardProfessorReadPort,
-                monolithDashboardProfessorReadPort);
+                monolithPainelProfessorReadPort);
     }
 
     @Bean
     ConsultarBoletimUseCase consultarBoletimUseCase(
             InternalAuthContextPort authContextPort,
-            PedagogicalBoletimReadPort pedagogicalBoletimReadPort,
-            MonolithBoletimReadPort monolithBoletimReadPort) {
+            BoletimReadPort pedagogicalBoletimReadPort,
+            LegacyBoletimReadPort monolithBoletimReadPort) {
         return new BoletimReadProxyService(
                 authContextPort,
                 pedagogicalBoletimReadPort,
@@ -403,8 +403,8 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarAvaliacaoUseCase consultarAvaliacaoUseCase(
             InternalAuthContextPort authContextPort,
-            PedagogicalAvaliacaoPort pedagogicalAvaliacaoPort,
-            MonolithAvaliacaoReadPort monolithAvaliacaoReadPort) {
+            AvaliacaoPort pedagogicalAvaliacaoPort,
+            LegacyAvaliacaoReadPort monolithAvaliacaoReadPort) {
         return new AvaliacaoReadProxyService(
                 authContextPort,
                 pedagogicalAvaliacaoPort,
@@ -414,15 +414,15 @@ public class BffUseCaseConfiguration {
     @Bean
     CriarAvaliacaoUseCase criarAvaliacaoUseCase(
             AuthContextPort authContextPort,
-            PedagogicalAvaliacaoPort pedagogicalAvaliacaoPort) {
+            AvaliacaoPort pedagogicalAvaliacaoPort) {
         return new AvaliacaoWriteProxyService(authContextPort, pedagogicalAvaliacaoPort);
     }
 
     @Bean
     ConsultarAulaUseCase consultarAulaUseCase(
             InternalAuthContextPort authContextPort,
-            PedagogicalAulaPort pedagogicalAulaPort,
-            MonolithAulaReadPort monolithAulaReadPort) {
+            AulaPort pedagogicalAulaPort,
+            LegacyAulaReadPort monolithAulaReadPort) {
         return new AulaReadProxyService(
                 authContextPort,
                 pedagogicalAulaPort,
@@ -432,15 +432,15 @@ public class BffUseCaseConfiguration {
     @Bean
     CriarAulaUseCase criarAulaUseCase(
             AuthContextPort authContextPort,
-            PedagogicalAulaPort pedagogicalAulaPort) {
+            AulaPort pedagogicalAulaPort) {
         return new AulaWriteProxyService(authContextPort, pedagogicalAulaPort);
     }
 
     @Bean
     ConsultarDiarioClasseUseCase consultarDiarioClasseUseCase(
             InternalAuthContextPort authContextPort,
-            PedagogicalDiarioClasseReadPort pedagogicalDiarioClasseReadPort,
-            MonolithDiarioClasseReadPort monolithDiarioClasseReadPort) {
+            DiarioClasseReadPort pedagogicalDiarioClasseReadPort,
+            LegacyDiarioClasseReadPort monolithDiarioClasseReadPort) {
         return new DiarioClasseReadProxyService(
                 authContextPort,
                 pedagogicalDiarioClasseReadPort,
@@ -450,15 +450,15 @@ public class BffUseCaseConfiguration {
     @Bean
     SalvarDiarioClasseUseCase salvarDiarioClasseUseCase(
             AuthContextPort authContextPort,
-            PedagogicalDiarioClasseWritePort pedagogicalDiarioClasseWritePort) {
+            DiarioClasseWritePort pedagogicalDiarioClasseWritePort) {
         return new DiarioClasseWriteProxyService(authContextPort, pedagogicalDiarioClasseWritePort);
     }
 
     @Bean
     ConsultarHistoricoEscolarUseCase consultarHistoricoEscolarUseCase(
             InternalAuthContextPort authContextPort,
-            PedagogicalHistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort,
-            MonolithHistoricoEscolarReadPort monolithHistoricoEscolarReadPort) {
+            HistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort,
+            LegacyHistoricoEscolarReadPort monolithHistoricoEscolarReadPort) {
         return new HistoricoEscolarReadProxyService(
                 authContextPort,
                 pedagogicalHistoricoEscolarReadPort,
@@ -468,70 +468,70 @@ public class BffUseCaseConfiguration {
     @Bean
     CriarHistoricoEscolarUseCase criarHistoricoEscolarUseCase(
             AuthContextPort authContextPort,
-            PedagogicalHistoricoEscolarWritePort pedagogicalHistoricoEscolarWritePort) {
+            HistoricoEscolarWritePort pedagogicalHistoricoEscolarWritePort) {
         return new HistoricoEscolarWriteProxyService(authContextPort, pedagogicalHistoricoEscolarWritePort);
     }
 
     @Bean
     AtualizarHistoricoEscolarUseCase atualizarHistoricoEscolarUseCase(
             AuthContextPort authContextPort,
-            PedagogicalHistoricoEscolarWritePort pedagogicalHistoricoEscolarWritePort) {
+            HistoricoEscolarWritePort pedagogicalHistoricoEscolarWritePort) {
         return new HistoricoEscolarWriteProxyService(authContextPort, pedagogicalHistoricoEscolarWritePort);
     }
 
     @Bean
     ConsultarPessoaDetalheUseCase consultarPessoaDetalheUseCase(
             InternalAuthContextPort authContextPort,
-            PeoplePessoaReadPort peoplePessoaReadPort) {
+            PessoaCadastroReadPort peoplePessoaReadPort) {
         return new PessoaDetailReadProxyService(authContextPort, peoplePessoaReadPort);
     }
 
     @Bean
     ConsultarFuncionarioUseCase consultarFuncionarioUseCase(
             InternalAuthContextPort authContextPort,
-            PeopleFuncionarioReadPort peopleFuncionarioReadPort) {
+            FuncionarioCadastroReadPort peopleFuncionarioReadPort) {
         return new FuncionarioReadProxyService(authContextPort, peopleFuncionarioReadPort);
     }
 
     @Bean
     ConsultarProfessorUseCase consultarProfessorUseCase(
             InternalAuthContextPort authContextPort,
-            PeopleProfessorReadPort peopleProfessorReadPort) {
+            ProfessorCadastroReadPort peopleProfessorReadPort) {
         return new ProfessorReadProxyService(authContextPort, peopleProfessorReadPort);
     }
 
     @Bean
     ConsultarEscolaOrigemUseCase consultarEscolaOrigemUseCase(
             InternalAuthContextPort authContextPort,
-            EnrollmentDocumentEscolaOrigemReadPort enrollmentDocumentEscolaOrigemReadPort) {
+            EscolaOrigemMatriculaReadPort enrollmentDocumentEscolaOrigemReadPort) {
         return new EscolaOrigemReadProxyService(authContextPort, enrollmentDocumentEscolaOrigemReadPort);
     }
 
     @Bean
     ConsultarTransferenciaUseCase consultarTransferenciaUseCase(
             InternalAuthContextPort authContextPort,
-            EnrollmentDocumentTransferenciaReadPort enrollmentDocumentTransferenciaReadPort) {
+            TransferenciaMatriculaReadPort enrollmentDocumentTransferenciaReadPort) {
         return new TransferenciaReadProxyService(authContextPort, enrollmentDocumentTransferenciaReadPort);
     }
 
     @Bean
     ConsultarDocumentoAlunoUseCase consultarDocumentoAlunoUseCase(
             InternalAuthContextPort authContextPort,
-            EnrollmentDocumentAlunoReadPort enrollmentDocumentAlunoReadPort) {
+            DocumentoAlunoMatriculaReadPort enrollmentDocumentAlunoReadPort) {
         return new DocumentoAlunoReadProxyService(authContextPort, enrollmentDocumentAlunoReadPort);
     }
 
     @Bean
     ConsultarDocumentoUseCase consultarDocumentoUseCase(
             InternalAuthContextPort authContextPort,
-            EnrollmentDocumentReadPort enrollmentDocumentReadPort) {
+            DocumentoMatriculaReadPort enrollmentDocumentReadPort) {
         return new DocumentoReadProxyService(authContextPort, enrollmentDocumentReadPort);
     }
 
     @Bean
     ConsultarBibliotecaConteudoPedagogicoUseCase consultarBibliotecaConteudoPedagogicoUseCase(
             InternalAuthContextPort authContextPort,
-            PlanningAiBibliotecaReadPort planningAiBibliotecaReadPort) {
+            PlanejamentoIaBibliotecaReadPort planningAiBibliotecaReadPort) {
         return new BibliotecaConteudoPedagogicoReadProxyService(
                 authContextPort,
                 planningAiBibliotecaReadPort);
@@ -540,7 +540,7 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarPlanejamentoIaInteracaoUseCase consultarPlanejamentoIaInteracaoUseCase(
             InternalAuthContextPort authContextPort,
-            PlanningAiInteracaoReadPort planningAiInteracaoReadPort) {
+            PlanejamentoIaInteracaoReadPort planningAiInteracaoReadPort) {
         return new PlanejamentoIaInteracaoReadProxyService(
                 authContextPort,
                 planningAiInteracaoReadPort);
@@ -549,7 +549,7 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarPlanejamentoIaConteudoUseCase consultarPlanejamentoIaConteudoUseCase(
             InternalAuthContextPort authContextPort,
-            PlanningAiConteudoReadPort planningAiConteudoReadPort) {
+            PlanejamentoIaConteudoReadPort planningAiConteudoReadPort) {
         return new PlanejamentoIaConteudoReadProxyService(
                 authContextPort,
                 planningAiConteudoReadPort);
@@ -558,7 +558,7 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarPlanejamentoIaConteudoDetailUseCase consultarPlanejamentoIaConteudoDetailUseCase(
             InternalAuthContextPort authContextPort,
-            PlanningAiConteudoDetailReadPort planningAiConteudoDetailReadPort) {
+            PlanejamentoIaConteudoDetalheReadPort planningAiConteudoDetailReadPort) {
         return new PlanejamentoIaConteudoDetailReadProxyService(
                 authContextPort,
                 planningAiConteudoDetailReadPort);
@@ -567,7 +567,7 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarPlanejamentoIaConteudoVersaoUseCase consultarPlanejamentoIaConteudoVersaoUseCase(
             InternalAuthContextPort authContextPort,
-            PlanningAiConteudoVersaoReadPort planningAiConteudoVersaoReadPort) {
+            PlanejamentoIaConteudoVersaoReadPort planningAiConteudoVersaoReadPort) {
         return new PlanejamentoIaConteudoVersaoReadProxyService(
                 authContextPort,
                 planningAiConteudoVersaoReadPort);
@@ -576,7 +576,7 @@ public class BffUseCaseConfiguration {
     @Bean
     CriarPlanejamentoIaConteudoUseCase criarPlanejamentoIaConteudoUseCase(
             AuthContextPort authContextPort,
-            PlanningAiConteudoWritePort planningAiConteudoWritePort) {
+            PlanejamentoIaConteudoWritePort planningAiConteudoWritePort) {
         return new PlanejamentoIaConteudoWriteProxyService(
                 authContextPort,
                 planningAiConteudoWritePort);
@@ -585,7 +585,7 @@ public class BffUseCaseConfiguration {
     @Bean
     CriarPlanejamentoIaConteudoVersaoUseCase criarPlanejamentoIaConteudoVersaoUseCase(
             AuthContextPort authContextPort,
-            PlanningAiConteudoVersaoWritePort planningAiConteudoVersaoWritePort) {
+            PlanejamentoIaConteudoVersaoWritePort planningAiConteudoVersaoWritePort) {
         return new PlanejamentoIaConteudoVersaoWriteProxyService(
                 authContextPort,
                 planningAiConteudoVersaoWritePort);
@@ -594,7 +594,7 @@ public class BffUseCaseConfiguration {
     @Bean
     AprovarPlanejamentoIaConteudoVersaoUseCase aprovarPlanejamentoIaConteudoVersaoUseCase(
             AuthContextPort authContextPort,
-            PlanningAiConteudoVersaoApprovePort planningAiConteudoVersaoApprovePort) {
+            PlanejamentoIaConteudoVersaoApprovePort planningAiConteudoVersaoApprovePort) {
         return new PlanejamentoIaConteudoVersaoApproveProxyService(
                 authContextPort,
                 planningAiConteudoVersaoApprovePort);
@@ -603,7 +603,7 @@ public class BffUseCaseConfiguration {
     @Bean
     PublicarPlanejamentoIaConteudoBibliotecaUseCase publicarPlanejamentoIaConteudoBibliotecaUseCase(
             AuthContextPort authContextPort,
-            PlanningAiConteudoBibliotecaWritePort planningAiConteudoBibliotecaWritePort) {
+            PlanejamentoIaConteudoBibliotecaWritePort planningAiConteudoBibliotecaWritePort) {
         return new PlanejamentoIaConteudoBibliotecaWriteProxyService(
                 authContextPort,
                 planningAiConteudoBibliotecaWritePort);
@@ -612,28 +612,28 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarMatriculaUseCase consultarMatriculaUseCase(
             InternalAuthContextPort authContextPort,
-            EnrollmentDocumentMatriculaReadPort enrollmentDocumentMatriculaReadPort) {
+            MatriculaDocumentoReadPort enrollmentDocumentMatriculaReadPort) {
         return new MatriculaReadProxyService(authContextPort, enrollmentDocumentMatriculaReadPort);
     }
 
     @Bean
     CriarEscolaOrigemUseCase criarEscolaOrigemUseCase(
             AuthContextPort authContextPort,
-            EnrollmentDocumentEscolaOrigemWritePort enrollmentDocumentEscolaOrigemWritePort) {
+            EscolaOrigemMatriculaWritePort enrollmentDocumentEscolaOrigemWritePort) {
         return new EscolaOrigemWriteProxyService(authContextPort, enrollmentDocumentEscolaOrigemWritePort);
     }
 
     @Bean
     CriarTransferenciaUseCase criarTransferenciaUseCase(
             AuthContextPort authContextPort,
-            EnrollmentDocumentTransferenciaWritePort enrollmentDocumentTransferenciaWritePort) {
+            TransferenciaMatriculaWritePort enrollmentDocumentTransferenciaWritePort) {
         return new TransferenciaWriteProxyService(authContextPort, enrollmentDocumentTransferenciaWritePort);
     }
 
     @Bean
     RouteCatalogReadUseCase routeCatalogReadUseCase(
-            MonolithCatalogReadPort monolithCatalogReadPort,
-            AcademicCatalogReadPort academicCatalogReadPort,
+            LegacyCatalogReadPort monolithCatalogReadPort,
+            CatalogoReadPort academicCatalogReadPort,
             InternalAuthContextPort authContextPort,
             CatalogReadCutoverPolicyPort cutoverPolicyPort,
             CatalogReadObservabilityPort observabilityPort) {
@@ -647,8 +647,8 @@ public class BffUseCaseConfiguration {
 
     @Bean
     CreatePeriodoLetivoUseCase createPeriodoLetivoUseCase(
-            MonolithPeriodoLetivoWritePort monolithPeriodoLetivoWritePort,
-            AcademicCatalogPeriodoLetivoWritePort academicCatalogPeriodoLetivoWritePort,
+            LegacyPeriodoLetivoWritePort monolithPeriodoLetivoWritePort,
+            CatalogoPeriodoLetivoWritePort academicCatalogPeriodoLetivoWritePort,
             AuthContextPort authContextPort,
             CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
@@ -662,8 +662,8 @@ public class BffUseCaseConfiguration {
 
     @Bean
     CreateDisciplinaUseCase createDisciplinaUseCase(
-            MonolithDisciplinaWritePort monolithDisciplinaWritePort,
-            AcademicCatalogDisciplinaWritePort academicCatalogDisciplinaWritePort,
+            LegacyDisciplinaWritePort monolithDisciplinaWritePort,
+            CatalogoDisciplinaWritePort academicCatalogDisciplinaWritePort,
             AuthContextPort authContextPort,
             CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
@@ -677,9 +677,9 @@ public class BffUseCaseConfiguration {
 
     @Bean
     CreateSerieUseCase createSerieUseCase(
-            MonolithSerieWritePort monolithSerieWritePort,
-            AcademicCatalogSerieWritePort academicCatalogSerieWritePort,
-            AcademicCatalogNivelEnsinoResolverPort academicCatalogNivelEnsinoResolverPort,
+            LegacySerieWritePort monolithSerieWritePort,
+            CatalogoSerieWritePort academicCatalogSerieWritePort,
+            CatalogoNivelEnsinoResolverPort academicCatalogNivelEnsinoResolverPort,
             AuthContextPort authContextPort,
             CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
@@ -694,9 +694,9 @@ public class BffUseCaseConfiguration {
 
     @Bean
     CreateTurmaUseCase createTurmaUseCase(
-            MonolithTurmaWritePort monolithTurmaWritePort,
-            AcademicCatalogTurmaWritePort academicCatalogTurmaWritePort,
-            AcademicCatalogTurnoResolverPort academicCatalogTurnoResolverPort,
+            LegacyTurmaWritePort monolithTurmaWritePort,
+            CatalogoTurmaWritePort academicCatalogTurmaWritePort,
+            CatalogoTurnoResolverPort academicCatalogTurnoResolverPort,
             AuthContextPort authContextPort,
             CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
@@ -711,8 +711,8 @@ public class BffUseCaseConfiguration {
 
     @Bean
     LinkTurmaDisciplinaUseCase linkTurmaDisciplinaUseCase(
-            MonolithTurmaDisciplinaWritePort monolithTurmaDisciplinaWritePort,
-            AcademicCatalogTurmaDisciplinaWritePort academicCatalogTurmaDisciplinaWritePort,
+            LegacyTurmaDisciplinaWritePort monolithTurmaDisciplinaWritePort,
+            CatalogoTurmaDisciplinaWritePort academicCatalogTurmaDisciplinaWritePort,
             AuthContextPort authContextPort,
             CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
@@ -724,3 +724,4 @@ public class BffUseCaseConfiguration {
                 observabilityPort);
     }
 }
+

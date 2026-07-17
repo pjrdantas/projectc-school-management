@@ -7,21 +7,21 @@ import org.springframework.http.ResponseEntity;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
-import br.com.escola.bff.application.port.out.MonolithHistoricoEscolarReadPort;
-import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarReadPort;
+import br.com.escola.bff.application.port.out.LegacyHistoricoEscolarReadPort;
+import br.com.escola.bff.application.port.out.HistoricoEscolarReadPort;
 import br.com.escola.bff.application.usecase.ConsultarHistoricoEscolarUseCase;
 import reactor.core.publisher.Mono;
 
 public class HistoricoEscolarReadProxyService implements ConsultarHistoricoEscolarUseCase {
 
     private final InternalAuthContextPort authContextPort;
-    private final PedagogicalHistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort;
-    private final MonolithHistoricoEscolarReadPort monolithHistoricoEscolarReadPort;
+    private final HistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort;
+    private final LegacyHistoricoEscolarReadPort monolithHistoricoEscolarReadPort;
 
     public HistoricoEscolarReadProxyService(
             InternalAuthContextPort authContextPort,
-            PedagogicalHistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort,
-            MonolithHistoricoEscolarReadPort monolithHistoricoEscolarReadPort) {
+            HistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort,
+            LegacyHistoricoEscolarReadPort monolithHistoricoEscolarReadPort) {
         this.authContextPort = authContextPort;
         this.pedagogicalHistoricoEscolarReadPort = pedagogicalHistoricoEscolarReadPort;
         this.monolithHistoricoEscolarReadPort = monolithHistoricoEscolarReadPort;
@@ -39,10 +39,10 @@ public class HistoricoEscolarReadProxyService implements ConsultarHistoricoEscol
                 .flatMap(context -> pedagogicalHistoricoEscolarReadPort.carregarNovo(alunoId, matriculaId, modo, query, context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                PedagogicalHistoricoEscolarReadFailureException::new))
+                                HistoricoEscolarReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithHistoricoEscolarReadPort.carregarNovo(alunoId, matriculaId, modo, query))
-                .onErrorResume(PedagogicalHistoricoEscolarReadFailureException.class,
+                .onErrorResume(HistoricoEscolarReadFailureException.class,
                         error -> monolithHistoricoEscolarReadPort.carregarNovo(alunoId, matriculaId, modo, query));
     }
 
@@ -56,17 +56,18 @@ public class HistoricoEscolarReadProxyService implements ConsultarHistoricoEscol
                 .flatMap(context -> pedagogicalHistoricoEscolarReadPort.carregarParaEdicao(historicoEscolarId, query, context)
                         .onErrorMap(
                                 DownstreamUnavailableException.class,
-                                PedagogicalHistoricoEscolarReadFailureException::new))
+                                HistoricoEscolarReadFailureException::new))
                 .onErrorResume(DownstreamUnavailableException.class,
                         error -> monolithHistoricoEscolarReadPort.carregarParaEdicao(historicoEscolarId, query))
-                .onErrorResume(PedagogicalHistoricoEscolarReadFailureException.class,
+                .onErrorResume(HistoricoEscolarReadFailureException.class,
                         error -> monolithHistoricoEscolarReadPort.carregarParaEdicao(historicoEscolarId, query));
     }
 
-    private static final class PedagogicalHistoricoEscolarReadFailureException extends RuntimeException {
+    private static final class HistoricoEscolarReadFailureException extends RuntimeException {
 
-        private PedagogicalHistoricoEscolarReadFailureException(DownstreamUnavailableException cause) {
+        private HistoricoEscolarReadFailureException(DownstreamUnavailableException cause) {
             super(cause);
         }
     }
 }
+

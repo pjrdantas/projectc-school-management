@@ -25,7 +25,7 @@ public class CatalogReadCutoverHealthIndicator implements HealthIndicator {
         CatalogMigrationReportGate.GateStatus gateStatus = reportGate.status();
         Health.Builder builder = statusBuilder(gateStatus);
         builder.withDetail("cutoverEnabled", properties.enabled());
-        builder.withDetail("fallbackToMonolithOnError", properties.fallbackToMonolithOnError());
+        builder.withDetail("fallbackToLegacyOnError", properties.fallbackToLegacyOnError());
         builder.withDetail("gateAllowed", gateStatus.allowed());
         builder.withDetail("gateReason", gateStatus.reason());
         builder.withDetail("reportFilePresent", gateStatus.reportFilePresent());
@@ -46,3 +46,4 @@ public class CatalogReadCutoverHealthIndicator implements HealthIndicator {
         return gateStatus.allowed() ? Health.up() : Health.down();
     }
 }
+

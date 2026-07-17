@@ -4,25 +4,25 @@ import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
-import br.com.escola.bff.application.port.out.AcademicCatalogReadPort;
+import br.com.escola.bff.application.port.out.CatalogoReadPort;
 import br.com.escola.bff.application.port.out.CatalogReadCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogReadObservabilityPort;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
-import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
+import br.com.escola.bff.application.port.out.LegacyCatalogReadPort;
 import br.com.escola.bff.application.usecase.RouteCatalogReadUseCase;
 import reactor.core.publisher.Mono;
 
 public class CatalogReadRoutingService implements RouteCatalogReadUseCase {
 
-    private final MonolithCatalogReadPort monolithCatalogReadPort;
-    private final AcademicCatalogReadPort academicCatalogReadPort;
+    private final LegacyCatalogReadPort monolithCatalogReadPort;
+    private final CatalogoReadPort academicCatalogReadPort;
     private final InternalAuthContextPort authContextPort;
     private final CatalogReadCutoverPolicyPort cutoverPolicyPort;
     private final CatalogReadObservabilityPort observabilityPort;
 
     public CatalogReadRoutingService(
-            MonolithCatalogReadPort monolithCatalogReadPort,
-            AcademicCatalogReadPort academicCatalogReadPort,
+            LegacyCatalogReadPort monolithCatalogReadPort,
+            CatalogoReadPort academicCatalogReadPort,
             InternalAuthContextPort authContextPort,
             CatalogReadCutoverPolicyPort cutoverPolicyPort,
             CatalogReadObservabilityPort observabilityPort) {
@@ -39,7 +39,7 @@ public class CatalogReadRoutingService implements RouteCatalogReadUseCase {
         CatalogReadCutoverDecision decision = cutoverPolicyPort.decision(route);
         if (!decision.useCatalog()) {
             return monolithCatalogReadPort.get(externalPath, query)
-                    .doOnSuccess(response -> observabilityPort.recordDirectMonolith(decision));
+                    .doOnSuccess(response -> observabilityPort.recordDirectLegacy(decision));
         }
 
         String internalPath = route.internalPath(pathArgs);
@@ -48,10 +48,11 @@ public class CatalogReadRoutingService implements RouteCatalogReadUseCase {
                         .doOnSuccess(response -> observabilityPort.recordCatalogSuccess(decision)))
                 .onErrorResume(DownstreamUnavailableException.class, error -> {
                     observabilityPort.recordCatalogFailure(decision, error);
-                    return cutoverPolicyPort.fallbackToMonolithOnError()
+                    return cutoverPolicyPort.fallbackToLegacyOnError()
                             ? monolithCatalogReadPort.get(externalPath, query)
-                                    .doOnSuccess(response -> observabilityPort.recordFallbackToMonolith(decision, error))
+                                    .doOnSuccess(response -> observabilityPort.recordFallbackToLegacy(decision, error))
                             : Mono.error(error);
                 });
     }
 }
+

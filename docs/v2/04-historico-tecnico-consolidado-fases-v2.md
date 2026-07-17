@@ -4455,3 +4455,60 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   nao sendo necessario novo teste nesta fase documental.
 - Contagem regressiva do ciclo residual de resiliencia externa do
   `pedagogical-service`: 0 fases restantes.
+
+### Regra arquitetural transversal registrada apos a Fase 218
+
+- Fica proibido, para qualquer servico novo ou evolucao futura, nomear classes
+  com designacoes de dominios/servicos externos ao proprio contexto onde a
+  classe vive.
+- A nomenclatura deve refletir apenas a responsabilidade local da classe dentro
+  do servico atual, e nao o dominio externo consumido, proxyado, espelhado ou
+  substituido.
+- O passivo atual que viola essa regra fica reconhecido como inaceitavel e nao
+  pode ser reproduzido nas proximas fases.
+
+### Fase N1
+
+- Foi iniciado o ciclo preparatorio obrigatorio de saneamento de nomenclatura
+  antes das fases de desligamento total do `school-management-service`.
+- O inventario inicial confirmou passivo nominal transversal nos runtimes Java,
+  com maior concentracao no `school-management-bff` e presenca relevante em
+  `dashboard-query-service`, `planning-ai-service`, `people-service`,
+  `responsibles-service` e `pedagogical-service`.
+- A contagem inicial registrada por modulo ficou:
+  `school-management-bff=255`, `dashboard-query-service=64`,
+  `planning-ai-service=32`, `people-service=31`,
+  `responsibles-service=19`, `pedagogical-service=13`,
+  `identity-access-service=10`, `institutional-tenant-service=10`,
+  `enrollment-document-service=7`, `academic-professor-service=6` e
+  `academic-catalog-service=5`.
+- A fase fechou a matriz objetiva do passivo e confirmou que a primeira
+  refatoracao nominal deve comecar pelo `school-management-bff`.
+- Validacao executada apenas como inventario tecnico por busca estruturada em
+  `class`, `interface` e `enum`; nao houve teste de modulo nesta fase.
+- Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura:
+  7 fases restantes.
+
+### Fase N2
+
+- O `school-management-bff` passou pelo primeiro saneamento estrutural de
+  nomenclatura entre dominios, com renomeacao de `ports`, `services`,
+  `usecases`, `controllers`, `infra/config`, `infra/webclient` e suites de
+  teste que ainda carregavam designacoes de dominio ou servico remoto como
+  identidade principal da classe.
+- O fechamento da fase removeu do nome das classes do BFF marcadores como
+  `People`, `Pedagogical`, `PlanningAi`, `EnrollmentDocument`, `Dashboard`,
+  `AcademicCatalog`, `InstitutionalTenant`, `IdentityAccess`, `Responsibles`
+  e `Monolith`, mantendo apenas nomes alinhados ao papel local da fachada.
+- Os residuos finais ficaram concentrados em tres `record`s de configuracao e
+  tambem foram saneados sem alterar as chaves externas ja utilizadas em
+  `application.yml`.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl school-management-bff -DskipTests compile` com sucesso e
+  `mvn -pl school-management-bff clean test` com falhas funcionais observadas
+  no proprio BFF, pelo menos em
+  `AuthSessionFallbackIntegrationTest`,
+  `CatalogReadCutoverIntegrationTest` e
+  `ConsultaCadastralReadProxyIntegrationTest`.
+- Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura:
+  6 fases restantes.

@@ -51,7 +51,7 @@ class AuthSessionFallbackIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoInstitutionalTenantFalharNaListagemDeEscolas() throws InterruptedException {
+    void deveFazerFallbackParaMonolitoQuandoTenantAtivoFalharNaListagemDeEscolas() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -182,3 +182,4 @@ class AuthSessionFallbackIntegrationTest {
         }
     }
 }
+

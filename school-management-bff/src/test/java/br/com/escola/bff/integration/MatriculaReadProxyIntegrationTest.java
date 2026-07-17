@@ -48,7 +48,7 @@ class MatriculaReadProxyIntegrationTest {
     }
 
     @Test
-    void deveConsumirEnrollmentDocumentServiceNaListagemOficialDeMatriculas() throws InterruptedException {
+    void deveConsumirDocumentoMatriculaServiceNaListagemOficialDeMatriculas() throws InterruptedException {
         String alunoId = "00000000-0000-0000-0000-000000000021";
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -124,3 +124,4 @@ class MatriculaReadProxyIntegrationTest {
         }
     }
 }
+

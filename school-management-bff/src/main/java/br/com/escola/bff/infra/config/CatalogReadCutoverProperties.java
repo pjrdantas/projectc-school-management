@@ -8,7 +8,7 @@ import br.com.escola.bff.application.service.CatalogReadRoute;
 public record CatalogReadCutoverProperties(
         boolean enabled,
         String reportPath,
-        boolean fallbackToMonolithOnError,
+        boolean fallbackToLegacyOnError,
         RouteFlags routes
 ) {
 
@@ -46,3 +46,4 @@ public record CatalogReadCutoverProperties(
             boolean catalogosTurnos
     ) {}
 }
+

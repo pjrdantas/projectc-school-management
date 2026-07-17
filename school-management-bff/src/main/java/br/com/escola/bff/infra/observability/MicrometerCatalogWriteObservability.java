@@ -17,7 +17,7 @@ public class MicrometerCatalogWriteObservability implements CatalogWriteObservab
     }
 
     @Override
-    public void recordDirectMonolith(CatalogWriteCutoverDecision decision) {
+    public void recordDirectLegacy(CatalogWriteCutoverDecision decision) {
         routeCounter(decision, "monolith", "success").increment();
     }
 
@@ -59,3 +59,4 @@ public class MicrometerCatalogWriteObservability implements CatalogWriteObservab
         };
     }
 }
+

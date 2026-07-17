@@ -49,7 +49,7 @@ class ResponsavelReadProxyIntegrationTest {
     }
 
     @Test
-    void deveConsumirResponsiblesServiceNaListagemMinimaDeResponsaveis() throws InterruptedException {
+    void deveConsumirResponsavelCatalogoServiceNaListagemMinimaDeResponsaveis() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -87,7 +87,7 @@ class ResponsavelReadProxyIntegrationTest {
     }
 
     @Test
-    void deveConsumirResponsiblesServiceNoDetalheDeResponsavel() throws InterruptedException {
+    void deveConsumirResponsavelCatalogoServiceNoDetalheDeResponsavel() throws InterruptedException {
         UUID responsavelId = UUID.fromString("00000000-0000-0000-0000-000000000601");
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -124,7 +124,7 @@ class ResponsavelReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoNaListagemQuandoResponsiblesServiceFalhar() throws InterruptedException {
+    void deveFazerFallbackParaMonolitoNaListagemQuandoResponsavelCatalogoServiceFalhar() throws InterruptedException {
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
@@ -160,7 +160,7 @@ class ResponsavelReadProxyIntegrationTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoNoDetalheQuandoResponsiblesServiceFalhar() throws InterruptedException {
+    void deveFazerFallbackParaMonolitoNoDetalheQuandoResponsavelCatalogoServiceFalhar() throws InterruptedException {
         UUID responsavelId = UUID.fromString("00000000-0000-0000-0000-000000000601");
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
@@ -205,3 +205,4 @@ class ResponsavelReadProxyIntegrationTest {
         }
     }
 }
+
