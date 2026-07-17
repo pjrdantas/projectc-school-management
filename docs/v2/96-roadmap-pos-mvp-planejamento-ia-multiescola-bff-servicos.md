@@ -8974,6 +8974,18 @@ Definicao objetiva:
   quaisquer fluxos restantes de contexto multiescola ainda protegidos por
   compatibilidade com o legado;
 - remover fallback ao monolito desse bloco.
+- primeiro recorte executado em 17/07/2026:
+  o `institutional-tenant-service` deixou de depender do contrato legado
+  `GET /internal/auth/escolas`; `GET /internal/v1/tenant/escolas` passou a ler
+  localmente `usuario_escola` e `escola` a partir de `X-Usuario-Id` e
+  `X-Escola-Id`, e `GET /internal/v1/tenant/ativa` passou a derivar desse bloco
+  local com fallback minimo para a escola do contexto autenticado.
+- com isso, foram removidos do servico o adapter
+  `LegacyTenantSessaoClient`, as configuracoes HTTP legadas e a propriedade
+  `institutional-tenant.monolith.base-url`.
+- validacao objetiva do primeiro recorte:
+  `mvn -pl institutional-tenant-service -Dtest=TenantSessaoInternaControllerIntegrationTest test`
+  e `mvn -pl institutional-tenant-service test`, ambos com `BUILD SUCCESS`.
 
 ### Fase D6 - Fechamento final de `academic-catalog-service`
 

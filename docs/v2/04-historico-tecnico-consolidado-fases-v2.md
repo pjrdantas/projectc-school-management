@@ -4763,3 +4763,28 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Proxima fase operacional do ciclo fechado:
   abrir `D5` para remover a dependencia residual de tenant/escolas ainda
   concentrada em `institutional-tenant-service`.
+
+### Fase D5
+
+- Foi iniciado o fechamento do `institutional-tenant-service` pelo menor corte
+  seguro de leitura local de tenant/escolas, sem abrir escrita e sem ampliar o
+  escopo para outros blocos do BFF.
+- O `institutional-tenant-service` deixou de depender do contrato legado
+  `GET /internal/auth/escolas` do monolito. A listagem de
+  `GET /internal/v1/tenant/escolas` passou a ser resolvida localmente por
+  leitura direta de `usuario_escola` e `escola`, usando `X-Usuario-Id` e
+  `X-Escola-Id` do contexto interno autenticado ja oficial.
+- A leitura de `GET /internal/v1/tenant/ativa` permaneceu derivada do proprio
+  bloco local do servico novo: quando ha vinculos em `usuario_escola`, a escola
+  ativa e marcada pela `escolaId` do contexto; quando nao ha vinculo local, o
+  servico faz fallback minimo para a escola do proprio contexto autenticado.
+- Com isso, foram removidos do modulo o cliente legado
+  `LegacyTenantSessaoClient`, suas configuracoes HTTP e a necessidade de
+  `institutional-tenant.monolith.base-url` no `application.yml`.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl institutional-tenant-service -Dtest=TenantSessaoInternaControllerIntegrationTest test`
+  e `mvn -pl institutional-tenant-service test`, ambos com `BUILD SUCCESS`.
+- Proxima fase operacional do ciclo fechado:
+  endurecer o bloco publico `GET /api/auth/tenant/ativa` no
+  `school-management-bff`, removendo qualquer compatibilidade residual do
+  fechamento de tenant antes de avancar para `D6`.

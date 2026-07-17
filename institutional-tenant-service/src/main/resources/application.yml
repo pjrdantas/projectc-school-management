@@ -1,10 +1,12 @@
 server:
   port: 8092
 
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+
 institutional-tenant:
   internal-api:
     token: ${INSTITUTIONAL_TENANT_INTERNAL_TOKEN:}
-  monolith:
-    base-url: ${INSTITUTIONAL_TENANT_MONOLITH_BASE_URL:http://localhost:8080}
-    connect-timeout: 2s
-    read-timeout: 5s
