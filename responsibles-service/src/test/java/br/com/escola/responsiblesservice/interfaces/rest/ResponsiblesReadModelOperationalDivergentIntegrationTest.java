@@ -75,9 +75,56 @@ class ResponsiblesReadModelOperationalDivergentIntegrationTest {
         mockMvc.perform(get("/actuator/health/responsiblesLocalPersistence"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UNKNOWN"))
+                .andExpect(jsonPath("$.details.catalogRouteReady").value(false))
                 .andExpect(jsonPath("$.details.linkRouteReady").value(false))
                 .andExpect(jsonPath("$.details.lastStatus").value("blocked"))
                 .andExpect(jsonPath("$.details.divergentRecords").value(3));
+    }
+
+    @Test
+    void deveFazerFallbackParaMonolitoNoCatalogoQuandoGateNaoEstiverVerde() throws Exception {
+        UUID responsavelId = UUID.fromString("00000000-0000-0000-0000-000000000601");
+        UUID usuarioId = UUID.fromString("00000000-0000-0000-0000-000000000101");
+        UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
+
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        [{
+                          "id":"00000000-0000-0000-0000-000000000601",
+                          "nomeCompleto":"Monolito Lista"
+                        }]
+                        """));
+        mockWebServer.enqueue(new MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody("""
+                        {
+                          "id":"00000000-0000-0000-0000-000000000601",
+                          "nomeCompleto":"Monolito Detalhe"
+                        }
+                        """));
+
+        mockMvc.perform(get("/internal/v1/responsaveis")
+                        .param("nome", "Maria")
+                        .header("Authorization", "Bearer opaque-token")
+                        .header("X-Internal-Token", "responsibles-token")
+                        .header("X-Correlation-Id", "corr-divergent-list-1")
+                        .header("X-Usuario-Id", usuarioId)
+                        .header("X-Escola-Id", escolaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nomeCompleto").value("Monolito Lista"));
+
+        mockMvc.perform(get("/internal/v1/responsaveis/{id}", responsavelId)
+                        .header("Authorization", "Bearer opaque-token")
+                        .header("X-Internal-Token", "responsibles-token")
+                        .header("X-Correlation-Id", "corr-divergent-detail-1")
+                        .header("X-Usuario-Id", usuarioId)
+                        .header("X-Escola-Id", escolaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nomeCompleto").value("Monolito Detalhe"));
+
+        assertThat(mockWebServer.takeRequest().getPath()).isEqualTo("/api/responsaveis?nome=Maria");
+        assertThat(mockWebServer.takeRequest().getPath()).isEqualTo("/api/responsaveis/" + responsavelId);
     }
 
     @Test
@@ -105,7 +152,6 @@ class ResponsiblesReadModelOperationalDivergentIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].nomeCompleto").value("Monolito Fallback"));
 
-        assertThat(mockWebServer.getRequestCount()).isEqualTo(1);
         assertThat(mockWebServer.takeRequest().getPath()).isEqualTo("/api/alunos/" + alunoId + "/responsaveis");
     }
 

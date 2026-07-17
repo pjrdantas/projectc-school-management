@@ -14,11 +14,24 @@ import br.com.escola.responsiblesservice.infra.config.ResponsiblesReadModelPrope
 class ResponsiblesReadModelRouteGuardTest {
 
     @Test
+    void permiteCatalogoLocalQuandoReconciliacaoLigadaEResponsavelEstaVerde() {
+        ResponsiblesReadModelSyncState state = new ResponsiblesReadModelSyncState();
+        state.update(summaryWithCatalogReadyAndLinksDivergent());
+        ResponsiblesReadModelRouteGuard guard = new ResponsiblesReadModelRouteGuard(
+                new ResponsiblesReadModelProperties(true, false, true, false, true, 500, false, true),
+                state);
+
+        assertThat(guard.canReadCatalogLocally()).isTrue();
+        assertThat(guard.canReadStudentLinksLocally()).isFalse();
+    }
+
+    @Test
     void permiteLeituraLocalQuandoReconciliacaoEstaDesligada() {
         ResponsiblesReadModelRouteGuard guard = new ResponsiblesReadModelRouteGuard(
                 new ResponsiblesReadModelProperties(true, false, true, false, false, 500, false, true),
                 new ResponsiblesReadModelSyncState());
 
+        assertThat(guard.canReadCatalogLocally()).isTrue();
         assertThat(guard.canReadStudentLinksLocally()).isTrue();
     }
 
@@ -28,6 +41,7 @@ class ResponsiblesReadModelRouteGuardTest {
                 new ResponsiblesReadModelProperties(true, false, true, false, true, 500, false, true),
                 new ResponsiblesReadModelSyncState());
 
+        assertThat(guard.canReadCatalogLocally()).isFalse();
         assertThat(guard.canReadStudentLinksLocally()).isFalse();
     }
 
@@ -39,7 +53,27 @@ class ResponsiblesReadModelRouteGuardTest {
                 new ResponsiblesReadModelProperties(true, false, true, false, true, 500, false, true),
                 state);
 
+        assertThat(guard.canReadCatalogLocally()).isTrue();
         assertThat(guard.canReadStudentLinksLocally()).isTrue();
+    }
+
+    private ResponsiblesReadModelSyncSummary summaryWithCatalogReadyAndLinksDivergent() {
+        return new ResponsiblesReadModelSyncSummary(
+                true,
+                true,
+                "blocked",
+                "responsibles-read-model-reconciliation-divergent",
+                100,
+                3,
+                1,
+                1,
+                2,
+                3,
+                1,
+                List.of(
+                        table("responsavel", 0),
+                        table("parentesco", 1),
+                        table("aluno_responsavel", 1)));
     }
 
     private ResponsiblesReadModelSyncSummary summary(String status, int divergentRecords) {

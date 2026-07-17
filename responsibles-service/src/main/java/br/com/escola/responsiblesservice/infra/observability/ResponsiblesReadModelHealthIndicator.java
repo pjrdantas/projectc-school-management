@@ -24,7 +24,9 @@ public class ResponsiblesReadModelHealthIndicator implements HealthIndicator {
     @Override
     public Health health() {
         ResponsiblesReadModelSyncSummary lastSummary = syncState.lastSummary();
-        Health.Builder builder = syncState.isLinkRouteReady() ? Health.up() : Health.unknown();
+        boolean catalogRouteReady = syncState.isCatalogRouteReady();
+        boolean linkRouteReady = syncState.isLinkRouteReady();
+        Health.Builder builder = catalogRouteReady || linkRouteReady ? Health.up() : Health.unknown();
 
         builder.withDetail("enabled", properties.enabled())
                 .withDetail("migrationEnabled", properties.migrationEnabled())
@@ -32,7 +34,8 @@ public class ResponsiblesReadModelHealthIndicator implements HealthIndicator {
                 .withDetail("backfillEnabled", properties.backfillEnabled())
                 .withDetail("reconciliationEnabled", properties.reconciliationEnabled())
                 .withDetail("fallbackEnabled", properties.fallbackEnabled())
-                .withDetail("linkRouteReady", syncState.isLinkRouteReady());
+                .withDetail("catalogRouteReady", catalogRouteReady)
+                .withDetail("linkRouteReady", linkRouteReady);
 
         if (lastSummary != null) {
             builder.withDetail("lastStatus", lastSummary.status())

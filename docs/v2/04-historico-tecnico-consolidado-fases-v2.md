@@ -4334,3 +4334,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl responsibles-service clean test`.
 - Contagem regressiva do ciclo fechado atual do `responsibles-service`:
   2 fases restantes.
+
+### Fase 213
+
+- O `responsibles-service` passou a separar a prontidao operacional da leitura
+  de catalogo (`/responsaveis` e `/responsaveis/{id}`) da prontidao dos
+  vinculos por aluno, deixando de tratar todo o read model local como um bloco
+  unico.
+- `ResponsiblesReadModelSyncState`, `ResponsiblesReadModelRouteGuard` e o
+  health `responsiblesLocalPersistence` passaram a expor a capacidade de rota
+  `catalogRouteReady`, permitindo leitura local de `responsavel` quando a
+  tabela base estiver reconciliada, mesmo que `parentesco` ou
+  `aluno_responsavel` ainda nao estejam verdes.
+- `ResponsavelQueryService` passou a usar esse gate dedicado para as leituras
+  de catalogo, preservando fallback ao monolito quando o read model local de
+  `responsavel` nao estiver pronto.
+- Foram adicionadas provas ponta a ponta para o catalogo local verde e para o
+  fallback divergente, cobrindo listagem, detalhe, health e isolamento em
+  relacao ao fluxo de vinculo por aluno.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl responsibles-service clean test`.
+- Contagem regressiva do ciclo fechado atual do `responsibles-service`:
+  1 fase restante.

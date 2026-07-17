@@ -90,6 +90,55 @@ class ResponsavelQueryServiceTest {
     }
 
     @Test
+    void devePermitirCatalogoLocalMesmoQuandoLinksAindaNaoEstaoReconciliados() {
+        AtomicInteger monolithCalls = new AtomicInteger();
+        ResponsiblesReadModelSyncState syncState = new ResponsiblesReadModelSyncState();
+        syncState.update(new ResponsiblesReadModelSyncSummary(
+                true,
+                true,
+                "blocked",
+                "responsibles-read-model-reconciliation-divergent",
+                100,
+                3,
+                1,
+                1,
+                2,
+                3,
+                1,
+                List.of(
+                        tableWithDivergence("responsavel", 0),
+                        tableWithDivergence("parentesco", 1),
+                        tableWithDivergence("aluno_responsavel", 1))));
+        ResponsavelQueryService service = new ResponsavelQueryService(
+                provider(new FakeLocalReadPort(
+                        Optional.of(List.of(responsavel("Catalogo Local"))),
+                        Optional.of(responsavel("Catalogo Local")),
+                        Optional.empty(),
+                        false)),
+                new FakeMonolithReadPort(monolithCalls),
+                new ResponsiblesReadModelProperties(true, false, true, false, true, 500, false, true),
+                new ResponsiblesReadModelRouteGuard(
+                        new ResponsiblesReadModelProperties(true, false, true, false, true, 500, false, true),
+                        syncState),
+                new ObjectMapper().findAndRegisterModules());
+
+        var listResponse = service.listarResponsaveis("Bearer token", context(), "Maria", null);
+        var detailResponse = service.buscarResponsavelPorId(
+                "Bearer token",
+                context(),
+                UUID.fromString("00000000-0000-0000-0000-000000000601"));
+        var linkResponse = service.listarResponsaveisPorAluno(
+                "Bearer token",
+                context(),
+                UUID.fromString("00000000-0000-0000-0000-000000000401"));
+
+        assertThat(listResponse.getBody()).contains("Catalogo Local");
+        assertThat(detailResponse.getBody()).contains("Catalogo Local");
+        assertThat(linkResponse.getBody()).contains("Monolito");
+        assertThat(monolithCalls).hasValue(1);
+    }
+
+    @Test
     void deveFazerFallbackParaOMonolitoQuandoVinculoLocalNaoExiste() {
         AtomicInteger monolithCalls = new AtomicInteger();
         ResponsavelQueryService service = new ResponsavelQueryService(
@@ -171,6 +220,23 @@ class ResponsavelQueryServiceTest {
                 1,
                 1,
                 0);
+    }
+
+    private TableOperationReport tableWithDivergence(String table, int divergentRecords) {
+        return new TableOperationReport(
+                table,
+                "id",
+                "source",
+                "target",
+                divergentRecords == 0 ? "success" : "divergent",
+                divergentRecords == 0 ? "ok" : "divergent",
+                true,
+                true,
+                true,
+                1,
+                divergentRecords == 0 ? 1 : 0,
+                divergentRecords == 0 ? 1 : 0,
+                divergentRecords);
     }
 
     private InternalRequestContext context() {

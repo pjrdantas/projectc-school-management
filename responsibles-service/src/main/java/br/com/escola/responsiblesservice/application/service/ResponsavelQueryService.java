@@ -44,7 +44,7 @@ public class ResponsavelQueryService implements ResponsavelQueryUseCase {
             InternalRequestContext context,
             String nome,
             String cpf) {
-        if (readModelProperties.enabled() && readModelProperties.localReadRoutingEnabled()) {
+        if (routeGuard.canReadCatalogLocally()) {
             ResponsavelLocalReadPort localReadPort = responsavelLocalReadPortProvider.getIfAvailable();
             if (localReadPort != null) {
                 try {
@@ -67,7 +67,7 @@ public class ResponsavelQueryService implements ResponsavelQueryUseCase {
             String authorization,
             InternalRequestContext context,
             UUID responsavelId) {
-        if (readModelProperties.enabled() && readModelProperties.localReadRoutingEnabled()) {
+        if (routeGuard.canReadCatalogLocally()) {
             ResponsavelLocalReadPort localReadPort = responsavelLocalReadPortProvider.getIfAvailable();
             if (localReadPort != null) {
                 try {

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ResponsiblesReadModelSyncState {
 
+    private static final String RESPONSAVEL_TABLE = "responsavel";
     private static final Set<String> LINK_ROUTE_TABLES = Set.of("responsavel", "parentesco", "aluno_responsavel");
 
     private volatile ResponsiblesReadModelSyncSummary lastSummary;
@@ -19,12 +20,31 @@ public class ResponsiblesReadModelSyncState {
         return lastSummary;
     }
 
+    public boolean isCatalogRouteReady() {
+        return isTableReady(RESPONSAVEL_TABLE);
+    }
+
     public boolean isLinkRouteReady() {
-        if (lastSummary == null || !"completed".equals(lastSummary.status()) || lastSummary.divergentRecords() > 0) {
+        return isTablesReady(LINK_ROUTE_TABLES);
+    }
+
+    private boolean isTablesReady(Set<String> tables) {
+        if (lastSummary == null) {
             return false;
         }
         return lastSummary.tables().stream()
-                .filter(report -> LINK_ROUTE_TABLES.contains(report.table()))
+                .filter(report -> tables.contains(report.table()))
                 .allMatch(report -> "success".equals(report.status()) && report.divergentRecords() == 0);
+    }
+
+    private boolean isTableReady(String table) {
+        if (lastSummary == null) {
+            return false;
+        }
+        return lastSummary.tables().stream()
+                .filter(report -> table.equals(report.table()))
+                .findFirst()
+                .map(report -> "success".equals(report.status()) && report.divergentRecords() == 0)
+                .orElse(false);
     }
 }

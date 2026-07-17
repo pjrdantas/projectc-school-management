@@ -27,4 +27,14 @@ public class ResponsiblesReadModelRouteGuard {
         }
         return syncState.isLinkRouteReady();
     }
+
+    public boolean canReadCatalogLocally() {
+        if (!properties.enabled() || !properties.localReadRoutingEnabled()) {
+            return false;
+        }
+        if (!properties.reconciliationEnabled()) {
+            return true;
+        }
+        return syncState.isCatalogRouteReady();
+    }
 }

@@ -8633,3 +8633,24 @@ restantes no escopo fechado atual.
 
 Contagem regressiva do ciclo fechado atual do `responsibles-service`: 2 fases
 restantes.
+
+### Fase 213 - Ativacao segura da leitura local de catalogo de `responsibles`
+
+- o `responsibles-service` passou a tratar a leitura de catalogo
+  (`GET /internal/v1/responsaveis` e `GET /internal/v1/responsaveis/{id}`)
+  como um recorte operacional separado da leitura de vinculos por aluno;
+- o estado local, o route guard e o health indicator passaram a expor
+  `catalogRouteReady`, permitindo usar o read model local de `responsavel`
+  quando apenas a tabela base estiver reconciliada, sem bloquear esse ganho por
+  divergencias ainda restritas a `parentesco` ou `aluno_responsavel`;
+- o `ResponsavelQueryService` passou a aplicar esse gate dedicado nas leituras
+  de catalogo, mantendo o fallback ao monolito quando o read model local nao
+  estiver pronto;
+- foram adicionados testes unitarios e operacionais cobrindo o cenario verde do
+  catalogo local, o cenario divergente com fallback e a independencia entre
+  rota de catalogo e rota por aluno;
+- validacao executada apenas no modulo tocado:
+  `mvn -pl responsibles-service clean test`.
+
+Contagem regressiva do ciclo fechado atual do `responsibles-service`: 1 fase
+restante.

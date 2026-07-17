@@ -73,9 +73,39 @@ class ResponsiblesReadModelOperationalGreenIntegrationTest {
         mockMvc.perform(get("/actuator/health/responsiblesLocalPersistence"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.details.catalogRouteReady").value(true))
                 .andExpect(jsonPath("$.details.linkRouteReady").value(true))
                 .andExpect(jsonPath("$.details.lastStatus").value("completed"))
                 .andExpect(jsonPath("$.details.divergentRecords").value(0));
+    }
+
+    @Test
+    void deveAtenderCatalogoLocalSemChamarMonolito() throws Exception {
+        UUID responsavelId = UUID.fromString("00000000-0000-0000-0000-000000000601");
+        UUID usuarioId = UUID.fromString("00000000-0000-0000-0000-000000000101");
+        UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
+
+        mockMvc.perform(get("/internal/v1/responsaveis")
+                        .param("nome", "Maria")
+                        .header("Authorization", "Bearer opaque-token")
+                        .header("X-Internal-Token", "responsibles-token")
+                        .header("X-Correlation-Id", "corr-green-list-1")
+                        .header("X-Usuario-Id", usuarioId)
+                        .header("X-Escola-Id", escolaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nomeCompleto").value("Maria Souza"));
+
+        mockMvc.perform(get("/internal/v1/responsaveis/{id}", responsavelId)
+                        .header("Authorization", "Bearer opaque-token")
+                        .header("X-Internal-Token", "responsibles-token")
+                        .header("X-Correlation-Id", "corr-green-detail-1")
+                        .header("X-Usuario-Id", usuarioId)
+                        .header("X-Escola-Id", escolaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nomeCompleto").value("Maria Souza"))
+                .andExpect(jsonPath("$.cpf").value("98765432100"));
+
+        assertThat(mockWebServer.getRequestCount()).isZero();
     }
 
     @Test

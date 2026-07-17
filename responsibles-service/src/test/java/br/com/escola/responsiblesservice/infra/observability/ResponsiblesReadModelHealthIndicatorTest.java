@@ -24,6 +24,7 @@ class ResponsiblesReadModelHealthIndicatorTest {
         var health = indicator.health();
 
         assertThat(health.getStatus().getCode()).isEqualTo("UP");
+        assertThat(health.getDetails()).containsEntry("catalogRouteReady", true);
         assertThat(health.getDetails()).containsEntry("linkRouteReady", true);
         assertThat(health.getDetails()).containsEntry("divergentRecords", 0);
     }
@@ -39,8 +40,39 @@ class ResponsiblesReadModelHealthIndicatorTest {
         var health = indicator.health();
 
         assertThat(health.getStatus().getCode()).isEqualTo("UNKNOWN");
+        assertThat(health.getDetails()).containsEntry("catalogRouteReady", false);
         assertThat(health.getDetails()).containsEntry("linkRouteReady", false);
         assertThat(health.getDetails()).containsEntry("divergentRecords", 2);
+    }
+
+    @Test
+    void expoeHealthUpQuandoApenasCatalogoEstaPronto() {
+        ResponsiblesReadModelSyncState state = new ResponsiblesReadModelSyncState();
+        state.update(new ResponsiblesReadModelSyncSummary(
+                true,
+                true,
+                "blocked",
+                "responsibles-read-model-reconciliation-divergent",
+                100,
+                3,
+                1,
+                1,
+                2,
+                3,
+                1,
+                List.of(
+                        table("responsavel", 0),
+                        table("parentesco", 1),
+                        table("aluno_responsavel", 1))));
+        ResponsiblesReadModelHealthIndicator indicator = new ResponsiblesReadModelHealthIndicator(
+                new ResponsiblesReadModelProperties(true, false, true, true, true, 500, false, true),
+                state);
+
+        var health = indicator.health();
+
+        assertThat(health.getStatus().getCode()).isEqualTo("UP");
+        assertThat(health.getDetails()).containsEntry("catalogRouteReady", true);
+        assertThat(health.getDetails()).containsEntry("linkRouteReady", false);
     }
 
     private ResponsiblesReadModelSyncSummary summary(String status, int divergentRecords) {
