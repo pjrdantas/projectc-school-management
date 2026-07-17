@@ -9092,6 +9092,17 @@ Definicao objetiva:
 - validacao objetiva do sexto recorte:
   `mvn -pl school-management-bff "-Dtest=TurmaDisciplinaWriteRoutingServiceTest,TurmaDisciplinaWriteCutoverIntegrationTest" test`
   com `BUILD SUCCESS`.
+- fechamento complementar executado em 17/07/2026:
+  o `school-management-bff` removeu o codigo morto legado ainda remanescente
+  do catalogo (`LegacyDisciplinaClient` e abstractions antigas associadas) e
+  simplificou a observabilidade de leitura/escrita do bloco para o estado
+  oficial, sem contadores de `directLegacy` ou `fallback` nesse dominio.
+- validacao objetiva do fechamento complementar:
+  busca estrutural por `Legacy.*(Disciplina|PeriodoLetivo|Serie|Turma)` e por
+  `recordDirectLegacy|recordFallbackToLegacy` no bloco de catalogo do
+  `school-management-bff`, alem de
+  `mvn -pl school-management-bff "-Dtest=CatalogReadRoutingServiceTest,CatalogReadCutoverIntegrationTest,DisciplinaControllerTest,PeriodoLetivoWriteRoutingServiceTest,DisciplinaWriteRoutingServiceTest,SerieWriteRoutingServiceTest,TurmaWriteRoutingServiceTest,TurmaDisciplinaWriteRoutingServiceTest,TurmaDisciplinaWriteCutoverIntegrationTest" test"`
+  com `BUILD SUCCESS`.
 
 ### Fase D7 - Fechamento final de `people-service`
 

@@ -139,7 +139,6 @@ class SerieWriteRoutingServiceTest {
     }
 
     private static final class NoOpObservability implements CatalogWriteObservabilityPort {
-        @Override public void recordDirectLegacy(CatalogWriteCutoverDecision decision) {}
         @Override public void recordCatalogSuccess(CatalogWriteCutoverDecision decision) {}
         @Override public void recordCatalogFailure(CatalogWriteCutoverDecision decision, Throwable error) {}
     }

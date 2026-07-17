@@ -184,6 +184,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   envio ao owner oficial e manteve somente `Idempotency-Key`, observabilidade e
   propagacao do erro do catalogo sem reabrir fallback automatico para o
   monolito.
+- A decima-nona subfase da Fase 51D encerrou o saneamento residual do bloco de
+  catalogo no `school-management-bff`. As leituras publicas ja oficializadas
+  permaneceram no `academic-catalog-service`, mas o BFF removeu o codigo morto
+  legado de `disciplinas` e simplificou a observabilidade de catalogo para o
+  estado oficial, sem rotas publicas de catalogo referenciando `Legacy*` nem
+  contadores de fallback direto para monolito nesse dominio.
 - A decima-oitava subfase da Fase 51D diagnosticou `POST /api/professores` e
   `POST /api/professores/{id}/turmas-disciplinas` e concluiu que a troca para
   cutover no BFF ainda nao e segura. O contrato do monolito depende do dominio

@@ -52,10 +52,8 @@ class CatalogReadRoutingServiceTest {
     }
 
     private static final class NoOpObservability implements CatalogReadObservabilityPort {
-        @Override public void recordDirectLegacy(CatalogReadCutoverDecision decision) {}
         @Override public void recordCatalogSuccess(CatalogReadCutoverDecision decision) {}
         @Override public void recordCatalogFailure(CatalogReadCutoverDecision decision, Throwable error) {}
-        @Override public void recordFallbackToLegacy(CatalogReadCutoverDecision decision, Throwable error) {}
     }
 }
 

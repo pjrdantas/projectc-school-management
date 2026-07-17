@@ -17,11 +17,6 @@ public class MicrometerCatalogReadObservability implements CatalogReadObservabil
     }
 
     @Override
-    public void recordDirectLegacy(CatalogReadCutoverDecision decision) {
-        routeCounter(decision, "monolith", "direct").increment();
-    }
-
-    @Override
     public void recordCatalogSuccess(CatalogReadCutoverDecision decision) {
         routeCounter(decision, "catalog", "success").increment();
     }
@@ -30,12 +25,6 @@ public class MicrometerCatalogReadObservability implements CatalogReadObservabil
     public void recordCatalogFailure(CatalogReadCutoverDecision decision, Throwable error) {
         routeCounter(decision, "catalog", "failure").increment();
         errorCounter(decision, error).increment();
-    }
-
-    @Override
-    public void recordFallbackToLegacy(CatalogReadCutoverDecision decision, Throwable error) {
-        routeCounter(decision, "monolith", "fallback").increment();
-        fallbackCounter(decision, error).increment();
     }
 
     private Counter routeCounter(CatalogReadCutoverDecision decision, String target, String outcome) {
@@ -51,15 +40,6 @@ public class MicrometerCatalogReadObservability implements CatalogReadObservabil
     private Counter errorCounter(CatalogReadCutoverDecision decision, Throwable error) {
         return Counter.builder("bff.catalog.read.catalog.error.total")
                 .description("Falhas do academic-catalog-service durante cutover read-only")
-                .tag("route", routeTag(decision))
-                .tag("reason", decision.reason())
-                .tag("exception", error.getClass().getSimpleName())
-                .register(meterRegistry);
-    }
-
-    private Counter fallbackCounter(CatalogReadCutoverDecision decision, Throwable error) {
-        return Counter.builder("bff.catalog.read.fallback.total")
-                .description("Fallbacks do cutover read-only para o monolito")
                 .tag("route", routeTag(decision))
                 .tag("reason", decision.reason())
                 .tag("exception", error.getClass().getSimpleName())
