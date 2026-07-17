@@ -25,7 +25,7 @@ public interface LeituraLocalPort {
 
     List<AlocacaoResponse> listarAlocacoes(InternalRequestContext context, UUID professorId);
 
-    boolean supportsListarProfessoresPorTurma(InternalRequestContext context, UUID turmaId);
+    ReadDecision decidirListarProfessoresPorTurma(InternalRequestContext context, UUID turmaId);
 
     List<AlocacaoResponse> listarProfessoresPorTurma(InternalRequestContext context, UUID turmaId);
 }

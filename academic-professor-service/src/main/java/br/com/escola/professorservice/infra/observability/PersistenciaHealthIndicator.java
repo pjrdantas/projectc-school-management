@@ -70,6 +70,7 @@ public class PersistenciaHealthIndicator implements HealthIndicator {
         details.put("failOnError", properties.failOnError());
         details.put("buscarPorIdCutoverEnabled", properties.buscarPorIdCutoverEnabled());
         details.put("listarAlocacoesCutoverEnabled", properties.listarAlocacoesCutoverEnabled());
+        details.put("listarPorTurmaCutoverEnabled", properties.listarPorTurmaCutoverEnabled());
         details.put("requestsTotal", totalContador("professor.shadow.local.persistence.requests"));
         details.put("createSuccessTotal", totalRequests("criar", "success"));
         details.put("allocateSuccessTotal", totalRequests("vincularTurmaDisciplina", "success"));
@@ -166,6 +167,10 @@ public class PersistenciaHealthIndicator implements HealthIndicator {
                         totalReadRequests(route.operation(), "local", "cutover_sync_state_incomplete"));
             } else if ("listarPorTurma".equals(route.operation())) {
                 detalhe.put("syncStateSummary", syncStates.get("alocacoesPorTurma"));
+                detalhe.put("cutoverEnabled", properties.listarPorTurmaCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
+                detalhe.put("localCutoverBlockedTotal",
+                        totalReadRequests(route.operation(), "local", "cutover_sync_state_incomplete"));
             } else if ("buscarPorId".equals(route.operation())) {
                 detalhe.put("cutoverEnabled", properties.buscarPorIdCutoverEnabled());
                 detalhe.put("rollbackStrategy", "disable_property");
@@ -211,6 +216,9 @@ public class PersistenciaHealthIndicator implements HealthIndicator {
             return "local_record_presence_required_no_fallback";
         }
         if ("listarAlocacoes".equals(route.operation()) && properties.listarAlocacoesCutoverEnabled()) {
+            return "complete_sync_state_required_no_fallback";
+        }
+        if ("listarPorTurma".equals(route.operation()) && properties.listarPorTurmaCutoverEnabled()) {
             return "complete_sync_state_required_no_fallback";
         }
         return route.readStrategy();

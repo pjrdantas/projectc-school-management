@@ -35,6 +35,7 @@ professor:
       fail-on-error: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_FAIL_ON_ERROR:false}
       buscar-por-id-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_BUSCAR_POR_ID_CUTOVER_ENABLED:false}
       listar-alocacoes-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_LISTAR_ALOCACOES_CUTOVER_ENABLED:false}
+      listar-por-turma-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_LISTAR_POR_TURMA_CUTOVER_ENABLED:false}
     migration:
       enabled: ${PROFESSOR_SHADOW_MIGRATION_ENABLED:false}
       runner-enabled: ${PROFESSOR_SHADOW_MIGRATION_RUNNER_ENABLED:true}

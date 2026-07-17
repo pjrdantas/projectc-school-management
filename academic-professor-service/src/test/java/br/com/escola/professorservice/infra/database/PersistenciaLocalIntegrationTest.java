@@ -628,6 +628,7 @@ class PersistenciaLocalIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.details.buscarPorIdCutoverEnabled").value(false))
                 .andExpect(jsonPath("$.details.listarAlocacoesCutoverEnabled").value(false))
+                .andExpect(jsonPath("$.details.listarPorTurmaCutoverEnabled").value(false))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.listar.localTotal").value(1.0))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.listar.fallbackTotal").value(1.0))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.listar.fallbackIncompleteSyncStateTotal").value(1.0))
@@ -649,6 +650,9 @@ class PersistenciaLocalIntegrationTest {
                 .andExpect(jsonPath("$.details.shadowReadRoutes.listarAlocacoes.syncStateSummary.completeTotal").value(1))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.listarPorTurma.localTotal").value(1.0))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.listarPorTurma.fallbackTotal").value(1.0))
+                .andExpect(jsonPath("$.details.shadowReadRoutes.listarPorTurma.cutoverEnabled").value(false))
+                .andExpect(jsonPath("$.details.shadowReadRoutes.listarPorTurma.rollbackStrategy").value("disable_property"))
+                .andExpect(jsonPath("$.details.shadowReadRoutes.listarPorTurma.localCutoverBlockedTotal").value(0.0))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.listarPorTurma.fallbackIncompleteSyncStateTotal").value(1.0))
                 .andExpect(jsonPath("$.details.shadowReadRoutes.listarPorTurma.syncStateSummary.completeTotal").value(1));
     }

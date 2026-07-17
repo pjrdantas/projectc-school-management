@@ -7,6 +7,7 @@ public record PersistenciaLocalProperties(
         boolean enabled,
         boolean failOnError,
         boolean buscarPorIdCutoverEnabled,
-        boolean listarAlocacoesCutoverEnabled) {
+        boolean listarAlocacoesCutoverEnabled,
+        boolean listarPorTurmaCutoverEnabled) {
 }
 

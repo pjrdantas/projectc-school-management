@@ -140,10 +140,10 @@ public class LeituraLocalAdapter implements LeituraLocalPort {
     }
 
     @Override
-    public boolean supportsListarProfessoresPorTurma(InternalRequestContext context, UUID turmaId) {
+    public ReadDecision decidirListarProfessoresPorTurma(InternalRequestContext context, UUID turmaId) {
         if (!properties.enabled()) {
             registrarDecisao("listarPorTurma", "disabled", "feature_disabled");
-            return false;
+            return new ReadDecision(false, false);
         }
 
         boolean supported = turmaSyncStateRepository.findById(turmaId)
@@ -151,11 +151,18 @@ public class LeituraLocalAdapter implements LeituraLocalPort {
                 .map(state -> Boolean.TRUE.equals(state.getAlocacoesCompletas()))
                 .orElse(false);
 
-        registrarDecisao(
-                "listarPorTurma",
-                supported ? "local" : "fallback",
-                supported ? "sync_state_complete" : "sync_state_incomplete");
-        return supported;
+        if (supported) {
+            registrarDecisao("listarPorTurma", "local", "sync_state_complete");
+            return new ReadDecision(true, false);
+        }
+
+        if (properties.listarPorTurmaCutoverEnabled()) {
+            registrarDecisao("listarPorTurma", "local", "cutover_sync_state_incomplete");
+            return new ReadDecision(false, true);
+        }
+
+        registrarDecisao("listarPorTurma", "fallback", "sync_state_incomplete");
+        return new ReadDecision(false, false);
     }
 
     @Override

@@ -4739,6 +4739,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `professorShadowPersistence` passou a expor a estrategia
   `complete_sync_state_required_no_fallback`, o estado da flag e a contagem de
   bloqueios de cutover nessa rota.
+- A quinta subfase operacional de `D9` aplicou o mesmo endurecimento no outro
+  fallback interno de leitura por alocacao: `GET /internal/v1/turmas/{turmaId}/professores`
+  ganhou o cutover controlado
+  `professor.shadow.local-persistence.listar-por-turma-cutover-enabled`.
+  Com a flag ativa, o owner oficial responde apenas do read model local quando
+  o sync por turma estiver completo; se o sync ainda nao estiver apto, retorna
+  `503 DOWNSTREAM_UNAVAILABLE` sem consultar o monolito. O actuator
+  `professorShadowPersistence` passou a expor a estrategia
+  `complete_sync_state_required_no_fallback`, a flag e a contagem de bloqueios
+  de cutover tambem para essa rota.
 - Proxima fase operacional do ciclo fechado:
   `D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF`.
 

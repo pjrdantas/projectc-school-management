@@ -70,8 +70,13 @@ public class ConsultaService implements ConsultaUseCase {
             String authorization,
             InternalRequestContext context,
             UUID turmaId) {
-        if (professorShadowLocalReadPort.supportsListarProfessoresPorTurma(context, turmaId)) {
+        var readDecision = professorShadowLocalReadPort.decidirListarProfessoresPorTurma(context, turmaId);
+        if (readDecision.useLocal()) {
             return professorShadowLocalReadPort.listarProfessoresPorTurma(context, turmaId);
+        }
+        if (readDecision.cutoverBlocked()) {
+            throw new DownstreamUnavailableException(
+                    "Persistencia local de alocacoes por turma ainda nao esta apta para cutover");
         }
         return professorReadPort.listarProfessoresPorTurma(authorization, context, turmaId);
     }
