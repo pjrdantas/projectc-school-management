@@ -4315,3 +4315,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   antes da execucao real das flags de backfill/reconciliacao no ambiente.
 - Validacao executada apenas no modulo tocado:
   `mvn -pl responsibles-service clean test`.
+
+### Fase 212
+
+- O bootstrap operacional do `responsibles-service` passou a ordenar
+  explicitamente a migration do read model antes do ciclo de
+  backfill/reconciliacao, eliminando disputa entre runners no startup.
+- Foram adicionados testes operacionais de ponta a ponta para o read model
+  local de `responsavel`, `parentesco` e `aluno_responsavel`: um cenario verde
+  com schema migrado, backfill, reconciliacao e leitura local ativa; e um
+  cenario divergente com fallback funcional ao monolito.
+- Com isso, a fase passou a validar de forma objetiva o health
+  `responsiblesLocalPersistence`, o gate da rota
+  `GET /api/alunos/{alunoId}/responsaveis` e a ordem real de bootstrap quando
+  `migration-enabled`, `backfill-enabled` e `reconciliation-enabled` estao
+  ligados.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl responsibles-service clean test`.
+- Contagem regressiva do ciclo fechado atual do `responsibles-service`:
+  2 fases restantes.

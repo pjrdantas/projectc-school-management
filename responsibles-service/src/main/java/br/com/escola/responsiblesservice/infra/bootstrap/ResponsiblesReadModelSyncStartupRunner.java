@@ -2,6 +2,7 @@ package br.com.escola.responsiblesservice.infra.bootstrap;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import br.com.escola.responsiblesservice.application.service.ResponsiblesReadModelSyncCoordinator;
@@ -9,6 +10,7 @@ import br.com.escola.responsiblesservice.application.state.ResponsiblesReadModel
 import br.com.escola.responsiblesservice.infra.config.ResponsiblesReadModelProperties;
 
 @Component
+@Order(1)
 public class ResponsiblesReadModelSyncStartupRunner implements ApplicationRunner {
 
     private final ResponsiblesReadModelProperties properties;

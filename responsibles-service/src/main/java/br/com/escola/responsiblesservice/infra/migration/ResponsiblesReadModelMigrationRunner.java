@@ -1,6 +1,7 @@
 package br.com.escola.responsiblesservice.infra.migration;
 
 import org.flywaydb.core.Flyway;
+import org.springframework.core.annotation.Order;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,7 @@ import br.com.escola.responsiblesservice.infra.config.ResponsiblesReadModelMigra
 import br.com.escola.responsiblesservice.infra.config.ResponsiblesReadModelProperties;
 
 @Component
+@Order(0)
 public class ResponsiblesReadModelMigrationRunner implements ApplicationRunner {
 
     private final ResponsiblesReadModelProperties readModelProperties;

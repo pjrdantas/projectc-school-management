@@ -8614,3 +8614,22 @@ restante no escopo fechado atual.
 
 Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 0 fases
 restantes no escopo fechado atual.
+
+### Fase 212 - Validacao operacional real do bootstrap local de `responsibles`
+
+- o `responsibles-service` passou a ordenar explicitamente o
+  `ResponsiblesReadModelMigrationRunner` antes do
+  `ResponsiblesReadModelSyncStartupRunner`, garantindo que o schema local exista
+  antes do primeiro ciclo controlado de backfill/reconciliacao;
+- foram adicionados testes operacionais de ponta a ponta para os dois estados
+  relevantes do recorte atual: cenario reconciliado verde com leitura local por
+  aluno sem chamada ao monolito, e cenario divergente com fallback funcional ao
+  endpoint legado;
+- o recorte continua estritamente read-only e sem oficializacao nova no
+  `school-management-bff`; esta fase apenas fecha a confiabilidade operacional
+  minima do bootstrap interno antes do proximo passo de desacoplamento;
+- validacao executada apenas no modulo tocado:
+  `mvn -pl responsibles-service clean test`.
+
+Contagem regressiva do ciclo fechado atual do `responsibles-service`: 2 fases
+restantes.
