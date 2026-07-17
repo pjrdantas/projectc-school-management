@@ -39,9 +39,6 @@ professor:
       listar-por-turma-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_LISTAR_POR_TURMA_CUTOVER_ENABLED:false}
     migration:
       enabled: ${PROFESSOR_SHADOW_MIGRATION_ENABLED:false}
-      runner-enabled: ${PROFESSOR_SHADOW_MIGRATION_RUNNER_ENABLED:true}
-      apply: ${PROFESSOR_SHADOW_MIGRATION_APPLY:false}
-      report-path: ${PROFESSOR_SHADOW_MIGRATION_REPORT_PATH:target/professor-shadow-migration-report.json}
       source:
         url: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
         username: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_USERNAME:postgres}

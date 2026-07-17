@@ -9188,6 +9188,14 @@ Definicao objetiva:
   `GET /internal/v1/professores/funcionarios-elegiveis` no mapa
   `shadowRoutes` e retirando das metricas totais as leituras do agregado
   `professor` que ja operam com cutover local controlado.
+- nono recorte operacional ja executado: a migracao de professores deixou de
+  participar da subida normal do `academic-professor-service`. O
+  `ApplicationRunner` `MigracaoRunner` e as propriedades
+  `professor.shadow.migration.runner-enabled`,
+  `professor.shadow.migration.apply` e
+  `professor.shadow.migration.report-path` foram removidos, deixando a
+  reconciliacao controlada restrita a `MigracaoService` e aos adapters de
+  migracao ainda protegidos por `professor.shadow.migration.enabled`.
 
 ### Fase D10 - Fechamento final de `enrollment-document-service`
 

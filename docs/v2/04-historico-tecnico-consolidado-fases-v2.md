@@ -4775,6 +4775,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   local controlado. Com isso, `requestsTotal`, `failuresTotal` e o mapa
   `shadowRoutes` do health passaram a refletir somente a superficie legada
   operacional ainda remanescente.
+- A nona subfase operacional de `D9` retirou a migracao de professores do
+  ciclo de subida do runtime. O `ApplicationRunner` `MigracaoRunner` e as
+  propriedades operacionais associadas (`runner-enabled`, `apply` e
+  `report-path`) deixaram de existir no `academic-professor-service`, de modo
+  que nenhuma subida normal do servico tenta mais executar ou reportar
+  migracao contra a origem legada. A capacidade controlada de reconciliacao
+  permaneceu encapsulada em `MigracaoService` e nos adapters de migracao,
+  ainda atras da flag `professor.shadow.migration.enabled`, sem reabrir
+  escrita nem alterar contrato externo.
 - Proxima fase operacional do ciclo fechado:
   `D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF`.
 

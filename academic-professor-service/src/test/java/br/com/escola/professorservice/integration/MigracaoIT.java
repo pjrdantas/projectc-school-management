@@ -18,7 +18,6 @@ import br.com.escola.professorservice.infra.database.repository.CadastroSyncStat
 
 @SpringBootTest(properties = {
         "professor.shadow.migration.enabled=true",
-        "professor.shadow.migration.runner-enabled=false",
         "professor.shadow.migration.source.url=jdbc:h2:mem:professor_shadow_source;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
         "professor.shadow.migration.source.username=sa",
         "professor.shadow.migration.source.password=",
