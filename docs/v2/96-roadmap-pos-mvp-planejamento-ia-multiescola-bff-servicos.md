@@ -6353,6 +6353,22 @@ Entregue nesta fase:
   divergencias quando `reconciliation-enabled=true`, reduzindo uso indevido do
   read model antes da validacao objetiva.
 
+### Fase 211 - Fechamento operacional minimo do ciclo reconciliado local
+
+Entregue nesta fase:
+
+- foi fechada a cobertura operacional minima do read model local de
+  `responsibles-service` sem ampliar para escrita ou BFF;
+- o gate `ResponsiblesReadModelRouteGuard` passou a ter testes dedicados para
+  os tres cenarios operacionais relevantes: leitura local liberada sem
+  reconciliacao, bloqueada sem ciclo verde e liberada com reconciliacao verde;
+- o health `responsiblesLocalPersistence` passou a ter cobertura dedicada para
+  expor `UP` quando a rota local estiver pronta e `UNKNOWN` quando ainda houver
+  bloqueio/divergencia no ciclo reconciliado;
+- com isso, a primeira fase operacional do bloco fica encerrada no proprio
+  modulo, deixando como proximo passo a execucao real do ciclo com flags e a
+  reducao controlada do fallback da rota oficial.
+
 ### Fase 115 - Abertura fisica do `enrollment-document-service` por `transferencia`
 
 Entregue nesta fase:

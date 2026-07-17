@@ -4303,3 +4303,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   nos demais cenarios.
 - Validacao executada apenas no modulo tocado:
   `mvn -pl responsibles-service clean test`.
+
+### Fase 211
+
+- O `responsibles-service` recebeu a cobertura operacional minima do ciclo
+  reconciliado local, ainda sem escrita e sem ampliacao para BFF.
+- Foram adicionados testes dedicados para `ResponsiblesReadModelRouteGuard` e
+  para `ResponsiblesReadModelHealthIndicator`, cobrindo a prontidao da rota
+  local por aluno e a exposicao do health `responsiblesLocalPersistence`.
+- Essa fase fecha a validacao operacional minima interna do gate e do health
+  antes da execucao real das flags de backfill/reconciliacao no ambiente.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl responsibles-service clean test`.
