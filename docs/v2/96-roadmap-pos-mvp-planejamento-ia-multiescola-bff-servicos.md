@@ -8952,6 +8952,12 @@ Definicao objetiva:
   relacionados;
 - desligar qualquer dependencia residual do BFF ou de outros servicos do
   endpoint legado de autenticacao do monolito.
+- primeiro recorte executado em 17/07/2026:
+  `GET /api/auth/escolas` e `POST /api/auth/escola-ativa` no
+  `school-management-bff` deixaram de manter retorno direto ao monolito,
+  removendo `LegacyAuthSessionPort` e `LegacyAuthSessionClient`;
+  `GET /api/auth/tenant/ativa` permanece explicitamente fora desse corte e
+  segue para `D5`.
 
 ### Fase D5 - Fechamento final de `institutional-tenant-service`
 

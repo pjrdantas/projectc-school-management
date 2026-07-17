@@ -55,7 +55,6 @@ import br.com.escola.bff.application.port.out.LegacyBoletimReadPort;
 import br.com.escola.bff.application.port.out.LegacyDiarioClasseReadPort;
 import br.com.escola.bff.application.port.out.LegacyAlunoResponsavelReadPort;
 import br.com.escola.bff.application.port.out.LegacyCatalogReadPort;
-import br.com.escola.bff.application.port.out.LegacyAuthSessionPort;
 import br.com.escola.bff.application.port.out.LegacyDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.LegacyHistoricoEscolarReadPort;
 import br.com.escola.bff.application.port.out.LegacyPeriodoLetivoWritePort;
@@ -213,15 +212,11 @@ public class BffUseCaseConfiguration {
             IdentityTenantAuthContextPort authContextPort,
             SessaoAutenticadaPort identityAccessSessionPort,
             TenantAtivoReadPort institutionalTenantReadPort,
-            LegacyAuthSessionPort monolithAuthSessionPort,
-            IdentityTenantCutoverPolicyPort cutoverPolicyPort,
             IdentityTenantObservabilityPort observabilityPort) {
         return new AuthSessionProxyService(
                 authContextPort,
                 identityAccessSessionPort,
                 institutionalTenantReadPort,
-                monolithAuthSessionPort,
-                cutoverPolicyPort,
                 observabilityPort);
     }
 
@@ -230,15 +225,11 @@ public class BffUseCaseConfiguration {
             IdentityTenantAuthContextPort authContextPort,
             SessaoAutenticadaPort identityAccessSessionPort,
             TenantAtivoReadPort institutionalTenantReadPort,
-            LegacyAuthSessionPort monolithAuthSessionPort,
-            IdentityTenantCutoverPolicyPort cutoverPolicyPort,
             IdentityTenantObservabilityPort observabilityPort) {
         return new AuthSessionProxyService(
                 authContextPort,
                 identityAccessSessionPort,
                 institutionalTenantReadPort,
-                monolithAuthSessionPort,
-                cutoverPolicyPort,
                 observabilityPort);
     }
 

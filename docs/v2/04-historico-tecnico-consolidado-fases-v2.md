@@ -4723,3 +4723,32 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `PainelConfiguracao` e `ConsultaCadastral`.
 - Proxima fase operacional do ciclo fechado:
   `D4 - Fechamento final de identity-access-service`.
+
+### Fase D4
+
+- Foi iniciado o fechamento do `identity-access-service` pelo menor corte que
+  remove dependencia funcional residual do endpoint legado de autenticacao no
+  contrato publico ja oficializado: `GET /api/auth/escolas` e
+  `POST /api/auth/escola-ativa` no `school-management-bff`.
+- O `school-management-bff` deixou de manter rota direta de retorno ao
+  monolito para esse bloco de sessao oficial; essas duas rotas passam a usar
+  obrigatoriamente o fluxo novo com `identity-access-service` e
+  `institutional-tenant-service`, retornando indisponibilidade quando houver
+  falha no caminho novo.
+- Como parte do endurecimento, foram removidos do BFF a porta legada
+  `LegacyAuthSessionPort`, o adapter HTTP `LegacyAuthSessionClient` e o teste
+  de integracao que validava o retorno direto ao monolito para
+  `auth/escolas`.
+- A fase foi mantida deliberadamente fora de `tenant ativa`: o fallback e a
+  dependencia residual desse trecho continuam mapeados para `D5`, sem abrir
+  escopo adicional nesta entrega.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl school-management-bff -Dtest=AuthSessionProxyIntegrationTest,AuthSessionFallbackIntegrationTest,IdentityTenantContextFallbackObservabilityTest,IdentityTenantCutoverDeciderTest test` com sucesso.
+- Validacao complementar iniciada no modulo tocado:
+  `mvn -pl school-management-bff test`; a suite percorreu os cenarios do bloco
+  alterado e dezenas de integracoes correlatas sem falha registrada antes de
+  entrar em execucao prolongada de regressao completa.
+- Proxima fase operacional do ciclo fechado:
+  concluir o ownership interno do contexto autenticado em
+  `identity-access-service`, para eliminar a chamada residual ao
+  `/api/auth/contexto-atual` do monolito antes de abrir `D5`.

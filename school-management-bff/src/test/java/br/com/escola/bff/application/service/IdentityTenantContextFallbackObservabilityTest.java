@@ -10,13 +10,12 @@ import org.springframework.http.ResponseEntity;
 import br.com.escola.bff.application.dto.AuthSessionContext;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
-import br.com.escola.bff.application.port.out.SessaoAutenticadaPort;
 import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityTenantCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.IdentityTenantObservabilityPort;
-import br.com.escola.bff.application.port.out.TenantAtivoReadPort;
-import br.com.escola.bff.application.port.out.LegacyAuthSessionPort;
 import br.com.escola.bff.application.port.out.LegacyTenantReadPort;
+import br.com.escola.bff.application.port.out.SessaoAutenticadaPort;
+import br.com.escola.bff.application.port.out.TenantAtivoReadPort;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -27,15 +26,12 @@ public class IdentityTenantContextFallbackObservabilityTest {
         IdentityTenantAuthContextPort authContextPort = query -> Mono.error(
                 new DownstreamUnavailableException("identity indisponivel"));
         TenantAtivoReadPort institutionalPort = new NoOpTenantAtivoReadPort();
-        LegacyAuthSessionPort monolithPort = new StubLegacyAuthSessionPort();
         RecordingObservability observability = new RecordingObservability();
 
         AuthSessionProxyService service = new AuthSessionProxyService(
                 authContextPort,
                 new NoOpSessaoAutenticadaPort(),
                 institutionalPort,
-                monolithPort,
-                new FixedDecisionPolicy(IdentityTenantRoute.AUTH_ESCOLAS),
                 observability);
 
         StepVerifier.create(service.listarEscolas("Bearer token", "corr-ctx-1"))
@@ -89,7 +85,7 @@ public class IdentityTenantContextFallbackObservabilityTest {
 
         @Override
         public boolean fallbackToLegacyOnError() {
-            return true;
+            return false;
         }
     }
 
@@ -127,19 +123,6 @@ public class IdentityTenantContextFallbackObservabilityTest {
         @Override
         public Mono<ResponseEntity<String>> consultarTenantAtivo(CatalogReadQuery query, AuthSessionContext context) {
             return Mono.just(ResponseEntity.ok("institutional-tenant"));
-        }
-    }
-
-    private static final class StubLegacyAuthSessionPort implements LegacyAuthSessionPort {
-
-        @Override
-        public Mono<ResponseEntity<String>> listarEscolas(CatalogReadQuery query) {
-            return Mono.just(ResponseEntity.ok("monolith-auth"));
-        }
-
-        @Override
-        public Mono<ResponseEntity<String>> selecionarEscolaAtiva(String requestBody, CatalogReadQuery query) {
-            return Mono.just(ResponseEntity.ok("unused"));
         }
     }
 
