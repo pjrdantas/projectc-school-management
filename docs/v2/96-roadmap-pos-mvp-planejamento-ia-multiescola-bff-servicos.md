@@ -9196,6 +9196,12 @@ Definicao objetiva:
   `professor.shadow.migration.report-path` foram removidos, deixando a
   reconciliacao controlada restrita a `MigracaoService` e aos adapters de
   migracao ainda protegidos por `professor.shadow.migration.enabled`.
+- decimo recorte operacional ja executado: a origem de migracao de professores
+  deixou de apontar implicitamente para o legado. As propriedades
+  `professor.shadow.migration.source.url` e
+  `professor.shadow.migration.source.username` perderam os defaults ligados a
+  `gestao_escolar`, exigindo configuracao explicita quando a reconciliacao
+  controlada precisar ser executada.
 
 ### Fase D10 - Fechamento final de `enrollment-document-service`
 

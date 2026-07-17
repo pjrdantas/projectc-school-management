@@ -40,7 +40,7 @@ professor:
     migration:
       enabled: ${PROFESSOR_SHADOW_MIGRATION_ENABLED:false}
       source:
-        url: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
-        username: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_USERNAME:postgres}
+        url: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_URL}
+        username: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_USERNAME}
         password: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_PASSWORD:}
         driver-class-name: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}

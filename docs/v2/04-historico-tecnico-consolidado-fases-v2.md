@@ -4784,6 +4784,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   permaneceu encapsulada em `MigracaoService` e nos adapters de migracao,
   ainda atras da flag `professor.shadow.migration.enabled`, sem reabrir
   escrita nem alterar contrato externo.
+- A decima subfase operacional de `D9` removeu o alvo legado implicito da
+  configuracao de migracao do `academic-professor-service`. As propriedades
+  `professor.shadow.migration.source.url` e
+  `professor.shadow.migration.source.username` deixaram de ter valores padrao
+  apontando para `gestao_escolar`, de modo que a reconciliacao controlada so
+  pode existir quando a origem for informada explicitamente. Com isso, o
+  runtime normal deixa de carregar qualquer dependencia presumida do monolito
+  nesse bloco residual.
 - Proxima fase operacional do ciclo fechado:
   `D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF`.
 
