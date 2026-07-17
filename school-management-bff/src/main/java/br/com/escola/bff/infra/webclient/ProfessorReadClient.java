@@ -58,4 +58,54 @@ public class ProfessorReadClient extends AbstractDownstreamClientSupport impleme
                 .timeout(properties.responseTimeout())
                 .onErrorMap(error -> mapTransportError(error, "Academic professor service indisponivel"));
     }
+
+    @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> listarAlocacoesPorProfessor(
+            UUID professorId,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.get()
+                .uri("/internal/v1/professores/{professorId}/turmas-disciplinas", professorId)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Academic professor service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Academic professor service indisponivel"));
+    }
+
+    @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> listarProfessoresPorTurma(
+            UUID turmaId,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.get()
+                .uri("/internal/v1/turmas/{turmaId}/professores", turmaId)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Academic professor service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Academic professor service indisponivel"));
+    }
+
+    @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> listarFuncionariosElegiveis(
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.get()
+                .uri("/internal/v1/professores/funcionarios-elegiveis")
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Academic professor service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Academic professor service indisponivel"));
+    }
 }

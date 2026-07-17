@@ -138,6 +138,135 @@ class ProfessorReadProxyIntegrationTest {
         assertThat(professorRequest.getPath()).isEqualTo("/internal/v1/professores/" + professorId);
     }
 
+    @Test
+    void deveConsumirAcademicProfessorServiceNaListagemDeAlocacoesPorProfessor() throws InterruptedException {
+        String professorId = "00000000-0000-0000-0000-000000000011";
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao"
+                        }
+                        """));
+
+        ACADEMIC_PROFESSOR.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{
+                          "id":"00000000-0000-0000-0000-000000000041",
+                          "professorId":"00000000-0000-0000-0000-000000000011",
+                          "professorNome":"Ana Souza",
+                          "turmaDisciplinaId":"00000000-0000-0000-0000-000000000051",
+                          "turmaId":"00000000-0000-0000-0000-000000000061",
+                          "turmaNome":"1A",
+                          "disciplinaId":"00000000-0000-0000-0000-000000000071",
+                          "disciplinaNome":"Matematica",
+                          "ativo":true
+                        }]
+                        """));
+
+        client.get().uri("/api/professores/{professorId}/turmas-disciplinas", professorId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-prof-3")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].professorId").isEqualTo(professorId)
+                .jsonPath("$[0].disciplinaNome").isEqualTo("Matematica");
+
+        IDENTITY_ACCESS.takeRequest();
+        var professorRequest = ACADEMIC_PROFESSOR.takeRequest();
+        assertThat(professorRequest.getPath()).isEqualTo("/internal/v1/professores/" + professorId + "/turmas-disciplinas");
+    }
+
+    @Test
+    void deveConsumirAcademicProfessorServiceNaListagemDeProfessoresPorTurma() throws InterruptedException {
+        String turmaId = "00000000-0000-0000-0000-000000000061";
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao"
+                        }
+                        """));
+
+        ACADEMIC_PROFESSOR.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{
+                          "id":"00000000-0000-0000-0000-000000000041",
+                          "professorId":"00000000-0000-0000-0000-000000000011",
+                          "professorNome":"Ana Souza",
+                          "turmaDisciplinaId":"00000000-0000-0000-0000-000000000051",
+                          "turmaId":"00000000-0000-0000-0000-000000000061",
+                          "turmaNome":"1A",
+                          "disciplinaId":"00000000-0000-0000-0000-000000000071",
+                          "disciplinaNome":"Matematica",
+                          "ativo":true
+                        }]
+                        """));
+
+        client.get().uri("/api/turmas/{turmaId}/professores", turmaId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-prof-4")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].turmaId").isEqualTo(turmaId)
+                .jsonPath("$[0].professorNome").isEqualTo("Ana Souza");
+
+        IDENTITY_ACCESS.takeRequest();
+        var professorRequest = ACADEMIC_PROFESSOR.takeRequest();
+        assertThat(professorRequest.getPath()).isEqualTo("/internal/v1/turmas/" + turmaId + "/professores");
+    }
+
+    @Test
+    void deveConsumirAcademicProfessorServiceNaListagemDeFuncionariosElegiveis() throws InterruptedException {
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao"
+                        }
+                        """));
+
+        ACADEMIC_PROFESSOR.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{
+                          "funcionarioId":"00000000-0000-0000-0000-000000000031",
+                          "pessoaId":"00000000-0000-0000-0000-000000000021",
+                          "nomeCompleto":"Ana Souza",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao",
+                          "cargo":"Professor",
+                          "ativo":true,
+                          "elegivelProfessor":true
+                        }]
+                        """));
+
+        client.get().uri("/api/professores/funcionarios-elegiveis")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-prof-5")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].funcionarioId").isEqualTo("00000000-0000-0000-0000-000000000031")
+                .jsonPath("$[0].elegivelProfessor").isEqualTo(true);
+
+        IDENTITY_ACCESS.takeRequest();
+        var professorRequest = ACADEMIC_PROFESSOR.takeRequest();
+        assertThat(professorRequest.getPath()).isEqualTo("/internal/v1/professores/funcionarios-elegiveis");
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {

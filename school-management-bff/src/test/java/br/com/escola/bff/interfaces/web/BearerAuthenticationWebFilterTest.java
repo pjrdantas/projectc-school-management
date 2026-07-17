@@ -177,4 +177,24 @@ class BearerAuthenticationWebFilterTest {
             assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-people");
         }
     }
+
+    @Test
+    void deveProtegerNovasRotasOficiaisDeProfessorSemBearerToken() {
+        String[] paths = {
+                "/api/professores/funcionarios-elegiveis",
+                "/api/professores/00000000-0000-0000-0000-000000000011/turmas-disciplinas",
+                "/api/turmas/00000000-0000-0000-0000-000000000061/professores"
+        };
+
+        for (String path : paths) {
+            MockServerWebExchange exchange = MockServerWebExchange.from(
+                    MockServerHttpRequest.get(path)
+                            .header(TrustedHeaders.CORRELATION_ID, "corr-professor"));
+
+            StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
+
+            assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+            assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-professor");
+        }
+    }
 }

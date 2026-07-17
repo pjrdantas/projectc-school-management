@@ -8936,6 +8936,17 @@ Definicao objetiva:
 - validacao objetiva do primeiro recorte:
   `mvn -pl school-management-bff "-Dtest=ProfessorReadControllerTest,ProfessorReadProxyIntegrationTest" test"`
   com `BUILD SUCCESS`.
+- segundo recorte executado em 17/07/2026:
+  o `school-management-bff` passou a expor tambem
+  `GET /api/professores/{id}/turmas-disciplinas`,
+  `GET /api/turmas/{turmaId}/professores` e
+  `GET /api/professores/funcionarios-elegiveis` consumindo diretamente o
+  `academic-professor-service`.
+- o corte permaneceu estritamente read-only: sem escrita, sem alteracao de
+  payload publico e sem abrir escopo para dashboard ou fluxos pedagogicos.
+- validacao objetiva do segundo recorte:
+  `mvn -pl school-management-bff "-Dtest=ProfessorReadControllerTest,ProfessorReadProxyIntegrationTest,BearerAuthenticationWebFilterTest" test"`
+  com `BUILD SUCCESS`.
 
 ### Fase D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF
 

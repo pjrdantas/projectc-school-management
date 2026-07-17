@@ -4717,6 +4717,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `GET /api/professores/{professorId}` para o
   `academic-professor-service`, preservando contrato externo e mantendo o
   `people-service` apenas no papel de apoio cadastral fora desse agregado.
+- A segunda subfase operacional de `D9` expandiu esse mesmo reroteamento no
+  `school-management-bff` para `GET /api/professores/{professorId}/turmas-disciplinas`,
+  `GET /api/turmas/{turmaId}/professores` e
+  `GET /api/professores/funcionarios-elegiveis`, todos consumindo o
+  `academic-professor-service` como owner oficial e preservando os payloads
+  externos de leitura sem reabrir dependencias no `people-service`.
 - Proxima fase operacional do ciclo fechado:
   `D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF`.
 

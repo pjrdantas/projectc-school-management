@@ -13,4 +13,10 @@ public interface ProfessorReadPort {
     Mono<ResponseEntity<String>> listarProfessores(CatalogReadQuery query, AuthSessionContext context);
 
     Mono<ResponseEntity<String>> buscarProfessorPorId(UUID professorId, CatalogReadQuery query, AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> listarAlocacoesPorProfessor(UUID professorId, CatalogReadQuery query, AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> listarProfessoresPorTurma(UUID turmaId, CatalogReadQuery query, AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> listarFuncionariosElegiveis(CatalogReadQuery query, AuthSessionContext context);
 }

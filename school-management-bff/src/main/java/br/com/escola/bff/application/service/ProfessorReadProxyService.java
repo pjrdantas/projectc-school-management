@@ -38,5 +38,32 @@ public class ProfessorReadProxyService implements ConsultarProfessorUseCase {
         return authContextPort.resolve(query)
                 .flatMap(context -> professorReadPort.buscarProfessorPorId(professorId, query, context));
     }
+
+    @Override
+    public Mono<ResponseEntity<String>> listarAlocacoesPorProfessor(
+            String authorization,
+            String correlationId,
+            UUID professorId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> professorReadPort.listarAlocacoesPorProfessor(professorId, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> listarProfessoresPorTurma(
+            String authorization,
+            String correlationId,
+            UUID turmaId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> professorReadPort.listarProfessoresPorTurma(turmaId, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> listarFuncionariosElegiveis(String authorization, String correlationId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> professorReadPort.listarFuncionariosElegiveis(query, context));
+    }
 }
 
