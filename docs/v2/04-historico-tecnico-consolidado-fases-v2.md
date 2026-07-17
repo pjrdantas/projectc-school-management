@@ -4377,3 +4377,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff -Dtest=ResponsavelReadProxyIntegrationTest,AlunoResponsavelReadProxyIntegrationTest test`.
 - Contagem regressiva do ciclo fechado atual do `responsibles-service`:
   0 fases restantes.
+
+### Fase 215
+
+- Foi aberto um ciclo residual de 4 fases para concluir a resiliencia externa
+  do `pedagogical-service`, sem reabrir o escopo funcional encerrado na
+  `Fase 132` e sem criar nova escrita.
+- A Fase 1 desse ciclo adicionou no `school-management-bff` o fallback
+  read-only ao monolito para
+  `GET /api/matriculas/{matriculaId}/boletim`,
+  `GET /api/matriculas/{matriculaId}/boletim/fechamentos`,
+  `GET /api/diarios-classe`,
+  `GET /api/historicos-escolares/novo` e
+  `GET /api/historicos-escolares/{id}/carregamento`.
+- Foram adicionadas apenas portas e clients legados minimos no BFF, mantendo
+  o `pedagogical-service` como origem primaria e retornando ao monolito
+  somente em indisponibilidade do servico novo.
+- Foram adicionadas integracoes cobrindo o caminho principal via
+  `pedagogical-service` e o fallback ao monolito para `boletim`,
+  `diario-classe` e `historico-escolar`.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl school-management-bff -Dtest=PedagogicalBoletimReadProxyIntegrationTest,PedagogicalDiarioClasseReadProxyIntegrationTest,PedagogicalHistoricoEscolarReadProxyIntegrationTest test`.
+- Contagem regressiva do ciclo residual de resiliencia externa do
+  `pedagogical-service`: 3 fases restantes.

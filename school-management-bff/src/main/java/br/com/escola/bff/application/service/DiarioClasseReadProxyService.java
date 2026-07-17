@@ -6,7 +6,9 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
+import br.com.escola.bff.application.exception.DownstreamUnavailableException;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
+import br.com.escola.bff.application.port.out.MonolithDiarioClasseReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalDiarioClasseReadPort;
 import br.com.escola.bff.application.usecase.ConsultarDiarioClasseUseCase;
 import reactor.core.publisher.Mono;
@@ -15,12 +17,15 @@ public class DiarioClasseReadProxyService implements ConsultarDiarioClasseUseCas
 
     private final InternalAuthContextPort authContextPort;
     private final PedagogicalDiarioClasseReadPort pedagogicalDiarioClasseReadPort;
+    private final MonolithDiarioClasseReadPort monolithDiarioClasseReadPort;
 
     public DiarioClasseReadProxyService(
             InternalAuthContextPort authContextPort,
-            PedagogicalDiarioClasseReadPort pedagogicalDiarioClasseReadPort) {
+            PedagogicalDiarioClasseReadPort pedagogicalDiarioClasseReadPort,
+            MonolithDiarioClasseReadPort monolithDiarioClasseReadPort) {
         this.authContextPort = authContextPort;
         this.pedagogicalDiarioClasseReadPort = pedagogicalDiarioClasseReadPort;
+        this.monolithDiarioClasseReadPort = monolithDiarioClasseReadPort;
     }
 
     @Override
@@ -43,6 +48,34 @@ public class DiarioClasseReadProxyService implements ConsultarDiarioClasseUseCas
                         mes,
                         dataReferencia,
                         query,
-                        context));
+                        context)
+                        .onErrorMap(
+                                DownstreamUnavailableException.class,
+                                PedagogicalDiarioClasseReadFailureException::new))
+                .onErrorResume(DownstreamUnavailableException.class,
+                        error -> monolithDiarioClasseReadPort.carregar(
+                                professorId,
+                                turmaId,
+                                disciplinaId,
+                                anoLetivo,
+                                mes,
+                                dataReferencia,
+                                query))
+                .onErrorResume(PedagogicalDiarioClasseReadFailureException.class,
+                        error -> monolithDiarioClasseReadPort.carregar(
+                                professorId,
+                                turmaId,
+                                disciplinaId,
+                                anoLetivo,
+                                mes,
+                                dataReferencia,
+                                query));
+    }
+
+    private static final class PedagogicalDiarioClasseReadFailureException extends RuntimeException {
+
+        private PedagogicalDiarioClasseReadFailureException(DownstreamUnavailableException cause) {
+            super(cause);
+        }
     }
 }

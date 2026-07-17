@@ -5,7 +5,9 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
+import br.com.escola.bff.application.exception.DownstreamUnavailableException;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
+import br.com.escola.bff.application.port.out.MonolithHistoricoEscolarReadPort;
 import br.com.escola.bff.application.port.out.PedagogicalHistoricoEscolarReadPort;
 import br.com.escola.bff.application.usecase.ConsultarHistoricoEscolarUseCase;
 import reactor.core.publisher.Mono;
@@ -14,12 +16,15 @@ public class HistoricoEscolarReadProxyService implements ConsultarHistoricoEscol
 
     private final InternalAuthContextPort authContextPort;
     private final PedagogicalHistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort;
+    private final MonolithHistoricoEscolarReadPort monolithHistoricoEscolarReadPort;
 
     public HistoricoEscolarReadProxyService(
             InternalAuthContextPort authContextPort,
-            PedagogicalHistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort) {
+            PedagogicalHistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort,
+            MonolithHistoricoEscolarReadPort monolithHistoricoEscolarReadPort) {
         this.authContextPort = authContextPort;
         this.pedagogicalHistoricoEscolarReadPort = pedagogicalHistoricoEscolarReadPort;
+        this.monolithHistoricoEscolarReadPort = monolithHistoricoEscolarReadPort;
     }
 
     @Override
@@ -31,7 +36,14 @@ public class HistoricoEscolarReadProxyService implements ConsultarHistoricoEscol
             String modo) {
         CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
         return authContextPort.resolve(query)
-                .flatMap(context -> pedagogicalHistoricoEscolarReadPort.carregarNovo(alunoId, matriculaId, modo, query, context));
+                .flatMap(context -> pedagogicalHistoricoEscolarReadPort.carregarNovo(alunoId, matriculaId, modo, query, context)
+                        .onErrorMap(
+                                DownstreamUnavailableException.class,
+                                PedagogicalHistoricoEscolarReadFailureException::new))
+                .onErrorResume(DownstreamUnavailableException.class,
+                        error -> monolithHistoricoEscolarReadPort.carregarNovo(alunoId, matriculaId, modo, query))
+                .onErrorResume(PedagogicalHistoricoEscolarReadFailureException.class,
+                        error -> monolithHistoricoEscolarReadPort.carregarNovo(alunoId, matriculaId, modo, query));
     }
 
     @Override
@@ -41,6 +53,20 @@ public class HistoricoEscolarReadProxyService implements ConsultarHistoricoEscol
             UUID historicoEscolarId) {
         CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
         return authContextPort.resolve(query)
-                .flatMap(context -> pedagogicalHistoricoEscolarReadPort.carregarParaEdicao(historicoEscolarId, query, context));
+                .flatMap(context -> pedagogicalHistoricoEscolarReadPort.carregarParaEdicao(historicoEscolarId, query, context)
+                        .onErrorMap(
+                                DownstreamUnavailableException.class,
+                                PedagogicalHistoricoEscolarReadFailureException::new))
+                .onErrorResume(DownstreamUnavailableException.class,
+                        error -> monolithHistoricoEscolarReadPort.carregarParaEdicao(historicoEscolarId, query))
+                .onErrorResume(PedagogicalHistoricoEscolarReadFailureException.class,
+                        error -> monolithHistoricoEscolarReadPort.carregarParaEdicao(historicoEscolarId, query));
+    }
+
+    private static final class PedagogicalHistoricoEscolarReadFailureException extends RuntimeException {
+
+        private PedagogicalHistoricoEscolarReadFailureException(DownstreamUnavailableException cause) {
+            super(cause);
+        }
     }
 }

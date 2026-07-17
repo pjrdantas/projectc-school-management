@@ -49,10 +49,13 @@ import br.com.escola.bff.application.port.out.MonolithDashboardIndicadorSnapshot
 import br.com.escola.bff.application.port.out.MonolithDashboardProfessorReadPort;
 import br.com.escola.bff.application.port.out.MonolithDashboardPublicoReadPort;
 import br.com.escola.bff.application.port.out.MonolithDashboardSecretariaReadPort;
+import br.com.escola.bff.application.port.out.MonolithBoletimReadPort;
+import br.com.escola.bff.application.port.out.MonolithDiarioClasseReadPort;
 import br.com.escola.bff.application.port.out.MonolithAlunoResponsavelReadPort;
 import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
 import br.com.escola.bff.application.port.out.MonolithAuthSessionPort;
 import br.com.escola.bff.application.port.out.MonolithDisciplinaWritePort;
+import br.com.escola.bff.application.port.out.MonolithHistoricoEscolarReadPort;
 import br.com.escola.bff.application.port.out.MonolithPeriodoLetivoWritePort;
 import br.com.escola.bff.application.port.out.MonolithResponsavelReadPort;
 import br.com.escola.bff.application.port.out.MonolithSerieWritePort;
@@ -387,8 +390,12 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarBoletimUseCase consultarBoletimUseCase(
             InternalAuthContextPort authContextPort,
-            PedagogicalBoletimReadPort pedagogicalBoletimReadPort) {
-        return new BoletimReadProxyService(authContextPort, pedagogicalBoletimReadPort);
+            PedagogicalBoletimReadPort pedagogicalBoletimReadPort,
+            MonolithBoletimReadPort monolithBoletimReadPort) {
+        return new BoletimReadProxyService(
+                authContextPort,
+                pedagogicalBoletimReadPort,
+                monolithBoletimReadPort);
     }
 
     @Bean
@@ -422,8 +429,12 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarDiarioClasseUseCase consultarDiarioClasseUseCase(
             InternalAuthContextPort authContextPort,
-            PedagogicalDiarioClasseReadPort pedagogicalDiarioClasseReadPort) {
-        return new DiarioClasseReadProxyService(authContextPort, pedagogicalDiarioClasseReadPort);
+            PedagogicalDiarioClasseReadPort pedagogicalDiarioClasseReadPort,
+            MonolithDiarioClasseReadPort monolithDiarioClasseReadPort) {
+        return new DiarioClasseReadProxyService(
+                authContextPort,
+                pedagogicalDiarioClasseReadPort,
+                monolithDiarioClasseReadPort);
     }
 
     @Bean
@@ -436,8 +447,12 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarHistoricoEscolarUseCase consultarHistoricoEscolarUseCase(
             InternalAuthContextPort authContextPort,
-            PedagogicalHistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort) {
-        return new HistoricoEscolarReadProxyService(authContextPort, pedagogicalHistoricoEscolarReadPort);
+            PedagogicalHistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort,
+            MonolithHistoricoEscolarReadPort monolithHistoricoEscolarReadPort) {
+        return new HistoricoEscolarReadProxyService(
+                authContextPort,
+                pedagogicalHistoricoEscolarReadPort,
+                monolithHistoricoEscolarReadPort);
     }
 
     @Bean

@@ -123,6 +123,70 @@ class PedagogicalHistoricoEscolarReadProxyIntegrationTest {
         assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
+    @Test
+    void deveFazerFallbackParaMonolitoNoCarregamentoNovoQuandoPedagogicalServiceFalhar() throws InterruptedException {
+        UUID alunoId = UUID.randomUUID();
+        UUID matriculaId = UUID.randomUUID();
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"contexto":{"idAluno":"%s","idMatricula":"%s","modo":"CADASTRO"}}
+                        """.formatted(alunoId, matriculaId)));
+
+        client.get().uri(uriBuilder -> uriBuilder.path("/api/historicos-escolares/novo")
+                        .queryParam("idAluno", alunoId)
+                        .queryParam("idMatricula", matriculaId)
+                        .build())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-history-3")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.contexto.idAluno").isEqualTo(alunoId.toString());
+
+        assertThat(PEDAGOGICAL.takeRequest().getPath()).isEqualTo(
+                "/internal/v1/historicos-escolares/novo?idAluno=" + alunoId + "&idMatricula=" + matriculaId + "&modo=CADASTRO");
+        assertThat(MONOLITH.takeRequest().getPath()).isEqualTo(
+                "/api/historicos-escolares/novo?idAluno=" + alunoId + "&idMatricula=" + matriculaId + "&modo=CADASTRO");
+    }
+
+    @Test
+    void deveFazerFallbackParaMonolitoNoCarregamentoDeEdicaoQuandoPedagogicalServiceFalhar() throws InterruptedException {
+        UUID historicoId = UUID.randomUUID();
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"contexto":{"idHistoricoEscolar":"%s","modo":"EDICAO"}}
+                        """.formatted(historicoId)));
+
+        client.get().uri("/api/historicos-escolares/{id}/carregamento", historicoId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-history-4")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.contexto.idHistoricoEscolar").isEqualTo(historicoId.toString());
+
+        assertThat(PEDAGOGICAL.takeRequest().getPath()).isEqualTo("/internal/v1/historicos-escolares/" + historicoId + "/carregamento");
+        assertThat(MONOLITH.takeRequest().getPath()).isEqualTo("/api/historicos-escolares/" + historicoId + "/carregamento");
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {

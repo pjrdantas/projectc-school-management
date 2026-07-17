@@ -8674,3 +8674,36 @@ restante.
 
 Contagem regressiva do ciclo fechado atual do `responsibles-service`: 0 fases
 restantes.
+
+### Fase 215 - Abertura do ciclo residual de resiliencia externa do `pedagogical-service`
+
+- o `pedagogical-service` ja havia sido encerrado funcionalmente na `Fase 132`;
+  o novo ciclo aberto agora nao reabre escopo de dominio nem cria escrita nova:
+  ele trata apenas do fechamento operacional externo no `school-management-bff`;
+- para concluir esse fechamento residual com menor risco, o ciclo foi dividido
+  em 4 fases exatas:
+  1. fallback read-only de `boletim`, `diario-classe` e
+     `historico-escolar`;
+  2. fallback read-only de `aulas` e `avaliacoes`;
+  3. consolidacao dos testes objetivos de indisponibilidade do bloco de leitura
+     pedagogico;
+  4. fechamento documental do ciclo residual;
+- nesta primeira fase, o `school-management-bff` passou a tratar como recorte
+  externo seguro com fallback ao monolito os contratos
+  `GET /api/matriculas/{matriculaId}/boletim`,
+  `GET /api/matriculas/{matriculaId}/boletim/fechamentos`,
+  `GET /api/diarios-classe`,
+  `GET /api/historicos-escolares/novo` e
+  `GET /api/historicos-escolares/{id}/carregamento`;
+- foram adicionados apenas ports e clients legados minimos no BFF para esses
+  endpoints, sem alterar payloads externos, sem tocar frontend e sem criar
+  fallback de escrita;
+- `BoletimReadProxyService`, `DiarioClasseReadProxyService` e
+  `HistoricoEscolarReadProxyService` passaram a priorizar o
+  `pedagogical-service`, retornando ao monolito quando houver
+  indisponibilidade do servico novo, preservando o contrato publico atual;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff -Dtest=PedagogicalBoletimReadProxyIntegrationTest,PedagogicalDiarioClasseReadProxyIntegrationTest,PedagogicalHistoricoEscolarReadProxyIntegrationTest test`.
+
+Contagem regressiva do ciclo residual de resiliencia externa do
+`pedagogical-service`: 3 fases restantes.

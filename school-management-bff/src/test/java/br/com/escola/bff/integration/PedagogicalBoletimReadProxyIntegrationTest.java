@@ -143,6 +143,80 @@ class PedagogicalBoletimReadProxyIntegrationTest {
         assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
+    @Test
+    void deveFazerFallbackParaMonolitoNaConsultaDeBoletimQuandoPedagogicalServiceFalhar() throws InterruptedException {
+        UUID matriculaId = UUID.randomUUID();
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao"
+                        }
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "matriculaId":"%s",
+                          "alunoNome":"Aluno Monolito",
+                          "itens":[{"disciplinaNome":"Historia"}]
+                        }
+                        """.formatted(matriculaId)));
+
+        client.get().uri("/api/matriculas/{matriculaId}/boletim", matriculaId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-bff-fallback-1")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.alunoNome").isEqualTo("Aluno Monolito");
+
+        assertThat(PEDAGOGICAL.takeRequest().getPath()).isEqualTo("/internal/v1/matriculas/" + matriculaId + "/boletim");
+        assertThat(MONOLITH.takeRequest().getPath()).isEqualTo("/api/matriculas/" + matriculaId + "/boletim");
+    }
+
+    @Test
+    void deveFazerFallbackParaMonolitoNaListagemDeFechamentosQuandoPedagogicalServiceFalhar() throws InterruptedException {
+        UUID matriculaId = UUID.randomUUID();
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao"
+                        }
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{
+                          "matriculaId":"%s",
+                          "periodoReferencia":"2BIM",
+                          "persistido":true
+                        }]
+                        """.formatted(matriculaId)));
+
+        client.get().uri("/api/matriculas/{matriculaId}/boletim/fechamentos", matriculaId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-bff-fallback-2")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].periodoReferencia").isEqualTo("2BIM");
+
+        assertThat(PEDAGOGICAL.takeRequest().getPath()).isEqualTo("/internal/v1/matriculas/" + matriculaId + "/boletim/fechamentos");
+        assertThat(MONOLITH.takeRequest().getPath()).isEqualTo("/api/matriculas/" + matriculaId + "/boletim/fechamentos");
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {

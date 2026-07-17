@@ -96,6 +96,49 @@ class PedagogicalDiarioClasseReadProxyIntegrationTest {
         assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
+    @Test
+    void deveFazerFallbackParaMonolitoNaLeituraDeDiarioClasseQuandoPedagogicalServiceFalhar() throws InterruptedException {
+        UUID professorId = UUID.randomUUID();
+        UUID turmaId = UUID.randomUUID();
+        UUID disciplinaId = UUID.randomUUID();
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"cabecalho":{"idProfessor":"%s","idTurma":"%s","idDisciplina":"%s","anoLetivo":2058,"mes":6},"alunos":[{"nome":"Aluno Diario Monolito"}],"bloqueado":true}
+                        """.formatted(professorId, turmaId, disciplinaId)));
+
+        client.get().uri(uriBuilder -> uriBuilder.path("/api/diarios-classe")
+                        .queryParam("idProfessor", professorId)
+                        .queryParam("idTurma", turmaId)
+                        .queryParam("idDisciplina", disciplinaId)
+                        .queryParam("anoLetivo", 2058)
+                        .queryParam("mes", 6)
+                        .queryParam("dataReferencia", "2058-06-26")
+                        .build())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-diario-read-2")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.alunos[0].nome").isEqualTo("Aluno Diario Monolito")
+                .jsonPath("$.bloqueado").isEqualTo(true);
+
+        String expectedPath = "/api/diarios-classe?idProfessor=" + professorId
+                + "&idTurma=" + turmaId
+                + "&idDisciplina=" + disciplinaId
+                + "&anoLetivo=2058&mes=6&dataReferencia=2058-06-26";
+        assertThat(PEDAGOGICAL.takeRequest().getPath()).isEqualTo(expectedPath.replace("/api/", "/internal/v1/"));
+        assertThat(MONOLITH.takeRequest().getPath()).isEqualTo(expectedPath);
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {
