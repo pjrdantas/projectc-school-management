@@ -5,7 +5,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import br.com.escola.pedagogicalservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.pedagogicalservice.application.exception.InternalApiUnauthorizedException;
 import br.com.escola.pedagogicalservice.application.exception.InvalidRequestContextException;
 import br.com.escola.pedagogicalservice.application.exception.RecursoNaoEncontradoException;
@@ -30,12 +29,6 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleNotFound(RecursoNaoEncontradoException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ApiErrorResponse("RESOURCE_NOT_FOUND", exception.getMessage()));
-    }
-
-    @ExceptionHandler(DownstreamUnavailableException.class)
-    public ResponseEntity<ApiErrorResponse> handleUnavailable(DownstreamUnavailableException exception) {
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(new ApiErrorResponse("DOWNSTREAM_UNAVAILABLE", exception.getMessage()));
     }
 }
 

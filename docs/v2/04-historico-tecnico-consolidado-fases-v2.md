@@ -4825,6 +4825,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Proxima fase operacional do ciclo fechado:
   `D11 - Fechamento final de pedagogical-service`.
 
+### Fase D11
+
+- O `pedagogical-service` foi fechado sem dependencia funcional do monolito no
+  runtime: foram removidos os clients `OrigemAtual*` de `aulas`,
+  `avaliacoes`, `boletim`, `diario-classe` e `historicos-escolares`, junto da
+  configuracao `PEDAGOGICAL_MONOLITH_BASE_URL`.
+- O modulo passou a sustentar localmente os contratos internos de `aulas`,
+  `frequencias`, `avaliacoes`, `notas`, `diario-classe`, `boletim` e
+  `historicos-escolares` por schema Flyway proprio, entidades JPA,
+  repositorios e adapters locais por porta.
+- A suite de integracao do modulo foi reescrita para validar o contrato
+  oficial sobre persistencia H2/Flyway local, sem `MockWebServer` nem proxy do
+  legado dentro do servico.
+- Validacao executada apenas no modulo tocado para concluir `D11`:
+  `mvn -pl pedagogical-service -DskipTests compile` e
+  `mvn -pl pedagogical-service test`, ambos com `BUILD SUCCESS`.
+- Proxima fase operacional do ciclo fechado:
+  `D12 - Fechamento final de planning-ai-service`.
+
 ### Fase D3
 
 - O `school-management-bff` deixou de usar fallback operacional ao monolito

@@ -1,6 +1,17 @@
 spring:
   application:
     name: pedagogical-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:pedagogical_service;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.h2.Driver}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
 
 server:
   port: 8095
@@ -14,7 +25,3 @@ management:
 pedagogical:
   internal-api:
     token: ${PEDAGOGICAL_INTERNAL_API_TOKEN:pedagogical-internal-local-token}
-  monolith:
-    base-url: ${PEDAGOGICAL_MONOLITH_BASE_URL:http://localhost:8080}
-    connect-timeout: ${PEDAGOGICAL_MONOLITH_CONNECT_TIMEOUT:2s}
-    read-timeout: ${PEDAGOGICAL_MONOLITH_READ_TIMEOUT:5s}

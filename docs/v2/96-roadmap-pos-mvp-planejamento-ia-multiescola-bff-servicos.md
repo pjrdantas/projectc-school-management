@@ -8856,7 +8856,7 @@ Definicao objetiva:
 | `/api/responsaveis`, `/api/responsaveis/{id}`, `/api/alunos/{alunoId}/responsaveis` | `responsibles-service` | BFF ainda mantem `ResponsavelReadProxyService` e `AlunoResponsavelReadProxyService` com portas legadas; `responsibles-service` ainda usa `OrigemAtualResponsavelReadClient` e backfill local por `source-url` | executar `D8`, removendo fallback do BFF e concluindo ownership local de leitura/escrita | BFF sem `LegacyResponsavelReadPort`/`LegacyAlunoResponsavelReadPort` e servico sem `RESPONSIBLES_MONOLITH_BASE_URL` nem `RESPONSIBLES_READ_MODEL_SOURCE_URL` |
 | `/api/professores/**` e alocacoes por professor/turma | `academic-professor-service` | ownership final fechado em `D9`; leitura/escrita locais ja operam sem clientes legados do monolito, usando apenas `people-service` como apoio cadastral e `academic-catalog-service` como referencia oficial de turma/turma-disciplina | concluido | nao resta `PROFESSOR_SHADOW_MONOLITH_BASE_URL`, client `Legacy*` nem fallback shadow em producao |
 | `/api/escolas-origem`, `/api/transferencias`, `/api/documentos-alunos/**`, `/api/matriculas`, `/api/documentos` | `enrollment-document-service` | ownership local concluido; leitura e escrita interna do bloco operam por persistencia propria do servico | concluido | nao resta `ENROLLMENT_DOCUMENT_MONOLITH_BASE_URL`, client `OrigemAtualTransferenciaClient` nem dependencia funcional do monolito no runtime do servico |
-| `/api/avaliacoes/**`, `/api/aulas/**`, `/api/diarios-classe/**`, `/api/historicos-escolares/**`, `/api/matriculas/{matriculaId}/boletim**` | `pedagogical-service` | `pedagogical-service` ainda usa `OrigemAtualAulaClient`, `OrigemAtualAvaliacaoClient`, `OrigemAtualBoletimReadClient`, `OrigemAtualDiarioClasseReadClient`, `OrigemAtualDiarioClasseWriteClient`, `OrigemAtualHistoricoEscolarReadClient` e `OrigemAtualHistoricoEscolarWriteClient`; BFF ainda mantem proxies legados dessas familias | executar `D11` e remover os proxies legados correlatos no BFF | servico sem `PEDAGOGICAL_MONOLITH_BASE_URL` e BFF sem portas legadas dessas familias |
+| `/api/avaliacoes/**`, `/api/aulas/**`, `/api/diarios-classe/**`, `/api/historicos-escolares/**`, `/api/matriculas/{matriculaId}/boletim**` | `pedagogical-service` | ownership local concluido no runtime do servico para `aulas`, `frequencias`, `avaliacoes`, `notas`, `diario-classe`, `boletim` e `historicos-escolares` | concluido no servico; o endurecimento/remocao final de portas legadas do BFF segue como corte externo posterior | nao resta `PEDAGOGICAL_MONOLITH_BASE_URL`, client `OrigemAtual*` nem dependencia funcional do monolito no runtime do servico |
 | `/api/dashboard/**` | `dashboard-query-service` | `dashboard-query-service` ainda consulta a origem legada por `OrigemAtualPainel*Client`; BFF ainda mantem `Painel*ReadProxyService` com portas legadas paralelas | executar `D3` no BFF e `D13` no servico | nao restar `DASHBOARD_QUERY_MONOLITH_BASE_URL`, `LegacyPainel*ReadPort` nem clients `OrigemAtualPainel*Client` |
 | `/api/biblioteca-conteudos-pedagogicos`, `/api/planejamentos-bimestrais/*/ia/**`, `/api/ia/conteudos/**` | `planning-ai-service` | `planning-ai-service` ainda usa `OrigemAtualPlanejamentoReadClient` e sincronizacao de leitura por `LeituraModeloSyncService`; BFF continua fachada dos contratos externos | executar `D12`, internalizando a leitura oficial e removendo a origem legada | servico sem `PLANNING_AI_MONOLITH_BASE_URL` e sem sincronizacao dependente da origem legada |
 | Backfill e reconciliacao do read model de pessoas | `people-service` | `LeituraModeloMigrationRunner`, `LeituraModeloSyncStartupRunner`, `JdbcCatalogoReadModelSyncAdapter` e `PEOPLE_READ_MODEL_SOURCE_URL` ainda dependem da origem legada | desligar bootstrap/backfill quando a leitura local for soberana e sem reconciliacao externa | nenhuma feature runtime de pessoas pode exigir `source-url` do legado para subir ou operar |
@@ -9235,11 +9235,23 @@ Definicao objetiva:
 
 ### Fase D11 - Fechamento final de `pedagogical-service`
 
-- avancar do encerramento atual de leitura/fallback para autonomia completa de
-  `aulas`, `frequencias`, `avaliacoes`, `notas`, `diario-classe`, `boletim` e
-  `historicos-escolares`, removendo qualquer escrita ou leitura ainda delegada
-  ao monolito;
-- ao final, o BFF nao pode mais precisar de fallback pedagogico legado.
+- O `pedagogical-service` deixou de depender dos clients legados
+  `OrigemAtualAulaClient`, `OrigemAtualAvaliacaoClient`,
+  `OrigemAtualBoletimReadClient`, `OrigemAtualDiarioClasseReadClient`,
+  `OrigemAtualDiarioClasseWriteClient`,
+  `OrigemAtualHistoricoEscolarReadClient` e
+  `OrigemAtualHistoricoEscolarWriteClient`.
+- O modulo passou a sustentar localmente os contratos internos de `aulas`,
+  `frequencias`, `avaliacoes`, `notas`, `diario-classe`, `boletim` e
+  `historicos-escolares` com schema Flyway proprio, entidades JPA,
+  repositorios e adapters finos por porta sobre uma persistencia local unica.
+- O `application.yml` do modulo deixou de expor
+  `PEDAGOGICAL_MONOLITH_BASE_URL`, e a suite de integracao do servico foi
+  reescrita para validar o contrato oficial sobre H2/Flyway local em vez de
+  `MockWebServer` e `RestClient` contra o monolito.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl pedagogical-service -DskipTests compile` e
+  `mvn -pl pedagogical-service test`, ambos com `BUILD SUCCESS`.
 
 ### Fase D12 - Fechamento final de `planning-ai-service`
 
