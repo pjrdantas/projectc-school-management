@@ -7,16 +7,16 @@ import org.springframework.stereotype.Service;
 import br.com.escola.institutionaltenantservice.application.context.InternalRequestContext;
 import br.com.escola.institutionaltenantservice.application.dto.TenantAtivoResponse;
 import br.com.escola.institutionaltenantservice.application.dto.TenantEscolaResponse;
-import br.com.escola.institutionaltenantservice.application.exception.InstitutionalTenantServiceResourceNotFoundException;
-import br.com.escola.institutionaltenantservice.application.port.in.InstitutionalTenantUseCase;
-import br.com.escola.institutionaltenantservice.application.port.out.InstitutionalTenantPort;
+import br.com.escola.institutionaltenantservice.application.exception.RecursoNaoEncontradoException;
+import br.com.escola.institutionaltenantservice.application.port.in.TenantSessaoUseCase;
+import br.com.escola.institutionaltenantservice.application.port.out.TenantSessaoPort;
 
 @Service
-public class InstitutionalTenantService implements InstitutionalTenantUseCase {
+public class TenantSessaoService implements TenantSessaoUseCase {
 
-    private final InstitutionalTenantPort institutionalTenantPort;
+    private final TenantSessaoPort institutionalTenantPort;
 
-    public InstitutionalTenantService(InstitutionalTenantPort institutionalTenantPort) {
+    public TenantSessaoService(TenantSessaoPort institutionalTenantPort) {
         this.institutionalTenantPort = institutionalTenantPort;
     }
 
@@ -31,7 +31,8 @@ public class InstitutionalTenantService implements InstitutionalTenantUseCase {
                 .filter(TenantEscolaResponse::ativa)
                 .findFirst()
                 .map(escola -> new TenantAtivoResponse(escola.escolaId(), escola.escolaNome()))
-                .orElseThrow(() -> new InstitutionalTenantServiceResourceNotFoundException(
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Tenant ativo nao encontrado para a sessao informada"));
     }
 }
+

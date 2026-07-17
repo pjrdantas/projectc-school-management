@@ -7,7 +7,7 @@ import br.com.escola.identityaccessservice.application.context.InternalRequestCo
 import br.com.escola.identityaccessservice.application.dto.AuthContextResponse;
 import br.com.escola.identityaccessservice.application.dto.EscolaSessaoResponse;
 
-public interface IdentityAccessPort {
+public interface SessaoAutenticadaPort {
 
     AuthContextResponse consultarContextoAtual(
             String authorization,
@@ -22,3 +22,4 @@ public interface IdentityAccessPort {
             InternalRequestContext context,
             UUID escolaId);
 }
+

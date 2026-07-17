@@ -12,15 +12,15 @@ import org.springframework.web.client.RestClientResponseException;
 import br.com.escola.institutionaltenantservice.application.context.InternalRequestContext;
 import br.com.escola.institutionaltenantservice.application.dto.TenantEscolaResponse;
 import br.com.escola.institutionaltenantservice.application.exception.DownstreamUnavailableException;
-import br.com.escola.institutionaltenantservice.application.exception.InstitutionalTenantServiceResourceNotFoundException;
-import br.com.escola.institutionaltenantservice.application.port.out.InstitutionalTenantPort;
+import br.com.escola.institutionaltenantservice.application.exception.RecursoNaoEncontradoException;
+import br.com.escola.institutionaltenantservice.application.port.out.TenantSessaoPort;
 
 @Component
-public class MonolithInstitutionalTenantClient implements InstitutionalTenantPort {
+public class LegacyTenantSessaoClient implements TenantSessaoPort {
 
     private final RestClient restClient;
 
-    public MonolithInstitutionalTenantClient(RestClient institutionalTenantMonolithRestClient) {
+    public LegacyTenantSessaoClient(RestClient institutionalTenantMonolithRestClient) {
         this.restClient = institutionalTenantMonolithRestClient;
     }
 
@@ -38,7 +38,7 @@ public class MonolithInstitutionalTenantClient implements InstitutionalTenantPor
             return response == null ? List.of() : response;
         } catch (RestClientResponseException exception) {
             if (exception.getStatusCode().value() == 404) {
-                throw new InstitutionalTenantServiceResourceNotFoundException(
+                throw new RecursoNaoEncontradoException(
                         "Consulta de escolas disponiveis nao encontrada");
             }
             throw exception;
@@ -47,3 +47,4 @@ public class MonolithInstitutionalTenantClient implements InstitutionalTenantPor
         }
     }
 }
+

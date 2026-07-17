@@ -9033,6 +9033,25 @@ Quantidade fechada deste ciclo preparatorio: **8 fases**.
   desses dois servicos para que o nome reflita apenas o papel local do modulo;
 - impedir que o proprio nome do dominio vaze desnecessariamente para toda a
   arvore de classes.
+- conclusao operacional da fase:
+  - o `identity-access-service` teve rename estrutural de `application`,
+    `usecase`, `port`, `controller`, `exception handler`, `exception`,
+    `webclient`, `configuration` e teste para remover `IdentityAccess*` e
+    `Monolith*` do nome das classes;
+  - o `institutional-tenant-service` teve o mesmo saneamento estrutural para
+    remover `InstitutionalTenant*` e `Monolith*` do nome das classes, mantendo
+    apenas nomes alinhados ao papel local de sessao/tenant do runtime;
+  - as chaves externas de configuracao foram preservadas; a limpeza ficou
+    restrita aos identificadores Java dos dois modulos;
+  - a busca estrutural por `class|record|interface|enum` nao encontrou mais
+    classes Java nesses dois modulos com `IdentityAccess`, `InstitutionalTenant`
+    ou `Monolith` no nome.
+- validacao executada nos modulos tocados:
+  - `mvn -pl identity-access-service -DskipTests compile`: sucesso;
+  - `mvn -pl identity-access-service clean test`: sucesso;
+  - `mvn -pl institutional-tenant-service -DskipTests compile`: sucesso;
+  - `mvn -pl institutional-tenant-service clean test`: sucesso.
+- contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 5.
 
 ### Fase N4 - Saneamento nominal de `academic-catalog-service` e `academic-professor-service`
 

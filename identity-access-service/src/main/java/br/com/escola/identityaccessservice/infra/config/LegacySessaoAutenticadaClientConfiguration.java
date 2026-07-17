@@ -6,10 +6,10 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 @Configuration
-public class MonolithIdentityAccessClientConfiguration {
+public class LegacySessaoAutenticadaClientConfiguration {
 
     @Bean
-    RestClient monolithIdentityAccessRestClient(MonolithIdentityAccessClientProperties properties) {
+    RestClient monolithIdentityAccessRestClient(LegacySessaoAutenticadaClientProperties properties) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Math.toIntExact(properties.connectTimeout().toMillis()));
         factory.setReadTimeout(Math.toIntExact(properties.readTimeout().toMillis()));
@@ -20,3 +20,4 @@ public class MonolithIdentityAccessClientConfiguration {
                 .build();
     }
 }
+

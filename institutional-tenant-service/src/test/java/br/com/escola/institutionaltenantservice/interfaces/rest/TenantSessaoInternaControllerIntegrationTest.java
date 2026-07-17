@@ -25,7 +25,7 @@ import okhttp3.mockwebserver.RecordedRequest;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class InstitutionalTenantInternalControllerIntegrationTest {
+class TenantSessaoInternaControllerIntegrationTest {
 
     private static MockWebServer mockWebServer;
 
@@ -134,3 +134,4 @@ class InstitutionalTenantInternalControllerIntegrationTest {
         return recorded;
     }
 }
+

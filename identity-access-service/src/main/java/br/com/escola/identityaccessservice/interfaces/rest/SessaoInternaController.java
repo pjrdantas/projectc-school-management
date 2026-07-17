@@ -17,16 +17,16 @@ import br.com.escola.identityaccessservice.application.context.InternalRequestCo
 import br.com.escola.identityaccessservice.application.dto.AuthContextResponse;
 import br.com.escola.identityaccessservice.application.dto.EscolaSessaoResponse;
 import br.com.escola.identityaccessservice.application.dto.SelecionarEscolaAtivaRequest;
-import br.com.escola.identityaccessservice.application.port.in.IdentityAccessUseCase;
+import br.com.escola.identityaccessservice.application.port.in.SessaoAutenticadaUseCase;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping({ "/internal/v1", "/internal" })
-public class IdentityAccessInternalController {
+public class SessaoInternaController {
 
-    private final IdentityAccessUseCase identityAccessUseCase;
+    private final SessaoAutenticadaUseCase identityAccessUseCase;
 
-    public IdentityAccessInternalController(IdentityAccessUseCase identityAccessUseCase) {
+    public SessaoInternaController(SessaoAutenticadaUseCase identityAccessUseCase) {
         this.identityAccessUseCase = identityAccessUseCase;
     }
 
@@ -55,3 +55,4 @@ public class IdentityAccessInternalController {
                 request.escolaId()));
     }
 }
+

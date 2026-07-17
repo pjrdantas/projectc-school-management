@@ -6,9 +6,10 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-public class IdentityAccessServiceApplication {
+public class Application {
 
     public static void main(String[] args) {
-        SpringApplication.run(IdentityAccessServiceApplication.class, args);
+        SpringApplication.run(Application.class, args);
     }
 }
+

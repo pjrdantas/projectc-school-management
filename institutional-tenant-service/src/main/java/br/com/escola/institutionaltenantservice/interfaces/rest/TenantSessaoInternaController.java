@@ -13,15 +13,15 @@ import br.com.escola.institutionaltenantservice.application.context.InternalHead
 import br.com.escola.institutionaltenantservice.application.context.InternalRequestContext;
 import br.com.escola.institutionaltenantservice.application.dto.TenantAtivoResponse;
 import br.com.escola.institutionaltenantservice.application.dto.TenantEscolaResponse;
-import br.com.escola.institutionaltenantservice.application.port.in.InstitutionalTenantUseCase;
+import br.com.escola.institutionaltenantservice.application.port.in.TenantSessaoUseCase;
 
 @RestController
 @RequestMapping({ "/internal/v1", "/internal" })
-public class InstitutionalTenantInternalController {
+public class TenantSessaoInternaController {
 
-    private final InstitutionalTenantUseCase institutionalTenantUseCase;
+    private final TenantSessaoUseCase institutionalTenantUseCase;
 
-    public InstitutionalTenantInternalController(InstitutionalTenantUseCase institutionalTenantUseCase) {
+    public TenantSessaoInternaController(TenantSessaoUseCase institutionalTenantUseCase) {
         this.institutionalTenantUseCase = institutionalTenantUseCase;
     }
 
@@ -39,3 +39,4 @@ public class InstitutionalTenantInternalController {
         return institutionalTenantUseCase.consultarTenantAtivo(authorization, context);
     }
 }
+

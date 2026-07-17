@@ -6,12 +6,12 @@ import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "identity-access.monolith")
-public record MonolithIdentityAccessClientProperties(
+public record LegacySessaoAutenticadaClientProperties(
         URI baseUrl,
         Duration connectTimeout,
         Duration readTimeout) {
 
-    public MonolithIdentityAccessClientProperties {
+    public LegacySessaoAutenticadaClientProperties {
         if (baseUrl == null) {
             baseUrl = URI.create("http://localhost:8080");
         }
@@ -23,3 +23,4 @@ public record MonolithIdentityAccessClientProperties(
         }
     }
 }
+

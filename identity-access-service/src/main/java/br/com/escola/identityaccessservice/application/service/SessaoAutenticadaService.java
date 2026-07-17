@@ -8,15 +8,15 @@ import org.springframework.stereotype.Service;
 import br.com.escola.identityaccessservice.application.context.InternalRequestContext;
 import br.com.escola.identityaccessservice.application.dto.AuthContextResponse;
 import br.com.escola.identityaccessservice.application.dto.EscolaSessaoResponse;
-import br.com.escola.identityaccessservice.application.port.in.IdentityAccessUseCase;
-import br.com.escola.identityaccessservice.application.port.out.IdentityAccessPort;
+import br.com.escola.identityaccessservice.application.port.in.SessaoAutenticadaUseCase;
+import br.com.escola.identityaccessservice.application.port.out.SessaoAutenticadaPort;
 
 @Service
-public class IdentityAccessService implements IdentityAccessUseCase {
+public class SessaoAutenticadaService implements SessaoAutenticadaUseCase {
 
-    private final IdentityAccessPort identityAccessPort;
+    private final SessaoAutenticadaPort identityAccessPort;
 
-    public IdentityAccessService(IdentityAccessPort identityAccessPort) {
+    public SessaoAutenticadaService(SessaoAutenticadaPort identityAccessPort) {
         this.identityAccessPort = identityAccessPort;
     }
 
@@ -42,3 +42,4 @@ public class IdentityAccessService implements IdentityAccessUseCase {
         return identityAccessPort.selecionarEscolaAtiva(authorization, context, escolaId);
     }
 }
+

@@ -4512,3 +4512,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `ConsultaCadastralReadProxyIntegrationTest`.
 - Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura:
   6 fases restantes.
+
+### Fase N3
+
+- `identity-access-service` e `institutional-tenant-service` passaram pelo
+  saneamento nominal das classes para remover designacoes do proprio dominio e
+  do monolito quando isso nao representava o papel local da classe.
+- No `identity-access-service`, o rename atingiu `application`, `usecase`,
+  `port`, `controller`, `exception handler`, `exception`, `webclient`,
+  `configuration` e teste de integracao.
+- No `institutional-tenant-service`, o rename atingiu os mesmos pontos,
+  preservando apenas nomes ligados ao papel local de sessao/tenant do runtime.
+- A fase preservou as chaves externas de configuracao e limitou a mudanca aos
+  identificadores Java internos de cada modulo.
+- Validacao executada apenas nos modulos tocados:
+  `mvn -pl identity-access-service -DskipTests compile`,
+  `mvn -pl identity-access-service clean test`,
+  `mvn -pl institutional-tenant-service -DskipTests compile` e
+  `mvn -pl institutional-tenant-service clean test`, todos com sucesso.
+- Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura:
+  5 fases restantes.

@@ -6,9 +6,10 @@ import br.com.escola.institutionaltenantservice.application.context.InternalRequ
 import br.com.escola.institutionaltenantservice.application.dto.TenantAtivoResponse;
 import br.com.escola.institutionaltenantservice.application.dto.TenantEscolaResponse;
 
-public interface InstitutionalTenantUseCase {
+public interface TenantSessaoUseCase {
 
     List<TenantEscolaResponse> listarEscolasDisponiveis(String authorization, InternalRequestContext context);
 
     TenantAtivoResponse consultarTenantAtivo(String authorization, InternalRequestContext context);
 }
+

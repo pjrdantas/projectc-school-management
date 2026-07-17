@@ -6,7 +6,7 @@ import br.com.escola.identityaccessservice.application.context.InternalRequestCo
 import br.com.escola.identityaccessservice.application.dto.AuthContextResponse;
 import br.com.escola.identityaccessservice.application.dto.EscolaSessaoResponse;
 
-public interface IdentityAccessUseCase {
+public interface SessaoAutenticadaUseCase {
 
     AuthContextResponse consultarContextoAtual(
             String authorization,
@@ -21,3 +21,4 @@ public interface IdentityAccessUseCase {
             InternalRequestContext context,
             java.util.UUID escolaId);
 }
+

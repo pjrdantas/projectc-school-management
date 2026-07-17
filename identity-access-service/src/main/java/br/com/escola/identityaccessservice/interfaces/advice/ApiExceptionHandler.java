@@ -10,14 +10,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestClientResponseException;
 
 import br.com.escola.identityaccessservice.application.exception.DownstreamUnavailableException;
-import br.com.escola.identityaccessservice.application.exception.IdentityAccessServiceResourceNotFoundException;
+import br.com.escola.identityaccessservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.identityaccessservice.application.exception.InternalApiUnauthorizedException;
 import br.com.escola.identityaccessservice.application.exception.InvalidRequestContextException;
 import br.com.escola.identityaccessservice.interfaces.response.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
-public class IdentityAccessServiceApiExceptionHandler {
+public class ApiExceptionHandler {
 
     @ExceptionHandler(InternalApiUnauthorizedException.class)
     public ResponseEntity<ApiErrorResponse> handleUnauthorized(
@@ -37,9 +37,9 @@ public class IdentityAccessServiceApiExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", exception.getMessage(), request);
     }
 
-    @ExceptionHandler(IdentityAccessServiceResourceNotFoundException.class)
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFound(
-            IdentityAccessServiceResourceNotFoundException exception,
+            RecursoNaoEncontradoException exception,
             HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", exception.getMessage(), request);
     }
@@ -75,3 +75,4 @@ public class IdentityAccessServiceApiExceptionHandler {
                 request.getRequestURI()));
     }
 }
+

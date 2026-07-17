@@ -15,15 +15,15 @@ import br.com.escola.identityaccessservice.application.context.InternalRequestCo
 import br.com.escola.identityaccessservice.application.dto.AuthContextResponse;
 import br.com.escola.identityaccessservice.application.dto.EscolaSessaoResponse;
 import br.com.escola.identityaccessservice.application.exception.DownstreamUnavailableException;
-import br.com.escola.identityaccessservice.application.exception.IdentityAccessServiceResourceNotFoundException;
-import br.com.escola.identityaccessservice.application.port.out.IdentityAccessPort;
+import br.com.escola.identityaccessservice.application.exception.RecursoNaoEncontradoException;
+import br.com.escola.identityaccessservice.application.port.out.SessaoAutenticadaPort;
 
 @Component
-public class MonolithIdentityAccessClient implements IdentityAccessPort {
+public class LegacySessaoAutenticadaClient implements SessaoAutenticadaPort {
 
     private final RestClient restClient;
 
-    public MonolithIdentityAccessClient(RestClient monolithIdentityAccessRestClient) {
+    public LegacySessaoAutenticadaClient(RestClient monolithIdentityAccessRestClient) {
         this.restClient = monolithIdentityAccessRestClient;
     }
 
@@ -39,7 +39,7 @@ public class MonolithIdentityAccessClient implements IdentityAccessPort {
                     .body(AuthContextResponse.class);
         } catch (RestClientResponseException exception) {
             if (exception.getStatusCode().value() == 404) {
-                throw new IdentityAccessServiceResourceNotFoundException("Contexto autenticado nao encontrado");
+                throw new RecursoNaoEncontradoException("Contexto autenticado nao encontrado");
             }
             throw exception;
         } catch (ResourceAccessException exception) {
@@ -61,7 +61,7 @@ public class MonolithIdentityAccessClient implements IdentityAccessPort {
             return response == null ? List.of() : response;
         } catch (RestClientResponseException exception) {
             if (exception.getStatusCode().value() == 404) {
-                throw new IdentityAccessServiceResourceNotFoundException("Consulta de escolas da sessao nao encontrada");
+                throw new RecursoNaoEncontradoException("Consulta de escolas da sessao nao encontrada");
             }
             throw exception;
         } catch (ResourceAccessException exception) {
@@ -79,13 +79,13 @@ public class MonolithIdentityAccessClient implements IdentityAccessPort {
                     .uri("/internal/auth/escola-ativa")
                     .contentType(MediaType.APPLICATION_JSON)
                     .headers(headers -> enrichHeaders(headers, authorization))
-                    .body(new SelecionarEscolaAtivaMonolithRequest(escolaId))
+                    .body(new SelecionarEscolaAtivaLegacyRequest(escolaId))
                     .retrieve()
                     .body(AuthContextResponse.class);
             return response;
         } catch (RestClientResponseException exception) {
             if (exception.getStatusCode().value() == 404) {
-                throw new IdentityAccessServiceResourceNotFoundException("Selecao de escola ativa nao encontrada");
+                throw new RecursoNaoEncontradoException("Selecao de escola ativa nao encontrada");
             }
             throw exception;
         } catch (ResourceAccessException exception) {
@@ -97,6 +97,7 @@ public class MonolithIdentityAccessClient implements IdentityAccessPort {
         headers.set(HttpHeaders.AUTHORIZATION, authorization);
     }
 
-    private record SelecionarEscolaAtivaMonolithRequest(UUID escolaId) {
+    private record SelecionarEscolaAtivaLegacyRequest(UUID escolaId) {
     }
 }
+

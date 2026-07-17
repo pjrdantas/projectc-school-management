@@ -10,14 +10,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestClientResponseException;
 
 import br.com.escola.institutionaltenantservice.application.exception.DownstreamUnavailableException;
-import br.com.escola.institutionaltenantservice.application.exception.InstitutionalTenantServiceResourceNotFoundException;
+import br.com.escola.institutionaltenantservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.institutionaltenantservice.application.exception.InternalApiUnauthorizedException;
 import br.com.escola.institutionaltenantservice.application.exception.InvalidRequestContextException;
 import br.com.escola.institutionaltenantservice.interfaces.response.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
-public class InstitutionalTenantServiceApiExceptionHandler {
+public class ApiExceptionHandler {
 
     @ExceptionHandler(InternalApiUnauthorizedException.class)
     public ResponseEntity<ApiErrorResponse> handleUnauthorized(
@@ -37,9 +37,9 @@ public class InstitutionalTenantServiceApiExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", exception.getMessage(), request);
     }
 
-    @ExceptionHandler(InstitutionalTenantServiceResourceNotFoundException.class)
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFound(
-            InstitutionalTenantServiceResourceNotFoundException exception,
+            RecursoNaoEncontradoException exception,
             HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", exception.getMessage(), request);
     }
@@ -75,3 +75,4 @@ public class InstitutionalTenantServiceApiExceptionHandler {
                 request.getRequestURI()));
     }
 }
+

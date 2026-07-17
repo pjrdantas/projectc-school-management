@@ -8,11 +8,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
 
 @Configuration
-@EnableConfigurationProperties(InstitutionalTenantMonolithClientProperties.class)
-public class InstitutionalTenantMonolithClientConfiguration {
+@EnableConfigurationProperties(LegacyTenantSessaoClientProperties.class)
+public class LegacyTenantSessaoClientConfiguration {
 
     @Bean
-    RestClient institutionalTenantMonolithRestClient(InstitutionalTenantMonolithClientProperties properties) {
+    RestClient institutionalTenantMonolithRestClient(LegacyTenantSessaoClientProperties properties) {
         return RestClient.builder()
                 .baseUrl(properties.baseUrl())
                 .requestFactory(new org.springframework.http.client.SimpleClientHttpRequestFactory() {{
@@ -22,3 +22,4 @@ public class InstitutionalTenantMonolithClientConfiguration {
                 .build();
     }
 }
+
