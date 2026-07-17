@@ -8958,6 +8958,15 @@ Definicao objetiva:
   removendo `LegacyAuthSessionPort` e `LegacyAuthSessionClient`;
   `GET /api/auth/tenant/ativa` permanece explicitamente fora desse corte e
   segue para `D5`.
+- segundo recorte executado em 17/07/2026:
+  `GET /internal/v1/auth/contexto-atual` passou a ser resolvido localmente no
+  `identity-access-service` por leitura direta de `sessao_autenticacao`,
+  `usuario` e `escola`, com fallback minimo para escola da sessao, escola do
+  usuario e escola padrao; com isso, `LegacySessaoAutenticadaClient` deixou de
+  depender do endpoint legado `/api/auth/contexto-atual`.
+- validacao objetiva do segundo recorte:
+  `mvn -pl identity-access-service -Dtest=SessaoInternaControllerIntegrationTest test`
+  e `mvn -pl identity-access-service test`, ambos com `BUILD SUCCESS`.
 
 ### Fase D5 - Fechamento final de `institutional-tenant-service`
 

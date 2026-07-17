@@ -4742,13 +4742,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A fase foi mantida deliberadamente fora de `tenant ativa`: o fallback e a
   dependencia residual desse trecho continuam mapeados para `D5`, sem abrir
   escopo adicional nesta entrega.
+- O `identity-access-service` passou a resolver localmente
+  `GET /internal/v1/auth/contexto-atual` a partir de
+  `sessao_autenticacao`, `usuario` e `escola`, reproduzindo a regra minima do
+  legado para escola ativa: escola da sessao, depois escola do usuario e por
+  fim a escola padrao.
+- Com isso, o adapter HTTP `LegacySessaoAutenticadaClient` deixou de chamar
+  `/api/auth/contexto-atual`; o contrato legado permaneceu apenas para
+  `GET /internal/auth/escolas` e `POST /internal/auth/escola-ativa`, que ainda
+  pertencem ao fechamento de `D5`.
 - Validacao executada apenas no modulo tocado:
   `mvn -pl school-management-bff -Dtest=AuthSessionProxyIntegrationTest,AuthSessionFallbackIntegrationTest,IdentityTenantContextFallbackObservabilityTest,IdentityTenantCutoverDeciderTest test` com sucesso.
 - Validacao complementar iniciada no modulo tocado:
   `mvn -pl school-management-bff test`; a suite percorreu os cenarios do bloco
   alterado e dezenas de integracoes correlatas sem falha registrada antes de
   entrar em execucao prolongada de regressao completa.
+- Validacao executada apenas no modulo tocado para concluir o segundo corte da
+  D4: `mvn -pl identity-access-service -Dtest=SessaoInternaControllerIntegrationTest test`
+  e `mvn -pl identity-access-service test`, ambos com `BUILD SUCCESS`.
 - Proxima fase operacional do ciclo fechado:
-  concluir o ownership interno do contexto autenticado em
-  `identity-access-service`, para eliminar a chamada residual ao
-  `/api/auth/contexto-atual` do monolito antes de abrir `D5`.
+  abrir `D5` para remover a dependencia residual de tenant/escolas ainda
+  concentrada em `institutional-tenant-service`.
