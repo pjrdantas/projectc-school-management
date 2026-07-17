@@ -529,8 +529,7 @@ proprietario futuro de todas as familias REST encontradas no monolito.
 | `/api/periodos-letivos`, `/api/series`, `/api/turnos`, `/api/turmas`, `/api/disciplinas`, `/api/catalogos/academicos` | academic-catalog | primeiro corte pelo strangler |
 | `/api/alunos`, `/api/pessoas/catalogos`, consultas cadastrais | people | exclusao coordenada com enrollment |
 | `/api/alunos/{id}/responsaveis`, detalhe minimo de `/api/responsaveis/{id}` | responsibles | leitura oficial separada antes da listagem ampla |
-| CRUD de `/api/professores` | people | alocacoes nao pertencem ao people service |
-| alocacoes de professor e `/api/turmas/{id}/professores` | pedagogical | referencia professor e turma somente por ID |
+| `/api/professores`, `/api/professores/{id}`, `/api/professores/{id}/turmas-disciplinas`, `/api/turmas/{id}/professores`, `/api/professores/funcionarios-elegiveis` | academic-professor | `people-service` permanece apenas como apoio cadastral de funcionario/pessoa; `pedagogical-service` consome professor e alocacao, mas nao e owner do agregado |
 | `/api/matriculas`, seus catalogos, etapas e documentos | enrollment-document | validacoes externas por portas |
 | `/api/documentos`, `/api/documentos-alunos` | enrollment-document | binario migra para object storage |
 | `/api/transferencias`, `/api/escolas-origem` | enrollment-document | fluxo longo modelado como saga |
@@ -8855,14 +8854,14 @@ Definicao objetiva:
 | `/api/periodos-letivos`, `/api/disciplinas`, `/api/series`, `/api/turmas`, `/api/turmas/{turmaId}/disciplinas` | `academic-catalog-service` | leituras no BFF ainda possuem `CatalogReadRoutingService` com fallback legado; escritas no BFF ainda roteiam para `LegacyPeriodoLetivoWritePort`, `LegacyDisciplinaWritePort`, `LegacySerieWritePort`, `LegacyTurmaWritePort` e `LegacyTurmaDisciplinaWritePort` | executar `D3` para leitura e `D6` para escrita/validacoes finais | nenhuma rota de catalogo no BFF pode referenciar porta `Legacy*` ou observabilidade `directLegacy` |
 | `/api/pessoas/**`, `/api/consulta-cadastral`, `/api/funcionarios/**` | `people-service` | `people-service` ainda usa `OrigemAtualPessoaReadClient` e `OrigemAtualPessoaAddressWriteClient`; BFF exposto sobre contrato novo, mas a autoridade de leitura/escrita ainda depende da origem legada em partes do dominio | executar `D7` para retirar leitura/escrita residual do monolito, inclusive endereco | `people-service` sem `PEOPLE_MONOLITH_BASE_URL`, sem fallback local e com leitura/escrita resolvidas localmente |
 | `/api/responsaveis`, `/api/responsaveis/{id}`, `/api/alunos/{alunoId}/responsaveis` | `responsibles-service` | BFF ainda mantem `ResponsavelReadProxyService` e `AlunoResponsavelReadProxyService` com portas legadas; `responsibles-service` ainda usa `OrigemAtualResponsavelReadClient` e backfill local por `source-url` | executar `D8`, removendo fallback do BFF e concluindo ownership local de leitura/escrita | BFF sem `LegacyResponsavelReadPort`/`LegacyAlunoResponsavelReadPort` e servico sem `RESPONSIBLES_MONOLITH_BASE_URL` nem `RESPONSIBLES_READ_MODEL_SOURCE_URL` |
-| `/api/professores/**` e alocacoes por professor/turma | a decidir em `D2`, com fechamento em `D9` | ownership final ainda nao consolidado; `academic-professor-service` usa `LegacyConsultaClient`, `LegacyComandoClient`, `MigracaoRunner` e shadow/local persistence com fallback por sync state | decidir ownership definitivo e depois fechar o runtime ou consolidar absorcao | nao restar `PROFESSOR_SHADOW_MONOLITH_BASE_URL`, `PROFESSOR_SHADOW_MIGRATION_*` nem fallback shadow em producao |
+| `/api/professores/**` e alocacoes por professor/turma | `academic-professor-service` | ownership final decidido no `D2`, mas o runtime ainda usa `LegacyConsultaClient`, `LegacyComandoClient`, `MigracaoRunner` e shadow/local persistence com fallback por sync state; o BFF ainda le parcialmente professor resumo via `people-service` | executar `D9`, reroteando o BFF para o owner oficial e removendo a dependencia shadow/legada | nao restar `PROFESSOR_SHADOW_MONOLITH_BASE_URL`, `PROFESSOR_SHADOW_MIGRATION_*`, fallback shadow em producao nem leitura publica de professor apontando para `people-service` |
 | `/api/escolas-origem`, `/api/transferencias`, `/api/documentos-alunos/**`, `/api/matriculas`, `/api/documentos` | `enrollment-document-service` | `enrollment-document-service` ainda usa `OrigemAtualTransferenciaClient`; BFF continua apenas como fachada, mas a transferencia ainda depende do legado | executar `D10` para ownership local de transferencias e remocao do adapter legado | servico sem `ENROLLMENT_DOCUMENT_MONOLITH_BASE_URL` e sem client `OrigemAtualTransferenciaClient` |
 | `/api/avaliacoes/**`, `/api/aulas/**`, `/api/diarios-classe/**`, `/api/historicos-escolares/**`, `/api/matriculas/{matriculaId}/boletim**` | `pedagogical-service` | `pedagogical-service` ainda usa `OrigemAtualAulaClient`, `OrigemAtualAvaliacaoClient`, `OrigemAtualBoletimReadClient`, `OrigemAtualDiarioClasseReadClient`, `OrigemAtualDiarioClasseWriteClient`, `OrigemAtualHistoricoEscolarReadClient` e `OrigemAtualHistoricoEscolarWriteClient`; BFF ainda mantem proxies legados dessas familias | executar `D11` e remover os proxies legados correlatos no BFF | servico sem `PEDAGOGICAL_MONOLITH_BASE_URL` e BFF sem portas legadas dessas familias |
 | `/api/dashboard/**` | `dashboard-query-service` | `dashboard-query-service` ainda consulta a origem legada por `OrigemAtualPainel*Client`; BFF ainda mantem `Painel*ReadProxyService` com portas legadas paralelas | executar `D3` no BFF e `D13` no servico | nao restar `DASHBOARD_QUERY_MONOLITH_BASE_URL`, `LegacyPainel*ReadPort` nem clients `OrigemAtualPainel*Client` |
 | `/api/biblioteca-conteudos-pedagogicos`, `/api/planejamentos-bimestrais/*/ia/**`, `/api/ia/conteudos/**` | `planning-ai-service` | `planning-ai-service` ainda usa `OrigemAtualPlanejamentoReadClient` e sincronizacao de leitura por `LeituraModeloSyncService`; BFF continua fachada dos contratos externos | executar `D12`, internalizando a leitura oficial e removendo a origem legada | servico sem `PLANNING_AI_MONOLITH_BASE_URL` e sem sincronizacao dependente da origem legada |
 | Backfill e reconciliacao do read model de pessoas | `people-service` | `LeituraModeloMigrationRunner`, `LeituraModeloSyncStartupRunner`, `JdbcCatalogoReadModelSyncAdapter` e `PEOPLE_READ_MODEL_SOURCE_URL` ainda dependem da origem legada | desligar bootstrap/backfill quando a leitura local for soberana e sem reconciliacao externa | nenhuma feature runtime de pessoas pode exigir `source-url` do legado para subir ou operar |
 | Backfill e reconciliacao do read model de responsaveis | `responsibles-service` | `LeituraModeloMigrationRunner`, `LeituraModeloSyncStartupRunner`, `JdbcLeituraModeloSyncAdapter` e `RESPONSIBLES_READ_MODEL_SOURCE_URL` ainda dependem da origem legada | fechar `D8` retirando o ciclo controlado e substituindo por persistencia/ownership local definitivo | nenhuma feature runtime de responsaveis pode exigir sync/bootstrap com a base legada |
-| Migracao e shadow sync de professores | `academic-professor-service` ou dominio absorvedor definido em `D2` | `MigracaoRunner`, `MigracaoService`, `JdbcMigracaoOrigemAdapter`, `LegacyHealthIndicator` e sync states shadow ainda dependem do legado | concluir `D2` e depois `D9` com destino final explicito | nenhum runner, report de migracao ou health `professorShadowMonolith` ativo para operacao normal |
+| Migracao e shadow sync de professores | `academic-professor-service` | `MigracaoRunner`, `MigracaoService`, `JdbcMigracaoOrigemAdapter`, `LegacyHealthIndicator` e sync states shadow ainda dependem do legado | executar `D9`, convertendo o runtime de shadow para owner autonomo e removendo a migracao operacional recorrente | nenhum runner, report de migracao ou health `professorShadowMonolith` ativo para operacao normal |
 | Base URL legada central do BFF | `school-management-bff` | `MONOLITH_BASE_URL` ainda sustenta os clients `Legacy*` usados por rotas publicas sem ownership final migrado | remover os clients `Legacy*` e as politicas de cutover/fallback restantes | `school-management-bff` sem `MONOLITH_BASE_URL` e sem implementacoes `Legacy*Client` em uso operacional |
 
 - validacao executada no artefato de inventario:
@@ -8879,6 +8878,52 @@ Definicao objetiva:
   2. e absorvido formalmente por `people-service` e/ou `pedagogical-service`;
 - atualizar o ownership oficial das rotas de `professores`, alocacoes e leituras
   auxiliares antes de qualquer desligamento do monolito.
+- decisao arquitetural oficial:
+  - o runtime `academic-professor-service` passa a ser o dono final oficial do
+    dominio `professor`, incluindo cadastro de professor, consulta por id,
+    listagem por escola, alocacao professor-turma-disciplina, listagem de
+    alocacoes, listagem por turma e exposicao de funcionarios elegiveis;
+  - `people-service` nao absorve o dominio `professor`: ele permanece como
+    provedor de apoio cadastral para `pessoa`, `funcionario` e elegibilidade,
+    sem ownership do agregado nem das alocacoes;
+  - `pedagogical-service` nao absorve o dominio `professor`: ele permanece
+    apenas como consumidor de `professorId` e
+    `professorTurmaDisciplinaId` dentro dos fluxos de aula, avaliacao,
+    frequencia, boletim, diario e historico.
+- justificativa objetiva da decisao:
+  - o `academic-professor-service` ja expoe, no contrato interno proprio,
+    leitura e escrita do agregado completo em
+    `POST /internal/v1/professores`,
+    `POST /internal/v1/professores/{id}/turmas-disciplinas`,
+    `GET /internal/v1/professores`,
+    `GET /internal/v1/professores/{id}`,
+    `GET /internal/v1/professores/{id}/turmas-disciplinas`,
+    `GET /internal/v1/turmas/{turmaId}/professores` e
+    `GET /internal/v1/professores/funcionarios-elegiveis`;
+  - o `people-service` hoje expoe apenas resumos cadastrais de professor e
+    funcionario dentro da fronteira de pessoas, o que caracteriza apoio de
+    identidade/cadastro, nao ownership do agregado academico `professor`;
+  - as alocacoes professor-turma-disciplina fazem fronteira direta com o
+    catalogo academico e com o consumo pedagogico, o que torna a consolidacao
+    em `academic-professor-service` mais coerente do que dividir ownership
+    entre `people-service` e `pedagogical-service`.
+- ownership oficial apos `D2`:
+
+| Bloco | Dono oficial | Papel dos demais servicos |
+| --- | --- | --- |
+| cadastro e leitura de `professor` | `academic-professor-service` | `people-service` fornece base cadastral/elegibilidade quando necessario |
+| alocacao `professor_turma_disciplina` | `academic-professor-service` | `academic-catalog-service` segue dono de turma/disciplina; `pedagogical-service` apenas consome as referencias |
+| funcionarios elegiveis para virar professor | `academic-professor-service` como fachada do dominio | `people-service` fornece o insumo cadastral subjacente |
+| aulas, avaliacoes, notas, frequencias, diarios, historicos e dashboards por professor | `pedagogical-service` e `dashboard-query-service` nos seus fluxos | consomem `professorId` e/ou `professorTurmaDisciplinaId` sem ownership do agregado |
+
+- impacto oficial nas proximas fases:
+  - `D9` deixa de ser fase de decisao e passa a ser fase de fechamento final
+    do owner ja definido `academic-professor-service`;
+  - o `school-management-bff` devera ser reroteado em `D9` para consumir o
+    owner oficial do dominio de professores, eliminando o caminho publico que
+    hoje ainda le professor resumo via `people-service`;
+  - qualquer documentacao anterior que associava o CRUD publico de
+    `professores` a `people-service` fica superada por esta decisao.
 
 ### Fase D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF
 
@@ -8927,9 +8972,8 @@ Definicao objetiva:
 
 ### Fase D9 - Fechamento final do dominio de `professores`
 
-- executar a decisao tomada na `Fase D2`:
-  oficializar `academic-professor-service` ou absorver definitivamente o bloco
-  em outro servico;
+- concluir a autonomia efetiva do owner oficial `academic-professor-service`,
+  removendo a dependencia shadow/legada residual do plano;
 - ao final, `GET/POST /api/professores`, alocacoes e leituras auxiliares devem
   existir sem nenhuma dependencia funcional do monolito.
 

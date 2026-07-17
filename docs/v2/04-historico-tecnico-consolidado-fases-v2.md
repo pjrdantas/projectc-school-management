@@ -4674,3 +4674,30 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   internos expostos pelos servicos novos.
 - Proxima fase operacional do ciclo fechado:
   `D2 - Decisao final do dominio de professores`.
+
+### Fase D2
+
+- Foi tomada a decisao arquitetural oficial do dominio de `professores` no
+  ciclo de desligamento total do monolito.
+- O `academic-professor-service` passa a ser o owner final oficial de
+  `professor` e de `professor_turma_disciplina`, incluindo cadastro,
+  consulta por id, listagem por escola, alocacoes, listagem por turma e
+  funcionarios elegiveis.
+- O `people-service` fica explicitamente limitado ao papel de apoio cadastral
+  de `pessoa` e `funcionario`, inclusive para elegibilidade de professor, sem
+  ownership do agregado `professor`.
+- O `pedagogical-service` fica explicitamente limitado ao papel de consumidor
+  de `professorId` e `professorTurmaDisciplinaId` nos fluxos de ensino, sem
+  ownership do agregado nem das alocacoes.
+- A decisao substitui o mapa antigo que ainda apontava `CRUD de
+  /api/professores` para `people-service`; a partir desta fase, esse mapa fica
+  corrigido para `academic-professor-service`.
+- Como consequencia direta, a `Fase D9` deixa de decidir ownership e passa a
+  fechar a autonomia efetiva do owner ja definido, inclusive o reroteamento do
+  `school-management-bff` para o servico oficial de professores.
+- Validacao executada apenas como decisao arquitetural documentada:
+  leitura do mapa oficial em `docs/v2`, leitura dos contratos internos atuais
+  de `academic-professor-service` e `people-service`, e cruzamento com as
+  rotas publicas atuais do `school-management-bff`.
+- Proxima fase operacional do ciclo fechado:
+  `D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF`.
