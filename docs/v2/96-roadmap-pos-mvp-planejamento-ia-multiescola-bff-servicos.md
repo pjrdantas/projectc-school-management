@@ -8733,3 +8733,23 @@ Contagem regressiva do ciclo residual de resiliencia externa do
 
 Contagem regressiva do ciclo residual de resiliencia externa do
 `pedagogical-service`: 2 fases restantes.
+
+### Fase 217 - Consolidacao da validacao objetiva do bloco de leitura pedagogico
+
+- a terceira fase do ciclo residual do `pedagogical-service` consolidou a
+  validacao operacional do bloco oficial de leitura desacoplada no
+  `school-management-bff`, sem abrir novos contratos, sem mexer em escrita e
+  sem alterar o escopo funcional ja encerrado do servico;
+- foi oficializado como artefato unico desta consolidacao o
+  `OfficialReadContextDecouplingIntegrationSuiteTest`, reunindo os cenarios
+  de leitura de `boletim`, `diario-classe`, `historico-escolar`, `aulas` e
+  `avaliacoes`, inclusive com os fallbacks ao monolito exercitados nas fases
+  anteriores;
+- com isso, o bloco pedagogico de leitura passou a ter uma validacao unica e
+  objetiva de continuidade funcional externa no BFF para o recorte atualmente
+  desacoplado;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff -Dtest=OfficialReadContextDecouplingIntegrationSuiteTest test`.
+
+Contagem regressiva do ciclo residual de resiliencia externa do
+`pedagogical-service`: 1 fase restante.

@@ -4422,3 +4422,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl school-management-bff -Dtest=PedagogicalAulaReadProxyIntegrationTest,PedagogicalAvaliacaoReadProxyIntegrationTest test`.
 - Contagem regressiva do ciclo residual de resiliencia externa do
   `pedagogical-service`: 2 fases restantes.
+
+### Fase 217
+
+- A Fase 3 do ciclo residual do `pedagogical-service` consolidou a validacao
+  objetiva do bloco oficial de leitura desacoplada no
+  `school-management-bff`, sem abrir novas rotas e sem alterar o escopo
+  funcional ja encerrado do servico.
+- Foi oficializado como artefato unico desta consolidacao o
+  `OfficialReadContextDecouplingIntegrationSuiteTest`, reunindo os cenarios
+  de `boletim`, `diario-classe`, `historico-escolar`, `aulas` e
+  `avaliacoes`, inclusive com fallback ao monolito nos casos de
+  indisponibilidade do `pedagogical-service`.
+- Com isso, o recorte pedagogico de leitura atualmente desacoplado passou a
+  contar com uma validacao unica de continuidade funcional externa no BFF.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl school-management-bff -Dtest=OfficialReadContextDecouplingIntegrationSuiteTest test`.
+- Contagem regressiva do ciclo residual de resiliencia externa do
+  `pedagogical-service`: 1 fase restante.
