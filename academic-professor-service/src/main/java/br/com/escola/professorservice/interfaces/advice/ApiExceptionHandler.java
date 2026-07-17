@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestClientResponseException;
 
 import br.com.escola.professorservice.application.context.InternalHeaders;
+import br.com.escola.professorservice.application.exception.ConflitoNegocioException;
 import br.com.escola.professorservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.professorservice.application.exception.InternalApiUnauthorizedException;
 import br.com.escola.professorservice.application.exception.InvalidRequestContextException;
@@ -44,6 +45,13 @@ public class ApiExceptionHandler {
             DownstreamUnavailableException exception,
             HttpServletRequest request) {
         return response(HttpStatus.SERVICE_UNAVAILABLE, "DOWNSTREAM_UNAVAILABLE", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(ConflitoNegocioException.class)
+    ResponseEntity<ApiErrorResponse> handleConflict(
+            ConflitoNegocioException exception,
+            HttpServletRequest request) {
+        return response(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", exception.getMessage(), request);
     }
 
     @ExceptionHandler(RestClientResponseException.class)

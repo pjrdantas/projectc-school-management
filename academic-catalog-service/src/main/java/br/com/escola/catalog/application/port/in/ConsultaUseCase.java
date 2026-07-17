@@ -36,6 +36,8 @@ public interface ConsultaUseCase {
 
     DisciplinaResponse buscarDisciplina(UUID id, InternalRequestContext context);
 
+    TurmaDisciplinaResponse buscarTurmaDisciplina(UUID id, InternalRequestContext context);
+
     List<TurmaDisciplinaResponse> listarDisciplinasDaTurma(UUID turmaId, InternalRequestContext context);
 }
 

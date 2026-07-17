@@ -5,15 +5,16 @@ import java.time.Duration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "professor.shadow.monolith")
-public record LegacyClientProperties(
+@ConfigurationProperties(prefix = "professor.people-service")
+public record PessoaApoioClientProperties(
         URI baseUrl,
+        String internalToken,
         Duration connectTimeout,
         Duration readTimeout) {
 
-    public LegacyClientProperties {
+    public PessoaApoioClientProperties {
         if (baseUrl == null) {
-            baseUrl = URI.create("http://localhost:8080");
+            baseUrl = URI.create("http://localhost:8081");
         }
         if (connectTimeout == null) {
             connectTimeout = Duration.ofSeconds(2);
@@ -23,4 +24,3 @@ public record LegacyClientProperties(
         }
     }
 }
-

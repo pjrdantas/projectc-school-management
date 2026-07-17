@@ -130,6 +130,12 @@ public class ConsultaService implements ConsultaUseCase {
     }
 
     @Override
+    public TurmaDisciplinaResponse buscarTurmaDisciplina(UUID id, InternalRequestContext context) {
+        return snapshot(context).turmaDisciplinas().stream().filter(item -> item.id().equals(id)).findFirst()
+                .orElseThrow(() -> notFound("TurmaDisciplina", id));
+    }
+
+    @Override
     public List<TurmaDisciplinaResponse> listarDisciplinasDaTurma(
             UUID turmaId,
             InternalRequestContext context) {

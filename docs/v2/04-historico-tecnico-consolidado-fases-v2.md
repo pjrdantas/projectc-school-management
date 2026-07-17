@@ -4784,8 +4784,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   reconciliacao ligada ao monolito, preservando apenas a persistencia local e
   os adapters residuais ainda necessarios para escrita e
   `funcionarios-elegiveis`.
+- A decima subfase operacional de `D9` concluiu a autonomia efetiva do
+  `academic-professor-service`. O owner oficial passou a operar com escrita e
+  leitura 100% locais de `professor` e `professor_turma_disciplina`, sem
+  fallback por sync state e sem clientes HTTP legados para o monolito. Foram
+  removidos `LegacyConsultaClient`, `LegacyComandoClient`,
+  `LegacyFuncionarioElegivelClient`, `LegacyHealthIndicator`,
+  `PersistenciaHealthIndicator` e a configuracao
+  `PROFESSOR_SHADOW_MONOLITH_BASE_URL`/`professor.shadow.monolith.*`. Para
+  suportar a ultima escrita remanescente sem reabrir o monolito, o
+  `academic-catalog-service` oficializou `GET /internal/v1/turmas-disciplinas/{id}`
+  e o `academic-professor-service` passou a consumir apenas `people-service`
+  (apoio cadastral) e `academic-catalog-service` (referencia oficial de
+  turma-disciplina/turma) no fluxo interno. A suite do modulo foi reescrita
+  para validar o estado final do owner oficial sem modo shadow.
+- Validacao executada apenas nos modulos tocados para concluir `D9`:
+  `mvn -pl academic-catalog-service,academic-professor-service -DskipTests compile`
+  e `mvn -pl academic-catalog-service,academic-professor-service test`, ambos
+  com `BUILD SUCCESS`.
 - Proxima fase operacional do ciclo fechado:
-  `D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF`.
+  `D10 - Fechamento final de enrollment-document-service`.
 
 ### Fase D3
 

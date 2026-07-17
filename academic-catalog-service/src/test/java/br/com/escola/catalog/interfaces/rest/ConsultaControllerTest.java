@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import br.com.escola.catalog.application.context.InternalHeaders;
 import br.com.escola.catalog.application.context.InternalRequestContext;
 import br.com.escola.catalog.application.dto.DisciplinaResponse;
+import br.com.escola.catalog.application.dto.TurmaDisciplinaResponse;
 import br.com.escola.catalog.application.port.in.ConsultaUseCase;
 import br.com.escola.catalog.infra.config.InternalApiWebConfiguration;
 import br.com.escola.catalog.infra.security.InternalApiInterceptor;
@@ -78,6 +79,24 @@ class ConsultaControllerTest {
         assertThat(captor.getValue().usuarioId()).isEqualTo(USUARIO_ID);
         assertThat(captor.getValue().escolaId().value()).isEqualTo(ESCOLA_ID);
         assertThat(captor.getValue().correlationId()).isEqualTo("corr-51d");
+    }
+
+    @Test
+    void deveExporBuscaDeTurmaDisciplinaPorId() throws Exception {
+        UUID vinculoId = UUID.randomUUID();
+        when(catalogQueryUseCase.buscarTurmaDisciplina(any(), any())).thenReturn(new TurmaDisciplinaResponse(
+                vinculoId,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "Matematica",
+                80,
+                ESCOLA_ID,
+                LocalDateTime.now()));
+
+        mockMvc.perform(authenticatedGet("/internal/v1/turmas-disciplinas/" + vinculoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(vinculoId.toString()))
+                .andExpect(jsonPath("$.disciplinaNome").value("Matematica"));
     }
 
     private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder authenticatedGet(String path) {

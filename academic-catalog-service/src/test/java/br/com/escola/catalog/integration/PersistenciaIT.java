@@ -185,10 +185,30 @@ class PersistenciaIT {
         mockMvc.perform(authenticatedGet("/internal/v1/disciplinas/" + disciplina.id(), ESCOLA_A))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("Ciencias REST"));
+        mockMvc.perform(authenticatedGet("/internal/v1/turmas-disciplinas/" + fixture.turma().id(), ESCOLA_A))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
         mockMvc.perform(authenticatedGet(
                         "/internal/v1/turmas/" + fixture.turma().id() + "/disciplinas", ESCOLA_A))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].disciplinaNome").value("Ciencias REST"));
+    }
+
+    @Test
+    void deveBuscarTurmaDisciplinaPorIdNoContratoInterno() throws Exception {
+        Fixture fixture = createFixture(ESCOLA_A, "VINCULO-ID");
+        Disciplina disciplina = disciplinaRepository.salvar(new Disciplina(
+                UUID.randomUUID(), ESCOLA_A, "Fisica REST", 60, true, LocalDateTime.now()));
+        TurmaDisciplina vinculo = turmaDisciplinaRepository.salvar(new TurmaDisciplina(
+                UUID.randomUUID(), ESCOLA_A, fixture.turma().id(), disciplina.id(),
+                60, LocalDateTime.now()));
+
+        mockMvc.perform(authenticatedGet("/internal/v1/turmas-disciplinas/" + vinculo.id(), ESCOLA_A))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(vinculo.id().toString()))
+                .andExpect(jsonPath("$.turmaId").value(fixture.turma().id().toString()))
+                .andExpect(jsonPath("$.disciplinaId").value(disciplina.id().toString()))
+                .andExpect(jsonPath("$.disciplinaNome").value("Fisica REST"));
     }
 
     @Test

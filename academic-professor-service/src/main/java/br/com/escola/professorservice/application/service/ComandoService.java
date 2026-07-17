@@ -10,20 +10,28 @@ import br.com.escola.professorservice.application.dto.AlocacaoResponse;
 import br.com.escola.professorservice.application.dto.CreateRequest;
 import br.com.escola.professorservice.application.dto.ResumoResponse;
 import br.com.escola.professorservice.application.port.in.ComandoUseCase;
-import br.com.escola.professorservice.application.port.out.ComandoEscritaPort;
+import br.com.escola.professorservice.application.port.out.CatalogoApoioPort;
+import br.com.escola.professorservice.application.port.out.LeituraLocalPort;
+import br.com.escola.professorservice.application.port.out.PessoaApoioPort;
 import br.com.escola.professorservice.application.port.out.PersistenciaPort;
 
 @Service
 public class ComandoService implements ComandoUseCase {
 
-    private final ComandoEscritaPort professorWritePort;
-    private final PersistenciaPort professorShadowPersistencePort;
+    private final PessoaApoioPort pessoaApoioPort;
+    private final CatalogoApoioPort catalogoApoioPort;
+    private final LeituraLocalPort leituraLocalPort;
+    private final PersistenciaPort persistenciaPort;
 
     public ComandoService(
-            ComandoEscritaPort professorWritePort,
-            PersistenciaPort professorShadowPersistencePort) {
-        this.professorWritePort = professorWritePort;
-        this.professorShadowPersistencePort = professorShadowPersistencePort;
+            PessoaApoioPort pessoaApoioPort,
+            CatalogoApoioPort catalogoApoioPort,
+            LeituraLocalPort leituraLocalPort,
+            PersistenciaPort persistenciaPort) {
+        this.pessoaApoioPort = pessoaApoioPort;
+        this.catalogoApoioPort = catalogoApoioPort;
+        this.leituraLocalPort = leituraLocalPort;
+        this.persistenciaPort = persistenciaPort;
     }
 
     @Override
@@ -31,9 +39,9 @@ public class ComandoService implements ComandoUseCase {
             String authorization,
             InternalRequestContext context,
             CreateRequest request) {
-        ResumoResponse response = professorWritePort.criarProfessor(authorization, context, request);
-        professorShadowPersistencePort.registrarCriacaoShadow(context, response);
-        return response;
+        var funcionario = pessoaApoioPort.buscarFuncionarioPorId(authorization, context, request.funcionarioId());
+        var pessoa = pessoaApoioPort.buscarPessoaPorId(authorization, context, funcionario.pessoaId());
+        return persistenciaPort.criarProfessor(context, funcionario, pessoa, request);
     }
 
     @Override
@@ -42,10 +50,17 @@ public class ComandoService implements ComandoUseCase {
             InternalRequestContext context,
             UUID professorId,
             AllocateRequest request) {
-        AlocacaoResponse response =
-                professorWritePort.alocarProfessorTurmaDisciplina(authorization, context, professorId, request);
-        professorShadowPersistencePort.registrarAlocacaoShadow(context, request, response);
-        return response;
+        ResumoResponse professor = leituraLocalPort.buscarProfessorPorId(context, professorId);
+        var turmaDisciplina =
+                catalogoApoioPort.buscarTurmaDisciplina(authorization, context, request.turmaDisciplinaId());
+        var turma = catalogoApoioPort.buscarTurma(authorization, context, turmaDisciplina.turmaId());
+        return persistenciaPort.criarAlocacao(
+                context,
+                professor,
+                turmaDisciplina,
+                turma,
+                request,
+                Boolean.TRUE.equals(request.ativo()));
     }
 }
 

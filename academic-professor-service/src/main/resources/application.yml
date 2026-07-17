@@ -26,14 +26,13 @@ professor:
   shadow:
     internal-api:
       token: ${PROFESSOR_SHADOW_INTERNAL_API_TOKEN:professor-shadow-local-token}
-    monolith:
-      base-url: ${PROFESSOR_SHADOW_MONOLITH_BASE_URL:http://localhost:8080}
-      connect-timeout: ${PROFESSOR_SHADOW_MONOLITH_CONNECT_TIMEOUT:2s}
-      read-timeout: ${PROFESSOR_SHADOW_MONOLITH_READ_TIMEOUT:5s}
-    local-persistence:
-      enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_ENABLED:false}
-      fail-on-error: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_FAIL_ON_ERROR:false}
-      listar-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_LISTAR_CUTOVER_ENABLED:false}
-      buscar-por-id-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_BUSCAR_POR_ID_CUTOVER_ENABLED:false}
-      listar-alocacoes-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_LISTAR_ALOCACOES_CUTOVER_ENABLED:false}
-      listar-por-turma-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_LISTAR_POR_TURMA_CUTOVER_ENABLED:false}
+  people-service:
+    base-url: ${PROFESSOR_PEOPLE_SERVICE_BASE_URL:http://localhost:8081}
+    internal-token: ${PROFESSOR_PEOPLE_SERVICE_INTERNAL_TOKEN:people-service-local-token}
+    connect-timeout: ${PROFESSOR_PEOPLE_SERVICE_CONNECT_TIMEOUT:2s}
+    read-timeout: ${PROFESSOR_PEOPLE_SERVICE_READ_TIMEOUT:5s}
+  catalog-service:
+    base-url: ${PROFESSOR_CATALOG_SERVICE_BASE_URL:http://localhost:8091}
+    internal-token: ${PROFESSOR_CATALOG_SERVICE_INTERNAL_TOKEN:academic-catalog-local-token}
+    connect-timeout: ${PROFESSOR_CATALOG_SERVICE_CONNECT_TIMEOUT:2s}
+    read-timeout: ${PROFESSOR_CATALOG_SERVICE_READ_TIMEOUT:5s}

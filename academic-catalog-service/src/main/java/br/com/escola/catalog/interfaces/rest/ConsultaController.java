@@ -101,6 +101,13 @@ public class ConsultaController {
         return catalogQueryUseCase.buscarDisciplina(id, context);
     }
 
+    @GetMapping("/turmas-disciplinas/{id}")
+    public TurmaDisciplinaResponse buscarTurmaDisciplina(
+            @PathVariable UUID id,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
+        return catalogQueryUseCase.buscarTurmaDisciplina(id, context);
+    }
+
     @GetMapping("/turmas/{turmaId}/disciplinas")
     public List<TurmaDisciplinaResponse> listarDisciplinasDaTurma(
             @PathVariable UUID turmaId,
