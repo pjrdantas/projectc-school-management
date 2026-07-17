@@ -4798,3 +4798,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   com `BUILD SUCCESS`.
 - Proxima fase operacional do ciclo fechado:
   abrir `D6` para retomar o fechamento do `academic-catalog-service`.
+
+### Fase D6
+
+- Foi iniciado o fechamento do `academic-catalog-service` pelo menor corte
+  seguro ainda pendente no BFF: a leitura publica do catalogo ja oficializada
+  deixou de depender de rota direta ao monolito dentro do roteador de catalogo.
+- O `school-management-bff` passou a tratar as leituras oficiais de catalogo
+  como ownership fixo do `academic-catalog-service`, preservando apenas a
+  resolucao oficial de contexto autenticado e removendo o ramo que ainda
+  poderia responder diretamente do monolito dentro de
+  `CatalogReadRoutingService`.
+- Com isso, foram removidos do BFF a porta `LegacyCatalogReadPort` e o adapter
+  `LegacyCatalogReadClient`, consolidando esse bloco como leitura oficial do
+  servico novo e mantendo o gate de relatorio reconciliado apenas para a frente
+  de escrita que segue aberta.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl school-management-bff "-Dtest=CatalogReadRoutingServiceTest,CatalogReadCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`.
+- Proxima fase operacional do ciclo fechado:
+  atacar as escritas oficiais remanescentes do catalogo no BFF
+  (`LegacyPeriodoLetivoWritePort`, `LegacyDisciplinaWritePort`,
+  `LegacySerieWritePort`, `LegacyTurmaWritePort` e
+  `LegacyTurmaDisciplinaWritePort`).

@@ -12,7 +12,6 @@ import br.com.escola.bff.application.port.out.CatalogoTurnoResolverPort;
 import br.com.escola.bff.application.port.out.CatalogoTurmaDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.CatalogoTurmaWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
-import br.com.escola.bff.application.port.out.CatalogReadCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogReadObservabilityPort;
 import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
@@ -54,7 +53,6 @@ import br.com.escola.bff.application.port.out.LegacyAvaliacaoReadPort;
 import br.com.escola.bff.application.port.out.LegacyBoletimReadPort;
 import br.com.escola.bff.application.port.out.LegacyDiarioClasseReadPort;
 import br.com.escola.bff.application.port.out.LegacyAlunoResponsavelReadPort;
-import br.com.escola.bff.application.port.out.LegacyCatalogReadPort;
 import br.com.escola.bff.application.port.out.LegacyDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.LegacyHistoricoEscolarReadPort;
 import br.com.escola.bff.application.port.out.LegacyPeriodoLetivoWritePort;
@@ -584,16 +582,12 @@ public class BffUseCaseConfiguration {
 
     @Bean
     RouteCatalogReadUseCase routeCatalogReadUseCase(
-            LegacyCatalogReadPort monolithCatalogReadPort,
             CatalogoReadPort academicCatalogReadPort,
             InternalAuthContextPort authContextPort,
-            CatalogReadCutoverPolicyPort cutoverPolicyPort,
             CatalogReadObservabilityPort observabilityPort) {
         return new CatalogReadRoutingService(
-                monolithCatalogReadPort,
                 academicCatalogReadPort,
                 authContextPort,
-                cutoverPolicyPort,
                 observabilityPort);
     }
 

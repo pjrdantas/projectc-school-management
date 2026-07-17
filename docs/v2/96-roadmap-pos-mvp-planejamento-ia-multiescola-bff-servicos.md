@@ -9003,6 +9003,18 @@ Definicao objetiva:
   escritas oficiais remanescentes, validacoes cruzadas e remocao dos adapters
   legados ainda necessarios;
 - garantir que nenhum fluxo academico dependa do monolito para catalogo.
+- primeiro recorte executado em 17/07/2026:
+  o `school-management-bff` deixou de manter no `CatalogReadRoutingService`
+  qualquer resposta direta ao monolito para as leituras oficiais do catalogo
+  academico, passando a tratar esse bloco como ownership fixo do
+  `academic-catalog-service`.
+- com isso, foram removidos do BFF `LegacyCatalogReadPort` e
+  `LegacyCatalogReadClient`; a resolucao de contexto autenticado permaneceu
+  oficial e o gate de relatorio reconciliado continuou restrito a seguranca
+  operacional da frente de escrita.
+- validacao objetiva do primeiro recorte:
+  `mvn -pl school-management-bff "-Dtest=CatalogReadRoutingServiceTest,CatalogReadCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`.
 
 ### Fase D7 - Fechamento final de `people-service`
 
