@@ -4620,3 +4620,26 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl dashboard-query-service clean test`, todos com sucesso.
 - Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura:
   1 fase restante.
+
+### Fase N8
+
+- O agregador raiz passou a ter bloqueio arquitetural automatico contra o
+  retorno do passivo nominal entre servicos nos modulos Java ativos do plano.
+- O `pom.xml` raiz recebeu uma verificacao no `validate` que falha quando
+  algum arquivo Java de `school-management-bff`, `identity-access-service`,
+  `institutional-tenant-service`, `dashboard-query-service`,
+  `academic-catalog-service`, `academic-professor-service`,
+  `people-service`, `responsibles-service`,
+  `enrollment-document-service`, `pedagogical-service` ou
+  `planning-ai-service` voltar a carregar no nome marcadores como `People`,
+  `Responsibles`, `PlanningAi`, `Dashboard`, `AcademicCatalog`,
+  `IdentityAccess`, `InstitutionalTenant`, `EnrollmentDocument`,
+  `Pedagogical`, `Monolith` ou `ProfessorShadow`.
+- A verificacao transversal por busca de arquivos Java nesses modulos voltou
+  vazia para esse conjunto de marcadores, fechando o ciclo `N1` a `N8`
+  sem residuo nominal no escopo ativo.
+- Validacao executada no agregador tocado:
+  `rg --files school-management-bff identity-access-service institutional-tenant-service dashboard-query-service academic-catalog-service academic-professor-service people-service responsibles-service enrollment-document-service pedagogical-service planning-ai-service --glob "*.java" | rg "(People|Responsibles|PlanningAi|Dashboard|AcademicCatalog|IdentityAccess|InstitutionalTenant|EnrollmentDocument|Pedagogical|Monolith|ProfessorShadow)"` sem ocorrencias
+  e `mvn -N validate` com sucesso.
+- Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura:
+  0 fases restantes.

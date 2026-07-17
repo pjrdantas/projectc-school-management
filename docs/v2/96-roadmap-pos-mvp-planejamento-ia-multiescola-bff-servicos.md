@@ -9165,6 +9165,27 @@ Quantidade fechada deste ciclo preparatorio: **8 fases**.
   nominal foi eliminado dentro do criterio definido;
 - registrar regra de validacao objetiva para impedir regressao nas fases
   futuras.
+- conclusao operacional da fase:
+  - foi adicionada ao `pom.xml` raiz uma validacao automatica no `validate`
+    para bloquear nomes proibidos de classes nos modulos Java ativos do plano:
+    `school-management-bff`, `identity-access-service`,
+    `institutional-tenant-service`, `dashboard-query-service`,
+    `academic-catalog-service`, `academic-professor-service`,
+    `people-service`, `responsibles-service`,
+    `enrollment-document-service`, `pedagogical-service` e
+    `planning-ai-service`;
+  - o bloqueio passa a falhar se voltar a existir arquivo Java com marcadores
+    nominais do passivo transversal, como `People`, `Responsibles`,
+    `PlanningAi`, `Dashboard`, `AcademicCatalog`, `IdentityAccess`,
+    `InstitutionalTenant`, `EnrollmentDocument`, `Pedagogical`, `Monolith` ou
+    `ProfessorShadow`;
+  - a verificacao transversal por busca de arquivos Java nesses modulos voltou
+    vazia para esse conjunto de marcadores, confirmando que o ciclo `N1` a
+    `N8` terminou sem residuo nominal dentro do escopo ativo.
+- validacao executada no agregador tocado:
+  - `rg --files school-management-bff identity-access-service institutional-tenant-service dashboard-query-service academic-catalog-service academic-professor-service people-service responsibles-service enrollment-document-service pedagogical-service planning-ai-service --glob "*.java" | rg "(People|Responsibles|PlanningAi|Dashboard|AcademicCatalog|IdentityAccess|InstitutionalTenant|EnrollmentDocument|Pedagogical|Monolith|ProfessorShadow)"`: sem ocorrencias;
+  - `mvn -N validate`: sucesso.
+- contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 0.
 
 Ordem obrigatoria:
 
