@@ -111,7 +111,7 @@ class SerieWriteCutoverIntegrationTest {
     }
 
     @Test
-    void deveVoltarAoMonolitoQuandoNivelEnsinoNaoForResolvidoNoCatalogoNovo() throws Exception {
+    void deveRejeitarQuandoNivelEnsinoNaoForResolvidoNoCatalogoOficial() throws Exception {
         MONOLITH.enqueue(json("""
                 {
                   "usuarioId":"00000000-0000-0000-0000-000000000201",
@@ -129,21 +129,10 @@ class SerieWriteCutoverIntegrationTest {
                   }
                 ]
                 """));
-        MONOLITH.enqueue(json("""
-                {
-                  "id":"00000000-0000-0000-0000-000000000062",
-                  "nome":"1 ano",
-                  "ordem":1,
-                  "nivelEnsino":"ENSINO_MEDIO",
-                  "escolaId":"00000000-0000-0000-0000-000000000047",
-                  "escolaNome":"Escola monolito",
-                  "createdAt":"2026-06-23T11:11:00"
-                }
-                """, 201));
 
         client.post().uri("/api/series")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
-                .header(TrustedHeaders.CORRELATION_ID, "corr-serie-monolith")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-serie-invalid")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue("""
                         {
@@ -153,17 +142,15 @@ class SerieWriteCutoverIntegrationTest {
                         }
                         """)
                 .exchange()
-                .expectStatus().isCreated()
+                .expectStatus().isBadRequest()
                 .expectBody()
-                .jsonPath("$.escolaNome").isEqualTo("Escola monolito")
-                .jsonPath("$.nivelEnsino").isEqualTo("ENSINO_MEDIO");
+                .jsonPath("$.code").isEqualTo("INVALID_REQUEST");
 
         var contextRequest = MONOLITH.takeRequest();
         assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
         var niveisRequest = CATALOG.takeRequest();
         assertThat(niveisRequest.getPath()).isEqualTo("/internal/v1/catalogos/niveis-ensino");
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/series");
+        assertThat(MONOLITH.getRequestCount()).isEqualTo(1);
         assertThat(CATALOG.getRequestCount()).isEqualTo(1);
     }
 

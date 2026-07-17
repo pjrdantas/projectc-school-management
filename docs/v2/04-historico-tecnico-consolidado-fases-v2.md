@@ -4828,6 +4828,56 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   D6:
   `mvn -pl school-management-bff "-Dtest=PeriodoLetivoWriteRoutingServiceTest,PeriodoLetivoWriteCutoverIntegrationTest" test`
   com `BUILD SUCCESS`.
+- No terceiro corte da D6, `POST /api/disciplinas` deixou de manter fallback
+  funcional para o monolito no `school-management-bff` e passou a operar como
+  escrita oficial do `academic-catalog-service`, inclusive quando o contrato
+  externo informa `status="INATIVA"`.
+- Para suportar esse corte sem alterar o contrato publico, o
+  `academic-catalog-service` passou a aceitar `ativo` opcional no comando
+  interno de criacao de disciplina, preservando `ativo=true` como default e
+  permitindo persistir disciplina inativa quando o BFF traduz o status externo.
+- Com isso, foram removidos do BFF a porta `LegacyDisciplinaWritePort`, o
+  adapter `LegacyDisciplinaWriteClient` e o teste dedicado a rota legada de
+  escrita de `disciplinas`.
+- Validacao executada nos modulos tocados para concluir o terceiro corte da D6:
+  `mvn -pl school-management-bff "-Dtest=DisciplinaWriteRoutingServiceTest,DisciplinaWriteCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`;
+  `mvn -pl academic-catalog-service -DskipTests compile` com `BUILD SUCCESS`;
+  `mvn -pl academic-catalog-service "-Dtest=ComandoControllerTest" test` com
+  `BUILD SUCCESS`.
+- Observacao objetiva da validacao:
+  `PersistenciaIT` e `OutboxPublisherIT` do `academic-catalog-service` seguem
+  bloqueados neste ambiente por indisponibilidade local do Docker/Testcontainers,
+  sem erro funcional novo de compilacao ou contrato.
+- No quarto corte da D6, `POST /api/series` deixou de manter fallback
+  funcional para o monolito no `school-management-bff` e passou a operar como
+  escrita oficial do `academic-catalog-service`, incluindo a traducao oficial
+  de `nivelEnsino` por consulta ao catalogo interno.
+- Com isso, `nivelEnsino` ausente, invalido ou nao resolvido pelo catalogo
+  oficial deixou de reabrir o legado e passou a ser rejeitado de forma
+  explicita como `INVALID_REQUEST`, preservando a validacao de escopo de
+  `escolaId` e a ausencia de fallback quando o catalogo falha.
+- Foram removidos do BFF a porta `LegacySerieWritePort`, o adapter
+  `LegacySerieWriteClient` e o teste dedicado a rota legada direta de `series`.
+- Validacao executada apenas no modulo tocado para concluir o quarto corte da
+  D6:
+  `mvn -pl school-management-bff "-Dtest=SerieWriteRoutingServiceTest,SerieWriteCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`.
+- No quinto corte da D6, `POST /api/turmas` deixou de manter fallback
+  funcional para o monolito no `school-management-bff` e passou a operar como
+  escrita oficial do `academic-catalog-service`, preservando a traducao oficial
+  de `turno` para `turnoId` por consulta ao catalogo interno.
+- Com isso, `turno` ausente, invalido ou nao resolvido passou a ser rejeitado
+  explicitamente como `INVALID_REQUEST`, e `status` deixou de reabrir o legado:
+  quando preenchido, so `ATIVA` e aceito neste contrato oficial.
+- Foram removidos do BFF a porta `LegacyTurmaWritePort`, o adapter
+  `LegacyTurmaWriteClient` e o teste dedicado a rota legada direta de
+  `turmas`.
+- Validacao executada apenas no modulo tocado para concluir o quinto corte da
+  D6:
+  `mvn -pl school-management-bff "-Dtest=TurmaWriteRoutingServiceTest,TurmaWriteCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`.
 - Proxima fase operacional do ciclo fechado:
-  atacar `POST /api/disciplinas` como proximo write oficial remanescente do
+  atacar `POST /api/turmas/{turmaId}/disciplinas` como proximo write oficial
+  remanescente do
   catalogo no BFF.

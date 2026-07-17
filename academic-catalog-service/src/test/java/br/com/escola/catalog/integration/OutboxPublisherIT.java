@@ -116,7 +116,7 @@ class OutboxPublisherIT {
 
     private void criarDisciplina(String key) {
         commandUseCase.criarDisciplina(
-                new CreateDisciplinaCommand("Disciplina " + key, 40),
+                new CreateDisciplinaCommand("Disciplina " + key, 40, null),
                 key,
                 new InternalRequestContext("corr-" + key, USUARIO_ID, new EscolaId(ESCOLA_ID)));
     }

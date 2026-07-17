@@ -304,6 +304,21 @@ class PersistenciaIT {
     }
 
     @Test
+    void devePersistirDisciplinaInativaQuandoPayloadInformarAtivoFalse() throws Exception {
+        JsonNode disciplina = response(authenticatedPost(
+                "/internal/v1/disciplinas", ESCOLA_A, "disciplina-inativa",
+                "{\"nome\":\"Historia\",\"cargaHoraria\":60,\"ativo\":false}")
+                .andExpect(status().isCreated()));
+
+        assertThat(disciplina.get("nome").asText()).isEqualTo("Historia");
+        assertThat(disciplina.get("ativo").asBoolean()).isFalse();
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT ativo FROM disciplina WHERE id_disciplina = ?",
+                Boolean.class,
+                UUID.fromString(disciplina.get("id").asText()))).isFalse();
+    }
+
+    @Test
     void deveRejeitarReferenciaDeOutraEscolaSemRegistrarComando() throws Exception {
         Fixture fixtureA = createFixture(ESCOLA_A, "COMMAND-CROSS");
 

@@ -67,7 +67,7 @@ public class ComandoController {
             @RequestHeader(InternalHeaders.IDEMPOTENCY_KEY) String idempotencyKey,
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
         return created(commandUseCase.criarDisciplina(
-                new CreateDisciplinaCommand(request.nome(), request.cargaHoraria()),
+                new CreateDisciplinaCommand(request.nome(), request.cargaHoraria(), request.ativo()),
                 idempotencyKey,
                 context));
     }

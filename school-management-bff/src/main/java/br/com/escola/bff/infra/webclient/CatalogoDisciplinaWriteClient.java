@@ -39,7 +39,10 @@ public class CatalogoDisciplinaWriteClient extends AbstractDownstreamClientSuppo
                 .header("X-Usuario-Id", context.usuarioId().toString())
                 .header("X-Escola-Id", context.escolaId().toString())
                 .header("Idempotency-Key", query.idempotencyKey())
-                .bodyValue(new AcademicCreateDisciplinaRequest(command.nome(), command.cargaHoraria()))
+                .bodyValue(new AcademicCreateDisciplinaRequest(
+                        command.nome(),
+                        command.cargaHoraria(),
+                        toAtivo(command.status())))
                 .exchangeToMono(response -> response.statusCode().is4xxClientError()
                         ? Mono.error(new br.com.escola.bff.application.exception.DownstreamRejectedException(
                                 response.statusCode().value()))
@@ -59,9 +62,17 @@ public class CatalogoDisciplinaWriteClient extends AbstractDownstreamClientSuppo
                 .onErrorMap(error -> mapTransportError(error, "Academic catalog indisponivel"));
     }
 
+    private Boolean toAtivo(String status) {
+        if (status == null || status.isBlank()) {
+            return null;
+        }
+        return !"INATIVA".equalsIgnoreCase(status.trim());
+    }
+
     private record AcademicCreateDisciplinaRequest(
             String nome,
-            Integer cargaHoraria
+            Integer cargaHoraria,
+            Boolean ativo
     ) {}
 
     private record AcademicDisciplinaResponse(

@@ -53,12 +53,9 @@ import br.com.escola.bff.application.port.out.LegacyAvaliacaoReadPort;
 import br.com.escola.bff.application.port.out.LegacyBoletimReadPort;
 import br.com.escola.bff.application.port.out.LegacyDiarioClasseReadPort;
 import br.com.escola.bff.application.port.out.LegacyAlunoResponsavelReadPort;
-import br.com.escola.bff.application.port.out.LegacyDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.LegacyHistoricoEscolarReadPort;
 import br.com.escola.bff.application.port.out.LegacyResponsavelReadPort;
-import br.com.escola.bff.application.port.out.LegacySerieWritePort;
 import br.com.escola.bff.application.port.out.LegacyTurmaDisciplinaWritePort;
-import br.com.escola.bff.application.port.out.LegacyTurmaWritePort;
 import br.com.escola.bff.application.port.out.ConsultaCadastralReadPort;
 import br.com.escola.bff.application.port.out.AlunoResponsavelCadastroReadPort;
 import br.com.escola.bff.application.port.out.PessoaCatalogoReadPort;
@@ -603,50 +600,38 @@ public class BffUseCaseConfiguration {
 
     @Bean
     CreateDisciplinaUseCase createDisciplinaUseCase(
-            LegacyDisciplinaWritePort monolithDisciplinaWritePort,
             CatalogoDisciplinaWritePort academicCatalogDisciplinaWritePort,
             AuthContextPort authContextPort,
-            CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
         return new DisciplinaWriteRoutingService(
-                monolithDisciplinaWritePort,
                 academicCatalogDisciplinaWritePort,
                 authContextPort,
-                cutoverPolicyPort,
                 observabilityPort);
     }
 
     @Bean
     CreateSerieUseCase createSerieUseCase(
-            LegacySerieWritePort monolithSerieWritePort,
             CatalogoSerieWritePort academicCatalogSerieWritePort,
             CatalogoNivelEnsinoResolverPort academicCatalogNivelEnsinoResolverPort,
             AuthContextPort authContextPort,
-            CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
         return new SerieWriteRoutingService(
-                monolithSerieWritePort,
                 academicCatalogSerieWritePort,
                 academicCatalogNivelEnsinoResolverPort,
                 authContextPort,
-                cutoverPolicyPort,
                 observabilityPort);
     }
 
     @Bean
     CreateTurmaUseCase createTurmaUseCase(
-            LegacyTurmaWritePort monolithTurmaWritePort,
             CatalogoTurmaWritePort academicCatalogTurmaWritePort,
             CatalogoTurnoResolverPort academicCatalogTurnoResolverPort,
             AuthContextPort authContextPort,
-            CatalogWriteCutoverPolicyPort cutoverPolicyPort,
             CatalogWriteObservabilityPort observabilityPort) {
         return new TurmaWriteRoutingService(
-                monolithTurmaWritePort,
                 academicCatalogTurmaWritePort,
                 academicCatalogTurnoResolverPort,
                 authContextPort,
-                cutoverPolicyPort,
                 observabilityPort);
     }
 

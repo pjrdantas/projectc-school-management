@@ -9026,6 +9026,57 @@ Definicao objetiva:
 - validacao objetiva do segundo recorte:
   `mvn -pl school-management-bff "-Dtest=PeriodoLetivoWriteRoutingServiceTest,PeriodoLetivoWriteCutoverIntegrationTest" test`
   com `BUILD SUCCESS`.
+- terceiro recorte executado em 17/07/2026:
+  `POST /api/disciplinas` no `school-management-bff` deixou de manter qualquer
+  caminho legado e passou a operar exclusivamente como escrita oficial do
+  `academic-catalog-service`, preservando resolucao de contexto autenticado,
+  validacao de escopo de `escolaId` e ausencia de fallback ao monolito tambem
+  para payload externo com `status="INATIVA"`.
+- para viabilizar esse corte minimo, o `academic-catalog-service` passou a
+  aceitar `ativo` opcional no comando interno de criacao de disciplina,
+  mantendo `true` como default e sem alterar o contrato publico do BFF.
+- com isso, foram removidos do BFF `LegacyDisciplinaWritePort`,
+  `LegacyDisciplinaWriteClient` e o teste de integracao legado dedicado a
+  `disciplinas`.
+- validacao objetiva do terceiro recorte:
+  `mvn -pl school-management-bff "-Dtest=DisciplinaWriteRoutingServiceTest,DisciplinaWriteCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`;
+  `mvn -pl academic-catalog-service -DskipTests compile` com `BUILD SUCCESS`;
+  `mvn -pl academic-catalog-service "-Dtest=ComandoControllerTest" test` com
+  `BUILD SUCCESS`.
+- observacao operacional:
+  `PersistenciaIT` e `OutboxPublisherIT` do `academic-catalog-service`
+  continuam dependentes de Docker/Testcontainers e nao puderam ser concluídos
+  neste ambiente local por indisponibilidade de runtime Docker.
+- quarto recorte executado em 17/07/2026:
+  `POST /api/series` no `school-management-bff` deixou de manter qualquer
+  caminho legado e passou a operar exclusivamente como escrita oficial do
+  `academic-catalog-service`, preservando resolucao de contexto autenticado,
+  validacao de escopo de `escolaId` e ausencia de fallback ao monolito.
+- a traducao de `nivelEnsino` para `nivelEnsinoId` permaneceu no BFF como
+  adaptacao minima de contrato, mas `nivelEnsino` ausente, invalido ou nao
+  resolvido pelo catalogo oficial passou a ser rejeitado explicitamente como
+  `INVALID_REQUEST`, sem reabrir a rota legada.
+- com isso, foram removidos do BFF `LegacySerieWritePort`,
+  `LegacySerieWriteClient` e o teste de integracao legado dedicado a `series`.
+- validacao objetiva do quarto recorte:
+  `mvn -pl school-management-bff "-Dtest=SerieWriteRoutingServiceTest,SerieWriteCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`.
+- quinto recorte executado em 17/07/2026:
+  `POST /api/turmas` no `school-management-bff` deixou de manter qualquer
+  caminho legado e passou a operar exclusivamente como escrita oficial do
+  `academic-catalog-service`, preservando resolucao de contexto autenticado,
+  validacao de escopo de `escolaId` e ausencia de fallback ao monolito.
+- a traducao de `turno` para `turnoId` permaneceu no BFF como adaptacao minima
+  de contrato, mas `turno` ausente, invalido ou nao resolvido pelo catalogo
+  oficial passou a ser rejeitado explicitamente como `INVALID_REQUEST`; quando
+  `status` vier preenchido, apenas `ATIVA` segue compativel com o contrato
+  oficial desta rota.
+- com isso, foram removidos do BFF `LegacyTurmaWritePort`,
+  `LegacyTurmaWriteClient` e o teste de integracao legado dedicado a `turmas`.
+- validacao objetiva do quinto recorte:
+  `mvn -pl school-management-bff "-Dtest=TurmaWriteRoutingServiceTest,TurmaWriteCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`.
 
 ### Fase D7 - Fechamento final de `people-service`
 

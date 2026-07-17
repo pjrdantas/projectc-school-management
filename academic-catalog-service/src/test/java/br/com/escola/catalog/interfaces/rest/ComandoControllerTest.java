@@ -67,7 +67,7 @@ class ComandoControllerTest {
                 .andExpect(jsonPath("$.id").value(disciplinaId.toString()));
 
         verify(commandUseCase).criarDisciplina(
-                eq(new CreateDisciplinaCommand("Matematica", 80)),
+                eq(new CreateDisciplinaCommand("Matematica", 80, null)),
                 eq("command-key"),
                 any(InternalRequestContext.class));
     }

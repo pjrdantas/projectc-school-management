@@ -139,14 +139,15 @@ public class ComandoService implements ComandoUseCase {
             String idempotencyKey,
             InternalRequestContext context) {
         String fingerprint = CommandFingerprint.sha256(
-                "CREATE_DISCIPLINA", command.nome(), command.cargaHoraria());
+                "CREATE_DISCIPLINA", command.nome(), command.cargaHoraria(), command.ativo());
         return execute(idempotencyKey, fingerprint, "DISCIPLINA", context,
                 id -> disciplinaRepository.buscarDisciplinaPorId(id, context.escolaId())
                         .map(this::toResponse).orElseThrow(() -> notFound("Disciplina", id)),
                 () -> {
+                    boolean ativo = command.ativo() == null ? true : command.ativo();
                     Disciplina disciplina = disciplinaRepository.salvar(new Disciplina(
                             UUID.randomUUID(), context.escolaId(), command.nome(), command.cargaHoraria(),
-                            true, LocalDateTime.now(ZoneOffset.UTC)));
+                            ativo, LocalDateTime.now(ZoneOffset.UTC)));
                     return created(disciplina.id(), toResponse(disciplina),
                             "DISCIPLINA", "subject-created", context,
                             payload("disciplinaId", disciplina.id(), "nome", disciplina.nome()));

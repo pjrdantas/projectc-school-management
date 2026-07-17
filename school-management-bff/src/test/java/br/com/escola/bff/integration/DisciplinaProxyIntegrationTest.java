@@ -3,6 +3,8 @@ package br.com.escola.bff.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
@@ -23,37 +25,54 @@ import okhttp3.mockwebserver.MockWebServer;
 @AutoConfigureWebTestClient
 class DisciplinaProxyIntegrationTest {
 
-    private static final MockWebServer MONOLITH = startLegacy();
+    private static final MockWebServer AUTH = startServer();
+    private static final MockWebServer CATALOG = startServer();
+    private static final Path REPORT_PATH = createReportFile();
 
     @Autowired
     private WebTestClient client;
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.monolith.base-url", () -> AUTH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> AUTH.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
+        registry.add("clients.catalog-service.base-url", () -> CATALOG.url("/").toString());
+        registry.add("clients.catalog-service.internal-token", () -> "internal-token");
+        registry.add("features.catalog-read-cutover.enabled", () -> true);
+        registry.add("features.catalog-read-cutover.routes.disciplinas", () -> true);
+        registry.add("features.catalog-read-cutover.report-path", () -> REPORT_PATH.toString());
         registry.add("management.health.redis.enabled", () -> false);
     }
 
     @AfterAll
-    static void stopLegacy() throws IOException {
-        MONOLITH.shutdown();
+    static void stopServers() throws IOException {
+        AUTH.shutdown();
+        CATALOG.shutdown();
+        Files.deleteIfExists(REPORT_PATH);
     }
 
     @Test
     void deveExecutarFluxoCompletoDaRotaPiloto() throws InterruptedException {
-        MONOLITH.enqueue(new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody("""
-                        [{
-                          "id":"00000000-0000-0000-0000-000000000001",
-                          "nome":"Matematica",
-                          "cargaHoraria":80,
-                          "status":"ATIVA",
-                          "escolaId":"00000000-0000-0000-0000-000000000047",
-                          "escolaNome":"Escola padrao",
-                          "createdAt":"2026-06-19T10:00:00"
-                        }]
-                        """));
+        AUTH.enqueue(json("""
+                {
+                  "usuarioId":"00000000-0000-0000-0000-000000000201",
+                  "escolaId":"00000000-0000-0000-0000-000000000047",
+                  "escolaNome":"Escola padrao",
+                  "username":"admin"
+                }
+                """));
+        CATALOG.enqueue(json("""
+                [{
+                  "id":"00000000-0000-0000-0000-000000000001",
+                  "nome":"Matematica",
+                  "cargaHoraria":80,
+                  "status":"ATIVA",
+                  "escolaId":"00000000-0000-0000-0000-000000000047",
+                  "escolaNome":"Escola padrao",
+                  "createdAt":"2026-06-19T10:00:00"
+                }]
+                """));
 
         client.get().uri("/api/disciplinas")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
@@ -65,15 +84,21 @@ class DisciplinaProxyIntegrationTest {
                 .expectBody()
                 .jsonPath("$[0].nome").isEqualTo("Matematica");
 
-        var request = MONOLITH.takeRequest();
-        assertThat(request.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
-        assertThat(request.getHeader(TrustedHeaders.CORRELATION_ID)).isEqualTo("corr-e2e");
-        assertThat(request.getHeader("X-Escola-Id")).isNull();
+        var authRequest = AUTH.takeRequest();
+        assertThat(authRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
+        assertThat(authRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
+
+        var catalogRequest = CATALOG.takeRequest();
+        assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/disciplinas");
+        assertThat(catalogRequest.getHeader(TrustedHeaders.CORRELATION_ID)).isEqualTo("corr-e2e");
+        assertThat(catalogRequest.getHeader("X-Usuario-Id")).isEqualTo("00000000-0000-0000-0000-000000000201");
+        assertThat(catalogRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
     }
 
     @Test
-    void deveRejeitarSemBearerAntesDeChamarMonolito() {
-        int requestsBefore = MONOLITH.getRequestCount();
+    void deveRejeitarSemBearerAntesDeChamarServicosInternos() {
+        int authRequestsBefore = AUTH.getRequestCount();
+        int catalogRequestsBefore = CATALOG.getRequestCount();
 
         client.get().uri("/api/disciplinas")
                 .exchange()
@@ -81,10 +106,11 @@ class DisciplinaProxyIntegrationTest {
                 .expectBody()
                 .jsonPath("$.code").isEqualTo("UNAUTHORIZED");
 
-        assertThat(MONOLITH.getRequestCount()).isEqualTo(requestsBefore);
+        assertThat(AUTH.getRequestCount()).isEqualTo(authRequestsBefore);
+        assertThat(CATALOG.getRequestCount()).isEqualTo(catalogRequestsBefore);
     }
 
-    private static MockWebServer startLegacy() {
+    private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {
             server.start();
@@ -93,5 +119,34 @@ class DisciplinaProxyIntegrationTest {
             throw new ExceptionInInitializerError(exception);
         }
     }
-}
 
+    private static Path createReportFile() {
+        try {
+            Path path = Files.createTempFile("catalog-disciplina-proxy-report", ".json");
+            Files.writeString(path, """
+                    {
+                      "applied": true,
+                      "reconciled": true,
+                      "sourceIssues": [],
+                      "targetIssues": [],
+                      "tables": [
+                        {
+                          "missingIds": [],
+                          "unexpectedIds": [],
+                          "divergentIds": []
+                        }
+                      ]
+                    }
+                    """);
+            return path;
+        } catch (IOException exception) {
+            throw new ExceptionInInitializerError(exception);
+        }
+    }
+
+    private static MockResponse json(String body) {
+        return new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody(body);
+    }
+}

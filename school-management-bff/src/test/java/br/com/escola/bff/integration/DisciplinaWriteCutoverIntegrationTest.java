@@ -97,22 +97,29 @@ class DisciplinaWriteCutoverIntegrationTest {
     }
 
     @Test
-    void deveManterMonolitoQuandoStatusNaoForCompativelComCatalogoNovo() throws Exception {
+    void deveRotearDisciplinaInativaParaCatalogoMantendoContratoExterno() throws Exception {
         MONOLITH.enqueue(json("""
+                {
+                  "usuarioId":"00000000-0000-0000-0000-000000000201",
+                  "escolaId":"00000000-0000-0000-0000-000000000047",
+                  "escolaNome":"Escola padrao",
+                  "username":"admin"
+                }
+                """));
+        CATALOG.enqueue(json("""
                 {
                   "id":"00000000-0000-0000-0000-000000000102",
                   "nome":"Historia",
                   "cargaHoraria":60,
-                  "status":"INATIVA",
+                  "ativo":false,
                   "escolaId":"00000000-0000-0000-0000-000000000047",
-                  "escolaNome":"Escola monolito",
                   "createdAt":"2026-06-23T10:05:00"
                 }
                 """, 201));
 
         client.post().uri("/api/disciplinas")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
-                .header(TrustedHeaders.CORRELATION_ID, "corr-disc-monolith")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-disc-inativa")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue("""
                         {
@@ -125,12 +132,13 @@ class DisciplinaWriteCutoverIntegrationTest {
                 .expectStatus().isCreated()
                 .expectBody()
                 .jsonPath("$.status").isEqualTo("INATIVA")
-                .jsonPath("$.escolaNome").isEqualTo("Escola monolito");
+                .jsonPath("$.escolaNome").isEqualTo("Escola padrao");
 
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/disciplinas");
-        assertThat(monolithRequest.getBody().readUtf8()).contains("\"status\":\"INATIVA\"");
-        assertThat(CATALOG.getRequestCount()).isEqualTo(0);
+        var contextRequest = MONOLITH.takeRequest();
+        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        var catalogRequest = CATALOG.takeRequest();
+        assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/disciplinas");
+        assertThat(catalogRequest.getBody().readUtf8()).contains("\"ativo\":false");
     }
 
     @Test
