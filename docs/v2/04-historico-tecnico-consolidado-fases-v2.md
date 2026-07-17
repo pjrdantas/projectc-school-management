@@ -4356,3 +4356,24 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `mvn -pl responsibles-service clean test`.
 - Contagem regressiva do ciclo fechado atual do `responsibles-service`:
   1 fase restante.
+
+### Fase 214
+
+- O `school-management-bff` passou a tratar os tres contratos publicos de
+  leitura de `responsaveis` como recorte externo seguro com fallback
+  operacional ao monolito: `GET /api/responsaveis`,
+  `GET /api/responsaveis/{id}` e `GET /api/alunos/{alunoId}/responsaveis`.
+- Foram adicionadas portas e clients legados minimos no BFF para esses tres
+  endpoints, sem criar escrita, sem alterar payloads externos e sem mexer no
+  frontend.
+- `ResponsavelReadProxyService` e `AlunoResponsavelReadProxyService` passaram a
+  consumir prioritariamente o `responsibles-service`, mas retornam ao monolito
+  quando houver indisponibilidade ou erro de transporte do servico novo,
+  preservando o contrato publico atual.
+- Foram adicionadas integracoes cobrindo tanto o caminho principal via
+  `responsibles-service` quanto o fallback ao monolito nas leituras de
+  catalogo, detalhe e vinculo por aluno.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl school-management-bff -Dtest=ResponsavelReadProxyIntegrationTest,AlunoResponsavelReadProxyIntegrationTest test`.
+- Contagem regressiva do ciclo fechado atual do `responsibles-service`:
+  0 fases restantes.

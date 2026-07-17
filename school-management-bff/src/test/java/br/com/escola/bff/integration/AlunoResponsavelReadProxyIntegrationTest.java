@@ -91,6 +91,43 @@ class AlunoResponsavelReadProxyIntegrationTest {
         assertThat(responsiblesRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
     }
 
+    @Test
+    void deveFazerFallbackParaMonolitoQuandoResponsiblesServiceFalharNaLeituraPorAluno() throws InterruptedException {
+        UUID alunoId = UUID.fromString("00000000-0000-0000-0000-000000000301");
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao"
+                        }
+                        """));
+
+        RESPONSIBLES.enqueue(new MockResponse().setResponseCode(503));
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{
+                          "id":"00000000-0000-0000-0000-000000000401",
+                          "nomeCompleto":"Monolito Vinculo",
+                          "parentesco":"MAE"
+                        }]
+                        """));
+
+        client.get().uri("/api/alunos/{alunoId}/responsaveis", alunoId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-resp-fallback-2")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].nomeCompleto").isEqualTo("Monolito Vinculo");
+
+        assertThat(RESPONSIBLES.takeRequest().getPath()).isEqualTo("/internal/v1/alunos/" + alunoId + "/responsaveis");
+        assertThat(MONOLITH.takeRequest().getPath()).isEqualTo("/api/alunos/" + alunoId + "/responsaveis");
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {

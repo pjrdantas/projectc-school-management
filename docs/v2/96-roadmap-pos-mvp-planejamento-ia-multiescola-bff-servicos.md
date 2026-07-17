@@ -8654,3 +8654,23 @@ restantes.
 
 Contagem regressiva do ciclo fechado atual do `responsibles-service`: 1 fase
 restante.
+
+### Fase 214 - Fechamento externo seguro do ciclo de leitura de `responsibles`
+
+- o `school-management-bff` passou a fechar o recorte externo seguro de
+  `responsaveis` com fallback operacional ao monolito para os tres contratos
+  publicos ja mantidos no servico novo:
+  `GET /api/responsaveis`, `GET /api/responsaveis/{id}` e
+  `GET /api/alunos/{alunoId}/responsaveis`;
+- foram adicionados apenas ports e clients legados minimos no BFF para esse
+  fallback, sem abrir escrita, sem alterar contrato externo e sem criar um
+  framework novo de cutover;
+- `ResponsavelReadProxyService` e `AlunoResponsavelReadProxyService` passaram a
+  priorizar o `responsibles-service`, retornando ao monolito quando houver
+  indisponibilidade do servico novo, preservando continuidade funcional no
+  contrato publico;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff -Dtest=ResponsavelReadProxyIntegrationTest,AlunoResponsavelReadProxyIntegrationTest test`.
+
+Contagem regressiva do ciclo fechado atual do `responsibles-service`: 0 fases
+restantes.

@@ -49,10 +49,12 @@ import br.com.escola.bff.application.port.out.MonolithDashboardIndicadorSnapshot
 import br.com.escola.bff.application.port.out.MonolithDashboardProfessorReadPort;
 import br.com.escola.bff.application.port.out.MonolithDashboardPublicoReadPort;
 import br.com.escola.bff.application.port.out.MonolithDashboardSecretariaReadPort;
+import br.com.escola.bff.application.port.out.MonolithAlunoResponsavelReadPort;
 import br.com.escola.bff.application.port.out.MonolithCatalogReadPort;
 import br.com.escola.bff.application.port.out.MonolithAuthSessionPort;
 import br.com.escola.bff.application.port.out.MonolithDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.MonolithPeriodoLetivoWritePort;
+import br.com.escola.bff.application.port.out.MonolithResponsavelReadPort;
 import br.com.escola.bff.application.port.out.MonolithSerieWritePort;
 import br.com.escola.bff.application.port.out.MonolithTenantReadPort;
 import br.com.escola.bff.application.port.out.MonolithTurmaDisciplinaWritePort;
@@ -253,15 +255,23 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarAlunoResponsavelUseCase consultarAlunoResponsavelUseCase(
             InternalAuthContextPort authContextPort,
-            ResponsiblesAlunoResponsavelReadPort responsiblesAlunoResponsavelReadPort) {
-        return new AlunoResponsavelReadProxyService(authContextPort, responsiblesAlunoResponsavelReadPort);
+            ResponsiblesAlunoResponsavelReadPort responsiblesAlunoResponsavelReadPort,
+            MonolithAlunoResponsavelReadPort monolithAlunoResponsavelReadPort) {
+        return new AlunoResponsavelReadProxyService(
+                authContextPort,
+                responsiblesAlunoResponsavelReadPort,
+                monolithAlunoResponsavelReadPort);
     }
 
     @Bean
     ConsultarResponsavelUseCase consultarResponsavelUseCase(
             InternalAuthContextPort authContextPort,
-            ResponsiblesReadPort responsiblesReadPort) {
-        return new ResponsavelReadProxyService(authContextPort, responsiblesReadPort);
+            ResponsiblesReadPort responsiblesReadPort,
+            MonolithResponsavelReadPort monolithResponsavelReadPort) {
+        return new ResponsavelReadProxyService(
+                authContextPort,
+                responsiblesReadPort,
+                monolithResponsavelReadPort);
     }
 
     @Bean
