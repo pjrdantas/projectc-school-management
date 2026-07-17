@@ -148,12 +148,12 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
     }
 
     @Override
-    public List<TableOperationReport> synchronize(boolean backfillEnabled, int batchSize) {
+    public List<TableOperationReport> synchronize(boolean backfillEnabled, boolean reconciliationEnabled, int batchSize) {
         if (!StringUtils.hasText(sourceProperties.sourceUrl()) || !StringUtils.hasText(targetProperties.url())) {
             return List.of(
-                    blockedReport("responsavel", "id_responsavel", backfillEnabled),
-                    blockedReport("parentesco", "id_parentesco", backfillEnabled),
-                    blockedReport("aluno_responsavel", "id_aluno_responsavel", backfillEnabled));
+                    blockedReport("responsavel", "id_responsavel", backfillEnabled, reconciliationEnabled),
+                    blockedReport("parentesco", "id_parentesco", backfillEnabled, reconciliationEnabled),
+                    blockedReport("aluno_responsavel", "id_aluno_responsavel", backfillEnabled, reconciliationEnabled));
         }
 
         loadDriver(sourceProperties.sourceDriverClassName());
@@ -182,13 +182,15 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
                     "id_responsavel",
                     "monolith_jdbc",
                     "responsibles_read_model",
-                    "success",
-                    "responsibles-read-model-backfill-completed",
+                    statusFor(reconciliationEnabled, sourceRows, targetRows),
+                    reasonFor(reconciliationEnabled, sourceRows, targetRows),
                     backfillEnabled,
+                    reconciliationEnabled,
                     true,
                     sourceRows.size(),
                     targetRows.size(),
-                    backfilledRecords));
+                    backfilledRecords,
+                    divergentRecords(sourceRows, targetRows)));
 
             List<ParentescoRow> sourceKinships = readKinshipSourceRows(source, batchSize);
             int backfilledKinships = 0;
@@ -203,13 +205,15 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
                     "id_parentesco",
                     "monolith_jdbc",
                     "responsibles_read_model",
-                    "success",
-                    "responsibles-read-model-backfill-completed",
+                    statusFor(reconciliationEnabled, sourceKinships, targetKinships),
+                    reasonFor(reconciliationEnabled, sourceKinships, targetKinships),
                     backfillEnabled,
+                    reconciliationEnabled,
                     true,
                     sourceKinships.size(),
                     targetKinships.size(),
-                    backfilledKinships));
+                    backfilledKinships,
+                    divergentRecords(sourceKinships, targetKinships)));
 
             List<AlunoResponsavelRow> sourceStudentLinks = readStudentLinkSourceRows(source, batchSize);
             int backfilledStudentLinks = 0;
@@ -224,13 +228,15 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
                     "id_aluno_responsavel",
                     "monolith_jdbc",
                     "responsibles_read_model",
-                    "success",
-                    "responsibles-read-model-backfill-completed",
+                    statusFor(reconciliationEnabled, sourceStudentLinks, targetStudentLinks),
+                    reasonFor(reconciliationEnabled, sourceStudentLinks, targetStudentLinks),
                     backfillEnabled,
+                    reconciliationEnabled,
                     true,
                     sourceStudentLinks.size(),
                     targetStudentLinks.size(),
-                    backfilledStudentLinks));
+                    backfilledStudentLinks,
+                    divergentRecords(sourceStudentLinks, targetStudentLinks)));
 
             return List.copyOf(reports);
         } catch (SQLException exception) {
@@ -238,7 +244,11 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
         }
     }
 
-    private TableOperationReport blockedReport(String table, String keyColumn, boolean backfillEnabled) {
+    private TableOperationReport blockedReport(
+            String table,
+            String keyColumn,
+            boolean backfillEnabled,
+            boolean reconciliationEnabled) {
         return new TableOperationReport(
                 table,
                 keyColumn,
@@ -247,10 +257,33 @@ public class JdbcResponsiblesReadModelSyncAdapter implements ResponsiblesReadMod
                 "blocked",
                 "responsibles-read-model-source-or-target-url-required",
                 backfillEnabled,
+                reconciliationEnabled,
                 true,
                 0,
                 0,
+                0,
                 0);
+    }
+
+    private <T> String statusFor(boolean reconciliationEnabled, List<T> sourceRows, List<T> targetRows) {
+        return reconciliationEnabled && divergentRecords(sourceRows, targetRows) > 0 ? "divergent" : "success";
+    }
+
+    private <T> String reasonFor(boolean reconciliationEnabled, List<T> sourceRows, List<T> targetRows) {
+        return reconciliationEnabled && divergentRecords(sourceRows, targetRows) > 0
+                ? "responsibles-read-model-reconciliation-divergent"
+                : "responsibles-read-model-backfill-completed";
+    }
+
+    private <T> int divergentRecords(List<T> sourceRows, List<T> targetRows) {
+        int divergent = Math.abs(sourceRows.size() - targetRows.size());
+        int comparable = Math.min(sourceRows.size(), targetRows.size());
+        for (int index = 0; index < comparable; index++) {
+            if (!Objects.equals(sourceRows.get(index), targetRows.get(index))) {
+                divergent++;
+            }
+        }
+        return divergent;
     }
 
     private List<ResponsavelRow> readSourceRows(Connection source, int batchSize) throws SQLException {

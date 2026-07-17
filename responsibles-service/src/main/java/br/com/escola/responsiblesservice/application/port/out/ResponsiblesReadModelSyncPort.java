@@ -6,5 +6,5 @@ import br.com.escola.responsiblesservice.application.state.ResponsiblesReadModel
 
 public interface ResponsiblesReadModelSyncPort {
 
-    List<TableOperationReport> synchronize(boolean backfillEnabled, int batchSize);
+    List<TableOperationReport> synchronize(boolean backfillEnabled, boolean reconciliationEnabled, int batchSize);
 }

@@ -6333,6 +6333,26 @@ Entregue nesta fase:
   mascarar diferenca entre aluno inexistente e aluno existente sem
   responsaveis.
 
+### Fase 210 - Reconciliacao opt-in e gate controlado do read model de `responsaveis`
+
+Entregue nesta fase:
+
+- o ciclo local de sincronizacao do `responsibles-service` passou a aceitar
+  tambem `reconciliation-enabled`, permitindo validacao objetiva do read model
+  sem abrir escrita e sem alterar o frontend;
+- o resumo interno da sincronizacao passou a carregar divergencias por tabela,
+  separando `success`, `blocked` e `divergent` para
+  `responsavel`, `parentesco` e `aluno_responsavel`;
+- foi introduzido o estado local `ResponsiblesReadModelSyncState`, o
+  `ResponsiblesReadModelRouteGuard` e o health indicator
+  `responsiblesLocalPersistence`, expondo se a rota
+  `GET /api/alunos/{alunoId}/responsaveis` esta pronta para leitura local com
+  base no ultimo ciclo reconciliado;
+- a leitura local dessa rota permanece habilitada imediatamente quando a
+  reconciliacao opt-in estiver desligada, mas passa a exigir ciclo verde e sem
+  divergencias quando `reconciliation-enabled=true`, reduzindo uso indevido do
+  read model antes da validacao objetiva.
+
 ### Fase 115 - Abertura fisica do `enrollment-document-service` por `transferencia`
 
 Entregue nesta fase:

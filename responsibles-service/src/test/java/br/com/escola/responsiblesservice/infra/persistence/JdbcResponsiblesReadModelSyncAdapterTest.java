@@ -26,7 +26,7 @@ class JdbcResponsiblesReadModelSyncAdapterTest {
                 new ResponsiblesReadModelSourceProperties(sourceUrl, "sa", "", "org.h2.Driver"),
                 new ResponsiblesReadModelMigrationProperties(targetUrl, "sa", "", "org.h2.Driver", List.of()));
 
-        var reports = adapter.synchronize(true, 100);
+        var reports = adapter.synchronize(true, false, 100);
 
         assertThat(reports).hasSize(3);
         assertThat(reports).allMatch(report -> report.status().equals("success"));
@@ -47,7 +47,7 @@ class JdbcResponsiblesReadModelSyncAdapterTest {
                 new ResponsiblesReadModelSourceProperties("", "", "", ""),
                 new ResponsiblesReadModelMigrationProperties("", "", "", "", List.of()));
 
-        var reports = adapter.synchronize(true, 100);
+        var reports = adapter.synchronize(true, false, 100);
 
         assertThat(reports).hasSize(3);
         assertThat(reports).allMatch(report -> report.status().equals("blocked"));

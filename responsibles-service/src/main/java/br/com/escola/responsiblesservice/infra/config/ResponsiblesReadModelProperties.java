@@ -8,6 +8,7 @@ public record ResponsiblesReadModelProperties(
         boolean migrationEnabled,
         boolean localReadRoutingEnabled,
         boolean backfillEnabled,
+        boolean reconciliationEnabled,
         int backfillBatchSize,
         boolean failOnError,
         boolean fallbackEnabled) {

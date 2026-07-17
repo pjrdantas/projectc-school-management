@@ -4286,3 +4286,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   comportamento funcional do contrato oficial.
 - Validacao executada apenas no modulo tocado:
   `mvn -pl responsibles-service clean test`.
+
+### Fase 210
+
+- O `responsibles-service` passou a suportar reconciliacao opt-in do read model
+  local por `responsavel`, `parentesco` e `aluno_responsavel`, sem abrir
+  escrita.
+- `ResponsiblesReadModelSyncSummary` e os relatórios por tabela passaram a
+  expor divergencias objetivas, permitindo diferenciar ciclos apenas
+  backfilled de ciclos realmente reconciliados.
+- Foi adicionado o estado local `ResponsiblesReadModelSyncState`, o gate
+  `ResponsiblesReadModelRouteGuard` e o health indicator
+  `responsiblesLocalPersistence`; com isso, a rota
+  `GET /api/alunos/{alunoId}/responsaveis` passa a exigir ciclo reconciliado
+  verde quando `reconciliation-enabled=true`, mantendo o fallback ao monolito
+  nos demais cenarios.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl responsibles-service clean test`.

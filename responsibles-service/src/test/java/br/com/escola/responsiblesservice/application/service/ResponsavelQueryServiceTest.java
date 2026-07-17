@@ -20,6 +20,9 @@ import br.com.escola.responsiblesservice.application.dto.ResponsavelAlunoVincula
 import br.com.escola.responsiblesservice.application.dto.ResponsavelReadModelResponse;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelLocalReadPort;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelReadPort;
+import br.com.escola.responsiblesservice.application.state.ResponsiblesReadModelSyncState;
+import br.com.escola.responsiblesservice.application.state.ResponsiblesReadModelSyncSummary;
+import br.com.escola.responsiblesservice.application.state.ResponsiblesReadModelSyncSummary.TableOperationReport;
 import br.com.escola.responsiblesservice.infra.config.ResponsiblesReadModelProperties;
 
 class ResponsavelQueryServiceTest {
@@ -34,7 +37,8 @@ class ResponsavelQueryServiceTest {
                         Optional.empty(),
                         false)),
                 new FakeMonolithReadPort(monolithCalls),
-                new ResponsiblesReadModelProperties(true, false, true, false, 500, false, true),
+                new ResponsiblesReadModelProperties(true, false, true, false, false, 500, false, true),
+                routeGuard(false, true),
                 new ObjectMapper().findAndRegisterModules());
 
         var response = service.listarResponsaveis("Bearer token", context(), "Maria", null);
@@ -52,7 +56,8 @@ class ResponsavelQueryServiceTest {
         ResponsavelQueryService service = new ResponsavelQueryService(
                 provider(new FakeLocalReadPort(Optional.empty(), Optional.empty(), Optional.empty(), false)),
                 new FakeMonolithReadPort(monolithCalls),
-                new ResponsiblesReadModelProperties(true, false, true, false, 500, false, true),
+                new ResponsiblesReadModelProperties(true, false, true, false, false, 500, false, true),
+                routeGuard(false, true),
                 new ObjectMapper().findAndRegisterModules());
 
         var response = service.buscarResponsavelPorId("Bearer token", context(), responsavelId);
@@ -72,7 +77,8 @@ class ResponsavelQueryServiceTest {
                         Optional.of(List.of(responsavelVinculado("Mae Local"))),
                         false)),
                 new FakeMonolithReadPort(monolithCalls),
-                new ResponsiblesReadModelProperties(true, false, true, false, 500, false, true),
+                new ResponsiblesReadModelProperties(true, false, true, false, false, 500, false, true),
+                routeGuard(false, true),
                 new ObjectMapper().findAndRegisterModules());
 
         var response = service.listarResponsaveisPorAluno("Bearer token", context(),
@@ -89,7 +95,8 @@ class ResponsavelQueryServiceTest {
         ResponsavelQueryService service = new ResponsavelQueryService(
                 provider(new FakeLocalReadPort(Optional.empty(), Optional.empty(), Optional.empty(), false)),
                 new FakeMonolithReadPort(monolithCalls),
-                new ResponsiblesReadModelProperties(true, false, true, false, 500, false, true),
+                new ResponsiblesReadModelProperties(true, false, true, false, false, 500, false, true),
+                routeGuard(false, true),
                 new ObjectMapper().findAndRegisterModules());
 
         var response = service.listarResponsaveisPorAluno("Bearer token", context(),
@@ -122,6 +129,48 @@ class ResponsavelQueryServiceTest {
                 return port;
             }
         };
+    }
+
+    private ResponsiblesReadModelRouteGuard routeGuard(boolean reconciliationEnabled, boolean ready) {
+        ResponsiblesReadModelSyncState syncState = new ResponsiblesReadModelSyncState();
+        if (ready) {
+            syncState.update(new ResponsiblesReadModelSyncSummary(
+                    true,
+                    reconciliationEnabled,
+                    "completed",
+                    "ok",
+                    100,
+                    3,
+                    3,
+                    3,
+                    0,
+                    3,
+                    3,
+                    List.of(
+                            table("responsavel", reconciliationEnabled),
+                            table("parentesco", reconciliationEnabled),
+                            table("aluno_responsavel", reconciliationEnabled))));
+        }
+        return new ResponsiblesReadModelRouteGuard(
+                new ResponsiblesReadModelProperties(true, false, true, false, reconciliationEnabled, 500, false, true),
+                syncState);
+    }
+
+    private TableOperationReport table(String table, boolean reconciliationEnabled) {
+        return new TableOperationReport(
+                table,
+                "id",
+                "source",
+                "target",
+                "success",
+                "ok",
+                true,
+                reconciliationEnabled,
+                true,
+                1,
+                1,
+                1,
+                0);
     }
 
     private InternalRequestContext context() {

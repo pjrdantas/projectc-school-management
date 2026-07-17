@@ -22,16 +22,19 @@ public class ResponsavelQueryService implements ResponsavelQueryUseCase {
     private final ObjectProvider<ResponsavelLocalReadPort> responsavelLocalReadPortProvider;
     private final ResponsavelReadPort responsavelReadPort;
     private final ResponsiblesReadModelProperties readModelProperties;
+    private final ResponsiblesReadModelRouteGuard routeGuard;
     private final ObjectMapper objectMapper;
 
     public ResponsavelQueryService(
             ObjectProvider<ResponsavelLocalReadPort> responsavelLocalReadPortProvider,
             ResponsavelReadPort responsavelReadPort,
             ResponsiblesReadModelProperties readModelProperties,
+            ResponsiblesReadModelRouteGuard routeGuard,
             ObjectMapper objectMapper) {
         this.responsavelLocalReadPortProvider = responsavelLocalReadPortProvider;
         this.responsavelReadPort = responsavelReadPort;
         this.readModelProperties = readModelProperties;
+        this.routeGuard = routeGuard;
         this.objectMapper = objectMapper;
     }
 
@@ -87,7 +90,7 @@ public class ResponsavelQueryService implements ResponsavelQueryUseCase {
             String authorization,
             InternalRequestContext context,
             UUID alunoId) {
-        if (readModelProperties.enabled() && readModelProperties.localReadRoutingEnabled()) {
+        if (routeGuard.canReadStudentLinksLocally()) {
             ResponsavelLocalReadPort localReadPort = responsavelLocalReadPortProvider.getIfAvailable();
             if (localReadPort != null) {
                 try {
