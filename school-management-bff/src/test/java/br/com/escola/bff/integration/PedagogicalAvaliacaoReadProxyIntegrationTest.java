@@ -53,6 +53,7 @@ class PedagogicalAvaliacaoReadProxyIntegrationTest {
         UUID alocacaoId = UUID.randomUUID();
         UUID turmaId = UUID.randomUUID();
         UUID avaliacaoId = UUID.randomUUID();
+        int monolithRequestCount = MONOLITH.getRequestCount();
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -82,12 +83,13 @@ class PedagogicalAvaliacaoReadProxyIntegrationTest {
         assertThat(authRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes?professorTurmaDisciplinaId=" + alocacaoId + "&turmaId=" + turmaId);
-        assertThat(MONOLITH.getRequestCount()).isZero();
+        assertThat(MONOLITH.getRequestCount()).isEqualTo(monolithRequestCount);
     }
 
     @Test
     void deveConsumirIdentityAccessEpedagogicalServiceNaBuscaDeAvaliacaoPorId() throws InterruptedException {
         UUID avaliacaoId = UUID.randomUUID();
+        int monolithRequestCount = MONOLITH.getRequestCount();
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -114,12 +116,13 @@ class PedagogicalAvaliacaoReadProxyIntegrationTest {
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes/" + avaliacaoId);
         assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-avaliacao-read-2");
-        assertThat(MONOLITH.getRequestCount()).isZero();
+        assertThat(MONOLITH.getRequestCount()).isEqualTo(monolithRequestCount);
     }
 
     @Test
     void deveConsumirIdentityAccessEpedagogicalServiceNaListagemDeNotasPorAvaliacao() throws InterruptedException {
         UUID avaliacaoId = UUID.randomUUID();
+        int monolithRequestCount = MONOLITH.getRequestCount();
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -145,12 +148,13 @@ class PedagogicalAvaliacaoReadProxyIntegrationTest {
         IDENTITY_ACCESS.takeRequest();
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes/" + avaliacaoId + "/notas");
-        assertThat(MONOLITH.getRequestCount()).isZero();
+        assertThat(MONOLITH.getRequestCount()).isEqualTo(monolithRequestCount);
     }
 
     @Test
     void deveConsumirIdentityAccessEpedagogicalServiceNaListagemDeNotasPorMatricula() throws InterruptedException {
         UUID matriculaId = UUID.randomUUID();
+        int monolithRequestCount = MONOLITH.getRequestCount();
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -177,7 +181,141 @@ class PedagogicalAvaliacaoReadProxyIntegrationTest {
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/matriculas/" + matriculaId + "/notas");
         assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-nota-read-2");
-        assertThat(MONOLITH.getRequestCount()).isZero();
+        assertThat(MONOLITH.getRequestCount()).isEqualTo(monolithRequestCount);
+    }
+
+    @Test
+    void deveUsarMonolitoQuandoPedagogicalEstiverIndisponivelNaListagemDeAvaliacoes() throws InterruptedException {
+        UUID alocacaoId = UUID.randomUUID();
+        UUID turmaId = UUID.randomUUID();
+        UUID avaliacaoId = UUID.randomUUID();
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{"id":"%s","professorTurmaDisciplinaId":"%s","turmaId":"%s","turmaNome":"Turma Avaliacao Monolito","tipoAvaliacao":"TRABALHO"}]
+                        """.formatted(avaliacaoId, alocacaoId, turmaId)));
+
+        client.get().uri(uriBuilder -> uriBuilder.path("/api/avaliacoes")
+                        .queryParam("professorTurmaDisciplinaId", alocacaoId)
+                        .queryParam("turmaId", turmaId)
+                        .build())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-avaliacao-read-fallback-1")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].id").isEqualTo(avaliacaoId.toString())
+                .jsonPath("$[0].turmaNome").isEqualTo("Turma Avaliacao Monolito");
+
+        IDENTITY_ACCESS.takeRequest();
+        PEDAGOGICAL.takeRequest();
+        var monolithRequest = MONOLITH.takeRequest();
+        assertThat(monolithRequest.getPath()).isEqualTo(
+                "/api/avaliacoes?professorTurmaDisciplinaId=" + alocacaoId + "&turmaId=" + turmaId);
+    }
+
+    @Test
+    void deveUsarMonolitoQuandoPedagogicalEstiverIndisponivelNaBuscaDeAvaliacaoPorId() throws InterruptedException {
+        UUID avaliacaoId = UUID.randomUUID();
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"id":"%s","turmaNome":"Turma Avaliacao Monolito","tipoAvaliacao":"TRABALHO"}
+                        """.formatted(avaliacaoId)));
+
+        client.get().uri("/api/avaliacoes/{id}", avaliacaoId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-avaliacao-read-fallback-1b")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(avaliacaoId.toString())
+                .jsonPath("$.turmaNome").isEqualTo("Turma Avaliacao Monolito");
+
+        IDENTITY_ACCESS.takeRequest();
+        PEDAGOGICAL.takeRequest();
+        var monolithRequest = MONOLITH.takeRequest();
+        assertThat(monolithRequest.getPath()).isEqualTo("/api/avaliacoes/" + avaliacaoId);
+    }
+
+    @Test
+    void deveUsarMonolitoQuandoPedagogicalEstiverIndisponivelNasNotasPorAvaliacao() throws InterruptedException {
+        UUID avaliacaoId = UUID.randomUUID();
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{"id":"%s","avaliacaoId":"%s","alunoNome":"Aluno Nota Monolito","nota":7.25}]
+                        """.formatted(UUID.randomUUID(), avaliacaoId)));
+
+        client.get().uri("/api/avaliacoes/{id}/notas", avaliacaoId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-avaliacao-read-fallback-2")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].avaliacaoId").isEqualTo(avaliacaoId.toString())
+                .jsonPath("$[0].alunoNome").isEqualTo("Aluno Nota Monolito");
+
+        IDENTITY_ACCESS.takeRequest();
+        PEDAGOGICAL.takeRequest();
+        var monolithRequest = MONOLITH.takeRequest();
+        assertThat(monolithRequest.getPath()).isEqualTo("/api/avaliacoes/" + avaliacaoId + "/notas");
+    }
+
+    @Test
+    void deveUsarMonolitoQuandoPedagogicalEstiverIndisponivelNasNotasPorMatricula() throws InterruptedException {
+        UUID matriculaId = UUID.randomUUID();
+
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
+                        """));
+
+        PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(503));
+        MONOLITH.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        [{"id":"%s","matriculaId":"%s","alunoNome":"Aluno Matricula Monolito","nota":6.75}]
+                        """.formatted(UUID.randomUUID(), matriculaId)));
+
+        client.get().uri("/api/matriculas/{matriculaId}/notas", matriculaId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-avaliacao-read-fallback-3")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].matriculaId").isEqualTo(matriculaId.toString())
+                .jsonPath("$[0].alunoNome").isEqualTo("Aluno Matricula Monolito");
+
+        IDENTITY_ACCESS.takeRequest();
+        PEDAGOGICAL.takeRequest();
+        var monolithRequest = MONOLITH.takeRequest();
+        assertThat(monolithRequest.getPath()).isEqualTo("/api/matriculas/" + matriculaId + "/notas");
     }
 
     private static MockWebServer startServer() {

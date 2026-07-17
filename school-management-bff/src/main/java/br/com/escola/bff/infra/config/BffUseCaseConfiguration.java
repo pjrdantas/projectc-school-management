@@ -49,6 +49,8 @@ import br.com.escola.bff.application.port.out.MonolithDashboardIndicadorSnapshot
 import br.com.escola.bff.application.port.out.MonolithDashboardProfessorReadPort;
 import br.com.escola.bff.application.port.out.MonolithDashboardPublicoReadPort;
 import br.com.escola.bff.application.port.out.MonolithDashboardSecretariaReadPort;
+import br.com.escola.bff.application.port.out.MonolithAulaReadPort;
+import br.com.escola.bff.application.port.out.MonolithAvaliacaoReadPort;
 import br.com.escola.bff.application.port.out.MonolithBoletimReadPort;
 import br.com.escola.bff.application.port.out.MonolithDiarioClasseReadPort;
 import br.com.escola.bff.application.port.out.MonolithAlunoResponsavelReadPort;
@@ -401,8 +403,12 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarAvaliacaoUseCase consultarAvaliacaoUseCase(
             InternalAuthContextPort authContextPort,
-            PedagogicalAvaliacaoPort pedagogicalAvaliacaoPort) {
-        return new AvaliacaoReadProxyService(authContextPort, pedagogicalAvaliacaoPort);
+            PedagogicalAvaliacaoPort pedagogicalAvaliacaoPort,
+            MonolithAvaliacaoReadPort monolithAvaliacaoReadPort) {
+        return new AvaliacaoReadProxyService(
+                authContextPort,
+                pedagogicalAvaliacaoPort,
+                monolithAvaliacaoReadPort);
     }
 
     @Bean
@@ -415,8 +421,12 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarAulaUseCase consultarAulaUseCase(
             InternalAuthContextPort authContextPort,
-            PedagogicalAulaPort pedagogicalAulaPort) {
-        return new AulaReadProxyService(authContextPort, pedagogicalAulaPort);
+            PedagogicalAulaPort pedagogicalAulaPort,
+            MonolithAulaReadPort monolithAulaReadPort) {
+        return new AulaReadProxyService(
+                authContextPort,
+                pedagogicalAulaPort,
+                monolithAulaReadPort);
     }
 
     @Bean

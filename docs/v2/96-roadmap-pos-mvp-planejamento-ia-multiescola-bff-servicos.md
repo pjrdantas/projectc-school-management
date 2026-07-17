@@ -8707,3 +8707,29 @@ restantes.
 
 Contagem regressiva do ciclo residual de resiliencia externa do
 `pedagogical-service`: 3 fases restantes.
+
+### Fase 216 - Fallback read-only de `aulas` e `avaliacoes` no `school-management-bff`
+
+- a segunda fase do ciclo residual do `pedagogical-service` fechou o fallback
+  read-only ao monolito para o restante do bloco publico de leitura de
+  `aulas` e `avaliacoes`, sem abrir escrita e sem alterar contratos externos;
+- o `school-management-bff` passou a tratar como recorte externo seguro com
+  fallback ao monolito os contratos `GET /api/aulas`,
+  `GET /api/aulas/{id}`,
+  `GET /api/aulas/{id}/frequencia-professor`,
+  `GET /api/aulas/{id}/frequencias-alunos`,
+  `GET /api/avaliacoes`,
+  `GET /api/avaliacoes/{id}`,
+  `GET /api/avaliacoes/{id}/notas` e
+  `GET /api/matriculas/{matriculaId}/notas`;
+- foram adicionados apenas ports e clients legados minimos no BFF para esses
+  endpoints, preservando o `pedagogical-service` como origem primaria e
+  retornando ao monolito somente em indisponibilidade do servico novo;
+- `AulaReadProxyService` e `AvaliacaoReadProxyService` passaram a priorizar o
+  `pedagogical-service`, com fallback controlado ao monolito nas leituras de
+  listagem, detalhe, frequencias e notas;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff -Dtest=PedagogicalAulaReadProxyIntegrationTest,PedagogicalAvaliacaoReadProxyIntegrationTest test`.
+
+Contagem regressiva do ciclo residual de resiliencia externa do
+`pedagogical-service`: 2 fases restantes.
