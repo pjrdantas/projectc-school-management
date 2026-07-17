@@ -3,12 +3,11 @@ package br.com.escola.bff.application.service;
 import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
-import br.com.escola.bff.application.exception.DownstreamUnavailableException;
+import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityTenantCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.IdentityTenantObservabilityPort;
-import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
-import br.com.escola.bff.application.port.out.TenantAtivoReadPort;
 import br.com.escola.bff.application.port.out.LegacyTenantReadPort;
+import br.com.escola.bff.application.port.out.TenantAtivoReadPort;
 import br.com.escola.bff.application.usecase.ConsultarTenantAtivoUseCase;
 import reactor.core.publisher.Mono;
 
@@ -46,43 +45,9 @@ public class TenantAtivoReadProxyService implements ConsultarTenantAtivoUseCase 
                         .doOnSuccess(response -> observabilityPort.recordServiceSuccess(
                                 decision,
                                 "institutional_tenant"))
-                        .onErrorMap(
-                                DownstreamUnavailableException.class,
-                                TenantAtivoReadFailureException::new))
-                .onErrorResume(DownstreamUnavailableException.class,
-                        error -> fallbackTenantAtivoParaMonolito(decision, query, "identity_access", error))
-                .onErrorResume(TenantAtivoReadFailureException.class,
-                        error -> fallbackTenantAtivoParaMonolito(
+                        .doOnError(error -> observabilityPort.recordServiceFailure(
                                 decision,
-                                query,
                                 "institutional_tenant",
-                                error.cause()));
-    }
-
-    private Mono<ResponseEntity<String>> fallbackTenantAtivoParaMonolito(
-            IdentityTenantCutoverDecision decision,
-            CatalogReadQuery query,
-            String target,
-            DownstreamUnavailableException error) {
-        observabilityPort.recordServiceFailure(decision, target, error);
-        return cutoverPolicyPort.fallbackToLegacyOnError()
-                ? monolithTenantReadPort.consultarTenantAtivo(query)
-                        .doOnSuccess(response -> observabilityPort.recordFallbackToLegacy(
-                                decision,
-                                target,
-                                error))
-                : Mono.error(error);
-    }
-
-    private static final class TenantAtivoReadFailureException extends RuntimeException {
-
-        private TenantAtivoReadFailureException(DownstreamUnavailableException cause) {
-            super(cause);
-        }
-
-        private DownstreamUnavailableException cause() {
-            return (DownstreamUnavailableException) getCause();
-        }
+                                error)));
     }
 }
-

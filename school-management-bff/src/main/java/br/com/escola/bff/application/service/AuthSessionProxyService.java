@@ -3,13 +3,12 @@ package br.com.escola.bff.application.service;
 import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
-import br.com.escola.bff.application.exception.DownstreamUnavailableException;
+import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityTenantCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.IdentityTenantObservabilityPort;
-import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
+import br.com.escola.bff.application.port.out.LegacyAuthSessionPort;
 import br.com.escola.bff.application.port.out.SessaoAutenticadaPort;
 import br.com.escola.bff.application.port.out.TenantAtivoReadPort;
-import br.com.escola.bff.application.port.out.LegacyAuthSessionPort;
 import br.com.escola.bff.application.usecase.ConsultarAuthSessionUseCase;
 import br.com.escola.bff.application.usecase.SelecionarEscolaAtivaUseCase;
 import reactor.core.publisher.Mono;
@@ -51,17 +50,10 @@ public class AuthSessionProxyService implements ConsultarAuthSessionUseCase, Sel
                         .doOnSuccess(response -> observabilityPort.recordServiceSuccess(
                                 decision,
                                 "institutional_tenant"))
-                        .onErrorMap(
-                                DownstreamUnavailableException.class,
-                                TenantAtivoReadFailureException::new))
-                .onErrorResume(DownstreamUnavailableException.class,
-                        error -> fallbackListarEscolasParaMonolito(decision, query, "identity_access", error))
-                .onErrorResume(TenantAtivoReadFailureException.class,
-                        error -> fallbackListarEscolasParaMonolito(
+                        .doOnError(error -> observabilityPort.recordServiceFailure(
                                 decision,
-                                query,
                                 "institutional_tenant",
-                                error.cause()));
+                                error)));
     }
 
     @Override
@@ -77,43 +69,10 @@ public class AuthSessionProxyService implements ConsultarAuthSessionUseCase, Sel
         }
         return authContextPort.resolve(query)
                 .flatMap(context -> identityAccessSessionPort.selecionarEscolaAtiva(requestBody, query, context)
-                        .doOnSuccess(response -> observabilityPort.recordServiceSuccess(decision, "identity_access")))
-                .onErrorResume(DownstreamUnavailableException.class, error -> {
-                    observabilityPort.recordServiceFailure(decision, "identity_access", error);
-                    return cutoverPolicyPort.fallbackToLegacyOnError()
-                            ? monolithAuthSessionPort.selecionarEscolaAtiva(requestBody, query)
-                                    .doOnSuccess(response -> observabilityPort.recordFallbackToLegacy(
-                                            decision,
-                                            "identity_access",
-                                            error))
-                            : Mono.error(error);
-                });
-    }
-
-    private Mono<ResponseEntity<String>> fallbackListarEscolasParaMonolito(
-            IdentityTenantCutoverDecision decision,
-            CatalogReadQuery query,
-            String target,
-            DownstreamUnavailableException error) {
-        observabilityPort.recordServiceFailure(decision, target, error);
-        return cutoverPolicyPort.fallbackToLegacyOnError()
-                ? monolithAuthSessionPort.listarEscolas(query)
-                        .doOnSuccess(response -> observabilityPort.recordFallbackToLegacy(
+                        .doOnSuccess(response -> observabilityPort.recordServiceSuccess(decision, "identity_access"))
+                        .doOnError(error -> observabilityPort.recordServiceFailure(
                                 decision,
-                                target,
-                                error))
-                : Mono.error(error);
-    }
-
-    private static final class TenantAtivoReadFailureException extends RuntimeException {
-
-        private TenantAtivoReadFailureException(DownstreamUnavailableException cause) {
-            super(cause);
-        }
-
-        private DownstreamUnavailableException cause() {
-            return (DownstreamUnavailableException) getCause();
-        }
+                                "identity_access",
+                                error)));
     }
 }
-

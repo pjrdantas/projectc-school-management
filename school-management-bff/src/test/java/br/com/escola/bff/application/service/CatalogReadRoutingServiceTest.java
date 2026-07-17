@@ -36,7 +36,7 @@ class CatalogReadRoutingServiceTest {
     }
 
     @Test
-    void deveFazerFallbackParaMonolitoQuandoCatalogoFalhar() {
+    void devePropagarErroQuandoCatalogoFalhar() {
         AtomicBoolean fallbackHit = new AtomicBoolean(false);
         LegacyCatalogReadPort monolith = (path, query) -> {
             fallbackHit.set(true);
@@ -51,10 +51,13 @@ class CatalogReadRoutingServiceTest {
         CatalogReadRoutingService service = new CatalogReadRoutingService(monolith, catalog, authContext, decider, observability);
 
         StepVerifier.create(service.executar(CatalogReadRoute.DISCIPLINAS, new CatalogReadQuery("Bearer token", "corr-1")))
-                .assertNext(response -> assertThat(response.getBody()).isEqualTo("fallback"))
-                .verifyComplete();
+                .expectErrorSatisfies(error -> {
+                    assertThat(error).isInstanceOf(DownstreamUnavailableException.class);
+                    assertThat(error).hasMessage("catalog indisponivel");
+                })
+                .verify();
 
-        assertThat(fallbackHit.get()).isTrue();
+        assertThat(fallbackHit.get()).isFalse();
     }
 
     private record FixedDecider(boolean useCatalog, boolean fallback) implements CatalogReadCutoverPolicyPort {

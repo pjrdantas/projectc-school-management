@@ -23,7 +23,7 @@ import reactor.test.StepVerifier;
 public class IdentityTenantContextFallbackObservabilityTest {
 
     @Test
-    void deveRegistrarIdentityAccessQuandoFallbackDeListagemFalharNaResolucaoDeContexto() {
+    void deveRegistrarIdentityAccessQuandoFalhaDeListagemOcorrerNaResolucaoDeContexto() {
         IdentityTenantAuthContextPort authContextPort = query -> Mono.error(
                 new DownstreamUnavailableException("identity indisponivel"));
         TenantAtivoReadPort institutionalPort = new NoOpTenantAtivoReadPort();
@@ -39,15 +39,18 @@ public class IdentityTenantContextFallbackObservabilityTest {
                 observability);
 
         StepVerifier.create(service.listarEscolas("Bearer token", "corr-ctx-1"))
-                .assertNext(response -> assertThat(response.getBody()).isEqualTo("monolith-auth"))
-                .verifyComplete();
+                .expectErrorSatisfies(error -> {
+                    assertThat(error).isInstanceOf(DownstreamUnavailableException.class);
+                    assertThat(error).hasMessage("identity indisponivel");
+                })
+                .verify();
 
         assertThat(observability.failureTarget).isEqualTo("identity_access");
-        assertThat(observability.fallbackTarget).isEqualTo("identity_access");
+        assertThat(observability.fallbackTarget).isNull();
     }
 
     @Test
-    void deveRegistrarIdentityAccessQuandoFallbackDeTenantAtivoFalharNaResolucaoDeContexto() {
+    void deveRegistrarIdentityAccessQuandoFalhaDeTenantAtivoOcorrerNaResolucaoDeContexto() {
         IdentityTenantAuthContextPort authContextPort = query -> Mono.error(
                 new DownstreamUnavailableException("identity indisponivel"));
         LegacyTenantReadPort monolithPort = query -> Mono.just(ResponseEntity.ok("monolith-tenant"));
@@ -61,11 +64,14 @@ public class IdentityTenantContextFallbackObservabilityTest {
                 observability);
 
         StepVerifier.create(service.consultarTenantAtivo("Bearer token", "corr-ctx-2"))
-                .assertNext(response -> assertThat(response.getBody()).isEqualTo("monolith-tenant"))
-                .verifyComplete();
+                .expectErrorSatisfies(error -> {
+                    assertThat(error).isInstanceOf(DownstreamUnavailableException.class);
+                    assertThat(error).hasMessage("identity indisponivel");
+                })
+                .verify();
 
         assertThat(observability.failureTarget).isEqualTo("identity_access");
-        assertThat(observability.fallbackTarget).isEqualTo("identity_access");
+        assertThat(observability.fallbackTarget).isNull();
     }
 
     private static final class FixedDecisionPolicy implements IdentityTenantCutoverPolicyPort {

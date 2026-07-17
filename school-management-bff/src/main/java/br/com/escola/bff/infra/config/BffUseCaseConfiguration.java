@@ -260,155 +260,127 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarAlunoResponsavelUseCase consultarAlunoResponsavelUseCase(
             InternalAuthContextPort authContextPort,
-            AlunoResponsavelVinculoReadPort responsiblesAlunoResponsavelReadPort,
-            LegacyAlunoResponsavelReadPort monolithAlunoResponsavelReadPort) {
+            AlunoResponsavelVinculoReadPort responsiblesAlunoResponsavelReadPort) {
         return new AlunoResponsavelReadProxyService(
                 authContextPort,
-                responsiblesAlunoResponsavelReadPort,
-                monolithAlunoResponsavelReadPort);
+                responsiblesAlunoResponsavelReadPort);
     }
 
     @Bean
     ConsultarResponsavelUseCase consultarResponsavelUseCase(
             InternalAuthContextPort authContextPort,
-            ResponsavelCatalogoReadPort responsiblesReadPort,
-            LegacyResponsavelReadPort monolithResponsavelReadPort) {
+            ResponsavelCatalogoReadPort responsiblesReadPort) {
         return new ResponsavelReadProxyService(
                 authContextPort,
-                responsiblesReadPort,
-                monolithResponsavelReadPort);
+                responsiblesReadPort);
     }
 
     @Bean
     ConsultarPainelAcademicoUseCase consultarPainelAcademicoUseCase(
             InternalAuthContextPort authContextPort,
-            PainelAcademicoReadPort dashboardAcademicoReadPort,
-            LegacyPainelAcademicoReadPort monolithPainelAcademicoReadPort) {
+            PainelAcademicoReadPort dashboardAcademicoReadPort) {
         return new PainelAcademicoReadProxyService(
                 authContextPort,
-                dashboardAcademicoReadPort,
-                monolithPainelAcademicoReadPort);
+                dashboardAcademicoReadPort);
     }
 
     @Bean
     ConsultarPainelAlertaUseCase consultarPainelAlertaUseCase(
             InternalAuthContextPort authContextPort,
-            PainelAlertaReadPort dashboardAlertaReadPort,
-            LegacyPainelAlertaReadPort monolithPainelAlertaReadPort) {
+            PainelAlertaReadPort dashboardAlertaReadPort) {
         return new PainelAlertaReadProxyService(
                 authContextPort,
-                dashboardAlertaReadPort,
-                monolithPainelAlertaReadPort);
+                dashboardAlertaReadPort);
     }
 
     @Bean
     ConsultarPainelFrontendUseCase consultarPainelFrontendUseCase(
             InternalAuthContextPort authContextPort,
-            PainelFrontendReadPort dashboardFrontendReadPort,
-            LegacyPainelFrontendReadPort monolithPainelFrontendReadPort) {
+            PainelFrontendReadPort dashboardFrontendReadPort) {
         return new PainelFrontendReadProxyService(
                 authContextPort,
-                dashboardFrontendReadPort,
-                monolithPainelFrontendReadPort);
+                dashboardFrontendReadPort);
     }
 
     @Bean
     ListarPainelIndicadorSnapshotUseCase listarPainelIndicadorSnapshotUseCase(
             InternalAuthContextPort authContextPort,
-            PainelIndicadorSnapshotReadPort dashboardIndicadorSnapshotReadPort,
-            LegacyPainelIndicadorSnapshotReadPort monolithPainelIndicadorSnapshotReadPort) {
+            PainelIndicadorSnapshotReadPort dashboardIndicadorSnapshotReadPort) {
         return new PainelIndicadorSnapshotReadProxyService(
                 authContextPort,
-                dashboardIndicadorSnapshotReadPort,
-                monolithPainelIndicadorSnapshotReadPort);
+                dashboardIndicadorSnapshotReadPort);
     }
 
     @Bean
     ConsultarPainelIndicadorHistoricoUseCase consultarPainelIndicadorHistoricoUseCase(
             InternalAuthContextPort authContextPort,
-            PainelIndicadorHistoricoReadPort dashboardIndicadorHistoricoReadPort,
-            LegacyPainelIndicadorHistoricoReadPort monolithPainelIndicadorHistoricoReadPort) {
+            PainelIndicadorHistoricoReadPort dashboardIndicadorHistoricoReadPort) {
         return new PainelIndicadorHistoricoReadProxyService(
                 authContextPort,
-                dashboardIndicadorHistoricoReadPort,
-                monolithPainelIndicadorHistoricoReadPort);
+                dashboardIndicadorHistoricoReadPort);
     }
 
     @Bean
     ListarPainelPublicoUseCase listarPainelPublicoUseCase(
             InternalAuthContextPort authContextPort,
-            PainelPublicoReadPort dashboardPublicoReadPort,
-            LegacyPainelPublicoReadPort monolithPainelPublicoReadPort) {
+            PainelPublicoReadPort dashboardPublicoReadPort) {
         return new PainelPublicoReadProxyService(
                 authContextPort,
-                dashboardPublicoReadPort,
-                monolithPainelPublicoReadPort);
+                dashboardPublicoReadPort);
     }
 
     @Bean
     ListarPainelConfiguracaoUseCase listarPainelConfiguracaoUseCase(
             InternalAuthContextPort authContextPort,
-            PainelConfiguracaoReadPort dashboardConfiguracaoReadPort,
-            LegacyPainelConfiguracaoReadPort monolithPainelConfiguracaoReadPort) {
+            PainelConfiguracaoReadPort dashboardConfiguracaoReadPort) {
         return new PainelConfiguracaoReadProxyService(
                 authContextPort,
-                dashboardConfiguracaoReadPort,
-                monolithPainelConfiguracaoReadPort);
+                dashboardConfiguracaoReadPort);
     }
 
     @Bean
     ConsultarPainelSecretariaUseCase consultarPainelSecretariaUseCase(
             InternalAuthContextPort authContextPort,
-            PainelSecretariaReadPort dashboardSecretariaReadPort,
-            LegacyPainelSecretariaReadPort monolithPainelSecretariaReadPort) {
+            PainelSecretariaReadPort dashboardSecretariaReadPort) {
         return new PainelSecretariaReadProxyService(
                 authContextPort,
-                dashboardSecretariaReadPort,
-                monolithPainelSecretariaReadPort);
+                dashboardSecretariaReadPort);
     }
 
     @Bean
     ConsultarPainelDiretorUseCase consultarPainelDiretorUseCase(
             InternalAuthContextPort authContextPort,
-            PainelDiretorReadPort dashboardDiretorReadPort,
-            LegacyPainelDiretorReadPort monolithPainelDiretorReadPort) {
+            PainelDiretorReadPort dashboardDiretorReadPort) {
         return new PainelDiretorReadProxyService(
                 authContextPort,
-                dashboardDiretorReadPort,
-                monolithPainelDiretorReadPort);
+                dashboardDiretorReadPort);
     }
 
     @Bean
     ConsultarPainelProfessorUseCase consultarPainelProfessorUseCase(
             InternalAuthContextPort authContextPort,
-            PainelProfessorReadPort dashboardProfessorReadPort,
-            LegacyPainelProfessorReadPort monolithPainelProfessorReadPort) {
+            PainelProfessorReadPort dashboardProfessorReadPort) {
         return new PainelProfessorReadProxyService(
                 authContextPort,
-                dashboardProfessorReadPort,
-                monolithPainelProfessorReadPort);
+                dashboardProfessorReadPort);
     }
 
     @Bean
     ConsultarBoletimUseCase consultarBoletimUseCase(
             InternalAuthContextPort authContextPort,
-            BoletimReadPort pedagogicalBoletimReadPort,
-            LegacyBoletimReadPort monolithBoletimReadPort) {
+            BoletimReadPort pedagogicalBoletimReadPort) {
         return new BoletimReadProxyService(
                 authContextPort,
-                pedagogicalBoletimReadPort,
-                monolithBoletimReadPort);
+                pedagogicalBoletimReadPort);
     }
 
     @Bean
     ConsultarAvaliacaoUseCase consultarAvaliacaoUseCase(
             InternalAuthContextPort authContextPort,
-            AvaliacaoPort pedagogicalAvaliacaoPort,
-            LegacyAvaliacaoReadPort monolithAvaliacaoReadPort) {
+            AvaliacaoPort pedagogicalAvaliacaoPort) {
         return new AvaliacaoReadProxyService(
                 authContextPort,
-                pedagogicalAvaliacaoPort,
-                monolithAvaliacaoReadPort);
+                pedagogicalAvaliacaoPort);
     }
 
     @Bean
@@ -421,12 +393,10 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarAulaUseCase consultarAulaUseCase(
             InternalAuthContextPort authContextPort,
-            AulaPort pedagogicalAulaPort,
-            LegacyAulaReadPort monolithAulaReadPort) {
+            AulaPort pedagogicalAulaPort) {
         return new AulaReadProxyService(
                 authContextPort,
-                pedagogicalAulaPort,
-                monolithAulaReadPort);
+                pedagogicalAulaPort);
     }
 
     @Bean
@@ -439,12 +409,10 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarDiarioClasseUseCase consultarDiarioClasseUseCase(
             InternalAuthContextPort authContextPort,
-            DiarioClasseReadPort pedagogicalDiarioClasseReadPort,
-            LegacyDiarioClasseReadPort monolithDiarioClasseReadPort) {
+            DiarioClasseReadPort pedagogicalDiarioClasseReadPort) {
         return new DiarioClasseReadProxyService(
                 authContextPort,
-                pedagogicalDiarioClasseReadPort,
-                monolithDiarioClasseReadPort);
+                pedagogicalDiarioClasseReadPort);
     }
 
     @Bean
@@ -457,12 +425,10 @@ public class BffUseCaseConfiguration {
     @Bean
     ConsultarHistoricoEscolarUseCase consultarHistoricoEscolarUseCase(
             InternalAuthContextPort authContextPort,
-            HistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort,
-            LegacyHistoricoEscolarReadPort monolithHistoricoEscolarReadPort) {
+            HistoricoEscolarReadPort pedagogicalHistoricoEscolarReadPort) {
         return new HistoricoEscolarReadProxyService(
                 authContextPort,
-                pedagogicalHistoricoEscolarReadPort,
-                monolithHistoricoEscolarReadPort);
+                pedagogicalHistoricoEscolarReadPort);
     }
 
     @Bean

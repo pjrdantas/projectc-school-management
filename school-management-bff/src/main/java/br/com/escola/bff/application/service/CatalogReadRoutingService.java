@@ -3,10 +3,9 @@ package br.com.escola.bff.application.service;
 import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
-import br.com.escola.bff.application.exception.DownstreamUnavailableException;
-import br.com.escola.bff.application.port.out.CatalogoReadPort;
 import br.com.escola.bff.application.port.out.CatalogReadCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogReadObservabilityPort;
+import br.com.escola.bff.application.port.out.CatalogoReadPort;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
 import br.com.escola.bff.application.port.out.LegacyCatalogReadPort;
 import br.com.escola.bff.application.usecase.RouteCatalogReadUseCase;
@@ -45,14 +44,7 @@ public class CatalogReadRoutingService implements RouteCatalogReadUseCase {
         String internalPath = route.internalPath(pathArgs);
         return authContextPort.resolve(query)
                 .flatMap(context -> academicCatalogReadPort.get(internalPath, query, context)
-                        .doOnSuccess(response -> observabilityPort.recordCatalogSuccess(decision)))
-                .onErrorResume(DownstreamUnavailableException.class, error -> {
-                    observabilityPort.recordCatalogFailure(decision, error);
-                    return cutoverPolicyPort.fallbackToLegacyOnError()
-                            ? monolithCatalogReadPort.get(externalPath, query)
-                                    .doOnSuccess(response -> observabilityPort.recordFallbackToLegacy(decision, error))
-                            : Mono.error(error);
-                });
+                        .doOnSuccess(response -> observabilityPort.recordCatalogSuccess(decision))
+                        .doOnError(error -> observabilityPort.recordCatalogFailure(decision, error)));
     }
 }
-
