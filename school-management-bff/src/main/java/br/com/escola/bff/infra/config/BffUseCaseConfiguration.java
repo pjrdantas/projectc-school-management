@@ -45,7 +45,6 @@ import br.com.escola.bff.application.port.out.LegacyPainelDiretorReadPort;
 import br.com.escola.bff.application.port.out.LegacyPainelFrontendReadPort;
 import br.com.escola.bff.application.port.out.LegacyPainelIndicadorHistoricoReadPort;
 import br.com.escola.bff.application.port.out.LegacyPainelIndicadorSnapshotReadPort;
-import br.com.escola.bff.application.port.out.LegacyPainelProfessorReadPort;
 import br.com.escola.bff.application.port.out.LegacyPainelPublicoReadPort;
 import br.com.escola.bff.application.port.out.LegacyPainelSecretariaReadPort;
 import br.com.escola.bff.application.port.out.LegacyAulaReadPort;

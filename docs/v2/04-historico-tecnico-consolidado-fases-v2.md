@@ -4723,6 +4723,11 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `GET /api/professores/funcionarios-elegiveis`, todos consumindo o
   `academic-professor-service` como owner oficial e preservando os payloads
   externos de leitura sem reabrir dependencias no `people-service`.
+- A terceira subfase operacional de `D9` fechou o saneamento residual do fluxo
+  de dashboard por professor no `school-management-bff`: a rota publica
+  `GET /api/dashboard/professores/{professorId}` permaneceu oficial via
+  `dashboard-query-service`, mas o adapter legado especifico para o endpoint do
+  monolito foi removido do BFF por nao participar mais do runtime oficial.
 - Proxima fase operacional do ciclo fechado:
   `D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF`.
 

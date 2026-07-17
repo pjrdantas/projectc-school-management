@@ -8947,6 +8947,17 @@ Definicao objetiva:
 - validacao objetiva do segundo recorte:
   `mvn -pl school-management-bff "-Dtest=ProfessorReadControllerTest,ProfessorReadProxyIntegrationTest,BearerAuthenticationWebFilterTest" test"`
   com `BUILD SUCCESS`.
+- terceiro recorte executado em 17/07/2026:
+  o `school-management-bff` manteve `GET /api/dashboard/professores/{professorId}`
+  apontando para o `dashboard-query-service` como fluxo oficial e removeu o
+  adapter legado especifico (`LegacyPainelProfessorReadPort` /
+  `LegacyPainelProfessorReadClient`) que nao participava mais do runtime desse
+  dominio.
+- validacao objetiva do terceiro recorte:
+  `rg -n "LegacyPainelProfessorReadPort|LegacyPainelProfessorReadClient" school-management-bff/src/main/java school-management-bff/src/test/java`
+  sem ocorrencias de runtime ativo e
+  `mvn -pl school-management-bff "-Dtest=PainelProfessorReadProxyIntegrationTest" test"`
+  com `BUILD SUCCESS`.
 
 ### Fase D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF
 

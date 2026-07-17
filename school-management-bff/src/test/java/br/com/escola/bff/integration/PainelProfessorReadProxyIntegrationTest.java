@@ -37,7 +37,13 @@ class PainelProfessorReadProxyIntegrationTest {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
         registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
         registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
+        registry.add("clients.academic-professor-service.base-url", () -> DASHBOARD_QUERY.url("/").toString());
+        registry.add("clients.academic-professor-service.connect-timeout", () -> "2s");
+        registry.add("clients.academic-professor-service.response-timeout", () -> "2s");
+        registry.add("clients.academic-professor-service.internal-token", () -> "academic-professor-internal-token");
         registry.add("clients.dashboard-query-service.base-url", () -> DASHBOARD_QUERY.url("/").toString());
+        registry.add("clients.dashboard-query-service.connect-timeout", () -> "2s");
+        registry.add("clients.dashboard-query-service.response-timeout", () -> "2s");
         registry.add("clients.dashboard-query-service.internal-token", () -> "dashboard-query-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
     }
