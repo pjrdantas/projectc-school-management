@@ -28,7 +28,7 @@ class LegacyHealthEndpointIntegrationTest {
     private MeterRegistry meterRegistry;
 
     @Test
-    void deveExporHealthDedicadoDoShadowComDiagnosticoPorRota() {
+    void deveExporHealthDedicadoDoShadowComDiagnosticoApenasDasRotasLegadasResiduais() {
         meterRegistry.counter(
                 "professor.shadow.monolith.requests",
                 "operacao", "criar",
@@ -72,27 +72,25 @@ class LegacyHealthEndpointIntegrationTest {
                 .containsEntry("dependency", "monolith")
                 .containsEntry("baseUrlScheme", "http")
                 .containsEntry("baseUrlHost", "localhost")
-                .containsEntry("requestsTotal", 5.0d)
+                .containsEntry("requestsTotal", 3.0d)
                 .containsEntry("failuresTotal", 1.0d);
         @SuppressWarnings("unchecked")
-        Map<String, Object> shadowReadRoutes = (Map<String, Object>) details.get("shadowReadRoutes");
+        Map<String, Object> shadowRoutes = (Map<String, Object>) details.get("shadowRoutes");
         @SuppressWarnings("unchecked")
-        Map<String, Object> criar = (Map<String, Object>) shadowReadRoutes.get("criar");
+        Map<String, Object> criar = (Map<String, Object>) shadowRoutes.get("criar");
         @SuppressWarnings("unchecked")
-        Map<String, Object> alocar = (Map<String, Object>) shadowReadRoutes.get("vincularTurmaDisciplina");
+        Map<String, Object> alocar = (Map<String, Object>) shadowRoutes.get("vincularTurmaDisciplina");
         @SuppressWarnings("unchecked")
-        Map<String, Object> listar = (Map<String, Object>) shadowReadRoutes.get("listar");
+        Map<String, Object> listar = (Map<String, Object>) shadowRoutes.get("listar");
         @SuppressWarnings("unchecked")
-        Map<String, Object> elegiveis = (Map<String, Object>) shadowReadRoutes.get("listarFuncionariosElegiveis");
+        Map<String, Object> elegiveis = (Map<String, Object>) shadowRoutes.get("listarFuncionariosElegiveis");
         assertThat(criar)
                 .containsEntry("shadowRoute", "POST /internal/v1/professores")
                 .containsEntry("monolithSuccessTotal", 1.0d);
         assertThat(alocar)
                 .containsEntry("shadowRoute", "POST /internal/v1/professores/{id}/turmas-disciplinas")
                 .containsEntry("monolithSuccessTotal", 1.0d);
-        assertThat(listar)
-                .containsEntry("shadowRoute", "GET /internal/v1/professores")
-                .containsEntry("monolithSuccessTotal", 2.0d);
+        assertThat(listar).isNull();
         assertThat(elegiveis)
                 .containsEntry("shadowRoute", "GET /internal/v1/professores/funcionarios-elegiveis")
                 .containsEntry("monolithErrorTotal", 1.0d)

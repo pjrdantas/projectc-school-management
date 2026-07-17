@@ -15,7 +15,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 class LegacyHealthIndicatorTest {
 
     @Test
-    void deveReportarUpComDiagnosticoDetalhadoPorRota() {
+    void deveReportarUpComDiagnosticoDetalhadoApenasDasRotasLegadasResiduais() {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         Counter.builder("professor.shadow.monolith.requests")
                 .tag("operacao", "criar")
@@ -36,19 +36,19 @@ class LegacyHealthIndicatorTest {
                 .register(meterRegistry)
                 .increment(2.0d);
         Counter.builder("professor.shadow.monolith.requests")
-                .tag("operacao", "buscarPorId")
+                .tag("operacao", "listar")
                 .tag("destino", "monolith")
-                .tag("resultado", "not_found")
+                .tag("resultado", "success")
                 .register(meterRegistry)
-                .increment();
+                .increment(2.0d);
         Counter.builder("professor.shadow.monolith.requests")
-                .tag("operacao", "listarPorTurma")
+                .tag("operacao", "listarFuncionariosElegiveis")
                 .tag("destino", "monolith")
                 .tag("resultado", "error")
                 .register(meterRegistry)
                 .increment();
         Counter.builder("professor.shadow.monolith.failures")
-                .tag("operacao", "listarPorTurma")
+                .tag("operacao", "listarFuncionariosElegiveis")
                 .tag("causa", "ResourceAccessException")
                 .register(meterRegistry)
                 .increment();
@@ -67,20 +67,18 @@ class LegacyHealthIndicatorTest {
                 .containsEntry("dependency", "monolith")
                 .containsEntry("baseUrlScheme", "http")
                 .containsEntry("baseUrlHost", "localhost")
-                .containsEntry("requestsTotal", 6.0d)
+                .containsEntry("requestsTotal", 3.0d)
                 .containsEntry("failuresTotal", 1.0d);
         @SuppressWarnings("unchecked")
-        Map<String, Object> shadowReadRoutes = (Map<String, Object>) health.getDetails().get("shadowReadRoutes");
+        Map<String, Object> shadowRoutes = (Map<String, Object>) health.getDetails().get("shadowRoutes");
         @SuppressWarnings("unchecked")
-        Map<String, Object> criar = (Map<String, Object>) shadowReadRoutes.get("criar");
+        Map<String, Object> criar = (Map<String, Object>) shadowRoutes.get("criar");
         @SuppressWarnings("unchecked")
-        Map<String, Object> alocar = (Map<String, Object>) shadowReadRoutes.get("vincularTurmaDisciplina");
+        Map<String, Object> alocar = (Map<String, Object>) shadowRoutes.get("vincularTurmaDisciplina");
         @SuppressWarnings("unchecked")
-        Map<String, Object> listar = (Map<String, Object>) shadowReadRoutes.get("listar");
+        Map<String, Object> listar = (Map<String, Object>) shadowRoutes.get("listar");
         @SuppressWarnings("unchecked")
-        Map<String, Object> buscarPorId = (Map<String, Object>) shadowReadRoutes.get("buscarPorId");
-        @SuppressWarnings("unchecked")
-        Map<String, Object> listarPorTurma = (Map<String, Object>) shadowReadRoutes.get("listarPorTurma");
+        Map<String, Object> listarFuncionariosElegiveis = (Map<String, Object>) shadowRoutes.get("listarFuncionariosElegiveis");
         assertThat(criar)
                 .containsEntry("shadowRoute", "POST /internal/v1/professores")
                 .containsEntry("monolithRoute", "POST /internal/professores")
@@ -89,13 +87,10 @@ class LegacyHealthIndicatorTest {
                 .containsEntry("shadowRoute", "POST /internal/v1/professores/{id}/turmas-disciplinas")
                 .containsEntry("monolithRoute", "POST /internal/professores/{id}/turmas-disciplinas")
                 .containsEntry("monolithSuccessTotal", 1.0d);
-        assertThat(listar)
-                .containsEntry("shadowRoute", "GET /internal/v1/professores")
-                .containsEntry("monolithRoute", "GET /internal/professores")
-                .containsEntry("monolithSuccessTotal", 2.0d);
-        assertThat(buscarPorId)
-                .containsEntry("monolithNotFoundTotal", 1.0d);
-        assertThat(listarPorTurma)
+        assertThat(listar).isNull();
+        assertThat(listarFuncionariosElegiveis)
+                .containsEntry("shadowRoute", "GET /internal/v1/professores/funcionarios-elegiveis")
+                .containsEntry("monolithRoute", "GET /internal/funcionarios/professor-elegiveis")
                 .containsEntry("monolithErrorTotal", 1.0d)
                 .containsEntry("failuresTotal", 1.0d);
     }

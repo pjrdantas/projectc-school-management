@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -24,20 +25,13 @@ public class LegacyHealthIndicator implements HealthIndicator {
                     "vincularTurmaDisciplina",
                     "POST /internal/v1/professores/{id}/turmas-disciplinas",
                     "POST /internal/professores/{id}/turmas-disciplinas"),
-            new RouteMetricDescriptor("listar", "GET /internal/v1/professores", "GET /internal/professores"),
-            new RouteMetricDescriptor("buscarPorId", "GET /internal/v1/professores/{id}", "GET /internal/professores/{id}"),
-            new RouteMetricDescriptor(
-                    "listarAlocacoes",
-                    "GET /internal/v1/professores/{id}/turmas-disciplinas",
-                    "GET /internal/professores/{id}/turmas-disciplinas"),
-            new RouteMetricDescriptor(
-                    "listarPorTurma",
-                    "GET /internal/v1/turmas/{turmaId}/professores",
-                    "GET /internal/professores/turmas/{turmaId}"),
             new RouteMetricDescriptor(
                     "listarFuncionariosElegiveis",
                     "GET /internal/v1/professores/funcionarios-elegiveis",
                     "GET /internal/funcionarios/professor-elegiveis"));
+    private static final Set<String> ACTIVE_OPERATIONS = SHADOW_ROUTES.stream()
+            .map(RouteMetricDescriptor::operation)
+            .collect(java.util.stream.Collectors.toUnmodifiableSet());
 
     private final LegacyClientProperties properties;
     private final MeterRegistry meterRegistry;
@@ -53,9 +47,9 @@ public class LegacyHealthIndicator implements HealthIndicator {
     public Health health() {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("dependency", "monolith");
-        details.put("requestsTotal", totalContador("professor.shadow.monolith.requests"));
-        details.put("failuresTotal", totalContador("professor.shadow.monolith.failures"));
-        details.put("shadowReadRoutes", diagnosticoRotasShadow());
+        details.put("requestsTotal", totalRequestsAtivas());
+        details.put("failuresTotal", totalFailuresAtivas());
+        details.put("shadowRoutes", diagnosticoRotasShadow());
 
         try {
             URI uri = properties.baseUrl();
@@ -115,8 +109,17 @@ public class LegacyHealthIndicator implements HealthIndicator {
     private double totalContador(String meterName) {
         return meterRegistry.getMeters().stream()
                 .filter(meter -> meterName.equals(meter.getId().getName()))
+                .filter(meter -> ACTIVE_OPERATIONS.contains(meter.getId().getTag("operacao")))
                 .mapToDouble(this::valorContador)
                 .sum();
+    }
+
+    private double totalRequestsAtivas() {
+        return totalContador("professor.shadow.monolith.requests");
+    }
+
+    private double totalFailuresAtivas() {
+        return totalContador("professor.shadow.monolith.failures");
     }
 
     private boolean tagEquals(Meter meter, String tagName, String expectedValue) {

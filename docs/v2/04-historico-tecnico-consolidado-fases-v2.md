@@ -4765,6 +4765,16 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   explicitamente as leituras do agregado `professor` das dependencias
   cadastrais residuais ainda atendidas pelo legado, sem alterar a rota
   `GET /internal/v1/professores/funcionarios-elegiveis` nem abrir escrita.
+- A oitava subfase operacional de `D9` saneou a observabilidade legada
+  residual do `academic-professor-service`. O actuator
+  `professorShadowMonolith` passou a expor apenas as operacoes ainda
+  realmente dependentes do monolito neste momento (`POST /internal/v1/professores`,
+  `POST /internal/v1/professores/{id}/turmas-disciplinas` e
+  `GET /internal/v1/professores/funcionarios-elegiveis`), deixando de anunciar
+  como shadow ativo as leituras do agregado `professor` que ja possuem cutover
+  local controlado. Com isso, `requestsTotal`, `failuresTotal` e o mapa
+  `shadowRoutes` do health passaram a refletir somente a superficie legada
+  operacional ainda remanescente.
 - Proxima fase operacional do ciclo fechado:
   `D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF`.
 

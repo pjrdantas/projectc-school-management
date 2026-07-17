@@ -9180,6 +9180,14 @@ Definicao objetiva:
   leituras do agregado `professor` em uma porta propria
   (`FuncionarioElegivelPort`), deixando `ConsultaPort` restrita ao dominio de
   `professor` e isolando o insumo cadastral ainda servido pelo legado.
+- oitavo recorte operacional ja executado: o actuator
+  `professorShadowMonolith` foi reduzido para refletir apenas a dependencia
+  legada residual real do owner oficial, expondo somente
+  `POST /internal/v1/professores`,
+  `POST /internal/v1/professores/{id}/turmas-disciplinas` e
+  `GET /internal/v1/professores/funcionarios-elegiveis` no mapa
+  `shadowRoutes` e retirando das metricas totais as leituras do agregado
+  `professor` que ja operam com cutover local controlado.
 
 ### Fase D10 - Fechamento final de `enrollment-document-service`
 
