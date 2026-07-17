@@ -4775,23 +4775,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   local controlado. Com isso, `requestsTotal`, `failuresTotal` e o mapa
   `shadowRoutes` do health passaram a refletir somente a superficie legada
   operacional ainda remanescente.
-- A nona subfase operacional de `D9` retirou a migracao de professores do
-  ciclo de subida do runtime. O `ApplicationRunner` `MigracaoRunner` e as
-  propriedades operacionais associadas (`runner-enabled`, `apply` e
-  `report-path`) deixaram de existir no `academic-professor-service`, de modo
-  que nenhuma subida normal do servico tenta mais executar ou reportar
-  migracao contra a origem legada. A capacidade controlada de reconciliacao
-  permaneceu encapsulada em `MigracaoService` e nos adapters de migracao,
-  ainda atras da flag `professor.shadow.migration.enabled`, sem reabrir
-  escrita nem alterar contrato externo.
-- A decima subfase operacional de `D9` removeu o alvo legado implicito da
-  configuracao de migracao do `academic-professor-service`. As propriedades
-  `professor.shadow.migration.source.url` e
-  `professor.shadow.migration.source.username` deixaram de ter valores padrao
-  apontando para `gestao_escolar`, de modo que a reconciliacao controlada so
-  pode existir quando a origem for informada explicitamente. Com isso, o
-  runtime normal deixa de carregar qualquer dependencia presumida do monolito
-  nesse bloco residual.
+- A nona subfase operacional de `D9` retirou a migracao embarcada de
+  professores do `academic-professor-service`. Foram removidos o
+  `ApplicationRunner` `MigracaoRunner`, `MigracaoService`, os ports e models de
+  migracao, os adapters JDBC/JPA de reconciliacao, a configuracao
+  `professor.shadow.migration.*` e a suite dedicada desse bloco. Com isso, o
+  owner oficial passou a operar sem qualquer capacidade runtime de migracao ou
+  reconciliacao ligada ao monolito, preservando apenas a persistencia local e
+  os adapters residuais ainda necessarios para escrita e
+  `funcionarios-elegiveis`.
 - Proxima fase operacional do ciclo fechado:
   `D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF`.
 

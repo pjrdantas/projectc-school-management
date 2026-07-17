@@ -37,10 +37,3 @@ professor:
       buscar-por-id-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_BUSCAR_POR_ID_CUTOVER_ENABLED:false}
       listar-alocacoes-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_LISTAR_ALOCACOES_CUTOVER_ENABLED:false}
       listar-por-turma-cutover-enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_LISTAR_POR_TURMA_CUTOVER_ENABLED:false}
-    migration:
-      enabled: ${PROFESSOR_SHADOW_MIGRATION_ENABLED:false}
-      source:
-        url: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_URL}
-        username: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_USERNAME}
-        password: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_PASSWORD:}
-        driver-class-name: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
