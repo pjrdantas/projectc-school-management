@@ -9,6 +9,7 @@ import br.com.escola.professorservice.application.context.InternalRequestContext
 import br.com.escola.professorservice.application.dto.FuncionarioElegivelResponse;
 import br.com.escola.professorservice.application.dto.AlocacaoResponse;
 import br.com.escola.professorservice.application.dto.ResumoResponse;
+import br.com.escola.professorservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.professorservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.professorservice.application.port.in.ConsultaUseCase;
 import br.com.escola.professorservice.application.port.out.ConsultaPort;
@@ -53,8 +54,13 @@ public class ConsultaService implements ConsultaUseCase {
             String authorization,
             InternalRequestContext context,
             UUID professorId) {
-        if (professorShadowLocalReadPort.supportsListarAlocacoes(context, professorId)) {
+        var readDecision = professorShadowLocalReadPort.decidirListarAlocacoes(context, professorId);
+        if (readDecision.useLocal()) {
             return professorShadowLocalReadPort.listarAlocacoes(context, professorId);
+        }
+        if (readDecision.cutoverBlocked()) {
+            throw new DownstreamUnavailableException(
+                    "Persistencia local de alocacoes de professor ainda nao esta apta para cutover");
         }
         return professorReadPort.listarAlocacoes(authorization, context, professorId);
     }

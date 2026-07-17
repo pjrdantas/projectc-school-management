@@ -10,6 +10,9 @@ import br.com.escola.professorservice.application.dto.ResumoResponse;
 
 public interface LeituraLocalPort {
 
+    record ReadDecision(boolean useLocal, boolean cutoverBlocked) {
+    }
+
     boolean supportsListarProfessores(InternalRequestContext context);
 
     List<ResumoResponse> listarProfessores(InternalRequestContext context);
@@ -18,7 +21,7 @@ public interface LeituraLocalPort {
 
     Optional<ResumoResponse> buscarProfessorPorId(InternalRequestContext context, UUID professorId);
 
-    boolean supportsListarAlocacoes(InternalRequestContext context, UUID professorId);
+    ReadDecision decidirListarAlocacoes(InternalRequestContext context, UUID professorId);
 
     List<AlocacaoResponse> listarAlocacoes(InternalRequestContext context, UUID professorId);
 

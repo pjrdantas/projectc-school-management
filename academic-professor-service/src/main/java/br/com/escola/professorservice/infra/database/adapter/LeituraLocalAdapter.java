@@ -13,6 +13,7 @@ import br.com.escola.professorservice.application.context.InternalRequestContext
 import br.com.escola.professorservice.application.dto.AlocacaoResponse;
 import br.com.escola.professorservice.application.dto.ResumoResponse;
 import br.com.escola.professorservice.application.port.out.LeituraLocalPort;
+import br.com.escola.professorservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.professorservice.infra.config.PersistenciaLocalProperties;
 import br.com.escola.professorservice.infra.database.entity.AlocacaoJpaEntity;
 import br.com.escola.professorservice.infra.database.entity.CadastroJpaEntity;
@@ -102,10 +103,10 @@ public class LeituraLocalAdapter implements LeituraLocalPort {
     }
 
     @Override
-    public boolean supportsListarAlocacoes(InternalRequestContext context, UUID professorId) {
+    public ReadDecision decidirListarAlocacoes(InternalRequestContext context, UUID professorId) {
         if (!properties.enabled()) {
             registrarDecisao("listarAlocacoes", "disabled", "feature_disabled");
-            return false;
+            return new ReadDecision(false, false);
         }
 
         boolean supported = alocacaoSyncStateRepository.findById(professorId)
@@ -113,18 +114,25 @@ public class LeituraLocalAdapter implements LeituraLocalPort {
                 .map(state -> Boolean.TRUE.equals(state.getAlocacoesCompletas()))
                 .orElse(false);
 
-        registrarDecisao(
-                "listarAlocacoes",
-                supported ? "local" : "fallback",
-                supported ? "sync_state_complete" : "sync_state_incomplete");
-        return supported;
+        if (supported) {
+            registrarDecisao("listarAlocacoes", "local", "sync_state_complete");
+            return new ReadDecision(true, false);
+        }
+
+        if (properties.listarAlocacoesCutoverEnabled()) {
+            registrarDecisao("listarAlocacoes", "local", "cutover_sync_state_incomplete");
+            return new ReadDecision(false, true);
+        }
+
+        registrarDecisao("listarAlocacoes", "fallback", "sync_state_incomplete");
+        return new ReadDecision(false, false);
     }
 
     @Override
     public List<AlocacaoResponse> listarAlocacoes(InternalRequestContext context, UUID professorId) {
         CadastroJpaEntity professor = professorRepository.findById(professorId)
                 .filter(entity -> entity.getEscolaId().equals(context.escolaId()))
-                .orElseThrow();
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Professor não encontrado"));
 
         return alocacaoRepository.findAllByProfessorIdOrderByCreatedAtAsc(professorId).stream()
                 .map(entity -> toResponse(entity, professor))

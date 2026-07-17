@@ -9160,6 +9160,11 @@ Definicao objetiva:
   removendo a dependencia shadow/legada residual do plano;
 - ao final, `GET/POST /api/professores`, alocacoes e leituras auxiliares devem
   existir sem nenhuma dependencia funcional do monolito.
+- quarto recorte operacional ja executado: `GET /internal/v1/professores/{id}/turmas-disciplinas`
+  ganhou cutover local sem fallback por propriedade
+  (`professor.shadow.local-persistence.listar-alocacoes-cutover-enabled`),
+  retornando `503 DOWNSTREAM_UNAVAILABLE` quando o sync local do professor
+  ainda nao estiver completo, sem consultar o monolito.
 
 ### Fase D10 - Fechamento final de `enrollment-document-service`
 

@@ -4728,6 +4728,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `GET /api/dashboard/professores/{professorId}` permaneceu oficial via
   `dashboard-query-service`, mas o adapter legado especifico para o endpoint do
   monolito foi removido do BFF por nao participar mais do runtime oficial.
+- A quarta subfase operacional de `D9` atacou o primeiro fallback interno
+  remanescente do owner oficial em `academic-professor-service`, sem tocar
+  contrato externo: `GET /internal/v1/professores/{id}/turmas-disciplinas`
+  ganhou o cutover controlado
+  `professor.shadow.local-persistence.listar-alocacoes-cutover-enabled`.
+  Quando a flag esta ativa, o servico usa apenas o read model local se o sync
+  por professor estiver completo; caso contrario, responde `503
+  DOWNSTREAM_UNAVAILABLE` sem consultar o monolito. O actuator
+  `professorShadowPersistence` passou a expor a estrategia
+  `complete_sync_state_required_no_fallback`, o estado da flag e a contagem de
+  bloqueios de cutover nessa rota.
 - Proxima fase operacional do ciclo fechado:
   `D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF`.
 

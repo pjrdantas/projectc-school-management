@@ -69,6 +69,7 @@ public class PersistenciaHealthIndicator implements HealthIndicator {
         details.put("enabled", properties.enabled());
         details.put("failOnError", properties.failOnError());
         details.put("buscarPorIdCutoverEnabled", properties.buscarPorIdCutoverEnabled());
+        details.put("listarAlocacoesCutoverEnabled", properties.listarAlocacoesCutoverEnabled());
         details.put("requestsTotal", totalContador("professor.shadow.local.persistence.requests"));
         details.put("createSuccessTotal", totalRequests("criar", "success"));
         details.put("allocateSuccessTotal", totalRequests("vincularTurmaDisciplina", "success"));
@@ -159,6 +160,10 @@ public class PersistenciaHealthIndicator implements HealthIndicator {
                 detalhe.put("syncStateSummary", syncStates.get("professores"));
             } else if ("listarAlocacoes".equals(route.operation())) {
                 detalhe.put("syncStateSummary", syncStates.get("alocacoesPorProfessor"));
+                detalhe.put("cutoverEnabled", properties.listarAlocacoesCutoverEnabled());
+                detalhe.put("rollbackStrategy", "disable_property");
+                detalhe.put("localCutoverBlockedTotal",
+                        totalReadRequests(route.operation(), "local", "cutover_sync_state_incomplete"));
             } else if ("listarPorTurma".equals(route.operation())) {
                 detalhe.put("syncStateSummary", syncStates.get("alocacoesPorTurma"));
             } else if ("buscarPorId".equals(route.operation())) {
@@ -204,6 +209,9 @@ public class PersistenciaHealthIndicator implements HealthIndicator {
     private String estrategiaLeitura(ReadRouteDescriptor route) {
         if ("buscarPorId".equals(route.operation()) && properties.buscarPorIdCutoverEnabled()) {
             return "local_record_presence_required_no_fallback";
+        }
+        if ("listarAlocacoes".equals(route.operation()) && properties.listarAlocacoesCutoverEnabled()) {
+            return "complete_sync_state_required_no_fallback";
         }
         return route.readStrategy();
     }
