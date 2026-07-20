@@ -5245,3 +5245,11 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   controlada e o corte operacional.
 - A validacao do modulo executou 5 testes sem falhas ou erros e comprovou a
   criacao exclusiva das duas tabelas. Restam **6 recortes na B2**.
+- No segundo recorte da B2, foi implementada carga opt-in e idempotente de
+  `escola`, com origem e destino separados, migration Flyway do destino, copia
+  em lotes e transacao unica.
+- A reconciliacao compara contagem e digest SHA-256, preservando todos os campos
+  institucionais sem copiar ainda os vinculos `usuario_escola`.
+- A validacao do `institutional-tenant-service` executou 6 testes sem falhas ou
+  erros e comprovou duas cargas consecutivas reconciliadas. Restam **5 recortes
+  na B2**.

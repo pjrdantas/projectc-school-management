@@ -10032,3 +10032,25 @@ Primeiro recorte da B2 entregue em 20/07/2026:
   tabelas do dominio;
 - a B2 permanece **em andamento**, com **6 recortes restantes**. O proximo e o
   backfill controlado e reconciliado de escolas.
+
+Segundo recorte da B2 entregue em 20/07/2026:
+
+- foi implementada carga opt-in exclusiva da tabela `escola`, com URLs e
+  credenciais independentes para origem compartilhada e banco institucional de
+  destino;
+- antes da copia, o runner aplica a migration Flyway no destino; nenhuma
+  migration e executada no datasource compartilhado usado atualmente pelo
+  runtime;
+- a copia ocorre em lotes e em uma transacao no destino, usando upsert por
+  `id_escola` para permitir repeticao controlada sem duplicidade;
+- todos os campos institucionais sao preservados, incluindo codigo INEP, CNPJ,
+  contatos, referencia externa de endereco, status e timestamps;
+- a reconciliacao compara contagem e digest SHA-256 canonico entre origem e
+  destino e pode interromper a inicializacao em caso de divergencia;
+- a carga permanece desabilitada por padrao e nao copia `usuario_escola`, cujo
+  tratamento pertence ao terceiro recorte;
+- validacao restrita ao `institutional-tenant-service`: 6 testes, zero falhas e
+  zero erros; a carga foi executada duas vezes e permaneceu idempotente e
+  reconciliada;
+- a B2 permanece **em andamento**, com **5 recortes restantes**. O proximo e o
+  backfill controlado e reconciliado dos vinculos usuario-escola.
