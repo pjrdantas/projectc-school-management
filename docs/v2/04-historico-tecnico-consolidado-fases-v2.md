@@ -5269,3 +5269,11 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   institucionais.
 - A validacao do modulo executou 8 testes sem falhas ou erros. Restam **3
   recortes na B2**, iniciando pela manutencao interna de escolas.
+- No quinto recorte da B2, o `institutional-tenant-service` recebeu o CRUD
+  interno completo de escolas em `/internal/v1/escolas`, usando somente o
+  datasource institucional local e sem nova rota publica no BFF.
+- O contrato valida e normaliza os dados de entrada, preserva os timestamps e
+  impede a exclusao de escola que ainda possua vinculos em `usuario_escola`.
+- A validacao do modulo executou 9 testes sem falhas ou erros, incluindo o
+  ciclo completo de manutencao e o conflito de exclusao. Restam **2 recortes na
+  B2**, iniciando pela manutencao interna definitiva dos vinculos.

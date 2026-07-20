@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestClientResponseException;
 
+import br.com.escola.institutionaltenantservice.application.exception.ConflitoTenantException;
 import br.com.escola.institutionaltenantservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.institutionaltenantservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.institutionaltenantservice.application.exception.InternalApiUnauthorizedException;
@@ -42,6 +43,13 @@ public class ApiExceptionHandler {
             RecursoNaoEncontradoException exception,
             HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(ConflitoTenantException.class)
+    public ResponseEntity<ApiErrorResponse> handleConflict(
+            ConflitoTenantException exception,
+            HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, "CONFLICT", exception.getMessage(), request);
     }
 
     @ExceptionHandler(DownstreamUnavailableException.class)

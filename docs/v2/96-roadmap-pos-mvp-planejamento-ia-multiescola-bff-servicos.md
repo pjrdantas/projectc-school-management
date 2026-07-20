@@ -10096,3 +10096,18 @@ Quarto recorte da B2 entregue em 20/07/2026:
   zero erros;
 - a B2 permanece **em andamento**, com **3 recortes restantes**. O proximo e a
   manutencao interna definitiva de escolas.
+
+Quinto recorte da B2 entregue em 20/07/2026:
+
+- o `institutional-tenant-service` passou a disponibilizar o CRUD interno
+  completo de escolas em `/internal/v1/escolas`, sem exposicao publica no BFF;
+- listagem, busca, criacao, atualizacao e exclusao usam exclusivamente o
+  datasource local institucional e transacoes vinculadas a esse banco;
+- entrada obrigatoria, limites de tamanho, formato de e-mail, normalizacao de
+  campos e valor padrao de escola ativa foram definidos no contrato interno;
+- a exclusao retorna conflito quando existem vinculos em `usuario_escola` e
+  retorna recurso nao encontrado para identificador inexistente;
+- validacao restrita ao `institutional-tenant-service`: 9 testes, zero falhas e
+  zero erros, incluindo o ciclo completo e o bloqueio de exclusao;
+- a B2 permanece **em andamento**, com **2 recortes restantes**. O proximo e a
+  manutencao interna definitiva dos vinculos usuario-escola.
