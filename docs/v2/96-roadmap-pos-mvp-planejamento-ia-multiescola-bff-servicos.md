@@ -10054,3 +10054,24 @@ Segundo recorte da B2 entregue em 20/07/2026:
   reconciliada;
 - a B2 permanece **em andamento**, com **5 recortes restantes**. O proximo e o
   backfill controlado e reconciliado dos vinculos usuario-escola.
+
+Terceiro recorte da B2 entregue em 20/07/2026:
+
+- foi implementada carga opt-in exclusiva de `usuario_escola`, com origem e
+  destino configurados separadamente da carga de escolas;
+- o runner e ordenado depois da carga de escolas e aplica a migration do
+  destino de forma idempotente antes da reconciliacao;
+- antes de escrever, a carga valida que todas as escolas referenciadas pelos
+  vinculos existem no destino; ausencia interrompe o processo sem copia
+  parcial;
+- a copia preserva `id_usuario_escola`, `id_usuario`, `id_escola` e timestamp,
+  sem consultar nem importar a tabela `usuario` do dominio de identidade;
+- lotes, transacao, upsert por identificador, contagem e digest SHA-256 tornam a
+  operacao repetivel e verificavel;
+- a carga permanece desabilitada por padrao e exige ativacao operacional
+  explicita, independente da carga de escolas;
+- validacao restrita ao `institutional-tenant-service`: 8 testes, zero falhas e
+  zero erros; foram comprovados duas cargas consecutivas e o bloqueio por escola
+  ausente;
+- a B2 permanece **em andamento**, com **4 recortes restantes**. O proximo e a
+  ativacao da leitura local de tenant e escolas.

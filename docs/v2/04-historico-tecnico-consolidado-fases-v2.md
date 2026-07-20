@@ -5253,3 +5253,11 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A validacao do `institutional-tenant-service` executou 6 testes sem falhas ou
   erros e comprovou duas cargas consecutivas reconciliadas. Restam **5 recortes
   na B2**.
+- No terceiro recorte da B2, foi implementada carga opt-in e idempotente de
+  `usuario_escola`, separada da carga de escolas e sem dependencia fisica da
+  tabela de usuarios.
+- O processo valida previamente todas as escolas referenciadas, preserva os IDs
+  dos vinculos e reconcilia contagem e digest; escola ausente bloqueia a carga
+  antes de qualquer escrita.
+- A validacao do `institutional-tenant-service` executou 8 testes sem falhas ou
+  erros. Restam **4 recortes na B2**, iniciando pela ativacao da leitura local.
