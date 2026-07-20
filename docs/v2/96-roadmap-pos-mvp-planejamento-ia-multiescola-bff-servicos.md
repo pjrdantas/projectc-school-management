@@ -10002,3 +10002,33 @@ Decimo e ultimo recorte da B1 entregue em 20/07/2026:
   deploy explicitamente habilitada por `IDENTITY_ACCESS_BACKFILL_ENABLED=true`;
 - a **B1 esta concluida** no desenvolvimento e na prova automatizada. A proxima
   etapa fechada do backend e a **B2 - autonomia de tenant e escolas**.
+
+## Execucao fechada da B2 - Tenant institucional autonomo
+
+Quantidade fechada da B2: **7 recortes**.
+
+1. schema proprio de `escola` e `usuario_escola`;
+2. backfill controlado e reconciliado de escolas;
+3. backfill controlado e reconciliado dos vinculos usuario-escola;
+4. ativacao da leitura local de tenant e escolas;
+5. contratos internos definitivos para manutencao de escolas;
+6. contratos internos definitivos para manutencao dos vinculos;
+7. datasource proprio, prova integrada e encerramento da B2.
+
+Primeiro recorte da B2 entregue em 20/07/2026:
+
+- o `institutional-tenant-service` recebeu migration Flyway propria contendo
+  exclusivamente `escola` e `usuario_escola`;
+- `escola` preserva os campos institucionais existentes, inclusive referencias
+  externas de endereco sem importar tabelas de outro dominio;
+- `usuario_escola` mantem FK somente para `escola`; `id_usuario` permanece UUID
+  externo, sem acoplamento fisico ao banco do `identity-access-service`;
+- unicidade do vinculo e indices para escola ativa, usuario e escola foram
+  definidos no schema local;
+- o Flyway permanece desabilitado no datasource compartilhado atual, impedindo
+  aplicacao acidental antes da carga controlada e do corte;
+- validacao restrita ao `institutional-tenant-service`: 5 testes, zero falhas e
+  zero erros; a migration foi aplicada em banco vazio e criou somente as duas
+  tabelas do dominio;
+- a B2 permanece **em andamento**, com **6 recortes restantes**. O proximo e o
+  backfill controlado e reconciliado de escolas.

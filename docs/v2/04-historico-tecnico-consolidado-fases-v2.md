@@ -5231,3 +5231,17 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   habilitacao operacional explicita.
 - A **B1 foi concluida**. O ciclo fechado segue para a B2, autonomia do
   `institutional-tenant-service` e do dominio de escolas.
+
+## 20/07/2026 - Abertura da B2 em sete recortes fechados
+
+- A B2 foi definida em **7 recortes**: schema proprio, dois backfills separados,
+  leitura local, manutencao interna de escolas, manutencao interna de vinculos e
+  corte final do datasource com prova integrada.
+- No primeiro recorte, o `institutional-tenant-service` recebeu migration
+  Flyway contendo exclusivamente `escola` e `usuario_escola`.
+- O vinculo preserva integridade local com `escola`, mas nao cria FK para
+  usuario, pois esse identificador pertence ao `identity-access-service`.
+- A migration permanece desabilitada no datasource compartilhado ate a carga
+  controlada e o corte operacional.
+- A validacao do modulo executou 5 testes sem falhas ou erros e comprovou a
+  criacao exclusiva das duas tabelas. Restam **6 recortes na B2**.
