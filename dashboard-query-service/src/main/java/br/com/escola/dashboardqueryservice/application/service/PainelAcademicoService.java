@@ -18,7 +18,7 @@ public class PainelAcademicoService implements PainelAcademicoUseCase {
 
     @Override
     public PainelAcademicoResponse consultar(String authorization, InternalRequestContext context) {
-        return dashboardAcademicoPort.consultar(authorization, context);
+        return dashboardAcademicoPort.consultarAcademico(authorization, context);
     }
 }
 

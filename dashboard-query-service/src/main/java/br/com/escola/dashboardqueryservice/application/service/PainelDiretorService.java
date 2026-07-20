@@ -18,7 +18,7 @@ public class PainelDiretorService implements PainelDiretorUseCase {
 
     @Override
     public PainelDiretorResponse consultar(String authorization, InternalRequestContext context) {
-        return dashboardDiretorPort.consultar(authorization, context);
+        return dashboardDiretorPort.consultarDiretor(authorization, context);
     }
 }
 

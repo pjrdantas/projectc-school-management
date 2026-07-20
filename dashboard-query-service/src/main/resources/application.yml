@@ -1,10 +1,20 @@
+spring:
+  application:
+    name: dashboard-query-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/dashboard_query}
+    username: ${SPRING_DATASOURCE_USERNAME:school}
+    password: ${SPRING_DATASOURCE_PASSWORD:school_local}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
 server:
   port: 8097
 
 dashboard-query:
   internal-api:
     token: ${DASHBOARD_QUERY_INTERNAL_TOKEN:}
-  monolith:
-    base-url: ${DASHBOARD_QUERY_MONOLITH_BASE_URL:http://localhost:8080}
-    connect-timeout: 2s
-    read-timeout: 5s

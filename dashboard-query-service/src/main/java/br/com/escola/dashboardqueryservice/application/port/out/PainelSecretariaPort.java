@@ -5,6 +5,6 @@ import br.com.escola.dashboardqueryservice.application.dto.PainelSecretariaRespo
 
 public interface PainelSecretariaPort {
 
-    PainelSecretariaResponse consultar(String authorization, InternalRequestContext context);
+    PainelSecretariaResponse consultarSecretaria(String authorization, InternalRequestContext context);
 }
 

@@ -8857,7 +8857,7 @@ Definicao objetiva:
 | `/api/professores/**` e alocacoes por professor/turma | `academic-professor-service` | ownership final fechado em `D9`; leitura/escrita locais ja operam sem clientes legados do monolito, usando apenas `people-service` como apoio cadastral e `academic-catalog-service` como referencia oficial de turma/turma-disciplina | concluido | nao resta `PROFESSOR_SHADOW_MONOLITH_BASE_URL`, client `Legacy*` nem fallback shadow em producao |
 | `/api/escolas-origem`, `/api/transferencias`, `/api/documentos-alunos/**`, `/api/matriculas`, `/api/documentos` | `enrollment-document-service` | ownership local concluido; leitura e escrita interna do bloco operam por persistencia propria do servico | concluido | nao resta `ENROLLMENT_DOCUMENT_MONOLITH_BASE_URL`, client `OrigemAtualTransferenciaClient` nem dependencia funcional do monolito no runtime do servico |
 | `/api/avaliacoes/**`, `/api/aulas/**`, `/api/diarios-classe/**`, `/api/historicos-escolares/**`, `/api/matriculas/{matriculaId}/boletim**` | `pedagogical-service` | ownership local concluido no runtime do servico para `aulas`, `frequencias`, `avaliacoes`, `notas`, `diario-classe`, `boletim` e `historicos-escolares` | concluido no servico; o endurecimento/remocao final de portas legadas do BFF segue como corte externo posterior | nao resta `PEDAGOGICAL_MONOLITH_BASE_URL`, client `OrigemAtual*` nem dependencia funcional do monolito no runtime do servico |
-| `/api/dashboard/**` | `dashboard-query-service` | `dashboard-query-service` ainda consulta a origem legada por `OrigemAtualPainel*Client`; BFF ainda mantem `Painel*ReadProxyService` com portas legadas paralelas | executar `D3` no BFF e `D13` no servico | nao restar `DASHBOARD_QUERY_MONOLITH_BASE_URL`, `LegacyPainel*ReadPort` nem clients `OrigemAtualPainel*Client` |
+| `/api/dashboard/**` | `dashboard-query-service` | ownership local concluido no servico: dashboards, configuracoes, snapshots, historico, alertas e agregacoes operam sobre projecoes PostgreSQL proprias | concluido no servico; o corte externo transversal segue em `D14` | nao resta `DASHBOARD_QUERY_MONOLITH_BASE_URL`, `RestClient` nem client `OrigemAtualPainel*` no runtime do servico |
 | `/api/biblioteca-conteudos-pedagogicos`, `/api/planejamentos-bimestrais/*/ia/**`, `/api/ia/conteudos/**` | `planning-ai-service` | ownership local concluido; leitura e escrita interna do bloco operam por persistencia propria do servico | concluido | nao resta `PLANNING_AI_MONOLITH_BASE_URL`, client `OrigemAtualPlanejamentoReadClient` nem sincronizacao funcional dependente do monolito |
 | Backfill e reconciliacao do read model de pessoas | `people-service` | `LeituraModeloMigrationRunner`, `LeituraModeloSyncStartupRunner`, `JdbcCatalogoReadModelSyncAdapter` e `PEOPLE_READ_MODEL_SOURCE_URL` ainda dependem da origem legada | desligar bootstrap/backfill quando a leitura local for soberana e sem reconciliacao externa | nenhuma feature runtime de pessoas pode exigir `source-url` do legado para subir ou operar |
 | Backfill e reconciliacao do read model de responsaveis | `responsibles-service` | `LeituraModeloMigrationRunner`, `LeituraModeloSyncStartupRunner`, `JdbcLeituraModeloSyncAdapter` e `RESPONSIBLES_READ_MODEL_SOURCE_URL` ainda dependem da origem legada | fechar `D8` retirando o ciclo controlado e substituindo por persistencia/ownership local definitivo | nenhuma feature runtime de responsaveis pode exigir sync/bootstrap com a base legada |
@@ -9264,10 +9264,26 @@ Definicao objetiva:
 
 ### Fase D13 - Fechamento final de `dashboard-query-service`
 
-- retirar as leituras e compatibilidades restantes que ainda mantem o
-  `dashboard-query-service` dependente do monolito para dashboards,
-  configuracoes, snapshots ou agregacoes;
-- garantir que o dashboard final opere apenas por projecoes e fontes proprias.
+- concluida com a retirada dos dez clients `OrigemAtualPainel*`, da configuracao
+  `dashboard-query.monolith.*`, do `RestClient` e dos tratamentos de erro
+  exclusivos da origem legada;
+- os contratos internos existentes de dashboard academico, secretaria,
+  diretor, professor, alertas, frontend, snapshots, historico, publicos e
+  configuracoes passaram a ler exclusivamente a tabela local
+  `painel_projecao`, isolada por escola e gerenciada por Flyway;
+- foi criado `PUT /internal/v1/dashboard/projecoes` para alimentacao interna
+  autenticada e idempotente do read model, com chave composta pelo tipo e pelas
+  dimensoes aplicaveis de publico, professor, usuario e data de referencia;
+- o payload de cada tipo de projecao e validado contra o contrato de resposta
+  correspondente antes da persistencia, e filtros de configuracao/historico
+  continuam aplicados localmente sem alterar os contratos publicos do BFF;
+- a suite anterior baseada em `MockWebServer` foi substituida por integracao
+  H2/Flyway local cobrindo os dez contratos, idempotencia, isolamento por
+  escola, ausencia de projecao, seguranca interna e rejeicao de payload
+  invalido;
+- validacao executada apenas no modulo tocado:
+  `mvn -pl dashboard-query-service clean test`, com `BUILD SUCCESS` e quatro
+  testes sem falhas.
 
 ### Fase D14 - Corte externo final sem monolito
 

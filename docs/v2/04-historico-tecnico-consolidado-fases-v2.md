@@ -4854,8 +4854,25 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   monolito.
 - Validacao executada apenas no modulo tocado para concluir `D12`:
   `mvn -pl planning-ai-service test`, com `BUILD SUCCESS`.
+- A fase `D13 - Fechamento final de dashboard-query-service` foi concluida.
+- O servico deixou de consultar o monolito para os dez contratos internos de
+  dashboards: foram removidos os clients `OrigemAtualPainel*`, a configuracao
+  `dashboard-query.monolith.*`, o `RestClient` e os tratamentos de erro
+  exclusivos da origem legada.
+- O ownership passou para um read model PostgreSQL proprio, versionado por
+  Flyway e isolado por escola, com projecoes tipadas para resumos, alertas,
+  frontend, snapshots, historico, publicos e configuracoes.
+- Foi disponibilizada alimentacao interna autenticada e idempotente por
+  `PUT /internal/v1/dashboard/projecoes`, validando o payload antes de gravar e
+  usando tipo/publico/professor/usuario/data como dimensoes da projecao.
+- A suite de proxy com `MockWebServer` foi substituida por integracao local
+  H2/Flyway cobrindo todos os contratos e as garantias de idempotencia,
+  isolamento por escola, seguranca e validacao.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl dashboard-query-service clean test`, com `BUILD SUCCESS`, quatro
+  testes executados, zero falhas e zero erros.
 - Proxima fase operacional do ciclo fechado:
-  `D13 - Fechamento final de dashboard-query-service`.
+  `D14 - Corte externo final sem monolito`.
 
 ### Fase D3
 

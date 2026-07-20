@@ -5,6 +5,6 @@ import br.com.escola.dashboardqueryservice.application.dto.PainelAcademicoRespon
 
 public interface PainelAcademicoPort {
 
-    PainelAcademicoResponse consultar(String authorization, InternalRequestContext context);
+    PainelAcademicoResponse consultarAcademico(String authorization, InternalRequestContext context);
 }
 

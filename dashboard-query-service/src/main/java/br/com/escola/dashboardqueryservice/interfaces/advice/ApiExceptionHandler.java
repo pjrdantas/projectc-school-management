@@ -7,10 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.client.RestClientResponseException;
 
 import br.com.escola.dashboardqueryservice.application.exception.PainelQueryServiceResourceNotFoundException;
-import br.com.escola.dashboardqueryservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.dashboardqueryservice.application.exception.InternalApiUnauthorizedException;
 import br.com.escola.dashboardqueryservice.application.exception.InvalidRequestContextException;
 import br.com.escola.dashboardqueryservice.interfaces.response.ApiErrorResponse;
@@ -42,24 +40,6 @@ public class ApiExceptionHandler {
             PainelQueryServiceResourceNotFoundException exception,
             HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", exception.getMessage(), request);
-    }
-
-    @ExceptionHandler(DownstreamUnavailableException.class)
-    public ResponseEntity<ApiErrorResponse> handleUnavailable(
-            DownstreamUnavailableException exception,
-            HttpServletRequest request) {
-        return build(HttpStatus.SERVICE_UNAVAILABLE, "DOWNSTREAM_UNAVAILABLE", exception.getMessage(), request);
-    }
-
-    @ExceptionHandler(RestClientResponseException.class)
-    public ResponseEntity<ApiErrorResponse> handleRestClient(
-            RestClientResponseException exception,
-            HttpServletRequest request) {
-        return build(
-                HttpStatus.valueOf(exception.getStatusCode().value()),
-                "DOWNSTREAM_HTTP_ERROR",
-                exception.getResponseBodyAsString().isBlank() ? exception.getMessage() : exception.getResponseBodyAsString(),
-                request);
     }
 
     private ResponseEntity<ApiErrorResponse> build(

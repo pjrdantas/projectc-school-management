@@ -18,7 +18,7 @@ public class PainelSecretariaService implements PainelSecretariaUseCase {
 
     @Override
     public PainelSecretariaResponse consultar(String authorization, InternalRequestContext context) {
-        return dashboardSecretariaPort.consultar(authorization, context);
+        return dashboardSecretariaPort.consultarSecretaria(authorization, context);
     }
 }
 

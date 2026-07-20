@@ -5,6 +5,6 @@ import br.com.escola.dashboardqueryservice.application.dto.PainelDiretorResponse
 
 public interface PainelDiretorPort {
 
-    PainelDiretorResponse consultar(String authorization, InternalRequestContext context);
+    PainelDiretorResponse consultarDiretor(String authorization, InternalRequestContext context);
 }
 
