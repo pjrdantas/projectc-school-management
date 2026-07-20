@@ -4841,8 +4841,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Validacao executada apenas no modulo tocado para concluir `D11`:
   `mvn -pl pedagogical-service -DskipTests compile` e
   `mvn -pl pedagogical-service test`, ambos com `BUILD SUCCESS`.
+- Foi concluido o `D12 - Fechamento final de planning-ai-service`.
+- O `planning-ai-service` deixou de depender do monolito para leitura,
+  geracao, versoes, aprovacao e publicacao de conteudos de planejamento com IA,
+  passando a operar integralmente sobre persistencia propria local.
+- Foram removidos do runtime do servico o
+  `OrigemAtualPlanejamentoReadClient`, as configuracoes
+  `planning-ai.monolith.*`, o contrato `PlanejamentoLeituraPort` usado apenas
+  como ponte legado e os componentes de sincronizacao `LeituraModeloSync*`.
+- A suite de integracao do servico foi reescrita para validar o contrato final
+  sobre H2/Flyway local, sem `MockWebServer`, `RestClient` nem fallback ao
+  monolito.
+- Validacao executada apenas no modulo tocado para concluir `D12`:
+  `mvn -pl planning-ai-service test`, com `BUILD SUCCESS`.
 - Proxima fase operacional do ciclo fechado:
-  `D12 - Fechamento final de planning-ai-service`.
+  `D13 - Fechamento final de dashboard-query-service`.
 
 ### Fase D3
 

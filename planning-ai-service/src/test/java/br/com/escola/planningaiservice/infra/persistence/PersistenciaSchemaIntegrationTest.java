@@ -14,12 +14,10 @@ import br.com.escola.planningaiservice.infra.persistence.jpa.entity.BibliotecaCo
 import br.com.escola.planningaiservice.infra.persistence.jpa.entity.ConteudoVersaoJpaEntity;
 import br.com.escola.planningaiservice.infra.persistence.jpa.entity.ConteudoGeradoJpaEntity;
 import br.com.escola.planningaiservice.infra.persistence.jpa.entity.InteracaoJpaEntity;
-import br.com.escola.planningaiservice.infra.persistence.jpa.entity.LeituraModeloSyncStateJpaEntity;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.BibliotecaConteudoJpaRepository;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.ConteudoVersaoJpaRepository;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.ConteudoGeradoJpaRepository;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.InteracaoJpaRepository;
-import br.com.escola.planningaiservice.infra.persistence.jpa.repository.LeituraModeloSyncStateJpaRepository;
 
 @SpringBootTest
 class PersistenciaSchemaIntegrationTest {
@@ -35,9 +33,6 @@ class PersistenciaSchemaIntegrationTest {
 
     @Autowired
     private BibliotecaConteudoJpaRepository libraryRepository;
-
-    @Autowired
-    private LeituraModeloSyncStateJpaRepository syncStateRepository;
 
     @Test
     void devePersistirBaseMinimaDoNovoBancoLocal() {
@@ -166,22 +161,5 @@ class PersistenciaSchemaIntegrationTest {
                 });
     }
 
-    @Test
-    void devePersistirEstadoDeSincronizacaoDeLeituraMesmoSemDadosLocais() {
-        LeituraModeloSyncStateJpaEntity state = new LeituraModeloSyncStateJpaEntity();
-        state.setId("LIBRARY_QUERY|escola|");
-        state.setScope("LIBRARY_QUERY");
-        state.setEscolaId(UUID.randomUUID());
-        state.setReferenciaId(null);
-        state.setQueryKey("");
-        state.setSyncedAt(LocalDateTime.now());
-        syncStateRepository.save(state);
-
-        assertThat(syncStateRepository.findById(state.getId()))
-                .isPresent()
-                .get()
-                .extracting(LeituraModeloSyncStateJpaEntity::getScope)
-                .isEqualTo("LIBRARY_QUERY");
-    }
 }
 

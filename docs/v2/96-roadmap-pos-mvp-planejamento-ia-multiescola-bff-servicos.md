@@ -8858,7 +8858,7 @@ Definicao objetiva:
 | `/api/escolas-origem`, `/api/transferencias`, `/api/documentos-alunos/**`, `/api/matriculas`, `/api/documentos` | `enrollment-document-service` | ownership local concluido; leitura e escrita interna do bloco operam por persistencia propria do servico | concluido | nao resta `ENROLLMENT_DOCUMENT_MONOLITH_BASE_URL`, client `OrigemAtualTransferenciaClient` nem dependencia funcional do monolito no runtime do servico |
 | `/api/avaliacoes/**`, `/api/aulas/**`, `/api/diarios-classe/**`, `/api/historicos-escolares/**`, `/api/matriculas/{matriculaId}/boletim**` | `pedagogical-service` | ownership local concluido no runtime do servico para `aulas`, `frequencias`, `avaliacoes`, `notas`, `diario-classe`, `boletim` e `historicos-escolares` | concluido no servico; o endurecimento/remocao final de portas legadas do BFF segue como corte externo posterior | nao resta `PEDAGOGICAL_MONOLITH_BASE_URL`, client `OrigemAtual*` nem dependencia funcional do monolito no runtime do servico |
 | `/api/dashboard/**` | `dashboard-query-service` | `dashboard-query-service` ainda consulta a origem legada por `OrigemAtualPainel*Client`; BFF ainda mantem `Painel*ReadProxyService` com portas legadas paralelas | executar `D3` no BFF e `D13` no servico | nao restar `DASHBOARD_QUERY_MONOLITH_BASE_URL`, `LegacyPainel*ReadPort` nem clients `OrigemAtualPainel*Client` |
-| `/api/biblioteca-conteudos-pedagogicos`, `/api/planejamentos-bimestrais/*/ia/**`, `/api/ia/conteudos/**` | `planning-ai-service` | `planning-ai-service` ainda usa `OrigemAtualPlanejamentoReadClient` e sincronizacao de leitura por `LeituraModeloSyncService`; BFF continua fachada dos contratos externos | executar `D12`, internalizando a leitura oficial e removendo a origem legada | servico sem `PLANNING_AI_MONOLITH_BASE_URL` e sem sincronizacao dependente da origem legada |
+| `/api/biblioteca-conteudos-pedagogicos`, `/api/planejamentos-bimestrais/*/ia/**`, `/api/ia/conteudos/**` | `planning-ai-service` | ownership local concluido; leitura e escrita interna do bloco operam por persistencia propria do servico | concluido | nao resta `PLANNING_AI_MONOLITH_BASE_URL`, client `OrigemAtualPlanejamentoReadClient` nem sincronizacao funcional dependente do monolito |
 | Backfill e reconciliacao do read model de pessoas | `people-service` | `LeituraModeloMigrationRunner`, `LeituraModeloSyncStartupRunner`, `JdbcCatalogoReadModelSyncAdapter` e `PEOPLE_READ_MODEL_SOURCE_URL` ainda dependem da origem legada | desligar bootstrap/backfill quando a leitura local for soberana e sem reconciliacao externa | nenhuma feature runtime de pessoas pode exigir `source-url` do legado para subir ou operar |
 | Backfill e reconciliacao do read model de responsaveis | `responsibles-service` | `LeituraModeloMigrationRunner`, `LeituraModeloSyncStartupRunner`, `JdbcLeituraModeloSyncAdapter` e `RESPONSIBLES_READ_MODEL_SOURCE_URL` ainda dependem da origem legada | fechar `D8` retirando o ciclo controlado e substituindo por persistencia/ownership local definitivo | nenhuma feature runtime de responsaveis pode exigir sync/bootstrap com a base legada |
 | Migracao e shadow sync de professores | `academic-professor-service` | superficie shadow runtime encerrada; migracao recorrente, health legado e fallback funcional ja foram removidos | concluido | nenhum runner, reconciliacao runtime ou health legado de professor ativo para operacao normal |
@@ -9255,10 +9255,12 @@ Definicao objetiva:
 
 ### Fase D12 - Fechamento final de `planning-ai-service`
 
-- concluir a retirada dos fallbacks e hidratacoes remanescentes que ainda
-  dependam do monolito para IA, biblioteca, versoes, aprovacao ou publicacao;
-- deixar o servico novo como dono integral dos contratos e dados necessarios ao
-  bloco de planejamento e IA.
+- concluida com a retirada dos fallbacks, hidratacoes e adapters remanescentes
+  que ainda dependiam do monolito para IA, biblioteca, versoes, aprovacao ou
+  publicacao;
+- `planning-ai-service` passa a ser dono integral dos contratos e dados
+  necessarios ao bloco de planejamento e IA, operando apenas sobre
+  persistencia propria local.
 
 ### Fase D13 - Fechamento final de `dashboard-query-service`
 

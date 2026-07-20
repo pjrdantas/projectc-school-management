@@ -1,5 +1,10 @@
 package br.com.escola.planningaiservice.application.service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.util.HexFormat;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -8,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
 import br.com.escola.planningaiservice.application.dto.AprovarVersaoConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaResponse;
+import br.com.escola.planningaiservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.planningaiservice.infra.persistence.jpa.entity.ConteudoVersaoJpaEntity;
 import br.com.escola.planningaiservice.infra.persistence.jpa.entity.ConteudoGeradoJpaEntity;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.ConteudoVersaoJpaRepository;
@@ -18,59 +24,91 @@ public class ConteudoAprovacaoPersistenciaService {
 
     private final ConteudoGeradoJpaRepository contentRepository;
     private final ConteudoVersaoJpaRepository versionRepository;
+    private final DescritorService descriptorService;
 
     public ConteudoAprovacaoPersistenciaService(
             ConteudoGeradoJpaRepository contentRepository,
-            ConteudoVersaoJpaRepository versionRepository) {
+            ConteudoVersaoJpaRepository versionRepository,
+            DescritorService descriptorService) {
         this.contentRepository = contentRepository;
         this.versionRepository = versionRepository;
+        this.descriptorService = descriptorService;
     }
 
     @Transactional
-    public ConteudoIaResponse persistirAprovacao(
+    public ConteudoIaResponse aprovarVersao(
             InternalRequestContext context,
             UUID conteudoId,
-            AprovarVersaoConteudoIaRequest request,
-            ConteudoIaResponse response) {
-        if (response == null) {
-            return null;
-        }
-
+            AprovarVersaoConteudoIaRequest request) {
         ConteudoGeradoJpaEntity content = contentRepository.findByIdAndEscolaId(conteudoId, context.escolaId())
-                .orElse(null);
-        if (content == null) {
-            return response;
-        }
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Conteudo IA nao encontrado"));
 
-        content.setConteudo(response.conteudo());
-        content.setVersao(response.versao());
-        content.setHashConteudo(response.hashConteudo());
-        content.setEscolaNome(response.escolaNome());
-        content.setAprovadoPeloProfessor(Boolean.TRUE.equals(response.aprovadoPeloProfessor()));
-        content.setReutilizavel(Boolean.TRUE.equals(response.reutilizavel()));
-        content.setAtivo(Boolean.TRUE.equals(response.ativo()));
-        content.setStatus(response.status());
-        content.setUpdatedAt(response.updatedAt());
+        ConteudoVersaoJpaEntity version = versionRepository.findByEscolaIdAndConteudoGerado_IdOrderByNumeroVersaoAsc(
+                context.escolaId(),
+                conteudoId)
+                .stream()
+                .filter(entry -> request.numeroVersao().equals(entry.getNumeroVersao()))
+                .findFirst()
+                .orElseGet(() -> validarVersaoAtual(content, request.numeroVersao()));
+
+        LocalDateTime now = LocalDateTime.now();
+        content.setConteudo(version.getConteudo());
+        content.setVersao(version.getNumeroVersao());
+        content.setHashConteudo(hashConteudo(version.getConteudo()));
+        content.setAprovadoPeloProfessor(true);
+        content.setReutilizavel(true);
+        content.setAtivo(true);
+        content.setStatus("APROVADO");
+        content.setUpdatedAt(now);
         contentRepository.save(content);
 
-        if (request.numeroVersao() != null) {
-            versionRepository.findByEscolaIdAndConteudoGerado_IdOrderByNumeroVersaoAsc(context.escolaId(), conteudoId)
-                    .stream()
-                    .filter(version -> request.numeroVersao().equals(version.getNumeroVersao()))
-                    .findFirst()
-                    .ifPresent(version -> atualizarVersao(version, context, response));
-        }
+        version.setAlteradoPor(context.usuarioId());
+        version.setConteudo(content.getConteudo());
+        versionRepository.save(version);
 
-        return response;
+        return new ConteudoIaResponse(
+                content.getId(),
+                content.getPlanejamentoBimestralId(),
+                content.getInteracao() == null ? null : content.getInteracao().getId(),
+                content.getEscolaId(),
+                content.getEscolaNome(),
+                content.getTitulo(),
+                content.getConteudo(),
+                content.getVersao(),
+                content.getHashConteudo(),
+                content.isAprovadoPeloProfessor(),
+                content.isReutilizavel(),
+                content.isAtivo(),
+                content.getStatus(),
+                descriptorService.statusDescricao(content.getStatus()),
+                content.getTipoConteudo(),
+                descriptorService.tipoConteudoDescricao(content.getTipoConteudo()),
+                content.getCreatedAt(),
+                content.getUpdatedAt());
     }
 
-    private void atualizarVersao(
-            ConteudoVersaoJpaEntity version,
-            InternalRequestContext context,
-            ConteudoIaResponse response) {
-        version.setAlteradoPor(context.usuarioId());
-        version.setConteudo(response.conteudo());
-        versionRepository.save(version);
+    private ConteudoVersaoJpaEntity validarVersaoAtual(ConteudoGeradoJpaEntity content, Integer numeroVersao) {
+        if (numeroVersao.equals(content.getVersao())) {
+            ConteudoVersaoJpaEntity version = new ConteudoVersaoJpaEntity();
+            version.setId(UUID.randomUUID());
+            version.setEscolaId(content.getEscolaId());
+            version.setConteudoGerado(content);
+            version.setNumeroVersao(content.getVersao());
+            version.setConteudo(content.getConteudo());
+            version.setMotivoAlteracao("Aprovacao da versao atual");
+            version.setCreatedAt(LocalDateTime.now());
+            return versionRepository.save(version);
+        }
+        throw new RecursoNaoEncontradoException("Versao de conteudo IA nao encontrada");
+    }
+
+    private String hashConteudo(String conteudo) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest(conteudo.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("Algoritmo SHA-256 indisponivel", exception);
+        }
     }
 }
 

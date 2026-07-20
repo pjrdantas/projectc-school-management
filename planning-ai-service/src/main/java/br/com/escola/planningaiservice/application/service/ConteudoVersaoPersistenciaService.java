@@ -1,5 +1,6 @@
 package br.com.escola.planningaiservice.application.service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -8,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.escola.planningaiservice.application.context.InternalRequestContext;
 import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
 import br.com.escola.planningaiservice.application.dto.CriarVersaoConteudoIaRequest;
+import br.com.escola.planningaiservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.planningaiservice.infra.persistence.jpa.entity.ConteudoVersaoJpaEntity;
 import br.com.escola.planningaiservice.infra.persistence.jpa.entity.ConteudoGeradoJpaEntity;
 import br.com.escola.planningaiservice.infra.persistence.jpa.repository.ConteudoVersaoJpaRepository;
@@ -27,38 +29,48 @@ public class ConteudoVersaoPersistenciaService {
     }
 
     @Transactional
-    public ConteudoIaVersaoResponse persistirCriacaoVersao(
+    public ConteudoIaVersaoResponse criarVersao(
             InternalRequestContext context,
             UUID conteudoId,
-            CriarVersaoConteudoIaRequest request,
-            ConteudoIaVersaoResponse response) {
-        if (response == null) {
-            return null;
-        }
-
+            CriarVersaoConteudoIaRequest request) {
         ConteudoGeradoJpaEntity content = contentRepository.findByIdAndEscolaId(conteudoId, context.escolaId())
-                .orElse(null);
-        if (content == null) {
-            return response;
-        }
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Conteudo IA nao encontrado"));
 
-        ConteudoVersaoJpaEntity version = versionRepository.findById(response.id())
-                .orElseGet(ConteudoVersaoJpaEntity::new);
-        version.setId(response.id());
+        int proximaVersao = Math.max(content.getVersao(), obterUltimaVersao(content.getId(), context.escolaId())) + 1;
+        LocalDateTime now = LocalDateTime.now();
+
+        ConteudoVersaoJpaEntity version = new ConteudoVersaoJpaEntity();
+        version.setId(UUID.randomUUID());
         version.setEscolaId(context.escolaId());
         version.setConteudoGerado(content);
         version.setAlteradoPor(context.usuarioId());
-        version.setNumeroVersao(response.numeroVersao());
-        version.setConteudo(response.conteudo());
-        version.setMotivoAlteracao(response.motivoAlteracao());
-        version.setCreatedAt(response.createdAt());
+        version.setNumeroVersao(proximaVersao);
+        version.setConteudo(request.conteudo());
+        version.setMotivoAlteracao(request.motivoAlteracao());
+        version.setCreatedAt(now);
         versionRepository.save(version);
 
-        content.setConteudo(response.conteudo());
-        content.setVersao(response.numeroVersao());
-        content.setUpdatedAt(response.createdAt());
+        content.setConteudo(request.conteudo());
+        content.setVersao(proximaVersao);
+        content.setAprovadoPeloProfessor(false);
+        content.setStatus("EM_EDICAO");
+        content.setUpdatedAt(now);
         contentRepository.save(content);
-        return response;
+        return new ConteudoIaVersaoResponse(
+                version.getId(),
+                content.getId(),
+                version.getNumeroVersao(),
+                version.getConteudo(),
+                version.getMotivoAlteracao(),
+                version.getCreatedAt());
+    }
+
+    private int obterUltimaVersao(UUID conteudoId, UUID escolaId) {
+        return versionRepository.findByEscolaIdAndConteudoGerado_IdOrderByNumeroVersaoAsc(escolaId, conteudoId)
+                .stream()
+                .map(ConteudoVersaoJpaEntity::getNumeroVersao)
+                .max(Integer::compareTo)
+                .orElse(0);
     }
 }
 
