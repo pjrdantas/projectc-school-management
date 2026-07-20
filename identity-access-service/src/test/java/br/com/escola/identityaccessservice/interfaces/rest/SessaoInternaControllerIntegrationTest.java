@@ -1,6 +1,10 @@
 package br.com.escola.identityaccessservice.interfaces.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -14,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -25,9 +30,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.jayway.jsonpath.JsonPath;
+
+import br.com.escola.identityaccessservice.application.model.EscolaDisponivel;
+import br.com.escola.identityaccessservice.application.port.out.EscolaSessaoPort;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -46,6 +55,9 @@ class SessaoInternaControllerIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @MockitoBean
+    private EscolaSessaoPort escolaSessaoPort;
+
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("identity-access.internal-api.token", () -> "identity-token");
@@ -57,23 +69,13 @@ class SessaoInternaControllerIntegrationTest {
 
     @BeforeEach
     void prepararBanco() {
+        reset(escolaSessaoPort);
         jdbcTemplate.execute("DROP TABLE IF EXISTS sessao_autenticacao");
-        jdbcTemplate.execute("DROP TABLE IF EXISTS usuario_escola");
         jdbcTemplate.execute("DROP TABLE IF EXISTS perfil_permissao");
         jdbcTemplate.execute("DROP TABLE IF EXISTS usuario_perfil");
         jdbcTemplate.execute("DROP TABLE IF EXISTS permissao");
         jdbcTemplate.execute("DROP TABLE IF EXISTS perfil");
         jdbcTemplate.execute("DROP TABLE IF EXISTS usuario");
-        jdbcTemplate.execute("DROP TABLE IF EXISTS escola");
-
-        jdbcTemplate.execute("""
-                CREATE TABLE escola (
-                    id_escola UUID PRIMARY KEY,
-                    nome VARCHAR(150) NOT NULL,
-                    ativo BOOLEAN NOT NULL,
-                    created_at TIMESTAMP NOT NULL
-                )
-                """);
 
         jdbcTemplate.execute("""
                 CREATE TABLE usuario (
@@ -99,15 +101,6 @@ class SessaoInternaControllerIntegrationTest {
                     access_expira_em TIMESTAMP,
                     revogado BOOLEAN NOT NULL,
                     created_at TIMESTAMP NOT NULL
-                )
-                """);
-        jdbcTemplate.execute("""
-                CREATE TABLE usuario_escola (
-                    id_usuario_escola UUID PRIMARY KEY,
-                    id_usuario UUID NOT NULL,
-                    id_escola UUID NOT NULL,
-                    created_at TIMESTAMP NOT NULL,
-                    UNIQUE (id_usuario, id_escola)
                 )
                 """);
         jdbcTemplate.execute("""
@@ -433,12 +426,15 @@ class SessaoInternaControllerIntegrationTest {
 
         UUID usuarioId = UUID.randomUUID();
         String token = "identity-user-token";
-        inserirEscola(escolaAtivaId, "Escola Ativa");
-        inserirEscola(outraEscolaId, "Escola Opcional");
         inserirUsuario(usuarioId, "usuario.identity", escolaAtivaId);
-        inserirVinculo(usuarioId, escolaAtivaId);
-        inserirVinculo(usuarioId, outraEscolaId);
         inserirSessao(usuarioId, escolaAtivaId, token);
+        when(escolaSessaoPort.listarDisponiveis(
+                eq("Bearer " + token),
+                argThat(context -> context.usuarioId().equals(usuarioId)
+                        && context.escolaId().equals(escolaAtivaId))))
+                .thenReturn(List.of(
+                        new EscolaDisponivel(escolaAtivaId, "Escola Ativa", true),
+                        new EscolaDisponivel(outraEscolaId, "Escola Opcional", false)));
 
         mockMvc.perform(get("/internal/v1/auth/escolas")
                         .header("X-Internal-Token", "identity-token")
@@ -459,15 +455,18 @@ class SessaoInternaControllerIntegrationTest {
         UUID escolaId = UUID.randomUUID();
         String token = "identity-user-token";
 
-        inserirEscola(escolaId, "Escola Contexto");
         inserirUsuario(usuarioId, "usuario.contexto", escolaId);
         inserirSessao(usuarioId, null, token);
+        when(escolaSessaoPort.listarDisponiveis(
+                eq("Bearer " + token),
+                argThat(context -> context.usuarioId().equals(usuarioId)
+                        && context.escolaId().equals(escolaId)
+                        && context.correlationId().equals("corr-identity-ctx"))))
+                .thenReturn(List.of(new EscolaDisponivel(escolaId, "Escola Contexto", true)));
 
         mockMvc.perform(get("/internal/v1/auth/contexto-atual")
                         .header("X-Internal-Token", "identity-token")
                         .header("X-Correlation-Id", "corr-identity-ctx")
-                        .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", UUID.randomUUID())
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.usuarioId").value(usuarioId.toString()))
@@ -484,12 +483,16 @@ class SessaoInternaControllerIntegrationTest {
 
         inserirUsuario(usuarioId, "usuario.default", null);
         inserirSessao(usuarioId, null, token);
+        when(escolaSessaoPort.listarDisponiveis(
+                eq("Bearer " + token),
+                argThat(context -> context.usuarioId().equals(usuarioId)
+                        && context.escolaId().equals(ESCOLA_PADRAO_ID))))
+                .thenReturn(List.of(new EscolaDisponivel(
+                        ESCOLA_PADRAO_ID, "Escola padrao", true)));
 
         mockMvc.perform(get("/internal/v1/auth/contexto-atual")
                         .header("X-Internal-Token", "identity-token")
                         .header("X-Correlation-Id", "corr-identity-ctx-default")
-                        .header("X-Usuario-Id", UUID.randomUUID())
-                        .header("X-Escola-Id", UUID.randomUUID())
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.usuarioId").value(usuarioId.toString()))
@@ -506,12 +509,15 @@ class SessaoInternaControllerIntegrationTest {
 
         UUID escolaAnteriorId = UUID.randomUUID();
         String token = "identity-user-token";
-        inserirEscola(escolaAnteriorId, "Escola Anterior");
-        inserirEscola(escolaId, "Escola Selecionada");
         inserirUsuario(usuarioId, "usuario.identity", escolaAnteriorId);
-        inserirVinculo(usuarioId, escolaAnteriorId);
-        inserirVinculo(usuarioId, escolaId);
         inserirSessao(usuarioId, escolaAnteriorId, token);
+        when(escolaSessaoPort.listarDisponiveis(
+                eq("Bearer " + token),
+                argThat(context -> context.usuarioId().equals(usuarioId)
+                        && context.escolaId().equals(escolaAnteriorId))))
+                .thenReturn(List.of(
+                        new EscolaDisponivel(escolaAnteriorId, "Escola Anterior", true),
+                        new EscolaDisponivel(escolaId, "Escola Selecionada", false)));
 
         mockMvc.perform(post("/internal/v1/auth/escola-ativa")
                         .contentType("application/json")
@@ -554,13 +560,6 @@ class SessaoInternaControllerIntegrationTest {
                         .headers(internalHeaders("corr-access-forbidden")))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error").value("FORBIDDEN"));
-    }
-
-    private void inserirEscola(UUID escolaId, String nome) {
-        jdbcTemplate.update("""
-                INSERT INTO escola (id_escola, nome, ativo, created_at)
-                VALUES (?, ?, ?, ?)
-                """, escolaId, nome, true, Timestamp.valueOf(LocalDateTime.now()));
     }
 
     private org.springframework.http.HttpHeaders internalHeaders(String correlationId) {
@@ -608,13 +607,6 @@ class SessaoInternaControllerIntegrationTest {
                 INSERT INTO permissao (id_permissao, codigo, created_at)
                 VALUES (?, ?, ?)
                 """, permissaoId, codigo, Timestamp.valueOf(LocalDateTime.now()));
-    }
-
-    private void inserirVinculo(UUID usuarioId, UUID escolaId) {
-        jdbcTemplate.update("""
-                INSERT INTO usuario_escola (id_usuario_escola, id_usuario, id_escola, created_at)
-                VALUES (?, ?, ?, ?)
-                """, UUID.randomUUID(), usuarioId, escolaId, Timestamp.valueOf(LocalDateTime.now()));
     }
 
     private void inserirSessao(UUID usuarioId, UUID escolaId, String token) {

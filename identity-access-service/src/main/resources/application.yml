@@ -12,6 +12,11 @@ spring:
 identity-access:
   internal-api:
     token: ${IDENTITY_ACCESS_INTERNAL_TOKEN:}
+  school-session:
+    base-url: ${IDENTITY_ACCESS_SCHOOL_SESSION_BASE_URL:http://localhost:8092}
+    internal-token: ${IDENTITY_ACCESS_SCHOOL_SESSION_INTERNAL_TOKEN:}
+    connect-timeout: ${IDENTITY_ACCESS_SCHOOL_SESSION_CONNECT_TIMEOUT:2s}
+    read-timeout: ${IDENTITY_ACCESS_SCHOOL_SESSION_READ_TIMEOUT:5s}
   session-cleanup:
     enabled: ${IDENTITY_ACCESS_SESSION_CLEANUP_ENABLED:true}
     fixed-delay: ${IDENTITY_ACCESS_SESSION_CLEANUP_FIXED_DELAY:24h}

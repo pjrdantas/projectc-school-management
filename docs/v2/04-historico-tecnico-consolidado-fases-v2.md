@@ -5203,3 +5203,15 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   independentes. Nenhum dado real foi migrado automaticamente.
 - Permanece na B1 somente o corte do datasource de seguranca e o isolamento da
   consulta institucional usada pelo contexto autenticado.
+- No nono recorte da B1, o `identity-access-service` removeu todas as consultas
+  diretas a `escola` e `usuario_escola`; sessao, usuario e escola ativa ficam no
+  banco de identidade, enquanto nome e vinculos sao obtidos pelo contrato
+  interno de escolas do `institutional-tenant-service`.
+- O contexto enviado nessa integracao e derivado da sessao local validada, o
+  endpoint `contexto-atual` nao depende mais de headers contextuais circulares
+  e nao existe fallback para o banco compartilhado.
+- A validacao restrita ao modulo executou 13 testes sem falhas ou erros e os
+  testes de integracao nao criam mais tabelas institucionais no datasource da
+  identidade.
+- Resta na B1 apenas o recorte operacional de ativacao do banco proprio,
+  migration/backfill controlados e prova final sem o datasource compartilhado.

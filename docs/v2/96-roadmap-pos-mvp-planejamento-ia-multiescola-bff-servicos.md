@@ -9950,3 +9950,28 @@ Oitavo recorte da B1 entregue em 20/07/2026:
   idempotencia;
 - a B1 permanece **em andamento** somente para o corte do datasource de
   seguranca e isolamento da consulta institucional usada por `contexto-atual`.
+
+Nono recorte da B1 entregue em 20/07/2026:
+
+- o `identity-access-service` deixou de consultar diretamente `escola` e
+  `usuario_escola` nos fluxos de contexto atual, escolas disponiveis e selecao
+  da escola ativa;
+- a sessao, o usuario e o `id_escola` ativo continuam sendo validados e
+  persistidos exclusivamente nas seis tabelas proprias do dominio de acesso;
+- nomes, disponibilidade e vinculos de escola passaram a ser resolvidos pelo
+  contrato interno ja existente `GET /internal/v1/tenant/escolas` do
+  `institutional-tenant-service`, sem fallback para banco compartilhado;
+- o contexto encaminhado ao servico institucional e reconstruido a partir da
+  sessao validada, e nao de headers enviados pelo cliente; `contexto-atual`
+  deixou de exigir headers contextuais circulares para resolver o Bearer;
+- o adapter HTTP possui URL, token interno e timeouts configuraveis, propaga
+  correlacao e converte indisponibilidade em erro explicito, sem reabrir o
+  monolito;
+- os testes de integracao da identidade deixaram de criar as tabelas `escola`
+  e `usuario_escola`, provando o isolamento do datasource neste fluxo;
+- validacao restrita ao `identity-access-service`: 13 testes, zero falhas e
+  zero erros, incluindo contrato HTTP, contexto atual, listagem e troca de
+  escola;
+- a B1 permanece **em andamento** por um ultimo recorte: ativar o datasource
+  proprio, executar migration/backfill controlados em ambiente operacional e
+  provar o servico funcionando sem o banco compartilhado.
