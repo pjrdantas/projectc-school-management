@@ -5183,3 +5183,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   trafego ao monolito.
 - Permanecem na B1 somente migrations, banco proprio e backfill controlado do
   estado de identidade e acesso.
+- No setimo recorte da B1, o `identity-access-service` recebeu migration Flyway
+  propria contendo exclusivamente `usuario`, `usuario_perfil`, `perfil`,
+  `perfil_permissao`, `permissao` e `sessao_autenticacao`.
+- A migration e aplicada por runner opt-in e datasource de schema separado; ela
+  nao roda contra o datasource compartilhado por padrao e nao cria tabelas do
+  dominio institucional.
+- A validacao executou 11 testes sem falhas ou erros, incluindo aplicacao real da
+  migration em banco vazio e verificacao das seis tabelas criadas.
+- Permanecem na B1 o backfill controlado, a reconciliacao e o corte do datasource
+  de seguranca para o banco proprio.

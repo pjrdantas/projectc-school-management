@@ -9908,3 +9908,22 @@ Sexto recorte da B1 entregue em 20/07/2026:
 - os contratos funcionais de autenticacao e administracao da B1 estao
   oficializados; a B1 permanece **em andamento** somente para migrations, banco
   proprio e backfill controlado.
+
+Setimo recorte da B1 entregue em 20/07/2026:
+
+- o `identity-access-service` passou a possuir migration Flyway propria para
+  exatamente seis tabelas: `usuario`, `usuario_perfil`, `perfil`,
+  `perfil_permissao`, `permissao` e `sessao_autenticacao`;
+- o schema inclui apenas constraints, relacionamentos internos, unicidades e
+  indices de sessao necessarios ao dominio de acesso; nenhuma tabela
+  institucional foi copiada;
+- um runner separado e opt-in permite aplicar a migration no banco
+  `identity_access` por configuracao propria, sem executar migrations sobre o
+  datasource compartilhado atual;
+- a ativacao permanece desabilitada por padrao ate o backfill e a separacao do
+  adapter de contexto institucional, evitando quebrar `contexto-atual`;
+- validacao restrita ao `identity-access-service`: 11 testes, zero falhas e zero
+  erros; o teste Flyway aplicou a migration em banco vazio e confirmou a criacao
+  exclusiva das seis tabelas;
+- a B1 permanece **em andamento**: faltam o backfill controlado, reconciliacao
+  de integridade e corte do datasource de seguranca para o banco proprio.

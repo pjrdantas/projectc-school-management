@@ -2,6 +2,8 @@ server:
   port: 8091
 
 spring:
+  flyway:
+    enabled: false
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
@@ -13,3 +15,10 @@ identity-access:
   session-cleanup:
     enabled: ${IDENTITY_ACCESS_SESSION_CLEANUP_ENABLED:true}
     fixed-delay: ${IDENTITY_ACCESS_SESSION_CLEANUP_FIXED_DELAY:24h}
+  persistence:
+    schema-migration:
+      enabled: ${IDENTITY_ACCESS_SCHEMA_MIGRATION_ENABLED:false}
+      url: ${IDENTITY_ACCESS_SCHEMA_URL:jdbc:postgresql://localhost:5432/identity_access}
+      username: ${IDENTITY_ACCESS_SCHEMA_USERNAME:postgres}
+      password: ${IDENTITY_ACCESS_SCHEMA_PASSWORD:postgres}
+      locations: ${IDENTITY_ACCESS_SCHEMA_LOCATIONS:classpath:db/identity-access/migration}
