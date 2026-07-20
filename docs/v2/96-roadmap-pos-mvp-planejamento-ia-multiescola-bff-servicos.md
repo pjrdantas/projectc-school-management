@@ -9927,3 +9927,26 @@ Setimo recorte da B1 entregue em 20/07/2026:
   exclusiva das seis tabelas;
 - a B1 permanece **em andamento**: faltam o backfill controlado, reconciliacao
   de integridade e corte do datasource de seguranca para o banco proprio.
+
+Oitavo recorte da B1 entregue em 20/07/2026:
+
+- foi implementado backfill one-shot e opt-in das seis tabelas de acesso, com
+  origem e destino configurados separadamente e sem dependencia de tabela fora
+  do dominio;
+- a copia ocorre em lotes e na ordem de dependencias, dentro de uma unica
+  transacao no destino, preservando IDs, hashes de senha/token, timestamps,
+  status e referencias de escola sem criar FKs institucionais;
+- a operacao usa upsert idempotente, permitindo repeticao controlada sem
+  duplicar usuarios, perfis, permissoes, vinculos ou sessoes;
+- a reconciliacao compara contagens e digest SHA-256 canonico do conteudo de
+  cada tabela entre origem e destino; divergencia pode bloquear a inicializacao
+  por configuracao `fail-on-mismatch`;
+- migration e backfill permanecem desabilitados por padrao e precisam ser
+  habilitados explicitamente para uma execucao operacional; nenhum dado real
+  foi migrado automaticamente neste recorte;
+- validacao restrita ao `identity-access-service`: 12 testes, zero falhas e zero
+  erros; o teste executou migration em dois bancos independentes, populou as
+  seis tabelas, executou o backfill duas vezes e confirmou reconciliacao e
+  idempotencia;
+- a B1 permanece **em andamento** somente para o corte do datasource de
+  seguranca e isolamento da consulta institucional usada por `contexto-atual`.

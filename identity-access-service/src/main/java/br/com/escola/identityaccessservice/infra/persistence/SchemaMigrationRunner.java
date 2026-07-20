@@ -3,11 +3,13 @@ package br.com.escola.identityaccessservice.infra.persistence;
 import org.flywaydb.core.Flyway;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import br.com.escola.identityaccessservice.infra.config.SchemaMigrationProperties;
 
 @Component
+@Order(0)
 public class SchemaMigrationRunner implements ApplicationRunner {
 
     private final SchemaMigrationProperties properties;

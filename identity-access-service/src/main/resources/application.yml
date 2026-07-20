@@ -22,3 +22,10 @@ identity-access:
       username: ${IDENTITY_ACCESS_SCHEMA_USERNAME:postgres}
       password: ${IDENTITY_ACCESS_SCHEMA_PASSWORD:postgres}
       locations: ${IDENTITY_ACCESS_SCHEMA_LOCATIONS:classpath:db/identity-access/migration}
+    backfill:
+      enabled: ${IDENTITY_ACCESS_BACKFILL_ENABLED:false}
+      source-url: ${IDENTITY_ACCESS_BACKFILL_SOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
+      source-username: ${IDENTITY_ACCESS_BACKFILL_SOURCE_USERNAME:postgres}
+      source-password: ${IDENTITY_ACCESS_BACKFILL_SOURCE_PASSWORD:postgres}
+      batch-size: ${IDENTITY_ACCESS_BACKFILL_BATCH_SIZE:500}
+      fail-on-mismatch: ${IDENTITY_ACCESS_BACKFILL_FAIL_ON_MISMATCH:true}

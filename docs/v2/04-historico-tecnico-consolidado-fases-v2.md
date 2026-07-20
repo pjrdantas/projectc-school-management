@@ -5193,3 +5193,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   migration em banco vazio e verificacao das seis tabelas criadas.
 - Permanecem na B1 o backfill controlado, a reconciliacao e o corte do datasource
   de seguranca para o banco proprio.
+- No oitavo recorte da B1, foi implementado backfill one-shot e opt-in das seis
+  tabelas, com origem/destino separados, lotes, transacao unica no destino,
+  upsert idempotente e preservacao de IDs e hashes.
+- A reconciliacao compara contagens e digest SHA-256 canonico por tabela e pode
+  interromper a inicializacao quando houver divergencia.
+- A validacao executou 12 testes sem falhas ou erros e comprovou migration,
+  duas execucoes consecutivas do backfill e igualdade integral entre dois bancos
+  independentes. Nenhum dado real foi migrado automaticamente.
+- Permanece na B1 somente o corte do datasource de seguranca e o isolamento da
+  consulta institucional usada pelo contexto autenticado.
