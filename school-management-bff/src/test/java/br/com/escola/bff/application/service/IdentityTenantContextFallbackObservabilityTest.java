@@ -93,6 +93,21 @@ public class IdentityTenantContextFallbackObservabilityTest {
     private static final class NoOpSessaoAutenticadaPort implements SessaoAutenticadaPort {
 
         @Override
+        public Mono<ResponseEntity<String>> login(String requestBody, String correlationId) {
+            return Mono.just(ResponseEntity.ok("unused"));
+        }
+
+        @Override
+        public Mono<ResponseEntity<String>> refresh(String requestBody, String correlationId) {
+            return Mono.just(ResponseEntity.ok("unused"));
+        }
+
+        @Override
+        public Mono<ResponseEntity<String>> logout(String requestBody, String correlationId) {
+            return Mono.just(ResponseEntity.noContent().build());
+        }
+
+        @Override
         public Mono<ResponseEntity<String>> listarEscolas(CatalogReadQuery query, AuthSessionContext context) {
             return Mono.just(ResponseEntity.ok("unused"));
         }

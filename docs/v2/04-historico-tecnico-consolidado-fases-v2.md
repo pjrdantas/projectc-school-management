@@ -5139,3 +5139,10 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Validacao restrita ao `identity-access-service`: seis testes executados, zero
   falhas e zero erros. A B1 continua aberta ate possuir administracao de acesso,
   persistencia propria, backfill e rotas publicas oficiais no BFF.
+- No segundo recorte da B1, o BFF oficializou `POST /api/auth/login`,
+  `POST /api/auth/refresh` e `POST /api/auth/logout`, todos encaminhados somente
+  ao `identity-access-service`, preservando contrato, correlacao e status HTTP.
+- A integracao do BFF executou quatro testes sem falhas ou erros e comprovou que
+  o ciclo publico de autenticacao nao produz trafego para o monolito.
+- Com as rotas publicas concluidas, a B1 permanece aberta apenas para
+  administracao de acesso, migrations, banco proprio e backfill controlado.

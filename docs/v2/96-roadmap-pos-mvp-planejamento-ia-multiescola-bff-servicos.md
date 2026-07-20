@@ -9814,3 +9814,19 @@ Primeiro recorte da B1 entregue em 20/07/2026:
 - a B1 permanece **em andamento**: faltam administracao de usuarios/perfis/
   permissoes, migrations e banco proprio, backfill controlado e oficializacao
   dos tres endpoints publicos no BFF.
+
+Segundo recorte da B1 entregue em 20/07/2026:
+
+- o `school-management-bff` passou a expor oficialmente
+  `POST /api/auth/login`, `POST /api/auth/refresh` e
+  `POST /api/auth/logout`;
+- as tres rotas encaminham exclusivamente ao `identity-access-service`, usando
+  o client interno ja existente, sem fallback ou chamada ao monolito;
+- login, refresh e logout permanecem publicos no filtro Bearer, enquanto token
+  interno e `X-Correlation-Id` sao propagados no salto BFF/servico;
+- o contrato externo do frontend foi preservado e o status `204 No Content` do
+  logout e repassado sem fabricacao de payload;
+- validacao restrita ao BFF: quatro testes de integracao, zero falhas e zero
+  erros, incluindo prova de ausencia de trafego para o monolito;
+- a B1 permanece **em andamento**: faltam administracao de usuarios, perfis e
+  permissoes, migrations, banco proprio e backfill controlado.

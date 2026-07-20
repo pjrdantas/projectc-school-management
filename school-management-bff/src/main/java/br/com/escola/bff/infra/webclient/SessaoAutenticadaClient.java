@@ -28,6 +28,21 @@ public class SessaoAutenticadaClient extends AbstractDownstreamClientSupport imp
     }
 
     @Override
+    public Mono<ResponseEntity<String>> login(String requestBody, String correlationId) {
+        return postAuthentication("/internal/v1/auth/login", requestBody, correlationId);
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> refresh(String requestBody, String correlationId) {
+        return postAuthentication("/internal/v1/auth/refresh", requestBody, correlationId);
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> logout(String requestBody, String correlationId) {
+        return postAuthentication("/internal/v1/auth/logout", requestBody, correlationId);
+    }
+
+    @Override
     public Mono<ResponseEntity<String>> listarEscolas(CatalogReadQuery query, AuthSessionContext context) {
         return webClient.get()
                 .uri("/internal/v1/auth/escolas")
@@ -58,6 +73,21 @@ public class SessaoAutenticadaClient extends AbstractDownstreamClientSupport imp
                 .exchangeToMono(response -> handle(response, "Identity access service retornou erro interno"))
                 .timeout(properties.responseTimeout())
                 .onErrorMap(error -> mapTransportError(error, "Identity access service indisponivel"));
+    }
+
+    private Mono<ResponseEntity<String>> postAuthentication(
+            String path,
+            String requestBody,
+            String correlationId) {
+        return webClient.post()
+                .uri(path)
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", correlationId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .exchangeToMono(response -> handle(response, "Servico de autenticacao retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Servico de autenticacao indisponivel"));
     }
 }
 

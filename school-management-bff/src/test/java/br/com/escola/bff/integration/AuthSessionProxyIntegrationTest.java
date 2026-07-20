@@ -156,6 +156,77 @@ class AuthSessionProxyIntegrationTest {
                 .jsonPath("$.code").isEqualTo("UNAUTHORIZED");
     }
 
+    @Test
+    void deveOficializarCicloPublicoDeAutenticacaoSemMonolito() throws InterruptedException {
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "accessToken":"access-1",
+                          "refreshToken":"refresh-1",
+                          "tokenType":"Bearer",
+                          "nome":"Usuario Teste",
+                          "perfis":["SECRETARIA"],
+                          "permissoes":["MATRICULA_EDITAR"]
+                        }
+                        """));
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "accessToken":"access-2",
+                          "refreshToken":"refresh-2",
+                          "tokenType":"Bearer",
+                          "nome":"Usuario Teste",
+                          "perfis":["SECRETARIA"],
+                          "permissoes":["MATRICULA_EDITAR"]
+                        }
+                        """));
+        IDENTITY_ACCESS.enqueue(new MockResponse().setResponseCode(204));
+
+        client.post().uri("/api/auth/login")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-auth-login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"login\":\"usuario.teste\",\"senha\":\"senha\"}")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.accessToken").isEqualTo("access-1")
+                .jsonPath("$.perfis[0]").isEqualTo("SECRETARIA");
+
+        var loginRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(loginRequest.getPath()).isEqualTo("/internal/v1/auth/login");
+        assertThat(loginRequest.getHeader("X-Internal-Token")).isEqualTo("identity-access-internal-token");
+        assertThat(loginRequest.getHeader("X-Correlation-Id")).isEqualTo("corr-auth-login");
+        assertThat(loginRequest.getHeader(HttpHeaders.AUTHORIZATION)).isNull();
+        assertThat(loginRequest.getBody().readUtf8()).contains("usuario.teste");
+
+        client.post().uri("/api/auth/refresh")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-auth-refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"refreshToken\":\"refresh-1\"}")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.refreshToken").isEqualTo("refresh-2");
+
+        var refreshRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(refreshRequest.getPath()).isEqualTo("/internal/v1/auth/refresh");
+        assertThat(refreshRequest.getBody().readUtf8()).contains("refresh-1");
+
+        client.post().uri("/api/auth/logout")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-auth-logout")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("{\"refreshToken\":\"refresh-2\"}")
+                .exchange()
+                .expectStatus().isNoContent();
+
+        var logoutRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(logoutRequest.getPath()).isEqualTo("/internal/v1/auth/logout");
+        assertThat(logoutRequest.getBody().readUtf8()).contains("refresh-2");
+        assertThat(MONOLITH.getRequestCount()).isZero();
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {

@@ -65,6 +65,7 @@ import br.com.escola.bff.application.service.AulaReadProxyService;
 import br.com.escola.bff.application.service.AulaWriteProxyService;
 import br.com.escola.bff.application.service.AlunoResponsavelReadProxyService;
 import br.com.escola.bff.application.service.AuthSessionProxyService;
+import br.com.escola.bff.application.service.AutenticacaoProxyService;
 import br.com.escola.bff.application.service.BibliotecaConteudoPedagogicoReadProxyService;
 import br.com.escola.bff.application.service.BoletimReadProxyService;
 import br.com.escola.bff.application.service.CadastroPessoaReadProxyService;
@@ -112,6 +113,7 @@ import br.com.escola.bff.application.service.TurmaWriteRoutingService;
 import br.com.escola.bff.application.usecase.ConsultarCadastroPessoaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAuthSessionUseCase;
+import br.com.escola.bff.application.usecase.GerenciarAutenticacaoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAvaliacaoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAulaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarBibliotecaConteudoPedagogicoUseCase;
@@ -178,6 +180,12 @@ public class BffUseCaseConfiguration {
             InternalAuthContextPort authContextPort,
             ConsultaCadastralReadPort peopleCadastroReadPort) {
         return new CadastroPessoaReadProxyService(authContextPort, peopleCadastroReadPort);
+    }
+
+    @Bean
+    GerenciarAutenticacaoUseCase gerenciarAutenticacaoUseCase(
+            SessaoAutenticadaPort sessaoAutenticadaPort) {
+        return new AutenticacaoProxyService(sessaoAutenticadaPort);
     }
 
     @Bean
