@@ -9792,9 +9792,9 @@ Quantidade fechada deste ciclo: **14 etapas**.
   de integridade, rollback e operacao monolito-off;
 - encerrar D16 e declarar o backend concluido apenas nesta etapa.
 
-Status em 20/07/2026: **Etapa B1 iniciada; 14 etapas ainda nao concluidas**.
-O primeiro recorte executavel e o levantamento e implementacao do ciclo de
-autenticacao no `identity-access-service`, antes da administracao de acesso.
+Status em 20/07/2026: **Etapa B1 concluida; 13 etapas ainda nao concluidas**.
+A proxima etapa do ciclo fechado e a B2, dedicada a autonomia do
+`institutional-tenant-service`.
 
 Primeiro recorte da B1 entregue em 20/07/2026:
 
@@ -9975,3 +9975,30 @@ Nono recorte da B1 entregue em 20/07/2026:
 - a B1 permanece **em andamento** por um ultimo recorte: ativar o datasource
   proprio, executar migration/backfill controlados em ambiente operacional e
   provar o servico funcionando sem o banco compartilhado.
+
+Decimo e ultimo recorte da B1 entregue em 20/07/2026:
+
+- o datasource principal do `identity-access-service` passou a apontar por
+  padrao para `jdbc:postgresql://localhost:5433/identity_access`, com
+  credenciais e URL substituiveis por ambiente;
+- o Flyway oficial do Spring passou a executar automaticamente a migration do
+  dominio no datasource principal; foram removidos runner, properties e
+  configuracao paralelos de migration, eliminando o risco de migrar um banco e
+  executar o servico em outro;
+- o backfill opt-in passou a usar como destino exatamente o `DataSource` do
+  runtime, mantendo `gestao_escolar` apenas como origem configuravel durante a
+  janela controlada de migracao;
+- a inicializacao PostgreSQL da plataforma passou a provisionar o banco
+  `identity_access` junto da infraestrutura local;
+- foi adicionada prova integrada com dois bancos independentes: o destino
+  inicia vazio, recebe a migration Flyway, executa o backfill reconciliado e
+  autentica o usuario pelo datasource proprio; o destino contem somente as
+  seis tabelas do dominio;
+- validacao restrita aos artefatos tocados: `identity-access-service` com 14
+  testes, zero falhas e zero erros, e `docker compose config --quiet` com
+  configuracao valida;
+- o Docker/PostgreSQL local nao estava ativo durante a execucao, portanto
+  nenhum dado real foi movimentado; a execucao real permanece uma acao de
+  deploy explicitamente habilitada por `IDENTITY_ACCESS_BACKFILL_ENABLED=true`;
+- a **B1 esta concluida** no desenvolvimento e na prova automatizada. A proxima
+  etapa fechada do backend e a **B2 - autonomia de tenant e escolas**.

@@ -5215,3 +5215,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   identidade.
 - Resta na B1 apenas o recorte operacional de ativacao do banco proprio,
   migration/backfill controlados e prova final sem o datasource compartilhado.
+- No decimo e ultimo recorte da B1, o datasource principal do
+  `identity-access-service` foi cortado por padrao para o banco PostgreSQL
+  `identity_access`, com Flyway automatico no mesmo datasource usado pelo
+  runtime.
+- O backfill opt-in passou a escrever diretamente nesse datasource principal;
+  as configuracoes e o runner paralelos de migration foram removidos para
+  impedir divergencia entre banco migrado e banco efetivamente consumido.
+- A infraestrutura local passou a provisionar `identity_access`, e uma prova
+  integrada executou migration, backfill reconciliado e login entre dois bancos
+  independentes, mantendo no destino somente as seis tabelas do dominio.
+- A validacao executou 14 testes do `identity-access-service` sem falhas ou
+  erros e validou a sintaxe do compose. Como o Docker/PostgreSQL local estava
+  inativo, nenhum dado real foi movimentado; o backfill real continua exigindo
+  habilitacao operacional explicita.
+- A **B1 foi concluida**. O ciclo fechado segue para a B2, autonomia do
+  `institutional-tenant-service` e do dominio de escolas.

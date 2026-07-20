@@ -1,5 +1,7 @@
 package br.com.escola.identityaccessservice.infra.config;
 
+import javax.sql.DataSource;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -19,14 +21,12 @@ public class BackfillConfiguration {
             havingValue = "true")
     BackfillExecutor backfillExecutor(
             BackfillProperties backfill,
-            SchemaMigrationProperties schema) {
+            DataSource dataSource) {
         DriverManagerDataSource source = new DriverManagerDataSource(
                 backfill.sourceUrl(), backfill.sourceUsername(), backfill.sourcePassword());
-        DriverManagerDataSource target = new DriverManagerDataSource(
-                schema.url(), schema.username(), schema.password());
         return new BackfillExecutor(
                 new JdbcTemplate(source),
-                new JdbcTemplate(target),
+                new JdbcTemplate(dataSource),
                 backfill.batchSize());
     }
 }
