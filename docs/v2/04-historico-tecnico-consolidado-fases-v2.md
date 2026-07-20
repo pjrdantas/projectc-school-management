@@ -5146,3 +5146,10 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   o ciclo publico de autenticacao nao produz trafego para o monolito.
 - Com as rotas publicas concluidas, a B1 permanece aberta apenas para
   administracao de acesso, migrations, banco proprio e backfill controlado.
+- No terceiro recorte da B1, o `identity-access-service` recebeu CRUD interno
+  completo de permissoes, incluindo compatibilidade com `nmPermissao`,
+  normalizacao, conflitos de unicidade e bloqueio de exclusao quando houver
+  vinculo com perfil.
+- A validacao do modulo executou sete testes sem falhas ou erros. Permanecem na
+  B1 os CRUDs de perfis e usuarios, a exposicao administrativa no BFF, migrations,
+  banco proprio e backfill controlado.

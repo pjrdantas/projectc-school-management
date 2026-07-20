@@ -2,7 +2,9 @@ package br.com.escola.identityaccessservice.interfaces.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -115,7 +117,9 @@ class SessaoInternaControllerIntegrationTest {
         jdbcTemplate.execute("""
                 CREATE TABLE permissao (
                     id_permissao UUID PRIMARY KEY,
-                    codigo VARCHAR(120) NOT NULL
+                    codigo VARCHAR(120) NOT NULL UNIQUE,
+                    descricao VARCHAR(255),
+                    created_at TIMESTAMP NOT NULL
                 )
                 """);
         jdbcTemplate.execute("""
@@ -135,6 +139,58 @@ class SessaoInternaControllerIntegrationTest {
     }
 
     @Test
+    void deveAdministrarCicloCompletoDePermissao() throws Exception {
+        String response = mockMvc.perform(post("/internal/v1/permissoes")
+                        .contentType("application/json")
+                        .content("{\"nmPermissao\":\" matricula_editar \",\"descricao\":\" Editar matricula \"}")
+                        .headers(internalHeaders("corr-permissao-create")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.codigo").value("MATRICULA_EDITAR"))
+                .andExpect(jsonPath("$.nmPermissao").value("MATRICULA_EDITAR"))
+                .andExpect(jsonPath("$.descricao").value("Editar matricula"))
+                .andReturn().getResponse().getContentAsString();
+        String permissaoId = JsonPath.read(response, "$.id");
+
+        mockMvc.perform(get("/internal/v1/permissoes")
+                        .headers(internalHeaders("corr-permissao-list")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(permissaoId));
+
+        mockMvc.perform(get("/internal/v1/permissoes/{id}", permissaoId)
+                        .headers(internalHeaders("corr-permissao-get")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.codigo").value("MATRICULA_EDITAR"));
+
+        mockMvc.perform(put("/internal/v1/permissoes/{id}", permissaoId)
+                        .contentType("application/json")
+                        .content("{\"codigo\":\"MATRICULA_GERENCIAR\",\"descricao\":\"Gerenciar matricula\"}")
+                        .headers(internalHeaders("corr-permissao-update")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.codigo").value("MATRICULA_GERENCIAR"));
+
+        UUID perfilId = UUID.randomUUID();
+        jdbcTemplate.update("INSERT INTO perfil (id_perfil, codigo) VALUES (?, ?)", perfilId, "SECRETARIA");
+        jdbcTemplate.update("""
+                INSERT INTO perfil_permissao (id_perfil_permissao, id_perfil, id_permissao)
+                VALUES (?, ?, ?)
+                """, UUID.randomUUID(), perfilId, UUID.fromString(permissaoId));
+
+        mockMvc.perform(delete("/internal/v1/permissoes/{id}", permissaoId)
+                        .headers(internalHeaders("corr-permissao-conflict")))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("CONFLICT"));
+
+        jdbcTemplate.update("DELETE FROM perfil_permissao WHERE id_permissao = ?", UUID.fromString(permissaoId));
+        mockMvc.perform(delete("/internal/v1/permissoes/{id}", permissaoId)
+                        .headers(internalHeaders("corr-permissao-delete")))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/internal/v1/permissoes/{id}", permissaoId)
+                        .headers(internalHeaders("corr-permissao-missing")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void deveAutenticarRotacionarEEncerrarSessao() throws Exception {
         UUID usuarioId = UUID.randomUUID();
         UUID perfilId = UUID.randomUUID();
@@ -145,8 +201,8 @@ class SessaoInternaControllerIntegrationTest {
                 passwordEncoder.encode("senha-segura"), usuarioId);
         jdbcTemplate.update("INSERT INTO perfil (id_perfil, codigo) VALUES (?, ?)", perfilId, "SECRETARIA");
         jdbcTemplate.update(
-                "INSERT INTO permissao (id_permissao, codigo) VALUES (?, ?)",
-                permissaoId, "MATRICULA_EDITAR");
+                "INSERT INTO permissao (id_permissao, codigo, created_at) VALUES (?, ?, ?)",
+                permissaoId, "MATRICULA_EDITAR", Timestamp.valueOf(LocalDateTime.now()));
         jdbcTemplate.update(
                 "INSERT INTO usuario_perfil (id_usuario_perfil, id_usuario, id_perfil) VALUES (?, ?, ?)",
                 UUID.randomUUID(), usuarioId, perfilId);
@@ -323,6 +379,15 @@ class SessaoInternaControllerIntegrationTest {
                 INSERT INTO escola (id_escola, nome, ativo, created_at)
                 VALUES (?, ?, ?, ?)
                 """, escolaId, nome, true, Timestamp.valueOf(LocalDateTime.now()));
+    }
+
+    private org.springframework.http.HttpHeaders internalHeaders(String correlationId) {
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.add("X-Internal-Token", "identity-token");
+        headers.add("X-Correlation-Id", correlationId);
+        headers.add("X-Usuario-Id", UUID.randomUUID().toString());
+        headers.add("X-Escola-Id", UUID.randomUUID().toString());
+        return headers;
     }
 
     private void inserirUsuario(UUID usuarioId, String username, UUID escolaId) {

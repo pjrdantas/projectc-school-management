@@ -11,6 +11,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 import br.com.escola.identityaccessservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.identityaccessservice.application.exception.CredenciaisInvalidasException;
+import br.com.escola.identityaccessservice.application.exception.ConflitoAcessoException;
 import br.com.escola.identityaccessservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.identityaccessservice.application.exception.InternalApiUnauthorizedException;
 import br.com.escola.identityaccessservice.application.exception.InvalidRequestContextException;
@@ -33,6 +34,13 @@ public class ApiExceptionHandler {
             RuntimeException exception,
             HttpServletRequest request) {
         return build(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(ConflitoAcessoException.class)
+    public ResponseEntity<ApiErrorResponse> handleConflict(
+            ConflitoAcessoException exception,
+            HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, "CONFLICT", exception.getMessage(), request);
     }
 
     @ExceptionHandler({

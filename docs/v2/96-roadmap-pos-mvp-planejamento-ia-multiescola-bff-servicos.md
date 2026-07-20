@@ -9830,3 +9830,21 @@ Segundo recorte da B1 entregue em 20/07/2026:
   erros, incluindo prova de ausencia de trafego para o monolito;
 - a B1 permanece **em andamento**: faltam administracao de usuarios, perfis e
   permissoes, migrations, banco proprio e backfill controlado.
+
+Terceiro recorte da B1 entregue em 20/07/2026:
+
+- o `identity-access-service` passou a possuir o CRUD interno completo de
+  permissoes em `/internal/v1/permissoes`, com listar, buscar, criar, atualizar
+  e excluir;
+- o contrato aceita `codigo` ou o alias externo `nmPermissao` e responde com os
+  dois campos, preservando o consumidor atual sem contaminar o modelo interno;
+- codigos sao normalizados, duplicidades retornam `409 CONFLICT`, inexistencia
+  retorna `404 RESOURCE_NOT_FOUND` e permissoes ainda vinculadas a perfis nao
+  podem ser excluidas;
+- caso de uso, porta de saida, modelo interno, adapter JDBC e controller foram
+  mantidos separados;
+- validacao restrita ao `identity-access-service`: sete testes, zero falhas e
+  zero erros, incluindo todo o ciclo CRUD e a protecao de integridade;
+- a B1 permanece **em andamento**: faltam CRUD de perfis e usuarios,
+  oficializacao dos contratos administrativos no BFF, migrations, banco proprio
+  e backfill controlado.
