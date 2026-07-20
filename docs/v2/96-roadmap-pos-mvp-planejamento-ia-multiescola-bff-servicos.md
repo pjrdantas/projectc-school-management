@@ -9346,12 +9346,37 @@ Definicao objetiva:
 
 ### Fase D16 - Descomissionamento definitivo do `school-management-service`
 
-- remover o `school-management-service` da topologia operacional ativa,
-  desligando runtime, clientes internos restantes, adapters de compatibilidade e
-  dependencias obrigatorias;
-- decidir se o repositorio mantem o codigo do monolito apenas como referencia
-  historica/arquivada ou se ele passa a um modulo residual sem participacao em
-  producao.
+- iniciada em 20/07/2026, mas **nao concluida**: a auditoria ponta a ponta entre
+  contratos consumidos pelos frontends e controllers do BFF provou que o corte
+  externo registrado em D14 nao cobriu todo o sistema;
+- continuam sem contrato equivalente completo no BFF familias externas de
+  autenticacao (`login`, `refresh`, `logout`), administracao de usuarios,
+  perfis e permissoes, CRUD de alunos e responsaveis, vinculos
+  aluno-responsavel, escritas de matricula e documentos, escritas de professor,
+  planejamento bimestral, escritas remanescentes do catalogo e configuracoes e
+  geracoes de dashboard;
+- `identity-access-service` e `institutional-tenant-service` ainda usam por
+  padrao o banco compartilhado `gestao_escolar` e nao possuem migrations nem
+  fluxo proprio para criar e manter todo o estado de identidade, sessao e
+  tenant; desligar essa origem agora quebraria autenticacao e contexto;
+- saneamentos seguros executados neste recorte: remocao do mecanismo one-shot
+  de migracao JDBC do `academic-catalog-service`, de suas credenciais de origem
+  e testes; remocao dos estados de sincronizacao `shadow` sem consumidores do
+  `academic-professor-service`; troca da configuracao e metricas de professor
+  para nomenclatura definitiva; remocao do smoke/profile operacional que ainda
+  inicializava o monolito;
+- o codigo executavel dos servicos saneados nao possui client, URL ou
+  configuracao de origem apontando para o monolito, mas essa evidencia isolada
+  nao substitui a cobertura integral dos contratos externos;
+- validacao do recorte seguro nos seis modulos tocados:
+  `identity-access-service` com cinco testes, `dashboard-query-service` com
+  quatro, `academic-catalog-service` com 18, `academic-professor-service` com
+  quatro, `people-service` com 60 e `responsibles-service` com oito; total de
+  99 testes, zero falhas e zero erros;
+- decisao provisoria: manter `school-management-service` como modulo residual
+  fora do reactor Maven, ainda nao arquivado nem removido da operacao. D16 so
+  pode ser encerrada depois da migracao e validacao ponta a ponta de todos os
+  contratos acima e da retirada do acesso compartilhado a `gestao_escolar`.
 
 Resumo executivo do ciclo:
 
@@ -9650,3 +9675,142 @@ Definicao de governanca:
 
 Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 7
 fases restantes.
+
+## Ciclo fechado de conclusao real do backend apos a auditoria de D16
+
+A auditoria executada em D16 demonstrou que criar os servicos e retirar clients
+diretos do monolito nao foi suficiente para concluir o backend. A conclusao
+passa a significar, simultaneamente:
+
+1. todos os contratos consumidos pelos frontends possuem rota oficial no BFF;
+2. cada rota e atendida pelo servico dono do dominio, sem fallback funcional;
+3. o estado necessario e mantido pelo codigo novo, sem leitura ou escrita no
+   `school-management-service`;
+4. Diario de Classe e Historico Escolar possuem backend real para substituir os
+   mocks existentes em `projetos-historico-diario`;
+5. o monolito pode ser desligado sem perda de autenticacao, operacao ou dados.
+
+Quantidade fechada deste ciclo: **14 etapas**.
+
+### Etapa B1 - Identidade e acesso autonomos
+
+- implementar `login`, `refresh` e `logout`, administracao de usuarios, perfis,
+  permissoes e sessoes no `identity-access-service`;
+- criar persistencia e migrations proprias para o estado de identidade;
+- oficializar os contratos correspondentes no BFF e retirar o uso funcional do
+  banco compartilhado pelo servico.
+
+### Etapa B2 - Tenant institucional autonomo
+
+- tornar `institutional-tenant-service` dono persistente de escolas, vinculos e
+  contexto institucional necessarios a autenticacao;
+- criar migrations, carga controlada e contratos internos definitivos;
+- eliminar a leitura direta do banco compartilhado.
+
+### Etapa B3 - Escritas de pessoas e alunos
+
+- completar no `people-service` criacao, alteracao e demais operacoes publicas
+  de pessoas e alunos ainda atendidas pelo monolito;
+- oficializar as rotas no BFF preservando os contratos externos atuais.
+
+### Etapa B4 - Escritas de responsaveis e vinculos
+
+- completar no `responsibles-service` o CRUD de responsaveis e a manutencao do
+  vinculo aluno-responsavel;
+- retirar do BFF os caminhos funcionais remanescentes para o monolito.
+
+### Etapa B5 - Ciclo completo de matricula
+
+- completar no `enrollment-document-service` criacao, alteracao, mudanca de
+  status, cancelamento e consultas auxiliares de matricula;
+- garantir consistencia com aluno, turma, serie e periodo letivo por contratos
+  internos, sem acesso ao banco do monolito.
+
+### Etapa B6 - Ciclo completo de documentos
+
+- completar upload, metadados, consulta, download e exclusao de documentos no
+  `enrollment-document-service`;
+- oficializar no BFF todos os contratos externos de documentos.
+
+### Etapa B7 - Fechamento do catalogo academico
+
+- concluir alteracao, exclusao e escritas remanescentes de disciplinas, series,
+  turmas, turnos, niveis e periodos no `academic-catalog-service`;
+- remover todo fallback residual dessas familias no BFF.
+
+### Etapa B8 - Fechamento de professores e alocacoes
+
+- concluir cadastro e alteracao de professores, alocacoes e associacoes
+  academicas no `academic-professor-service`;
+- oficializar as rotas externas remanescentes no BFF.
+
+### Etapa B9 - Fechamento do planejamento pedagogico
+
+- concluir CRUD, estados e operacoes de planejamento, aulas e avaliacoes ainda
+  sem contrato novo completo;
+- manter a divisao de propriedade entre `planning-ai-service` e
+  `pedagogical-service`, usando apenas contratos internos explicitos.
+
+### Etapa B10 - Diario de Classe funcional
+
+- implementar no `pedagogical-service` a leitura composta
+  `GET /api/diarios-classe` e a gravacao idempotente
+  `PUT /api/diarios-classe/{idDiarioClasse}`;
+- atender frequencia, conteudo planejado, avaliacoes, observacoes, assinatura e
+  bloqueio apos salvamento conforme o contrato do prototipo;
+- expor ambas as rotas no BFF sem alterar o frontend nesta etapa.
+
+### Etapa B11 - Historico Escolar funcional
+
+- implementar no `enrollment-document-service` abertura, leitura, criacao e
+  edicao do agregado de Historico Escolar, incluindo snapshots, componentes,
+  estudos realizados, certificado, status e pendencias;
+- implementar a importacao assistida de PDF como pre-preenchimento, sem
+  persistencia automatica;
+- expor no BFF `GET /novo`, `GET /{id}`, `POST`, `PUT /{id}` e
+  `POST /importacao-pdf` conforme o contrato do prototipo.
+
+### Etapa B12 - Fechamento do dashboard
+
+- completar configuracoes, widgets e geracoes ainda dependentes do monolito no
+  `dashboard-query-service`;
+- oficializar todas as rotas externas correspondentes no BFF.
+
+### Etapa B13 - Corte externo e prova ponta a ponta
+
+- comparar novamente todas as chamadas dos frontends com os controllers do BFF;
+- remover os ultimos fallbacks e provar os fluxos criticos ponta a ponta com o
+  monolito desligado;
+- validar nominalmente que nenhuma classe nova viola a designacao do proprio
+  dominio.
+
+### Etapa B14 - Operacao autonoma e descomissionamento
+
+- concluir migrations/backfills controlados, ownership de bancos, jobs,
+  observabilidade, secrets e topologia de execucao sem o monolito;
+- arquivar ou remover o `school-management-service` somente depois das provas
+  de integridade, rollback e operacao monolito-off;
+- encerrar D16 e declarar o backend concluido apenas nesta etapa.
+
+Status em 20/07/2026: **Etapa B1 iniciada; 14 etapas ainda nao concluidas**.
+O primeiro recorte executavel e o levantamento e implementacao do ciclo de
+autenticacao no `identity-access-service`, antes da administracao de acesso.
+
+Primeiro recorte da B1 entregue em 20/07/2026:
+
+- o `identity-access-service` passou a possuir caso de uso e porta proprios para
+  autenticar credenciais, rotacionar access/refresh tokens e revogar sessao;
+- foram adicionados os contratos internos `POST /internal/v1/auth/login`,
+  `POST /internal/v1/auth/refresh` e `POST /internal/v1/auth/logout`;
+- a senha e validada exclusivamente por BCrypt, tokens sao persistidos somente
+  por hash SHA-256 e a rotacao invalida imediatamente o refresh anterior;
+- perfis e permissoes sao carregados no momento da emissao, preservando o
+  payload esperado pelo consumidor externo; `professorId` permanece opcional e
+  nao foi falsamente resolvido dentro do dominio de identidade;
+- a separacao entre DTO de interface, modelo interno, caso de uso e adapter JDBC
+  foi mantida;
+- validacao restrita ao modulo tocado: seis testes, zero falhas e zero erros,
+  incluindo o ciclo completo login, refresh, rejeicao do token antigo e logout;
+- a B1 permanece **em andamento**: faltam administracao de usuarios/perfis/
+  permissoes, migrations e banco proprio, backfill controlado e oficializacao
+  dos tres endpoints publicos no BFF.

@@ -26,7 +26,7 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 
-@SpringBootTest(properties = "professor.shadow.internal-api.token=shadow-token")
+@SpringBootTest(properties = "professor.internal-api.token=professor-token")
 @AutoConfigureMockMvc
 class ConsultaInternaControllerIntegrationTest {
 
@@ -110,7 +110,7 @@ class ConsultaInternaControllerIntegrationTest {
                                   "ativo": true
                                 }
                                 """.formatted(funcionarioId))
-                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Internal-Token", "professor-token")
                         .header("X-Correlation-Id", "corr-professor-create")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", ESCOLA_ID)
@@ -124,7 +124,7 @@ class ConsultaInternaControllerIntegrationTest {
                 createResult.getResponse().getContentAsString(), "$.id"));
 
         mockMvc.perform(get("/internal/v1/professores")
-                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Internal-Token", "professor-token")
                         .header("X-Correlation-Id", "corr-professor-list")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", ESCOLA_ID)
@@ -134,7 +134,7 @@ class ConsultaInternaControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].nomeCompleto").value("Ana Professor"));
 
         mockMvc.perform(get("/internal/v1/professores/{id}", professorId)
-                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Internal-Token", "professor-token")
                         .header("X-Correlation-Id", "corr-professor-id")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", ESCOLA_ID)
@@ -177,7 +177,7 @@ class ConsultaInternaControllerIntegrationTest {
                                   "ativo": true
                                 }
                                 """.formatted(turmaDisciplinaId))
-                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Internal-Token", "professor-token")
                         .header("X-Correlation-Id", "corr-professor-allocate")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", ESCOLA_ID)
@@ -189,7 +189,7 @@ class ConsultaInternaControllerIntegrationTest {
                 .andExpect(jsonPath("$.disciplinaNome").value("Matematica"));
 
         mockMvc.perform(get("/internal/v1/professores/{id}/turmas-disciplinas", professorId)
-                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Internal-Token", "professor-token")
                         .header("X-Correlation-Id", "corr-professor-aloc-list")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", ESCOLA_ID)
@@ -198,7 +198,7 @@ class ConsultaInternaControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].turmaNome").value("Turma A"));
 
         mockMvc.perform(get("/internal/v1/turmas/{turmaId}/professores", turmaId)
-                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Internal-Token", "professor-token")
                         .header("X-Correlation-Id", "corr-professor-turma")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", ESCOLA_ID)
@@ -239,7 +239,7 @@ class ConsultaInternaControllerIntegrationTest {
                 """.formatted(elegivelPessoaId, ESCOLA_ID)));
 
         mockMvc.perform(get("/internal/v1/professores/funcionarios-elegiveis")
-                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Internal-Token", "professor-token")
                         .header("X-Correlation-Id", "corr-professor-elegiveis")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", ESCOLA_ID)
@@ -291,7 +291,7 @@ class ConsultaInternaControllerIntegrationTest {
                                   "ativo": true
                                 }
                                 """.formatted(funcionarioId))
-                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Internal-Token", "professor-token")
                         .header("X-Correlation-Id", "corr-professor-create-1")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", ESCOLA_ID)
@@ -328,7 +328,7 @@ class ConsultaInternaControllerIntegrationTest {
                                   "ativo": true
                                 }
                                 """.formatted(funcionarioId))
-                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Internal-Token", "professor-token")
                         .header("X-Correlation-Id", "corr-professor-create-2")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", ESCOLA_ID)
@@ -340,7 +340,7 @@ class ConsultaInternaControllerIntegrationTest {
     @Test
     void deveResponderNotFoundQuandoProfessorNaoExisteLocalmente() throws Exception {
         mockMvc.perform(get("/internal/v1/professores/{id}", UUID.randomUUID())
-                        .header("X-Internal-Token", "shadow-token")
+                        .header("X-Internal-Token", "professor-token")
                         .header("X-Correlation-Id", "corr-professor-missing")
                         .header("X-Usuario-Id", UUID.randomUUID())
                         .header("X-Escola-Id", ESCOLA_ID)

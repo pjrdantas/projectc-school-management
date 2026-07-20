@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestClientResponseException;
 
 import br.com.escola.identityaccessservice.application.exception.DownstreamUnavailableException;
+import br.com.escola.identityaccessservice.application.exception.CredenciaisInvalidasException;
 import br.com.escola.identityaccessservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.identityaccessservice.application.exception.InternalApiUnauthorizedException;
 import br.com.escola.identityaccessservice.application.exception.InvalidRequestContextException;
+import br.com.escola.identityaccessservice.application.exception.TokenInvalidoException;
 import br.com.escola.identityaccessservice.interfaces.response.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -24,6 +26,13 @@ public class ApiExceptionHandler {
             InternalApiUnauthorizedException exception,
             HttpServletRequest request) {
         return build(HttpStatus.UNAUTHORIZED, "INTERNAL_UNAUTHORIZED", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler({ CredenciaisInvalidasException.class, TokenInvalidoException.class })
+    public ResponseEntity<ApiErrorResponse> handleAuthenticationUnauthorized(
+            RuntimeException exception,
+            HttpServletRequest request) {
+        return build(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", exception.getMessage(), request);
     }
 
     @ExceptionHandler({

@@ -14,7 +14,7 @@ spring:
     enabled: true
 
 server:
-  port: 8092
+  port: ${SERVER_PORT:8093}
 
 management:
   endpoints:
@@ -23,9 +23,8 @@ management:
         include: health,info
 
 professor:
-  shadow:
-    internal-api:
-      token: ${PROFESSOR_SHADOW_INTERNAL_API_TOKEN:professor-shadow-local-token}
+  internal-api:
+    token: ${ACADEMIC_PROFESSOR_INTERNAL_API_TOKEN:}
   people-service:
     base-url: ${PROFESSOR_PEOPLE_SERVICE_BASE_URL:http://localhost:8081}
     internal-token: ${PROFESSOR_PEOPLE_SERVICE_INTERNAL_TOKEN:people-service-local-token}

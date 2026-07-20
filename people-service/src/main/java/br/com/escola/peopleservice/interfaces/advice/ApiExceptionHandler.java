@@ -54,7 +54,7 @@ public class ApiExceptionHandler {
                 ? HttpStatus.BAD_GATEWAY
                 : HttpStatus.SERVICE_UNAVAILABLE;
         String code = exception.getStatusCode().is4xxClientError() ? "DOWNSTREAM_REJECTED" : "DOWNSTREAM_UNAVAILABLE";
-        return response(status, code, "Monolito rejeitou a operacao interna de pessoas", request);
+        return response(status, code, "Servico dependente rejeitou a operacao interna de pessoas", request);
     }
 
     private ResponseEntity<ApiErrorResponse> response(

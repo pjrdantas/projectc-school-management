@@ -64,12 +64,3 @@ catalog:
     kafka:
       enabled: ${CATALOG_CACHE_KAFKA_ENABLED:true}
       group-id: ${CATALOG_CACHE_KAFKA_GROUP_ID:academic-catalog-cache-v1}
-  migration:
-    enabled: ${CATALOG_MIGRATION_ENABLED:false}
-    runner-enabled: ${CATALOG_MIGRATION_RUNNER_ENABLED:true}
-    apply: ${CATALOG_MIGRATION_APPLY:false}
-    report-path: ${CATALOG_MIGRATION_REPORT_PATH:target/catalog-migration-report.json}
-    source:
-      url: ${CATALOG_MIGRATION_SOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
-      username: ${CATALOG_MIGRATION_SOURCE_USERNAME:postgres}
-      password: ${CATALOG_MIGRATION_SOURCE_PASSWORD:}

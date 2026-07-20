@@ -11,7 +11,6 @@ public class DashboardProjecaoOperacaoHealthIndicator implements HealthIndicator
     public Health health() {
         return Health.up()
                 .withDetail("operationalMode", "owner_driven_projections")
-                .withDetail("legacyTrafficEnabled", false)
                 .withDetail("scheduledSnapshotGeneration", false)
                 .build();
     }

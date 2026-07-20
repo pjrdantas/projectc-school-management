@@ -1,5 +1,5 @@
 -- Massa local para testar professores, aulas e frequencia.
--- Nao e Flyway. Nao mover para school-management-service/src/main/resources/db/migration.
+-- Nao e Flyway. Nao mover para migrations de runtime.
 --
 -- Remocao opcional somente desta massa:
 -- DELETE FROM frequencia_aluno WHERE id_frequencia_aluno IN (

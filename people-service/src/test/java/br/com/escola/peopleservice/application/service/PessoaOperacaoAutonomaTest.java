@@ -38,8 +38,7 @@ class PessoaOperacaoAutonomaTest {
 
         assertThat(health.health().getStatus()).isEqualTo(Status.UP);
         assertThat(health.health().getDetails())
-                .containsEntry("operationalMode", "local_only")
-                .containsEntry("legacyTrafficEnabled", false);
+                .containsEntry("operationalMode", "local_only");
     }
 
     @Test

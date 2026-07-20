@@ -26,4 +26,4 @@ $env:PGPASSWORD = 'root123'
 
 O arquivo `pedagogical-sample-data.sql` possui um bloco comentado no início para remover somente os dados desta massa, usando os UUIDs fixos do próprio script.
 
-Não mover estes scripts para `school-management-service/src/main/resources/db/migration`.
+Não mover estes scripts para migrations de runtime de nenhum serviço.

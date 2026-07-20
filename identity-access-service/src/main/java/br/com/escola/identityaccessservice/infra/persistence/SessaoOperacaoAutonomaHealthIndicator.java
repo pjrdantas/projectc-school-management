@@ -11,7 +11,6 @@ public class SessaoOperacaoAutonomaHealthIndicator implements HealthIndicator {
     public Health health() {
         return Health.up()
                 .withDetail("operationalMode", "local_only")
-                .withDetail("legacyTrafficEnabled", false)
                 .withDetail("sessionCleanupOwner", "identity-access-service")
                 .build();
     }

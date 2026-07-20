@@ -29,8 +29,10 @@ public class InternalApiInterceptor implements HandlerInterceptor {
         authorize(request.getHeader(InternalHeaders.INTERNAL_TOKEN));
 
         String correlationId = requiredHeader(request, InternalHeaders.CORRELATION_ID);
-        UUID usuarioId = uuidHeader(request, InternalHeaders.USUARIO_ID);
-        UUID escolaId = uuidHeader(request, InternalHeaders.ESCOLA_ID);
+        boolean authenticationLifecycle = request.getRequestURI().matches(
+                ".*/auth/(login|refresh|logout)$");
+        UUID usuarioId = authenticationLifecycle ? null : uuidHeader(request, InternalHeaders.USUARIO_ID);
+        UUID escolaId = authenticationLifecycle ? null : uuidHeader(request, InternalHeaders.ESCOLA_ID);
         InternalRequestContext context = new InternalRequestContext(correlationId, usuarioId, escolaId);
 
         request.setAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE, context);

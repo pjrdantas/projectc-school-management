@@ -4912,6 +4912,27 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   falhas ou erros, apos a remocao das rotinas.
 - Proxima e ultima fase do ciclo fechado:
   `D16 - Descomissionamento definitivo do school-management-service`.
+- A fase D16 foi iniciada em 20/07/2026 e **nao foi concluida**.
+- A comparacao entre endpoints consumidos pelos frontends e controllers
+  realmente presentes no BFF invalidou a premissa de corte externo integral da
+  D14. Ainda faltam contratos de autenticacao, administracao de acesso, alunos,
+  responsaveis e seus vinculos, matriculas, documentos, professores,
+  planejamento bimestral, escritas de catalogo e operacoes de dashboard.
+- `identity-access-service` e `institutional-tenant-service` continuam ligados
+  ao banco compartilhado `gestao_escolar`, sem ownership local completo de
+  schema e dados. O processo Java do monolito nao pode ser desligado e o modulo
+  nao pode ser arquivado enquanto esses contratos e dados nao forem migrados.
+- Foram executados somente saneamentos sem risco funcional: aposentadoria da
+  migracao JDBC de origem do catalogo, remocao de estados `shadow/sync` sem uso
+  no servico de professores, nomenclatura definitiva de configuracao e metricas
+  de professor e retirada do smoke/profile que inicializava o monolito.
+- Validacao do recorte nos seis modulos tocados: 99 testes, zero falhas e zero
+  erros (`identity-access-service` 5, `dashboard-query-service` 4,
+  `academic-catalog-service` 18, `academic-professor-service` 4,
+  `people-service` 60 e `responsibles-service` 8).
+- Estado objetivo: `school-management-service` permanece residual e fora do
+  reactor Maven, mas ainda participa funcionalmente do sistema. Declarar D16
+  concluida neste ponto seria incorreto.
 
 ### Fase D3
 
@@ -5092,3 +5113,29 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   atacar `POST /api/turmas/{turmaId}/disciplinas` como proximo write oficial
   remanescente do
   catalogo no BFF.
+
+## 20/07/2026 - Replanejamento apos a auditoria de descomissionamento
+
+- D16 nao foi encerrada: a comparacao entre consumidores externos e contratos
+  do BFF encontrou familias funcionais ainda exclusivas do monolito.
+- Foi definido um novo ciclo fechado de **14 etapas**, B1 a B14, cobrindo
+  identidade, tenant, pessoas, responsaveis, matriculas, documentos, catalogo,
+  professores, planejamento, dashboard, corte externo e operacao autonoma.
+- O encerramento do backend passou a incluir explicitamente os dois prototipos
+  de `projetos-historico-diario`: Diario de Classe na B10 e Historico Escolar
+  na B11.
+- A B10 deve entregar leitura composta e gravacao idempotente do diario com
+  frequencia, conteudo, avaliacoes, assinatura e bloqueio apos salvamento.
+- A B11 deve entregar o agregado documental de historico com snapshots,
+  pendencias, certificado, CRUD e importacao assistida de PDF.
+- A B1 foi iniciada pelo contrato de autenticacao e acesso autonomo do
+  `identity-access-service`; nenhuma etapa deste novo ciclo esta concluida.
+- No primeiro recorte da B1, o `identity-access-service` recebeu contratos
+  internos de login, refresh e logout, validacao BCrypt, emissao e rotacao de
+  tokens armazenados por hash, revogacao de sessao e carregamento de perfis e
+  permissoes.
+- O adapter JDBC retorna modelo interno e o caso de uso converte para o DTO de
+  interface, evitando acoplamento da persistencia ao contrato HTTP.
+- Validacao restrita ao `identity-access-service`: seis testes executados, zero
+  falhas e zero erros. A B1 continua aberta ate possuir administracao de acesso,
+  persistencia propria, backfill e rotas publicas oficiais no BFF.

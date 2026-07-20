@@ -20,9 +20,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+
+import com.jayway.jsonpath.JsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -35,6 +38,9 @@ class SessaoInternaControllerIntegrationTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
@@ -49,6 +55,10 @@ class SessaoInternaControllerIntegrationTest {
     void prepararBanco() {
         jdbcTemplate.execute("DROP TABLE IF EXISTS sessao_autenticacao");
         jdbcTemplate.execute("DROP TABLE IF EXISTS usuario_escola");
+        jdbcTemplate.execute("DROP TABLE IF EXISTS perfil_permissao");
+        jdbcTemplate.execute("DROP TABLE IF EXISTS usuario_perfil");
+        jdbcTemplate.execute("DROP TABLE IF EXISTS permissao");
+        jdbcTemplate.execute("DROP TABLE IF EXISTS perfil");
         jdbcTemplate.execute("DROP TABLE IF EXISTS usuario");
         jdbcTemplate.execute("DROP TABLE IF EXISTS escola");
 
@@ -96,6 +106,94 @@ class SessaoInternaControllerIntegrationTest {
                     UNIQUE (id_usuario, id_escola)
                 )
                 """);
+        jdbcTemplate.execute("""
+                CREATE TABLE perfil (
+                    id_perfil UUID PRIMARY KEY,
+                    codigo VARCHAR(80) NOT NULL
+                )
+                """);
+        jdbcTemplate.execute("""
+                CREATE TABLE permissao (
+                    id_permissao UUID PRIMARY KEY,
+                    codigo VARCHAR(120) NOT NULL
+                )
+                """);
+        jdbcTemplate.execute("""
+                CREATE TABLE usuario_perfil (
+                    id_usuario_perfil UUID PRIMARY KEY,
+                    id_usuario UUID NOT NULL,
+                    id_perfil UUID NOT NULL
+                )
+                """);
+        jdbcTemplate.execute("""
+                CREATE TABLE perfil_permissao (
+                    id_perfil_permissao UUID PRIMARY KEY,
+                    id_perfil UUID NOT NULL,
+                    id_permissao UUID NOT NULL
+                )
+                """);
+    }
+
+    @Test
+    void deveAutenticarRotacionarEEncerrarSessao() throws Exception {
+        UUID usuarioId = UUID.randomUUID();
+        UUID perfilId = UUID.randomUUID();
+        UUID permissaoId = UUID.randomUUID();
+        inserirUsuario(usuarioId, "usuario.login", null);
+        jdbcTemplate.update(
+                "UPDATE usuario SET senha_hash = ? WHERE id_usuario = ?",
+                passwordEncoder.encode("senha-segura"), usuarioId);
+        jdbcTemplate.update("INSERT INTO perfil (id_perfil, codigo) VALUES (?, ?)", perfilId, "SECRETARIA");
+        jdbcTemplate.update(
+                "INSERT INTO permissao (id_permissao, codigo) VALUES (?, ?)",
+                permissaoId, "MATRICULA_EDITAR");
+        jdbcTemplate.update(
+                "INSERT INTO usuario_perfil (id_usuario_perfil, id_usuario, id_perfil) VALUES (?, ?, ?)",
+                UUID.randomUUID(), usuarioId, perfilId);
+        jdbcTemplate.update("""
+                INSERT INTO perfil_permissao (
+                    id_perfil_permissao, id_perfil, id_permissao
+                ) VALUES (?, ?, ?)
+                """, UUID.randomUUID(), perfilId, permissaoId);
+
+        String loginResponse = mockMvc.perform(post("/internal/v1/auth/login")
+                        .contentType("application/json")
+                        .content("""
+                                {"login":"usuario.login","senha":"senha-segura"}
+                                """)
+                        .header("X-Internal-Token", "identity-token")
+                        .header("X-Correlation-Id", "corr-auth-login"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.usuarioId").value(usuarioId.toString()))
+                .andExpect(jsonPath("$.perfis[0]").value("SECRETARIA"))
+                .andExpect(jsonPath("$.permissoes[0]").value("MATRICULA_EDITAR"))
+                .andReturn().getResponse().getContentAsString();
+        String refreshToken = JsonPath.read(loginResponse, "$.refreshToken");
+
+        String refreshResponse = mockMvc.perform(post("/internal/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content("{\"refreshToken\":\"" + refreshToken + "\"}")
+                        .header("X-Internal-Token", "identity-token")
+                        .header("X-Correlation-Id", "corr-auth-refresh"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String rotatedRefreshToken = JsonPath.read(refreshResponse, "$.refreshToken");
+        assertThat(rotatedRefreshToken).isNotEqualTo(refreshToken);
+
+        mockMvc.perform(post("/internal/v1/auth/refresh")
+                        .contentType("application/json")
+                        .content("{\"refreshToken\":\"" + refreshToken + "\"}")
+                        .header("X-Internal-Token", "identity-token")
+                        .header("X-Correlation-Id", "corr-auth-old-refresh"))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/internal/v1/auth/logout")
+                        .contentType("application/json")
+                        .content("{\"refreshToken\":\"" + rotatedRefreshToken + "\"}")
+                        .header("X-Internal-Token", "identity-token")
+                        .header("X-Correlation-Id", "corr-auth-logout"))
+                .andExpect(status().isNoContent());
     }
 
     @Test

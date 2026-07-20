@@ -16,7 +16,6 @@ class LeituraModeloHealthIndicatorTest {
 
         assertThat(health.getStatus()).isEqualTo(Status.UP);
         assertThat(health.getDetails())
-                .containsEntry("operationalMode", "local_only")
-                .containsEntry("legacyTrafficEnabled", false);
+                .containsEntry("operationalMode", "local_only");
     }
 }

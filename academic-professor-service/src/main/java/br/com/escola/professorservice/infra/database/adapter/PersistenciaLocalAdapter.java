@@ -107,7 +107,7 @@ public class PersistenciaLocalAdapter implements PersistenciaPort {
 
     private void registrarRequisicao(String operacao, String resultado) {
         meterRegistry.counter(
-                "professor.shadow.local.persistence.requests",
+                "professor.local.persistence.requests",
                 "operacao", operacao,
                 "resultado", resultado)
                 .increment();
@@ -115,7 +115,7 @@ public class PersistenciaLocalAdapter implements PersistenciaPort {
 
     private void registrarFalha(String operacao, String causa) {
         meterRegistry.counter(
-                "professor.shadow.local.persistence.failures",
+                "professor.local.persistence.failures",
                 "operacao", operacao,
                 "causa", causa)
                 .increment();

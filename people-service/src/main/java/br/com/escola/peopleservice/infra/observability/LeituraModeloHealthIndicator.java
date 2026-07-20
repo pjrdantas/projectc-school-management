@@ -34,7 +34,6 @@ public class LeituraModeloHealthIndicator implements HealthIndicator {
         Health.Builder builder = autonomous ? Health.up() : Health.outOfService();
         return builder
                 .withDetail("operationalMode", autonomous ? "local_only" : "invalid_configuration")
-                .withDetail("legacyTrafficEnabled", false)
                 .withDetail("localReadRoutingEnabled", properties.localReadRoutingEnabled())
                 .withDetail("fallbackEnabled", properties.fallbackEnabled())
                 .withDetail("backfillEnabled", properties.backfillEnabled())
