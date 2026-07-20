@@ -9848,3 +9848,21 @@ Terceiro recorte da B1 entregue em 20/07/2026:
 - a B1 permanece **em andamento**: faltam CRUD de perfis e usuarios,
   oficializacao dos contratos administrativos no BFF, migrations, banco proprio
   e backfill controlado.
+
+Quarto recorte da B1 entregue em 20/07/2026:
+
+- o `identity-access-service` passou a possuir CRUD interno completo de perfis
+  em `/internal/v1/perfis`, com manutencao transacional de
+  `perfil_permissao`;
+- o contrato aceita os aliases `nmPerfil` e `permissoesIds`, mas estes ficam
+  restritos aos DTOs de interface; o modelo interno usa somente os conceitos do
+  proprio contexto;
+- criacao e atualizacao validam todas as permissoes antes de persistir, e a
+  atualizacao substitui integralmente os vinculos anteriores na mesma transacao;
+- duplicidade retorna `409 CONFLICT`, inexistencia retorna
+  `404 RESOURCE_NOT_FOUND` e perfil atribuido a usuario nao pode ser excluido;
+- validacao restrita ao `identity-access-service`: oito testes, zero falhas e
+  zero erros, incluindo substituicao de permissoes e protecao de integridade;
+- a B1 permanece **em andamento**: faltam CRUD de usuarios, oficializacao dos
+  contratos administrativos no BFF, migrations, banco proprio e backfill
+  controlado.

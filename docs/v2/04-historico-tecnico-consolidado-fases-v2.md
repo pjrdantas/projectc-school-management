@@ -5153,3 +5153,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A validacao do modulo executou sete testes sem falhas ou erros. Permanecem na
   B1 os CRUDs de perfis e usuarios, a exposicao administrativa no BFF, migrations,
   banco proprio e backfill controlado.
+- No quarto recorte da B1, o `identity-access-service` recebeu CRUD interno
+  completo de perfis e manutencao transacional de `perfil_permissao`, com
+  aliases externos isolados nos DTOs de borda.
+- A atualizacao substitui os vinculos anteriores somente depois de validar todas
+  as permissoes, e a exclusao e bloqueada enquanto o perfil estiver atribuido a
+  usuario.
+- A validacao do modulo executou oito testes sem falhas ou erros. Permanecem na
+  B1 o CRUD de usuarios, a exposicao administrativa no BFF, migrations, banco
+  proprio e backfill controlado.

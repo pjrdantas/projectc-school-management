@@ -111,7 +111,10 @@ class SessaoInternaControllerIntegrationTest {
         jdbcTemplate.execute("""
                 CREATE TABLE perfil (
                     id_perfil UUID PRIMARY KEY,
-                    codigo VARCHAR(80) NOT NULL
+                    codigo VARCHAR(80) NOT NULL UNIQUE,
+                    nome VARCHAR(120) NOT NULL,
+                    descricao VARCHAR(255),
+                    created_at TIMESTAMP NOT NULL
                 )
                 """);
         jdbcTemplate.execute("""
@@ -169,7 +172,7 @@ class SessaoInternaControllerIntegrationTest {
                 .andExpect(jsonPath("$.codigo").value("MATRICULA_GERENCIAR"));
 
         UUID perfilId = UUID.randomUUID();
-        jdbcTemplate.update("INSERT INTO perfil (id_perfil, codigo) VALUES (?, ?)", perfilId, "SECRETARIA");
+        inserirPerfil(perfilId, "SECRETARIA", "Secretaria");
         jdbcTemplate.update("""
                 INSERT INTO perfil_permissao (id_perfil_permissao, id_perfil, id_permissao)
                 VALUES (?, ?, ?)
@@ -191,6 +194,78 @@ class SessaoInternaControllerIntegrationTest {
     }
 
     @Test
+    void deveAdministrarCicloCompletoDePerfilESeusVinculos() throws Exception {
+        UUID permissaoInicialId = UUID.randomUUID();
+        UUID permissaoNovaId = UUID.randomUUID();
+        inserirPermissao(permissaoInicialId, "ALUNO_LER");
+        inserirPermissao(permissaoNovaId, "ALUNO_EDITAR");
+
+        String response = mockMvc.perform(post("/internal/v1/perfis")
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "codigo":" secretaria ",
+                                  "nmPerfil":" Secretaria Escolar ",
+                                  "descricao":" Operacao da secretaria ",
+                                  "permissoesIds":["%s"]
+                                }
+                                """.formatted(permissaoInicialId))
+                        .headers(internalHeaders("corr-perfil-create")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.codigo").value("SECRETARIA"))
+                .andExpect(jsonPath("$.nome").value("Secretaria Escolar"))
+                .andExpect(jsonPath("$.nmPerfil").value("Secretaria Escolar"))
+                .andExpect(jsonPath("$.permissaoIds[0]").value(permissaoInicialId.toString()))
+                .andReturn().getResponse().getContentAsString();
+        String perfilId = JsonPath.read(response, "$.id");
+
+        mockMvc.perform(get("/internal/v1/perfis")
+                        .headers(internalHeaders("corr-perfil-list")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(perfilId));
+
+        mockMvc.perform(put("/internal/v1/perfis/{id}", perfilId)
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "codigo":"GESTAO_SECRETARIA",
+                                  "nome":"Gestao da Secretaria",
+                                  "permissaoIds":["%s"]
+                                }
+                                """.formatted(permissaoNovaId))
+                        .headers(internalHeaders("corr-perfil-update")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.codigo").value("GESTAO_SECRETARIA"))
+                .andExpect(jsonPath("$.permissaoIds[0]").value(permissaoNovaId.toString()));
+
+        Integer oldLinks = jdbcTemplate.queryForObject("""
+                SELECT COUNT(1) FROM perfil_permissao
+                WHERE id_perfil = ? AND id_permissao = ?
+                """, Integer.class, UUID.fromString(perfilId), permissaoInicialId);
+        assertThat(oldLinks).isZero();
+
+        UUID usuarioId = UUID.randomUUID();
+        inserirUsuario(usuarioId, "usuario.perfil", null);
+        jdbcTemplate.update("""
+                INSERT INTO usuario_perfil (id_usuario_perfil, id_usuario, id_perfil)
+                VALUES (?, ?, ?)
+                """, UUID.randomUUID(), usuarioId, UUID.fromString(perfilId));
+
+        mockMvc.perform(delete("/internal/v1/perfis/{id}", perfilId)
+                        .headers(internalHeaders("corr-perfil-conflict")))
+                .andExpect(status().isConflict());
+
+        jdbcTemplate.update("DELETE FROM usuario_perfil WHERE id_perfil = ?", UUID.fromString(perfilId));
+        mockMvc.perform(delete("/internal/v1/perfis/{id}", perfilId)
+                        .headers(internalHeaders("corr-perfil-delete")))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/internal/v1/perfis/{id}", perfilId)
+                        .headers(internalHeaders("corr-perfil-missing")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void deveAutenticarRotacionarEEncerrarSessao() throws Exception {
         UUID usuarioId = UUID.randomUUID();
         UUID perfilId = UUID.randomUUID();
@@ -199,7 +274,7 @@ class SessaoInternaControllerIntegrationTest {
         jdbcTemplate.update(
                 "UPDATE usuario SET senha_hash = ? WHERE id_usuario = ?",
                 passwordEncoder.encode("senha-segura"), usuarioId);
-        jdbcTemplate.update("INSERT INTO perfil (id_perfil, codigo) VALUES (?, ?)", perfilId, "SECRETARIA");
+        inserirPerfil(perfilId, "SECRETARIA", "Secretaria");
         jdbcTemplate.update(
                 "INSERT INTO permissao (id_permissao, codigo, created_at) VALUES (?, ?, ?)",
                 permissaoId, "MATRICULA_EDITAR", Timestamp.valueOf(LocalDateTime.now()));
@@ -403,6 +478,20 @@ class SessaoInternaControllerIntegrationTest {
                 true,
                 Timestamp.valueOf(LocalDateTime.now()),
                 escolaId);
+    }
+
+    private void inserirPerfil(UUID perfilId, String codigo, String nome) {
+        jdbcTemplate.update("""
+                INSERT INTO perfil (id_perfil, codigo, nome, created_at)
+                VALUES (?, ?, ?, ?)
+                """, perfilId, codigo, nome, Timestamp.valueOf(LocalDateTime.now()));
+    }
+
+    private void inserirPermissao(UUID permissaoId, String codigo) {
+        jdbcTemplate.update("""
+                INSERT INTO permissao (id_permissao, codigo, created_at)
+                VALUES (?, ?, ?)
+                """, permissaoId, codigo, Timestamp.valueOf(LocalDateTime.now()));
     }
 
     private void inserirVinculo(UUID usuarioId, UUID escolaId) {
