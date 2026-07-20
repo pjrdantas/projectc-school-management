@@ -10111,3 +10111,23 @@ Quinto recorte da B2 entregue em 20/07/2026:
   zero erros, incluindo o ciclo completo e o bloqueio de exclusao;
 - a B2 permanece **em andamento**, com **2 recortes restantes**. O proximo e a
   manutencao interna definitiva dos vinculos usuario-escola.
+
+Sexto recorte da B2 entregue em 20/07/2026:
+
+- o `institutional-tenant-service` passou a disponibilizar a manutencao interna
+  dos vinculos em `/internal/v1/vinculos-usuario-escola`, sem rota publica no
+  BFF;
+- o contrato permite listar com filtros opcionais por usuario e escola, buscar
+  por identificador, criar de forma idempotente e excluir o vinculo;
+- a criacao retorna `201` para um novo vinculo e `200` para repeticao da mesma
+  associacao, preservando o identificador existente;
+- a existencia da escola e validada localmente e a criacao concorrente e
+  serializada pelo registro institucional; o usuario permanece somente como
+  UUID externo, sem consulta nem FK para o dominio de identidade;
+- todas as operacoes usam exclusivamente o datasource institucional local e o
+  token interno ja exigido pelo servico;
+- validacao restrita ao `institutional-tenant-service`: 11 testes, zero falhas
+  e zero erros, cobrindo idempotencia, filtros, busca, exclusao e escola
+  inexistente;
+- a B2 permanece **em andamento**, com **1 recorte restante**: datasource
+  proprio, prova integrada e encerramento da B2.

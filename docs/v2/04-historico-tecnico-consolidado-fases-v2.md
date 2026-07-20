@@ -5277,3 +5277,12 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A validacao do modulo executou 9 testes sem falhas ou erros, incluindo o
   ciclo completo de manutencao e o conflito de exclusao. Restam **2 recortes na
   B2**, iniciando pela manutencao interna definitiva dos vinculos.
+- No sexto recorte da B2, a manutencao interna de `usuario_escola` foi
+  oficializada em `/internal/v1/vinculos-usuario-escola`, com listagem
+  filtravel, busca, criacao idempotente e exclusao no datasource institucional.
+- A criacao valida a escola local, preserva `id_usuario` como referencia UUID
+  externa e serializa concorrencia sem consultar nem importar o dominio de
+  identidade; nenhuma rota publica foi adicionada ao BFF.
+- A validacao do `institutional-tenant-service` executou 11 testes sem falhas
+  ou erros. Resta **1 recorte na B2**: datasource proprio, prova integrada e
+  encerramento.

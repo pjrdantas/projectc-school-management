@@ -77,7 +77,10 @@ class TenantSessaoInternaControllerIntegrationTest {
                     id_usuario_escola UUID PRIMARY KEY,
                     id_usuario UUID NOT NULL,
                     id_escola UUID NOT NULL,
-                    created_at TIMESTAMP NOT NULL
+                    created_at TIMESTAMP NOT NULL,
+                    CONSTRAINT fk_usuario_escola_escola FOREIGN KEY (id_escola)
+                        REFERENCES escola (id_escola) ON DELETE CASCADE,
+                    CONSTRAINT uk_usuario_escola UNIQUE (id_usuario, id_escola)
                 )
                 """);
     }
@@ -205,6 +208,66 @@ class TenantSessaoInternaControllerIntegrationTest {
         mockMvc.perform(get("/internal/v1/escolas/{id}", escolaId)
                         .headers(internalHeaders("corr-escola-missing")))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveAdministrarVinculoUsuarioEscolaDeFormaIdempotente() throws Exception {
+        UUID usuarioId = UUID.randomUUID();
+        UUID escolaId = UUID.randomUUID();
+        inserirEscola(escolaId, "Escola Vinculada");
+
+        String request = """
+                {"usuarioId":"%s","escolaId":"%s"}
+                """.formatted(usuarioId, escolaId);
+        String response = mockMvc.perform(post("/internal/v1/vinculos-usuario-escola")
+                        .headers(internalHeaders("corr-vinculo-create"))
+                        .contentType("application/json")
+                        .content(request))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.usuarioId").value(usuarioId.toString()))
+                .andExpect(jsonPath("$.escolaId").value(escolaId.toString()))
+                .andReturn().getResponse().getContentAsString();
+        UUID vinculoId = UUID.fromString(JsonPath.read(response, "$.id"));
+
+        mockMvc.perform(post("/internal/v1/vinculos-usuario-escola")
+                        .headers(internalHeaders("corr-vinculo-repeat"))
+                        .contentType("application/json")
+                        .content(request))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(vinculoId.toString()));
+
+        mockMvc.perform(get("/internal/v1/vinculos-usuario-escola")
+                        .param("usuarioId", usuarioId.toString())
+                        .param("escolaId", escolaId.toString())
+                        .headers(internalHeaders("corr-vinculo-list")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(vinculoId.toString()));
+
+        mockMvc.perform(get("/internal/v1/vinculos-usuario-escola/{id}", vinculoId)
+                        .headers(internalHeaders("corr-vinculo-get")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.createdAt").isNotEmpty());
+
+        mockMvc.perform(delete("/internal/v1/vinculos-usuario-escola/{id}", vinculoId)
+                        .headers(internalHeaders("corr-vinculo-delete")))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/internal/v1/vinculos-usuario-escola/{id}", vinculoId)
+                        .headers(internalHeaders("corr-vinculo-missing")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveRecusarVinculoComEscolaInexistente() throws Exception {
+        mockMvc.perform(post("/internal/v1/vinculos-usuario-escola")
+                        .headers(internalHeaders("corr-vinculo-escola-ausente"))
+                        .contentType("application/json")
+                        .content("""
+                                {"usuarioId":"%s","escolaId":"%s"}
+                                """.formatted(UUID.randomUUID(), UUID.randomUUID())))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
     }
 
     @Test
