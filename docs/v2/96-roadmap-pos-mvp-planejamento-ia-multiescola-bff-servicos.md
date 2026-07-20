@@ -9316,11 +9316,33 @@ Definicao objetiva:
 
 ### Fase D15 - Infraestrutura, jobs e operacao monolito-off
 
-- migrar ou aposentar jobs funcionais, schedulers, backfills recorrentes,
-  adapters batch, reconciliadores e rotinas operacionais ainda hospedados no
-  `school-management-service`;
-- provar operacionalmente trafego zero funcional no monolito, com observability
-  suficiente para rollback por servico novo, nao por retorno ao legado.
+- concluida com a transferencia da consulta e selecao de escola da sessao para
+  persistencia JDBC do `identity-access-service`, eliminando seu ultimo client
+  HTTP para o monolito;
+- a expiracao de sessoes passou a ser responsabilidade de um scheduler local e
+  configuravel do `identity-access-service`; o scheduler equivalente foi
+  removido do `school-management-service`;
+- `people-service` e `responsibles-service` passaram a operar suas leituras
+  exclusivamente nos respectivos read models locais, com fallback, backfill e
+  reconciliacao desabilitados, sem datasource de origem, client HTTP, adapter
+  batch ou runner de sincronizacao com o monolito;
+- o agendamento de snapshots do dashboard e o carregador operacional shadow de
+  professores foram aposentados no monolito; o `dashboard-query-service`
+  permanece orientado a projecoes publicadas pelos servicos donos, sem geracao
+  recorrente de snapshot legado;
+- os health indicators dos quatro servicos envolvidos passaram a expor o modo
+  autonomo e `legacyTrafficEnabled=false`, permitindo diagnostico e rollback no
+  proprio servico sem reativar caminho funcional legado;
+- a varredura dos fontes e configuracoes de runtime de
+  `identity-access-service`, `people-service`, `responsibles-service` e
+  `dashboard-query-service` nao encontrou URL, client ou configuracao de
+  trafego para o monolito; permanecem somente migrations de esquema local e o
+  scheduler local de limpeza de sessao;
+- validacao restrita aos modulos tocados: `identity-access-service` com cinco
+  testes, `people-service` com 60 testes, `responsibles-service` com oito testes
+  e `dashboard-query-service` com quatro testes, todos sem falhas ou erros; o
+  `school-management-service` tambem foi compilado e executou 220 testes, sem
+  falhas ou erros, por ter recebido a remocao das rotinas aposentadas.
 
 ### Fase D16 - Descomissionamento definitivo do `school-management-service`
 

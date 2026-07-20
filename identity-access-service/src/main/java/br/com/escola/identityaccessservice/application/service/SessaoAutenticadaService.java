@@ -36,7 +36,7 @@ public class SessaoAutenticadaService implements SessaoAutenticadaUseCase {
     public List<EscolaSessaoResponse> listarEscolasDisponiveis(
             String authorization,
             InternalRequestContext context) {
-        return identityAccessPort.listarEscolasDisponiveis(authorization, context);
+        return identityAccessPort.listarEscolasDisponiveis(extrairBearerToken(authorization), context);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class SessaoAutenticadaService implements SessaoAutenticadaUseCase {
             String authorization,
             InternalRequestContext context,
             UUID escolaId) {
-        return identityAccessPort.selecionarEscolaAtiva(authorization, context, escolaId);
+        return identityAccessPort.selecionarEscolaAtiva(extrairBearerToken(authorization), context, escolaId);
     }
 
     private String extrairBearerToken(String authorization) {

@@ -1,482 +1,139 @@
 package br.com.escola.peopleservice.application.service;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import br.com.escola.peopleservice.application.state.LeituraModeloSyncSummary;
 import br.com.escola.peopleservice.infra.config.LeituraModeloProperties;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Measurement;
-import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Statistic;
 
 @Service
 public class OrigemLeituraPolicy {
 
-    private static final String MONOLITH_SOURCE = "monolith_proxy";
-    private static final String MONOLITH_INTERNAL_RH_SOURCE = "monolith_internal_rh";
-    private static final String STUDENT_RESPONSIBLE_SOURCE = "people_read_model_student_responsible";
-    private static final String ADDRESS_SOURCE = "people_read_model_address";
-    private static final String DOCUMENT_METADATA_SOURCE = "people_documento_read_model";
-    private static final String FUNCIONARIO_INTERNAL_SUMMARY_SOURCE = "people_funcionario_read_model";
-    private static final String PROFESSOR_INTERNAL_SUMMARY_SOURCE = "people_professor_read_model";
-    private static final ReadRouteDescriptor ADDRESS_READ_ROUTE = new ReadRouteDescriptor(
-            "endereco",
-            "internal-operation:PessoaEnderecoPort",
-            ADDRESS_SOURCE);
-    private static final ReadRouteDescriptor CONTACT_READ_ROUTE = new ReadRouteDescriptor(
-            "contato",
-            "internal-operation:PessoaContatoPort",
-            "pessoa");
-    private static final ReadRouteDescriptor DOCUMENT_METADATA_READ_ROUTE = new ReadRouteDescriptor(
-            "documentoMetadata",
-            "internal-operation:PessoaDocumentoMetadataPort",
-            DOCUMENT_METADATA_SOURCE);
-    private static final ReadRouteDescriptor ALUNO_VINCULO_READ_ROUTE = new ReadRouteDescriptor(
-            "alunoVinculo",
-            "internal-operation:AlunoPessoaPort",
-            "aluno");
-    private static final ReadRouteDescriptor RESPONSAVEL_VINCULO_READ_ROUTE = new ReadRouteDescriptor(
-            "responsavelVinculo",
-            "internal-operation:ResponsavelPessoaPort",
-            "responsavel");
-    private static final ReadRouteDescriptor FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE = new ReadRouteDescriptor(
-            "funcionarioResumo",
-            "internal-operation:PessoaFuncionarioResumoPort",
-            FUNCIONARIO_INTERNAL_SUMMARY_SOURCE);
-    private static final ReadRouteDescriptor PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE = new ReadRouteDescriptor(
-            "professorResumo",
-            "internal-operation:PessoaProfessorResumoPort",
-            PROFESSOR_INTERNAL_SUMMARY_SOURCE);
-
-    private static final List<ReadRouteDescriptor> READ_ROUTES = List.of(
-            new ReadRouteDescriptor(
-                    "listarTiposPessoa",
-                    "GET /internal/v1/pessoas/catalogos/tipos-pessoa",
-                    "tipo_pessoa"),
-            new ReadRouteDescriptor(
-                    "listarTiposEndereco",
-                    "GET /internal/v1/pessoas/catalogos/tipos-endereco",
-                    "tipo_endereco"),
-            new ReadRouteDescriptor(
-                    "listarStatusAluno",
-                    "internal-operation:PessoaCatalogoPort/status_aluno",
-                    "status_aluno"),
-            new ReadRouteDescriptor(
-                    "listarParentescos",
-                    "internal-operation:PessoaCatalogoPort/parentesco",
-                    "parentesco"),
-            new ReadRouteDescriptor(
-                    "buscarPorId",
-                    "GET /internal/v1/pessoas/{id}",
-                    "pessoa"),
-            new ReadRouteDescriptor(
-                    "consultarCadastro",
-                    "GET /internal/v1/pessoas/consulta-cadastral",
-                    "aluno,responsavel,aluno_responsavel"),
-            new ReadRouteDescriptor(
-                    "listarResponsaveisPorAluno",
-                    "GET /internal/v1/alunos/{id}/responsaveis",
-                    "aluno,responsavel,aluno_responsavel,parentesco,pessoa,endereco"));
+    private static final Map<String, String> SOURCES = Map.ofEntries(
+            Map.entry("listarTiposPessoa", "tipo_pessoa"),
+            Map.entry("listarTiposEndereco", "tipo_endereco"),
+            Map.entry("listarStatusAluno", "status_aluno"),
+            Map.entry("listarParentescos", "parentesco"),
+            Map.entry("buscarPorId", "people_read_model_identity"),
+            Map.entry("consultarCadastro", "people_read_model_student_responsible"),
+            Map.entry("listarResponsaveisPorAluno", "people_read_model_student_responsible"),
+            Map.entry("endereco", "people_read_model_address"),
+            Map.entry("contato", "people_read_model_identity"),
+            Map.entry("documentoMetadata", "people_documento_read_model"),
+            Map.entry("alunoVinculo", "people_read_model_student_responsible"),
+            Map.entry("responsavelVinculo", "people_read_model_student_responsible"),
+            Map.entry("funcionarioResumo", "people_funcionario_read_model"),
+            Map.entry("professorResumo", "people_professor_read_model"));
 
     private final LeituraModeloProperties properties;
     private final MeterRegistry meterRegistry;
-    private final LeituraModeloSyncState operationState;
 
-    public OrigemLeituraPolicy(
-            LeituraModeloProperties properties,
-            MeterRegistry meterRegistry,
-            LeituraModeloSyncState operationState) {
+    public OrigemLeituraPolicy(LeituraModeloProperties properties, MeterRegistry meterRegistry) {
         this.properties = properties;
         this.meterRegistry = meterRegistry;
-        this.operationState = operationState;
     }
 
     public OrigemLeituraDecision registrarDecisao(String operation) {
-        OrigemLeituraDecision decision = avaliar(operation);
-        registrarMetricaDecisao(decision);
-        return decision;
+        return registrar(avaliar(operation));
     }
 
     public OrigemLeituraDecision registrarDecisaoLeituraEndereco() {
-        OrigemLeituraDecision decision = avaliarLeituraEndereco();
-        registrarMetricaDecisao(decision);
-        Counter.builder("people.address.read.routing.decisions")
-                .tag("selected_source", decision.selectedSource())
-                .tag("reason", decision.reason())
-                .register(meterRegistry)
-                .increment();
-        return decision;
+        return registrar(avaliar("endereco"));
     }
 
     public OrigemLeituraDecision registrarDecisaoLeituraContato() {
-        OrigemLeituraDecision decision = avaliarLeituraContato();
-        registrarMetricaDecisao(decision);
-        Counter.builder("people.contact.read.routing.decisions")
-                .tag("selected_source", decision.selectedSource())
-                .tag("reason", decision.reason())
-                .register(meterRegistry)
-                .increment();
-        return decision;
+        return registrar(avaliar("contato"));
     }
 
     public OrigemLeituraDecision registrarDecisaoLeituraDocumentoMetadata() {
-        OrigemLeituraDecision decision = avaliarLeituraDocumentoMetadata();
-        registrarMetricaDecisao(decision);
-        Counter.builder("people.document.read.routing.decisions")
-                .tag("selected_source", decision.selectedSource())
-                .tag("reason", decision.reason())
-                .register(meterRegistry)
-                .increment();
-        return decision;
+        return registrar(avaliar("documentoMetadata"));
     }
 
     public OrigemLeituraDecision registrarDecisaoLeituraAlunoVinculo() {
-        OrigemLeituraDecision decision = avaliarLeituraAlunoVinculo();
-        registrarMetricaDecisao(decision);
-        Counter.builder("people.student.read.routing.decisions")
-                .tag("selected_source", decision.selectedSource())
-                .tag("reason", decision.reason())
-                .register(meterRegistry)
-                .increment();
-        return decision;
+        return registrar(avaliar("alunoVinculo"));
     }
 
     public OrigemLeituraDecision registrarDecisaoLeituraResponsavelVinculo() {
-        OrigemLeituraDecision decision = avaliarLeituraResponsavelVinculo();
-        registrarMetricaDecisao(decision);
-        Counter.builder("people.responsible.read.routing.decisions")
-                .tag("selected_source", decision.selectedSource())
-                .tag("reason", decision.reason())
-                .register(meterRegistry)
-                .increment();
-        return decision;
+        return registrar(avaliar("responsavelVinculo"));
     }
 
     public OrigemLeituraDecision registrarDecisaoLeituraFuncionarioResumo() {
-        OrigemLeituraDecision decision = avaliarLeituraFuncionarioResumo();
-        registrarMetricaDecisao(decision);
-        Counter.builder("people.funcionario.read.routing.decisions")
-                .tag("selected_source", decision.selectedSource())
-                .tag("reason", decision.reason())
-                .register(meterRegistry)
-                .increment();
-        return decision;
+        return registrar(avaliar("funcionarioResumo"));
     }
 
     public OrigemLeituraDecision registrarDecisaoLeituraProfessorResumo() {
-        OrigemLeituraDecision decision = avaliarLeituraProfessorResumo();
-        registrarMetricaDecisao(decision);
-        Counter.builder("people.professor.read.routing.decisions")
-                .tag("selected_source", decision.selectedSource())
-                .tag("reason", decision.reason())
-                .register(meterRegistry)
-                .increment();
-        return decision;
+        return registrar(avaliar("professorResumo"));
     }
 
-    private void registrarMetricaDecisao(OrigemLeituraDecision decision) {
-        Counter.builder("people.read.routing.decisions")
-                .tag("operation", decision.operation())
-                .tag("selected_source", decision.selectedSource())
-                .tag("reason", decision.reason())
-                .register(meterRegistry)
-                .increment();
+    public OrigemLeituraDecision avaliar(String operation) {
+        String source = SOURCES.getOrDefault(operation, "people_read_model");
+        boolean enabled = properties.enabled() && properties.localReadRoutingEnabled();
+        return new OrigemLeituraDecision(
+                operation,
+                route(operation),
+                source,
+                source,
+                properties.localReadRoutingEnabled(),
+                enabled,
+                false,
+                false,
+                enabled ? "local-read-required" : "local-read-disabled");
+    }
+
+    public OrigemLeituraDecision avaliarLeituraEndereco() {
+        return avaliar("endereco");
+    }
+
+    public OrigemLeituraDecision avaliarLeituraContato() {
+        return avaliar("contato");
+    }
+
+    public OrigemLeituraDecision avaliarLeituraDocumentoMetadata() {
+        return avaliar("documentoMetadata");
+    }
+
+    public OrigemLeituraDecision avaliarLeituraAlunoVinculo() {
+        return avaliar("alunoVinculo");
+    }
+
+    public OrigemLeituraDecision avaliarLeituraResponsavelVinculo() {
+        return avaliar("responsavelVinculo");
+    }
+
+    public OrigemLeituraDecision avaliarLeituraFuncionarioResumo() {
+        return avaliar("funcionarioResumo");
+    }
+
+    public OrigemLeituraDecision avaliarLeituraProfessorResumo() {
+        return avaliar("professorResumo");
     }
 
     public Map<String, OrigemLeituraDecision> avaliarTodas() {
         Map<String, OrigemLeituraDecision> decisions = new LinkedHashMap<>();
-        for (ReadRouteDescriptor route : READ_ROUTES) {
-            decisions.put(route.operation(), avaliar(route.operation()));
-        }
+        SOURCES.keySet().stream().sorted().forEach(operation -> decisions.put(operation, avaliar(operation)));
         return decisions;
     }
 
-    public OrigemLeituraDecision avaliar(String operation) {
-        ReadRouteDescriptor route = READ_ROUTES.stream()
-                .filter(candidate -> candidate.operation().equals(operation))
-                .findFirst()
-                .orElse(new ReadRouteDescriptor(operation, "unknown", "unknown"));
-
-        String reason = motivoInelegibilidade(route);
-        boolean localReadEligible = isEligibleReason(reason);
-        String selectedSource = selectedSource(localReadEligible, route.operation());
-        return new OrigemLeituraDecision(
-                route.operation(),
-                route.route(),
-                route.candidateSource(),
-                selectedSource,
-                properties.localReadRoutingEnabled(),
-                localReadEligible,
-                properties.fallbackEnabled(),
-                false,
-                reason);
+    private OrigemLeituraDecision registrar(OrigemLeituraDecision decision) {
+        meterRegistry.counter(
+                "people.read.routing.decisions",
+                "operation", decision.operation(),
+                "selectedSource", decision.selectedSource(),
+                "eligible", Boolean.toString(decision.localReadEligible()))
+                .increment();
+        return decision;
     }
 
-    public OrigemLeituraDecision avaliarLeituraEndereco() {
-        String reason = motivoInelegibilidade(ADDRESS_READ_ROUTE);
-        if ("local-read-adapter-not-configured".equals(reason)) {
-            reason = "address-local-read-connection-disabled";
-        }
-        boolean localReadEligible = isEligibleReason(reason);
-        return new OrigemLeituraDecision(
-                ADDRESS_READ_ROUTE.operation(),
-                ADDRESS_READ_ROUTE.route(),
-                ADDRESS_READ_ROUTE.candidateSource(),
-                selectedSource(localReadEligible, ADDRESS_READ_ROUTE.operation()),
-                properties.localReadRoutingEnabled(),
-                localReadEligible,
-                properties.fallbackEnabled(),
-                false,
-                reason);
-    }
-
-    public OrigemLeituraDecision avaliarLeituraContato() {
-        String reason = motivoInelegibilidade(CONTACT_READ_ROUTE);
-        if ("local-read-adapter-not-configured".equals(reason)) {
-            reason = "contact-local-read-connection-disabled";
-        }
-        boolean localReadEligible = isEligibleReason(reason);
-        return new OrigemLeituraDecision(
-                CONTACT_READ_ROUTE.operation(),
-                CONTACT_READ_ROUTE.route(),
-                CONTACT_READ_ROUTE.candidateSource(),
-                selectedSource(localReadEligible, CONTACT_READ_ROUTE.operation()),
-                properties.localReadRoutingEnabled(),
-                localReadEligible,
-                properties.fallbackEnabled(),
-                false,
-                reason);
-    }
-
-    public OrigemLeituraDecision avaliarLeituraDocumentoMetadata() {
-        String reason = motivoInelegibilidade(DOCUMENT_METADATA_READ_ROUTE);
-        if ("local-read-adapter-not-configured".equals(reason)) {
-            reason = "document-metadata-local-read-connection-disabled";
-        }
-        boolean localReadEligible = isEligibleReason(reason);
-        return new OrigemLeituraDecision(
-                DOCUMENT_METADATA_READ_ROUTE.operation(),
-                DOCUMENT_METADATA_READ_ROUTE.route(),
-                DOCUMENT_METADATA_READ_ROUTE.candidateSource(),
-                selectedSource(localReadEligible, DOCUMENT_METADATA_READ_ROUTE.operation()),
-                properties.localReadRoutingEnabled(),
-                localReadEligible,
-                properties.fallbackEnabled(),
-                false,
-                reason);
-    }
-
-    public OrigemLeituraDecision avaliarLeituraAlunoVinculo() {
-        String reason = motivoInelegibilidade(ALUNO_VINCULO_READ_ROUTE);
-        if ("local-read-adapter-not-configured".equals(reason)) {
-            reason = "student-link-local-read-connection-disabled";
-        }
-        boolean localReadEligible = isEligibleReason(reason);
-        return new OrigemLeituraDecision(
-                ALUNO_VINCULO_READ_ROUTE.operation(),
-                ALUNO_VINCULO_READ_ROUTE.route(),
-                ALUNO_VINCULO_READ_ROUTE.candidateSource(),
-                selectedSource(localReadEligible, ALUNO_VINCULO_READ_ROUTE.operation()),
-                properties.localReadRoutingEnabled(),
-                localReadEligible,
-                properties.fallbackEnabled(),
-                false,
-                reason);
-    }
-
-    public OrigemLeituraDecision avaliarLeituraResponsavelVinculo() {
-        String reason = motivoInelegibilidade(RESPONSAVEL_VINCULO_READ_ROUTE);
-        if ("local-read-adapter-not-configured".equals(reason)) {
-            reason = "responsible-link-local-read-connection-disabled";
-        }
-        boolean localReadEligible = isEligibleReason(reason);
-        return new OrigemLeituraDecision(
-                RESPONSAVEL_VINCULO_READ_ROUTE.operation(),
-                RESPONSAVEL_VINCULO_READ_ROUTE.route(),
-                RESPONSAVEL_VINCULO_READ_ROUTE.candidateSource(),
-                selectedSource(localReadEligible, RESPONSAVEL_VINCULO_READ_ROUTE.operation()),
-                properties.localReadRoutingEnabled(),
-                localReadEligible,
-                properties.fallbackEnabled(),
-                false,
-                reason);
-    }
-
-    public OrigemLeituraDecision avaliarLeituraFuncionarioResumo() {
-        String reason = motivoInelegibilidade(FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE);
-        if ("local-read-adapter-not-configured".equals(reason)) {
-            reason = "funcionario-internal-summary-local-read-connection-disabled";
-        }
-        boolean localReadEligible = isEligibleReason(reason);
-        return new OrigemLeituraDecision(
-                FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.operation(),
-                FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.route(),
-                FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.candidateSource(),
-                selectedSource(localReadEligible, FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.operation()),
-                properties.localReadRoutingEnabled(),
-                localReadEligible,
-                properties.fallbackEnabled(),
-                false,
-                reason);
-    }
-
-    public OrigemLeituraDecision avaliarLeituraProfessorResumo() {
-        String reason = motivoInelegibilidade(PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE);
-        if ("local-read-adapter-not-configured".equals(reason)) {
-            reason = "professor-internal-summary-local-read-connection-disabled";
-        }
-        boolean localReadEligible = isEligibleReason(reason);
-        return new OrigemLeituraDecision(
-                PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE.operation(),
-                PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE.route(),
-                PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE.candidateSource(),
-                selectedSource(localReadEligible, PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE.operation()),
-                properties.localReadRoutingEnabled(),
-                localReadEligible,
-                properties.fallbackEnabled(),
-                false,
-                reason);
-    }
-
-    private String motivoInelegibilidade(ReadRouteDescriptor route) {
-        if (!properties.localReadRoutingEnabled()) {
-            return "local-read-routing-disabled";
-        }
-        if (!properties.fallbackEnabled()) {
-            return "fallback-required";
-        }
-        if (!properties.enabled()) {
-            return "local-persistence-disabled";
-        }
-        if (!properties.backfillEnabled() || !properties.reconciliationEnabled()) {
-            return "backfill-and-reconciliation-required";
-        }
-        if (totalContador("people.readmodel.sync.divergences") > 0.0d) {
-            return "reconciliation-has-divergences";
-        }
-        if (totalContador("people.readmodel.sync.failures") > 0.0d) {
-            return "local-persistence-has-failures";
-        }
-        LeituraModeloSyncSummary lastReport = operationState.currentReport();
-        if (!"completed".equals(lastReport.status()) || lastReport.divergences() > 0) {
-            return "local-read-model-backfill-not-green";
-        }
-        if (isCatalogRoute(route.operation())) {
-            return "local-catalog-read-eligible";
-        }
-        if ("buscarPorId".equals(route.operation())) {
-            return "local-identity-read-eligible";
-        }
-        if ("consultarCadastro".equals(route.operation()) || "listarResponsaveisPorAluno".equals(route.operation())) {
-            return "local-student-responsible-read-eligible";
-        }
-        if (ADDRESS_READ_ROUTE.operation().equals(route.operation())) {
-            return "local-address-read-eligible";
-        }
-        if (CONTACT_READ_ROUTE.operation().equals(route.operation())) {
-            return "local-contact-read-eligible";
-        }
-        if (DOCUMENT_METADATA_READ_ROUTE.operation().equals(route.operation())) {
-            return "local-document-metadata-read-eligible";
-        }
-        if (ALUNO_VINCULO_READ_ROUTE.operation().equals(route.operation())) {
-            return "local-student-link-read-eligible";
-        }
-        if (RESPONSAVEL_VINCULO_READ_ROUTE.operation().equals(route.operation())) {
-            return "local-responsible-link-read-eligible";
-        }
-        if (FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(route.operation())) {
-            return "local-funcionario-internal-summary-read-eligible";
-        }
-        if (PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(route.operation())) {
-            return "local-professor-internal-summary-read-eligible";
-        }
-        return "local-read-adapter-not-configured";
-    }
-
-    private boolean isEligibleReason(String reason) {
-        return "local-catalog-read-eligible".equals(reason)
-                || "local-identity-read-eligible".equals(reason)
-                || "local-student-responsible-read-eligible".equals(reason)
-                || "local-address-read-eligible".equals(reason)
-                || "local-contact-read-eligible".equals(reason)
-                || "local-document-metadata-read-eligible".equals(reason)
-                || "local-student-link-read-eligible".equals(reason)
-                || "local-responsible-link-read-eligible".equals(reason)
-                || "local-funcionario-internal-summary-read-eligible".equals(reason)
-                || "local-professor-internal-summary-read-eligible".equals(reason);
-    }
-
-    private String selectedSource(boolean localReadEligible, String operation) {
-        if (!localReadEligible) {
-            if (FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(operation)) {
-                return MONOLITH_INTERNAL_RH_SOURCE;
-            }
-            if (PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(operation)) {
-                return MONOLITH_INTERNAL_RH_SOURCE;
-            }
-            return MONOLITH_SOURCE;
-        }
-        if ("buscarPorId".equals(operation)) {
-            return "people_read_model_identity";
-        }
-        if ("consultarCadastro".equals(operation) || "listarResponsaveisPorAluno".equals(operation)) {
-            return STUDENT_RESPONSIBLE_SOURCE;
-        }
-        if (ALUNO_VINCULO_READ_ROUTE.operation().equals(operation)) {
-            return STUDENT_RESPONSIBLE_SOURCE;
-        }
-        if (RESPONSAVEL_VINCULO_READ_ROUTE.operation().equals(operation)) {
-            return STUDENT_RESPONSIBLE_SOURCE;
-        }
-        if (ADDRESS_READ_ROUTE.operation().equals(operation)) {
-            return ADDRESS_SOURCE;
-        }
-        if (CONTACT_READ_ROUTE.operation().equals(operation)) {
-            return "people_read_model_identity";
-        }
-        if (DOCUMENT_METADATA_READ_ROUTE.operation().equals(operation)) {
-            return DOCUMENT_METADATA_SOURCE;
-        }
-        if (FUNCIONARIO_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(operation)) {
-            return FUNCIONARIO_INTERNAL_SUMMARY_SOURCE;
-        }
-        if (PROFESSOR_INTERNAL_SUMMARY_READ_ROUTE.operation().equals(operation)) {
-            return PROFESSOR_INTERNAL_SUMMARY_SOURCE;
-        }
-        return "people_read_model_catalog";
-    }
-
-    private boolean isCatalogRoute(String operation) {
-        return "listarTiposPessoa".equals(operation)
-                || "listarTiposEndereco".equals(operation)
-                || "listarStatusAluno".equals(operation)
-                || "listarParentescos".equals(operation);
-    }
-
-    private double totalContador(String meterName) {
-        return meterRegistry.getMeters().stream()
-                .filter(meter -> meterName.equals(meter.getId().getName()))
-                .mapToDouble(this::valorContador)
-                .sum();
-    }
-
-    private double valorContador(Meter meter) {
-        for (Measurement measurement : meter.measure()) {
-            if (measurement.getStatistic() == Statistic.COUNT) {
-                return measurement.getValue();
-            }
-        }
-        return 0.0d;
-    }
-
-    private record ReadRouteDescriptor(String operation, String route, String candidateSource) {
+    private String route(String operation) {
+        return switch (operation) {
+            case "listarTiposPessoa" -> "GET /internal/v1/pessoas/catalogos/tipos-pessoa";
+            case "listarTiposEndereco" -> "GET /internal/v1/pessoas/catalogos/tipos-endereco";
+            case "buscarPorId" -> "GET /internal/v1/pessoas/{id}";
+            case "consultarCadastro" -> "GET /internal/v1/pessoas/consulta-cadastral";
+            case "listarResponsaveisPorAluno" -> "GET /internal/v1/alunos/{id}/responsaveis";
+            default -> "internal-operation:" + operation;
+        };
     }
 }
-
-

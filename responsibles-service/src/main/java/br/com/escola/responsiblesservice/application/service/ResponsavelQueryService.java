@@ -11,7 +11,6 @@ import br.com.escola.responsiblesservice.application.context.InternalRequestCont
 import br.com.escola.responsiblesservice.application.dto.ResponsavelReadModelResponse;
 import br.com.escola.responsiblesservice.application.port.in.ResponsavelQueryUseCase;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelLocalReadPort;
-import br.com.escola.responsiblesservice.application.port.out.ResponsavelReadPort;
 import br.com.escola.responsiblesservice.infra.config.LeituraModeloProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,19 +19,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ResponsavelQueryService implements ResponsavelQueryUseCase {
 
     private final ObjectProvider<ResponsavelLocalReadPort> responsavelLocalReadPortProvider;
-    private final ResponsavelReadPort responsavelReadPort;
     private final LeituraModeloProperties readModelProperties;
     private final LeituraModeloRouteGuard routeGuard;
     private final ObjectMapper objectMapper;
 
     public ResponsavelQueryService(
             ObjectProvider<ResponsavelLocalReadPort> responsavelLocalReadPortProvider,
-            ResponsavelReadPort responsavelReadPort,
             LeituraModeloProperties readModelProperties,
             LeituraModeloRouteGuard routeGuard,
             ObjectMapper objectMapper) {
         this.responsavelLocalReadPortProvider = responsavelLocalReadPortProvider;
-        this.responsavelReadPort = responsavelReadPort;
         this.readModelProperties = readModelProperties;
         this.routeGuard = routeGuard;
         this.objectMapper = objectMapper;
@@ -44,22 +40,8 @@ public class ResponsavelQueryService implements ResponsavelQueryUseCase {
             InternalRequestContext context,
             String nome,
             String cpf) {
-        if (routeGuard.canReadCatalogLocally()) {
-            ResponsavelLocalReadPort localReadPort = responsavelLocalReadPortProvider.getIfAvailable();
-            if (localReadPort != null) {
-                try {
-                    var localResponse = localReadPort.listarResponsaveis(context.escolaId(), nome, cpf);
-                    if (localResponse.isPresent()) {
-                        return json(localResponse.get());
-                    }
-                } catch (RuntimeException exception) {
-                    if (!readModelProperties.fallbackEnabled()) {
-                        throw exception;
-                    }
-                }
-            }
-        }
-        return responsavelReadPort.listarResponsaveis(authorization, context, nome, cpf);
+        ResponsavelLocalReadPort localReadPort = requireLocalReadPort();
+        return json(localReadPort.listarResponsaveis(context.escolaId(), nome, cpf).orElseGet(java.util.List::of));
     }
 
     @Override
@@ -67,22 +49,9 @@ public class ResponsavelQueryService implements ResponsavelQueryUseCase {
             String authorization,
             InternalRequestContext context,
             UUID responsavelId) {
-        if (routeGuard.canReadCatalogLocally()) {
-            ResponsavelLocalReadPort localReadPort = responsavelLocalReadPortProvider.getIfAvailable();
-            if (localReadPort != null) {
-                try {
-                    var localResponse = localReadPort.buscarResponsavelPorId(responsavelId, context.escolaId());
-                    if (localResponse.isPresent()) {
-                        return json(localResponse.get());
-                    }
-                } catch (RuntimeException exception) {
-                    if (!readModelProperties.fallbackEnabled()) {
-                        throw exception;
-                    }
-                }
-            }
-        }
-        return responsavelReadPort.buscarResponsavelPorId(authorization, context, responsavelId);
+        return requireLocalReadPort().buscarResponsavelPorId(responsavelId, context.escolaId())
+                .map(this::json)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @Override
@@ -90,22 +59,20 @@ public class ResponsavelQueryService implements ResponsavelQueryUseCase {
             String authorization,
             InternalRequestContext context,
             UUID alunoId) {
-        if (routeGuard.canReadStudentLinksLocally()) {
-            ResponsavelLocalReadPort localReadPort = responsavelLocalReadPortProvider.getIfAvailable();
-            if (localReadPort != null) {
-                try {
-                    var localResponse = localReadPort.listarResponsaveisPorAluno(alunoId, context.escolaId());
-                    if (localResponse.isPresent()) {
-                        return json(localResponse.get());
-                    }
-                } catch (RuntimeException exception) {
-                    if (!readModelProperties.fallbackEnabled()) {
-                        throw exception;
-                    }
-                }
-            }
+        return requireLocalReadPort().listarResponsaveisPorAluno(alunoId, context.escolaId())
+                .map(this::json)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private ResponsavelLocalReadPort requireLocalReadPort() {
+        if (!routeGuard.canReadCatalogLocally() || readModelProperties.fallbackEnabled()) {
+            throw new IllegalStateException("responsibles-local-read-required");
         }
-        return responsavelReadPort.listarResponsaveisPorAluno(authorization, context, alunoId);
+        ResponsavelLocalReadPort port = responsavelLocalReadPortProvider.getIfAvailable();
+        if (port == null) {
+            throw new IllegalStateException("responsibles-local-read-adapter-required");
+        }
+        return port;
     }
 
     private ResponseEntity<String> json(Object body) {

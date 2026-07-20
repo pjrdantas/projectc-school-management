@@ -101,32 +101,11 @@ class PessoaProfessorResumoServiceTest {
                         false,
                         localReadEligible,
                         false,
-                        localReadEligible,
-                        localReadEligible,
+                        false,
+                        false,
                         500,
-                        true),
-                meterRegistry,
-                localReadEligible ? greenState() : new LeituraModeloSyncState());
-    }
-
-    private LeituraModeloSyncState greenState() {
-        LeituraModeloSyncState state = new LeituraModeloSyncState();
-        state.update(new br.com.escola.peopleservice.application.state.LeituraModeloSyncSummary(
-                true,
-                true,
-                "completed",
-                "local-read-model-backfill-and-reconciliation-completed",
-                500,
-                8,
-                8,
-                25,
-                25,
-                25,
-                0,
-                false,
-                false,
-                List.of()));
-        return state;
+                        false),
+                meterRegistry);
     }
 
     private ObjectProvider<PessoaProfessorResumoPort> provider(PessoaProfessorResumoPort port) {

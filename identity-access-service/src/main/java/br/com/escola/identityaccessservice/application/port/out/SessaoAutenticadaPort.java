@@ -10,11 +10,11 @@ import br.com.escola.identityaccessservice.application.dto.EscolaSessaoResponse;
 public interface SessaoAutenticadaPort {
 
     List<EscolaSessaoResponse> listarEscolasDisponiveis(
-            String authorization,
+            String accessToken,
             InternalRequestContext context);
 
     AuthContextResponse selecionarEscolaAtiva(
-            String authorization,
+            String accessToken,
             InternalRequestContext context,
             UUID escolaId);
 }

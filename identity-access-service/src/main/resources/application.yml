@@ -10,7 +10,6 @@ spring:
 identity-access:
   internal-api:
     token: ${IDENTITY_ACCESS_INTERNAL_TOKEN:}
-  monolith:
-    base-url: ${IDENTITY_ACCESS_MONOLITH_BASE_URL:http://localhost:8080}
-    connect-timeout: 2s
-    read-timeout: 5s
+  session-cleanup:
+    enabled: ${IDENTITY_ACCESS_SESSION_CLEANUP_ENABLED:true}
+    fixed-delay: ${IDENTITY_ACCESS_SESSION_CLEANUP_FIXED_DELAY:24h}

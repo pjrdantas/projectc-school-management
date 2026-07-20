@@ -8,27 +8,20 @@ server:
 responsibles:
   internal-api:
     token: ${RESPONSIBLES_INTERNAL_TOKEN:}
-  monolith:
-    base-url: ${RESPONSIBLES_MONOLITH_BASE_URL:http://localhost:8080}
   read-model:
-    enabled: ${RESPONSIBLES_READ_MODEL_ENABLED:false}
-    migration-enabled: ${RESPONSIBLES_READ_MODEL_MIGRATION_ENABLED:false}
-    local-read-routing-enabled: ${RESPONSIBLES_LOCAL_READ_ROUTING_ENABLED:false}
-    backfill-enabled: ${RESPONSIBLES_READ_MODEL_BACKFILL_ENABLED:false}
-    reconciliation-enabled: ${RESPONSIBLES_READ_MODEL_RECONCILIATION_ENABLED:false}
+    enabled: ${RESPONSIBLES_READ_MODEL_ENABLED:true}
+    migration-enabled: ${RESPONSIBLES_READ_MODEL_MIGRATION_ENABLED:true}
+    local-read-routing-enabled: ${RESPONSIBLES_LOCAL_READ_ROUTING_ENABLED:true}
+    backfill-enabled: false
+    reconciliation-enabled: false
     backfill-batch-size: ${RESPONSIBLES_READ_MODEL_BACKFILL_BATCH_SIZE:500}
-    fail-on-error: ${RESPONSIBLES_READ_MODEL_FAIL_ON_ERROR:false}
-    fallback-enabled: ${RESPONSIBLES_READ_MODEL_FALLBACK_ENABLED:true}
-    source:
-      source-url: ${RESPONSIBLES_READ_MODEL_SOURCE_URL:}
-      source-username: ${RESPONSIBLES_READ_MODEL_SOURCE_USERNAME:}
-      source-password: ${RESPONSIBLES_READ_MODEL_SOURCE_PASSWORD:}
-      source-driver-class-name: ${RESPONSIBLES_READ_MODEL_SOURCE_DRIVER:}
+    fail-on-error: ${RESPONSIBLES_READ_MODEL_FAIL_ON_ERROR:true}
+    fallback-enabled: false
     schema-migration:
-      url: ${RESPONSIBLES_READ_MODEL_DB_URL:}
-      username: ${RESPONSIBLES_READ_MODEL_DB_USERNAME:}
-      password: ${RESPONSIBLES_READ_MODEL_DB_PASSWORD:}
-      driver-class-name: ${RESPONSIBLES_READ_MODEL_DB_DRIVER:}
+      url: ${RESPONSIBLES_READ_MODEL_DB_URL:jdbc:postgresql://localhost:5433/responsibles}
+      username: ${RESPONSIBLES_READ_MODEL_DB_USERNAME:school}
+      password: ${RESPONSIBLES_READ_MODEL_DB_PASSWORD:school_local}
+      driver-class-name: ${RESPONSIBLES_READ_MODEL_DB_DRIVER:org.postgresql.Driver}
 
 management:
   endpoints:

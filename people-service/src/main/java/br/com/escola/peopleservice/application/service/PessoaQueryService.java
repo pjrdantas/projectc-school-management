@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import br.com.escola.peopleservice.application.context.InternalRequestContext;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
@@ -20,13 +21,11 @@ import br.com.escola.peopleservice.application.port.in.PessoaQueryUseCase;
 import br.com.escola.peopleservice.application.port.out.PessoaCatalogoPort;
 import br.com.escola.peopleservice.application.port.out.PessoaPort;
 import br.com.escola.peopleservice.application.port.out.AlunoResponsavelPort;
-import br.com.escola.peopleservice.application.port.out.PessoaReadPort;
 import io.micrometer.core.instrument.MeterRegistry;
 
 @Service
 public class PessoaQueryService implements PessoaQueryUseCase {
 
-    private final PessoaReadPort pessoaReadPort;
     private final PessoaCatalogoPort catalogoPort;
     private final PessoaPort pessoaPort;
     private final AlunoResponsavelPort alunoResponsavelPort;
@@ -39,8 +38,8 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     private final OrigemLeituraPolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
+    @Autowired
     public PessoaQueryService(
-            PessoaReadPort pessoaReadPort,
             PessoaCatalogoPort catalogoPort,
             PessoaPort pessoaPort,
             AlunoResponsavelPort alunoResponsavelPort,
@@ -52,7 +51,6 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             PessoaProfessorResumoService pessoaProfessorResumoService,
             OrigemLeituraPolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
-        this.pessoaReadPort = pessoaReadPort;
         this.catalogoPort = catalogoPort;
         this.pessoaPort = pessoaPort;
         this.alunoResponsavelPort = alunoResponsavelPort;
@@ -69,31 +67,17 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     @Override
     public List<PessoaCatalogoResponse> listarTiposPessoa(String authorization, InternalRequestContext context) {
         var decision = readRoutingPolicy.registrarDecisao("listarTiposPessoa");
-        if (decision.localReadEligible()) {
-            try {
-                List<PessoaCatalogoResponse> response = catalogoPort.listarTiposPessoa();
-                registrarLeituraLocal("listarTiposPessoa", "success");
-                return response;
-            } catch (RuntimeException ex) {
-                registrarLeituraLocal("listarTiposPessoa", "fallback");
-            }
-        }
-        return pessoaReadPort.listarTiposPessoa(authorization, context);
+        List<PessoaCatalogoResponse> response = catalogoPort.listarTiposPessoa();
+        registrarLeituraLocal("listarTiposPessoa", "success");
+        return response;
     }
 
     @Override
     public List<PessoaCatalogoResponse> listarTiposEndereco(String authorization, InternalRequestContext context) {
         var decision = readRoutingPolicy.registrarDecisao("listarTiposEndereco");
-        if (decision.localReadEligible()) {
-            try {
-                List<PessoaCatalogoResponse> response = catalogoPort.listarTiposEndereco();
-                registrarLeituraLocal("listarTiposEndereco", "success");
-                return response;
-            } catch (RuntimeException ex) {
-                registrarLeituraLocal("listarTiposEndereco", "fallback");
-            }
-        }
-        return pessoaReadPort.listarTiposEndereco(authorization, context);
+        List<PessoaCatalogoResponse> response = catalogoPort.listarTiposEndereco();
+        registrarLeituraLocal("listarTiposEndereco", "success");
+        return response;
     }
 
     @Override
@@ -184,19 +168,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     @Override
     public PessoaResumoResponse buscarPessoaPorId(String authorization, InternalRequestContext context, UUID pessoaId) {
         var decision = readRoutingPolicy.registrarDecisao("buscarPorId");
-        if (decision.localReadEligible()) {
-            try {
-                var localResponse = pessoaPort.buscarPessoaPorId(pessoaId, context.escolaId());
-                if (localResponse.isPresent()) {
-                    registrarLeituraIdentidadeLocal("buscarPorId", "success");
-                    return localResponse.get();
-                }
-                registrarLeituraIdentidadeLocal("buscarPorId", "fallback_not_found");
-            } catch (RuntimeException ex) {
-                registrarLeituraIdentidadeLocal("buscarPorId", "fallback_error");
-            }
-        }
-        return pessoaReadPort.buscarPessoaPorId(authorization, context, pessoaId)
+        return pessoaPort.buscarPessoaPorId(pessoaId, context.escolaId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa nao encontrada"));
     }
 
@@ -211,30 +183,15 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             int page,
             int size) {
         var decision = readRoutingPolicy.registrarDecisao("consultarCadastro");
-        if (decision.localReadEligible()) {
-            try {
-                PessoaConsultaCadastralPageResponse response = alunoResponsavelPort.consultarCadastro(
-                        nomeAluno,
-                        cpfAluno,
-                        nomeResponsavel,
-                        cpfResponsavel,
-                        page,
-                        size);
-                registrarLeituraAlunoResponsavelLocal("consultarCadastro", "success");
-                return response;
-            } catch (RuntimeException ex) {
-                registrarLeituraAlunoResponsavelLocal("consultarCadastro", "fallback_error");
-            }
-        }
-        return pessoaReadPort.consultarCadastro(
-                authorization,
-                context,
+        PessoaConsultaCadastralPageResponse response = alunoResponsavelPort.consultarCadastro(
                 nomeAluno,
                 cpfAluno,
                 nomeResponsavel,
                 cpfResponsavel,
                 page,
                 size);
+        registrarLeituraAlunoResponsavelLocal("consultarCadastro", "success");
+        return response;
     }
 
     @Override
@@ -243,19 +200,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             InternalRequestContext context,
             UUID alunoId) {
         var decision = readRoutingPolicy.registrarDecisao("listarResponsaveisPorAluno");
-        if (decision.localReadEligible()) {
-            try {
-                var localResponse = alunoResponsavelPort.listarResponsaveisPorAluno(alunoId);
-                if (localResponse.isPresent()) {
-                    registrarLeituraAlunoResponsavelLocal("listarResponsaveisPorAluno", "success");
-                    return localResponse.get();
-                }
-                registrarLeituraAlunoResponsavelLocal("listarResponsaveisPorAluno", "fallback_not_found");
-            } catch (RuntimeException ex) {
-                registrarLeituraAlunoResponsavelLocal("listarResponsaveisPorAluno", "fallback_error");
-            }
-        }
-        return pessoaReadPort.listarResponsaveisPorAluno(authorization, context, alunoId)
+        return alunoResponsavelPort.listarResponsaveisPorAluno(alunoId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno nao encontrado"));
     }
 

@@ -14,8 +14,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class EnderecoCommandService implements EnderecoWritePort {
 
     private static final String METRIC_NAME = "people.address.write.commands";
-    private static final String SELECTED_SOURCE = "monolith_proxy";
-    private static final String STATUS = "monolith_write_selected_no_local_persistence";
+    private static final String SELECTED_SOURCE = "unsupported";
+    private static final String STATUS = "address_write_not_supported";
 
     private final MeterRegistry meterRegistry;
 
@@ -37,8 +37,7 @@ public class EnderecoCommandService implements EnderecoWritePort {
                 false,
                 true,
                 List.of(
-                        "people-service-address-write-monolith-only",
-                        "monolith-remains-write-authority",
+                        "people-service-address-write-not-supported",
                         "local-address-persistence-disabled"));
     }
 
@@ -56,8 +55,7 @@ public class EnderecoCommandService implements EnderecoWritePort {
                 false,
                 true,
                 List.of(
-                        "people-service-address-cleanup-monolith-only",
-                        "monolith-remains-write-authority",
+                        "people-service-address-cleanup-not-supported",
                         "local-address-persistence-disabled"));
     }
 

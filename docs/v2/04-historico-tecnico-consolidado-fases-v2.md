@@ -4891,8 +4891,27 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   `identity-access-service`, `people-service` e `responsibles-service`, alem dos
   prototipos em `projetos-historico-diario`; esses itens seguem para D15/D16 e
   impedem declarar o monolito integralmente descomissionado neste ponto.
-- Proxima fase operacional do ciclo fechado:
-  `D15 - Infraestrutura, jobs e operacao monolito-off`.
+- A fase `D15 - Infraestrutura, jobs e operacao monolito-off` foi concluida.
+- O `identity-access-service` passou a resolver localmente as escolas da sessao
+  e a selecao de escola ativa, alem de assumir a limpeza configuravel de sessoes
+  expiradas; o client HTTP e o scheduler correspondente no monolito foram
+  removidos.
+- `people-service` e `responsibles-service` passaram a usar somente seus read
+  models locais, sem fallback, datasource de origem, clients HTTP, adapters de
+  backfill/reconciliacao ou runners de sincronizacao com o monolito.
+- O scheduler legado de snapshots do dashboard e o carregador shadow de
+  professores foram aposentados. O `dashboard-query-service` declarou
+  explicitamente operacao por projecoes publicadas pelos servicos donos.
+- Health indicators registram `legacyTrafficEnabled=false`, e a auditoria de
+  runtime nao encontrou URL, client ou configuracao de trafego funcional para o
+  monolito nos quatro servicos novos envolvidos.
+- Foram validados somente os modulos tocados: `identity-access-service` com
+  cinco testes, `people-service` com 60, `responsibles-service` com oito e
+  `dashboard-query-service` com quatro, todos sem falhas ou erros; o
+  `school-management-service` tambem foi compilado e executou 220 testes, sem
+  falhas ou erros, apos a remocao das rotinas.
+- Proxima e ultima fase do ciclo fechado:
+  `D16 - Descomissionamento definitivo do school-management-service`.
 
 ### Fase D3
 
