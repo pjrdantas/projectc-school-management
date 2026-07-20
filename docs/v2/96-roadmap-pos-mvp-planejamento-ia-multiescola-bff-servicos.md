@@ -9886,3 +9886,25 @@ Quinto recorte da B1 entregue em 20/07/2026:
 - a administracao interna de usuarios, perfis e permissoes esta implementada,
   mas a B1 permanece **em andamento**: faltam oficializacao administrativa no
   BFF, migrations, banco proprio e backfill controlado.
+
+Sexto recorte da B1 entregue em 20/07/2026:
+
+- o `school-management-bff` passou a expor oficialmente os 15 contratos CRUD de
+  `/api/usuarios`, `/api/perfis` e `/api/permissoes`, preservando metodos,
+  paths, corpos e status HTTP consumidos pelo frontend;
+- todas as operacoes resolvem o contexto autenticado e encaminham exclusivamente
+  ao `identity-access-service`, sem fallback ou trafego para o monolito;
+- as familias administrativas foram adicionadas ao filtro Bearer do BFF;
+- no `identity-access-service`, a autorizacao administrativa passou a exigir
+  perfil/permissao `ADMIN` ou a autoridade especifica `READ`, `READ_ALL`,
+  `CREATE`, `UPDATE` ou `DELETE`, conforme metodo e path;
+- a decisao de autorizacao permanece no servico dono do acesso e usa somente os
+  headers contextuais internos produzidos depois da validacao do token de
+  servico;
+- validacao restrita aos modulos tocados: quatro testes de integracao no BFF e
+  dez testes no `identity-access-service`, todos sem falhas ou erros; os testes
+  comprovam propagacao de contexto, ausencia de monolito e `403 FORBIDDEN` sem
+  autoridade;
+- os contratos funcionais de autenticacao e administracao da B1 estao
+  oficializados; a B1 permanece **em andamento** somente para migrations, banco
+  proprio e backfill controlado.

@@ -12,6 +12,7 @@ import br.com.escola.identityaccessservice.application.context.InternalHeaders;
 import br.com.escola.identityaccessservice.application.context.InternalRequestContext;
 import br.com.escola.identityaccessservice.application.exception.InternalApiUnauthorizedException;
 import br.com.escola.identityaccessservice.application.exception.InvalidRequestContextException;
+import br.com.escola.identityaccessservice.application.port.out.AutorizacaoAdministrativaPort;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -19,9 +20,13 @@ import jakarta.servlet.http.HttpServletResponse;
 public class InternalApiInterceptor implements HandlerInterceptor {
 
     private final byte[] configuredToken;
+    private final AutorizacaoAdministrativaPort autorizacaoAdministrativaPort;
 
-    public InternalApiInterceptor(@Value("${identity-access.internal-api.token:}") String configuredToken) {
+    public InternalApiInterceptor(
+            @Value("${identity-access.internal-api.token:}") String configuredToken,
+            AutorizacaoAdministrativaPort autorizacaoAdministrativaPort) {
         this.configuredToken = configuredToken.getBytes(StandardCharsets.UTF_8);
+        this.autorizacaoAdministrativaPort = autorizacaoAdministrativaPort;
     }
 
     @Override
@@ -35,9 +40,23 @@ public class InternalApiInterceptor implements HandlerInterceptor {
         UUID escolaId = authenticationLifecycle ? null : uuidHeader(request, InternalHeaders.ESCOLA_ID);
         InternalRequestContext context = new InternalRequestContext(correlationId, usuarioId, escolaId);
 
+        if (request.getRequestURI().matches(".*/(usuarios|perfis|permissoes)(/[^/]+)?$")) {
+            autorizacaoAdministrativaPort.autorizar(usuarioId, autoridade(request));
+        }
+
         request.setAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE, context);
         response.setHeader(InternalHeaders.CORRELATION_ID, correlationId);
         return true;
+    }
+
+    private String autoridade(HttpServletRequest request) {
+        return switch (request.getMethod()) {
+            case "POST" -> "CREATE";
+            case "PUT" -> "UPDATE";
+            case "DELETE" -> "DELETE";
+            case "GET" -> request.getRequestURI().matches(".*/[^/]+/[^/]+$") ? "READ" : "READ_ALL";
+            default -> throw new InvalidRequestContextException("Metodo administrativo nao suportado");
+        };
     }
 
     private void authorize(String providedToken) {

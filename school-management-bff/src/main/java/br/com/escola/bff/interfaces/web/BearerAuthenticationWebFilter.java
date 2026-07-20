@@ -61,6 +61,9 @@ public class BearerAuthenticationWebFilter implements WebFilter {
             return false;
         }
         String path = exchange.getRequest().getPath().value();
+        if (path.matches("^/api/(usuarios|perfis|permissoes)(/[^/]+)?$")) {
+            return true;
+        }
         if (HttpMethod.POST.equals(method) && "/api/periodos-letivos".equals(path)) {
             return true;
         }

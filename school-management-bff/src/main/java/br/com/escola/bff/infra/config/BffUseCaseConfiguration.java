@@ -12,6 +12,7 @@ import br.com.escola.bff.application.port.out.CatalogoTurnoResolverPort;
 import br.com.escola.bff.application.port.out.CatalogoTurmaDisciplinaWritePort;
 import br.com.escola.bff.application.port.out.CatalogoTurmaWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
+import br.com.escola.bff.application.port.out.AdministracaoAcessoPort;
 import br.com.escola.bff.application.port.out.CatalogReadObservabilityPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
 import br.com.escola.bff.application.port.out.PainelAcademicoReadPort;
@@ -65,6 +66,7 @@ import br.com.escola.bff.application.service.AulaReadProxyService;
 import br.com.escola.bff.application.service.AulaWriteProxyService;
 import br.com.escola.bff.application.service.AlunoResponsavelReadProxyService;
 import br.com.escola.bff.application.service.AuthSessionProxyService;
+import br.com.escola.bff.application.service.AdministracaoAcessoProxyService;
 import br.com.escola.bff.application.service.AutenticacaoProxyService;
 import br.com.escola.bff.application.service.BibliotecaConteudoPedagogicoReadProxyService;
 import br.com.escola.bff.application.service.BoletimReadProxyService;
@@ -113,6 +115,7 @@ import br.com.escola.bff.application.service.TurmaWriteRoutingService;
 import br.com.escola.bff.application.usecase.ConsultarCadastroPessoaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAuthSessionUseCase;
+import br.com.escola.bff.application.port.in.AdministrarAcessoUseCase;
 import br.com.escola.bff.application.usecase.GerenciarAutenticacaoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAvaliacaoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAulaUseCase;
@@ -180,6 +183,13 @@ public class BffUseCaseConfiguration {
             InternalAuthContextPort authContextPort,
             ConsultaCadastralReadPort peopleCadastroReadPort) {
         return new CadastroPessoaReadProxyService(authContextPort, peopleCadastroReadPort);
+    }
+
+    @Bean
+    AdministrarAcessoUseCase administrarAcessoUseCase(
+            InternalAuthContextPort authContextPort,
+            AdministracaoAcessoPort administracaoAcessoPort) {
+        return new AdministracaoAcessoProxyService(authContextPort, administracaoAcessoPort);
     }
 
     @Bean

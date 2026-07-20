@@ -5172,3 +5172,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   limpeza de sessao.
 - A administracao interna esta completa; permanecem na B1 a exposicao dos CRUDs
   no BFF, migrations, banco proprio e backfill controlado.
+- No sexto recorte da B1, o BFF oficializou os 15 contratos CRUD de usuarios,
+  perfis e permissoes, todos encaminhados exclusivamente ao
+  `identity-access-service` depois da resolucao do contexto autenticado.
+- As rotas administrativas exigem Bearer no BFF e, no servico dono, perfil ou
+  permissao `ADMIN` ou a autoridade especifica correspondente ao metodo. A
+  ausencia de autoridade retorna `403 FORBIDDEN`.
+- A validacao executou quatro testes de integracao no BFF e dez testes no
+  `identity-access-service`, sem falhas ou erros, comprovando tambem ausencia de
+  trafego ao monolito.
+- Permanecem na B1 somente migrations, banco proprio e backfill controlado do
+  estado de identidade e acesso.

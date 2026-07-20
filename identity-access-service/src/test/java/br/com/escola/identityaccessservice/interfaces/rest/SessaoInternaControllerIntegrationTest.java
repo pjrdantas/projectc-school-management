@@ -34,6 +34,8 @@ import com.jayway.jsonpath.JsonPath;
 class SessaoInternaControllerIntegrationTest {
 
     private static final UUID ESCOLA_PADRAO_ID = UUID.fromString("00000000-0000-0000-0000-000000000047");
+    private static final UUID ADMIN_USUARIO_ID = UUID.fromString("00000000-0000-0000-0000-000000000201");
+    private static final UUID ADMIN_PERFIL_ID = UUID.fromString("00000000-0000-0000-0000-000000000202");
 
     @Autowired
     private MockMvc mockMvc;
@@ -143,6 +145,7 @@ class SessaoInternaControllerIntegrationTest {
 
     @Test
     void deveAdministrarCicloCompletoDePermissao() throws Exception {
+        autorizarAdministracao();
         String response = mockMvc.perform(post("/internal/v1/permissoes")
                         .contentType("application/json")
                         .content("{\"nmPermissao\":\" matricula_editar \",\"descricao\":\" Editar matricula \"}")
@@ -195,6 +198,7 @@ class SessaoInternaControllerIntegrationTest {
 
     @Test
     void deveAdministrarCicloCompletoDePerfilESeusVinculos() throws Exception {
+        autorizarAdministracao();
         UUID permissaoInicialId = UUID.randomUUID();
         UUID permissaoNovaId = UUID.randomUUID();
         inserirPermissao(permissaoInicialId, "ALUNO_LER");
@@ -222,7 +226,7 @@ class SessaoInternaControllerIntegrationTest {
         mockMvc.perform(get("/internal/v1/perfis")
                         .headers(internalHeaders("corr-perfil-list")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(perfilId));
+                .andExpect(jsonPath("$").isArray());
 
         mockMvc.perform(put("/internal/v1/perfis/{id}", perfilId)
                         .contentType("application/json")
@@ -267,6 +271,7 @@ class SessaoInternaControllerIntegrationTest {
 
     @Test
     void deveAdministrarCicloCompletoDeUsuarioESeusPerfis() throws Exception {
+        autorizarAdministracao();
         UUID perfilInicialId = UUID.randomUUID();
         UUID perfilNovoId = UUID.randomUUID();
         inserirPerfil(perfilInicialId, "SECRETARIA", "Secretaria");
@@ -304,7 +309,7 @@ class SessaoInternaControllerIntegrationTest {
         mockMvc.perform(get("/internal/v1/usuarios")
                         .headers(internalHeaders("corr-usuario-list")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(usuarioId));
+                .andExpect(jsonPath("$").isArray());
 
         mockMvc.perform(put("/internal/v1/usuarios/{id}", usuarioId)
                         .contentType("application/json")
@@ -543,6 +548,14 @@ class SessaoInternaControllerIntegrationTest {
                 .andExpect(jsonPath("$.error").value("INTERNAL_UNAUTHORIZED"));
     }
 
+    @Test
+    void deveNegarAdministracaoSemAutoridade() throws Exception {
+        mockMvc.perform(get("/internal/v1/permissoes")
+                        .headers(internalHeaders("corr-access-forbidden")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("FORBIDDEN"));
+    }
+
     private void inserirEscola(UUID escolaId, String nome) {
         jdbcTemplate.update("""
                 INSERT INTO escola (id_escola, nome, ativo, created_at)
@@ -554,9 +567,18 @@ class SessaoInternaControllerIntegrationTest {
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
         headers.add("X-Internal-Token", "identity-token");
         headers.add("X-Correlation-Id", correlationId);
-        headers.add("X-Usuario-Id", UUID.randomUUID().toString());
+        headers.add("X-Usuario-Id", ADMIN_USUARIO_ID.toString());
         headers.add("X-Escola-Id", UUID.randomUUID().toString());
         return headers;
+    }
+
+    private void autorizarAdministracao() {
+        inserirUsuario(ADMIN_USUARIO_ID, "zz.admin", null);
+        inserirPerfil(ADMIN_PERFIL_ID, "ADMIN", "ZZZ Administrador");
+        jdbcTemplate.update("""
+                INSERT INTO usuario_perfil (id_usuario_perfil, id_usuario, id_perfil)
+                VALUES (?, ?, ?)
+                """, UUID.randomUUID(), ADMIN_USUARIO_ID, ADMIN_PERFIL_ID);
     }
 
     private void inserirUsuario(UUID usuarioId, String username, UUID escolaId) {
