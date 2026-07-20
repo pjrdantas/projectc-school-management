@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestClientResponseException;
 
 import br.com.escola.peopleservice.application.context.InternalHeaders;
+import br.com.escola.peopleservice.application.exception.ConflitoPessoaException;
 import br.com.escola.peopleservice.application.exception.DownstreamUnavailableException;
 import br.com.escola.peopleservice.application.exception.InternalApiUnauthorizedException;
 import br.com.escola.peopleservice.application.exception.InvalidRequestContextException;
@@ -19,6 +20,13 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    @ExceptionHandler(ConflitoPessoaException.class)
+    ResponseEntity<ApiErrorResponse> handleConflict(
+            ConflitoPessoaException exception,
+            HttpServletRequest request) {
+        return response(HttpStatus.CONFLICT, "CONFLICT", exception.getMessage(), request);
+    }
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     ResponseEntity<ApiErrorResponse> handleNotFound(

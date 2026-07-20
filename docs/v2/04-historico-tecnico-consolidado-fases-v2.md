@@ -5318,3 +5318,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A validacao do `people-service` executou 61 testes sem falhas ou erros e
   comprovou a V10 em banco vazio e sobre schema v9 com dados existentes. Restam
   **7 recortes na B3**, iniciando pela criacao interna atomica.
+
+## 20/07/2026 - Segundo recorte da B3: criacao interna atomica de aluno
+
+- O `people-service` passou a expor `POST /internal/v1/alunos`, com contrato de
+  entrada e saida compativel com a futura oficializacao publica, sem alterar o
+  BFF.
+- A aplicacao restringe a escola ao contexto interno autenticado e consulta o
+  `institutional-tenant-service` para obter a escola autoritativa, rejeitando
+  escola inexistente ou inativa.
+- A persistencia local cria pessoa, tipo `ALUNO`, endereco principal opcional e
+  aluno na mesma transacao. Falhas provocam rollback integral, status ausente
+  assume `ATIVO` e CPF repetido na mesma escola resulta em conflito `409`.
+- Frontend, monolito, responsaveis e `aluno_responsavel` permaneceram intactos.
+- A validacao restrita ao `people-service` executou 67 testes sem falhas ou
+  erros, cobrindo contrato HTTP interno, regras da aplicacao, integracao
+  institucional, agregado persistido e rollback. Restam **6 recortes na B3**;
+  o proximo e a atualizacao interna de pessoa, aluno, contato e endereco.

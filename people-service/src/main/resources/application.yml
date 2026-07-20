@@ -14,6 +14,11 @@ management:
 people:
   internal-api:
     token: ${PEOPLE_INTERNAL_API_TOKEN:people-internal-local-token}
+  school-catalog:
+    base-url: ${PEOPLE_SCHOOL_CATALOG_BASE_URL:http://localhost:8092}
+    internal-token: ${PEOPLE_SCHOOL_CATALOG_INTERNAL_TOKEN:}
+    connect-timeout: ${PEOPLE_SCHOOL_CATALOG_CONNECT_TIMEOUT:2s}
+    read-timeout: ${PEOPLE_SCHOOL_CATALOG_READ_TIMEOUT:5s}
   read-model:
     enabled: ${PEOPLE_READ_MODEL_ENABLED:true}
     migration-enabled: ${PEOPLE_READ_MODEL_MIGRATION_ENABLED:true}

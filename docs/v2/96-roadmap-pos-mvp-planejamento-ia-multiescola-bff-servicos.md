@@ -10194,3 +10194,23 @@ Primeiro recorte da B3 entregue em 20/07/2026:
   pessoa e aluno existentes;
 - a B3 permanece **em andamento**, com **7 recortes restantes**. O proximo e a
   criacao interna atomica de pessoa, aluno e endereco principal.
+
+Segundo recorte da B3 entregue em 20/07/2026:
+
+- o `people-service` passou a expor `POST /internal/v1/alunos`, preservando o
+  formato de entrada e saida necessario a futura compatibilizacao da rota
+  publica, sem alterar o BFF neste recorte;
+- a escola informada e limitada ao contexto interno autenticado e resolvida no
+  `institutional-tenant-service`; escola inexistente ou inativa impede a
+  criacao, sem replicar a propriedade do dominio institucional;
+- pessoa, tipo `ALUNO`, endereco principal opcional e aluno sao persistidos no
+  banco local em uma unica transacao, com rollback integral em caso de falha;
+- o status ausente assume `ATIVO`, catalogos obrigatorios sao resolvidos
+  localmente e CPF duplicado na mesma escola produz conflito `409`;
+- nenhuma rota publica, frontend, monolito ou estrutura de responsaveis e
+  `aluno_responsavel` foi alterada;
+- validacao restrita ao `people-service`: 67 testes, zero falhas e zero erros,
+  cobrindo servico de aplicacao, contrato HTTP interno, cliente institucional,
+  persistencia do agregado e rollback;
+- a B3 permanece **em andamento**, com **6 recortes restantes**. O proximo e a
+  atualizacao interna de pessoa, aluno, contato e endereco.
