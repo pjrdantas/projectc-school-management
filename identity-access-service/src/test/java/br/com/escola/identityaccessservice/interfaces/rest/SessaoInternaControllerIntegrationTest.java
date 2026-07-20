@@ -76,9 +76,9 @@ class SessaoInternaControllerIntegrationTest {
         jdbcTemplate.execute("""
                 CREATE TABLE usuario (
                     id_usuario UUID PRIMARY KEY,
-                    username VARCHAR(80) NOT NULL,
+                    username VARCHAR(80) NOT NULL UNIQUE,
                     nome VARCHAR(150) NOT NULL,
-                    email VARCHAR(150) NOT NULL,
+                    email VARCHAR(150) NOT NULL UNIQUE,
                     senha_hash VARCHAR(255) NOT NULL,
                     ativo BOOLEAN NOT NULL,
                     created_at TIMESTAMP NOT NULL,
@@ -262,6 +262,100 @@ class SessaoInternaControllerIntegrationTest {
 
         mockMvc.perform(get("/internal/v1/perfis/{id}", perfilId)
                         .headers(internalHeaders("corr-perfil-missing")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveAdministrarCicloCompletoDeUsuarioESeusPerfis() throws Exception {
+        UUID perfilInicialId = UUID.randomUUID();
+        UUID perfilNovoId = UUID.randomUUID();
+        inserirPerfil(perfilInicialId, "SECRETARIA", "Secretaria");
+        inserirPerfil(perfilNovoId, "DIRECAO", "Direcao");
+
+        String response = mockMvc.perform(post("/internal/v1/usuarios")
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "login":" usuario.admin ",
+                                  "nome":" Usuario Administrativo ",
+                                  "email":"USUARIO@ESCOLA.COM",
+                                  "senha":"senha-segura",
+                                  "ativo":true,
+                                  "perfisIds":["%s"]
+                                }
+                                """.formatted(perfilInicialId))
+                        .headers(internalHeaders("corr-usuario-create")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.username").value("usuario.admin"))
+                .andExpect(jsonPath("$.login").value("usuario.admin"))
+                .andExpect(jsonPath("$.email").value("usuario@escola.com"))
+                .andExpect(jsonPath("$.perfilIds[0]").value(perfilInicialId.toString()))
+                .andExpect(jsonPath("$.senhaHash").doesNotExist())
+                .andReturn().getResponse().getContentAsString();
+        String usuarioId = JsonPath.read(response, "$.id");
+
+        String senhaPersistida = jdbcTemplate.queryForObject(
+                "SELECT senha_hash FROM usuario WHERE id_usuario = ?",
+                String.class,
+                UUID.fromString(usuarioId));
+        assertThat(senhaPersistida).isNotEqualTo("senha-segura");
+        assertThat(passwordEncoder.matches("senha-segura", senhaPersistida)).isTrue();
+
+        mockMvc.perform(get("/internal/v1/usuarios")
+                        .headers(internalHeaders("corr-usuario-list")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(usuarioId));
+
+        mockMvc.perform(put("/internal/v1/usuarios/{id}", usuarioId)
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "username":"usuario.gestor",
+                                  "nome":"Usuario Gestor",
+                                  "email":"gestor@escola.com",
+                                  "senhaHash":"nova-senha",
+                                  "ativo":true,
+                                  "perfilIds":["%s"]
+                                }
+                                """.formatted(perfilNovoId))
+                        .headers(internalHeaders("corr-usuario-update")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("usuario.gestor"))
+                .andExpect(jsonPath("$.perfilIds[0]").value(perfilNovoId.toString()));
+
+        Integer oldLinks = jdbcTemplate.queryForObject("""
+                SELECT COUNT(1) FROM usuario_perfil
+                WHERE id_usuario = ? AND id_perfil = ?
+                """, Integer.class, UUID.fromString(usuarioId), perfilInicialId);
+        assertThat(oldLinks).isZero();
+
+        mockMvc.perform(post("/internal/v1/usuarios")
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "username":"outro.usuario",
+                                  "nome":"Outro Usuario",
+                                  "email":"gestor@escola.com",
+                                  "senhaHash":"senha",
+                                  "perfilIds":["%s"]
+                                }
+                                """.formatted(perfilNovoId))
+                        .headers(internalHeaders("corr-usuario-conflict")))
+                .andExpect(status().isConflict());
+
+        inserirSessao(UUID.fromString(usuarioId), null, "token-usuario-administrado");
+        mockMvc.perform(delete("/internal/v1/usuarios/{id}", usuarioId)
+                        .headers(internalHeaders("corr-usuario-delete")))
+                .andExpect(status().isNoContent());
+
+        Integer sessions = jdbcTemplate.queryForObject(
+                "SELECT COUNT(1) FROM sessao_autenticacao WHERE id_usuario = ?",
+                Integer.class,
+                UUID.fromString(usuarioId));
+        assertThat(sessions).isZero();
+
+        mockMvc.perform(get("/internal/v1/usuarios/{id}", usuarioId)
+                        .headers(internalHeaders("corr-usuario-missing")))
                 .andExpect(status().isNotFound());
     }
 

@@ -9866,3 +9866,23 @@ Quarto recorte da B1 entregue em 20/07/2026:
 - a B1 permanece **em andamento**: faltam CRUD de usuarios, oficializacao dos
   contratos administrativos no BFF, migrations, banco proprio e backfill
   controlado.
+
+Quinto recorte da B1 entregue em 20/07/2026:
+
+- o `identity-access-service` passou a possuir CRUD interno completo de usuarios
+  em `/internal/v1/usuarios`, com manutencao transacional de `usuario_perfil`;
+- o contrato aceita os aliases `login`, `senha` e `perfisIds`, mantendo-os nos
+  DTOs de interface; senha e protegida por uma porta propria e persistida apenas
+  como BCrypt;
+- nenhum response expoe senha ou hash, e username, nome e email sao
+  normalizados antes da persistencia;
+- criacao e atualizacao exigem ao menos um perfil existente e substituem os
+  vinculos anteriores na mesma transacao;
+- duplicidade de username/email retorna `409 CONFLICT`, inexistencia retorna
+  `404 RESOURCE_NOT_FOUND` e a exclusao remove sessoes e associacoes antes do
+  cadastro, preservando conflito para outros vinculos ainda ativos;
+- validacao restrita ao `identity-access-service`: nove testes, zero falhas e
+  zero erros, incluindo BCrypt, troca de perfil, conflito e limpeza de sessao;
+- a administracao interna de usuarios, perfis e permissoes esta implementada,
+  mas a B1 permanece **em andamento**: faltam oficializacao administrativa no
+  BFF, migrations, banco proprio e backfill controlado.

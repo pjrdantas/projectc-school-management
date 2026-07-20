@@ -5162,3 +5162,13 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A validacao do modulo executou oito testes sem falhas ou erros. Permanecem na
   B1 o CRUD de usuarios, a exposicao administrativa no BFF, migrations, banco
   proprio e backfill controlado.
+- No quinto recorte da B1, o `identity-access-service` recebeu CRUD interno
+  completo de usuarios e manutencao transacional de `usuario_perfil`.
+- Senhas passam por porta propria de protecao BCrypt, nunca aparecem nos
+  responses, e a exclusao remove sessoes e associacoes do usuario antes do
+  cadastro.
+- A validacao do modulo executou nove testes sem falhas ou erros, cobrindo
+  protecao de senha, substituicao de perfil, conflito de username/email e
+  limpeza de sessao.
+- A administracao interna esta completa; permanecem na B1 a exposicao dos CRUDs
+  no BFF, migrations, banco proprio e backfill controlado.
