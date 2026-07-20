@@ -5301,3 +5301,20 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   automaticamente, pois as cargas continuam opt-in.
 - A **B2 foi concluida**. O ciclo fechado segue para a B3, escritas de pessoas
   e alunos.
+
+## 20/07/2026 - Abertura da B3 em oito recortes fechados
+
+- A B3 foi definida em **8 recortes**: schema de escrita, criacao atomica,
+  atualizacao, exclusao segura, compatibilidade de leitura, oficializacao no
+  BFF, backfill e corte operacional final com saneamento de nomenclatura.
+- A etapa pertence ao `people-service` e cobre pessoa, aluno, contato e
+  endereco necessarios ao contrato publico de alunos.
+- Responsaveis e `aluno_responsavel` continuam pertencendo a B4; a B3 pode
+  apenas compor a leitura da ficha pelo contrato oficial do servico dono.
+- No primeiro recorte da B3, o schema local de `aluno` recebeu escola, status,
+  dados academicos, ciclo de vida e indices necessarios as escritas futuras.
+- A evolucao preenche `id_escola` a partir de `pessoa`, mantem a escola como
+  referencia externa e aplica FK somente ao catalogo local `status_aluno`.
+- A validacao do `people-service` executou 61 testes sem falhas ou erros e
+  comprovou a V10 em banco vazio e sobre schema v9 com dados existentes. Restam
+  **7 recortes na B3**, iniciando pela criacao interna atomica.

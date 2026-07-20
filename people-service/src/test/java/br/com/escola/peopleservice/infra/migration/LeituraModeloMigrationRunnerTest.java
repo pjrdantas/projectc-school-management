@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.sql.DriverManager;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -159,6 +160,29 @@ class LeituraModeloMigrationRunnerTest {
         try (var connection = DriverManager.getConnection(url, "sa", "");
                 var resultSet = connection.getMetaData().getTables(null, null, "people_professor_read_model", null)) {
             assertThat(resultSet.next()).isTrue();
+        }
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+                var statement = connection.prepareStatement("""
+                        SELECT column_name
+                        FROM information_schema.columns
+                        WHERE table_name = 'aluno'
+                        """);
+                var resultSet = statement.executeQuery()) {
+            List<String> alunoColumns = new ArrayList<>();
+            while (resultSet.next()) {
+                alunoColumns.add(resultSet.getString("column_name"));
+            }
+            assertThat(alunoColumns).contains(
+                            "id_escola",
+                            "id_status_aluno",
+                            "ra",
+                            "rm",
+                            "emancipado",
+                            "data_ingresso",
+                            "data_saida",
+                            "motivo_saida",
+                            "ativo",
+                            "updated_at");
         }
     }
 }

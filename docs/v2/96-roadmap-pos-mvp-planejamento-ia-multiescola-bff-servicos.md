@@ -10157,3 +10157,40 @@ Setimo e ultimo recorte da B2 entregue em 20/07/2026:
   permanecem desabilitadas por padrao e exigem ativacao explicita;
 - a **B2 esta concluida**. O ciclo fechado segue para a **B3 - escritas de
   pessoas e alunos**.
+
+## Execucao fechada da B3 - Escritas de pessoas e alunos
+
+Quantidade fechada da B3: **8 recortes**.
+
+1. schema definitivo para escrita de pessoa, aluno e endereco;
+2. criacao interna atomica de pessoa, aluno e endereco principal;
+3. atualizacao interna de pessoa, aluno, contato e endereco;
+4. exclusao segura do aluno e tratamento das dependencias;
+5. compatibilidade completa das leituras publicas de aluno, inclusive ficha;
+6. oficializacao do conjunto publico no BFF sem caminho para o monolito;
+7. backfill controlado e reconciliado do estado necessario as escritas;
+8. datasource e Flyway definitivos, saneamento dos nomes tecnicos transitorios,
+   prova integrada e encerramento da B3.
+
+O limite da B3 preserva a separacao de dominios: CRUD de responsaveis e
+manutencao de `aluno_responsavel` permanecem na B4. A ficha do aluno pode
+compor a leitura oficial de responsaveis, mas nao transfere a propriedade desse
+vinculo para o `people-service`.
+
+Primeiro recorte da B3 entregue em 20/07/2026:
+
+- o schema local de `aluno` passou a conter escola, status, RA, RM, emancipacao,
+  datas e motivo de saida, status ativo e timestamp de atualizacao necessarios
+  ao ciclo de escrita;
+- `id_escola` e preenchido a partir da pessoa associada durante a evolucao de
+  dados existentes, sem criar FK para o dominio institucional;
+- o status do aluno possui integridade referencial com o catalogo local
+  `status_aluno`, e indices foram adicionados para consultas por escola, estado
+  ativo, nome e status;
+- nenhuma rota de escrita foi aberta neste recorte e nenhuma tabela de
+  responsaveis ou vinculos teve sua propriedade alterada;
+- validacao restrita ao `people-service`: 61 testes, zero falhas e zero erros;
+  a migration foi provada tanto em banco vazio quanto sobre schema v9 com
+  pessoa e aluno existentes;
+- a B3 permanece **em andamento**, com **7 recortes restantes**. O proximo e a
+  criacao interna atomica de pessoa, aluno e endereco principal.
