@@ -10,10 +10,6 @@ server:
   port: ${SERVER_PORT:8081}
 
 clients:
-  monolith:
-    base-url: ${MONOLITH_BASE_URL:http://localhost:8080}
-    connect-timeout: ${MONOLITH_CONNECT_TIMEOUT:2s}
-    response-timeout: ${MONOLITH_RESPONSE_TIMEOUT:3s}
   catalog-service:
     base-url: ${CATALOG_SERVICE_BASE_URL:http://localhost:8082}
     connect-timeout: ${CATALOG_SERVICE_CONNECT_TIMEOUT:2s}
@@ -29,6 +25,11 @@ clients:
     connect-timeout: ${RESPONSIBLES_SERVICE_CONNECT_TIMEOUT:2s}
     response-timeout: ${RESPONSIBLES_SERVICE_RESPONSE_TIMEOUT:3s}
     internal-token: ${RESPONSIBLES_INTERNAL_API_TOKEN:}
+  academic-professor-service:
+    base-url: ${ACADEMIC_PROFESSOR_SERVICE_BASE_URL:http://localhost:8093}
+    connect-timeout: ${ACADEMIC_PROFESSOR_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${ACADEMIC_PROFESSOR_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${ACADEMIC_PROFESSOR_INTERNAL_API_TOKEN:}
   identity-access-service:
     base-url: ${IDENTITY_ACCESS_SERVICE_BASE_URL:http://localhost:8091}
     connect-timeout: ${IDENTITY_ACCESS_SERVICE_CONNECT_TIMEOUT:2s}
@@ -75,46 +76,6 @@ features:
   pedagogical-write-proxy-enabled: ${PEDAGOGICAL_WRITE_PROXY_ENABLED:true}
   planning-ai-read-proxy-enabled: ${PLANNING_AI_READ_PROXY_ENABLED:true}
   planning-ai-write-proxy-enabled: ${PLANNING_AI_WRITE_PROXY_ENABLED:true}
-  identity-tenant-cutover:
-    enabled: ${IDENTITY_TENANT_CUTOVER_ENABLED:true}
-    fallback-to-monolith-on-error: ${IDENTITY_TENANT_FALLBACK_TO_MONOLITH_ON_ERROR:true}
-    routes:
-      auth-escolas: ${IDENTITY_TENANT_ROUTE_AUTH_ESCOLAS:true}
-      auth-escola-ativa: ${IDENTITY_TENANT_ROUTE_AUTH_ESCOLA_ATIVA:true}
-  catalog-read-cutover:
-    enabled: ${CATALOG_READ_CUTOVER_ENABLED:false}
-    report-path: ${CATALOG_READ_CUTOVER_REPORT_PATH:}
-    fallback-to-monolith-on-error: ${CATALOG_READ_FALLBACK_TO_MONOLITH_ON_ERROR:true}
-    routes:
-      disciplinas: ${CATALOG_READ_ROUTE_DISCIPLINAS:false}
-      disciplina-by-id: ${CATALOG_READ_ROUTE_DISCIPLINA_BY_ID:false}
-      periodos-letivos: ${CATALOG_READ_ROUTE_PERIODOS_LETIVOS:false}
-      periodo-letivo-by-id: ${CATALOG_READ_ROUTE_PERIODO_LETIVO_BY_ID:false}
-      series: ${CATALOG_READ_ROUTE_SERIES:false}
-      serie-by-id: ${CATALOG_READ_ROUTE_SERIE_BY_ID:false}
-      turnos: ${CATALOG_READ_ROUTE_TURNOS:false}
-      turno-by-id: ${CATALOG_READ_ROUTE_TURNO_BY_ID:false}
-      turmas: ${CATALOG_READ_ROUTE_TURMAS:false}
-      turma-by-id: ${CATALOG_READ_ROUTE_TURMA_BY_ID:false}
-      turma-disciplinas: ${CATALOG_READ_ROUTE_TURMA_DISCIPLINAS:false}
-      catalogos-niveis-ensino: ${CATALOG_READ_ROUTE_CATALOGOS_NIVEIS_ENSINO:false}
-      catalogos-turnos: ${CATALOG_READ_ROUTE_CATALOGOS_TURNOS:false}
-  catalog-write-cutover:
-    enabled: ${CATALOG_WRITE_CUTOVER_ENABLED:false}
-    routes:
-      periodos-letivos: ${CATALOG_WRITE_ROUTE_PERIODOS_LETIVOS:false}
-      disciplinas: ${CATALOG_WRITE_ROUTE_DISCIPLINAS:false}
-      series: ${CATALOG_WRITE_ROUTE_SERIES:false}
-      turmas: ${CATALOG_WRITE_ROUTE_TURMAS:false}
-      turma-disciplinas: ${CATALOG_WRITE_ROUTE_TURMA_DISCIPLINAS:false}
-
-resilience:
-  monolith:
-    failure-rate-threshold: ${MONOLITH_CB_FAILURE_RATE:50}
-    minimum-number-of-calls: ${MONOLITH_CB_MIN_CALLS:5}
-    sliding-window-size: ${MONOLITH_CB_WINDOW_SIZE:10}
-    open-state-duration: ${MONOLITH_CB_OPEN_DURATION:30s}
-
 management:
   endpoints:
     web:

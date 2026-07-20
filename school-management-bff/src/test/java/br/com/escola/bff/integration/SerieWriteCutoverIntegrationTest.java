@@ -34,7 +34,8 @@ class SerieWriteCutoverIntegrationTest {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.catalog-service.base-url", () -> CATALOG.url("/").toString());
         registry.add("clients.catalog-service.internal-token", () -> "internal-token");
         registry.add("features.catalog-write-cutover.enabled", () -> true);
@@ -100,7 +101,7 @@ class SerieWriteCutoverIntegrationTest {
                 .jsonPath("$.escolaNome").isEqualTo("Escola padrao");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var niveisRequest = CATALOG.takeRequest();
         assertThat(niveisRequest.getPath()).isEqualTo("/internal/v1/catalogos/niveis-ensino");
         var serieRequest = CATALOG.takeRequest();
@@ -147,7 +148,7 @@ class SerieWriteCutoverIntegrationTest {
                 .jsonPath("$.code").isEqualTo("INVALID_REQUEST");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var niveisRequest = CATALOG.takeRequest();
         assertThat(niveisRequest.getPath()).isEqualTo("/internal/v1/catalogos/niveis-ensino");
         assertThat(MONOLITH.getRequestCount()).isEqualTo(1);
@@ -192,7 +193,7 @@ class SerieWriteCutoverIntegrationTest {
                 .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var niveisRequest = CATALOG.takeRequest();
         assertThat(niveisRequest.getPath()).isEqualTo("/internal/v1/catalogos/niveis-ensino");
         var serieRequest = CATALOG.takeRequest();

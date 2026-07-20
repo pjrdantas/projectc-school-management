@@ -24,7 +24,6 @@ import okhttp3.mockwebserver.MockWebServer;
 @AutoConfigureWebTestClient
 class AvaliacaoWriteProxyIntegrationTest {
 
-    private static final MockWebServer MONOLITH = startServer();
     private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer PEDAGOGICAL = startServer();
 
@@ -35,7 +34,6 @@ class AvaliacaoWriteProxyIntegrationTest {
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
         registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
-        registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
         registry.add("clients.pedagogical-service.base-url", () -> PEDAGOGICAL.url("/").toString());
         registry.add("clients.pedagogical-service.internal-token", () -> "pedagogical-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
@@ -43,19 +41,18 @@ class AvaliacaoWriteProxyIntegrationTest {
 
     @AfterAll
     static void stopServers() throws IOException {
-        MONOLITH.shutdown();
         IDENTITY_ACCESS.shutdown();
         PEDAGOGICAL.shutdown();
     }
 
     @Test
-    void deveConsumirMonolitoEpedagogicalServiceNaCriacaoDeAvaliacao() throws InterruptedException {
+    void deveConsumirIdentityAccessEPedagogicalServiceNaCriacaoDeAvaliacao() throws InterruptedException {
         UUID alocacaoId = UUID.randomUUID();
         String requestBody = """
                 {"professorTurmaDisciplinaId":"%s","titulo":"Prova fase 130","descricao":"Avaliacao integrada","dataAplicacao":"2039-04-15","valorMaximo":10.00,"peso":1.00,"tipoAvaliacao":"PROVA"}
                 """.formatted(alocacaoId);
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
@@ -78,23 +75,22 @@ class AvaliacaoWriteProxyIntegrationTest {
                 .expectBody()
                 .jsonPath("$.professorTurmaDisciplinaId").isEqualTo(alocacaoId.toString());
 
-        var authRequest = MONOLITH.takeRequest();
-        assertThat(authRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        var authRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(authRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes");
         assertThat(request.getBody().readUtf8()).isEqualTo(requestBody);
-        assertThat(IDENTITY_ACCESS.getRequestCount()).isZero();
     }
 
     @Test
-    void deveConsumirMonolitoEpedagogicalServiceNoLancamentoDeNota() throws InterruptedException {
+    void deveConsumirIdentityAccessEPedagogicalServiceNoLancamentoDeNota() throws InterruptedException {
         UUID avaliacaoId = UUID.randomUUID();
         UUID matriculaId = UUID.randomUUID();
         String requestBody = """
                 {"matriculaId":"%s","nota":8.50,"observacao":"Boa participacao"}
                 """.formatted(matriculaId);
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {"usuarioId":"00000000-0000-0000-0000-000000000101","escolaId":"00000000-0000-0000-0000-000000000047","escolaNome":"Escola padrao"}
@@ -118,11 +114,10 @@ class AvaliacaoWriteProxyIntegrationTest {
                 .jsonPath("$.avaliacaoId").isEqualTo(avaliacaoId.toString())
                 .jsonPath("$.matriculaId").isEqualTo(matriculaId.toString());
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getPath()).isEqualTo("/internal/v1/avaliacoes/" + avaliacaoId + "/notas");
         assertThat(request.getBody().readUtf8()).isEqualTo(requestBody);
-        assertThat(IDENTITY_ACCESS.getRequestCount()).isZero();
     }
 
     private static MockWebServer startServer() {

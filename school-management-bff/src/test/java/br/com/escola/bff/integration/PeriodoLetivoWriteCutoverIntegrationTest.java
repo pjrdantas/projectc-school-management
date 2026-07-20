@@ -34,7 +34,8 @@ class PeriodoLetivoWriteCutoverIntegrationTest {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.catalog-service.base-url", () -> CATALOG.url("/").toString());
         registry.add("clients.catalog-service.internal-token", () -> "internal-token");
         registry.add("features.catalog-write-cutover.enabled", () -> true);
@@ -92,7 +93,7 @@ class PeriodoLetivoWriteCutoverIntegrationTest {
                 .jsonPath("$.ano").isEqualTo(2026);
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var catalogRequest = CATALOG.takeRequest();
         assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/periodos-letivos");
         assertThat(catalogRequest.getHeader("X-Internal-Token")).isEqualTo("internal-token");
@@ -129,7 +130,7 @@ class PeriodoLetivoWriteCutoverIntegrationTest {
                 .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var catalogRequest = CATALOG.takeRequest();
         assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/periodos-letivos");
     }

@@ -9287,10 +9287,32 @@ Definicao objetiva:
 
 ### Fase D14 - Corte externo final sem monolito
 
-- garantir que `school-management-web`, `school-management-bff` e qualquer
-  cliente externo consumam apenas BFF/servicos novos, sem chamada direta ao
+- concluida com a retirada do client, das propriedades
+  `clients.monolith.*`, dos ports/clients `Legacy*`, do circuit breaker e das
+  dependencias Resilience4j que existiam exclusivamente para acesso do BFF ao
   `school-management-service`;
-- eliminar feature flags de fallback cujo unico destino ainda seja o monolito.
+- a resolucao de contexto autenticado usada pelas escritas oficiais passou a
+  consumir exclusivamente
+  `identity-access-service:/internal/v1/auth/contexto-atual`;
+- foram removidos flags, policies, deciders, health indicators e metricas de
+  cutover/fallback cujo destino funcional era o monolito, preservando somente
+  os flags que habilitam rotas oficiais no proprio BFF;
+- o host e os oito MFEs com fallback local de configuracao passaram a usar
+  `http://localhost:8081`, porta do `school-management-bff`, sem alteracao de
+  telas ou contratos publicos;
+- agregadores JUnit redundantes foram removidos para que os testes de
+  integracao sejam descobertos e executados uma unica vez pelo Surefire;
+- validacao executada apenas nos modulos tocados: `mvn -pl
+  school-management-bff clean test`, com `209` testes, zero falhas e zero
+  erros, e `npm run build` com sucesso no host e nos oito MFEs alterados;
+- varreduras finais nao encontraram referencia de runtime ao monolito no BFF,
+  rota antiga de contexto nos testes alterados nem URL direta do monolito nas
+  configuracoes web;
+- este corte nao descomissiona o monolito: adapters e configuracoes internas
+  ainda presentes em `identity-access-service`, `people-service` e
+  `responsibles-service`, assim como os prototipos em
+  `projetos-historico-diario`, permanecem inventariados para D15/D16 e nao sao
+  caminho externo direto do host ou do BFF.
 
 ### Fase D15 - Infraestrutura, jobs e operacao monolito-off
 

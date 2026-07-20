@@ -4871,8 +4871,28 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - Validacao executada apenas no modulo tocado:
   `mvn -pl dashboard-query-service clean test`, com `BUILD SUCCESS`, quatro
   testes executados, zero falhas e zero erros.
+- A fase `D14 - Corte externo final sem monolito` foi concluida.
+- O `school-management-bff` deixou de possuir client, propriedades,
+  ports/adapters `Legacy*`, circuit breaker, dependencias Resilience4j e flags
+  de fallback destinados ao `school-management-service`.
+- O contexto autenticado exigido pelas escritas oficiais passou a ser
+  resolvido exclusivamente pelo endpoint interno do `identity-access-service`,
+  sem consulta ao monolito.
+- O host e os oito MFEs que mantinham URL local de contingencia passaram a
+  apontar para o BFF na porta `8081`; nenhuma tela ou contrato publico foi
+  alterado.
+- Foram removidos agregadores JUnit redundantes que repetiam classes de teste e
+  reutilizavam servidores mock ja encerrados.
+- Validacao executada nos modulos tocados: `mvn -pl school-management-bff clean
+  test`, com `209` testes, zero falhas e zero erros, e `npm run build` com
+  sucesso no host e nos oito MFEs alterados.
+- A auditoria ampliada manteve explicitamente fora do fechamento D14 os
+  adapters/configuracoes internos de monolito ainda existentes em
+  `identity-access-service`, `people-service` e `responsibles-service`, alem dos
+  prototipos em `projetos-historico-diario`; esses itens seguem para D15/D16 e
+  impedem declarar o monolito integralmente descomissionado neste ponto.
 - Proxima fase operacional do ciclo fechado:
-  `D14 - Corte externo final sem monolito`.
+  `D15 - Infraestrutura, jobs e operacao monolito-off`.
 
 ### Fase D3
 

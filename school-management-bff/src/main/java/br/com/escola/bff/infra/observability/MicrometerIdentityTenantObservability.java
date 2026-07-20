@@ -17,11 +17,6 @@ public class MicrometerIdentityTenantObservability implements IdentityTenantObse
     }
 
     @Override
-    public void recordDirectLegacy(IdentityTenantCutoverDecision decision) {
-        routeCounter(decision, "monolith", "direct").increment();
-    }
-
-    @Override
     public void recordServiceSuccess(IdentityTenantCutoverDecision decision, String target) {
         routeCounter(decision, target, "success").increment();
     }
@@ -30,12 +25,6 @@ public class MicrometerIdentityTenantObservability implements IdentityTenantObse
     public void recordServiceFailure(IdentityTenantCutoverDecision decision, String target, Throwable error) {
         routeCounter(decision, target, "failure").increment();
         errorCounter(decision, target, error).increment();
-    }
-
-    @Override
-    public void recordFallbackToLegacy(IdentityTenantCutoverDecision decision, String target, Throwable error) {
-        routeCounter(decision, "monolith", "fallback").increment();
-        fallbackCounter(decision, target, error).increment();
     }
 
     private Counter routeCounter(IdentityTenantCutoverDecision decision, String target, String outcome) {
@@ -58,14 +47,5 @@ public class MicrometerIdentityTenantObservability implements IdentityTenantObse
                 .register(meterRegistry);
     }
 
-    private Counter fallbackCounter(IdentityTenantCutoverDecision decision, String target, Throwable error) {
-        return Counter.builder("bff.identity_tenant.fallback.total")
-                .description("Fallbacks do bloco identity/tenant para o monolito")
-                .tag("route", decision.route().name().toLowerCase())
-                .tag("target", target)
-                .tag("reason", decision.reason())
-                .tag("exception", error.getClass().getSimpleName())
-                .register(meterRegistry);
-    }
 }
 

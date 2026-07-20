@@ -35,7 +35,8 @@ class TurmaDisciplinaWriteCutoverIntegrationTest {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.catalog-service.base-url", () -> CATALOG.url("/").toString());
         registry.add("clients.catalog-service.internal-token", () -> "internal-token");
         registry.add("features.catalog-write-cutover.enabled", () -> true);
@@ -92,7 +93,7 @@ class TurmaDisciplinaWriteCutoverIntegrationTest {
                 .jsonPath("$.cargaHoraria").isEqualTo(80);
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var catalogRequest = CATALOG.takeRequest();
         assertThat(catalogRequest.getPath())
                 .isEqualTo("/internal/v1/turmas/00000000-0000-0000-0000-000000000071/disciplinas");
@@ -129,7 +130,7 @@ class TurmaDisciplinaWriteCutoverIntegrationTest {
                 .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var catalogRequest = CATALOG.takeRequest();
         assertThat(catalogRequest.getPath())
                 .isEqualTo("/internal/v1/turmas/00000000-0000-0000-0000-000000000071/disciplinas");

@@ -40,7 +40,6 @@ public class IdentityTenantContextFallbackObservabilityTest {
                 .verify();
 
         assertThat(observability.failureTarget).isNull();
-        assertThat(observability.fallbackTarget).isNull();
     }
 
     @Test
@@ -62,18 +61,11 @@ public class IdentityTenantContextFallbackObservabilityTest {
                 .verify();
 
         assertThat(observability.failureTarget).isNull();
-        assertThat(observability.fallbackTarget).isNull();
     }
 
     private static final class RecordingObservability implements IdentityTenantObservabilityPort {
 
         private String failureTarget;
-        private String fallbackTarget;
-
-        @Override
-        public void recordDirectLegacy(IdentityTenantCutoverDecision decision) {
-        }
-
         @Override
         public void recordServiceSuccess(IdentityTenantCutoverDecision decision, String target) {
         }
@@ -83,10 +75,6 @@ public class IdentityTenantContextFallbackObservabilityTest {
             this.failureTarget = target;
         }
 
-        @Override
-        public void recordFallbackToLegacy(IdentityTenantCutoverDecision decision, String target, Throwable error) {
-            this.fallbackTarget = target;
-        }
     }
 
     private static final class NoOpTenantAtivoReadPort implements TenantAtivoReadPort {

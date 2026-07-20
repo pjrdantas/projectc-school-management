@@ -34,7 +34,8 @@ class DisciplinaWriteCutoverIntegrationTest {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.catalog-service.base-url", () -> CATALOG.url("/").toString());
         registry.add("clients.catalog-service.internal-token", () -> "internal-token");
         registry.add("features.catalog-write-cutover.enabled", () -> true);
@@ -89,7 +90,7 @@ class DisciplinaWriteCutoverIntegrationTest {
                 .jsonPath("$.escolaNome").isEqualTo("Escola padrao");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var catalogRequest = CATALOG.takeRequest();
         assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/disciplinas");
         assertThat(catalogRequest.getHeader("Idempotency-Key")).isNotBlank();
@@ -135,7 +136,7 @@ class DisciplinaWriteCutoverIntegrationTest {
                 .jsonPath("$.escolaNome").isEqualTo("Escola padrao");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var catalogRequest = CATALOG.takeRequest();
         assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/disciplinas");
         assertThat(catalogRequest.getBody().readUtf8()).contains("\"ativo\":false");
@@ -170,7 +171,7 @@ class DisciplinaWriteCutoverIntegrationTest {
                 .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var catalogRequest = CATALOG.takeRequest();
         assertThat(catalogRequest.getPath()).isEqualTo("/internal/v1/disciplinas");
     }

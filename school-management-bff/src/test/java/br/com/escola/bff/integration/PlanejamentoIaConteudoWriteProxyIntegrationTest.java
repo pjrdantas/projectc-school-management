@@ -31,7 +31,8 @@ class PlanejamentoIaConteudoWriteProxyIntegrationTest {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.planning-ai-service.base-url", () -> PLANNING_AI.url("/").toString());
         registry.add("clients.planning-ai-service.internal-token", () -> "planning-ai-internal-token");
         registry.add("management.health.redis.enabled", () -> false);

@@ -8,13 +8,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 import br.com.escola.bff.application.context.TrustedHeaders;
 import br.com.escola.bff.application.dto.AuthSessionContext;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
+import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
 import br.com.escola.bff.infra.config.AutenticacaoClientProperties;
 import reactor.core.publisher.Mono;
 
 @Component
-public class ContextoAutenticadoClient implements IdentityTenantAuthContextPort, InternalAuthContextPort {
+public class ContextoAutenticadoClient
+        implements AuthContextPort, IdentityTenantAuthContextPort, InternalAuthContextPort {
 
     private final WebClient webClient;
     private final AutenticacaoClientProperties properties;
