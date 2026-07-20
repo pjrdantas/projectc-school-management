@@ -8,10 +8,6 @@ public record CargaEscolaProperties(
         String sourceUrl,
         String sourceUsername,
         String sourcePassword,
-        String targetUrl,
-        String targetUsername,
-        String targetPassword,
-        String migrationLocations,
         int batchSize,
         boolean failOnMismatch) {
 

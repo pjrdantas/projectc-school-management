@@ -5,30 +5,22 @@ spring:
   application:
     name: institutional-tenant-service
   flyway:
-    enabled: false
+    enabled: true
     locations: classpath:db/institutional-tenant/migration
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/institutional_tenant}
+    username: ${SPRING_DATASOURCE_USERNAME:school}
+    password: ${SPRING_DATASOURCE_PASSWORD:school_local}
 
 institutional-tenant:
   internal-api:
     token: ${INSTITUTIONAL_TENANT_INTERNAL_TOKEN:}
   persistence:
-    read:
-      url: ${INSTITUTIONAL_TENANT_READ_URL:jdbc:postgresql://localhost:5433/institutional_tenant}
-      username: ${INSTITUTIONAL_TENANT_READ_USERNAME:school}
-      password: ${INSTITUTIONAL_TENANT_READ_PASSWORD:school_local}
     school-load:
       enabled: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_ENABLED:false}
       source-url: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_SOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
       source-username: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_SOURCE_USERNAME:postgres}
       source-password: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_SOURCE_PASSWORD:postgres}
-      target-url: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_TARGET_URL:jdbc:postgresql://localhost:5433/institutional_tenant}
-      target-username: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_TARGET_USERNAME:school}
-      target-password: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_TARGET_PASSWORD:school_local}
-      migration-locations: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_MIGRATION_LOCATIONS:classpath:db/institutional-tenant/migration}
       batch-size: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_BATCH_SIZE:500}
       fail-on-mismatch: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_FAIL_ON_MISMATCH:true}
     user-school-load:
@@ -36,9 +28,5 @@ institutional-tenant:
       source-url: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_SOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
       source-username: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_SOURCE_USERNAME:postgres}
       source-password: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_SOURCE_PASSWORD:postgres}
-      target-url: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_TARGET_URL:jdbc:postgresql://localhost:5433/institutional_tenant}
-      target-username: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_TARGET_USERNAME:school}
-      target-password: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_TARGET_PASSWORD:school_local}
-      migration-locations: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_MIGRATION_LOCATIONS:classpath:db/institutional-tenant/migration}
       batch-size: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_BATCH_SIZE:500}
       fail-on-mismatch: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_FAIL_ON_MISMATCH:true}

@@ -10131,3 +10131,29 @@ Sexto recorte da B2 entregue em 20/07/2026:
   inexistente;
 - a B2 permanece **em andamento**, com **1 recorte restante**: datasource
   proprio, prova integrada e encerramento da B2.
+
+Setimo e ultimo recorte da B2 entregue em 20/07/2026:
+
+- o datasource principal do `institutional-tenant-service` passou a apontar por
+  padrao para `jdbc:postgresql://localhost:5433/institutional_tenant`, com URL
+  e credenciais substituiveis por ambiente;
+- o Flyway oficial do Spring passou a aplicar automaticamente a migration do
+  dominio nesse mesmo datasource usado pelas leituras, escritas e transacoes;
+- foram removidos o datasource, o `JdbcTemplate`, o transaction manager e as
+  properties paralelas de leitura institucional;
+- os backfills opt-in de `escola` e `usuario_escola` passaram a manter somente
+  a origem compartilhada configuravel e a escrever diretamente no datasource
+  de runtime, em ordem que preserva a dependencia dos vinculos;
+- a infraestrutura PostgreSQL local passou a provisionar o banco
+  `institutional_tenant` junto dos demais bancos proprios;
+- uma prova integrada com origem e destino independentes executou Flyway,
+  carregou e reconciliou escolas e vinculos, consultou o tenant e criou uma
+  nova escola somente no destino; o banco proprio manteve exclusivamente
+  `escola` e `usuario_escola` como tabelas de negocio;
+- validacao restrita aos artefatos tocados: 12 testes do
+  `institutional-tenant-service`, zero falhas e zero erros, e
+  `docker compose -f platform/compose.yaml config --quiet` valido;
+- nenhum dado real foi movimentado durante a validacao; as cargas operacionais
+  permanecem desabilitadas por padrao e exigem ativacao explicita;
+- a **B2 esta concluida**. O ciclo fechado segue para a **B3 - escritas de
+  pessoas e alunos**.

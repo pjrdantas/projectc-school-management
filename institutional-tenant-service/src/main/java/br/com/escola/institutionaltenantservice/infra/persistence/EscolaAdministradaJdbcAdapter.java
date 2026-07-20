@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,13 +24,12 @@ public class EscolaAdministradaJdbcAdapter implements EscolaAdministradaPort {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public EscolaAdministradaJdbcAdapter(
-            @Qualifier("tenantReadJdbcTemplate") JdbcTemplate jdbcTemplate) {
+    public EscolaAdministradaJdbcAdapter(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
-    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
+    @Transactional(readOnly = true)
     public List<EscolaAdministrada> listar() {
         return jdbcTemplate.query(
                 "SELECT " + COLUMNS + " FROM escola ORDER BY nome, id_escola",
@@ -39,7 +37,7 @@ public class EscolaAdministradaJdbcAdapter implements EscolaAdministradaPort {
     }
 
     @Override
-    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
+    @Transactional(readOnly = true)
     public EscolaAdministrada buscar(UUID id) {
         return jdbcTemplate.query(
                 "SELECT " + COLUMNS + " FROM escola WHERE id_escola = ?",
@@ -49,7 +47,7 @@ public class EscolaAdministradaJdbcAdapter implements EscolaAdministradaPort {
     }
 
     @Override
-    @Transactional(transactionManager = "tenantTransactionManager")
+    @Transactional
     public EscolaAdministrada salvar(EscolaAdministrada escola) {
         int updated = jdbcTemplate.update("""
                 UPDATE escola
@@ -72,7 +70,7 @@ public class EscolaAdministradaJdbcAdapter implements EscolaAdministradaPort {
     }
 
     @Override
-    @Transactional(transactionManager = "tenantTransactionManager")
+    @Transactional
     public void excluir(UUID id) {
         Integer links = jdbcTemplate.queryForObject(
                 "SELECT COUNT(1) FROM usuario_escola WHERE id_escola = ?", Integer.class, id);

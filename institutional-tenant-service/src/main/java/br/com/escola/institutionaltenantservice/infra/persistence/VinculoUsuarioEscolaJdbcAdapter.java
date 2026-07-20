@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,13 +25,12 @@ public class VinculoUsuarioEscolaJdbcAdapter implements VinculoUsuarioEscolaPort
 
     private final JdbcTemplate jdbcTemplate;
 
-    public VinculoUsuarioEscolaJdbcAdapter(
-            @Qualifier("tenantReadJdbcTemplate") JdbcTemplate jdbcTemplate) {
+    public VinculoUsuarioEscolaJdbcAdapter(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
-    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
+    @Transactional(readOnly = true)
     public List<VinculoUsuarioEscola> listar(UUID usuarioId, UUID escolaId) {
         StringBuilder sql = new StringBuilder(SELECT_COLUMNS).append(" WHERE 1 = 1");
         List<Object> parameters = new ArrayList<>();
@@ -49,7 +47,7 @@ public class VinculoUsuarioEscolaJdbcAdapter implements VinculoUsuarioEscolaPort
     }
 
     @Override
-    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
+    @Transactional(readOnly = true)
     public VinculoUsuarioEscola buscar(UUID id) {
         return jdbcTemplate.query(
                 SELECT_COLUMNS + " WHERE id_usuario_escola = ?",
@@ -59,7 +57,7 @@ public class VinculoUsuarioEscolaJdbcAdapter implements VinculoUsuarioEscolaPort
     }
 
     @Override
-    @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
+    @Transactional(readOnly = true)
     public boolean escolaExiste(UUID escolaId) {
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(1) FROM escola WHERE id_escola = ?", Integer.class, escolaId);
@@ -67,7 +65,7 @@ public class VinculoUsuarioEscolaJdbcAdapter implements VinculoUsuarioEscolaPort
     }
 
     @Override
-    @Transactional(transactionManager = "tenantTransactionManager")
+    @Transactional
     public ResultadoVinculoUsuarioEscola garantir(VinculoUsuarioEscola vinculo) {
         List<UUID> escolaBloqueada = jdbcTemplate.query(
                 "SELECT id_escola FROM escola WHERE id_escola = ? FOR UPDATE",
@@ -90,7 +88,7 @@ public class VinculoUsuarioEscolaJdbcAdapter implements VinculoUsuarioEscolaPort
     }
 
     @Override
-    @Transactional(transactionManager = "tenantTransactionManager")
+    @Transactional
     public void excluir(UUID id) {
         if (jdbcTemplate.update("DELETE FROM usuario_escola WHERE id_usuario_escola = ?", id) == 0) {
             throw new RecursoNaoEncontradoException("Vinculo usuario-escola nao encontrado");

@@ -1,6 +1,5 @@
 package br.com.escola.institutionaltenantservice.infra.persistence;
 
-import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -30,11 +29,6 @@ public class CargaEscolaRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        Flyway.configure()
-                .dataSource(properties.targetUrl(), properties.targetUsername(), properties.targetPassword())
-                .locations(properties.migrationLocations())
-                .load()
-                .migrate();
         CargaEscolaReport report = executor.execute();
         LOGGER.info("Carga de escolas concluida: {}", report);
         if (!report.reconciled() && properties.failOnMismatch()) {

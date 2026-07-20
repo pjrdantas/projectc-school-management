@@ -30,7 +30,7 @@ class CargaVinculoEscolaExecutorTest {
         inserirEscola(target, escolaId);
         inserirVinculo(source, vinculoId, usuarioId, escolaId);
 
-        CargaVinculoEscolaProperties properties = properties(sourceUrl, targetUrl);
+        CargaVinculoEscolaProperties properties = properties(sourceUrl);
         CargaVinculoEscolaExecutor executor = new CargaVinculoEscolaExecutor(source, target, 1);
         CargaVinculoEscolaRunner runner = new CargaVinculoEscolaRunner(executor, properties);
 
@@ -67,10 +67,9 @@ class CargaVinculoEscolaExecutorTest {
         assertThat(target.queryForObject("SELECT COUNT(1) FROM usuario_escola", Integer.class)).isZero();
     }
 
-    private CargaVinculoEscolaProperties properties(String sourceUrl, String targetUrl) {
+    private CargaVinculoEscolaProperties properties(String sourceUrl) {
         return new CargaVinculoEscolaProperties(
-                true, sourceUrl, "sa", "", targetUrl, "sa", "",
-                "classpath:db/institutional-tenant/migration", 1, true);
+                true, sourceUrl, "sa", "", 1, true);
     }
 
     private void inserirEscola(JdbcTemplate jdbcTemplate, UUID escolaId) {

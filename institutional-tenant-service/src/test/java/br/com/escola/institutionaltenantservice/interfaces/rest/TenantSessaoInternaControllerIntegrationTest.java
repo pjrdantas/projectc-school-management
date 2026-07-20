@@ -14,11 +14,9 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -30,26 +28,22 @@ import com.jayway.jsonpath.JsonPath;
 @AutoConfigureMockMvc
 class TenantSessaoInternaControllerIntegrationTest {
 
-    private static final String SHARED_URL =
-            "jdbc:h2:mem:institutional-shared-without-tables;MODE=PostgreSQL;DB_CLOSE_DELAY=-1";
+    private static final String TARGET_URL =
+            "jdbc:h2:mem:institutional-local-runtime;MODE=PostgreSQL;DB_CLOSE_DELAY=-1";
 
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
-    @Qualifier("tenantReadJdbcTemplate")
     private JdbcTemplate jdbcTemplate;
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("institutional-tenant.internal-api.token", () -> "institutional-token");
-        registry.add("spring.datasource.url", () -> SHARED_URL);
+        registry.add("spring.datasource.url", () -> TARGET_URL);
         registry.add("spring.datasource.username", () -> "sa");
         registry.add("spring.datasource.password", () -> "");
-        registry.add("institutional-tenant.persistence.read.url", () ->
-                "jdbc:h2:mem:institutional-local-read;MODE=PostgreSQL;DB_CLOSE_DELAY=-1");
-        registry.add("institutional-tenant.persistence.read.username", () -> "sa");
-        registry.add("institutional-tenant.persistence.read.password", () -> "");
+        registry.add("spring.flyway.enabled", () -> false);
     }
 
     @BeforeEach
@@ -107,15 +101,6 @@ class TenantSessaoInternaControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].ativa").value(true))
                 .andExpect(jsonPath("$[1].escolaNome").value("Escola Reserva"));
 
-        JdbcTemplate sharedJdbcTemplate = new JdbcTemplate(
-                new DriverManagerDataSource(SHARED_URL, "sa", ""));
-        Integer sharedTables = sharedJdbcTemplate.queryForObject("""
-                SELECT COUNT(1)
-                FROM information_schema.tables
-                WHERE table_schema = 'PUBLIC'
-                  AND table_name IN ('ESCOLA', 'USUARIO_ESCOLA')
-                """, Integer.class);
-        org.assertj.core.api.Assertions.assertThat(sharedTables).isZero();
     }
 
     @Test

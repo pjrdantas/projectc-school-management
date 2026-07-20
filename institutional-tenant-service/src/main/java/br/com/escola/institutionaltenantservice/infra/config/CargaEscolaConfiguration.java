@@ -1,5 +1,7 @@
 package br.com.escola.institutionaltenantservice.infra.config;
 
+import javax.sql.DataSource;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -17,14 +19,14 @@ public class CargaEscolaConfiguration {
     @ConditionalOnProperty(
             name = "institutional-tenant.persistence.school-load.enabled",
             havingValue = "true")
-    CargaEscolaExecutor cargaEscolaExecutor(CargaEscolaProperties properties) {
+    CargaEscolaExecutor cargaEscolaExecutor(
+            CargaEscolaProperties properties,
+            DataSource dataSource) {
         DriverManagerDataSource source = new DriverManagerDataSource(
                 properties.sourceUrl(), properties.sourceUsername(), properties.sourcePassword());
-        DriverManagerDataSource target = new DriverManagerDataSource(
-                properties.targetUrl(), properties.targetUsername(), properties.targetPassword());
         return new CargaEscolaExecutor(
                 new JdbcTemplate(source),
-                new JdbcTemplate(target),
+                new JdbcTemplate(dataSource),
                 properties.batchSize());
     }
 }

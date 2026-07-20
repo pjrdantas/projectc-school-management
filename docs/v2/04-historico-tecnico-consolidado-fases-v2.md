@@ -5286,3 +5286,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A validacao do `institutional-tenant-service` executou 11 testes sem falhas
   ou erros. Resta **1 recorte na B2**: datasource proprio, prova integrada e
   encerramento.
+- No setimo e ultimo recorte da B2, o datasource principal do
+  `institutional-tenant-service` foi cortado para o banco `institutional_tenant`
+  e o Flyway automatico passou a operar no mesmo banco usado pelo runtime.
+- Foram removidos datasource, `JdbcTemplate`, transaction manager e properties
+  paralelos; os dois backfills opt-in agora recebem apenas a origem e escrevem
+  diretamente no datasource principal, mantendo escolas antes dos vinculos.
+- A infraestrutura local passou a provisionar `institutional_tenant`, e uma
+  prova integrada entre dois bancos executou migration, cargas reconciliadas,
+  leitura e escrita sem alterar a origem; o destino conteve somente `escola` e
+  `usuario_escola` como tabelas de negocio.
+- A validacao executou 12 testes do `institutional-tenant-service` sem falhas ou
+  erros e confirmou a configuracao do compose. Nenhum dado real foi carregado
+  automaticamente, pois as cargas continuam opt-in.
+- A **B2 foi concluida**. O ciclo fechado segue para a B3, escritas de pessoas
+  e alunos.

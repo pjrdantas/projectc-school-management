@@ -19,6 +19,7 @@ class CargaEscolaExecutorTest {
         String sourceUrl = url("institutional-school-source");
         String targetUrl = url("institutional-school-target");
         migrate(sourceUrl);
+        migrate(targetUrl);
         JdbcTemplate source = jdbc(sourceUrl);
         JdbcTemplate target = jdbc(targetUrl);
         UUID escolaId = UUID.randomUUID();
@@ -34,8 +35,7 @@ class CargaEscolaExecutorTest {
                 "11999999999", "contato@escola.com", enderecoId, true, createdAt, updatedAt);
 
         CargaEscolaProperties properties = new CargaEscolaProperties(
-                true, sourceUrl, "sa", "", targetUrl, "sa", "",
-                "classpath:db/institutional-tenant/migration", 1, true);
+                true, sourceUrl, "sa", "", 1, true);
         CargaEscolaExecutor executor = new CargaEscolaExecutor(source, target, 1);
         CargaEscolaRunner runner = new CargaEscolaRunner(executor, properties);
 
