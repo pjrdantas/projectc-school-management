@@ -16,6 +16,10 @@ institutional-tenant:
   internal-api:
     token: ${INSTITUTIONAL_TENANT_INTERNAL_TOKEN:}
   persistence:
+    read:
+      url: ${INSTITUTIONAL_TENANT_READ_URL:jdbc:postgresql://localhost:5433/institutional_tenant}
+      username: ${INSTITUTIONAL_TENANT_READ_USERNAME:school}
+      password: ${INSTITUTIONAL_TENANT_READ_PASSWORD:school_local}
     school-load:
       enabled: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_ENABLED:false}
       source-url: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_SOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}

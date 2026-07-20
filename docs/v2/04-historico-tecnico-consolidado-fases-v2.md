@@ -5261,3 +5261,11 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   antes de qualquer escrita.
 - A validacao do `institutional-tenant-service` executou 8 testes sem falhas ou
   erros. Restam **4 recortes na B2**, iniciando pela ativacao da leitura local.
+- No quarto recorte da B2, as leituras de tenant e escolas passaram a usar
+  exclusivamente um datasource local dedicado ao banco `institutional_tenant`,
+  sem fallback para o datasource compartilhado.
+- O teste de integracao confirmou os contratos internos usando somente as duas
+  tabelas locais e provou que o banco compartilhado permanece sem tabelas
+  institucionais.
+- A validacao do modulo executou 8 testes sem falhas ou erros. Restam **3
+  recortes na B2**, iniciando pela manutencao interna de escolas.

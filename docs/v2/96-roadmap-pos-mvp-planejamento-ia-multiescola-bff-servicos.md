@@ -10075,3 +10075,24 @@ Terceiro recorte da B2 entregue em 20/07/2026:
   ausente;
 - a B2 permanece **em andamento**, com **4 recortes restantes**. O proximo e a
   ativacao da leitura local de tenant e escolas.
+
+Quarto recorte da B2 entregue em 20/07/2026:
+
+- o `TenantSessaoJdbcAdapter` deixou de usar o `JdbcTemplate` principal ligado
+  ao banco compartilhado e passou a receber exclusivamente o
+  `tenantReadJdbcTemplate`;
+- o datasource de leitura aponta por padrao para o banco
+  `institutional_tenant`, com URL e credenciais proprias substituiveis por
+  ambiente;
+- `GET /internal/v1/tenant/escolas` e `GET /internal/v1/tenant/ativa` nao
+  possuem fallback nem consulta alternativa ao datasource compartilhado;
+- o contrato externo e a logica de tenant ativo foram preservados, incluindo a
+  ordenacao da escola ativa e a resolucao pelo contexto quando nao houver
+  vinculo;
+- o teste de integracao passou a criar `escola` e `usuario_escola` somente no
+  banco de leitura local e confirmou explicitamente que o banco compartilhado
+  nao contem essas tabelas;
+- validacao restrita ao `institutional-tenant-service`: 8 testes, zero falhas e
+  zero erros;
+- a B2 permanece **em andamento**, com **3 recortes restantes**. O proximo e a
+  manutencao interna definitiva de escolas.

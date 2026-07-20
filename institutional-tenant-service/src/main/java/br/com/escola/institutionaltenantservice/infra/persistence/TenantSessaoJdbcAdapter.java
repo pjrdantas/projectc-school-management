@@ -3,6 +3,7 @@ package br.com.escola.institutionaltenantservice.infra.persistence;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +17,8 @@ public class TenantSessaoJdbcAdapter implements TenantSessaoPort {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public TenantSessaoJdbcAdapter(JdbcTemplate jdbcTemplate) {
+    public TenantSessaoJdbcAdapter(
+            @Qualifier("tenantReadJdbcTemplate") JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
