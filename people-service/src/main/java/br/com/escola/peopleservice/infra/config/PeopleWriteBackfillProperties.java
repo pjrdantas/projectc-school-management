@@ -2,7 +2,7 @@ package br.com.escola.peopleservice.infra.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("people.read-model.backfill")
+@ConfigurationProperties("people.persistence.backfill")
 public record PeopleWriteBackfillProperties(
         boolean enabled,
         String sourceUrl,

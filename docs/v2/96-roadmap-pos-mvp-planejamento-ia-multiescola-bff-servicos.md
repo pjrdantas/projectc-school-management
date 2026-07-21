@@ -10326,3 +10326,23 @@ Setimo recorte da B3 entregue em 21/07/2026:
 - a B3 permanece **em andamento**, com **1 recorte restante**: datasource e
   Flyway definitivos, saneamento dos nomes tecnicos transitorios, prova
   integrada e encerramento.
+
+Oitavo e ultimo recorte da B3 entregue em 21/07/2026:
+
+- o `people-service` passou a usar `spring.datasource` como datasource proprio
+  padrao do banco `people` e `spring.flyway` para aplicar automaticamente as
+  migrations em `classpath:db/people/migration` no mesmo banco de runtime;
+- o backfill de aluno passou a usar o datasource oficial do Spring como destino,
+  mantendo apenas a origem externa configuravel e opt-in;
+- foram removidos o runner manual de Flyway, seu estado de observabilidade e as
+  designacoes tecnicas transitorias de `LeituraModelo` e `read-model`; os
+  adapters agora recebem `PeoplePersistenceProperties`, vinculado ao datasource
+  oficial;
+- uma prova integrada iniciou o contexto Spring com origem e destino H2
+  independentes, aplicou Flyway, executou o backfill e confirmou o aluno no
+  datasource proprio de runtime;
+- validacao restrita ao `people-service`: 92 testes, zero falhas e zero erros;
+- nenhum dado real foi movimentado durante a validacao e o backfill continua
+  desabilitado por padrao;
+- a **B3 esta concluida**. O proximo ciclo deve abrir a **B4**, limitada a CRUD
+  de responsaveis e manutencao de `aluno_responsavel` no servico dono.

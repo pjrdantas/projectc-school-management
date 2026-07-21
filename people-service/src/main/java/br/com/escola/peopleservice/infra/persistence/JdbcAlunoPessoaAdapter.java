@@ -10,7 +10,7 @@ import org.springframework.util.StringUtils;
 
 import br.com.escola.peopleservice.application.dto.PessoaAlunoVinculoResponse;
 import br.com.escola.peopleservice.application.port.out.AlunoPessoaPort;
-import br.com.escola.peopleservice.infra.config.LeituraModeloMigrationProperties;
+import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
 
 @Component
 public class JdbcAlunoPessoaAdapter implements AlunoPessoaPort {
@@ -23,9 +23,9 @@ public class JdbcAlunoPessoaAdapter implements AlunoPessoaPort {
               AND ativo = TRUE
             """;
 
-    private final LeituraModeloMigrationProperties properties;
+    private final PeoplePersistenceProperties properties;
 
-    public JdbcAlunoPessoaAdapter(LeituraModeloMigrationProperties properties) {
+    public JdbcAlunoPessoaAdapter(PeoplePersistenceProperties properties) {
         this.properties = properties;
     }
 

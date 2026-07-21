@@ -1,6 +1,14 @@
 spring:
   application:
     name: people-service
+  flyway:
+    enabled: true
+    locations: classpath:db/people/migration
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/people}
+    username: ${SPRING_DATASOURCE_USERNAME:school}
+    password: ${SPRING_DATASOURCE_PASSWORD:school_local}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
 
 server:
   port: 8093
@@ -24,14 +32,9 @@ people:
     internal-token: ${PEOPLE_STUDENT_RESPONSIBLES_INTERNAL_TOKEN:}
     connect-timeout: ${PEOPLE_STUDENT_RESPONSIBLES_CONNECT_TIMEOUT:2s}
     read-timeout: ${PEOPLE_STUDENT_RESPONSIBLES_READ_TIMEOUT:5s}
-  read-model:
-    enabled: ${PEOPLE_READ_MODEL_ENABLED:true}
-    migration-enabled: ${PEOPLE_READ_MODEL_MIGRATION_ENABLED:true}
-    local-read-routing-enabled: ${PEOPLE_READ_MODEL_LOCAL_READ_ROUTING_ENABLED:true}
-    fail-on-error: ${PEOPLE_READ_MODEL_FAIL_ON_ERROR:true}
-    backfill-enabled: false
-    reconciliation-enabled: false
-    backfill-batch-size: ${PEOPLE_READ_MODEL_BACKFILL_BATCH_SIZE:500}
+  persistence:
+    enabled: ${PEOPLE_PERSISTENCE_ENABLED:true}
+    local-read-routing-enabled: ${PEOPLE_PERSISTENCE_LOCAL_ROUTING_ENABLED:true}
     backfill:
       enabled: ${PEOPLE_WRITE_BACKFILL_ENABLED:false}
       source-url: ${PEOPLE_WRITE_BACKFILL_SOURCE_URL:}
@@ -40,10 +43,4 @@ people:
       batch-size: ${PEOPLE_WRITE_BACKFILL_BATCH_SIZE:500}
       fail-on-mismatch: ${PEOPLE_WRITE_BACKFILL_FAIL_ON_MISMATCH:true}
     fallback-enabled: false
-    schema-migration:
-      url: ${PEOPLE_READ_MODEL_SCHEMA_URL:jdbc:postgresql://localhost:5433/people}
-      username: ${PEOPLE_READ_MODEL_SCHEMA_USERNAME:school}
-      password: ${PEOPLE_READ_MODEL_SCHEMA_PASSWORD:school_local}
-      driver-class-name: ${PEOPLE_READ_MODEL_SCHEMA_DRIVER_CLASS_NAME:org.postgresql.Driver}
-      locations: ${PEOPLE_READ_MODEL_SCHEMA_LOCATIONS:classpath:db/people-readmodel/migration}
 

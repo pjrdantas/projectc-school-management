@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import br.com.escola.peopleservice.infra.config.LeituraModeloMigrationProperties;
+import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
 
 class JdbcAlunoPessoaAdapterTest {
 
@@ -22,7 +22,7 @@ class JdbcAlunoPessoaAdapterTest {
         UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
         criarSchemaEPopular(url);
         JdbcAlunoPessoaAdapter adapter = new JdbcAlunoPessoaAdapter(
-                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new PeoplePersistenceProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         var response = adapter.buscarVinculoPorAlunoId(alunoId, escolaId);
 
@@ -38,7 +38,7 @@ class JdbcAlunoPessoaAdapterTest {
         UUID alunoId = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         criarSchemaEPopular(url);
         JdbcAlunoPessoaAdapter adapter = new JdbcAlunoPessoaAdapter(
-                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new PeoplePersistenceProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         var response = adapter.buscarVinculoPorAlunoId(
                 alunoId,
@@ -58,7 +58,7 @@ class JdbcAlunoPessoaAdapterTest {
             statement.executeUpdate("UPDATE aluno SET ativo = FALSE");
         }
         JdbcAlunoPessoaAdapter adapter = new JdbcAlunoPessoaAdapter(
-                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new PeoplePersistenceProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         assertThat(adapter.buscarVinculoPorAlunoId(alunoId, escolaId)).isEmpty();
     }

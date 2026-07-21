@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import br.com.escola.peopleservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.peopleservice.application.model.AlunoAlteracao;
 import br.com.escola.peopleservice.application.model.AlunoNovo;
-import br.com.escola.peopleservice.infra.config.LeituraModeloMigrationProperties;
+import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
 
 class JdbcAlunoExclusaoAdapterTest {
 
@@ -107,9 +107,9 @@ class JdbcAlunoExclusaoAdapterTest {
         return new JdbcAlunoExclusaoAdapter(properties(url));
     }
 
-    private LeituraModeloMigrationProperties properties(String url) {
-        return new LeituraModeloMigrationProperties(
-                url, "sa", "", "org.h2.Driver", List.of("classpath:db/people-readmodel/migration"));
+    private PeoplePersistenceProperties properties(String url) {
+        return new PeoplePersistenceProperties(
+                url, "sa", "", "org.h2.Driver", List.of("classpath:db/people/migration"));
     }
 
     private AlunoNovo novoAluno(UUID escolaId) {
@@ -130,7 +130,7 @@ class JdbcAlunoExclusaoAdapterTest {
     private void prepararBanco(String url) {
         Flyway.configure()
                 .dataSource(url, "sa", "")
-                .locations("classpath:db/people-readmodel/migration")
+                .locations("classpath:db/people/migration")
                 .load()
                 .migrate();
         try (Connection connection = DriverManager.getConnection(url, "sa", "")) {

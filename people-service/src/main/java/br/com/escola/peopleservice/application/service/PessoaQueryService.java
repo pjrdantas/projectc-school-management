@@ -34,7 +34,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     private final PessoaDocumentoMetadataService pessoaDocumentoMetadataService;
     private final PessoaFuncionarioResumoService pessoaFuncionarioResumoService;
     private final PessoaProfessorResumoService pessoaProfessorResumoService;
-    private final OrigemLeituraPolicy readRoutingPolicy;
+    private final PeopleDataAccessPolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
     public PessoaQueryService(
@@ -47,7 +47,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             PessoaDocumentoMetadataService pessoaDocumentoMetadataService,
             PessoaFuncionarioResumoService pessoaFuncionarioResumoService,
             PessoaProfessorResumoService pessoaProfessorResumoService,
-            OrigemLeituraPolicy readRoutingPolicy,
+            PeopleDataAccessPolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
         this.catalogoPort = catalogoPort;
         this.pessoaPort = pessoaPort;

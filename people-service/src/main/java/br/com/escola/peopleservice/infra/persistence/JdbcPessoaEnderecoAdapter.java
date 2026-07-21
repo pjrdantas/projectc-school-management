@@ -12,7 +12,7 @@ import org.springframework.util.StringUtils;
 
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.port.out.PessoaEnderecoPort;
-import br.com.escola.peopleservice.infra.config.LeituraModeloMigrationProperties;
+import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
 
 @Component
 public class JdbcPessoaEnderecoAdapter implements PessoaEnderecoPort {
@@ -40,9 +40,9 @@ public class JdbcPessoaEnderecoAdapter implements PessoaEnderecoPort {
               AND p.id_escola = ?
             """;
 
-    private final LeituraModeloMigrationProperties properties;
+    private final PeoplePersistenceProperties properties;
 
-    public JdbcPessoaEnderecoAdapter(LeituraModeloMigrationProperties properties) {
+    public JdbcPessoaEnderecoAdapter(PeoplePersistenceProperties properties) {
         this.properties = properties;
     }
 

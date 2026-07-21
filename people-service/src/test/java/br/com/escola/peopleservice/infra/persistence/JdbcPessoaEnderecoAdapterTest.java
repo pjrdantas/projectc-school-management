@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import br.com.escola.peopleservice.infra.config.LeituraModeloMigrationProperties;
+import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
 
 class JdbcPessoaEnderecoAdapterTest {
 
@@ -81,7 +81,7 @@ class JdbcPessoaEnderecoAdapterTest {
     @Test
     void deveFalharQuandoUrlLocalNaoFoiConfigurada() {
         JdbcPessoaEnderecoAdapter adapter = new JdbcPessoaEnderecoAdapter(
-                new LeituraModeloMigrationProperties("", "sa", "", "org.h2.Driver", List.of()));
+                new PeoplePersistenceProperties("", "sa", "", "org.h2.Driver", List.of()));
 
         assertThatThrownBy(() -> adapter.listarEnderecosPorPessoa(PESSOA_ID, ESCOLA_ID))
                 .isInstanceOf(IllegalStateException.class)
@@ -90,7 +90,7 @@ class JdbcPessoaEnderecoAdapterTest {
 
     private JdbcPessoaEnderecoAdapter adapter(String url) {
         return new JdbcPessoaEnderecoAdapter(
-                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new PeoplePersistenceProperties(url, "sa", "", "org.h2.Driver", List.of()));
     }
 
     private String h2Url(String dbName) {

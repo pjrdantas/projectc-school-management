@@ -5422,3 +5422,19 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A validacao restrita ao `people-service` executou 95 testes sem falhas ou
   erros. Resta **1 recorte na B3**: datasource e Flyway definitivos, saneamento
   tecnico, prova integrada e encerramento.
+
+## 21/07/2026 - Oitavo recorte da B3: corte do datasource proprio
+
+- O `people-service` passou a operar no banco proprio `people` por
+  `spring.datasource`, com Flyway automatico nas migrations de
+  `classpath:db/people/migration` do mesmo datasource de runtime.
+- O backfill usa esse datasource oficial como destino, mantendo a origem externa
+  apenas como configuracao opt-in. O runner manual de migration, seu estado e
+  as designacoes transitorias de `LeituraModelo` e `read-model` foram removidos.
+- A prova integrada iniciou Spring, Flyway e backfill entre dois bancos H2
+  independentes e confirmou o aluno carregado no destino de runtime.
+- A validacao restrita ao `people-service` executou 92 testes sem falhas ou
+  erros. Nenhum dado real foi movimentado e o backfill segue desabilitado por
+  padrao.
+- A **B3 foi concluida**. O proximo ciclo e a B4, para responsaveis e
+  `aluno_responsavel` no servico dono.

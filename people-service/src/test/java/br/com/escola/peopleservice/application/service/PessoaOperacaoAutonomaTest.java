@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.actuate.health.Status;
 
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoWriteCommand;
-import br.com.escola.peopleservice.infra.config.LeituraModeloProperties;
-import br.com.escola.peopleservice.infra.observability.LeituraModeloHealthIndicator;
+import br.com.escola.peopleservice.infra.config.PeopleRuntimeProperties;
+import br.com.escola.peopleservice.infra.observability.PeoplePersistenceHealthIndicator;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 class PessoaOperacaoAutonomaTest {
@@ -17,7 +17,7 @@ class PessoaOperacaoAutonomaTest {
     @Test
     void deveSelecionarSomenteReadModelLocalSemFallback() {
         var properties = properties();
-        var policy = new OrigemLeituraPolicy(properties, new SimpleMeterRegistry());
+        var policy = new PeopleDataAccessPolicy(properties, new SimpleMeterRegistry());
 
         assertThat(policy.avaliarTodas().values())
                 .allSatisfy(decision -> {
@@ -30,11 +30,10 @@ class PessoaOperacaoAutonomaTest {
     @Test
     void deveExporSaudeLocalOnlySemTrafegoLegado() {
         var properties = properties();
-        var policy = new OrigemLeituraPolicy(properties, new SimpleMeterRegistry());
-        var health = new LeituraModeloHealthIndicator(
+        var policy = new PeopleDataAccessPolicy(properties, new SimpleMeterRegistry());
+        var health = new PeoplePersistenceHealthIndicator(
                 properties,
-                policy,
-                new LeituraModeloMigrationState());
+                policy);
 
         assertThat(health.health().getStatus()).isEqualTo(Status.UP);
         assertThat(health.health().getDetails())
@@ -66,7 +65,7 @@ class PessoaOperacaoAutonomaTest {
         assertThat(result.fallbackRequired()).isTrue();
     }
 
-    private LeituraModeloProperties properties() {
-        return new LeituraModeloProperties(true, true, true, true, false, false, 500, false);
+    private PeopleRuntimeProperties properties() {
+        return new PeopleRuntimeProperties(true, true, true, true, false, false, 500, false);
     }
 }

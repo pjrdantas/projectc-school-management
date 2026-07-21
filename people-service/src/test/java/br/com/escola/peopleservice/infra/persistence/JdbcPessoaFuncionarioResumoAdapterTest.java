@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import br.com.escola.peopleservice.infra.config.LeituraModeloMigrationProperties;
+import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
 
 class JdbcPessoaFuncionarioResumoAdapterTest {
 
@@ -66,7 +66,7 @@ class JdbcPessoaFuncionarioResumoAdapterTest {
     @Test
     void falhaQuandoUrlNaoFoiConfigurada() {
         JdbcPessoaFuncionarioResumoAdapter adapter = new JdbcPessoaFuncionarioResumoAdapter(
-                new LeituraModeloMigrationProperties("", "sa", "", "org.h2.Driver", List.of()));
+                new PeoplePersistenceProperties("", "sa", "", "org.h2.Driver", List.of()));
 
         assertThatThrownBy(() -> adapter.listarFuncionariosAtivosPorEscola(UUID.randomUUID()))
                 .isInstanceOf(IllegalStateException.class)
@@ -75,12 +75,12 @@ class JdbcPessoaFuncionarioResumoAdapterTest {
 
     private JdbcPessoaFuncionarioResumoAdapter adapter(String url) {
         return new JdbcPessoaFuncionarioResumoAdapter(
-                new LeituraModeloMigrationProperties(
+                new PeoplePersistenceProperties(
                         url,
                         "sa",
                         "",
                         "org.h2.Driver",
-                        List.of("classpath:db/people-readmodel/migration")));
+                        List.of("classpath:db/people/migration")));
     }
 
     private void prepararSchema(String url, UUID escolaId, UUID funcionarioId, UUID pessoaId) throws Exception {

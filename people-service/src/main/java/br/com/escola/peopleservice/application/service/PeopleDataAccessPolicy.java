@@ -5,11 +5,11 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import br.com.escola.peopleservice.infra.config.LeituraModeloProperties;
+import br.com.escola.peopleservice.infra.config.PeopleRuntimeProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 
 @Service
-public class OrigemLeituraPolicy {
+public class PeopleDataAccessPolicy {
 
     private static final Map<String, String> SOURCES = Map.ofEntries(
             Map.entry("listarTiposPessoa", "tipo_pessoa"),
@@ -27,50 +27,50 @@ public class OrigemLeituraPolicy {
             Map.entry("funcionarioResumo", "people_funcionario_read_model"),
             Map.entry("professorResumo", "people_professor_read_model"));
 
-    private final LeituraModeloProperties properties;
+    private final PeopleRuntimeProperties properties;
     private final MeterRegistry meterRegistry;
 
-    public OrigemLeituraPolicy(LeituraModeloProperties properties, MeterRegistry meterRegistry) {
+    public PeopleDataAccessPolicy(PeopleRuntimeProperties properties, MeterRegistry meterRegistry) {
         this.properties = properties;
         this.meterRegistry = meterRegistry;
     }
 
-    public OrigemLeituraDecision registrarDecisao(String operation) {
+    public PeopleDataAccessDecision registrarDecisao(String operation) {
         return registrar(avaliar(operation));
     }
 
-    public OrigemLeituraDecision registrarDecisaoLeituraEndereco() {
+    public PeopleDataAccessDecision registrarDecisaoLeituraEndereco() {
         return registrar(avaliar("endereco"));
     }
 
-    public OrigemLeituraDecision registrarDecisaoLeituraContato() {
+    public PeopleDataAccessDecision registrarDecisaoLeituraContato() {
         return registrar(avaliar("contato"));
     }
 
-    public OrigemLeituraDecision registrarDecisaoLeituraDocumentoMetadata() {
+    public PeopleDataAccessDecision registrarDecisaoLeituraDocumentoMetadata() {
         return registrar(avaliar("documentoMetadata"));
     }
 
-    public OrigemLeituraDecision registrarDecisaoLeituraAlunoVinculo() {
+    public PeopleDataAccessDecision registrarDecisaoLeituraAlunoVinculo() {
         return registrar(avaliar("alunoVinculo"));
     }
 
-    public OrigemLeituraDecision registrarDecisaoLeituraResponsavelVinculo() {
+    public PeopleDataAccessDecision registrarDecisaoLeituraResponsavelVinculo() {
         return registrar(avaliar("responsavelVinculo"));
     }
 
-    public OrigemLeituraDecision registrarDecisaoLeituraFuncionarioResumo() {
+    public PeopleDataAccessDecision registrarDecisaoLeituraFuncionarioResumo() {
         return registrar(avaliar("funcionarioResumo"));
     }
 
-    public OrigemLeituraDecision registrarDecisaoLeituraProfessorResumo() {
+    public PeopleDataAccessDecision registrarDecisaoLeituraProfessorResumo() {
         return registrar(avaliar("professorResumo"));
     }
 
-    public OrigemLeituraDecision avaliar(String operation) {
+    public PeopleDataAccessDecision avaliar(String operation) {
         String source = SOURCES.getOrDefault(operation, "people_read_model");
         boolean enabled = properties.enabled() && properties.localReadRoutingEnabled();
-        return new OrigemLeituraDecision(
+        return new PeopleDataAccessDecision(
                 operation,
                 route(operation),
                 source,
@@ -82,41 +82,41 @@ public class OrigemLeituraPolicy {
                 enabled ? "local-read-required" : "local-read-disabled");
     }
 
-    public OrigemLeituraDecision avaliarLeituraEndereco() {
+    public PeopleDataAccessDecision avaliarLeituraEndereco() {
         return avaliar("endereco");
     }
 
-    public OrigemLeituraDecision avaliarLeituraContato() {
+    public PeopleDataAccessDecision avaliarLeituraContato() {
         return avaliar("contato");
     }
 
-    public OrigemLeituraDecision avaliarLeituraDocumentoMetadata() {
+    public PeopleDataAccessDecision avaliarLeituraDocumentoMetadata() {
         return avaliar("documentoMetadata");
     }
 
-    public OrigemLeituraDecision avaliarLeituraAlunoVinculo() {
+    public PeopleDataAccessDecision avaliarLeituraAlunoVinculo() {
         return avaliar("alunoVinculo");
     }
 
-    public OrigemLeituraDecision avaliarLeituraResponsavelVinculo() {
+    public PeopleDataAccessDecision avaliarLeituraResponsavelVinculo() {
         return avaliar("responsavelVinculo");
     }
 
-    public OrigemLeituraDecision avaliarLeituraFuncionarioResumo() {
+    public PeopleDataAccessDecision avaliarLeituraFuncionarioResumo() {
         return avaliar("funcionarioResumo");
     }
 
-    public OrigemLeituraDecision avaliarLeituraProfessorResumo() {
+    public PeopleDataAccessDecision avaliarLeituraProfessorResumo() {
         return avaliar("professorResumo");
     }
 
-    public Map<String, OrigemLeituraDecision> avaliarTodas() {
-        Map<String, OrigemLeituraDecision> decisions = new LinkedHashMap<>();
+    public Map<String, PeopleDataAccessDecision> avaliarTodas() {
+        Map<String, PeopleDataAccessDecision> decisions = new LinkedHashMap<>();
         SOURCES.keySet().stream().sorted().forEach(operation -> decisions.put(operation, avaliar(operation)));
         return decisions;
     }
 
-    private OrigemLeituraDecision registrar(OrigemLeituraDecision decision) {
+    private PeopleDataAccessDecision registrar(PeopleDataAccessDecision decision) {
         meterRegistry.counter(
                 "people.read.routing.decisions",
                 "operation", decision.operation(),

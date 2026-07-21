@@ -21,7 +21,7 @@ class AlunoSchemaTest {
                 + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1";
         Flyway.configure()
                 .dataSource(url, "sa", "")
-                .locations("classpath:db/people-readmodel/migration")
+                .locations("classpath:db/people/migration")
                 .target("9")
                 .load()
                 .migrate();
@@ -47,7 +47,7 @@ class AlunoSchemaTest {
 
         Flyway.configure()
                 .dataSource(url, "sa", "")
-                .locations("classpath:db/people-readmodel/migration")
+                .locations("classpath:db/people/migration")
                 .load()
                 .migrate();
 

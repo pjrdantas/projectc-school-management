@@ -147,7 +147,7 @@ class PeopleWriteBackfillExecutorTest {
         String url = "jdbc:h2:mem:people-backfill-target;MODE=PostgreSQL;DB_CLOSE_DELAY=-1";
         Flyway.configure()
                 .dataSource(url, "sa", "")
-                .locations("classpath:db/people-readmodel/migration")
+                .locations("classpath:db/people/migration")
                 .load()
                 .migrate();
         return new JdbcTemplate(new DriverManagerDataSource(url, "sa", ""));

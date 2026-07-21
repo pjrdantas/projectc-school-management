@@ -4,15 +4,15 @@ import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "people.read-model.schema-migration")
-public record LeituraModeloMigrationProperties(
+@ConfigurationProperties(prefix = "spring.datasource")
+public record PeoplePersistenceProperties(
         String url,
         String username,
         String password,
         String driverClassName,
         List<String> locations) {
 
-    public LeituraModeloMigrationProperties {
+    public PeoplePersistenceProperties {
         if (username == null) {
             username = "";
         }
@@ -23,7 +23,7 @@ public record LeituraModeloMigrationProperties(
             driverClassName = "";
         }
         if (locations == null || locations.isEmpty()) {
-            locations = List.of("classpath:db/people-readmodel/migration");
+            locations = List.of("classpath:db/people/migration");
         }
     }
 }

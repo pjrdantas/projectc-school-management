@@ -1,6 +1,6 @@
 package br.com.escola.peopleservice.application.service;
 
-public record OrigemLeituraDecision(
+public record PeopleDataAccessDecision(
         String operation,
         String route,
         String candidateSource,

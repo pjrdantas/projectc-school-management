@@ -12,7 +12,7 @@ import org.springframework.util.StringUtils;
 
 import br.com.escola.peopleservice.application.dto.PessoaFuncionarioResumoResponse;
 import br.com.escola.peopleservice.application.port.out.PessoaFuncionarioResumoPort;
-import br.com.escola.peopleservice.infra.config.LeituraModeloMigrationProperties;
+import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
 
 @Component
 public class JdbcPessoaFuncionarioResumoAdapter implements PessoaFuncionarioResumoPort {
@@ -29,9 +29,9 @@ public class JdbcPessoaFuncionarioResumoAdapter implements PessoaFuncionarioResu
             WHERE id_escola = ?
             """;
 
-    private final LeituraModeloMigrationProperties properties;
+    private final PeoplePersistenceProperties properties;
 
-    public JdbcPessoaFuncionarioResumoAdapter(LeituraModeloMigrationProperties properties) {
+    public JdbcPessoaFuncionarioResumoAdapter(PeoplePersistenceProperties properties) {
         this.properties = properties;
     }
 

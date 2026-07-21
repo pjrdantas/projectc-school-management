@@ -16,7 +16,7 @@ import org.springframework.util.StringUtils;
 
 import br.com.escola.peopleservice.application.model.AlunoConsulta;
 import br.com.escola.peopleservice.application.port.out.AlunoLeituraPort;
-import br.com.escola.peopleservice.infra.config.LeituraModeloMigrationProperties;
+import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
 
 @Component
 public class JdbcAlunoLeituraAdapter implements AlunoLeituraPort {
@@ -54,9 +54,9 @@ public class JdbcAlunoLeituraAdapter implements AlunoLeituraPort {
             WHERE a.id_escola = ? AND p.id_escola = ? AND a.ativo = TRUE AND p.ativo = TRUE
             """;
 
-    private final LeituraModeloMigrationProperties properties;
+    private final PeoplePersistenceProperties properties;
 
-    public JdbcAlunoLeituraAdapter(LeituraModeloMigrationProperties properties) {
+    public JdbcAlunoLeituraAdapter(PeoplePersistenceProperties properties) {
         this.properties = properties;
     }
 
