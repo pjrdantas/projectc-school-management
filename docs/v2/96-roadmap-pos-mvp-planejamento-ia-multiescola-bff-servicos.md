@@ -10214,3 +10214,28 @@ Segundo recorte da B3 entregue em 20/07/2026:
   persistencia do agregado e rollback;
 - a B3 permanece **em andamento**, com **6 recortes restantes**. O proximo e a
   atualizacao interna de pessoa, aluno, contato e endereco.
+
+Terceiro recorte da B3 entregue em 21/07/2026:
+
+- o `people-service` passou a expor `PUT /internal/v1/alunos/{alunoId}`, com o
+  mesmo conjunto de dados e o mesmo formato de resposta usados pelo contrato
+  atual de atualizacao de aluno, sem oficializacao publica no BFF;
+- a operacao restringe aluno e escola ao contexto interno autenticado, impede
+  troca de tenant, retorna `404` para aluno ausente e `409` para CPF pertencente
+  a outro aluno da mesma escola;
+- pessoa, campos de contato, projecao de aluno, status e endereco principal sao
+  atualizados no banco local em uma unica transacao, preservando `id`, escola e
+  `createdAt`;
+- endereco informado cria o principal quando ausente ou atualiza o existente;
+  endereco vazio preserva o estado atual, reproduzindo a semantica do contrato
+  legado sem abrir operacao de remocao implicita;
+- falha em catalogo ou persistencia reverte integralmente pessoa, aluno e
+  endereco; mais de um endereco principal e tratado como violacao de
+  consistencia, em vez de produzir resposta ambigua;
+- nenhuma rota publica, frontend, BFF, monolito, responsavel ou vinculo
+  `aluno_responsavel` foi alterado;
+- validacao restrita ao `people-service`: 77 testes, zero falhas e zero erros,
+  incluindo contrato HTTP, isolamento por escola, criacao e atualizacao de
+  endereco, preservacao por omissao, conflito, ausencia e rollback;
+- a B3 permanece **em andamento**, com **5 recortes restantes**. O proximo e a
+  exclusao segura do aluno e o tratamento das dependencias.

@@ -5335,3 +5335,22 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   erros, cobrindo contrato HTTP interno, regras da aplicacao, integracao
   institucional, agregado persistido e rollback. Restam **6 recortes na B3**;
   o proximo e a atualizacao interna de pessoa, aluno, contato e endereco.
+
+## 21/07/2026 - Terceiro recorte da B3: atualizacao interna de aluno
+
+- O `people-service` passou a expor `PUT /internal/v1/alunos/{alunoId}`, ainda
+  sem rota publica no BFF, preservando o formato atual de entrada e resposta.
+- A operacao impede troca de escola, localiza o aluno dentro do tenant
+  autenticado, retorna `404` para ausencia e `409` para CPF de outro aluno da
+  mesma escola.
+- Pessoa, contato, aluno, status e endereco principal sao atualizados em uma
+  unica transacao local, preservando identidade, escola e data de criacao. O
+  endereco e criado quando ausente, atualizado quando informado e preservado
+  quando omitido, conforme o comportamento legado diagnosticado.
+- Falhas posteriores as primeiras atualizacoes provocam rollback integral, e
+  multiplos enderecos principais bloqueiam a operacao como inconsistencia.
+- Frontend, BFF, monolito, responsaveis e `aluno_responsavel` permaneceram
+  intactos.
+- A validacao restrita ao `people-service` executou 77 testes sem falhas ou
+  erros. Restam **5 recortes na B3**; o proximo e a exclusao segura do aluno e
+  o tratamento das dependencias.
