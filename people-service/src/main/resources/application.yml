@@ -19,6 +19,11 @@ people:
     internal-token: ${PEOPLE_SCHOOL_CATALOG_INTERNAL_TOKEN:}
     connect-timeout: ${PEOPLE_SCHOOL_CATALOG_CONNECT_TIMEOUT:2s}
     read-timeout: ${PEOPLE_SCHOOL_CATALOG_READ_TIMEOUT:5s}
+  student-responsibles:
+    base-url: ${PEOPLE_STUDENT_RESPONSIBLES_BASE_URL:http://localhost:8095}
+    internal-token: ${PEOPLE_STUDENT_RESPONSIBLES_INTERNAL_TOKEN:}
+    connect-timeout: ${PEOPLE_STUDENT_RESPONSIBLES_CONNECT_TIMEOUT:2s}
+    read-timeout: ${PEOPLE_STUDENT_RESPONSIBLES_READ_TIMEOUT:5s}
   read-model:
     enabled: ${PEOPLE_READ_MODEL_ENABLED:true}
     migration-enabled: ${PEOPLE_READ_MODEL_MIGRATION_ENABLED:true}

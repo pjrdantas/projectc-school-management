@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import br.com.escola.peopleservice.application.model.AlunoCriado;
 import br.com.escola.peopleservice.application.model.AlunoAtualizado;
+import br.com.escola.peopleservice.application.model.AlunoConsulta;
 
 public record AlunoResponse(
         UUID id,
@@ -44,6 +45,16 @@ public record AlunoResponse(
     }
 
     public static AlunoResponse from(AlunoAtualizado aluno) {
+        return new AlunoResponse(
+                aluno.id(), aluno.nomeCompleto(), aluno.cpf(), aluno.email(), aluno.telefone(),
+                aluno.dataNascimento(), aluno.rg(), aluno.orgaoEmissorRg(), aluno.ufRg(),
+                aluno.nacionalidade(), aluno.naturalidade(), aluno.sexo(), aluno.nomeSocial(),
+                aluno.cep(), aluno.logradouro(), aluno.numero(), aluno.complemento(), aluno.bairro(),
+                aluno.cidade(), aluno.uf(), aluno.statusAluno(), aluno.escolaId(), aluno.escolaNome(),
+                aluno.createdAt());
+    }
+
+    public static AlunoResponse from(AlunoConsulta aluno) {
         return new AlunoResponse(
                 aluno.id(), aluno.nomeCompleto(), aluno.cpf(), aluno.email(), aluno.telefone(),
                 aluno.dataNascimento(), aluno.rg(), aluno.orgaoEmissorRg(), aluno.ufRg(),

@@ -10265,3 +10265,24 @@ Quarto recorte da B3 entregue em 21/07/2026:
   indisponibilidade operacional posterior e rollback;
 - a B3 permanece **em andamento**, com **4 recortes restantes**. O proximo e a
   compatibilidade completa das leituras publicas de aluno, inclusive ficha.
+
+Quinto recorte da B3 entregue em 21/07/2026:
+
+- o `people-service` passou a expor internamente `GET /internal/v1/alunos`,
+  `GET /internal/v1/alunos/{alunoId}` e
+  `GET /internal/v1/alunos/{alunoId}/ficha`, sem alteracao de rota publica no
+  BFF;
+- listagem e detalhe leem exclusivamente o modelo local de aluno ativo,
+  limitado a escola autenticada, com filtro de nome e campos compativeis com o
+  contrato publico atual; aluno ausente, inativo ou de outro tenant retorna
+  `404` no detalhe;
+- a ficha compoe o aluno local com os responsaveis pelo contrato interno do
+  `responsibles-service`, propagando autorizacao e contexto; ausencia de
+  responsaveis retorna lista vazia apos a confirmacao local do aluno;
+- a leitura valida que exista no maximo um endereco principal, impedindo
+  resposta ambigua para uma inconsistencia de dados;
+- nenhum write de responsavel ou de `aluno_responsavel` foi criado, e frontend,
+  BFF e monolito permaneceram intactos;
+- validacao restrita ao `people-service`: 94 testes, zero falhas e zero erros;
+- a B3 permanece **em andamento**, com **3 recortes restantes**. O proximo e a
+  oficializacao publica dessas leituras no BFF, sem caminho para o monolito.

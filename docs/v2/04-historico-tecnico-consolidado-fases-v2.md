@@ -5374,3 +5374,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A validacao restrita ao `people-service` executou 84 testes sem falhas ou
   erros. Restam **4 recortes na B3**; o proximo e a compatibilidade completa das
   leituras publicas de aluno, inclusive ficha.
+
+## 21/07/2026 - Quinto recorte da B3: leituras internas de aluno e ficha
+
+- O `people-service` passou a expor internamente listagem, detalhe e ficha de
+  aluno em `/internal/v1/alunos`, preservando os campos e o filtro por nome do
+  contrato publico atual, sem oficializacao no BFF.
+- As leituras usam o modelo local de aluno ativo e a escola do contexto
+  autenticado. Aluno ausente, inativo ou de outro tenant nao fica disponivel
+  operacionalmente.
+- A ficha compoe o aluno local com a leitura autoritativa de responsaveis no
+  `responsibles-service`, propagando contexto e autorizacao sem assumir a
+  propriedade de responsaveis ou de `aluno_responsavel`.
+- A validacao restrita ao `people-service` executou 94 testes sem falhas ou
+  erros. Restam **3 recortes na B3**; o proximo e oficializar essas leituras no
+  BFF sem rota para o monolito.
