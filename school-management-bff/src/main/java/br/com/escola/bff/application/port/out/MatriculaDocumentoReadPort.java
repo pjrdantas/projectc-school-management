@@ -17,5 +17,10 @@ public interface MatriculaDocumentoReadPort {
             String status,
             CatalogReadQuery query,
             AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> buscarMatricula(
+            UUID matriculaId,
+            CatalogReadQuery query,
+            AuthSessionContext context);
 }
 

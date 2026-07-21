@@ -126,7 +126,8 @@ public class BearerAuthenticationWebFilter implements WebFilter {
                 || "/api/documentos".equals(path)
                 || path.matches("^/api/documentos/[^/]+$")
                 || path.matches("^/api/documentos-alunos/alunos/[^/]+$")
-                || "/api/matriculas".equals(path);
+                || "/api/matriculas".equals(path)
+                || path.matches("^/api/matriculas/[^/]+$");
     }
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {

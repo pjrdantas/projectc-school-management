@@ -120,6 +120,14 @@ public class DocumentoMatriculaInternalController {
                 status);
     }
 
+    @GetMapping("/matriculas/{matriculaId}")
+    public MatriculaResponse buscarMatricula(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID matriculaId) {
+        return enrollmentTransferUseCase.buscarMatricula(authorization, context, matriculaId);
+    }
+
     @GetMapping("/documentos")
     public List<DocumentoResponse> listarDocumentosPorEntidade(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,

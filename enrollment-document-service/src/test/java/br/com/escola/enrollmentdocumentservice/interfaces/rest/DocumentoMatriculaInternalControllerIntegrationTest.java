@@ -2,6 +2,7 @@ package br.com.escola.enrollmentdocumentservice.interfaces.rest;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -241,6 +242,105 @@ class DocumentoMatriculaInternalControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].alunoId").value(alunoId.toString()))
                 .andExpect(jsonPath("$[0].etapas[0].id").value(etapaId.toString()))
                 .andExpect(jsonPath("$[0].etapas[0].descricao").value("Analise documental"));
+    }
+
+    @Test
+    void deveBuscarDetalheDaMatriculaNoTenantDoContexto() throws Exception {
+        UUID matriculaId = UUID.randomUUID();
+        UUID etapaId = UUID.randomUUID();
+        matriculaRepository.save(new MatriculaJpaEntity(
+                matriculaId,
+                ESCOLA_ID,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "Escola padrao",
+                UUID.randomUUID(),
+                "6 Ano",
+                UUID.randomUUID(),
+                "EFETIVADA",
+                "PRIMEIRA_MATRICULA",
+                LocalDate.of(2026, 7, 21),
+                "Matricula detalhada",
+                LocalDateTime.of(2026, 7, 21, 10, 0)));
+        matriculaEtapaRepository.save(new MatriculaEtapaJpaEntity(
+                etapaId,
+                matriculaId,
+                "Documentos validados",
+                1,
+                "CONCLUIDA",
+                LocalDateTime.of(2026, 7, 21, 10, 0),
+                LocalDateTime.of(2026, 7, 21, 11, 0),
+                "Sem pendencias"));
+
+        mockMvc.perform(get("/internal/v1/matriculas/{matriculaId}", matriculaId)
+                        .header("X-Internal-Token", INTERNAL_TOKEN)
+                        .header("X-Correlation-Id", "corr-enrollment-detail")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", AUTHORIZATION))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(matriculaId.toString()))
+                .andExpect(jsonPath("$.status").value("EFETIVADA"))
+                .andExpect(jsonPath("$.etapas[0].id").value(etapaId.toString()))
+                .andExpect(jsonPath("$.etapas[0].observacao").value("Sem pendencias"));
+
+        mockMvc.perform(get("/internal/v1/matriculas/{matriculaId}", matriculaId)
+                        .header("X-Internal-Token", INTERNAL_TOKEN)
+                        .header("X-Correlation-Id", "corr-enrollment-detail-other-school")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", UUID.randomUUID())
+                        .header("Authorization", AUTHORIZATION))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveAtualizarStatusECancelarMatriculaNoContratoInterno() throws Exception {
+        UUID matriculaId = UUID.randomUUID();
+        matriculaRepository.save(new MatriculaJpaEntity(
+                matriculaId,
+                ESCOLA_ID,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "Escola padrao",
+                UUID.randomUUID(),
+                "6 Ano",
+                UUID.randomUUID(),
+                "PENDENTE",
+                "PRIMEIRA_MATRICULA",
+                LocalDate.of(2026, 7, 21),
+                "Matricula interna",
+                LocalDateTime.of(2026, 7, 21, 10, 0)));
+
+        mockMvc.perform(patch("/internal/v1/matriculas/{matriculaId}/status", matriculaId)
+                        .contentType("application/json")
+                        .content("""
+                                { "status": "EFETIVADA", "observacao": "Documentos validados" }
+                                """)
+                        .header("X-Internal-Token", INTERNAL_TOKEN)
+                        .header("X-Correlation-Id", "corr-enrollment-status")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", AUTHORIZATION))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("EFETIVADA"))
+                .andExpect(jsonPath("$.observacao").value("Documentos validados"));
+
+        mockMvc.perform(post("/internal/v1/matriculas/{matriculaId}/cancelamento", matriculaId)
+                        .contentType("application/json")
+                        .content("""
+                                { "motivo": "Desistencia formalizada" }
+                                """)
+                        .header("X-Internal-Token", INTERNAL_TOKEN)
+                        .header("X-Correlation-Id", "corr-enrollment-cancel")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", AUTHORIZATION))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELADA"));
+
+        MatriculaJpaEntity cancelled = matriculaRepository.findById(matriculaId).orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(cancelled.getCancellationReason()).isEqualTo("Desistencia formalizada");
+        org.assertj.core.api.Assertions.assertThat(cancelled.getCancelledAt()).isNotNull();
     }
 
     @Test

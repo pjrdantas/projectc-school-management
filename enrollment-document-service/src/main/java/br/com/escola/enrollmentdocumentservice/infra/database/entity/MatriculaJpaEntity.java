@@ -53,6 +53,15 @@ public class MatriculaJpaEntity {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+
+    @Column(name = "cancellation_reason", length = 500)
+    private String cancellationReason;
+
     protected MatriculaJpaEntity() {
     }
 
@@ -98,4 +107,37 @@ public class MatriculaJpaEntity {
     public LocalDate getDataMatricula() { return dataMatricula; }
     public String getObservacao() { return observacao; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public LocalDateTime getCancelledAt() { return cancelledAt; }
+    public String getCancellationReason() { return cancellationReason; }
+
+    public void atualizarDados(
+            UUID turmaId,
+            UUID serieId,
+            UUID periodoLetivoId,
+            String tipoMatricula,
+            LocalDate dataMatricula,
+            String observacao,
+            LocalDateTime updatedAt) {
+        this.turmaId = turmaId;
+        this.serieId = serieId;
+        this.periodoLetivoId = periodoLetivoId;
+        this.tipoMatricula = tipoMatricula;
+        this.dataMatricula = dataMatricula;
+        this.observacao = observacao;
+        this.updatedAt = updatedAt;
+    }
+
+    public void atualizarStatus(String status, String observacao, LocalDateTime updatedAt) {
+        this.status = status;
+        this.observacao = observacao;
+        this.updatedAt = updatedAt;
+    }
+
+    public void cancelar(String motivo, LocalDateTime cancelledAt) {
+        this.status = "CANCELADA";
+        this.cancellationReason = motivo;
+        this.cancelledAt = cancelledAt;
+        this.updatedAt = cancelledAt;
+    }
 }

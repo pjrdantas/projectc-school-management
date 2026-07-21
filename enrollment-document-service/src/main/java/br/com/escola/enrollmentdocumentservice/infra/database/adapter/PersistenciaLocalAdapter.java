@@ -10,6 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.escola.enrollmentdocumentservice.application.context.InternalRequestContext;
 import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoResponse;
+import br.com.escola.enrollmentdocumentservice.application.dto.CriarMatriculaCommand;
+import br.com.escola.enrollmentdocumentservice.application.dto.AtualizarMatriculaCommand;
+import br.com.escola.enrollmentdocumentservice.application.dto.AtualizarStatusMatriculaCommand;
+import br.com.escola.enrollmentdocumentservice.application.dto.CancelarMatriculaCommand;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.MatriculaEtapaResponse;
@@ -19,6 +23,7 @@ import br.com.escola.enrollmentdocumentservice.application.dto.TransferenciaAlun
 import br.com.escola.enrollmentdocumentservice.application.exception.ConflitoNegocioException;
 import br.com.escola.enrollmentdocumentservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.enrollmentdocumentservice.application.port.out.EnrollmentTransferPort;
+import br.com.escola.enrollmentdocumentservice.application.port.out.MatriculaWritePort;
 import br.com.escola.enrollmentdocumentservice.infra.database.entity.DocumentoAdministrativoJpaEntity;
 import br.com.escola.enrollmentdocumentservice.infra.database.entity.DocumentoAlunoJpaEntity;
 import br.com.escola.enrollmentdocumentservice.infra.database.entity.EscolaOrigemJpaEntity;
@@ -34,7 +39,7 @@ import br.com.escola.enrollmentdocumentservice.infra.database.repository.Transfe
 
 @Repository
 @Transactional
-public class PersistenciaLocalAdapter implements EnrollmentTransferPort {
+public class PersistenciaLocalAdapter implements EnrollmentTransferPort, MatriculaWritePort {
 
     private final EscolaOrigemJpaRepository escolaOrigemRepository;
     private final TransferenciaJpaRepository transferenciaRepository;
@@ -85,6 +90,88 @@ public class PersistenciaLocalAdapter implements EnrollmentTransferPort {
         return escolaOrigemRepository.findAllBySchoolIdOrderByNomeEscolaAscIdAsc(context.escolaId()).stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.Optional<MatriculaResponse> buscar(UUID matriculaId, UUID escolaId) {
+        return matriculaRepository.findByIdAndSchoolId(matriculaId, escolaId).map(this::toResponse);
+    }
+
+    @Override
+    public MatriculaResponse criar(CriarMatriculaCommand command, UUID escolaId) {
+        if (matriculaRepository.existsBySchoolIdAndAlunoIdAndTurmaIdAndPeriodoLetivoIdAndStatus(
+                escolaId,
+                command.alunoId(),
+                command.turmaId(),
+                command.periodoLetivoId(),
+                "PENDENTE")) {
+            throw new ConflitoNegocioException("Ja existe matricula pendente para aluno, turma e periodo letivo");
+        }
+        MatriculaJpaEntity entity = matriculaRepository.save(new MatriculaJpaEntity(
+                UUID.randomUUID(),
+                escolaId,
+                command.alunoId(),
+                command.turmaId(),
+                null,
+                command.serieId(),
+                null,
+                command.periodoLetivoId(),
+                "PENDENTE",
+                command.tipoMatricula(),
+                command.dataMatricula(),
+                command.observacao(),
+                LocalDateTime.now()));
+        return toResponse(entity);
+    }
+
+    @Override
+    public MatriculaResponse atualizar(UUID matriculaId, AtualizarMatriculaCommand command, UUID escolaId) {
+        MatriculaJpaEntity entity = matriculaRepository.findByIdAndSchoolId(matriculaId, escolaId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Matricula nao encontrada"));
+        if (!"PENDENTE".equals(entity.getStatus())) {
+            throw new ConflitoNegocioException("Somente matricula pendente pode ser atualizada");
+        }
+        if (matriculaRepository.existsBySchoolIdAndAlunoIdAndTurmaIdAndPeriodoLetivoIdAndStatusAndIdNot(
+                escolaId,
+                entity.getAlunoId(),
+                command.turmaId(),
+                command.periodoLetivoId(),
+                "PENDENTE",
+                matriculaId)) {
+            throw new ConflitoNegocioException("Ja existe matricula pendente para aluno, turma e periodo letivo");
+        }
+        entity.atualizarDados(
+                command.turmaId(),
+                command.serieId(),
+                command.periodoLetivoId(),
+                command.tipoMatricula(),
+                command.dataMatricula(),
+                command.observacao(),
+                LocalDateTime.now());
+        return toResponse(matriculaRepository.save(entity));
+    }
+
+    @Override
+    public MatriculaResponse atualizarStatus(
+            UUID matriculaId,
+            AtualizarStatusMatriculaCommand command,
+            UUID escolaId) {
+        MatriculaJpaEntity entity = matriculaRepository.findByIdAndSchoolId(matriculaId, escolaId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Matricula nao encontrada"));
+        entity.atualizarStatus(command.status(), command.observacao(), LocalDateTime.now());
+        return toResponse(matriculaRepository.save(entity));
+    }
+
+    @Override
+    public MatriculaResponse cancelar(
+            UUID matriculaId,
+            CancelarMatriculaCommand command,
+            UUID escolaId) {
+        MatriculaJpaEntity entity = matriculaRepository.findByIdAndSchoolId(matriculaId, escolaId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Matricula nao encontrada"));
+        entity.cancelar(command.motivo(), LocalDateTime.now());
+        return toResponse(matriculaRepository.save(entity));
     }
 
     @Override
@@ -180,6 +267,17 @@ public class PersistenciaLocalAdapter implements EnrollmentTransferPort {
                 .filter(entity -> status == null || status.equalsIgnoreCase(entity.getStatus()))
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MatriculaResponse buscarMatricula(
+            String authorization,
+            InternalRequestContext context,
+            UUID matriculaId) {
+        return matriculaRepository.findByIdAndSchoolId(matriculaId, context.escolaId())
+                .map(this::toResponse)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Matricula nao encontrada"));
     }
 
     @Override

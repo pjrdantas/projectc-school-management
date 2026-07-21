@@ -114,6 +114,39 @@ class MatriculaReadProxyIntegrationTest {
         assertThat(enrollmentRequest.getHeader("X-Escola-Id")).isEqualTo("00000000-0000-0000-0000-000000000047");
     }
 
+    @Test
+    void deveConsumirDocumentoMatriculaServiceNoDetalheOficialDeMatricula() throws InterruptedException {
+        String matriculaId = "00000000-0000-0000-0000-000000000701";
+        IDENTITY_ACCESS.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {
+                          "usuarioId":"00000000-0000-0000-0000-000000000101",
+                          "escolaId":"00000000-0000-0000-0000-000000000047",
+                          "escolaNome":"Escola padrao"
+                        }
+                        """));
+        ENROLLMENT_DOCUMENT.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("""
+                        {"id":"00000000-0000-0000-0000-000000000701","status":"EFETIVADA","etapas":[]}
+                        """));
+
+        client.get().uri("/api/matriculas/{matriculaId}", matriculaId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-matricula-detail")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(matriculaId)
+                .jsonPath("$.status").isEqualTo("EFETIVADA");
+
+        IDENTITY_ACCESS.takeRequest();
+        var request = ENROLLMENT_DOCUMENT.takeRequest();
+        assertThat(request.getPath()).isEqualTo("/internal/v1/matriculas/" + matriculaId);
+        assertThat(MONOLITH.getRequestCount()).isZero();
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {

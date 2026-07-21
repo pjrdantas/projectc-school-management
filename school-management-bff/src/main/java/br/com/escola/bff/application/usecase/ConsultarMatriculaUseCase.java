@@ -15,4 +15,11 @@ public interface ConsultarMatriculaUseCase {
             UUID turmaId,
             UUID periodoLetivoId,
             String status);
+
+    default Mono<ResponseEntity<String>> buscarMatricula(
+            String authorization,
+            String correlationId,
+            UUID matriculaId) {
+        return Mono.error(new UnsupportedOperationException("Detalhe de matricula nao configurado"));
+    }
 }

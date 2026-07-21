@@ -36,6 +36,7 @@ import br.com.escola.bff.application.port.out.IdentityTenantAuthContextPort;
 import br.com.escola.bff.application.port.out.IdentityTenantObservabilityPort;
 import br.com.escola.bff.application.port.out.InternalAuthContextPort;
 import br.com.escola.bff.application.port.out.MatriculaDocumentoReadPort;
+import br.com.escola.bff.application.port.out.MatriculaWritePort;
 import br.com.escola.bff.application.port.out.PainelAcademicoReadPort;
 import br.com.escola.bff.application.port.out.PainelAlertaReadPort;
 import br.com.escola.bff.application.port.out.PainelConfiguracaoReadPort;
@@ -89,6 +90,7 @@ import br.com.escola.bff.application.service.FuncionarioReadProxyService;
 import br.com.escola.bff.application.service.HistoricoEscolarReadProxyService;
 import br.com.escola.bff.application.service.HistoricoEscolarWriteProxyService;
 import br.com.escola.bff.application.service.MatriculaReadProxyService;
+import br.com.escola.bff.application.service.MatriculaWriteProxyService;
 import br.com.escola.bff.application.service.PainelAcademicoReadProxyService;
 import br.com.escola.bff.application.service.PainelAlertaReadProxyService;
 import br.com.escola.bff.application.service.PainelConfiguracaoReadProxyService;
@@ -137,6 +139,7 @@ import br.com.escola.bff.application.usecase.ConsultarEscolaOrigemUseCase;
 import br.com.escola.bff.application.usecase.ConsultarFuncionarioUseCase;
 import br.com.escola.bff.application.usecase.ConsultarHistoricoEscolarUseCase;
 import br.com.escola.bff.application.usecase.ConsultarMatriculaUseCase;
+import br.com.escola.bff.application.usecase.MatriculaWriteUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPainelAcademicoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPainelAlertaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPainelDiretorUseCase;
@@ -601,6 +604,13 @@ public class BffUseCaseConfiguration {
             AuthContextPort authContextPort,
             TransferenciaMatriculaWritePort enrollmentDocumentTransferenciaWritePort) {
         return new TransferenciaWriteProxyService(authContextPort, enrollmentDocumentTransferenciaWritePort);
+    }
+
+    @Bean
+    MatriculaWriteUseCase matriculaWriteUseCase(
+            AuthContextPort authContextPort,
+            MatriculaWritePort enrollmentDocumentMatriculaWritePort) {
+        return new MatriculaWriteProxyService(authContextPort, enrollmentDocumentMatriculaWritePort);
     }
 
     @Bean

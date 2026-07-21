@@ -54,5 +54,22 @@ public class MatriculaDocumentoReadClient extends AbstractDownstreamClientSuppor
                 .timeout(properties.responseTimeout())
                 .onErrorMap(error -> mapTransportError(error, "Enrollment document service indisponivel"));
     }
+
+    @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> buscarMatricula(
+            UUID matriculaId,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.get()
+                .uri("/internal/v1/matriculas/{matriculaId}", matriculaId)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Enrollment document service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Enrollment document service indisponivel"));
+    }
 }
 

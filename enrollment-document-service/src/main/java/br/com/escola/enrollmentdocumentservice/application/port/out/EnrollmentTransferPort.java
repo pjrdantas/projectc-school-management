@@ -50,6 +50,8 @@ public interface EnrollmentTransferPort {
             UUID periodoLetivoId,
             String status);
 
+    MatriculaResponse buscarMatricula(String authorization, InternalRequestContext context, UUID matriculaId);
+
     List<DocumentoResponse> listarDocumentosPorEntidade(
             String authorization,
             InternalRequestContext context,

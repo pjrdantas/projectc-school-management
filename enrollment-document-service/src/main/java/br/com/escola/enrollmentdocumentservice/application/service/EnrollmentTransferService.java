@@ -98,6 +98,14 @@ public class EnrollmentTransferService implements EnrollmentTransferUseCase {
     }
 
     @Override
+    public MatriculaResponse buscarMatricula(
+            String authorization,
+            InternalRequestContext context,
+            UUID matriculaId) {
+        return enrollmentTransferPort.buscarMatricula(authorization, context, matriculaId);
+    }
+
+    @Override
     public List<DocumentoResponse> listarDocumentosPorEntidade(
             String authorization,
             InternalRequestContext context,

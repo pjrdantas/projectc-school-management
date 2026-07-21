@@ -40,5 +40,15 @@ public class MatriculaReadProxyService implements ConsultarMatriculaUseCase {
                         query,
                         context));
     }
+
+    @Override
+    public Mono<ResponseEntity<String>> buscarMatricula(
+            String authorization,
+            String correlationId,
+            UUID matriculaId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> enrollmentDocumentMatriculaReadPort.buscarMatricula(matriculaId, query, context));
+    }
 }
 

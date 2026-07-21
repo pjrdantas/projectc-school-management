@@ -10565,3 +10565,185 @@ Decimo e ultimo recorte da B4 entregue em 21/07/2026:
   leituras e escritas de responsaveis e de vinculos aluno-responsavel. Um
   eventual novo ciclo deve tratar somente evolucoes funcionais futuras, sem
   reabrir dependencia do monolito.
+
+## Execucao fechada da B5 - Ciclo completo de matricula
+
+Quantidade fechada da B5: **9 recortes**.
+
+1. schema proprio e contratos internos de escrita;
+2. contratos internos de validacao com aluno e catalogo academico;
+3. criacao interna de matricula;
+4. atualizacao interna de matricula;
+5. mudanca de status e cancelamento seguro;
+6. consultas auxiliares e detalhe de matricula;
+7. oficializacao de criacao e atualizacao no BFF;
+8. oficializacao de status, cancelamento e consultas no BFF;
+9. backfill controlado, reconciliacao, prova integrada e fechamento.
+
+O limite da B5 preserva a propriedade do dominio: o
+`enrollment-document-service` e o unico dono do ciclo de matricula. Aluno
+permanece no `people-service`, e turma, serie e periodo letivo permanecem no
+`academic-catalog-service`, sempre por contratos internos explicitos.
+
+Primeiro recorte da B5 entregue em 21/07/2026:
+
+- a migration V2 preparou o ciclo de vida de escrita de `enrollment_record`
+  com `updated_at`, `cancelled_at`, motivo de cancelamento, status obrigatorio
+  com default `PENDENTE` e indice por escola, aluno, periodo e status;
+- foram definidos comandos tipados e portas de entrada/saida para criar,
+  atualizar, mudar status e cancelar matricula, sem controller ou escrita
+  efetiva neste recorte;
+- nenhuma rota interna ou publica, BFF, frontend, monolito ou dependencia
+  remota foi alterada;
+- validacao restrita ao `enrollment-document-service`: 8 testes, zero falhas e
+  zero erros, incluindo migration vazia e validacao do schema;
+- a B5 permanece **em andamento**, com **8 recortes restantes**. O proximo e
+  a definicao dos contratos internos de validacao com aluno e catalogo.
+
+Segundo recorte da B5 entregue em 21/07/2026:
+
+- o `enrollment-document-service` passou a ter portas e adaptadores HTTP
+  especificos da matricula para validar aluno ativo no `people-service` e
+  turma, serie e periodo letivo no `academic-catalog-service`;
+- os adaptadores propagam token interno, correlacao, usuario e escola. Recurso
+  ausente retorna validacao negativa; rejeicao nao-404 ou indisponibilidade dos
+  servicos donos retorna `503`, sem fallback ou acesso ao monolito;
+- periodo letivo e validado tambem pelo atributo oficial `ativo`, impedindo
+  que um periodo inativo seja usado em futura escrita de matricula;
+- nenhuma rota interna ou publica, BFF, frontend, monolito ou escrita de
+  matricula foi alterada;
+- validacao restrita ao `enrollment-document-service`: 10 testes, zero falhas
+  e zero erros, incluindo propagacao de contexto, aluno ausente e periodo
+  inativo;
+- a B5 permanece **em andamento**, com **7 recortes restantes**. O proximo e
+  a criacao interna de matricula.
+
+Terceiro recorte da B5 entregue em 21/07/2026:
+
+- o `enrollment-document-service` passou a criar matricula por
+  `POST /internal/v1/matriculas` (mantido tambem o alias interno), persistindo
+  exclusivamente em `enrollment_record` com status inicial `PENDENTE`;
+- a criacao exige aluno ativo na escola, turma existente e compativel com a
+  serie e o periodo informados, serie existente e periodo letivo ativo. Toda
+  inconsistencia e bloqueada antes da transacao local;
+- o banco proprio passou a impedir repeticao da mesma combinacao de escola,
+  aluno, turma, periodo e status, e a aplicacao retorna `409` para matricula
+  pendente duplicada;
+- nenhuma rota publica, BFF, frontend ou monolito foi alterado;
+- validacao restrita ao `enrollment-document-service`: 12 testes, zero falhas
+  e zero erros, incluindo criacao apos validacoes e bloqueio de turma
+  incompativel sem persistencia;
+- a B5 permanece **em andamento**, com **6 recortes restantes**. O proximo e
+  a atualizacao interna de matricula.
+
+Quarto recorte da B5 entregue em 21/07/2026:
+
+- o `enrollment-document-service` passou a atualizar matricula pendente por
+  `PUT /internal/v1/matriculas/{matriculaId}`, mantido tambem o alias interno,
+  exclusivamente sobre `enrollment_record` do banco proprio;
+- a operacao restringe a busca ao `id` e a escola do contexto, retorna `404`
+  para ausencia ou tenant divergente e `409` para matricula que nao esteja em
+  `PENDENTE`; aluno e status nao podem ser alterados neste recorte;
+- antes da transacao local, o servico revalida o aluno ativo e a combinacao
+  turma, serie e periodo letivo nos respectivos servicos donos. A aplicacao
+  tambem bloqueia com `409` a colisao com outra matricula pendente equivalente
+  e atualiza `updated_at`;
+- nenhuma rota publica, BFF, frontend ou monolito foi alterado;
+- validacao restrita ao `enrollment-document-service`: 13 testes, zero falhas
+  e zero erros, incluindo atualizacao apos revalidacao das dependencias;
+- a B5 permanece **em andamento**, com **5 recortes restantes**. O proximo e
+  a mudanca de status e o cancelamento seguro.
+
+Quinto recorte da B5 entregue em 21/07/2026:
+
+- o `enrollment-document-service` passou a expor
+  `PATCH /internal/v1/matriculas/{matriculaId}/status` para transicoes
+  operacionais e `POST /internal/v1/matriculas/{matriculaId}/cancelamento`
+  para o cancelamento seguro, mantidos tambem os aliases internos;
+- a alteracao aceita somente `SOLICITADA`, `EM_ANDAMENTO`,
+  `AGUARDANDO_DOCUMENTOS`, `AGUARDANDO_HISTORICO_ESCOLAR` e `EFETIVADA`.
+  Estados terminais nao sao reabertos, repeticao de status e encerramentos
+  academicos exigem os fluxos dedicados ainda fora deste recorte;
+- o cancelamento exige motivo, impede repeticao e terminalidade, grava
+  `CANCELADA`, `cancelled_at`, motivo e `updated_at` na persistencia propria;
+- as duas operacoes restringem a matricula a `id` e escola do contexto. Nenhuma
+  rota publica, BFF, frontend ou monolito foi alterado;
+- validacao restrita ao `enrollment-document-service`: 17 testes, zero falhas
+  e zero erros, incluindo transicao operacional e cancelamento no contrato
+  interno com persistencia do motivo;
+- a B5 permanece **em andamento**, com **4 recortes restantes**. O proximo e
+  consultas auxiliares e detalhe de matricula.
+
+Sexto recorte da B5 entregue em 21/07/2026:
+
+- a listagem interna de matriculas permanece oficial por
+  `GET /internal/v1/matriculas`, com filtros locais de aluno, turma, periodo
+  letivo e status, e foi complementada pelo detalhe em
+  `GET /internal/v1/matriculas/{matriculaId}`;
+- o detalhe reutiliza o contrato de resposta da listagem, incluindo etapas da
+  matricula, e sempre resolve o registro por id e escola do contexto. Ausencia
+  ou matricula de outra escola retorna `404`;
+- as consultas operam exclusivamente em `enrollment_record` e nas etapas
+  locais, sem consulta remota, fallback, BFF, frontend ou monolito;
+- validacao restrita ao `enrollment-document-service`: 18 testes, zero falhas
+  e zero erros, incluindo detalhe completo e bloqueio entre tenants;
+- a B5 permanece **em andamento**, com **3 recortes restantes**. O proximo e
+  a oficializacao de criacao e atualizacao no BFF.
+
+Setimo recorte da B5 entregue em 21/07/2026:
+
+- o `school-management-bff` passou a oficializar `POST /api/matriculas` e
+  `PUT /api/matriculas/{matriculaId}`, atendidos exclusivamente pelo
+  `enrollment-document-service` com contexto autenticado resolvido no
+  `identity-access-service`;
+- criacao preserva o payload publico legado (`alunoId`, `turmaId`,
+  `periodoLetivoId`, tipo e observacao). Quando serie e data nao sao
+  informadas, o servico dono as resolve da turma oficial e da data corrente,
+  sem expor exigencia interna ao consumidor;
+- o BFF propaga bearer, correlacao, usuario, escola e token interno. Nao ha
+  adapter, fallback ou chamada ao monolito nas duas rotas;
+- validacao restrita aos modulos tocados: `enrollment-document-service` com
+  19 testes e `MatriculaWriteProxyIntegrationTest` do BFF com 2 testes, todos
+  sem falhas ou erros;
+- a B5 permanece **em andamento**, com **2 recortes restantes**. O proximo e
+  a oficializacao de status, cancelamento e consultas no BFF.
+
+Oitavo recorte da B5 entregue em 21/07/2026:
+
+- o `school-management-bff` passou a oficializar
+  `PATCH /api/matriculas/{matriculaId}/status`,
+  `DELETE /api/matriculas/{matriculaId}` como cancelamento seguro e
+  `GET /api/matriculas/{matriculaId}` como detalhe. A listagem publica
+  existente em `GET /api/matriculas` permanece atendida pelo mesmo servico
+  dono;
+- o BFF converte somente `justificativa` publica em `observacao` interna no
+  status. O `DELETE` legado sem corpo e preservado com motivo operacional
+  auditavel; corpo opcional pode informar `motivo` ou `justificativa`;
+- todas as rotas resolvem o contexto no `identity-access-service` e propagam
+  bearer, correlacao, usuario, escola e token interno ao
+  `enrollment-document-service`, sem adapter, fallback ou chamada ao
+  monolito;
+- validacao restrita ao BFF: `MatriculaReadProxyIntegrationTest` com 2 testes
+  e `MatriculaWriteProxyIntegrationTest` com 4 testes, sem falhas ou erros;
+- a B5 permanece **em andamento**, com **1 recorte restante**: backfill
+  controlado, reconciliacao, prova integrada e fechamento.
+
+Nono e ultimo recorte da B5 entregue em 21/07/2026:
+
+- o `enrollment-document-service` recebeu backfill one-shot, paginado e
+  opt-in para `matricula` e `matricula_etapa`, com origem JDBC separada do
+  datasource proprio. A carga preserva identificadores, executa upsert
+  transacional e nao remove registros criados localmente apos o corte;
+- a reconciliacao compara as linhas importadas com `enrollment_record` e
+  `enrollment_step`. Quando `fail-on-mismatch` estiver ativo, divergencia
+  interrompe a inicializacao; o recurso permanece desabilitado por padrao e
+  exige URL explicita da origem;
+- a prova integrada aplicou Flyway no destino H2 e confirmou carga, repeticao
+  idempotente, reconciliacao e preservacao de matricula local posterior. Nenhum
+  dado real, frontend, BFF ou monolito foi alterado nesta execucao;
+- validacao restrita ao `enrollment-document-service`: 20 testes, zero falhas
+  e zero erros; `git diff --check` sem erros;
+- a **B5 esta concluida**. O `enrollment-document-service` encerra o ciclo de
+  matricula como dono efetivo de criacao, atualizacao, status operacional,
+  cancelamento e consultas, com contrato publico oficial no BFF e sem
+  dependencia funcional de runtime do monolito.
