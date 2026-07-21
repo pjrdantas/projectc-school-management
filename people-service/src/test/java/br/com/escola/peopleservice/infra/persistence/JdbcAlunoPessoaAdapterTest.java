@@ -47,6 +47,22 @@ class JdbcAlunoPessoaAdapterTest {
         assertThat(response).isEmpty();
     }
 
+    @Test
+    void naoRetornaVinculoDeAlunoInativo() throws Exception {
+        String url = h2Url("student_pessoa_local_read_" + UUID.randomUUID());
+        UUID alunoId = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
+        criarSchemaEPopular(url);
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+                var statement = connection.createStatement()) {
+            statement.executeUpdate("UPDATE aluno SET ativo = FALSE");
+        }
+        JdbcAlunoPessoaAdapter adapter = new JdbcAlunoPessoaAdapter(
+                new LeituraModeloMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+
+        assertThat(adapter.buscarVinculoPorAlunoId(alunoId, escolaId)).isEmpty();
+    }
+
     private String h2Url(String dbName) {
         return "jdbc:h2:mem:" + dbName + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1";
     }
@@ -59,7 +75,8 @@ class JdbcAlunoPessoaAdapterTest {
                         id_aluno UUID NOT NULL PRIMARY KEY,
                         id_pessoa UUID,
                         id_escola UUID NOT NULL,
-                        nome_completo VARCHAR(150) NOT NULL
+                        nome_completo VARCHAR(150) NOT NULL,
+                        ativo BOOLEAN NOT NULL DEFAULT TRUE
                     )
                     """);
             statement.execute("""

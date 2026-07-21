@@ -10239,3 +10239,29 @@ Terceiro recorte da B3 entregue em 21/07/2026:
   endereco, preservacao por omissao, conflito, ausencia e rollback;
 - a B3 permanece **em andamento**, com **5 recortes restantes**. O proximo e a
   exclusao segura do aluno e o tratamento das dependencias.
+
+Quarto recorte da B3 entregue em 21/07/2026:
+
+- o `people-service` passou a expor `DELETE /internal/v1/alunos/{alunoId}` com
+  resposta `204`, ainda restrito ao contrato interno e sem oficializacao no
+  BFF;
+- a exclusao foi implementada como encerramento logico e transacional do aluno,
+  preenchendo `data_saida`, `motivo_saida=EXCLUSAO_SOLICITADA`, `updated_at` e
+  `ativo=false`, sem apagar identificadores ou registros de outros dominios;
+- a pessoa associada e inativada somente quando nao possui outro tipo alem de
+  `ALUNO`; pessoa multipapel permanece ativa e conserva todos os seus vinculos;
+- endereco, metadados documentais e `aluno_responsavel` permanecem preservados
+  para integridade referencial e auditoria. O `people-service` nao executa mais
+  a cascata indevida do monolito sobre documentos, transferencias, historicos,
+  matriculas ou responsaveis;
+- aluno inativo deixa de ser resolvido pelo vinculo operacional aluno-pessoa e
+  nao pode ser atualizado; tenant divergente, aluno ausente e exclusao repetida
+  retornam `404`;
+- qualquer falha durante a inativacao reverte aluno e pessoa integralmente;
+- nenhuma rota publica, frontend, BFF, monolito ou servico dono de dependencias
+  foi alterado;
+- validacao restrita ao `people-service`: 84 testes, zero falhas e zero erros,
+  cobrindo contrato `204`, tenant, multipapel, preservacao de dependencias,
+  indisponibilidade operacional posterior e rollback;
+- a B3 permanece **em andamento**, com **4 recortes restantes**. O proximo e a
+  compatibilidade completa das leituras publicas de aluno, inclusive ficha.

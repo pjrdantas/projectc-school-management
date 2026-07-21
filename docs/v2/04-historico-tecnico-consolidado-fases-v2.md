@@ -5354,3 +5354,23 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A validacao restrita ao `people-service` executou 77 testes sem falhas ou
   erros. Restam **5 recortes na B3**; o proximo e a exclusao segura do aluno e
   o tratamento das dependencias.
+
+## 21/07/2026 - Quarto recorte da B3: exclusao segura de aluno
+
+- O `people-service` passou a expor `DELETE /internal/v1/alunos/{alunoId}` com
+  resposta `204`, sem rota publica no BFF.
+- A exclusao passou a encerrar logicamente o aluno em uma transacao, registrando
+  data e motivo de saida e inativando a pessoa somente quando ela nao possui
+  outro papel. Pessoas multipapel permanecem ativas.
+- Enderecos, metadados documentais e vinculos `aluno_responsavel` sao
+  preservados. A nova implementacao nao reproduz a cascata do monolito sobre
+  documentos, transferencias, historicos, matriculas ou responsaveis, cujos
+  dados pertencem a outros servicos.
+- Alunos inativos deixam de ser resolvidos operacionalmente e nao podem ser
+  atualizados. Escola divergente, ausencia e repeticao retornam `404`, e falhas
+  durante a transacao provocam rollback integral.
+- Frontend, BFF, monolito e servicos donos das dependencias permaneceram
+  intactos.
+- A validacao restrita ao `people-service` executou 84 testes sem falhas ou
+  erros. Restam **4 recortes na B3**; o proximo e a compatibilidade completa das
+  leituras publicas de aluno, inclusive ficha.

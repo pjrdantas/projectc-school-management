@@ -20,6 +20,7 @@ public class JdbcAlunoPessoaAdapter implements AlunoPessoaPort {
             FROM aluno
             WHERE id_aluno = ?
               AND id_escola = ?
+              AND ativo = TRUE
             """;
 
     private final LeituraModeloMigrationProperties properties;

@@ -79,6 +79,7 @@ public class JdbcAlunoAtualizacaoAdapter implements AlunoAtualizacaoPort {
                 LEFT JOIN pessoa_endereco pe ON pe.id_pessoa = p.id_pessoa AND pe.principal = TRUE
                 LEFT JOIN endereco e ON e.id_endereco = pe.id_endereco
                 WHERE a.id_aluno = ? AND a.id_escola = ? AND p.id_escola = ?
+                  AND a.ativo = TRUE AND p.ativo = TRUE
                 """)) {
             set(statement, alunoId, escolaId, escolaId);
             try (ResultSet resultSet = statement.executeQuery()) {
