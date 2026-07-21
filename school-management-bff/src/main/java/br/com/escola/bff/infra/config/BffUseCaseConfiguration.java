@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 import br.com.escola.bff.application.port.in.AdministrarAcessoUseCase;
 import br.com.escola.bff.application.port.out.AdministracaoAcessoPort;
+import br.com.escola.bff.application.port.out.AlunoReadPort;
 import br.com.escola.bff.application.port.out.AlunoResponsavelVinculoReadPort;
 import br.com.escola.bff.application.port.out.AulaPort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
@@ -62,6 +63,7 @@ import br.com.escola.bff.application.port.out.TenantAtivoReadPort;
 import br.com.escola.bff.application.port.out.TransferenciaMatriculaReadPort;
 import br.com.escola.bff.application.port.out.TransferenciaMatriculaWritePort;
 import br.com.escola.bff.application.service.AdministracaoAcessoProxyService;
+import br.com.escola.bff.application.service.AlunoReadProxyService;
 import br.com.escola.bff.application.service.AlunoResponsavelReadProxyService;
 import br.com.escola.bff.application.service.AulaReadProxyService;
 import br.com.escola.bff.application.service.AulaWriteProxyService;
@@ -115,6 +117,7 @@ import br.com.escola.bff.application.service.TurmaDisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.TurmaWriteRoutingService;
 import br.com.escola.bff.application.usecase.AprovarPlanejamentoIaConteudoVersaoUseCase;
 import br.com.escola.bff.application.usecase.AtualizarHistoricoEscolarUseCase;
+import br.com.escola.bff.application.usecase.ConsultarAlunoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAulaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAuthSessionUseCase;
@@ -241,6 +244,13 @@ public class BffUseCaseConfiguration {
         return new AlunoResponsavelReadProxyService(
                 authContextPort,
                 responsiblesAlunoResponsavelReadPort);
+    }
+
+    @Bean
+    ConsultarAlunoUseCase consultarAlunoUseCase(
+            InternalAuthContextPort authContextPort,
+            AlunoReadPort peopleAlunoReadPort) {
+        return new AlunoReadProxyService(authContextPort, peopleAlunoReadPort);
     }
 
     @Bean

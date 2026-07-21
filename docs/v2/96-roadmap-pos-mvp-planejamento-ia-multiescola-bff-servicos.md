@@ -10286,3 +10286,19 @@ Quinto recorte da B3 entregue em 21/07/2026:
 - validacao restrita ao `people-service`: 94 testes, zero falhas e zero erros;
 - a B3 permanece **em andamento**, com **3 recortes restantes**. O proximo e a
   oficializacao publica dessas leituras no BFF, sem caminho para o monolito.
+
+Sexto recorte da B3 entregue em 21/07/2026:
+
+- o `school-management-bff` passou a oficializar `GET /api/alunos`,
+  `GET /api/alunos/{alunoId}` e `GET /api/alunos/{alunoId}/ficha` consumindo
+  exclusivamente o `people-service`;
+- o filtro opcional `nome`, os payloads e os status retornados pelo servico dono
+  sao encaminhados sem transformacao de contrato externo;
+- o BFF resolve o contexto autenticado no `identity-access-service` e propaga
+  bearer, correlacao, usuario, escola e token interno ao `people-service`;
+- as tres rotas nao possuem adapter, fallback ou chamada ao monolito;
+- validacao restrita ao `school-management-bff`: 215 testes, zero falhas e zero
+  erros, incluindo integracao que comprova os tres caminhos oficiais para o
+  `people-service`;
+- a B3 permanece **em andamento**, com **2 recortes restantes**. O proximo e o
+  backfill controlado e reconciliado do estado necessario as escritas.

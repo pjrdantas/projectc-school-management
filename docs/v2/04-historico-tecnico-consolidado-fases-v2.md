@@ -5389,3 +5389,18 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A validacao restrita ao `people-service` executou 94 testes sem falhas ou
   erros. Restam **3 recortes na B3**; o proximo e oficializar essas leituras no
   BFF sem rota para o monolito.
+
+## 21/07/2026 - Sexto recorte da B3: oficializacao publica de aluno
+
+- O `school-management-bff` passou a expor oficialmente `GET /api/alunos`,
+  `GET /api/alunos/{alunoId}` e `GET /api/alunos/{alunoId}/ficha`, atendidos
+  exclusivamente pelo `people-service`.
+- O BFF preserva o filtro `nome`, o payload e os status do contrato externo,
+  resolvendo o contexto autenticado e propagando bearer, correlacao, usuario,
+  escola e token interno ao servico dono.
+- Nao existe adapter, fallback ou chamada ao monolito nas tres rotas. A
+  integracao automatizada comprovou os tres destinos internos do
+  `people-service`.
+- A validacao restrita ao `school-management-bff` executou 215 testes sem
+  falhas ou erros. Restam **2 recortes na B3**; o proximo e o backfill
+  controlado e reconciliado do estado necessario as escritas.
