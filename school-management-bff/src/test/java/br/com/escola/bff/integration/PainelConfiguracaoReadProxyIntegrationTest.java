@@ -3,7 +3,6 @@ package br.com.escola.bff.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterAll;

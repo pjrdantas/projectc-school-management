@@ -2,7 +2,9 @@ package br.com.escola.institutionaltenantservice.application.exception;
 
 public class ConflitoTenantException extends RuntimeException {
 
-    public ConflitoTenantException(String message) {
+    private static final long serialVersionUID = 1L;
+
+	public ConflitoTenantException(String message) {
         super(message);
     }
 }

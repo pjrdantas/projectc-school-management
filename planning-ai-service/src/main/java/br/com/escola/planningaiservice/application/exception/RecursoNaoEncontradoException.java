@@ -2,7 +2,9 @@ package br.com.escola.planningaiservice.application.exception;
 
 public class RecursoNaoEncontradoException extends RuntimeException {
 
-    public RecursoNaoEncontradoException(String message) {
+    private static final long serialVersionUID = 1L;
+
+	public RecursoNaoEncontradoException(String message) {
         super(message);
     }
 }

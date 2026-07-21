@@ -2,8 +2,6 @@ package br.com.escola.bff.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 

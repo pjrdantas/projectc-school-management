@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.UNAUTHORIZED)
 public class InternalApiUnauthorizedException extends RuntimeException {
 
-    public InternalApiUnauthorizedException(String message) {
+    private static final long serialVersionUID = 1L;
+
+	public InternalApiUnauthorizedException(String message) {
         super(message);
     }
 }

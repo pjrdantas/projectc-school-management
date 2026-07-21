@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import br.com.escola.peopleservice.application.context.InternalRequestContext;
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
@@ -38,7 +37,6 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     private final OrigemLeituraPolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
-    @Autowired
     public PessoaQueryService(
             PessoaCatalogoPort catalogoPort,
             PessoaPort pessoaPort,
@@ -66,7 +64,6 @@ public class PessoaQueryService implements PessoaQueryUseCase {
 
     @Override
     public List<PessoaCatalogoResponse> listarTiposPessoa(String authorization, InternalRequestContext context) {
-        var decision = readRoutingPolicy.registrarDecisao("listarTiposPessoa");
         List<PessoaCatalogoResponse> response = catalogoPort.listarTiposPessoa();
         registrarLeituraLocal("listarTiposPessoa", "success");
         return response;
@@ -74,7 +71,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
 
     @Override
     public List<PessoaCatalogoResponse> listarTiposEndereco(String authorization, InternalRequestContext context) {
-        var decision = readRoutingPolicy.registrarDecisao("listarTiposEndereco");
+        readRoutingPolicy.registrarDecisao("listarTiposEndereco");
         List<PessoaCatalogoResponse> response = catalogoPort.listarTiposEndereco();
         registrarLeituraLocal("listarTiposEndereco", "success");
         return response;
@@ -167,7 +164,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
 
     @Override
     public PessoaResumoResponse buscarPessoaPorId(String authorization, InternalRequestContext context, UUID pessoaId) {
-        var decision = readRoutingPolicy.registrarDecisao("buscarPorId");
+        readRoutingPolicy.registrarDecisao("buscarPorId");
         return pessoaPort.buscarPessoaPorId(pessoaId, context.escolaId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa nao encontrada"));
     }
@@ -182,7 +179,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             String cpfResponsavel,
             int page,
             int size) {
-        var decision = readRoutingPolicy.registrarDecisao("consultarCadastro");
+        readRoutingPolicy.registrarDecisao("consultarCadastro");
         PessoaConsultaCadastralPageResponse response = alunoResponsavelPort.consultarCadastro(
                 nomeAluno,
                 cpfAluno,
@@ -199,7 +196,7 @@ public class PessoaQueryService implements PessoaQueryUseCase {
             String authorization,
             InternalRequestContext context,
             UUID alunoId) {
-        var decision = readRoutingPolicy.registrarDecisao("listarResponsaveisPorAluno");
+        readRoutingPolicy.registrarDecisao("listarResponsaveisPorAluno");
         return alunoResponsavelPort.listarResponsaveisPorAluno(alunoId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno nao encontrado"));
     }
@@ -215,14 +212,6 @@ public class PessoaQueryService implements PessoaQueryUseCase {
     private void registrarLeituraAlunoResponsavelLocal(String operation, String result) {
         meterRegistry.counter(
                 "people.studentresponsible.reads",
-                "operation", operation,
-                "result", result)
-                .increment();
-    }
-
-    private void registrarLeituraIdentidadeLocal(String operation, String result) {
-        meterRegistry.counter(
-                "people.identity.reads",
                 "operation", operation,
                 "result", result)
                 .increment();

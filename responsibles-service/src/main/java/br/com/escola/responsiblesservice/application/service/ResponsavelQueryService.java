@@ -3,17 +3,17 @@ package br.com.escola.responsiblesservice.application.service;
 import java.util.UUID;
 
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import br.com.escola.responsiblesservice.application.context.InternalRequestContext;
-import br.com.escola.responsiblesservice.application.dto.ResponsavelReadModelResponse;
 import br.com.escola.responsiblesservice.application.port.in.ResponsavelQueryUseCase;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelLocalReadPort;
 import br.com.escola.responsiblesservice.infra.config.LeituraModeloProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class ResponsavelQueryService implements ResponsavelQueryUseCase {

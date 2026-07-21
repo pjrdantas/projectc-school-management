@@ -17,13 +17,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.escola.pedagogicalservice.infra.database.entity.AulaJpaEntity;
-import br.com.escola.pedagogicalservice.infra.database.entity.AvaliacaoJpaEntity;
 import br.com.escola.pedagogicalservice.infra.database.entity.BoletimJpaEntity;
 import br.com.escola.pedagogicalservice.infra.database.entity.DiarioClasseJpaEntity;
-import br.com.escola.pedagogicalservice.infra.database.entity.FrequenciaAlunoJpaEntity;
-import br.com.escola.pedagogicalservice.infra.database.entity.FrequenciaDocenteJpaEntity;
 import br.com.escola.pedagogicalservice.infra.database.entity.HistoricoEscolarJpaEntity;
-import br.com.escola.pedagogicalservice.infra.database.entity.NotaAlunoJpaEntity;
 import br.com.escola.pedagogicalservice.infra.database.repository.AulaJpaRepository;
 import br.com.escola.pedagogicalservice.infra.database.repository.AvaliacaoJpaRepository;
 import br.com.escola.pedagogicalservice.infra.database.repository.BoletimJpaRepository;

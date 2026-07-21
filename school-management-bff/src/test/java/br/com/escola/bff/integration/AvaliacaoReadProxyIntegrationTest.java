@@ -188,7 +188,7 @@ class AvaliacaoReadProxyIntegrationTest {
     void deveRetornarIndisponibilidadeQuandoPedagogicalEstiverIndisponivelNaListagemDeAvaliacoes() throws InterruptedException {
         UUID alocacaoId = UUID.randomUUID();
         UUID turmaId = UUID.randomUUID();
-        UUID avaliacaoId = UUID.randomUUID();
+        UUID.randomUUID();
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

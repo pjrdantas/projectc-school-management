@@ -29,7 +29,6 @@ import br.com.escola.pedagogicalservice.application.dto.NotaAlunoResponse;
 import br.com.escola.pedagogicalservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.pedagogicalservice.infra.database.entity.AulaJpaEntity;
 import br.com.escola.pedagogicalservice.infra.database.entity.AvaliacaoJpaEntity;
-import br.com.escola.pedagogicalservice.infra.database.entity.BoletimJpaEntity;
 import br.com.escola.pedagogicalservice.infra.database.entity.DiarioClasseJpaEntity;
 import br.com.escola.pedagogicalservice.infra.database.entity.FrequenciaAlunoJpaEntity;
 import br.com.escola.pedagogicalservice.infra.database.entity.FrequenciaDocenteJpaEntity;

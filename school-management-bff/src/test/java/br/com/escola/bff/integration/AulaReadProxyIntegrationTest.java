@@ -194,7 +194,7 @@ class AulaReadProxyIntegrationTest {
     void deveRetornarIndisponibilidadeQuandoPedagogicalEstiverIndisponivelNaListagemDeAulas() throws InterruptedException {
         UUID alocacaoId = UUID.randomUUID();
         UUID turmaId = UUID.randomUUID();
-        UUID aulaId = UUID.randomUUID();
+        UUID.randomUUID();
 
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -276,8 +276,6 @@ class AulaReadProxyIntegrationTest {
     @Test
     void deveRetornarIndisponibilidadeQuandoPedagogicalEstiverIndisponivelNaFrequenciaAluno() throws InterruptedException {
         UUID aulaId = UUID.randomUUID();
-        UUID matriculaId = UUID.randomUUID();
-
         IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""

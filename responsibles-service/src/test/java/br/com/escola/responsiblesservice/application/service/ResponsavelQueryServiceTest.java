@@ -67,7 +67,6 @@ class ResponsavelQueryServiceTest {
         verifyNoInteractions(local);
     }
 
-    @SuppressWarnings("unchecked")
     private ResponsavelQueryService service(ResponsavelLocalReadPort local) {
         return service(local, new LeituraModeloProperties(true, true, true, false, false, 500, true, false));
     }

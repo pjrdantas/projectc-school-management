@@ -113,7 +113,8 @@ public class PersistenciaLocalAdapter implements PersistenciaPort {
                 .increment();
     }
 
-    private void registrarFalha(String operacao, String causa) {
+    @SuppressWarnings("unused")
+	private void registrarFalha(String operacao, String causa) {
         meterRegistry.counter(
                 "professor.local.persistence.failures",
                 "operacao", operacao,

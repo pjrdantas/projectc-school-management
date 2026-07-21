@@ -2,7 +2,9 @@ package br.com.escola.identityaccessservice.application.exception;
 
 public class AcessoNegadoException extends RuntimeException {
 
-    public AcessoNegadoException(String message) {
+    private static final long serialVersionUID = 1L;
+
+	public AcessoNegadoException(String message) {
         super(message);
     }
 }

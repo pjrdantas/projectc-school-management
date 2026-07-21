@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import br.com.escola.institutionaltenantservice.application.context.InternalRequestContext;
 import br.com.escola.institutionaltenantservice.application.dto.TenantEscolaResponse;
-import br.com.escola.institutionaltenantservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.institutionaltenantservice.application.port.out.TenantSessaoPort;
 
 @Component
