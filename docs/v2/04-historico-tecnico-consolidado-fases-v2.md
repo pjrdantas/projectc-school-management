@@ -5404,3 +5404,21 @@ Este documento substitui os arquivos individuais de registro de fases que existi
 - A validacao restrita ao `school-management-bff` executou 215 testes sem
   falhas ou erros. Restam **2 recortes na B3**; o proximo e o backfill
   controlado e reconciliado do estado necessario as escritas.
+
+## 21/07/2026 - Setimo recorte da B3: backfill reconciliado de aluno
+
+- O `people-service` recebeu um backfill one-shot e opt-in para catalogos,
+  pessoa, tipos da pessoa, endereco, vinculo de endereco e aluno, todos
+  estritamente necessarios ao agregado que agora possui escritas locais.
+- A origem e o destino sao independentes. A carga deriva escola e nome da escola
+  da origem institucional, processa em lotes e atualiza ou insere em uma unica
+  transacao no destino.
+- A reconciliacao compara os campos importados da origem com seus identificadores
+  no destino, preservando dados locais posteriores em vez de apaga-los. Pessoas
+  sem aluno e os dominios de responsavel, vinculo, documento, funcionario e
+  professor ficam fora do recorte.
+- A rotina permanece desabilitada por padrao e exige ativacao explicita e URL
+  de origem; nenhum dado real foi movimentado durante a validacao.
+- A validacao restrita ao `people-service` executou 95 testes sem falhas ou
+  erros. Resta **1 recorte na B3**: datasource e Flyway definitivos, saneamento
+  tecnico, prova integrada e encerramento.

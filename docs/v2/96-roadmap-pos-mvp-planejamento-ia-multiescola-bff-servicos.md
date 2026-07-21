@@ -10302,3 +10302,27 @@ Sexto recorte da B3 entregue em 21/07/2026:
   `people-service`;
 - a B3 permanece **em andamento**, com **2 recortes restantes**. O proximo e o
   backfill controlado e reconciliado do estado necessario as escritas.
+
+Setimo recorte da B3 entregue em 21/07/2026:
+
+- o `people-service` passou a ter backfill one-shot, opt-in e transacional para
+  o estado local necessario ao agregado de aluno: catalogos de pessoa, endereco
+  e status, pessoa, tipos da pessoa, endereco, vinculo de endereco e aluno;
+- a origem e configurada separadamente do destino local; `id_escola` e
+  `escola_nome` sao obtidos da origem institucional durante a carga, sem criar
+  dependencia fisica do dominio institucional no banco do `people-service`;
+- a rotina seleciona somente pessoas vinculadas a alunos e seus enderecos,
+  preservando todos os papeis dessas pessoas para a regra de inativacao, mas nao
+  copia responsaveis, `aluno_responsavel`, documentos, funcionarios ou
+  professores;
+- os dados sao processados em lotes, atualizados ou inseridos em uma unica
+  transacao no destino e reconciliados por contagem e digest dos campos da
+  origem, sem remover dados locais criados depois do corte;
+- a execucao exige `PEOPLE_WRITE_BACKFILL_ENABLED=true` e URL da origem; por
+  padrao permanece desabilitada e nenhum dado real foi movimentado nesta fase;
+- validacao restrita ao `people-service`: 95 testes, zero falhas e zero erros,
+  incluindo origem e destino H2 independentes, duas cargas idempotentes,
+  reconciliacao e exclusao de pessoa fora do agregado de aluno;
+- a B3 permanece **em andamento**, com **1 recorte restante**: datasource e
+  Flyway definitivos, saneamento dos nomes tecnicos transitorios, prova
+  integrada e encerramento.

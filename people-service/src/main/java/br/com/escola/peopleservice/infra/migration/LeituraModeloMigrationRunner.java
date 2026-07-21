@@ -5,6 +5,7 @@ import java.util.List;
 import org.flywaydb.core.Flyway;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -16,7 +17,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 
 @Component
-public class LeituraModeloMigrationRunner implements ApplicationRunner {
+public class LeituraModeloMigrationRunner implements ApplicationRunner, Ordered {
 
     private static final List<String> TABLES = List.of(
             "tipo_pessoa",
@@ -137,6 +138,11 @@ public class LeituraModeloMigrationRunner implements ApplicationRunner {
         if (readModelProperties.failOnError()) {
             throw new IllegalStateException("schema-migration-failed", exception);
         }
+    }
+
+    @Override
+    public int getOrder() {
+        return 0;
     }
 }
 

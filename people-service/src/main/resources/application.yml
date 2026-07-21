@@ -32,6 +32,13 @@ people:
     backfill-enabled: false
     reconciliation-enabled: false
     backfill-batch-size: ${PEOPLE_READ_MODEL_BACKFILL_BATCH_SIZE:500}
+    backfill:
+      enabled: ${PEOPLE_WRITE_BACKFILL_ENABLED:false}
+      source-url: ${PEOPLE_WRITE_BACKFILL_SOURCE_URL:}
+      source-username: ${PEOPLE_WRITE_BACKFILL_SOURCE_USERNAME:}
+      source-password: ${PEOPLE_WRITE_BACKFILL_SOURCE_PASSWORD:}
+      batch-size: ${PEOPLE_WRITE_BACKFILL_BATCH_SIZE:500}
+      fail-on-mismatch: ${PEOPLE_WRITE_BACKFILL_FAIL_ON_MISMATCH:true}
     fallback-enabled: false
     schema-migration:
       url: ${PEOPLE_READ_MODEL_SCHEMA_URL:jdbc:postgresql://localhost:5433/people}
