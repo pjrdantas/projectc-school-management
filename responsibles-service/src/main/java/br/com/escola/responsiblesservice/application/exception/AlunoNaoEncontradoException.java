@@ -1,0 +1,14 @@
+package br.com.escola.responsiblesservice.application.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class AlunoNaoEncontradoException extends RuntimeException {
+
+    private static final long serialVersionUID = 1L;
+
+    public AlunoNaoEncontradoException() {
+        super("Aluno nao encontrado para a escola informada");
+    }
+}

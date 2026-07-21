@@ -7,6 +7,7 @@ import br.com.escola.bff.application.port.in.AdministrarAcessoUseCase;
 import br.com.escola.bff.application.port.out.AdministracaoAcessoPort;
 import br.com.escola.bff.application.port.out.AlunoReadPort;
 import br.com.escola.bff.application.port.out.AlunoResponsavelVinculoReadPort;
+import br.com.escola.bff.application.port.out.AlunoResponsavelWritePort;
 import br.com.escola.bff.application.port.out.AulaPort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.AvaliacaoPort;
@@ -58,6 +59,7 @@ import br.com.escola.bff.application.port.out.PlanejamentoIaConteudoWritePort;
 import br.com.escola.bff.application.port.out.PlanejamentoIaInteracaoReadPort;
 import br.com.escola.bff.application.port.out.ProfessorReadPort;
 import br.com.escola.bff.application.port.out.ResponsavelCatalogoReadPort;
+import br.com.escola.bff.application.port.out.ResponsavelWritePort;
 import br.com.escola.bff.application.port.out.SessaoAutenticadaPort;
 import br.com.escola.bff.application.port.out.TenantAtivoReadPort;
 import br.com.escola.bff.application.port.out.TransferenciaMatriculaReadPort;
@@ -65,6 +67,7 @@ import br.com.escola.bff.application.port.out.TransferenciaMatriculaWritePort;
 import br.com.escola.bff.application.service.AdministracaoAcessoProxyService;
 import br.com.escola.bff.application.service.AlunoReadProxyService;
 import br.com.escola.bff.application.service.AlunoResponsavelReadProxyService;
+import br.com.escola.bff.application.service.AlunoResponsavelWriteProxyService;
 import br.com.escola.bff.application.service.AulaReadProxyService;
 import br.com.escola.bff.application.service.AulaWriteProxyService;
 import br.com.escola.bff.application.service.AutenticacaoProxyService;
@@ -109,6 +112,7 @@ import br.com.escola.bff.application.service.PlanejamentoIaConteudoWriteProxySer
 import br.com.escola.bff.application.service.PlanejamentoIaInteracaoReadProxyService;
 import br.com.escola.bff.application.service.ProfessorReadProxyService;
 import br.com.escola.bff.application.service.ResponsavelReadProxyService;
+import br.com.escola.bff.application.service.ResponsavelWriteProxyService;
 import br.com.escola.bff.application.service.SerieWriteRoutingService;
 import br.com.escola.bff.application.service.TenantAtivoReadProxyService;
 import br.com.escola.bff.application.service.TransferenciaReadProxyService;
@@ -119,6 +123,7 @@ import br.com.escola.bff.application.usecase.AprovarPlanejamentoIaConteudoVersao
 import br.com.escola.bff.application.usecase.AtualizarHistoricoEscolarUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAlunoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAlunoResponsavelUseCase;
+import br.com.escola.bff.application.usecase.AlunoResponsavelWriteUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAulaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAuthSessionUseCase;
 import br.com.escola.bff.application.usecase.ConsultarAvaliacaoUseCase;
@@ -147,6 +152,7 @@ import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaConteudoVers
 import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaInteracaoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarProfessorUseCase;
 import br.com.escola.bff.application.usecase.ConsultarResponsavelUseCase;
+import br.com.escola.bff.application.usecase.ResponsavelWriteUseCase;
 import br.com.escola.bff.application.usecase.ConsultarTenantAtivoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarTransferenciaUseCase;
 import br.com.escola.bff.application.usecase.CreateDisciplinaUseCase;
@@ -247,6 +253,13 @@ public class BffUseCaseConfiguration {
     }
 
     @Bean
+    AlunoResponsavelWriteUseCase alunoResponsavelWriteUseCase(
+            AuthContextPort authContextPort,
+            AlunoResponsavelWritePort alunoResponsavelWritePort) {
+        return new AlunoResponsavelWriteProxyService(authContextPort, alunoResponsavelWritePort);
+    }
+
+    @Bean
     ConsultarAlunoUseCase consultarAlunoUseCase(
             InternalAuthContextPort authContextPort,
             AlunoReadPort peopleAlunoReadPort) {
@@ -260,6 +273,13 @@ public class BffUseCaseConfiguration {
         return new ResponsavelReadProxyService(
                 authContextPort,
                 responsiblesReadPort);
+    }
+
+    @Bean
+    ResponsavelWriteUseCase responsavelWriteUseCase(
+            AuthContextPort authContextPort,
+            ResponsavelWritePort responsavelWritePort) {
+        return new ResponsavelWriteProxyService(authContextPort, responsavelWritePort);
     }
 
     @Bean

@@ -10346,3 +10346,222 @@ Oitavo e ultimo recorte da B3 entregue em 21/07/2026:
   desabilitado por padrao;
 - a **B3 esta concluida**. O proximo ciclo deve abrir a **B4**, limitada a CRUD
   de responsaveis e manutencao de `aluno_responsavel` no servico dono.
+
+## Execucao fechada da B4 - Escritas de responsaveis e vinculos
+
+Quantidade fechada da B4: **10 recortes**.
+
+1. schema proprio e contratos internos de escrita;
+2. criacao interna de responsavel;
+3. atualizacao interna de responsavel;
+4. exclusao segura de responsavel;
+5. criacao do vinculo aluno-responsavel;
+6. desvinculo seguro e invariantes do vinculo;
+7. oficializacao dos writes de responsavel no BFF;
+8. oficializacao dos writes de vinculo no BFF;
+9. backfill controlado e reconciliado;
+10. datasource e Flyway definitivos, saneamento tecnico, prova integrada e
+    encerramento da B4.
+
+O limite da B4 preserva a propriedade do dominio: `responsibles-service` e o
+unico dono de responsavel e `aluno_responsavel`; `people-service` continua dono
+do aluno e e consultado somente para validar o aluno nos writes de vinculo.
+
+Primeiro recorte da B4 entregue em 21/07/2026:
+
+- a migration V4 do `responsibles-service` passou a preparar o ciclo de vida de
+  escrita de responsavel com `ativo`, `updated_at`, indice por escola/estado/nome
+  e unicidade de CPF por escola;
+- foram definidos comandos internos tipados e portas de entrada para criar,
+  atualizar e excluir responsavel, vincular aluno-responsavel e desvincular,
+  sem controller de escrita neste recorte;
+- a migration nao cria FK para aluno, preservando-o como identificador externo
+  do `people-service`; a FK local do vinculo para responsavel permanece;
+- nenhuma rota publica, BFF, frontend, monolito ou escrita efetiva foi alterada;
+- validacao restrita ao `responsibles-service`: 9 testes, zero falhas e zero
+  erros, incluindo schema vazio com defaults de ciclo de vida e bloqueio de CPF
+  duplicado na mesma escola;
+- a B4 permanece **em andamento**, com **9 recortes restantes**. O proximo e a
+  criacao interna de responsavel.
+
+Segundo recorte da B4 entregue em 21/07/2026:
+
+- o `responsibles-service` passou a criar responsavel localmente, de forma
+  transacional, por `POST /internal/v1/responsaveis` (mantido tambem o alias
+  interno `/internal/responsaveis`);
+- a escola e extraida exclusivamente do `InternalRequestContext`; o payload nao
+  aceita `escolaId`, impedindo escrita em tenant divergente;
+- o caso de uso normaliza campos textuais e CPF, exige nome e CPF com 11
+  digitos, e bloqueia CPF duplicado na mesma escola com conflito `409`;
+- a persistencia grava diretamente no banco proprio do dominio. `escola_nome`
+  permanece nulo nesta rota interna porque nao ha consulta transversal ao
+  dominio institucional neste recorte;
+- nenhuma rota publica, BFF, frontend, monolito ou vinculo
+  `aluno_responsavel` foi alterado;
+- validacao restrita ao `responsibles-service`: 13 testes, zero falhas e zero
+  erros, incluindo normalizacao, isolamento por escola, persistencia local e
+  unicidade de CPF;
+- a B4 permanece **em andamento**, com **8 recortes restantes**. O proximo e a
+  atualizacao interna de responsavel.
+
+Terceiro recorte da B4 entregue em 21/07/2026:
+
+- o `responsibles-service` passou a atualizar responsavel por
+  `PUT /internal/v1/responsaveis/{id}` (mantido tambem o alias interno), com
+  substituicao integral dos dados cadastrais no banco proprio;
+- a atualizacao e limitada a responsavel ativo da mesma escola do
+  `InternalRequestContext`; identificador inexistente, inativo ou de outra
+  escola retorna `404` sem alterar registros de outro tenant;
+- a operacao normaliza os mesmos campos da criacao, atualiza `updated_at` e
+  preserva `created_at`, `escola_nome` e o ciclo de vida ja persistido;
+- colisao de CPF por escola faz rollback transacional e retorna conflito `409`;
+- nenhuma rota publica, BFF, frontend, monolito ou vinculo
+  `aluno_responsavel` foi alterado;
+- validacao restrita ao `responsibles-service`: 15 testes, zero falhas e zero
+  erros, incluindo isolamento de tenant e atualizacao local;
+- a B4 permanece **em andamento**, com **7 recortes restantes**. O proximo e a
+  exclusao segura de responsavel.
+
+Quarto recorte da B4 entregue em 21/07/2026:
+
+- o `responsibles-service` passou a inativar responsavel por
+  `DELETE /internal/v1/responsaveis/{id}` (mantido tambem o alias interno),
+  preservando o registro e seus dados historicos;
+- a exclusao bloqueia a linha ativa do responsavel no tenant do contexto,
+  verifica vinculos em `aluno_responsavel` na mesma transacao e retorna `409`
+  enquanto houver aluno vinculado;
+- sem vinculos, a operacao grava `ativo=false` e `updated_at`; responsavel
+  inexistente, inativo ou pertencente a outra escola retorna `404`;
+- as leituras locais de listagem, detalhe e responsaveis por aluno passaram a
+  filtrar somente responsaveis ativos, removendo o registro inativado do uso
+  operacional sem apagar o historico;
+- nenhuma rota publica, BFF, frontend, monolito ou criacao/desvinculo de
+  `aluno_responsavel` foi alterado;
+- validacao restrita ao `responsibles-service`: 18 testes, zero falhas e zero
+  erros, incluindo inativacao, preservacao de registro e bloqueio por vinculo;
+- a B4 permanece **em andamento**, com **6 recortes restantes**. O proximo e a
+  criacao do vinculo aluno-responsavel.
+
+Quinto recorte da B4 entregue em 21/07/2026:
+
+- o `responsibles-service` passou a criar vinculo por
+  `POST /internal/v1/alunos/{alunoId}/responsaveis` (mantido tambem o alias
+  interno), sem criar FK local para o aluno;
+- antes da escrita, o servico consulta `GET /internal/v1/alunos/{alunoId}` no
+  `people-service`, propagando correlacao, usuario, escola e token interno. O
+  aluno continua sob propriedade exclusiva do `people-service`;
+- o responsavel e bloqueado e validado como ativo na mesma escola durante a
+  transacao local; vinculo duplicado retorna `409`, responsavel ou aluno fora
+  do tenant retorna `404`, e indisponibilidade do `people-service` retorna
+  `503` sem escrita local;
+- os campos booleanos ausentes passam a `false`; parentesco ausente usa
+  `RESPONSAVEL_LEGAL`, agora garantido por migration local. Outros codigos
+  exigem catalogo local existente;
+- nenhuma rota publica, BFF, frontend ou monolito foi alterado;
+- validacao restrita ao `responsibles-service`: 22 testes, zero falhas e zero
+  erros, incluindo migration do catalogo, criacao transacional e bloqueio de
+  duplicidade;
+- a B4 permanece **em andamento**, com **5 recortes restantes**. O proximo e o
+  desvinculo seguro e as invariantes do vinculo.
+
+Sexto recorte da B4 entregue em 21/07/2026:
+
+- o `responsibles-service` passou a remover vinculo por
+  `DELETE /internal/v1/alunos/{alunoId}/responsaveis/{responsavelId}` (mantido
+  tambem o alias interno);
+- o aluno e novamente validado no `people-service` com o contexto interno; a
+  ausencia no tenant retorna `404` e indisponibilidade remota retorna `503`
+  antes de qualquer escrita local;
+- a transacao local bloqueia o responsavel ativo da escola e remove somente o
+  par `(aluno, responsavel)` correspondente. Vínculo ausente, responsável
+  inativo ou de outra escola retorna `404` sem tocar outro tenant;
+- criacao, desvinculo e inativacao compartilham o bloqueio do responsavel: um
+  responsavel com vinculo nao pode ser inativado e, apos o desvinculo, volta a
+  poder ser inativado com seguranca;
+- nenhuma rota publica, BFF, frontend ou monolito foi alterado;
+- validacao restrita ao `responsibles-service`: 24 testes, zero falhas e zero
+  erros, incluindo desvinculo, isolamento e inativacao posterior;
+- a B4 permanece **em andamento**, com **4 recortes restantes**. O proximo e a
+  oficializacao dos writes de responsavel no BFF.
+
+Setimo recorte da B4 entregue em 21/07/2026:
+
+- o `school-management-bff` passou a oficializar `POST /api/responsaveis`,
+  `PUT /api/responsaveis/{id}` e `DELETE /api/responsaveis/{id}`, consumindo
+  exclusivamente os writes internos do `responsibles-service`;
+- os payloads e os status de sucesso sao encaminhados sem transformacao. O BFF
+  resolve usuario e escola no `identity-access-service` e propaga bearer,
+  correlacao, usuario, escola e token interno ao servico dono;
+- as tres rotas nao possuem adapter, fallback ou chamada ao monolito; o
+  `escolaId` eventualmente presente no contrato externo e inofensivo, pois o
+  tenant efetivo e sempre o contexto interno no `responsibles-service`;
+- validacao restrita ao `school-management-bff`:
+  `ResponsavelWriteProxyIntegrationTest` com 3 testes, zero falhas e zero
+  erros, comprovando POST, PUT, DELETE e ausencia de chamada ao monolito. A
+  suite completa do BFF excedeu o limite de execucao desta fase antes de
+  concluir;
+- a B4 permanece **em andamento**, com **3 recortes restantes**. O proximo e a
+  oficializacao dos writes de vinculo no BFF.
+
+Oitavo recorte da B4 entregue em 21/07/2026:
+
+- o `school-management-bff` passou a oficializar
+  `POST /api/alunos/{alunoId}/responsaveis`,
+  `POST /api/alunos/{alunoId}/responsaveis/{responsavelId}` e
+  `DELETE /api/alunos/{alunoId}/responsaveis/{responsavelId}`, consumindo
+  exclusivamente o `responsibles-service`;
+- o formato legado de corpo com `idResponsavel` recebe apenas a compatibilizacao
+  minima para `responsavelId` no contrato interno; parentesco e flags sao
+  preservados. O atalho por path e convertido para o mesmo contrato interno;
+- o BFF resolve e propaga o contexto autenticado ao servico dono, sem adapter,
+  fallback ou chamada ao monolito nas tres rotas;
+- validacao restrita ao `school-management-bff`:
+  `AlunoResponsavelWriteProxyIntegrationTest` com 3 testes, zero falhas e zero
+  erros, comprovando os dois formatos de criacao, desvinculo e ausencia de
+  chamada ao monolito;
+- a B4 permanece **em andamento**, com **2 recortes restantes**. O proximo e o
+  backfill controlado e reconciliado.
+
+Nono recorte da B4 entregue em 21/07/2026:
+
+- o `responsibles-service` passou a possuir backfill one-shot, paginado e
+  explicitamente opt-in do estado de escrita de `responsavel`, catalogo de
+  `parentesco` e vinculo `aluno_responsavel` para sua base propria;
+- a origem e configurada separadamente da base local. O processo executa
+  upsert transacional por responsavel, codigo de parentesco e par
+  `(aluno, responsavel)`, sem apagar registros exclusivamente locais criados
+  depois da migracao;
+- ao fim, a reconciliacao compara as linhas de origem com o estado local e,
+  quando `fail-on-mismatch` estiver habilitado, interrompe a inicializacao se
+  houver divergencia. O backfill permanece desabilitado por padrao e exige as
+  variaveis de ambiente de origem para ser executado;
+- nenhuma rota, BFF, frontend ou monolito foi alterado e nenhum dado real foi
+  movimentado nesta etapa;
+- validacao restrita ao `responsibles-service`: 25 testes, zero falhas e zero
+  erros, incluindo duas execucoes idempotentes, reconciliacao e preservacao de
+  um responsavel local criado posteriormente;
+- a B4 permanece **em andamento**, com **1 recorte restante**. O proximo e a
+  limpeza definitiva de datasource/Flyway e o fechamento tecnico do servico.
+
+Decimo e ultimo recorte da B4 entregue em 21/07/2026:
+
+- o `responsibles-service` passou a usar `spring.datasource` como datasource
+  proprio padrao do banco `responsibles` e `spring.flyway` para aplicar as
+  migrations em `classpath:db/responsibles/migration` no mesmo banco de
+  runtime;
+- o backfill passou a usar o datasource oficial do Spring como destino, mantendo
+  somente a origem externa configuravel e opt-in em
+  `responsibles.persistence.backfill`;
+- foram removidos o runner manual de Flyway, o indicador de health e as
+  propriedades/classes tecnicas transitorias `LeituraModelo` e `read-model`.
+  As leituras locais agora sao obrigatoriamente atendidas pelo banco proprio;
+- uma prova integrada iniciou o contexto Spring com origem e destino H2
+  independentes, aplicou Flyway e confirmou responsavel e vinculo no datasource
+  proprio de runtime;
+- validacao restrita ao `responsibles-service`: 24 testes, zero falhas e zero
+  erros. Nenhum dado real foi movimentado e o backfill continua desabilitado
+  por padrao;
+- a **B4 esta concluida**. O `responsibles-service` e o dono efetivo das
+  leituras e escritas de responsaveis e de vinculos aluno-responsavel. Um
+  eventual novo ciclo deve tratar somente evolucoes funcionais futuras, sem
+  reabrir dependencia do monolito.

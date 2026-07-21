@@ -67,6 +67,7 @@ features:
   catalog-write-proxy-enabled: ${CATALOG_WRITE_PROXY_ENABLED:true}
   people-read-proxy-enabled: ${PEOPLE_READ_PROXY_ENABLED:true}
   responsibles-read-proxy-enabled: ${RESPONSIBLES_READ_PROXY_ENABLED:true}
+  responsibles-write-proxy-enabled: ${RESPONSIBLES_WRITE_PROXY_ENABLED:true}
   identity-access-read-proxy-enabled: ${IDENTITY_ACCESS_READ_PROXY_ENABLED:true}
   institutional-tenant-read-proxy-enabled: ${INSTITUTIONAL_TENANT_READ_PROXY_ENABLED:true}
   dashboard-read-proxy-enabled: ${DASHBOARD_READ_PROXY_ENABLED:true}

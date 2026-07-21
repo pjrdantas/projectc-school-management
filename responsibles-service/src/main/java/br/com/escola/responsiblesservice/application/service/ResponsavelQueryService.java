@@ -13,24 +13,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import br.com.escola.responsiblesservice.application.context.InternalRequestContext;
 import br.com.escola.responsiblesservice.application.port.in.ResponsavelQueryUseCase;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelLocalReadPort;
-import br.com.escola.responsiblesservice.infra.config.LeituraModeloProperties;
 
 @Service
 public class ResponsavelQueryService implements ResponsavelQueryUseCase {
 
     private final ObjectProvider<ResponsavelLocalReadPort> responsavelLocalReadPortProvider;
-    private final LeituraModeloProperties readModelProperties;
-    private final LeituraModeloRouteGuard routeGuard;
     private final ObjectMapper objectMapper;
 
     public ResponsavelQueryService(
             ObjectProvider<ResponsavelLocalReadPort> responsavelLocalReadPortProvider,
-            LeituraModeloProperties readModelProperties,
-            LeituraModeloRouteGuard routeGuard,
             ObjectMapper objectMapper) {
         this.responsavelLocalReadPortProvider = responsavelLocalReadPortProvider;
-        this.readModelProperties = readModelProperties;
-        this.routeGuard = routeGuard;
         this.objectMapper = objectMapper;
     }
 
@@ -65,9 +58,6 @@ public class ResponsavelQueryService implements ResponsavelQueryUseCase {
     }
 
     private ResponsavelLocalReadPort requireLocalReadPort() {
-        if (!routeGuard.canReadCatalogLocally() || readModelProperties.fallbackEnabled()) {
-            throw new IllegalStateException("responsibles-local-read-required");
-        }
         ResponsavelLocalReadPort port = responsavelLocalReadPortProvider.getIfAvailable();
         if (port == null) {
             throw new IllegalStateException("responsibles-local-read-adapter-required");

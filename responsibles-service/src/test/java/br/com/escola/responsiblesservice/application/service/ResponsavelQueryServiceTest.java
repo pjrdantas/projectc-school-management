@@ -2,7 +2,6 @@ package br.com.escola.responsiblesservice.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -17,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import br.com.escola.responsiblesservice.application.context.InternalRequestContext;
 import br.com.escola.responsiblesservice.application.dto.ResponsavelReadModelResponse;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelLocalReadPort;
-import br.com.escola.responsiblesservice.infra.config.LeituraModeloProperties;
 
 class ResponsavelQueryServiceTest {
 
@@ -55,31 +53,11 @@ class ResponsavelQueryServiceTest {
     }
 
     @Test
-    void deveBloquearConfiguracaoQueReativeFallback() {
-        ResponsavelLocalReadPort local = mock(ResponsavelLocalReadPort.class);
-        LeituraModeloProperties properties = new LeituraModeloProperties(true, true, true, false, false, 500, true, true);
-        var service = service(local, properties);
-
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.listarResponsaveis(
-                "Bearer token", context(UUID.randomUUID()), null, null))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("responsibles-local-read-required");
-        verifyNoInteractions(local);
-    }
-
     private ResponsavelQueryService service(ResponsavelLocalReadPort local) {
-        return service(local, new LeituraModeloProperties(true, true, true, false, false, 500, true, false));
-    }
-
-    @SuppressWarnings("unchecked")
-    private ResponsavelQueryService service(ResponsavelLocalReadPort local, LeituraModeloProperties properties) {
+        @SuppressWarnings("unchecked")
         ObjectProvider<ResponsavelLocalReadPort> provider = mock(ObjectProvider.class);
         when(provider.getIfAvailable()).thenReturn(local);
-        return new ResponsavelQueryService(
-                provider,
-                properties,
-                new LeituraModeloRouteGuard(properties),
-                new ObjectMapper());
+        return new ResponsavelQueryService(provider, new ObjectMapper());
     }
 
     private InternalRequestContext context(UUID escolaId) {

@@ -15,7 +15,7 @@ import org.springframework.util.StringUtils;
 import br.com.escola.responsiblesservice.application.dto.ResponsavelAlunoVinculadoReadModelResponse;
 import br.com.escola.responsiblesservice.application.dto.ResponsavelReadModelResponse;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelLocalReadPort;
-import br.com.escola.responsiblesservice.infra.config.LeituraModeloMigrationProperties;
+import br.com.escola.responsiblesservice.infra.config.ResponsiblesPersistenceProperties;
 
 @Component
 public class JdbcResponsavelReadModelAdapter implements ResponsavelLocalReadPort {
@@ -26,6 +26,7 @@ public class JdbcResponsavelReadModelAdapter implements ResponsavelLocalReadPort
                    id_escola, escola_nome, created_at
             FROM responsavel
             WHERE id_escola = ?
+              AND ativo = TRUE
               AND (? IS NULL OR LOWER(nome_completo) LIKE LOWER(?))
               AND (? IS NULL OR cpf = ?)
             ORDER BY nome_completo
@@ -38,6 +39,7 @@ public class JdbcResponsavelReadModelAdapter implements ResponsavelLocalReadPort
             FROM responsavel
             WHERE id_responsavel = ?
               AND id_escola = ?
+              AND ativo = TRUE
             """;
 
     private static final String STUDENT_LINK_QUERY = """
@@ -64,12 +66,13 @@ public class JdbcResponsavelReadModelAdapter implements ResponsavelLocalReadPort
               LEFT JOIN parentesco p ON p.id_parentesco = ar.id_parentesco
             WHERE ar.id_aluno = ?
               AND r.id_escola = ?
+              AND r.ativo = TRUE
             ORDER BY r.nome_completo
             """;
 
-    private final LeituraModeloMigrationProperties properties;
+    private final ResponsiblesPersistenceProperties properties;
 
-    public JdbcResponsavelReadModelAdapter(LeituraModeloMigrationProperties properties) {
+    public JdbcResponsavelReadModelAdapter(ResponsiblesPersistenceProperties properties) {
         this.properties = properties;
     }
 
