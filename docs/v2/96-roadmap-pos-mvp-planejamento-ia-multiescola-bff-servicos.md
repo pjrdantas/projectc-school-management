@@ -11373,3 +11373,121 @@ Oitavo recorte da B9 entregue em 22/07/2026:
 - status e tipo de avaliacao sao importados por codigo, e avaliacao recebe chave
   idempotente derivada do ID legado. A **B9 foi concluida**;
 - validacao restrita: `mvn.cmd -pl planning-ai-service test`, 14 testes verdes.
+
+## Planejamento fechado da B11 - Historico Escolar
+
+A B11 possui **6 recortes**, restritos ao `pedagogical-service` e ao
+`school-management-bff`; o frontend permanece fora do escopo ate o fechamento
+do backend.
+
+1. inventariar o contrato do prototipo, persistencia, rotas e regras atuais;
+2. consolidar o read model e pendencias da tela de historico;
+3. consolidar criacao, atualizacao, bloqueio e reabertura controlada;
+4. validar itens curriculares, proveniencia, transferencia e invariantes;
+5. oficializar leitura e escrita no BFF sem fallback;
+6. executar backfill, reconciliacao e fechamento tecnico.
+
+Primeiro recorte da B11 entregue em 22/07/2026:
+
+- o inventario confirmou que o `pedagogical-service` ja possui agregado local,
+  leitura e escrita de historico escolar, enquanto o BFF ja possui o proxy
+  oficial correspondente;
+- o proximo recorte nao recriara o agregado: comparara o read model e as
+  pendencias existentes com o contrato da nova tela do prototipo, isolando
+  somente as lacunas funcionais reais;
+- nenhum frontend, monolito ou contrato publico foi alterado neste recorte.
+
+Segundo recorte da B11 entregue em 22/07/2026:
+
+- o read model local passou a preservar o snapshot tipado de cabecalho, aluno,
+  periodos, componentes, totais, estudos, certificado e pendencias recebido na
+  escrita; leitura posterior devolve o mesmo contrato para a nova tela;
+- contexto agora recebe identidade, escola, modo, status pretendido e bloqueio
+  derivado de `COMPLETO`, sem acessar frontend ou monolito;
+- validacao restrita: `mvn.cmd -pl pedagogical-service test`, 8 testes verdes.
+  Proximo passo: B11.3, workflow de status, bloqueio e reabertura controlada.
+
+Terceiro recorte da B11 entregue em 22/07/2026:
+
+- o workflow local aceita `RASCUNHO`, `PENDENTE` e `COMPLETO`; `COMPLETO`
+  bloqueia nova edicao e `PENDENTE` nao pode concluir diretamente;
+- reabertura exige intencao explicita, justificativa nao vazia e retorno para
+  `RASCUNHO`. Transicoes invalidas retornam `409 BUSINESS_CONFLICT`;
+- validacao restrita: `mvn.cmd -pl pedagogical-service test`, 8 testes verdes.
+  Proximo passo: B11.4, invariantes de itens e transferencia.
+
+Quarto recorte da B11 entregue em 22/07/2026:
+
+- periodos exigem ordem sequencial, ano e serie; cada componente curricular
+  exige nome e um valor por periodo;
+- transferencia exige escola de origem, data e serie concluida de forma
+  coerente. Violacoes retornam `409 BUSINESS_CONFLICT`;
+- validacao restrita: `mvn.cmd -pl pedagogical-service test`, 8 testes verdes.
+  Proximo passo: B11.5, oficializacao completa no BFF sem fallback.
+
+Quinto recorte da B11 entregue em 22/07/2026:
+
+- `POST`, `PUT`, leitura de novo historico e leitura para edicao ja estavam
+  oficializados no BFF por proxies tipados exclusivos do `pedagogical-service`;
+- revalidacao integrada aprovou 6 testes de leitura e escrita, incluindo
+  indisponibilidade do owner sem fallback para o monolito;
+- proximo passo: B11.6, backfill, reconciliacao e fechamento tecnico.
+
+Sexto recorte da B11 entregue em 22/07/2026:
+
+- o `pedagogical-service` recebeu backfill opt-in de `historico_escolar` e
+  `historico_escolar_item`, paginado e reconciliado por identificador e payload;
+- a execucao exige explicitamente URL da fonte e `school-id`; o legado nao possui
+  identificadores de aluno ou matricula, portanto esses vinculos permanecem nulos
+  em vez de serem inferidos;
+- o runtime normal nao cria datasource legado nem executa migracao; divergencia no
+  backfill ativo falha quando `fail-on-mismatch` estiver habilitado;
+- a B11 esta tecnicamente fechada no backend. Proximo passo: inventariar o proximo
+  ciclo backend remanescente antes de abrir uma nova fase.
+
+## Planejamento fechado da B12 - Dashboard operacional autonomo
+
+O inventario realizado em 22/07/2026 confirmou que o
+`dashboard-query-service` ja atende localmente as leituras de paineis,
+alertas, configuracoes, snapshots e historico, e que o BFF ja oficializa dez
+rotas de leitura. O dominio ainda nao esta fechado: a persistencia atual possui
+somente a projecao generica `painel_projecao`, sem modelos de configuracao de
+publico, dashboard, widget ou preferencia por usuario; tambem nao existe fluxo
+oficial para criar, atualizar, excluir ou gerar snapshots. O endpoint interno
+de upsert de projecao e manual e nao possui produtores donos dos dados.
+
+A B12 possui **10 recortes** e fica limitada ao `dashboard-query-service`, ao
+`school-management-bff` e aos contratos internos estritamente necessarios. O
+frontend e o `school-management-service` permanecem fora do escopo de edicao.
+
+1. Inventario contratual e matriz de ownership: congelar os contratos legados
+   de configuracoes, widgets, preferencias, snapshots e geracoes, com a fonte
+   oficial de cada indicador e o criterio de ausencia de fallback.
+2. Modelo local de configuracao: criar schema e contratos internos para
+   publico, dashboard e widget, separados das projecoes de consulta.
+3. CRUD interno de publico e dashboard: criar, listar, atualizar e excluir com
+   invariantes de escola, codigo unico e bloqueio de exclusao com dependencias.
+4. CRUD interno de widget: criar, listar, atualizar e excluir widgets com
+   ordenacao, tipo e configuracao validada dentro do dashboard dono.
+5. Preferencias por usuario: criar leitura, upsert e exclusao de configuracao
+   por usuario/widget, sem expor ou confiar em identificador de usuario forjado.
+6. Snapshot local: criar modelo proprio de snapshot e historico, com idempotencia
+   por indicador, publico, escola e data de referencia; retirar a dependencia
+   de payload generico para esse estado transacional.
+7. Geracao de indicadores e alimentacao de projecoes: definir contratos internos
+   autenticados para os servicos donos publicarem dados e gerar apenas os
+   indicadores cuja origem estiver oficialmente mapeada, sem consulta a banco
+   alheio ou chamada ao monolito.
+8. Oficializacao no BFF: expor os writes de configuracao, widget, preferencia,
+   snapshot e geracao com os mesmos paths, corpos e status externos, sem
+   fallback.
+9. Backfill controlado e reconciliacao: importar configuracoes e snapshots
+   legados com mapeamento explicito de escola, paginação, idempotencia e relatorio
+   de divergencias; nao inferir dados ausentes.
+10. Prova integrada e fechamento: testar todos os contratos internos e externos,
+    rejeicao de fallback, isolamento por escola e a operacao do dashboard sem
+    datasource, client ou job funcional do monolito.
+
+Ordem de execucao: iniciar por B12.1. O primeiro entregavel funcional sera a
+matriz de ownership que limita quais indicadores podem ser gerados antes de
+qualquer migracao de escrita.

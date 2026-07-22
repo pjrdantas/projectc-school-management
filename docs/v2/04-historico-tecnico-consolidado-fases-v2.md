@@ -6264,3 +6264,38 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   identidade e compara as quantidades importadas. Com `fail-on-mismatch`, a
   aplicacao nao inicia diante de divergencia. A B9 esta concluida.
 - Validacao: `mvn.cmd -pl planning-ai-service test`, 14 testes sem falhas.
+
+## 22/07/2026 - Definicao da B11: Historico Escolar
+
+- A B11 foi definida em seis recortes: inventario, read model e pendencias,
+  workflow de escrita, itens e transferencia, oficializacao BFF e fechamento
+  por backfill reconciliado. O frontend permanece fora do escopo.
+- O primeiro inventario confirmou que ja existem persistencia e proxies locais
+  de historico no `pedagogical-service` e BFF. O proximo recorte comparara
+  esses contratos com a nova tela para implementar apenas lacunas reais.
+
+## 22/07/2026 - Fechamento da B11: Historico Escolar
+
+- O agregado local passou a preservar o payload completo de tela, validar o
+  workflow de bloqueio e reabertura, e recusar itens, periodos ou transferencia
+  inconsistentes sem alterar os contratos externos.
+- As rotas do BFF permanecem oficiais e exclusivas do `pedagogical-service`,
+  sem fallback ao monolito.
+- Foi adicionado backfill opt-in e paginado de `historico_escolar` e
+  `historico_escolar_item`, com reconciliacao por identificador e payload. A
+  execucao exige URL da fonte e `school-id`; como o legado nao fornece aluno ou
+  matricula, esses vinculos nao sao inferidos e permanecem nulos.
+- A B11 foi concluida no backend. Validacao final: `mvn.cmd -pl
+  pedagogical-service test`, 9 testes sem falhas.
+
+## 22/07/2026 - Definicao da B12: Dashboard operacional autonomo
+
+- O inventario confirmou que as dez rotas de leitura de dashboard ja operam no
+  `dashboard-query-service` via BFF, sobre projecoes locais.
+- Permanecem fora do codigo novo os CRUDs de publico, dashboard, widget e
+  preferencias por usuario, alem de snapshots, geracoes e alimentacao oficial
+  das projecoes pelos servicos donos.
+- A B12 foi definida em dez recortes: matriz de ownership, configuracoes,
+  widgets, preferencias, snapshots, geracao, BFF, backfill e prova integrada.
+  O primeiro recorte sera exclusivamente contratual e nao altera frontend nem
+  o monolito.

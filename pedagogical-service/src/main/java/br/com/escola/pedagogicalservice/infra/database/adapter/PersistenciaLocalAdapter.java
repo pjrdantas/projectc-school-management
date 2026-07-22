@@ -27,6 +27,7 @@ import br.com.escola.pedagogicalservice.application.dto.FrequenciaDocenteRespons
 import br.com.escola.pedagogicalservice.application.dto.HistoricoEscolarTelaResponse;
 import br.com.escola.pedagogicalservice.application.dto.NotaAlunoResponse;
 import br.com.escola.pedagogicalservice.application.exception.RecursoNaoEncontradoException;
+import br.com.escola.pedagogicalservice.application.exception.ConflitoNegocioException;
 import br.com.escola.pedagogicalservice.infra.database.entity.AulaJpaEntity;
 import br.com.escola.pedagogicalservice.infra.database.entity.AvaliacaoJpaEntity;
 import br.com.escola.pedagogicalservice.infra.database.entity.DiarioClasseJpaEntity;
@@ -347,6 +348,7 @@ public class PersistenciaLocalAdapter {
 
     public ResponseEntity<String> criarHistoricoEscolar(String authorization, InternalRequestContext context, String requestBody) {
         JsonNode root = readTree(requestBody);
+        validarItensETransferencia(root);
         UUID id = UUID.randomUUID();
         UUID alunoId = uuid(root, "alunoId");
         UUID matriculaId = uuid(root, "matriculaId");
@@ -366,8 +368,13 @@ public class PersistenciaLocalAdapter {
 
     public ResponseEntity<String> atualizarHistoricoEscolar(String authorization, InternalRequestContext context, UUID historicoEscolarId, String requestBody) {
         JsonNode root = readTree(requestBody);
+        validarItensETransferencia(root);
         HistoricoEscolarJpaEntity atual = historicoEscolarRepository.findByIdAndSchoolId(historicoEscolarId, context.escolaId())
                 .orElse(null);
+        if (atual == null) {
+            throw new RecursoNaoEncontradoException("Historico escolar nao encontrado");
+        }
+        validarTransicaoHistorico(atual, root);
         UUID alunoId = uuid(root, "alunoId");
         UUID matriculaId = atual != null ? atual.getMatriculaId() : uuid(root, "matriculaId");
         String modo = atual != null ? atual.getModo() : "EDICAO";
@@ -459,6 +466,24 @@ public class PersistenciaLocalAdapter {
     }
 
     private HistoricoEscolarTelaResponse buildHistoricoTela(UUID id, UUID alunoId, UUID matriculaId, String modo, JsonNode root) {
+        if (root != null && root.has("cabecalho") && root.has("aluno")) {
+            try {
+                ObjectNode tela = root.deepCopy();
+                ObjectNode contexto = tela.withObject("contexto");
+                contexto.put("idHistoricoEscolar", id == null ? null : id.toString());
+                contexto.put("idAluno", alunoId == null ? null : alunoId.toString());
+                contexto.put("idMatricula", matriculaId == null ? null : matriculaId.toString());
+                contexto.put("modo", modo);
+                contexto.put("status", root.path("statusPretendido").asText("RASCUNHO"));
+                contexto.put("bloqueado", "COMPLETO".equals(contexto.path("status").asText()));
+                if (!tela.has("pendencias")) {
+                    tela.set("pendencias", objectMapper.createArrayNode());
+                }
+                return objectMapper.treeToValue(tela, HistoricoEscolarTelaResponse.class);
+            } catch (Exception exception) {
+                throw new IllegalArgumentException("Payload de historico escolar invalido", exception);
+            }
+        }
         String observacoes = root != null ? text(root, "observacoes") : null;
         return new HistoricoEscolarTelaResponse(
                 new HistoricoEscolarTelaResponse.Contexto(
@@ -487,12 +512,69 @@ public class PersistenciaLocalAdapter {
     private String buildHistoricoWriteResponse(UUID id, JsonNode root) {
         ObjectNode response = objectMapper.createObjectNode();
         response.put("id", id.toString());
+        response.put("status", root.path("statusPretendido").asText("RASCUNHO"));
+        response.put("bloqueado", "COMPLETO".equals(root.path("statusPretendido").asText()));
         copyIfPresent(root, response, "alunoId");
         copyIfPresent(root, response, "nomeAluno");
         if (root != null && root.has("componentesCurriculares")) {
             response.set("componentesCurriculares", root.get("componentesCurriculares"));
         }
         return writeString(response);
+    }
+
+    private void validarTransicaoHistorico(HistoricoEscolarJpaEntity atual, JsonNode root) {
+        HistoricoEscolarTelaResponse telaAtual = fromJson(atual.getPayloadTela(), HistoricoEscolarTelaResponse.class);
+        String atualStatus = telaAtual.contexto().status();
+        String pretendido = root.path("statusPretendido").asText("RASCUNHO");
+        boolean reabrir = root.path("reabrir").asBoolean(false);
+        if ("COMPLETO".equals(atualStatus)) {
+            if (!reabrir || root.path("justificativaReabertura").asText().isBlank() || !"RASCUNHO".equals(pretendido)) {
+                throw new ConflitoNegocioException("Historico completo esta bloqueado; reabertura exige justificativa e retorno para RASCUNHO");
+            }
+            return;
+        }
+        if ("PENDENTE".equals(atualStatus) && "COMPLETO".equals(pretendido)) {
+            throw new ConflitoNegocioException("Historico pendente nao pode ser concluido sem saneamento");
+        }
+        if (!java.util.Set.of("RASCUNHO", "PENDENTE", "COMPLETO").contains(pretendido)) {
+            throw new ConflitoNegocioException("Status de historico escolar invalido");
+        }
+    }
+
+    private void validarItensETransferencia(JsonNode root) {
+        JsonNode periodos = root.path("periodos");
+        if (periodos.isArray()) {
+            int ordemEsperada = 1;
+            for (JsonNode periodo : periodos) {
+                if (periodo.path("ordem").asInt() != ordemEsperada++
+                        || periodo.path("anoLetivo").asText().isBlank()
+                        || periodo.path("serie").asText().isBlank()) {
+                    throw new ConflitoNegocioException("Periodos do historico devem ter ordem sequencial, ano e serie");
+                }
+            }
+            validarComponentes(root.path("baseComum"), periodos.size());
+            validarComponentes(root.path("parteDiversificada"), periodos.size());
+        }
+        JsonNode contexto = root.path("contexto");
+        boolean temOrigem = !contexto.path("escolaOrigem").asText().isBlank();
+        boolean temTransferencia = !contexto.path("dataTransferencia").asText().isBlank();
+        if (temOrigem != temTransferencia) {
+            throw new ConflitoNegocioException("Transferencia exige escola de origem e data de transferencia");
+        }
+        if (temOrigem && contexto.path("serieConcluidaOrigem").asInt(0) <= 0) {
+            throw new ConflitoNegocioException("Transferencia exige serie concluida na origem");
+        }
+    }
+
+    private void validarComponentes(JsonNode componentes, int quantidadePeriodos) {
+        if (!componentes.isArray()) return;
+        for (JsonNode componente : componentes) {
+            if (componente.path("nome").asText().isBlank()
+                    || !componente.path("valores").isArray()
+                    || componente.path("valores").size() != quantidadePeriodos) {
+                throw new ConflitoNegocioException("Componentes curriculares devem possuir nome e um valor por periodo");
+            }
+        }
     }
 
     private String buildDiaryWriteResponse(String idDiarioClasse) {

@@ -6,12 +6,19 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import br.com.escola.pedagogicalservice.application.exception.InternalApiUnauthorizedException;
+import br.com.escola.pedagogicalservice.application.exception.ConflitoNegocioException;
 import br.com.escola.pedagogicalservice.application.exception.InvalidRequestContextException;
 import br.com.escola.pedagogicalservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.pedagogicalservice.interfaces.response.ApiErrorResponse;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    @ExceptionHandler(ConflitoNegocioException.class)
+    public ResponseEntity<ApiErrorResponse> handleConflict(ConflitoNegocioException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ApiErrorResponse("BUSINESS_CONFLICT", exception.getMessage()));
+    }
 
     @ExceptionHandler(InternalApiUnauthorizedException.class)
     public ResponseEntity<ApiErrorResponse> handleUnauthorized(InternalApiUnauthorizedException exception) {
