@@ -13,6 +13,8 @@ public interface PeriodoLetivoRepository {
 
     Optional<PeriodoLetivo> buscarPeriodoPorId(UUID id, EscolaId escolaId);
 
+    void excluir(UUID id, EscolaId escolaId);
+
     List<PeriodoLetivo> listarPeriodos(EscolaId escolaId);
 }
 

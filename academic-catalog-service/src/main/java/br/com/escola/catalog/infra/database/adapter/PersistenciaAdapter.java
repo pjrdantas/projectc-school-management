@@ -95,6 +95,11 @@ public class PersistenciaAdapter implements
     }
 
     @Override
+    public void excluir(UUID id, EscolaId escolaId) {
+        periodoRepository.findByIdAndEscolaId(id, escolaId.value()).ifPresent(periodoRepository::delete);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<PeriodoLetivo> listarPeriodos(EscolaId escolaId) {
         return periodoRepository.findAllByEscolaIdOrderByAnoDescNomeAsc(escolaId.value()).stream()
@@ -104,6 +109,11 @@ public class PersistenciaAdapter implements
     @Override
     public Serie salvar(Serie serie) {
         return toDomain(serieRepository.save(toEntity(serie)));
+    }
+
+    @Override
+    public void excluirSerie(UUID id, EscolaId escolaId) {
+        serieRepository.findByIdAndEscolaId(id, escolaId.value()).ifPresent(serieRepository::delete);
     }
 
     @Override
@@ -149,6 +159,11 @@ public class PersistenciaAdapter implements
     }
 
     @Override
+    public void excluirDisciplina(UUID id, EscolaId escolaId) {
+        disciplinaRepository.findByIdAndEscolaId(id, escolaId.value()).ifPresent(disciplinaRepository::delete);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Optional<Disciplina> buscarDisciplinaPorId(UUID id, EscolaId escolaId) {
         return disciplinaRepository.findByIdAndEscolaId(id, escolaId.value()).map(PersistenciaMapper::toDomain);
@@ -164,6 +179,11 @@ public class PersistenciaAdapter implements
     @Override
     public Turma salvar(Turma turma) {
         return toDomain(turmaRepository.save(toEntity(turma)));
+    }
+
+    @Override
+    public void excluirTurma(UUID id, EscolaId escolaId) {
+        turmaRepository.findByIdAndEscolaId(id, escolaId.value()).ifPresent(turmaRepository::delete);
     }
 
     @Override
@@ -185,10 +205,22 @@ public class PersistenciaAdapter implements
     }
 
     @Override
+    public void excluirVinculo(UUID id, EscolaId escolaId) {
+        turmaDisciplinaRepository.findByIdAndEscolaId(id, escolaId.value())
+                .ifPresent(turmaDisciplinaRepository::delete);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Optional<TurmaDisciplina> buscarVinculoPorId(UUID id, EscolaId escolaId) {
         return turmaDisciplinaRepository.findByIdAndEscolaId(id, escolaId.value())
                 .map(PersistenciaMapper::toDomain);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean possuiVinculoComDisciplina(UUID disciplinaId, EscolaId escolaId) {
+        return turmaDisciplinaRepository.existsByDisciplinaIdAndEscolaId(disciplinaId, escolaId.value());
     }
 
     @Override

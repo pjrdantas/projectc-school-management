@@ -7,6 +7,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -24,6 +27,12 @@ import br.com.escola.bff.application.usecase.CreatePeriodoLetivoUseCase;
 import br.com.escola.bff.application.usecase.CreateSerieUseCase;
 import br.com.escola.bff.application.usecase.CreateTurmaUseCase;
 import br.com.escola.bff.application.usecase.LinkTurmaDisciplinaUseCase;
+import br.com.escola.bff.application.usecase.CatalogoMutationWriteUseCase;
+import br.com.escola.bff.application.dto.PeriodoLetivoUpdateCommand;
+import br.com.escola.bff.application.dto.DisciplinaUpdateCommand;
+import br.com.escola.bff.application.dto.SerieUpdateCommand;
+import br.com.escola.bff.application.dto.TurmaUpdateCommand;
+import br.com.escola.bff.application.dto.TurmaDisciplinaUpdateCommand;
 import br.com.escola.bff.interfaces.request.DisciplinaRequest;
 import br.com.escola.bff.interfaces.request.PeriodoLetivoRequest;
 import br.com.escola.bff.interfaces.request.SerieRequest;
@@ -46,18 +55,76 @@ public class CatalogoWriteController {
     private final CreateSerieUseCase createSerieUseCase;
     private final CreateTurmaUseCase createTurmaUseCase;
     private final LinkTurmaDisciplinaUseCase linkTurmaDisciplinaUseCase;
+    private final CatalogoMutationWriteUseCase catalogoMutationWriteUseCase;
 
     public CatalogoWriteController(
             CreatePeriodoLetivoUseCase createPeriodoLetivoUseCase,
             CreateDisciplinaUseCase createDisciplinaUseCase,
             CreateSerieUseCase createSerieUseCase,
             CreateTurmaUseCase createTurmaUseCase,
-            LinkTurmaDisciplinaUseCase linkTurmaDisciplinaUseCase) {
+            LinkTurmaDisciplinaUseCase linkTurmaDisciplinaUseCase,
+            CatalogoMutationWriteUseCase catalogoMutationWriteUseCase) {
         this.createPeriodoLetivoUseCase = createPeriodoLetivoUseCase;
         this.createDisciplinaUseCase = createDisciplinaUseCase;
         this.createSerieUseCase = createSerieUseCase;
         this.createTurmaUseCase = createTurmaUseCase;
         this.linkTurmaDisciplinaUseCase = linkTurmaDisciplinaUseCase;
+        this.catalogoMutationWriteUseCase = catalogoMutationWriteUseCase;
+    }
+
+    @DeleteMapping("/api/periodos-letivos/{id}")
+    public Mono<ResponseEntity<Void>> excluirPeriodoLetivo(@PathVariable UUID id, @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId, @RequestHeader(name = "Idempotency-Key", required = false) String key) {
+        return catalogoMutationWriteUseCase.excluirPeriodo(id, query(authorization, correlationId, key)).thenReturn(ResponseEntity.noContent().build());
+    }
+
+    @DeleteMapping("/api/disciplinas/{id}")
+    public Mono<ResponseEntity<Void>> excluirDisciplina(@PathVariable UUID id, @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId, @RequestHeader(name = "Idempotency-Key", required = false) String key) {
+        return catalogoMutationWriteUseCase.excluirDisciplina(id, query(authorization, correlationId, key)).thenReturn(ResponseEntity.noContent().build());
+    }
+
+    @DeleteMapping("/api/series/{id}")
+    public Mono<ResponseEntity<Void>> excluirSerie(@PathVariable UUID id, @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId, @RequestHeader(name = "Idempotency-Key", required = false) String key) {
+        return catalogoMutationWriteUseCase.excluirSerie(id, query(authorization, correlationId, key)).thenReturn(ResponseEntity.noContent().build());
+    }
+
+    @DeleteMapping("/api/turmas/{id}")
+    public Mono<ResponseEntity<Void>> excluirTurma(@PathVariable UUID id, @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId, @RequestHeader(name = "Idempotency-Key", required = false) String key) {
+        return catalogoMutationWriteUseCase.excluirTurma(id, query(authorization, correlationId, key)).thenReturn(ResponseEntity.noContent().build());
+    }
+
+    @PutMapping("/api/periodos-letivos/{id}")
+    public Mono<ResponseEntity<PeriodoLetivoResponse>> atualizarPeriodoLetivo(@PathVariable UUID id, @Valid @RequestBody PeriodoLetivoRequest r, @RequestHeader(HttpHeaders.AUTHORIZATION) String a, @RequestHeader(TrustedHeaders.CORRELATION_ID) String c, @RequestHeader(name = "Idempotency-Key", required = false) String k) {
+        return catalogoMutationWriteUseCase.atualizarPeriodo(id, query(a,c,k), new PeriodoLetivoUpdateCommand(r.nome(),r.ano(),r.dataInicio(),r.dataFim(),true))
+                .map(x -> ResponseEntity.ok(new PeriodoLetivoResponse(x.id(),x.nome(),x.ano(),x.dataInicio(),x.dataFim(),x.ativo(),x.escolaId(),x.escolaNome(),x.createdAt())));
+    }
+
+    @PutMapping("/api/disciplinas/{id}")
+    public Mono<ResponseEntity<DisciplinaResponse>> atualizarDisciplina(@PathVariable UUID id, @Valid @RequestBody DisciplinaRequest r, @RequestHeader(HttpHeaders.AUTHORIZATION) String a, @RequestHeader(TrustedHeaders.CORRELATION_ID) String c, @RequestHeader(name = "Idempotency-Key", required = false) String k) {
+        return catalogoMutationWriteUseCase.atualizarDisciplina(id, query(a,c,k), new DisciplinaUpdateCommand(r.nome(),r.cargaHoraria(),r.status()))
+                .map(x -> ResponseEntity.ok(new DisciplinaResponse(x.id(),x.nome(),x.cargaHoraria(),x.status(),x.escolaId(),x.escolaNome(),x.createdAt())));
+    }
+
+    @PutMapping("/api/series/{id}")
+    public Mono<ResponseEntity<SerieResponse>> atualizarSerie(@PathVariable UUID id, @Valid @RequestBody SerieRequest r, @RequestHeader(HttpHeaders.AUTHORIZATION) String a, @RequestHeader(TrustedHeaders.CORRELATION_ID) String c, @RequestHeader(name = "Idempotency-Key", required = false) String k) {
+        return catalogoMutationWriteUseCase.atualizarSerie(id, query(a,c,k), new SerieUpdateCommand(r.nome(),r.ordem(),r.nivelEnsino()))
+                .map(x -> ResponseEntity.ok(new SerieResponse(x.id(),x.nome(),x.ordem(),x.nivelEnsino(),x.escolaId(),x.escolaNome(),x.createdAt())));
+    }
+
+    @PutMapping("/api/turmas/{id}")
+    public Mono<ResponseEntity<TurmaResponse>> atualizarTurma(@PathVariable UUID id, @Valid @RequestBody TurmaRequest r, @RequestHeader(HttpHeaders.AUTHORIZATION) String a, @RequestHeader(TrustedHeaders.CORRELATION_ID) String c, @RequestHeader(name = "Idempotency-Key", required = false) String k) {
+        return catalogoMutationWriteUseCase.atualizarTurma(id, query(a,c,k), new TurmaUpdateCommand(r.codigo(),r.nome(),r.capacidade(),r.periodoLetivoId(),r.serieId(),r.turno(),r.status()))
+                .map(x -> ResponseEntity.ok(new TurmaResponse(x.id(),x.codigo(),x.nome(),x.capacidade(),x.periodoLetivoId(),x.serieId(),x.serieNome(),x.turno(),x.status(),x.escolaId(),x.escolaNome(),x.createdAt())));
+    }
+
+    @PutMapping("/api/turmas/{turmaId}/disciplinas/{vinculoId}")
+    public Mono<ResponseEntity<TurmaDisciplinaResponse>> atualizarVinculoDisciplina(@PathVariable UUID turmaId, @PathVariable UUID vinculoId, @Valid @RequestBody TurmaDisciplinaRequest r, @RequestHeader(HttpHeaders.AUTHORIZATION) String a, @RequestHeader(TrustedHeaders.CORRELATION_ID) String c, @RequestHeader(name = "Idempotency-Key", required = false) String k) {
+        return catalogoMutationWriteUseCase.atualizarVinculo(turmaId, vinculoId, query(a,c,k), new TurmaDisciplinaUpdateCommand(r.cargaHoraria()))
+                .map(x -> ResponseEntity.ok(new TurmaDisciplinaResponse(x.id(),x.turmaId(),x.disciplinaId(),x.disciplinaNome(),x.cargaHoraria(),x.createdAt())));
+    }
+
+    @DeleteMapping("/api/turmas/{turmaId}/disciplinas/{vinculoId}")
+    public Mono<ResponseEntity<Void>> desvincularDisciplina(@PathVariable UUID turmaId, @PathVariable UUID vinculoId, @RequestHeader(HttpHeaders.AUTHORIZATION) String a, @RequestHeader(TrustedHeaders.CORRELATION_ID) String c, @RequestHeader(name = "Idempotency-Key", required = false) String k) {
+        return catalogoMutationWriteUseCase.desvincular(turmaId, vinculoId, query(a,c,k)).thenReturn(ResponseEntity.noContent().build());
     }
 
     @PostMapping("/api/periodos-letivos")
@@ -204,6 +271,11 @@ public class CatalogoWriteController {
                         body.disciplinaNome(),
                         body.cargaHoraria(),
                         body.createdAt())));
+    }
+
+    private CatalogWriteQuery query(String authorization, String correlationId, String idempotencyKey) {
+        return new CatalogWriteQuery(authorization, correlationId,
+                idempotencyKey != null && !idempotencyKey.isBlank() ? idempotencyKey : UUID.randomUUID().toString());
     }
 }
 

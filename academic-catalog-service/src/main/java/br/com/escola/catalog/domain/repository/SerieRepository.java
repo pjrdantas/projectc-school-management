@@ -11,6 +11,8 @@ public interface SerieRepository {
 
     Serie salvar(Serie serie);
 
+    void excluirSerie(UUID id, EscolaId escolaId);
+
     Optional<Serie> buscarSeriePorId(UUID id, EscolaId escolaId);
 
     List<Serie> listarSeries(EscolaId escolaId);

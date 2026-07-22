@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import br.com.escola.catalog.application.context.InternalHeaders;
 import br.com.escola.catalog.application.exception.RecursoNaoEncontradoException;
+import br.com.escola.catalog.application.exception.ConflitoNegocioException;
 import br.com.escola.catalog.application.exception.InternalApiUnauthorizedException;
 import br.com.escola.catalog.application.exception.IdempotencyConflictException;
 import br.com.escola.catalog.application.exception.InvalidRequestContextException;
@@ -51,6 +52,13 @@ public class ApiExceptionHandler {
             IdempotencyConflictException exception,
             HttpServletRequest request) {
         return response(HttpStatus.CONFLICT, "IDEMPOTENCY_CONFLICT", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(ConflitoNegocioException.class)
+    ResponseEntity<ApiErrorResponse> handleBusinessConflict(
+            ConflitoNegocioException exception,
+            HttpServletRequest request) {
+        return response(HttpStatus.CONFLICT, "CATALOG_CONFLICT", exception.getMessage(), request);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

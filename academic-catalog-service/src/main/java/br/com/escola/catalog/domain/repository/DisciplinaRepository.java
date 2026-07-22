@@ -11,6 +11,8 @@ public interface DisciplinaRepository {
 
     Disciplina salvar(Disciplina disciplina);
 
+    void excluirDisciplina(UUID id, EscolaId escolaId);
+
     Optional<Disciplina> buscarDisciplinaPorId(UUID id, EscolaId escolaId);
 
     List<Disciplina> listarDisciplinas(EscolaId escolaId);

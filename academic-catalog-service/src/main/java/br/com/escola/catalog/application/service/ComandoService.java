@@ -20,6 +20,11 @@ import br.com.escola.catalog.application.command.CreatePeriodoLetivoCommand;
 import br.com.escola.catalog.application.command.CreateSerieCommand;
 import br.com.escola.catalog.application.command.CreateTurmaCommand;
 import br.com.escola.catalog.application.command.LinkDisciplinaCommand;
+import br.com.escola.catalog.application.command.UpdateDisciplinaCommand;
+import br.com.escola.catalog.application.command.UpdatePeriodoLetivoCommand;
+import br.com.escola.catalog.application.command.UpdateSerieCommand;
+import br.com.escola.catalog.application.command.UpdateTurmaCommand;
+import br.com.escola.catalog.application.command.UpdateTurmaDisciplinaCommand;
 import br.com.escola.catalog.application.context.InternalRequestContext;
 import br.com.escola.catalog.application.dto.DisciplinaResponse;
 import br.com.escola.catalog.application.dto.PeriodoLetivoResponse;
@@ -29,6 +34,7 @@ import br.com.escola.catalog.application.dto.TurmaResponse;
 import br.com.escola.catalog.application.event.IntegrationEventEnvelope;
 import br.com.escola.catalog.application.event.OutboxEvent;
 import br.com.escola.catalog.application.exception.RecursoNaoEncontradoException;
+import br.com.escola.catalog.application.exception.ConflitoNegocioException;
 import br.com.escola.catalog.application.exception.IdempotencyConflictException;
 import br.com.escola.catalog.application.idempotency.CommandIdempotency;
 import br.com.escola.catalog.application.port.in.ComandoUseCase;
@@ -110,6 +116,50 @@ public class ComandoService implements ComandoUseCase {
 
     @Override
     @Transactional
+    public CommandResult<PeriodoLetivoResponse> atualizarPeriodo(
+            UUID periodoId,
+            UpdatePeriodoLetivoCommand command,
+            String idempotencyKey,
+            InternalRequestContext context) {
+        PeriodoLetivo existente = periodo(periodoId, context);
+        String fingerprint = CommandFingerprint.sha256(
+                "UPDATE_PERIODO", periodoId, command.nome(), command.ano(), command.dataInicio(), command.dataFim(), command.ativo());
+        return execute(idempotencyKey, fingerprint, "PERIODO_LETIVO", context,
+                id -> periodoRepository.buscarPeriodoPorId(id, context.escolaId())
+                        .map(this::toResponse).orElseThrow(() -> notFound("Periodo letivo", id)),
+                () -> {
+                    PeriodoLetivo atualizado = periodoRepository.salvar(new PeriodoLetivo(
+                            existente.id(), existente.escolaId(), command.nome(), command.ano(),
+                            command.dataInicio(), command.dataFim(), command.ativo(), existente.createdAt()));
+                    return created(atualizado.id(), toResponse(atualizado), "PERIODO_LETIVO", "term-updated", context,
+                            payload("periodoLetivoId", atualizado.id(), "nome", atualizado.nome()));
+                });
+    }
+
+    @Override
+    @Transactional
+    public CommandResult<Void> excluirPeriodo(
+            UUID periodoId,
+            String idempotencyKey,
+            InternalRequestContext context) {
+        String fingerprint = CommandFingerprint.sha256("DELETE_PERIODO", periodoId);
+        return execute(idempotencyKey, fingerprint, "PERIODO_LETIVO", context,
+                ignored -> null,
+                () -> {
+                    periodo(periodoId, context);
+                    boolean possuiTurmas = turmaRepository.listarTurmas(context.escolaId()).stream()
+                            .anyMatch(turma -> turma.periodoLetivoId().equals(periodoId));
+                    if (possuiTurmas) {
+                        throw new ConflitoNegocioException("Periodo letivo possui turmas vinculadas");
+                    }
+                    periodoRepository.excluir(periodoId, context.escolaId());
+                    return created(periodoId, null, "PERIODO_LETIVO", "term-deleted", context,
+                            payload("periodoLetivoId", periodoId));
+                });
+    }
+
+    @Override
+    @Transactional
     public CommandResult<SerieResponse> criarSerie(
             CreateSerieCommand command,
             String idempotencyKey,
@@ -156,6 +206,95 @@ public class ComandoService implements ComandoUseCase {
 
     @Override
     @Transactional
+    public CommandResult<SerieResponse> atualizarSerie(
+            UUID serieId,
+            UpdateSerieCommand command,
+            String idempotencyKey,
+            InternalRequestContext context) {
+        Serie existente = serie(serieId, context);
+        NivelEnsino nivel = nivel(command.nivelEnsinoId());
+        String fingerprint = CommandFingerprint.sha256(
+                "UPDATE_SERIE", serieId, command.nome(), command.ordem(), command.nivelEnsinoId());
+        return execute(idempotencyKey, fingerprint, "SERIE", context,
+                id -> serieRepository.buscarSeriePorId(id, context.escolaId())
+                        .map(serie -> toResponse(serie, nivel(serie.nivelEnsinoId())))
+                        .orElseThrow(() -> notFound("Serie", id)),
+                () -> {
+                    Serie atualizada = serieRepository.salvar(new Serie(
+                            existente.id(), existente.escolaId(), command.nome(), command.ordem(),
+                            nivel.id(), existente.createdAt()));
+                    return created(atualizada.id(), toResponse(atualizada, nivel), "SERIE", "grade-updated", context,
+                            payload("serieId", atualizada.id(), "nivelEnsinoId", nivel.id()));
+                });
+    }
+
+    @Override
+    @Transactional
+    public CommandResult<Void> excluirSerie(
+            UUID serieId,
+            String idempotencyKey,
+            InternalRequestContext context) {
+        String fingerprint = CommandFingerprint.sha256("DELETE_SERIE", serieId);
+        return execute(idempotencyKey, fingerprint, "SERIE", context,
+                ignored -> null,
+                () -> {
+                    serie(serieId, context);
+                    boolean possuiTurmas = turmaRepository.listarTurmas(context.escolaId()).stream()
+                            .anyMatch(turma -> turma.serieId().equals(serieId));
+                    if (possuiTurmas) {
+                        throw new ConflitoNegocioException("Serie possui turmas vinculadas");
+                    }
+                    serieRepository.excluirSerie(serieId, context.escolaId());
+                    return created(serieId, null, "SERIE", "grade-deleted", context,
+                            payload("serieId", serieId));
+                });
+    }
+
+    @Override
+    @Transactional
+    public CommandResult<DisciplinaResponse> atualizarDisciplina(
+            UUID disciplinaId,
+            UpdateDisciplinaCommand command,
+            String idempotencyKey,
+            InternalRequestContext context) {
+        Disciplina existente = disciplina(disciplinaId, context);
+        String fingerprint = CommandFingerprint.sha256(
+                "UPDATE_DISCIPLINA", disciplinaId, command.nome(), command.cargaHoraria(), command.ativo());
+        return execute(idempotencyKey, fingerprint, "DISCIPLINA", context,
+                id -> disciplinaRepository.buscarDisciplinaPorId(id, context.escolaId())
+                        .map(this::toResponse).orElseThrow(() -> notFound("Disciplina", id)),
+                () -> {
+                    Disciplina atualizada = disciplinaRepository.salvar(new Disciplina(
+                            existente.id(), existente.escolaId(), command.nome(), command.cargaHoraria(),
+                            command.ativo(), existente.createdAt()));
+                    return created(atualizada.id(), toResponse(atualizada),
+                            "DISCIPLINA", "subject-updated", context,
+                            payload("disciplinaId", atualizada.id(), "nome", atualizada.nome()));
+                });
+    }
+
+    @Override
+    @Transactional
+    public CommandResult<Void> excluirDisciplina(
+            UUID disciplinaId,
+            String idempotencyKey,
+            InternalRequestContext context) {
+        String fingerprint = CommandFingerprint.sha256("DELETE_DISCIPLINA", disciplinaId);
+        return execute(idempotencyKey, fingerprint, "DISCIPLINA", context,
+                ignored -> null,
+                () -> {
+                    disciplina(disciplinaId, context);
+                    if (turmaDisciplinaRepository.possuiVinculoComDisciplina(disciplinaId, context.escolaId())) {
+                        throw new ConflitoNegocioException("Disciplina possui vinculos com turmas");
+                    }
+                    disciplinaRepository.excluirDisciplina(disciplinaId, context.escolaId());
+                    return created(disciplinaId, null, "DISCIPLINA", "subject-deleted", context,
+                            payload("disciplinaId", disciplinaId));
+                });
+    }
+
+    @Override
+    @Transactional
     public CommandResult<TurmaResponse> criarTurma(
             CreateTurmaCommand command,
             String idempotencyKey,
@@ -179,6 +318,55 @@ public class ComandoService implements ComandoUseCase {
                             LocalDateTime.now(ZoneOffset.UTC)));
                     return created(turma.id(), toResponse(turma, serie, turno), "TURMA", "class-created", context,
                             payload("turmaId", turma.id(), "periodoLetivoId", turma.periodoLetivoId()));
+                });
+    }
+
+    @Override
+    @Transactional
+    public CommandResult<TurmaResponse> atualizarTurma(
+            UUID turmaId,
+            UpdateTurmaCommand command,
+            String idempotencyKey,
+            InternalRequestContext context) {
+        Turma existente = turma(turmaId, context);
+        PeriodoLetivo periodo = periodo(command.periodoLetivoId(), context);
+        Serie serie = serie(command.serieId(), context);
+        Turno turno = turno(command.turnoId());
+        String fingerprint = CommandFingerprint.sha256(
+                "UPDATE_TURMA", turmaId, command.codigo(), command.nome(), command.capacidade(),
+                command.periodoLetivoId(), command.serieId(), command.turnoId(), command.ativo());
+        return execute(idempotencyKey, fingerprint, "TURMA", context,
+                id -> {
+                    Turma turma = turmaRepository.buscarTurmaPorId(id, context.escolaId())
+                            .orElseThrow(() -> notFound("Turma", id));
+                    return toResponse(turma, serie(turma.serieId(), context), turno(turma.turnoId()));
+                },
+                () -> {
+                    Turma atualizada = turmaRepository.salvar(new Turma(
+                            existente.id(), existente.escolaId(), command.codigo(), command.nome(), command.capacidade(),
+                            periodo.id(), serie.id(), turno.id(), command.ativo(), existente.createdAt()));
+                    return created(atualizada.id(), toResponse(atualizada, serie, turno), "TURMA", "class-updated", context,
+                            payload("turmaId", atualizada.id(), "periodoLetivoId", periodo.id(), "serieId", serie.id()));
+                });
+    }
+
+    @Override
+    @Transactional
+    public CommandResult<Void> excluirTurma(
+            UUID turmaId,
+            String idempotencyKey,
+            InternalRequestContext context) {
+        String fingerprint = CommandFingerprint.sha256("DELETE_TURMA", turmaId);
+        return execute(idempotencyKey, fingerprint, "TURMA", context,
+                ignored -> null,
+                () -> {
+                    turma(turmaId, context);
+                    if (!turmaDisciplinaRepository.listarVinculosPorTurma(turmaId, context.escolaId()).isEmpty()) {
+                        throw new ConflitoNegocioException("Turma possui disciplinas vinculadas");
+                    }
+                    turmaRepository.excluirTurma(turmaId, context.escolaId());
+                    return created(turmaId, null, "TURMA", "class-deleted", context,
+                            payload("turmaId", turmaId));
                 });
     }
 
@@ -208,6 +396,53 @@ public class ComandoService implements ComandoUseCase {
                             "TURMA_DISCIPLINA", "class-subject-created", context,
                             payload("turmaDisciplinaId", vinculo.id(), "turmaId", turmaId,
                                     "disciplinaId", disciplina.id()));
+                });
+    }
+
+    @Override
+    @Transactional
+    public CommandResult<TurmaDisciplinaResponse> atualizarVinculoDisciplina(
+            UUID turmaId,
+            UUID vinculoId,
+            UpdateTurmaDisciplinaCommand command,
+            String idempotencyKey,
+            InternalRequestContext context) {
+        turma(turmaId, context);
+        TurmaDisciplina existente = vinculoDaTurma(vinculoId, turmaId, context);
+        Disciplina disciplina = disciplina(existente.disciplinaId(), context);
+        String fingerprint = CommandFingerprint.sha256("UPDATE_TURMA_DISCIPLINA", turmaId, vinculoId, command.cargaHoraria());
+        return execute(idempotencyKey, fingerprint, "TURMA_DISCIPLINA", context,
+                id -> turmaDisciplinaRepository.buscarVinculoPorId(id, context.escolaId())
+                        .map(vinculo -> toResponse(vinculo, disciplina(vinculo.disciplinaId(), context)))
+                        .orElseThrow(() -> notFound("Vinculo turma-disciplina", id)),
+                () -> {
+                    TurmaDisciplina atualizado = turmaDisciplinaRepository.salvar(new TurmaDisciplina(
+                            existente.id(), existente.escolaId(), existente.turmaId(), existente.disciplinaId(),
+                            command.cargaHoraria(), existente.createdAt()));
+                    return created(atualizado.id(), toResponse(atualizado, disciplina),
+                            "TURMA_DISCIPLINA", "class-subject-updated", context,
+                            payload("turmaDisciplinaId", atualizado.id(), "turmaId", turmaId,
+                                    "disciplinaId", disciplina.id()));
+                });
+    }
+
+    @Override
+    @Transactional
+    public CommandResult<Void> desvincularDisciplina(
+            UUID turmaId,
+            UUID vinculoId,
+            String idempotencyKey,
+            InternalRequestContext context) {
+        String fingerprint = CommandFingerprint.sha256("UNLINK_DISCIPLINA", turmaId, vinculoId);
+        return execute(idempotencyKey, fingerprint, "TURMA_DISCIPLINA", context,
+                ignored -> null,
+                () -> {
+                    turma(turmaId, context);
+                    TurmaDisciplina vinculo = vinculoDaTurma(vinculoId, turmaId, context);
+                    turmaDisciplinaRepository.excluirVinculo(vinculo.id(), context.escolaId());
+                    return created(vinculo.id(), null, "TURMA_DISCIPLINA", "class-subject-deleted", context,
+                            payload("turmaDisciplinaId", vinculo.id(), "turmaId", turmaId,
+                                    "disciplinaId", vinculo.disciplinaId()));
                 });
     }
 
@@ -298,6 +533,15 @@ public class ComandoService implements ComandoUseCase {
     private Disciplina disciplina(UUID id, InternalRequestContext context) {
         return disciplinaRepository.buscarDisciplinaPorId(id, context.escolaId())
                 .orElseThrow(() -> notFound("Disciplina", id));
+    }
+
+    private TurmaDisciplina vinculoDaTurma(UUID vinculoId, UUID turmaId, InternalRequestContext context) {
+        TurmaDisciplina vinculo = turmaDisciplinaRepository.buscarVinculoPorId(vinculoId, context.escolaId())
+                .orElseThrow(() -> notFound("Vinculo turma-disciplina", vinculoId));
+        if (!vinculo.turmaId().equals(turmaId)) {
+            throw new RecursoNaoEncontradoException("Vinculo turma-disciplina", vinculoId);
+        }
+        return vinculo;
     }
 
     private RecursoNaoEncontradoException notFound(String resource, UUID id) {

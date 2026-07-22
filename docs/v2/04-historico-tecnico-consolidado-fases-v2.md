@@ -5894,3 +5894,140 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   existe relacao de origem equivalente para migracao segura. A prova final
   executou 31 testes no `enrollment-document-service` e 8 integracoes no BFF,
   sem falhas ou erros. A **B6 foi concluida**.
+
+## 22/07/2026 - Abertura da B7: escritas remanescentes do catalogo academico
+
+- A B7 foi fixada em **10 recortes** para concluir atualizacao, exclusao e
+  desvinculo de periodo letivo, disciplina, serie, turma e turma-disciplina no
+  `academic-catalog-service`, seguida de oficializacao, backfill e fechamento
+  no BFF.
+- O diagnostico confirmou que as leituras e criacoes ja sao do servico dono,
+  enquanto atualizacao, exclusao e desfazimento de vinculo ainda nao possuem
+  contrato interno ou rota publica oficiais no codigo novo.
+- O primeiro recorte foi aberto somente para mapeamento e fundacao de
+  contratos. Nenhum fallback ou dependencia funcional de runtime com o
+  monolito sera admitido nesta B7.
+
+## 22/07/2026 - Segundo recorte da B7: atualizacao interna de periodo letivo
+
+- O `academic-catalog-service` passou a aceitar atualizacao interna completa
+  em `PUT /internal/v1/periodos-letivos/{id}`, sempre resolvida pela escola do
+  contexto autenticado.
+- O fluxo preserva ID e data de criacao, reaplica invariantes de periodo,
+  mantem idempotencia, invalida o cache apos commit e publica `term-updated` no
+  outbox. Nao houve rota BFF, frontend ou fallback para monolito.
+- A validacao restrita ao modulo executou 19 testes sem falhas ou erros.
+  Restam **8 recortes na B7**; o proximo e exclusao segura de periodo letivo.
+
+## 22/07/2026 - Terceiro recorte da B7: exclusao segura de periodo letivo
+
+- O `academic-catalog-service` passou a aceitar exclusao interna em
+  `DELETE /internal/v1/periodos-letivos/{id}` com escopo de tenant e replay por
+  `Idempotency-Key`.
+- A operacao recusa excluir periodo referenciado por turma do mesmo tenant;
+  sem dependencia, remove o registro, invalida cache e publica `term-deleted`
+  no outbox. Nao houve rota BFF, frontend ou fallback para monolito.
+- A validacao restrita ao modulo executou 20 testes sem falhas ou erros.
+  Restam **7 recortes na B7**; o proximo e atualizacao interna de disciplina.
+
+## 22/07/2026 - Quarto recorte da B7: atualizacao interna de disciplina
+
+- O `academic-catalog-service` passou a aceitar atualizacao interna completa
+  em `PUT /internal/v1/disciplinas/{id}`, sempre resolvida pela escola do
+  contexto autenticado.
+- O fluxo preserva ID e data de criacao, reaplica as invariantes de disciplina,
+  mantem idempotencia, invalida o cache apos commit e publica `subject-updated`
+  no outbox. Nao houve rota BFF, frontend ou fallback para monolito.
+- A validacao restrita ao modulo executou 21 testes sem falhas ou erros.
+  Restam **6 recortes na B7**; o proximo e exclusao ou inativacao segura de
+  disciplina.
+
+## 22/07/2026 - Quinto recorte da B7: exclusao segura de disciplina
+
+- O `academic-catalog-service` passou a aceitar exclusao interna em
+  `DELETE /internal/v1/disciplinas/{id}` com escopo de tenant e replay por
+  `Idempotency-Key`.
+- A operacao recusa excluir disciplina vinculada a turma do mesmo tenant; sem
+  dependencia, remove o registro, invalida cache e publica `subject-deleted`
+  no outbox. Nao houve rota BFF, frontend ou fallback para monolito.
+- A validacao restrita ao modulo executou 22 testes sem falhas ou erros.
+  Restam **5 recortes na B7**; o proximo e atualizacao interna de serie.
+
+## 22/07/2026 - Sexto recorte da B7: atualizacao interna de serie
+
+- O `academic-catalog-service` passou a aceitar atualizacao interna completa
+  em `PUT /internal/v1/series/{id}`, sempre resolvida pela escola do contexto
+  autenticado.
+- O fluxo preserva ID e data de criacao, valida o nivel de ensino informado,
+  mantem idempotencia, invalida o cache apos commit e publica `grade-updated`
+  no outbox. Nao houve rota BFF, frontend ou fallback para monolito.
+- A validacao restrita ao modulo executou 23 testes sem falhas ou erros.
+  Restam **4 recortes na B7**; o proximo e exclusao segura de serie.
+
+## 22/07/2026 - Setimo recorte da B7: exclusao segura de serie
+
+- O `academic-catalog-service` passou a aceitar exclusao interna em
+  `DELETE /internal/v1/series/{id}` com escopo de tenant e replay por
+  `Idempotency-Key`.
+- A operacao recusa excluir serie referenciada por turma do mesmo tenant; sem
+  dependencia, remove o registro, invalida cache e publica `grade-deleted` no
+  outbox. Nao houve rota BFF, frontend ou fallback para monolito.
+- A validacao restrita ao modulo executou 24 testes sem falhas ou erros.
+  Restam **3 recortes na B7**; o proximo e atualizacao interna de turma.
+
+## 22/07/2026 - Oitavo recorte da B7: atualizacao interna de turma
+
+- O `academic-catalog-service` passou a aceitar atualizacao interna completa
+  em `PUT /internal/v1/turmas/{id}`, sempre resolvida pela escola do contexto
+  autenticado.
+- O fluxo preserva ID e data de criacao, valida periodo e serie no tenant,
+  valida turno, mantem idempotencia, invalida o cache apos commit e publica
+  `class-updated` no outbox. Nao houve rota BFF, frontend ou fallback para
+  monolito.
+- A validacao restrita ao modulo executou 25 testes sem falhas ou erros.
+  Restam **2 recortes na B7**; o proximo e exclusao de turma e manutencao
+  segura de turma-disciplina.
+
+## 22/07/2026 - Nono recorte da B7: exclusao de turma e manutencao de vinculo
+
+- O `academic-catalog-service` passou a aceitar exclusao interna em
+  `DELETE /internal/v1/turmas/{id}`, recusada quando houver vinculos
+  turma-disciplina no mesmo tenant.
+- O vinculo passou a aceitar atualizacao e desvinculo internos nas rotas
+  `/internal/v1/turmas/{turmaId}/disciplinas/{vinculoId}`. As operacoes
+  confirmam a associacao do vinculo com a turma e a escola antes de persistir.
+- Os comandos mantem idempotencia, invalidam cache apos commit e publicam
+  `class-deleted`, `class-subject-updated` ou `class-subject-deleted` no
+  outbox. Nao houve BFF, frontend ou fallback para monolito.
+- A validacao restrita ao modulo executou 28 testes sem falhas ou erros.
+  Resta **1 recorte na B7**: oficializacao, reconciliacao e fechamento tecnico.
+
+## 22/07/2026 - Primeiro sub-recorte do fechamento B7.10: contratos tipados no BFF
+
+- O `school-management-bff` recebeu comandos e caso de uso tipados para
+  atualizacao e exclusao de periodo, disciplina, serie, turma e
+  turma-disciplina, isolados das requests HTTP e da infraestrutura.
+- Os contratos preservam `status`, `nivelEnsino` e `turno` como dados externos
+  que precisarao de conversao explicita para o contrato interno do catalogo.
+  Nenhuma rota publica, fallback, frontend ou acesso ao monolito foi criado.
+- A compilacao restrita do BFF com
+  `mvn.cmd -pl school-management-bff -DskipTests compile` foi concluida sem
+  falhas ou erros. O proximo sub-recorte implementa adapters e controllers.
+
+## 22/07/2026 - Fechamento B7.10: writes de catalogo no BFF
+
+- O `school-management-bff` oficializou `PUT` e `DELETE` para periodo letivo,
+  disciplina, serie, turma e vinculo turma-disciplina no
+  `CatalogoWriteController`. Os contratos externos sao convertidos tipadamente
+  antes de chamar o `academic-catalog-service`.
+- O adapter usa apenas o catalogo oficial, propaga contexto interno,
+  correlacao e idempotencia e registra observabilidade de sucesso e falha. Nao
+  existe fallback funcional ao monolito.
+- A integracao do BFF recebeu uma prova com relatorio reconciliado verde que
+  percorre as dez rotas nos cenarios de sucesso e indisponibilidade. Cada erro
+  503 confirmou que nao houve segundo encaminhamento ao monolito.
+- Foram aprovados `mvn.cmd -pl school-management-bff -DskipTests test-compile`,
+  `MAVEN_OPTS=-Djdk.attach.allowAttachSelf=true mvn.cmd -pl
+  school-management-bff "-Dtest=CatalogoMutationWriteCutoverIntegrationTest"
+  test` (2 testes) e `mvn.cmd -pl academic-catalog-service test` (28 testes).
+  A **B7 foi concluida**.

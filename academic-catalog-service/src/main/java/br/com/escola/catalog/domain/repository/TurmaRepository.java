@@ -11,6 +11,8 @@ public interface TurmaRepository {
 
     Turma salvar(Turma turma);
 
+    void excluirTurma(UUID id, EscolaId escolaId);
+
     Optional<Turma> buscarTurmaPorId(UUID id, EscolaId escolaId);
 
     List<Turma> listarTurmas(EscolaId escolaId);

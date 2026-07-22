@@ -702,5 +702,18 @@ public class BffUseCaseConfiguration {
                 authContextPort,
                 observabilityPort);
     }
+
+    @Bean
+    br.com.escola.bff.application.usecase.CatalogoMutationWriteUseCase catalogoMutationWriteUseCase(
+            br.com.escola.bff.application.port.out.CatalogoMutationWritePort port,
+            AuthContextPort authContextPort,
+            CatalogoNivelEnsinoResolverPort academicCatalogNivelEnsinoResolverPort,
+            CatalogoTurnoResolverPort academicCatalogTurnoResolverPort,
+            CatalogWriteObservabilityPort observabilityPort) {
+        return new br.com.escola.bff.application.service.CatalogoMutationWriteRoutingService(
+                port, authContextPort, academicCatalogNivelEnsinoResolverPort, academicCatalogTurnoResolverPort,
+                observabilityPort);
+    }
+
 }
 
