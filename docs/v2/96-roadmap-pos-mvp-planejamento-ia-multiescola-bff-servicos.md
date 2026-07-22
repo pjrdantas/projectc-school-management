@@ -11120,3 +11120,256 @@ Nenhum recorte admite acesso a banco de outro servico, fallback ou dependencia
 funcional de runtime com o `school-management-service`. As consultas existentes
 permanecem estaveis; a B8 nao abre escopo para aulas, frequencias, avaliacoes,
 diario de classe ou planejamento pedagogico.
+
+Primeiro recorte da B8 entregue em 22/07/2026:
+
+- o diagnostico confirmou que o contrato legado publico possui somente
+  `POST /api/professores` e
+  `POST /api/professores/{professorId}/turmas-disciplinas`; as leituras ja
+  estao oficializadas no BFF e nao houve contrato externo de `PUT` ou `DELETE`
+  a preservar;
+- o `academic-professor-service` ja e dono das criacoes internas equivalentes,
+  mas ainda nao possui comandos de atualizacao, inativacao ou encerramento de
+  alocacao, nem writes expostos no BFF;
+- dependencias explicitas: funcionario e pessoa sao resolvidos por porta para
+  o `people-service`; turma-disciplina e turma sao resolvidas por porta para o
+  `academic-catalog-service`. Nenhum fluxo da B8 acessara banco remoto;
+- invariantes fixadas: uma pessoa por escola possui um unico professor; o
+  professor permanece na escola do contexto; alocacao exige professor,
+  turma-disciplina e turma da mesma escola; o historico nao sera apagado; e a
+  proxima fase ajustara a restricao atual de duplicidade para permitir novo
+  vinculo somente apos encerramento do anterior;
+- nao houve alteracao de runtime, rota publica, frontend, fallback ou acesso
+  funcional ao monolito. O proximo recorte implementa atualizacao interna de
+  professor.
+
+Segundo recorte da B8 entregue em 22/07/2026:
+
+- o `academic-professor-service` passou a expor
+  `PUT /internal/v1/professores/{id}` para atualizar registro profissional,
+  formacao e status ativo do professor no escopo da escola autenticada;
+- o contrato nao recebe nem altera ID, pessoa, funcionario, escola ou data de
+  criacao. A persistencia atualiza tambem data e usuario de alteracao;
+- professor inexistente ou de outra escola retorna `404`, sem consultar pessoa,
+  catalogo ou monolito; repeticoes do mesmo `PUT` mantem o mesmo estado;
+- validacao restrita ao `academic-professor-service`: 6 testes sem falhas ou
+  erros. Restam **6 recortes** na B8; o proximo e a inativacao segura de
+  professor.
+
+Terceiro recorte da B8 entregue em 22/07/2026:
+
+- a inativacao via `PUT /internal/v1/professores/{id}` passou a retornar
+  `409 BUSINESS_CONFLICT` quando existir alocacao professor-turma-disciplina
+  ativa na persistencia local;
+- a recusa nao altera o professor nem remove alocacao ou professor, preservando
+  integralmente o historico. Alocacoes inativas nao bloqueiam a operacao;
+- nao houve chamada a servico externo, rota BFF, frontend, fallback ou
+  monolito;
+- validacao restrita ao `academic-professor-service`: 7 testes sem falhas ou
+  erros. Restam **5 recortes** na B8; o proximo e a atualizacao interna de
+  alocacao.
+
+Quarto recorte da B8 entregue em 22/07/2026:
+
+- o `academic-professor-service` passou a expor
+  `PUT /internal/v1/professores/{professorId}/turmas-disciplinas/{alocacaoId}`
+  para atualizar vinculo turma-disciplina, datas e status da alocacao;
+- o fluxo valida professor no escopo local, busca turma-disciplina e turma pelo
+  contrato interno do `academic-catalog-service`, exige a mesma escola e
+  confirma que a alocacao pertence ao professor informado;
+- data final anterior a inicial retorna `400`; tentativa de trocar para um
+  vinculo ja associado ao professor retorna conflito. A identidade da alocacao
+  e o historico de criacao sao preservados;
+- nao houve rota BFF, frontend, fallback ou monolito. Validacao restrita ao
+  `academic-professor-service`: 8 testes sem falhas ou erros. Restam **4
+  recortes** na B8; o proximo e o encerramento seguro de alocacao.
+
+Quinto recorte da B8 entregue em 22/07/2026:
+
+- o `academic-professor-service` passou a expor
+  `DELETE /internal/v1/professores/{professorId}/turmas-disciplinas/{alocacaoId}`
+  como encerramento logico, idempotente e sem exclusao fisica da alocacao;
+- ao encerrar, o vinculo fica inativo e recebe data final apenas quando ainda
+  nao a possui. Repetir o `DELETE` preserva esse estado;
+- a migracao `V8` substituiu a unicidade historica por chave unica de vinculo
+  ativo, permitindo multiplos registros encerrados e impedindo mais de uma
+  alocacao ativa para o mesmo professor e turma-disciplina;
+- validacao restrita ao `academic-professor-service`: 9 testes sem falhas ou
+  erros. Restam **3 recortes** na B8; o proximo e a oficializacao das criacoes
+  no BFF.
+
+Sexto recorte da B8 entregue em 22/07/2026:
+
+- o `school-management-bff` oficializou `POST /api/professores` e
+  `POST /api/professores/{professorId}/turmas-disciplinas`, preservando os
+  payloads externos ja existentes;
+- o proxy resolve contexto autenticado e encaminha bearer, token interno,
+  correlacao, usuario e escola exclusivamente ao `academic-professor-service`;
+- as falhas `503` do servico dono sao devolvidas pelo BFF sem segunda chamada
+  ao monolito. Nao houve frontend nem alteracao de leitura;
+- validacao restrita ao BFF: `test-compile` e 4 testes de integracao sem falhas
+  ou erros. Restam **2 recortes** na B8; o proximo oficializa atualizacao,
+  inativacao e encerramento no BFF.
+
+Setimo recorte da B8 entregue em 22/07/2026:
+
+- o `school-management-bff` oficializou
+  `PUT /api/professores/{professorId}`, incluindo a inativacao por
+  `ativo:false`, alem de
+  `PUT /api/professores/{professorId}/turmas-disciplinas/{alocacaoId}` e
+  `DELETE /api/professores/{professorId}/turmas-disciplinas/{alocacaoId}`;
+- nao foi criado `DELETE` de professor: o dominio preserva historico e a
+  inativacao e uma transicao de estado no `PUT`, sem exclusao fisica nem
+  contrato legado correspondente;
+- o adapter tipado encaminha contexto, bearer, token interno e correlacao
+  exclusivamente ao `academic-professor-service`. A indisponibilidade do owner
+  retorna `503` sem tentativa ao monolito;
+- validacao restrita ao BFF: `test-compile` e 2 testes de integracao, cobrindo
+  tres mutacoes em sucesso e indisponibilidade, sem falhas ou erros. Resta
+  **1 recorte** na B8: backfill, reconciliacao e fechamento tecnico.
+
+Fechamento B8.8 entregue em 22/07/2026:
+
+- o `academic-professor-service` recebeu backfill opcional e controlado para
+  `professor` e `professor_turma_disciplina`, ativado exclusivamente por
+  `ACADEMIC_PROFESSOR_BACKFILL_ENABLED=true` e URL de origem explicita;
+- a carga e paginada, transacional e idempotente. Faz upsert por identidade sem
+  apagar registros locais posteriores e reconcilia todos os registros de
+  origem. Com `fail-on-mismatch=true`, qualquer divergencia interrompe a
+  inicializacao;
+- o datasource de origem existe somente durante a execucao opt-in de
+  migracao. O runtime normal continua com datasource proprio e dependencias
+  apenas de `people-service` e `academic-catalog-service`; a verificacao nao
+  encontrou referencia funcional ao monolito no codigo principal;
+- validacao: `mvn.cmd -pl academic-professor-service test` com 11 testes e as
+  duas suites de writes do BFF com 6 testes, ambos sem falhas ou erros. A
+  **B8 foi concluida**.
+
+## Planejamento fechado da B9 - Planejamento bimestral e IA
+
+A B9 possui **8 recortes**, restritos ao `planning-ai-service` e ao
+`school-management-bff`. O bloco de IA ja esta oficializado nos dois modulos;
+o agregado raiz `planejamento_bimestral`, suas aulas previstas e avaliacoes
+previstas continuam exclusivamente no `school-management-service`.
+
+1. mapear o contrato legado, dependencias e invariantes do agregado, sem rota nova;
+2. criar schema local e contratos internos para planejamento, aula prevista e avaliacao prevista;
+3. implementar criacao, listagem e detalhe internos no owner local;
+4. implementar atualizacao e transicao segura de status;
+5. implementar inclusao idempotente de aula prevista e avaliacao prevista;
+6. oficializar no BFF criacao, leitura, atualizacao e status do planejamento;
+7. oficializar no BFF aulas e avaliacoes previstas, comprovando composicao com IA sem fallback;
+8. executar backfill controlado, reconciliacao, prova integrada e fechamento tecnico.
+
+Primeiro recorte da B9 entregue em 22/07/2026:
+
+- o mapeamento confirmou que os contratos de IA ja sao atendidos pelo
+  `planning-ai-service` e encaminhados pelo BFF sem adapter, URL ou fallback
+  para o monolito;
+- o unico contrato ainda exclusivo do monolito e o CRUD de
+  `/api/planejamentos-bimestrais`, incluindo `aulas-previstas`,
+  `avaliacoes-previstas` e mudanca de status;
+- as dependencias do agregado raiz sao referencias externas por UUID para
+  professor, turma-disciplina, periodo avaliativo e escola. A B9 nao acessara
+  banco remoto: validacoes futuras usarao contratos internos dos owners;
+- nao houve alteracao de runtime, BFF, frontend ou monolito. O proximo recorte
+  cria schema e contratos internos locais.
+
+Segundo recorte da B9 entregue em 22/07/2026:
+
+- a migration `V5` do `planning-ai-service` criou as tabelas locais
+  `planejamento_bimestral`, `planejamento_bimestral_aula` e
+  `planejamento_bimestral_avaliacao`, com integridade apenas dentro do
+  agregado e sem FK para outros servicos;
+- professor-turma-disciplina, periodo avaliativo e escola sao referencias UUID
+  externas. Status e tipo de avaliacao sao codigos do agregado, eliminando a
+  dependencia de entidades e catalogos JPA do monolito;
+- foram adicionados modelos JPA, repositorios e DTOs internos para planejamento,
+  aula prevista, avaliacao prevista e status, alem da porta
+  `PlanejamentoBimestralUseCase`. Nenhuma rota interna ou publica foi aberta;
+- validacao restrita ao `planning-ai-service`: 10 testes sem falhas ou erros.
+  Restam **6 recortes** na B9; o proximo implementa criacao, listagem e detalhe
+  internos.
+
+Terceiro recorte da B9 entregue em 22/07/2026:
+
+- o `planning-ai-service` passou a expor internamente `POST`, `GET` por filtros
+  locais e `GET` por ID em `/internal/v1/planejamentos-bimestrais`;
+- a criacao atribui `RASCUNHO`, grava exclusivamente no schema proprio e
+  preserva os defaults externos de reutilizacao e uso de IA. Listagem e detalhe
+  aplicam obrigatoriamente o `id_escola` do contexto interno;
+- os filtros locais deste recorte sao `professorTurmaDisciplinaId` e
+  `periodoAvaliativoId`. Professor, turma e disciplina nao foram inferidos por
+  banco remoto nem por dependencia do monolito;
+- validacao restrita ao `planning-ai-service`: 12 testes sem falhas ou erros,
+  incluindo criacao, listagem filtrada, detalhe e isolamento entre escolas.
+  Restam **5 recortes** na B9; o proximo implementa atualizacao e status.
+
+Quarto recorte da B9 entregue em 22/07/2026:
+
+- o `planning-ai-service` passou a expor internamente
+  `PUT /internal/v1/planejamentos-bimestrais/{planejamentoId}` e
+  `PATCH /internal/v1/planejamentos-bimestrais/{planejamentoId}/status`;
+- a atualizacao preserva identidade, escola, status, aprovacao e data de
+  criacao. O registro e sempre resolvido pelo ID e escola do contexto;
+- a maquina de estados local aceita `RASCUNHO -> EM_ANALISE -> APROVADO ou
+  REPROVADO`, e `REPROVADO -> RASCUNHO`. `APROVADO` e terminal; repeticao do
+  status atual e idempotente. Transicao invalida retorna `409`;
+- validacao restrita ao `planning-ai-service`: 13 testes sem falhas ou erros.
+  Restam **4 recortes** na B9; o proximo implementa aulas e avaliacoes previstas.
+
+Quinto recorte da B9 entregue em 22/07/2026:
+
+- o `planning-ai-service` passou a expor internamente as inclusoes de
+  `aulas-previstas` e `avaliacoes-previstas` do planejamento bimestral;
+- aula prevista e idempotente pelo numero dentro do planejamento: repeticao
+  igual devolve o mesmo registro e repeticao com dados divergentes retorna
+  `409`; a avaliacao usa chave SHA-256 deterministica persistida na migration
+  `V6`, impedindo duplicidade da mesma solicitacao;
+- ambos os fluxos validam a existencia do planejamento no escopo da escola
+  antes de gravar e nao consultam catalogo, professor, avaliacao ou monolito;
+- validacao restrita ao `planning-ai-service`: 14 testes sem falhas ou erros.
+  Restam **3 recortes** na B9; o proximo oficializa o agregado raiz no BFF.
+
+Sexto recorte da B9 entregue em 22/07/2026:
+
+- o `school-management-bff` passou a expor `POST`, `GET`, `GET /{id}`, `PUT`
+  e `PATCH /{id}/status` em `/api/planejamentos-bimestrais`;
+- os adapters tipados encaminham essas operacoes exclusivamente para
+  `/internal/v1/planejamentos-bimestrais` do `planning-ai-service`, com bearer,
+  token interno, correlacao, usuario e escola. Nao foi criado adapter, URL ou
+  fallback para o `school-management-service`;
+- a leitura oficial deste recorte usa os filtros locais
+  `professorTurmaDisciplinaId` e `periodoAvaliativoId`. A compatibilizacao dos
+  filtros derivados de professor, turma e disciplina permanece explicitamente
+  no proximo recorte, junto com aulas, avaliacoes e composicao de IA;
+- validacao restrita ao BFF: `mvn.cmd -pl school-management-bff -DskipTests
+  test-compile` e `MAVEN_OPTS=-Djdk.attach.allowAttachSelf=true mvn.cmd -pl
+  school-management-bff "-Dtest=PlanejamentoBimestralProxyIntegrationTest"
+  test`, com 2 testes sem falhas ou erros. Restam **2 recortes** na B9.
+
+Setimo recorte da B9 entregue em 22/07/2026:
+
+- o BFF passou a oficializar `POST /api/planejamentos-bimestrais/{id}/aulas-previstas`
+  e `POST /api/planejamentos-bimestrais/{id}/avaliacoes-previstas`, ambos sem
+  adapter ou fallback para o monolito;
+- a listagem publica voltou a aceitar os filtros legados `professorId`,
+  `turmaId` e `disciplinaId`: o BFF resolve os vinculos no
+  `academic-professor-service`, aplica os filtros e consulta o
+  `planning-ai-service` pelos IDs de professor-turma-disciplina resultantes;
+- conteudos e interacoes de IA permanecem nas rotas ja oficiais do mesmo
+  agregado, compondo a navegacao sem dependencia funcional do monolito;
+- validacao restrita ao BFF: compilacao e
+  `PlanejamentoBimestralProxyIntegrationTest` aprovados, sem falhas ou erros.
+  Resta **1 recorte** na B9: backfill, reconciliacao e fechamento tecnico.
+
+Oitavo recorte da B9 entregue em 22/07/2026:
+
+- o `planning-ai-service` recebeu backfill opt-in para `planejamento_bimestral`,
+  `planejamento_bimestral_aula` e `planejamento_bimestral_avaliacao`;
+- a origem so e criada quando `PLANNING_AI_BACKFILL_ENABLED=true` e exige
+  `PLANNING_AI_BACKFILL_SOURCE_URL`. O runtime normal usa somente o datasource
+  local; divergencia de reconciliacao bloqueia a subida quando configurada;
+- status e tipo de avaliacao sao importados por codigo, e avaliacao recebe chave
+  idempotente derivada do ID legado. A **B9 foi concluida**;
+- validacao restrita: `mvn.cmd -pl planning-ai-service test`, 14 testes verdes.

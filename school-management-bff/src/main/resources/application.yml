@@ -62,6 +62,7 @@ clients:
     internal-token: ${PLANNING_AI_INTERNAL_API_TOKEN:}
 
 features:
+  academic-professor-write-proxy-enabled: ${ACADEMIC_PROFESSOR_WRITE_PROXY_ENABLED:true}
   disciplinas-proxy-enabled: ${DISCIPLINAS_PROXY_ENABLED:true}
   catalog-read-proxy-enabled: ${CATALOG_READ_PROXY_ENABLED:${DISCIPLINAS_PROXY_ENABLED:true}}
   catalog-write-proxy-enabled: ${CATALOG_WRITE_PROXY_ENABLED:true}

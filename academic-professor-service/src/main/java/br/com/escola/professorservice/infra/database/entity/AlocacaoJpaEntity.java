@@ -44,6 +44,9 @@ public class AlocacaoJpaEntity {
     @Column(name = "ativo", nullable = false)
     private boolean ativo;
 
+    @Column(name = "ativo_chave")
+    private Boolean ativoChave;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -72,6 +75,7 @@ public class AlocacaoJpaEntity {
         this.dataInicio = dataInicio;
         this.dataFim = dataFim;
         this.ativo = ativo;
+        this.ativoChave = ativo ? Boolean.TRUE : null;
         this.createdAt = createdAt;
     }
 
@@ -117,6 +121,37 @@ public class AlocacaoJpaEntity {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public void atualizarDados(
+            UUID turmaDisciplinaId,
+            UUID turmaId,
+            String turmaNome,
+            UUID disciplinaId,
+            String disciplinaNome,
+            LocalDate dataInicio,
+            LocalDate dataFim,
+            boolean ativo) {
+        this.turmaDisciplinaId = turmaDisciplinaId;
+        this.turmaId = turmaId;
+        this.turmaNome = turmaNome;
+        this.disciplinaId = disciplinaId;
+        this.disciplinaNome = disciplinaNome;
+        this.dataInicio = dataInicio;
+        this.dataFim = dataFim;
+        this.ativo = ativo;
+        this.ativoChave = ativo ? Boolean.TRUE : null;
+    }
+
+    public void encerrar(java.time.LocalDate dataEncerramento) {
+        if (!ativo) {
+            return;
+        }
+        this.ativo = false;
+        this.ativoChave = null;
+        if (dataFim == null) {
+            this.dataFim = dataEncerramento;
+        }
     }
 }
 

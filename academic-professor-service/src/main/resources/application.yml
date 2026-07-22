@@ -35,3 +35,11 @@ professor:
     internal-token: ${PROFESSOR_CATALOG_SERVICE_INTERNAL_TOKEN:academic-catalog-local-token}
     connect-timeout: ${PROFESSOR_CATALOG_SERVICE_CONNECT_TIMEOUT:2s}
     read-timeout: ${PROFESSOR_CATALOG_SERVICE_READ_TIMEOUT:5s}
+  persistence:
+    backfill:
+      enabled: ${ACADEMIC_PROFESSOR_BACKFILL_ENABLED:false}
+      source-url: ${ACADEMIC_PROFESSOR_BACKFILL_SOURCE_URL:}
+      source-username: ${ACADEMIC_PROFESSOR_BACKFILL_SOURCE_USERNAME:}
+      source-password: ${ACADEMIC_PROFESSOR_BACKFILL_SOURCE_PASSWORD:}
+      batch-size: ${ACADEMIC_PROFESSOR_BACKFILL_BATCH_SIZE:500}
+      fail-on-mismatch: ${ACADEMIC_PROFESSOR_BACKFILL_FAIL_ON_MISMATCH:true}

@@ -9,6 +9,8 @@ import br.com.escola.professorservice.application.dto.AllocateRequest;
 import br.com.escola.professorservice.application.dto.AlocacaoResponse;
 import br.com.escola.professorservice.application.dto.CreateRequest;
 import br.com.escola.professorservice.application.dto.ResumoResponse;
+import br.com.escola.professorservice.application.dto.UpdateRequest;
+import br.com.escola.professorservice.application.dto.UpdateAllocateRequest;
 import br.com.escola.professorservice.application.port.in.ComandoUseCase;
 import br.com.escola.professorservice.application.port.out.CatalogoApoioPort;
 import br.com.escola.professorservice.application.port.out.LeituraLocalPort;
@@ -45,6 +47,15 @@ public class ComandoService implements ComandoUseCase {
     }
 
     @Override
+    public ResumoResponse atualizarProfessor(
+            InternalRequestContext context,
+            UUID professorId,
+            UpdateRequest request) {
+        leituraLocalPort.buscarProfessorPorId(context, professorId);
+        return persistenciaPort.atualizarProfessor(context, professorId, request);
+    }
+
+    @Override
     public AlocacaoResponse alocarProfessorTurmaDisciplina(
             String authorization,
             InternalRequestContext context,
@@ -61,6 +72,35 @@ public class ComandoService implements ComandoUseCase {
                 turma,
                 request,
                 Boolean.TRUE.equals(request.ativo()));
+    }
+
+    @Override
+    public AlocacaoResponse atualizarAlocacaoProfessorTurmaDisciplina(
+            String authorization,
+            InternalRequestContext context,
+            UUID professorId,
+            UUID alocacaoId,
+            UpdateAllocateRequest request) {
+        if (request.dataInicio() != null && request.dataFim() != null
+                && request.dataFim().isBefore(request.dataInicio())) {
+            throw new IllegalArgumentException("dataFim nao pode ser anterior a dataInicio");
+        }
+
+        ResumoResponse professor = leituraLocalPort.buscarProfessorPorId(context, professorId);
+        var turmaDisciplina = catalogoApoioPort.buscarTurmaDisciplina(
+                authorization, context, request.turmaDisciplinaId());
+        var turma = catalogoApoioPort.buscarTurma(authorization, context, turmaDisciplina.turmaId());
+        return persistenciaPort.atualizarAlocacao(
+                context, professor, alocacaoId, turmaDisciplina, turma, request);
+    }
+
+    @Override
+    public void encerrarAlocacaoProfessorTurmaDisciplina(
+            InternalRequestContext context,
+            UUID professorId,
+            UUID alocacaoId) {
+        leituraLocalPort.buscarProfessorPorId(context, professorId);
+        persistenciaPort.encerrarAlocacao(context, professorId, alocacaoId);
     }
 }
 

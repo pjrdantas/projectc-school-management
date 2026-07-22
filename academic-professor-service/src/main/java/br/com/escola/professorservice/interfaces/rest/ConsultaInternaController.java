@@ -7,12 +7,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,6 +25,8 @@ import br.com.escola.professorservice.application.dto.AllocateRequest;
 import br.com.escola.professorservice.application.dto.CreateRequest;
 import br.com.escola.professorservice.application.dto.AlocacaoResponse;
 import br.com.escola.professorservice.application.dto.ResumoResponse;
+import br.com.escola.professorservice.application.dto.UpdateRequest;
+import br.com.escola.professorservice.application.dto.UpdateAllocateRequest;
 import br.com.escola.professorservice.application.port.in.ComandoUseCase;
 import br.com.escola.professorservice.application.port.in.ConsultaUseCase;
 import jakarta.validation.Valid;
@@ -50,6 +54,14 @@ public class ConsultaInternaController {
         return professorCommandUseCase.criarProfessor(authorization, context, request);
     }
 
+    @PutMapping("/professores/{id}")
+    public ResumoResponse atualizarProfessor(
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID id,
+            @Valid @RequestBody UpdateRequest request) {
+        return professorCommandUseCase.atualizarProfessor(context, id, request);
+    }
+
     @PostMapping("/professores/{id}/turmas-disciplinas")
     @ResponseStatus(HttpStatus.CREATED)
     public AlocacaoResponse alocarProfessorTurmaDisciplina(
@@ -58,6 +70,26 @@ public class ConsultaInternaController {
             @PathVariable @NonNull UUID id,
             @Valid @RequestBody AllocateRequest request) {
         return professorCommandUseCase.alocarProfessorTurmaDisciplina(authorization, context, id, request);
+    }
+
+    @PutMapping("/professores/{professorId}/turmas-disciplinas/{alocacaoId}")
+    public AlocacaoResponse atualizarAlocacaoProfessorTurmaDisciplina(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID professorId,
+            @PathVariable @NonNull UUID alocacaoId,
+            @Valid @RequestBody UpdateAllocateRequest request) {
+        return professorCommandUseCase.atualizarAlocacaoProfessorTurmaDisciplina(
+                authorization, context, professorId, alocacaoId, request);
+    }
+
+    @DeleteMapping("/professores/{professorId}/turmas-disciplinas/{alocacaoId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void encerrarAlocacaoProfessorTurmaDisciplina(
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID professorId,
+            @PathVariable @NonNull UUID alocacaoId) {
+        professorCommandUseCase.encerrarAlocacaoProfessorTurmaDisciplina(context, professorId, alocacaoId);
     }
 
     @GetMapping("/professores")

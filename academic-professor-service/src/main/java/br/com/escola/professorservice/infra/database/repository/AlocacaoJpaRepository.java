@@ -11,6 +11,14 @@ public interface AlocacaoJpaRepository extends JpaRepository<AlocacaoJpaEntity, 
 
     Optional<AlocacaoJpaEntity> findByProfessorIdAndTurmaDisciplinaId(UUID professorId, UUID turmaDisciplinaId);
 
+    boolean existsByProfessorIdAndTurmaDisciplinaIdAndAtivoTrue(UUID professorId, UUID turmaDisciplinaId);
+
+    Optional<AlocacaoJpaEntity> findByProfessorIdAndTurmaDisciplinaIdAndAtivoTrue(
+            UUID professorId,
+            UUID turmaDisciplinaId);
+
+    boolean existsByProfessorIdAndAtivoTrue(UUID professorId);
+
     java.util.List<AlocacaoJpaEntity> findAllByProfessorIdOrderByCreatedAtAsc(UUID professorId);
 
     java.util.List<AlocacaoJpaEntity> findAllByTurmaIdOrderByCreatedAtAsc(UUID turmaId);

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -25,6 +26,14 @@ import br.com.escola.planningaiservice.application.dto.ConteudoIaVersaoResponse;
 import br.com.escola.planningaiservice.application.dto.CriarVersaoConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.GerarConteudoIaRequest;
 import br.com.escola.planningaiservice.application.dto.PlanejamentoIaInteracaoResponse;
+import br.com.escola.planningaiservice.application.dto.PlanejamentoBimestralRequest;
+import br.com.escola.planningaiservice.application.dto.PlanejamentoBimestralResponse;
+import br.com.escola.planningaiservice.application.dto.PlanejamentoBimestralStatusRequest;
+import br.com.escola.planningaiservice.application.dto.PlanejamentoBimestralAulaRequest;
+import br.com.escola.planningaiservice.application.dto.PlanejamentoBimestralAulaResponse;
+import br.com.escola.planningaiservice.application.dto.PlanejamentoBimestralAvaliacaoRequest;
+import br.com.escola.planningaiservice.application.dto.PlanejamentoBimestralAvaliacaoResponse;
+import br.com.escola.planningaiservice.application.port.in.PlanejamentoBimestralUseCase;
 import br.com.escola.planningaiservice.application.port.in.PlanejamentoLeituraUseCase;
 import jakarta.validation.Valid;
 
@@ -33,9 +42,70 @@ import jakarta.validation.Valid;
 public class PlanejamentoInternoController {
 
     private final PlanejamentoLeituraUseCase planningAiReadUseCase;
+    private final PlanejamentoBimestralUseCase planejamentoBimestralUseCase;
 
-    public PlanejamentoInternoController(PlanejamentoLeituraUseCase planningAiReadUseCase) {
+    public PlanejamentoInternoController(
+            PlanejamentoLeituraUseCase planningAiReadUseCase,
+            PlanejamentoBimestralUseCase planejamentoBimestralUseCase) {
         this.planningAiReadUseCase = planningAiReadUseCase;
+        this.planejamentoBimestralUseCase = planejamentoBimestralUseCase;
+    }
+
+    @PostMapping("/planejamentos-bimestrais")
+    @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
+    public PlanejamentoBimestralResponse criarPlanejamentoBimestral(
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @Valid @RequestBody PlanejamentoBimestralRequest request) {
+        return planejamentoBimestralUseCase.criar(context, request);
+    }
+
+    @GetMapping("/planejamentos-bimestrais")
+    public List<PlanejamentoBimestralResponse> listarPlanejamentosBimestrais(
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @RequestParam(required = false) UUID professorTurmaDisciplinaId,
+            @RequestParam(required = false) UUID periodoAvaliativoId) {
+        return planejamentoBimestralUseCase.listar(context, professorTurmaDisciplinaId, periodoAvaliativoId);
+    }
+
+    @GetMapping("/planejamentos-bimestrais/{planejamentoId}")
+    public PlanejamentoBimestralResponse buscarPlanejamentoBimestral(
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable UUID planejamentoId) {
+        return planejamentoBimestralUseCase.buscarPorId(context, planejamentoId);
+    }
+
+    @PutMapping("/planejamentos-bimestrais/{planejamentoId}")
+    public PlanejamentoBimestralResponse atualizarPlanejamentoBimestral(
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable UUID planejamentoId,
+            @Valid @RequestBody PlanejamentoBimestralRequest request) {
+        return planejamentoBimestralUseCase.atualizar(context, planejamentoId, request);
+    }
+
+    @PatchMapping("/planejamentos-bimestrais/{planejamentoId}/status")
+    public PlanejamentoBimestralResponse alterarStatusPlanejamentoBimestral(
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable UUID planejamentoId,
+            @Valid @RequestBody PlanejamentoBimestralStatusRequest request) {
+        return planejamentoBimestralUseCase.alterarStatus(context, planejamentoId, request);
+    }
+
+    @PostMapping("/planejamentos-bimestrais/{planejamentoId}/aulas-previstas")
+    @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
+    public PlanejamentoBimestralAulaResponse adicionarAulaPrevista(
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable UUID planejamentoId,
+            @Valid @RequestBody PlanejamentoBimestralAulaRequest request) {
+        return planejamentoBimestralUseCase.adicionarAula(context, planejamentoId, request);
+    }
+
+    @PostMapping("/planejamentos-bimestrais/{planejamentoId}/avaliacoes-previstas")
+    @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
+    public PlanejamentoBimestralAvaliacaoResponse adicionarAvaliacaoPrevista(
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable UUID planejamentoId,
+            @Valid @RequestBody PlanejamentoBimestralAvaliacaoRequest request) {
+        return planejamentoBimestralUseCase.adicionarAvaliacao(context, planejamentoId, request);
     }
 
     @GetMapping("/biblioteca-conteudos-pedagogicos")

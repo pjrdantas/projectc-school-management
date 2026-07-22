@@ -2,7 +2,9 @@ package br.com.escola.professorservice.interfaces.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -22,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.escola.professorservice.infra.database.repository.AlocacaoJpaRepository;
 import br.com.escola.professorservice.infra.database.repository.CadastroJpaRepository;
+import br.com.escola.professorservice.infra.database.entity.CadastroJpaEntity;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -67,9 +70,11 @@ class ConsultaInternaControllerIntegrationTest {
     }
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws InterruptedException {
         alocacaoRepository.deleteAll();
         cadastroRepository.deleteAll();
+        drainRequests(peopleServer);
+        drainRequests(catalogServer);
     }
 
     @Test
@@ -349,9 +354,289 @@ class ConsultaInternaControllerIntegrationTest {
                 .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
     }
 
+    @Test
+    void deveAtualizarSomenteOsCamposMutaveisDoProfessorNoEscopoDaEscola() throws Exception {
+        UUID professorId = UUID.randomUUID();
+        UUID pessoaId = UUID.randomUUID();
+        var createdAt = java.time.LocalDateTime.of(2026, 1, 10, 8, 0);
+        cadastroRepository.save(new CadastroJpaEntity(
+                professorId,
+                pessoaId,
+                "Ana Professor",
+                ESCOLA_ID,
+                "Escola Central",
+                "RP-ANTIGO",
+                "Formacao antiga",
+                true,
+                createdAt,
+                createdAt,
+                UUID.randomUUID()));
+
+        mockMvc.perform(put("/internal/v1/professores/{id}", professorId)
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "registroProfissional": "RP-ATUALIZADO",
+                                  "formacao": "Licenciatura em Matematica",
+                                  "ativo": false
+                                }
+                                """)
+                        .header("X-Internal-Token", "professor-token")
+                        .header("X-Correlation-Id", "corr-professor-update")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(professorId.toString()))
+                .andExpect(jsonPath("$.pessoaId").value(pessoaId.toString()))
+                .andExpect(jsonPath("$.registroProfissional").value("RP-ATUALIZADO"))
+                .andExpect(jsonPath("$.formacao").value("Licenciatura em Matematica"))
+                .andExpect(jsonPath("$.ativo").value(false));
+
+        CadastroJpaEntity persisted = cadastroRepository.findById(professorId).orElseThrow();
+        assertThat(persisted.getPessoaId()).isEqualTo(pessoaId);
+        assertThat(persisted.getEscolaId()).isEqualTo(ESCOLA_ID);
+        assertThat(persisted.getCreatedAt()).isEqualTo(createdAt);
+        assertThat(persisted.getUpdatedAt()).isAfter(createdAt);
+    }
+
+    @Test
+    void naoDeveAtualizarProfessorDeOutraEscola() throws Exception {
+        UUID professorId = UUID.randomUUID();
+        cadastroRepository.save(new CadastroJpaEntity(
+                professorId,
+                UUID.randomUUID(),
+                "Professor Externo",
+                UUID.randomUUID(),
+                "Outra Escola",
+                null,
+                null,
+                true,
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                UUID.randomUUID()));
+
+        mockMvc.perform(put("/internal/v1/professores/{id}", professorId)
+                        .contentType("application/json")
+                        .content("""
+                                { "registroProfissional": "RP-ATUALIZADO", "ativo": true }
+                                """)
+                        .header("X-Internal-Token", "professor-token")
+                        .header("X-Correlation-Id", "corr-professor-update-other-school")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("RESOURCE_NOT_FOUND"));
+    }
+
+    @Test
+    void naoDeveInativarProfessorComAlocacaoAcademicaAtiva() throws Exception {
+        UUID professorId = UUID.randomUUID();
+        cadastroRepository.save(new CadastroJpaEntity(
+                professorId,
+                UUID.randomUUID(),
+                "Ana Professor",
+                ESCOLA_ID,
+                "Escola Central",
+                "RP-123",
+                "Licenciatura",
+                true,
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                UUID.randomUUID()));
+        alocacaoRepository.save(new br.com.escola.professorservice.infra.database.entity.AlocacaoJpaEntity(
+                UUID.randomUUID(),
+                professorId,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "Turma A",
+                UUID.randomUUID(),
+                "Matematica",
+                java.time.LocalDate.now(),
+                null,
+                true,
+                java.time.LocalDateTime.now()));
+
+        mockMvc.perform(put("/internal/v1/professores/{id}", professorId)
+                        .contentType("application/json")
+                        .content("""
+                                { "registroProfissional": "RP-123", "formacao": "Licenciatura", "ativo": false }
+                                """)
+                        .header("X-Internal-Token", "professor-token")
+                        .header("X-Correlation-Id", "corr-professor-inactivate")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("BUSINESS_CONFLICT"));
+
+        assertThat(cadastroRepository.findById(professorId).orElseThrow().getAtivo()).isTrue();
+        assertThat(alocacaoRepository.existsByProfessorIdAndAtivoTrue(professorId)).isTrue();
+    }
+
+    @Test
+    void deveAtualizarAlocacaoDoProfessorComVinculoAcademicoDaMesmaEscola() throws Exception {
+        UUID professorId = UUID.randomUUID();
+        UUID alocacaoId = UUID.randomUUID();
+        cadastroRepository.save(new CadastroJpaEntity(
+                professorId,
+                UUID.randomUUID(),
+                "Ana Professor",
+                ESCOLA_ID,
+                "Escola Central",
+                "RP-123",
+                "Licenciatura",
+                true,
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                UUID.randomUUID()));
+        alocacaoRepository.save(new br.com.escola.professorservice.infra.database.entity.AlocacaoJpaEntity(
+                alocacaoId,
+                professorId,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "Turma Antiga",
+                UUID.randomUUID(),
+                "Disciplina Antiga",
+                java.time.LocalDate.of(2026, 2, 1),
+                null,
+                true,
+                java.time.LocalDateTime.now()));
+
+        UUID turmaDisciplinaId = UUID.randomUUID();
+        UUID turmaId = UUID.randomUUID();
+        UUID disciplinaId = UUID.randomUUID();
+        catalogServer.enqueue(json("""
+                {
+                  "id": "%s",
+                  "turmaId": "%s",
+                  "disciplinaId": "%s",
+                  "disciplinaNome": "Fisica",
+                  "cargaHoraria": 60,
+                  "escolaId": "%s"
+                }
+                """.formatted(turmaDisciplinaId, turmaId, disciplinaId, ESCOLA_ID)));
+        catalogServer.enqueue(json("""
+                {
+                  "id": "%s",
+                  "codigo": "T-B",
+                  "nome": "Turma B",
+                  "capacidade": 30,
+                  "escolaId": "%s"
+                }
+                """.formatted(turmaId, ESCOLA_ID)));
+
+        mockMvc.perform(put("/internal/v1/professores/{professorId}/turmas-disciplinas/{alocacaoId}", professorId, alocacaoId)
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "turmaDisciplinaId": "%s",
+                                  "dataInicio": "2026-03-01",
+                                  "dataFim": "2026-06-30",
+                                  "ativo": false
+                                }
+                                """.formatted(turmaDisciplinaId))
+                        .header("X-Internal-Token", "professor-token")
+                        .header("X-Correlation-Id", "corr-alocacao-update")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", "Bearer token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(alocacaoId.toString()))
+                .andExpect(jsonPath("$.turmaDisciplinaId").value(turmaDisciplinaId.toString()))
+                .andExpect(jsonPath("$.turmaNome").value("Turma B"))
+                .andExpect(jsonPath("$.disciplinaNome").value("Fisica"))
+                .andExpect(jsonPath("$.ativo").value(false));
+
+        var persisted = alocacaoRepository.findById(alocacaoId).orElseThrow();
+        assertThat(persisted.getProfessorId()).isEqualTo(professorId);
+        assertThat(persisted.getTurmaDisciplinaId()).isEqualTo(turmaDisciplinaId);
+        assertThat(persisted.getDataInicio()).isEqualTo(java.time.LocalDate.of(2026, 3, 1));
+        assertThat(persisted.getDataFim()).isEqualTo(java.time.LocalDate.of(2026, 6, 30));
+    }
+
+    @Test
+    void deveEncerrarAlocacaoSemApagarHistoricoELiberarNovoVinculoAtivo() throws Exception {
+        UUID professorId = UUID.randomUUID();
+        UUID alocacaoId = UUID.randomUUID();
+        UUID turmaDisciplinaId = UUID.randomUUID();
+        UUID turmaId = UUID.randomUUID();
+        UUID disciplinaId = UUID.randomUUID();
+        cadastroRepository.save(new CadastroJpaEntity(
+                professorId,
+                UUID.randomUUID(),
+                "Ana Professor",
+                ESCOLA_ID,
+                "Escola Central",
+                "RP-123",
+                "Licenciatura",
+                true,
+                java.time.LocalDateTime.now(),
+                java.time.LocalDateTime.now(),
+                UUID.randomUUID()));
+        alocacaoRepository.save(new br.com.escola.professorservice.infra.database.entity.AlocacaoJpaEntity(
+                alocacaoId,
+                professorId,
+                turmaDisciplinaId,
+                turmaId,
+                "Turma A",
+                disciplinaId,
+                "Matematica",
+                java.time.LocalDate.of(2026, 2, 1),
+                null,
+                true,
+                java.time.LocalDateTime.now()));
+
+        mockMvc.perform(delete("/internal/v1/professores/{professorId}/turmas-disciplinas/{alocacaoId}", professorId, alocacaoId)
+                        .header("X-Internal-Token", "professor-token")
+                        .header("X-Correlation-Id", "corr-alocacao-close")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID))
+                .andExpect(status().isNoContent());
+
+        var encerrada = alocacaoRepository.findById(alocacaoId).orElseThrow();
+        assertThat(encerrada.isAtivo()).isFalse();
+        assertThat(encerrada.getDataFim()).isEqualTo(java.time.LocalDate.now());
+
+        catalogServer.enqueue(json("""
+                {
+                  "id": "%s",
+                  "turmaId": "%s",
+                  "disciplinaId": "%s",
+                  "disciplinaNome": "Matematica",
+                  "cargaHoraria": 80,
+                  "escolaId": "%s"
+                }
+                """.formatted(turmaDisciplinaId, turmaId, disciplinaId, ESCOLA_ID)));
+        catalogServer.enqueue(json("""
+                { "id": "%s", "codigo": "T-A", "nome": "Turma A", "escolaId": "%s" }
+                """.formatted(turmaId, ESCOLA_ID)));
+
+        mockMvc.perform(post("/internal/v1/professores/{id}/turmas-disciplinas", professorId)
+                        .contentType("application/json")
+                        .content("""
+                                { "turmaDisciplinaId": "%s", "ativo": true }
+                                """.formatted(turmaDisciplinaId))
+                        .header("X-Internal-Token", "professor-token")
+                        .header("X-Correlation-Id", "corr-alocacao-recreate")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", "Bearer token"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.ativo").value(true));
+
+        assertThat(alocacaoRepository.findAllByProfessorIdOrderByCreatedAtAsc(professorId)).hasSize(2);
+        assertThat(alocacaoRepository.existsByProfessorIdAndTurmaDisciplinaIdAndAtivoTrue(
+                professorId, turmaDisciplinaId)).isTrue();
+    }
+
     private MockResponse json(String body) {
         return new MockResponse()
                 .setHeader("Content-Type", "application/json")
                 .setBody(body);
+    }
+
+    private void drainRequests(MockWebServer server) throws InterruptedException {
+        while (server.takeRequest(1, java.util.concurrent.TimeUnit.MILLISECONDS) != null) {
+            // Each test owns its downstream request assertions.
+        }
     }
 }

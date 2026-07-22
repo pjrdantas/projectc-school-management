@@ -60,7 +60,10 @@ import br.com.escola.bff.application.port.out.PlanejamentoIaConteudoVersaoReadPo
 import br.com.escola.bff.application.port.out.PlanejamentoIaConteudoVersaoWritePort;
 import br.com.escola.bff.application.port.out.PlanejamentoIaConteudoWritePort;
 import br.com.escola.bff.application.port.out.PlanejamentoIaInteracaoReadPort;
+import br.com.escola.bff.application.port.out.PlanejamentoBimestralReadPort;
+import br.com.escola.bff.application.port.out.PlanejamentoBimestralWritePort;
 import br.com.escola.bff.application.port.out.ProfessorReadPort;
+import br.com.escola.bff.application.port.out.ProfessorWritePort;
 import br.com.escola.bff.application.port.out.ResponsavelCatalogoReadPort;
 import br.com.escola.bff.application.port.out.ResponsavelWritePort;
 import br.com.escola.bff.application.port.out.SessaoAutenticadaPort;
@@ -116,7 +119,10 @@ import br.com.escola.bff.application.service.PlanejamentoIaConteudoVersaoReadPro
 import br.com.escola.bff.application.service.PlanejamentoIaConteudoVersaoWriteProxyService;
 import br.com.escola.bff.application.service.PlanejamentoIaConteudoWriteProxyService;
 import br.com.escola.bff.application.service.PlanejamentoIaInteracaoReadProxyService;
+import br.com.escola.bff.application.service.PlanejamentoBimestralReadProxyService;
+import br.com.escola.bff.application.service.PlanejamentoBimestralWriteProxyService;
 import br.com.escola.bff.application.service.ProfessorReadProxyService;
+import br.com.escola.bff.application.service.ProfessorWriteProxyService;
 import br.com.escola.bff.application.service.ResponsavelReadProxyService;
 import br.com.escola.bff.application.service.ResponsavelWriteProxyService;
 import br.com.escola.bff.application.service.SerieWriteRoutingService;
@@ -159,7 +165,9 @@ import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaConteudoDeta
 import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaConteudoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaConteudoVersaoUseCase;
 import br.com.escola.bff.application.usecase.ConsultarPlanejamentoIaInteracaoUseCase;
+import br.com.escola.bff.application.usecase.ConsultarPlanejamentoBimestralUseCase;
 import br.com.escola.bff.application.usecase.ConsultarProfessorUseCase;
+import br.com.escola.bff.application.usecase.ProfessorWriteUseCase;
 import br.com.escola.bff.application.usecase.ConsultarResponsavelUseCase;
 import br.com.escola.bff.application.usecase.ResponsavelWriteUseCase;
 import br.com.escola.bff.application.usecase.ConsultarTenantAtivoUseCase;
@@ -181,6 +189,7 @@ import br.com.escola.bff.application.usecase.ListarPainelConfiguracaoUseCase;
 import br.com.escola.bff.application.usecase.ListarPainelIndicadorSnapshotUseCase;
 import br.com.escola.bff.application.usecase.ListarPainelPublicoUseCase;
 import br.com.escola.bff.application.usecase.PublicarPlanejamentoIaConteudoBibliotecaUseCase;
+import br.com.escola.bff.application.usecase.PlanejamentoBimestralWriteUseCase;
 import br.com.escola.bff.application.usecase.RouteCatalogReadUseCase;
 import br.com.escola.bff.application.usecase.SalvarDiarioClasseUseCase;
 import br.com.escola.bff.application.usecase.SelecionarEscolaAtivaUseCase;
@@ -483,6 +492,13 @@ public class BffUseCaseConfiguration {
     }
 
     @Bean
+    ProfessorWriteUseCase professorWriteUseCase(
+            AuthContextPort authContextPort,
+            ProfessorWritePort professorWritePort) {
+        return new ProfessorWriteProxyService(authContextPort, professorWritePort);
+    }
+
+    @Bean
     ConsultarEscolaOrigemUseCase consultarEscolaOrigemUseCase(
             InternalAuthContextPort authContextPort,
             EscolaOrigemMatriculaReadPort enrollmentDocumentEscolaOrigemReadPort) {
@@ -540,6 +556,23 @@ public class BffUseCaseConfiguration {
         return new PlanejamentoIaInteracaoReadProxyService(
                 authContextPort,
                 planningAiInteracaoReadPort);
+    }
+
+    @Bean
+    ConsultarPlanejamentoBimestralUseCase consultarPlanejamentoBimestralUseCase(
+            AuthContextPort authContextPort,
+            PlanejamentoBimestralReadPort planejamentoBimestralReadPort,
+            ProfessorReadPort professorReadPort,
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
+        return new PlanejamentoBimestralReadProxyService(
+                authContextPort, planejamentoBimestralReadPort, professorReadPort, objectMapper);
+    }
+
+    @Bean
+    PlanejamentoBimestralWriteUseCase planejamentoBimestralWriteUseCase(
+            AuthContextPort authContextPort,
+            PlanejamentoBimestralWritePort planejamentoBimestralWritePort) {
+        return new PlanejamentoBimestralWriteProxyService(authContextPort, planejamentoBimestralWritePort);
     }
 
     @Bean

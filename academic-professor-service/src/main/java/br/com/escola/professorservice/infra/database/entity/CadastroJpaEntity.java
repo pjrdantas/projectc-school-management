@@ -117,5 +117,18 @@ public class CadastroJpaEntity {
     public UUID getUsuarioId() {
         return usuarioId;
     }
+
+    public void atualizarDados(
+            String registroProfissional,
+            String formacao,
+            Boolean ativo,
+            LocalDateTime updatedAt,
+            UUID usuarioId) {
+        this.registroProfissional = registroProfissional;
+        this.formacao = formacao;
+        this.ativo = ativo;
+        this.updatedAt = updatedAt;
+        this.usuarioId = usuarioId;
+    }
 }
 
