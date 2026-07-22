@@ -11098,3 +11098,25 @@ Fechamento B7.10 entregue em 22/07/2026:
   "-Dtest=CatalogoMutationWriteCutoverIntegrationTest" test` (2 testes sem
   falhas ou erros) e `mvn.cmd -pl academic-catalog-service test` (28 testes
   sem falhas ou erros). A **B7 foi concluida**.
+
+## Planejamento fechado da B8 - Professores e alocacoes academicas
+
+A B8 possui **8 recortes**, restritos ao `academic-professor-service` e ao
+`school-management-bff`. O servico ja e dono das leituras e criacoes internas
+de professor e alocacao professor-turma-disciplina. Permanecem sem contrato
+novo completo a alteracao, o encerramento seguro das associacoes e a
+oficializacao dos writes externos.
+
+1. mapear contratos externos, dependencias de pessoa e catalogo, e invariantes de professor e alocacao, sem rota publica nova;
+2. implementar atualizacao interna de professor, preservando funcionario, escola, identidade e idempotencia;
+3. implementar inativacao segura de professor, recusada enquanto houver alocacao academica ativa;
+4. implementar atualizacao interna da alocacao professor-turma-disciplina, validando professor, turma-disciplina, periodo e escola;
+5. implementar encerramento seguro da alocacao, sem apagar historico e sem permitir duplicidade ativa;
+6. oficializar criacao de professor e criacao de alocacao no BFF, preservando os contratos externos existentes;
+7. oficializar atualizacao, inativacao e encerramento no BFF, com testes de integracao e ausencia de fallback ao monolito;
+8. executar backfill controlado, reconciliacao, prova integrada e fechamento tecnico do `academic-professor-service`.
+
+Nenhum recorte admite acesso a banco de outro servico, fallback ou dependencia
+funcional de runtime com o `school-management-service`. As consultas existentes
+permanecem estaveis; a B8 nao abre escopo para aulas, frequencias, avaliacoes,
+diario de classe ou planejamento pedagogico.

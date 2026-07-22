@@ -6031,3 +6031,14 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   school-management-bff "-Dtest=CatalogoMutationWriteCutoverIntegrationTest"
   test` (2 testes) e `mvn.cmd -pl academic-catalog-service test` (28 testes).
   A **B7 foi concluida**.
+
+## 22/07/2026 - Definicao da B8: professores e alocacoes academicas
+
+- A proxima fase backend fechada e a **B8**, no
+  `academic-professor-service` e `school-management-bff`, com **8 recortes**.
+- O ciclo cobre atualizacao e inativacao segura de professor, atualizacao e
+  encerramento historico de alocacao professor-turma-disciplina, oficializacao
+  dos writes no BFF e fechamento com backfill e reconciliacao.
+- Ficam expressamente fora da B8 aulas, frequencias, avaliacoes, diario de
+  classe e planejamento pedagogico. Nao havera fallback nem dependencia
+  funcional do monolito.
