@@ -10747,3 +10747,184 @@ Nono e ultimo recorte da B5 entregue em 21/07/2026:
   matricula como dono efetivo de criacao, atualizacao, status operacional,
   cancelamento e consultas, com contrato publico oficial no BFF e sem
   dependencia funcional de runtime do monolito.
+
+## Planejamento fechado da B6 - Ciclo completo de documentos
+
+A B6 possui **9 recortes**, restritos ao `enrollment-document-service` e ao
+`school-management-bff`. As leituras ja oficiais em `GET /api/documentos`,
+`GET /api/documentos-alunos/alunos/{alunoId}` e
+`GET /api/documentos-alunos/{id}` serao preservadas, sem reimplementacao. O
+legado sera somente fonte de diagnostico do contrato publico vigente; nao
+participara do runtime novo.
+
+1. **Contrato e persistencia local de documentos**: separar os casos de uso,
+   portas e modelo local para metadados, conteudo e ciclo de vida, com
+   isolamento por escola e referencia opaca de armazenamento.
+2. **Criacao interna de documento de aluno**: aceitar metadados e referencia
+   de arquivo, validar o aluno no contrato interno e persistir somente no
+   banco proprio.
+3. **Upload interno de documento de aluno**: receber multipart, validar tipo,
+   tamanho e nome seguro, delegar o conteudo a porta de armazenamento e gravar
+   seus metadados locais.
+4. **Criacao e upload internos de documento por entidade**: aplicar o mesmo
+   fluxo a `documentos`, preservando o contrato publico de entidade, tipo,
+   numero, caminho e observacao.
+5. **Consulta de conteudo e download seguro**: resolver o arquivo por id e
+   escola, sem expor caminho interno, com resposta e headers apropriados para
+   download tanto de documento de aluno quanto de entidade.
+6. **Exclusao segura e invariantes**: excluir metadados e conteudo de forma
+   consistente, idempotente e isolada por tenant, sem remover referencias fora
+   do contexto autenticado.
+7. **Oficializacao no BFF de documentos de aluno**: encaminhar criacao,
+   upload, download e exclusao ao `enrollment-document-service`, propagando
+   os headers de contexto sem adapter ou fallback legado.
+8. **Oficializacao no BFF de documentos por entidade**: encaminhar os mesmos
+   contratos para `/api/documentos`, preservando os endpoints de leitura ja
+   oficiais e os contratos externos existentes.
+9. **Backfill, reconciliacao, prova integrada e fechamento**: carregar os
+   metadados documentais de forma one-shot, opt-in e idempotente, reconciliar
+   com o banco local, provar os fluxos em ambiente isolado e remover a
+   dependencia funcional remanescente do monolito neste dominio.
+
+Ao termino do nono recorte, o `enrollment-document-service` sera o dono
+efetivo de documentos de aluno e de entidade, incluindo armazenamento e ciclo
+de vida. A evolucao posterior de regras de negocio sera outro ciclo, nao um
+recorte pendente da B6.
+
+Primeiro recorte da B6 entregue em 22/07/2026:
+
+- documentos foram separados de matricula e transferencia por
+  `DocumentoUseCase` e `DocumentoMetadataPort`; as leituras internas existentes
+  conservam URLs e respostas, mas nao dependem mais do contrato desses outros
+  dominios;
+- a porta `DocumentoArquivoStoragePort` passou a definir a fronteira para
+  armazenar, recuperar e excluir conteudo, usando apenas referencia opaca;
+- a migracao V3 prepara `student_document` e `administrative_document` para
+  referencia de armazenamento, MIME, tamanho, atualizacao e exclusao logica,
+  sem escrita nova, upload, BFF ou monolito neste recorte;
+- validacao restrita ao `enrollment-document-service`: 21 testes sem falhas
+  ou erros e `git diff --check` sem erros. A B6 permanece **em andamento**,
+  com **8 recortes restantes**. O proximo e a criacao interna de documento de
+  aluno.
+
+Segundo recorte da B6 entregue em 22/07/2026:
+
+- o `enrollment-document-service` passou a expor
+  `POST /internal/v1/documentos-alunos` para criar metadados de documento do
+  aluno na persistencia propria;
+- o contrato exige `alunoId`, `tipoDocumento` e uma referencia de arquivo por
+  `caminhoArquivo` ou `urlArquivo`; preserva nome, numero e observacao, e
+  normaliza os campos antes da persistencia;
+- o registro recebe escola somente do contexto interno, identificador proprio,
+  referencia opaca e data de atualizacao. Nao ha upload, consulta remota,
+  BFF, frontend ou monolito neste recorte;
+- validacao restrita ao `enrollment-document-service`: 24 testes sem falhas
+  ou erros e `git diff --check` sem erros. A B6 permanece **em andamento**,
+  com **7 recortes restantes**. O proximo e o upload interno de documento de
+  aluno.
+
+Terceiro recorte da B6 entregue em 22/07/2026:
+
+- o `enrollment-document-service` passou a expor
+  `POST /internal/v1/documentos-alunos/upload` com multipart para receber e
+  armazenar documento de aluno;
+- o upload aceita PDF, JPEG e PNG de ate 10 MiB, rejeita tamanho, MIME e nome
+  invalido, e impede nomes com caminho ou caracteres de controle;
+- o adapter local grava conteudo de forma atomica em diretorio configuravel e
+  devolve UUID opaco. O servico persiste essa referencia, MIME e tamanho em
+  `student_document`; em falha da persistencia, remove o conteudo ja gravado;
+- validacao restrita ao `enrollment-document-service`: 26 testes sem falhas
+  ou erros e `git diff --check` sem erros. A B6 permanece **em andamento**,
+  com **6 recortes restantes**. O proximo e a criacao e upload internos de
+  documento por entidade.
+
+Quarto recorte da B6 entregue em 22/07/2026:
+
+- o `enrollment-document-service` passou a expor `POST /internal/v1/documentos`
+  para metadados e `POST /internal/v1/documentos/upload` para multipart de
+  documento por entidade;
+- os contratos exigem tipo e id de entidade, tipo documental e referencia de
+  arquivo. O upload reutiliza a validacao de PDF, JPEG ou PNG ate 10 MiB e o
+  armazenamento local atomico do recorte anterior;
+- o metadado administrativo recebe escola exclusivamente do contexto e grava
+  referencia UUID opaca, MIME e tamanho quando houver upload. Nao houve BFF,
+  frontend, monolito ou dependencia remota neste recorte;
+- validacao restrita ao `enrollment-document-service`: 30 testes sem falhas
+  ou erros e `git diff --check` sem erros. A B6 permanece **em andamento**,
+  com **5 recortes restantes**. O proximo e consulta de conteudo e download
+  seguro.
+
+Quinto recorte da B6 entregue em 22/07/2026:
+
+- o `enrollment-document-service` passou a expor
+  `GET /internal/v1/documentos-alunos/{id}/conteudo` e
+  `GET /internal/v1/documentos/{id}/conteudo` para download seguro;
+- ambas as rotas resolvem primeiro o metadado por ID e escola do contexto,
+  abrem o conteudo apenas pela referencia UUID opaca e devolvem MIME e
+  `Content-Disposition` de anexo, sem caminho fisico ou chave de storage;
+- a V4 acrescenta o nome do arquivo administrativo, necessario para o
+  download. Documento de outra escola ou conteudo ausente retorna `404`;
+- validacao restrita ao `enrollment-document-service`: 30 testes sem falhas
+  ou erros e `git diff --check` sem erros. A B6 permanece **em andamento**,
+  com **4 recortes restantes**. O proximo e exclusao segura e invariantes.
+
+Sexto recorte da B6 entregue em 22/07/2026:
+
+- o `enrollment-document-service` passou a expor
+  `DELETE /internal/v1/documentos-alunos/{id}` e
+  `DELETE /internal/v1/documentos/{id}` como exclusoes seguras;
+- a operacao registra `deleted_at`, atualiza o ciclo de vida e exclui o
+  conteudo local quando a referencia pertence ao storage do servico. Repeticao
+  no mesmo tenant e idempotente; ID ausente em outra escola retorna `404`;
+- listagens, detalhes e downloads foram restringidos a documentos ativos, sem
+  alterar BFF, frontend, monolito ou adicionar consulta remota;
+- validacao restrita ao `enrollment-document-service`: 30 testes sem falhas
+  ou erros e `git diff --check` sem erros. A B6 permanece **em andamento**,
+  com **3 recortes restantes**. O proximo e a oficializacao no BFF de
+  documentos de aluno.
+
+Setimo recorte da B6 entregue em 22/07/2026:
+
+- o `school-management-bff` passou a oficializar `POST /api/documentos-alunos`
+  para metadados JSON e upload multipart, alem de
+  `GET /api/documentos-alunos/{id}/conteudo` e
+  `DELETE /api/documentos-alunos/{id}`;
+- as quatro operacoes resolvem usuario e escola no contexto autenticado e
+  propagam somente os headers internos necessarios ao
+  `enrollment-document-service`, sem adapter para monolito;
+- o download preserva MIME, tamanho e `Content-Disposition` do servico dono.
+  As rotas de leitura existentes permanecem inalteradas;
+- validacao restrita ao `school-management-bff`: 4 testes de integracao sem
+  falhas ou erros e `git diff --check` sem erros. A B6 permanece **em
+  andamento**, com **2 recortes restantes**. O proximo e a oficializacao no
+  BFF de documentos por entidade.
+
+Oitavo recorte da B6 entregue em 22/07/2026:
+
+- o `school-management-bff` passou a oficializar `POST /api/documentos` para
+  metadados JSON e upload multipart, alem de
+  `GET /api/documentos/{id}/conteudo` e `DELETE /api/documentos/{id}`;
+- as operacoes resolvem usuario e escola no contexto autenticado e propagam
+  apenas os headers internos ao `enrollment-document-service`, sem adapter,
+  fallback ou consulta ao monolito;
+- o download preserva MIME, tamanho e `Content-Disposition` devolvidos pelo
+  servico dono. A listagem publica existente por entidade foi preservada;
+- validacao restrita ao `school-management-bff`: 4 testes de integracao sem
+  falhas ou erros e `git diff --check` sem erros. A B6 permanece **em
+  andamento**, com **1 recorte restante**. O proximo e backfill, reconciliacao
+  e fechamento tecnico.
+
+Nono recorte da B6 entregue em 22/07/2026 - fechamento tecnico:
+
+- o `enrollment-document-service` recebeu backfill opcional e desativado por
+  padrao para o subconjunto legado de documentos vinculados a alunos. O job
+  exige datasource e raiz local de origem explicitamente configurados;
+- a execucao le a origem em lotes, copia somente arquivos contidos na raiz
+  permitida para o storage proprio, faz upsert sem apagar registros locais e
+  reconcilia metadados ativos e conteudo acessivel. Divergencia pode falhar a
+  inicializacao por configuracao;
+- documentos por entidade permanecem exclusivamente do modelo novo: nao foi
+  inventado mapeamento para uma relacao inexistente no contrato de origem;
+- prova final: `enrollment-document-service` com 31 testes e BFF com 8 testes
+  de integracao dos dois contratos documentais, sem falhas ou erros. `git diff
+  --check` sem erros. A **B6 esta concluida**.

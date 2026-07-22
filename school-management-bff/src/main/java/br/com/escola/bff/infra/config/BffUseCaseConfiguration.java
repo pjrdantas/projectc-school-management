@@ -26,7 +26,9 @@ import br.com.escola.bff.application.port.out.ConsultaCadastralReadPort;
 import br.com.escola.bff.application.port.out.DiarioClasseReadPort;
 import br.com.escola.bff.application.port.out.DiarioClasseWritePort;
 import br.com.escola.bff.application.port.out.DocumentoAlunoMatriculaReadPort;
+import br.com.escola.bff.application.port.out.DocumentoAlunoMatriculaWritePort;
 import br.com.escola.bff.application.port.out.DocumentoMatriculaReadPort;
+import br.com.escola.bff.application.port.out.DocumentoWritePort;
 import br.com.escola.bff.application.port.out.EscolaOrigemMatriculaReadPort;
 import br.com.escola.bff.application.port.out.EscolaOrigemMatriculaWritePort;
 import br.com.escola.bff.application.port.out.FuncionarioCadastroReadPort;
@@ -83,7 +85,9 @@ import br.com.escola.bff.application.service.DiarioClasseReadProxyService;
 import br.com.escola.bff.application.service.DiarioClasseWriteProxyService;
 import br.com.escola.bff.application.service.DisciplinaWriteRoutingService;
 import br.com.escola.bff.application.service.DocumentoAlunoReadProxyService;
+import br.com.escola.bff.application.service.DocumentoAlunoWriteProxyService;
 import br.com.escola.bff.application.service.DocumentoReadProxyService;
+import br.com.escola.bff.application.service.DocumentoWriteProxyService;
 import br.com.escola.bff.application.service.EscolaOrigemReadProxyService;
 import br.com.escola.bff.application.service.EscolaOrigemWriteProxyService;
 import br.com.escola.bff.application.service.FuncionarioReadProxyService;
@@ -134,7 +138,9 @@ import br.com.escola.bff.application.usecase.ConsultarBoletimUseCase;
 import br.com.escola.bff.application.usecase.ConsultarCadastroPessoaUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDiarioClasseUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoAlunoUseCase;
+import br.com.escola.bff.application.usecase.DocumentoAlunoWriteUseCase;
 import br.com.escola.bff.application.usecase.ConsultarDocumentoUseCase;
+import br.com.escola.bff.application.usecase.DocumentoWriteUseCase;
 import br.com.escola.bff.application.usecase.ConsultarEscolaOrigemUseCase;
 import br.com.escola.bff.application.usecase.ConsultarFuncionarioUseCase;
 import br.com.escola.bff.application.usecase.ConsultarHistoricoEscolarUseCase;
@@ -498,10 +504,24 @@ public class BffUseCaseConfiguration {
     }
 
     @Bean
+    DocumentoAlunoWriteUseCase documentoAlunoWriteUseCase(
+            AuthContextPort authContextPort,
+            DocumentoAlunoMatriculaWritePort enrollmentDocumentAlunoWritePort) {
+        return new DocumentoAlunoWriteProxyService(authContextPort, enrollmentDocumentAlunoWritePort);
+    }
+
+    @Bean
     ConsultarDocumentoUseCase consultarDocumentoUseCase(
             InternalAuthContextPort authContextPort,
             DocumentoMatriculaReadPort enrollmentDocumentReadPort) {
         return new DocumentoReadProxyService(authContextPort, enrollmentDocumentReadPort);
+    }
+
+    @Bean
+    DocumentoWriteUseCase documentoWriteUseCase(
+            AuthContextPort authContextPort,
+            DocumentoWritePort enrollmentDocumentWritePort) {
+        return new DocumentoWriteProxyService(authContextPort, enrollmentDocumentWritePort);
     }
 
     @Bean

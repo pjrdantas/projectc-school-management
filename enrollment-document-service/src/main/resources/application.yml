@@ -12,6 +12,10 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 server:
   port: 8094
@@ -23,6 +27,16 @@ management:
         include: health,info
 
 enrollment-document:
+  document-storage:
+    root-directory: ${ENROLLMENT_DOCUMENT_STORAGE_ROOT:}
+  document-backfill:
+    enabled: ${ENROLLMENT_DOCUMENT_BACKFILL_ENABLED:false}
+    source-url: ${ENROLLMENT_DOCUMENT_BACKFILL_SOURCE_URL:}
+    source-username: ${ENROLLMENT_DOCUMENT_BACKFILL_SOURCE_USERNAME:}
+    source-password: ${ENROLLMENT_DOCUMENT_BACKFILL_SOURCE_PASSWORD:}
+    source-storage-root: ${ENROLLMENT_DOCUMENT_BACKFILL_SOURCE_STORAGE_ROOT:}
+    batch-size: ${ENROLLMENT_DOCUMENT_BACKFILL_BATCH_SIZE:500}
+    fail-on-mismatch: ${ENROLLMENT_DOCUMENT_BACKFILL_FAIL_ON_MISMATCH:true}
   internal-api:
     token: ${ENROLLMENT_DOCUMENT_INTERNAL_API_TOKEN:enrollment-document-internal-local-token}
   matricula-aluno:

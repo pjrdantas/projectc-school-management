@@ -34,11 +34,29 @@ public class DocumentoAdministrativoJpaEntity {
     @Column(name = "document_number", length = 180)
     private String numeroDocumento;
 
+    @Column(name = "file_name", length = 180)
+    private String nomeArquivo;
+
     @Column(name = "file_path", length = 500)
     private String caminhoArquivo;
 
+    @Column(name = "storage_reference", length = 500)
+    private String referenciaArmazenamento;
+
+    @Column(name = "content_type", length = 160)
+    private String tipoConteudo;
+
+    @Column(name = "file_size")
+    private Long tamanhoArquivo;
+
     @Column(name = "uploaded_at", nullable = false)
     private LocalDateTime dataUpload;
+
+    @Column(name = "updated_at")
+    private LocalDateTime dataAtualizacao;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime dataExclusao;
 
     @Column(name = "note", length = 500)
     private String observacao;
@@ -53,6 +71,7 @@ public class DocumentoAdministrativoJpaEntity {
             String entidadeTipo,
             UUID entidadeId,
             String tipoDocumento,
+            String nomeArquivo,
             String numeroDocumento,
             String caminhoArquivo,
             LocalDateTime dataUpload,
@@ -63,10 +82,54 @@ public class DocumentoAdministrativoJpaEntity {
         this.entidadeTipo = entidadeTipo;
         this.entidadeId = entidadeId;
         this.tipoDocumento = tipoDocumento;
+        this.nomeArquivo = nomeArquivo;
         this.numeroDocumento = numeroDocumento;
         this.caminhoArquivo = caminhoArquivo;
         this.dataUpload = dataUpload;
         this.observacao = observacao;
+    }
+
+    public static DocumentoAdministrativoJpaEntity criar(
+            UUID id,
+            UUID schoolId,
+            String entidadeTipo,
+            UUID entidadeId,
+            String tipoDocumento,
+            String nomeArquivo,
+            String numeroDocumento,
+            String caminhoArquivo,
+            LocalDateTime dataUpload,
+            String observacao) {
+        DocumentoAdministrativoJpaEntity entity = new DocumentoAdministrativoJpaEntity(
+                id,
+                schoolId,
+                null,
+                entidadeTipo,
+                entidadeId,
+                tipoDocumento,
+                nomeArquivo,
+                numeroDocumento,
+                caminhoArquivo,
+                dataUpload,
+                observacao);
+        entity.referenciaArmazenamento = caminhoArquivo;
+        entity.dataAtualizacao = dataUpload;
+        return entity;
+    }
+
+    public void registrarConteudo(String referenciaArmazenamento, String tipoConteudo, Long tamanhoArquivo) {
+        this.referenciaArmazenamento = referenciaArmazenamento;
+        this.tipoConteudo = tipoConteudo;
+        this.tamanhoArquivo = tamanhoArquivo;
+    }
+
+    public boolean excluir(LocalDateTime dataExclusao) {
+        if (this.dataExclusao != null) {
+            return false;
+        }
+        this.dataExclusao = dataExclusao;
+        this.dataAtualizacao = dataExclusao;
+        return true;
     }
 
     public UUID getId() { return id; }
@@ -75,8 +138,14 @@ public class DocumentoAdministrativoJpaEntity {
     public String getEntidadeTipo() { return entidadeTipo; }
     public UUID getEntidadeId() { return entidadeId; }
     public String getTipoDocumento() { return tipoDocumento; }
+    public String getNomeArquivo() { return nomeArquivo; }
     public String getNumeroDocumento() { return numeroDocumento; }
     public String getCaminhoArquivo() { return caminhoArquivo; }
+    public String getReferenciaArmazenamento() { return referenciaArmazenamento; }
+    public String getTipoConteudo() { return tipoConteudo; }
+    public Long getTamanhoArquivo() { return tamanhoArquivo; }
     public LocalDateTime getDataUpload() { return dataUpload; }
+    public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
+    public LocalDateTime getDataExclusao() { return dataExclusao; }
     public String getObservacao() { return observacao; }
 }

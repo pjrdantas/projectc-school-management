@@ -9,7 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.escola.enrollmentdocumentservice.application.context.InternalRequestContext;
 import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoAlunoResponse;
+import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoArquivoMetadata;
+import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoArquivoExclusao;
 import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoResponse;
+import br.com.escola.enrollmentdocumentservice.application.dto.CriarDocumentoAlunoCommand;
+import br.com.escola.enrollmentdocumentservice.application.dto.CriarDocumentoCommand;
 import br.com.escola.enrollmentdocumentservice.application.dto.CriarMatriculaCommand;
 import br.com.escola.enrollmentdocumentservice.application.dto.AtualizarMatriculaCommand;
 import br.com.escola.enrollmentdocumentservice.application.dto.AtualizarStatusMatriculaCommand;
@@ -23,6 +27,7 @@ import br.com.escola.enrollmentdocumentservice.application.dto.TransferenciaAlun
 import br.com.escola.enrollmentdocumentservice.application.exception.ConflitoNegocioException;
 import br.com.escola.enrollmentdocumentservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.enrollmentdocumentservice.application.port.out.EnrollmentTransferPort;
+import br.com.escola.enrollmentdocumentservice.application.port.out.DocumentoMetadataPort;
 import br.com.escola.enrollmentdocumentservice.application.port.out.MatriculaWritePort;
 import br.com.escola.enrollmentdocumentservice.infra.database.entity.DocumentoAdministrativoJpaEntity;
 import br.com.escola.enrollmentdocumentservice.infra.database.entity.DocumentoAlunoJpaEntity;
@@ -39,7 +44,7 @@ import br.com.escola.enrollmentdocumentservice.infra.database.repository.Transfe
 
 @Repository
 @Transactional
-public class PersistenciaLocalAdapter implements EnrollmentTransferPort, MatriculaWritePort {
+public class PersistenciaLocalAdapter implements EnrollmentTransferPort, MatriculaWritePort, DocumentoMetadataPort {
 
     private final EscolaOrigemJpaRepository escolaOrigemRepository;
     private final TransferenciaJpaRepository transferenciaRepository;
@@ -211,6 +216,88 @@ public class PersistenciaLocalAdapter implements EnrollmentTransferPort, Matricu
     }
 
     @Override
+    public DocumentoAlunoResponse criarDocumentoAluno(UUID escolaId, CriarDocumentoAlunoCommand command) {
+        LocalDateTime agora = LocalDateTime.now();
+        DocumentoAlunoJpaEntity entity = DocumentoAlunoJpaEntity.criar(
+                UUID.randomUUID(),
+                escolaId,
+                command.alunoId(),
+                command.tipoDocumento(),
+                command.nomeArquivo(),
+                command.urlArquivo(),
+                command.numeroDocumento(),
+                command.caminhoArquivo(),
+                agora,
+                command.observacao());
+        entity.registrarConteudo(command.caminhoArquivo(), command.tipoConteudo(), command.tamanhoArquivo());
+        return toResponse(documentoAlunoRepository.save(entity));
+    }
+
+    @Override
+    public DocumentoResponse criarDocumento(UUID escolaId, CriarDocumentoCommand command) {
+        LocalDateTime agora = LocalDateTime.now();
+        DocumentoAdministrativoJpaEntity entity = DocumentoAdministrativoJpaEntity.criar(
+                UUID.randomUUID(),
+                escolaId,
+                command.entidadeTipo(),
+                command.entidadeId(),
+                command.tipoDocumento(),
+                command.nomeArquivo(),
+                command.numeroDocumento(),
+                command.caminhoArquivo(),
+                agora,
+                command.observacao());
+        entity.registrarConteudo(command.caminhoArquivo(), command.tipoConteudo(), command.tamanhoArquivo());
+        return toResponse(documentoAdministrativoRepository.save(entity));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DocumentoArquivoMetadata buscarArquivoDocumentoAluno(UUID escolaId, UUID documentoId) {
+        return documentoAlunoRepository.findByIdAndSchoolIdAndDataExclusaoIsNull(documentoId, escolaId)
+                .map(entity -> new DocumentoArquivoMetadata(
+                        entity.getId(),
+                        entity.getNomeArquivo(),
+                        entity.getTipoConteudo(),
+                        entity.getReferenciaArmazenamento()))
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Documento do aluno nao encontrado"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DocumentoArquivoMetadata buscarArquivoDocumento(UUID escolaId, UUID documentoId) {
+        return documentoAdministrativoRepository.findByIdAndSchoolIdAndDataExclusaoIsNull(documentoId, escolaId)
+                .map(entity -> new DocumentoArquivoMetadata(
+                        entity.getId(),
+                        entity.getNomeArquivo(),
+                        entity.getTipoConteudo(),
+                        entity.getReferenciaArmazenamento()))
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Documento nao encontrado"));
+    }
+
+    @Override
+    public DocumentoArquivoExclusao excluirDocumentoAluno(UUID escolaId, UUID documentoId) {
+        DocumentoAlunoJpaEntity entity = documentoAlunoRepository.findByIdAndSchoolId(documentoId, escolaId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Documento do aluno nao encontrado"));
+        boolean excluidoAgora = entity.excluir(LocalDateTime.now());
+        if (excluidoAgora) {
+            documentoAlunoRepository.save(entity);
+        }
+        return new DocumentoArquivoExclusao(entity.getReferenciaArmazenamento(), excluidoAgora);
+    }
+
+    @Override
+    public DocumentoArquivoExclusao excluirDocumento(UUID escolaId, UUID documentoId) {
+        DocumentoAdministrativoJpaEntity entity = documentoAdministrativoRepository.findByIdAndSchoolId(documentoId, escolaId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Documento nao encontrado"));
+        boolean excluidoAgora = entity.excluir(LocalDateTime.now());
+        if (excluidoAgora) {
+            documentoAdministrativoRepository.save(entity);
+        }
+        return new DocumentoArquivoExclusao(entity.getReferenciaArmazenamento(), excluidoAgora);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public TransferenciaAlunoResponse buscarTransferencia(String authorization, InternalRequestContext context, UUID id) {
         TransferenciaJpaEntity entity = transferenciaRepository.findByIdAndSchoolId(id, context.escolaId())
@@ -234,19 +321,16 @@ public class PersistenciaLocalAdapter implements EnrollmentTransferPort, Matricu
 
     @Override
     @Transactional(readOnly = true)
-    public List<DocumentoAlunoResponse> listarDocumentosPorAluno(
-            String authorization,
-            InternalRequestContext context,
-            UUID alunoId) {
-        return documentoAlunoRepository.findAllBySchoolIdAndAlunoIdOrderByDataUploadDescIdAsc(context.escolaId(), alunoId).stream()
+    public List<DocumentoAlunoResponse> listarDocumentosPorAluno(UUID escolaId, UUID alunoId) {
+        return documentoAlunoRepository.findAllBySchoolIdAndAlunoIdAndDataExclusaoIsNullOrderByDataUploadDescIdAsc(escolaId, alunoId).stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public DocumentoAlunoResponse buscarDocumentoAlunoPorId(String authorization, InternalRequestContext context, UUID id) {
-        return documentoAlunoRepository.findByIdAndSchoolId(id, context.escolaId())
+    public DocumentoAlunoResponse buscarDocumentoAlunoPorId(UUID escolaId, UUID id) {
+        return documentoAlunoRepository.findByIdAndSchoolIdAndDataExclusaoIsNull(id, escolaId)
                 .map(this::toResponse)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Documento do aluno nao encontrado"));
     }
@@ -283,13 +367,12 @@ public class PersistenciaLocalAdapter implements EnrollmentTransferPort, Matricu
     @Override
     @Transactional(readOnly = true)
     public List<DocumentoResponse> listarDocumentosPorEntidade(
-            String authorization,
-            InternalRequestContext context,
+            UUID escolaId,
             String entidadeTipo,
             UUID entidadeId) {
         return documentoAdministrativoRepository
-                .findAllBySchoolIdAndEntidadeTipoAndEntidadeIdOrderByDataUploadDescIdAsc(
-                        context.escolaId(),
+                .findAllBySchoolIdAndEntidadeTipoAndEntidadeIdAndDataExclusaoIsNullOrderByDataUploadDescIdAsc(
+                        escolaId,
                         entidadeTipo,
                         entidadeId)
                 .stream()

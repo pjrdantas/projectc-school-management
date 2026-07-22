@@ -1,10 +1,15 @@
 package br.com.escola.enrollmentdocumentservice.interfaces.rest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.mock.web.MockMultipartFile;
 
 import br.com.escola.enrollmentdocumentservice.infra.database.entity.DocumentoAdministrativoJpaEntity;
 import br.com.escola.enrollmentdocumentservice.infra.database.entity.DocumentoAlunoJpaEntity;
@@ -28,6 +34,7 @@ import br.com.escola.enrollmentdocumentservice.infra.database.repository.EscolaO
 import br.com.escola.enrollmentdocumentservice.infra.database.repository.MatriculaEtapaJpaRepository;
 import br.com.escola.enrollmentdocumentservice.infra.database.repository.MatriculaJpaRepository;
 import br.com.escola.enrollmentdocumentservice.infra.database.repository.TransferenciaJpaRepository;
+import br.com.escola.enrollmentdocumentservice.application.port.out.DocumentoArquivoStoragePort;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -57,6 +64,9 @@ class DocumentoMatriculaInternalControllerIntegrationTest {
 
     @Autowired
     private MatriculaEtapaJpaRepository matriculaEtapaRepository;
+
+    @Autowired
+    private DocumentoArquivoStoragePort documentoArquivoStoragePort;
 
     @BeforeEach
     void setUp() {
@@ -170,6 +180,215 @@ class DocumentoMatriculaInternalControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].id").value(documentoId.toString()))
                 .andExpect(jsonPath("$[0].alunoId").value(alunoId.toString()))
                 .andExpect(jsonPath("$[0].tipoDocumento").value("HISTORICO_ESCOLAR"));
+    }
+
+    @Test
+    void deveCriarDocumentoDoAlunoNoContratoInterno() throws Exception {
+        UUID alunoId = UUID.randomUUID();
+
+        mockMvc.perform(post("/internal/v1/documentos-alunos")
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "alunoId": "%s",
+                                  "tipoDocumento": "RG",
+                                  "nomeArquivo": "rg.pdf",
+                                  "numeroDocumento": "123",
+                                  "caminhoArquivo": "arquivos/alunos/rg.pdf",
+                                  "observacao": "Documento informado"
+                                }
+                                """.formatted(alunoId))
+                        .header("X-Internal-Token", INTERNAL_TOKEN)
+                        .header("X-Correlation-Id", "corr-documento-create")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", AUTHORIZATION))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.alunoId").value(alunoId.toString()))
+                .andExpect(jsonPath("$.tipoDocumento").value("RG"))
+                .andExpect(jsonPath("$.caminhoArquivo").value("arquivos/alunos/rg.pdf"));
+
+        DocumentoAlunoJpaEntity entity = documentoAlunoRepository.findAll().getFirst();
+        org.assertj.core.api.Assertions.assertThat(entity.getSchoolId()).isEqualTo(ESCOLA_ID);
+        org.assertj.core.api.Assertions.assertThat(entity.getReferenciaArmazenamento())
+                .isEqualTo("arquivos/alunos/rg.pdf");
+    }
+
+    @Test
+    void deveReceberUploadDeDocumentoDoAlunoNoContratoInterno() throws Exception {
+        UUID alunoId = UUID.randomUUID();
+        byte[] conteudo = "conteudo-pdf".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
+        mockMvc.perform(multipart("/internal/v1/documentos-alunos/upload")
+                        .file(new MockMultipartFile("arquivo", "rg.pdf", "application/pdf", conteudo))
+                        .param("alunoId", alunoId.toString())
+                        .param("tipoDocumento", "RG")
+                        .param("numeroDocumento", "123")
+                        .header("X-Internal-Token", INTERNAL_TOKEN)
+                        .header("X-Correlation-Id", "corr-documento-upload")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", AUTHORIZATION))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.alunoId").value(alunoId.toString()))
+                .andExpect(jsonPath("$.nomeArquivo").value("rg.pdf"))
+                .andExpect(jsonPath("$.caminhoArquivo").isNotEmpty());
+
+        DocumentoAlunoJpaEntity entity = documentoAlunoRepository.findAll().getFirst();
+        assertThat(entity.getTipoConteudo()).isEqualTo("application/pdf");
+        assertThat(entity.getTamanhoArquivo()).isEqualTo((long) conteudo.length);
+        try (var input = documentoArquivoStoragePort.abrirConteudo(entity.getReferenciaArmazenamento())) {
+            assertThat(input.readAllBytes()).isEqualTo(conteudo);
+            mockMvc.perform(get("/internal/v1/documentos-alunos/{id}/conteudo", entity.getId())
+                            .header("X-Internal-Token", INTERNAL_TOKEN)
+                            .header("X-Correlation-Id", "corr-documento-download")
+                            .header("X-Usuario-Id", UUID.randomUUID())
+                            .header("X-Escola-Id", ESCOLA_ID)
+                            .header("Authorization", AUTHORIZATION))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType("application/pdf"))
+                    .andExpect(header().string("Content-Disposition", org.hamcrest.Matchers.containsString("rg.pdf")))
+                    .andExpect(content().bytes(conteudo));
+
+            mockMvc.perform(get("/internal/v1/documentos-alunos/{id}/conteudo", entity.getId())
+                            .header("X-Internal-Token", INTERNAL_TOKEN)
+                            .header("X-Correlation-Id", "corr-documento-download-other-school")
+                            .header("X-Usuario-Id", UUID.randomUUID())
+                            .header("X-Escola-Id", UUID.randomUUID())
+                            .header("Authorization", AUTHORIZATION))
+                    .andExpect(status().isNotFound());
+
+            mockMvc.perform(delete("/internal/v1/documentos-alunos/{id}", entity.getId())
+                            .header("X-Internal-Token", INTERNAL_TOKEN)
+                            .header("X-Correlation-Id", "corr-documento-delete")
+                            .header("X-Usuario-Id", UUID.randomUUID())
+                            .header("X-Escola-Id", ESCOLA_ID)
+                            .header("Authorization", AUTHORIZATION))
+                    .andExpect(status().isNoContent());
+
+            mockMvc.perform(delete("/internal/v1/documentos-alunos/{id}", entity.getId())
+                            .header("X-Internal-Token", INTERNAL_TOKEN)
+                            .header("X-Correlation-Id", "corr-documento-delete-repeat")
+                            .header("X-Usuario-Id", UUID.randomUUID())
+                            .header("X-Escola-Id", ESCOLA_ID)
+                            .header("Authorization", AUTHORIZATION))
+                    .andExpect(status().isNoContent());
+
+            mockMvc.perform(get("/internal/v1/documentos-alunos/{id}", entity.getId())
+                            .header("X-Internal-Token", INTERNAL_TOKEN)
+                            .header("X-Correlation-Id", "corr-documento-after-delete")
+                            .header("X-Usuario-Id", UUID.randomUUID())
+                            .header("X-Escola-Id", ESCOLA_ID)
+                            .header("Authorization", AUTHORIZATION))
+                    .andExpect(status().isNotFound());
+            assertThat(documentoAlunoRepository.findById(entity.getId()).orElseThrow().getDataExclusao()).isNotNull();
+        } finally {
+            documentoArquivoStoragePort.excluir(entity.getReferenciaArmazenamento());
+        }
+    }
+
+    @Test
+    void deveCriarDocumentoDeEntidadeNoContratoInterno() throws Exception {
+        UUID entidadeId = UUID.randomUUID();
+
+        mockMvc.perform(post("/internal/v1/documentos")
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "entidadeTipo": "MATRICULA",
+                                  "entidadeId": "%s",
+                                  "tipoDocumento": "CPF",
+                                  "numeroDocumento": "123",
+                                  "caminhoArquivo": "arquivos/matriculas/cpf.pdf",
+                                  "observacao": "Documento administrativo"
+                                }
+                                """.formatted(entidadeId))
+                        .header("X-Internal-Token", INTERNAL_TOKEN)
+                        .header("X-Correlation-Id", "corr-documento-entity-create")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", AUTHORIZATION))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.entidadeTipo").value("MATRICULA"))
+                .andExpect(jsonPath("$.entidadeId").value(entidadeId.toString()))
+                .andExpect(jsonPath("$.tipoDocumento").value("CPF"));
+
+        DocumentoAdministrativoJpaEntity entity = documentoAdministrativoRepository.findAll().getFirst();
+        assertThat(entity.getSchoolId()).isEqualTo(ESCOLA_ID);
+        assertThat(entity.getReferenciaArmazenamento()).isEqualTo("arquivos/matriculas/cpf.pdf");
+    }
+
+    @Test
+    void deveReceberUploadDeDocumentoDeEntidadeNoContratoInterno() throws Exception {
+        UUID entidadeId = UUID.randomUUID();
+        byte[] conteudo = "conteudo-administrativo".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
+        mockMvc.perform(multipart("/internal/v1/documentos/upload")
+                        .file(new MockMultipartFile("arquivo", "cpf.pdf", "application/pdf", conteudo))
+                        .param("entidadeTipo", "MATRICULA")
+                        .param("entidadeId", entidadeId.toString())
+                        .param("tipoDocumento", "CPF")
+                        .header("X-Internal-Token", INTERNAL_TOKEN)
+                        .header("X-Correlation-Id", "corr-documento-entity-upload")
+                        .header("X-Usuario-Id", UUID.randomUUID())
+                        .header("X-Escola-Id", ESCOLA_ID)
+                        .header("Authorization", AUTHORIZATION))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.entidadeTipo").value("MATRICULA"))
+                .andExpect(jsonPath("$.entidadeId").value(entidadeId.toString()))
+                .andExpect(jsonPath("$.caminhoArquivo").isNotEmpty());
+
+        DocumentoAdministrativoJpaEntity entity = documentoAdministrativoRepository.findAll().getFirst();
+        assertThat(entity.getTipoConteudo()).isEqualTo("application/pdf");
+        assertThat(entity.getTamanhoArquivo()).isEqualTo((long) conteudo.length);
+        try (var input = documentoArquivoStoragePort.abrirConteudo(entity.getReferenciaArmazenamento())) {
+            assertThat(input.readAllBytes()).isEqualTo(conteudo);
+            mockMvc.perform(get("/internal/v1/documentos/{id}/conteudo", entity.getId())
+                            .header("X-Internal-Token", INTERNAL_TOKEN)
+                            .header("X-Correlation-Id", "corr-documento-entity-download")
+                            .header("X-Usuario-Id", UUID.randomUUID())
+                            .header("X-Escola-Id", ESCOLA_ID)
+                            .header("Authorization", AUTHORIZATION))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType("application/pdf"))
+                    .andExpect(header().string("Content-Disposition", org.hamcrest.Matchers.containsString("cpf.pdf")))
+                    .andExpect(content().bytes(conteudo));
+
+            mockMvc.perform(get("/internal/v1/documentos/{id}/conteudo", entity.getId())
+                            .header("X-Internal-Token", INTERNAL_TOKEN)
+                            .header("X-Correlation-Id", "corr-documento-entity-download-other-school")
+                            .header("X-Usuario-Id", UUID.randomUUID())
+                            .header("X-Escola-Id", UUID.randomUUID())
+                            .header("Authorization", AUTHORIZATION))
+                    .andExpect(status().isNotFound());
+
+            mockMvc.perform(delete("/internal/v1/documentos/{id}", entity.getId())
+                            .header("X-Internal-Token", INTERNAL_TOKEN)
+                            .header("X-Correlation-Id", "corr-documento-entity-delete")
+                            .header("X-Usuario-Id", UUID.randomUUID())
+                            .header("X-Escola-Id", ESCOLA_ID)
+                            .header("Authorization", AUTHORIZATION))
+                    .andExpect(status().isNoContent());
+
+            mockMvc.perform(delete("/internal/v1/documentos/{id}", entity.getId())
+                            .header("X-Internal-Token", INTERNAL_TOKEN)
+                            .header("X-Correlation-Id", "corr-documento-entity-delete-repeat")
+                            .header("X-Usuario-Id", UUID.randomUUID())
+                            .header("X-Escola-Id", ESCOLA_ID)
+                            .header("Authorization", AUTHORIZATION))
+                    .andExpect(status().isNoContent());
+
+            mockMvc.perform(get("/internal/v1/documentos/{id}/conteudo", entity.getId())
+                            .header("X-Internal-Token", INTERNAL_TOKEN)
+                            .header("X-Correlation-Id", "corr-documento-entity-after-delete")
+                            .header("X-Usuario-Id", UUID.randomUUID())
+                            .header("X-Escola-Id", ESCOLA_ID)
+                            .header("Authorization", AUTHORIZATION))
+                    .andExpect(status().isNotFound());
+            assertThat(documentoAdministrativoRepository.findById(entity.getId()).orElseThrow().getDataExclusao()).isNotNull();
+        } finally {
+            documentoArquivoStoragePort.excluir(entity.getReferenciaArmazenamento());
+        }
     }
 
     @Test
@@ -354,6 +573,7 @@ class DocumentoMatriculaInternalControllerIntegrationTest {
                 "MATRICULA",
                 entidadeId,
                 "CPF",
+                null,
                 "12345678900",
                 "s3://bucket/documento.pdf",
                 LocalDateTime.of(2026, 7, 12, 10, 0),

@@ -6,8 +6,6 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import br.com.escola.enrollmentdocumentservice.application.context.InternalRequestContext;
-import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoResponse;
-import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.MatriculaResponse;
@@ -65,22 +63,6 @@ public class EnrollmentTransferService implements EnrollmentTransferUseCase {
     }
 
     @Override
-    public List<DocumentoAlunoResponse> listarDocumentosPorAluno(
-            String authorization,
-            InternalRequestContext context,
-            UUID alunoId) {
-        return enrollmentTransferPort.listarDocumentosPorAluno(authorization, context, alunoId);
-    }
-
-    @Override
-    public DocumentoAlunoResponse buscarDocumentoAlunoPorId(
-            String authorization,
-            InternalRequestContext context,
-            UUID id) {
-        return enrollmentTransferPort.buscarDocumentoAlunoPorId(authorization, context, id);
-    }
-
-    @Override
     public List<MatriculaResponse> listarMatriculas(
             String authorization,
             InternalRequestContext context,
@@ -105,16 +87,4 @@ public class EnrollmentTransferService implements EnrollmentTransferUseCase {
         return enrollmentTransferPort.buscarMatricula(authorization, context, matriculaId);
     }
 
-    @Override
-    public List<DocumentoResponse> listarDocumentosPorEntidade(
-            String authorization,
-            InternalRequestContext context,
-            String entidadeTipo,
-            UUID entidadeId) {
-        return enrollmentTransferPort.listarDocumentosPorEntidade(
-                authorization,
-                context,
-                entidadeTipo,
-                entidadeId);
-    }
 }

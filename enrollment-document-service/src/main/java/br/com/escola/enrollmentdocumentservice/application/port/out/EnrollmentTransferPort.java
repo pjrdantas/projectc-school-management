@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import br.com.escola.enrollmentdocumentservice.application.context.InternalRequestContext;
-import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoResponse;
-import br.com.escola.enrollmentdocumentservice.application.dto.DocumentoAlunoResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemRequest;
 import br.com.escola.enrollmentdocumentservice.application.dto.EscolaOrigemResponse;
 import br.com.escola.enrollmentdocumentservice.application.dto.MatriculaResponse;
@@ -32,16 +30,6 @@ public interface EnrollmentTransferPort {
             InternalRequestContext context,
             UUID alunoId);
 
-    List<DocumentoAlunoResponse> listarDocumentosPorAluno(
-            String authorization,
-            InternalRequestContext context,
-            UUID alunoId);
-
-    DocumentoAlunoResponse buscarDocumentoAlunoPorId(
-            String authorization,
-            InternalRequestContext context,
-            UUID id);
-
     List<MatriculaResponse> listarMatriculas(
             String authorization,
             InternalRequestContext context,
@@ -52,9 +40,4 @@ public interface EnrollmentTransferPort {
 
     MatriculaResponse buscarMatricula(String authorization, InternalRequestContext context, UUID matriculaId);
 
-    List<DocumentoResponse> listarDocumentosPorEntidade(
-            String authorization,
-            InternalRequestContext context,
-            String entidadeTipo,
-            UUID entidadeId);
 }

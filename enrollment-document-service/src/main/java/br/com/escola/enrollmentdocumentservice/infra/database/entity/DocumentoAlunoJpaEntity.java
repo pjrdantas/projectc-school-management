@@ -37,8 +37,23 @@ public class DocumentoAlunoJpaEntity {
     @Column(name = "file_path", length = 500)
     private String caminhoArquivo;
 
+    @Column(name = "storage_reference", length = 500)
+    private String referenciaArmazenamento;
+
+    @Column(name = "content_type", length = 160)
+    private String tipoConteudo;
+
+    @Column(name = "file_size")
+    private Long tamanhoArquivo;
+
     @Column(name = "uploaded_at", nullable = false)
     private LocalDateTime dataUpload;
+
+    @Column(name = "updated_at")
+    private LocalDateTime dataAtualizacao;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime dataExclusao;
 
     @Column(name = "note", length = 500)
     private String observacao;
@@ -69,6 +84,48 @@ public class DocumentoAlunoJpaEntity {
         this.observacao = observacao;
     }
 
+    public static DocumentoAlunoJpaEntity criar(
+            UUID id,
+            UUID schoolId,
+            UUID alunoId,
+            String tipoDocumento,
+            String nomeArquivo,
+            String urlArquivo,
+            String numeroDocumento,
+            String caminhoArquivo,
+            LocalDateTime dataUpload,
+            String observacao) {
+        DocumentoAlunoJpaEntity entity = new DocumentoAlunoJpaEntity(
+                id,
+                schoolId,
+                alunoId,
+                tipoDocumento,
+                nomeArquivo,
+                urlArquivo,
+                numeroDocumento,
+                caminhoArquivo,
+                dataUpload,
+                observacao);
+        entity.referenciaArmazenamento = caminhoArquivo;
+        entity.dataAtualizacao = dataUpload;
+        return entity;
+    }
+
+    public void registrarConteudo(String referenciaArmazenamento, String tipoConteudo, Long tamanhoArquivo) {
+        this.referenciaArmazenamento = referenciaArmazenamento;
+        this.tipoConteudo = tipoConteudo;
+        this.tamanhoArquivo = tamanhoArquivo;
+    }
+
+    public boolean excluir(LocalDateTime dataExclusao) {
+        if (this.dataExclusao != null) {
+            return false;
+        }
+        this.dataExclusao = dataExclusao;
+        this.dataAtualizacao = dataExclusao;
+        return true;
+    }
+
     public UUID getId() { return id; }
     public UUID getSchoolId() { return schoolId; }
     public UUID getAlunoId() { return alunoId; }
@@ -77,6 +134,11 @@ public class DocumentoAlunoJpaEntity {
     public String getUrlArquivo() { return urlArquivo; }
     public String getNumeroDocumento() { return numeroDocumento; }
     public String getCaminhoArquivo() { return caminhoArquivo; }
+    public String getReferenciaArmazenamento() { return referenciaArmazenamento; }
+    public String getTipoConteudo() { return tipoConteudo; }
+    public Long getTamanhoArquivo() { return tamanhoArquivo; }
     public LocalDateTime getDataUpload() { return dataUpload; }
+    public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
+    public LocalDateTime getDataExclusao() { return dataExclusao; }
     public String getObservacao() { return observacao; }
 }
