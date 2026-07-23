@@ -480,6 +480,30 @@ Regras de leitura dessa arvore:
 - `resources/db/migration`: migrations locais do servico, nunca compartilhadas
   entre servicos.
 
+### Regra obrigatoria de nomenclatura entre servicos
+
+Fica registrado como regra arquitetural obrigatoria para todas as proximas
+fases:
+
+- nenhuma classe de um servico pode carregar no nome a designacao de outro
+  dominio, outro servico ou outro bounded context;
+- cada classe deve ser nomeada apenas pelo seu papel local dentro do servico em
+  que vive, e nao pelo nome do dominio externo que ela consome, substitui,
+  espelha ou intercepta;
+- exemplos do que fica proibido daqui em diante:
+  prefixos/sufixos como `People`, `Pedagogical`, `PlanningAi`,
+  `EnrollmentDocument`, `IdentityAccess`, `InstitutionalTenant`,
+  `DashboardQuery`, `Responsibles`, `AcademicCatalog` ou equivalentes em
+  classes cujo papel real nao pertence a esse dominio;
+- quando uma classe precisar integrar com outro servico, essa referencia deve
+  aparecer no contrato tecnico estritamente necessario da porta/client/adapter,
+  sem transformar a identidade nominal da classe em marcador de dominio externo;
+- a existencia de classes atuais fora dessa regra fica reconhecida como
+  passivo tecnico inaceitavel e nao autoriza repetir o padrao nas proximas
+  implementacoes;
+- toda nova fase backend deve respeitar essa regra antes de qualquer nova classe
+  ser criada ou renomeada.
+
 ## Estado final esperado do monolito
 
 `school-management-service` nao desaparece no inicio da migracao. O plano e:
@@ -503,9 +527,9 @@ proprietario futuro de todas as familias REST encontradas no monolito.
 | --- | --- | --- |
 | `/api/auth`, `/api/usuarios`, `/api/perfis`, `/api/permissoes` | identity-access | BFF continua sendo a fachada externa |
 | `/api/periodos-letivos`, `/api/series`, `/api/turnos`, `/api/turmas`, `/api/disciplinas`, `/api/catalogos/academicos` | academic-catalog | primeiro corte pelo strangler |
-| `/api/alunos`, `/api/responsaveis`, `/api/alunos/{id}/responsaveis`, `/api/pessoas/catalogos`, consultas cadastrais | people | exclusao coordenada com enrollment |
-| CRUD de `/api/professores` | people | alocacoes nao pertencem ao people service |
-| alocacoes de professor e `/api/turmas/{id}/professores` | pedagogical | referencia professor e turma somente por ID |
+| `/api/alunos`, `/api/pessoas/catalogos`, consultas cadastrais | people | exclusao coordenada com enrollment |
+| `/api/alunos/{id}/responsaveis`, detalhe minimo de `/api/responsaveis/{id}` | responsibles | leitura oficial separada antes da listagem ampla |
+| `/api/professores`, `/api/professores/{id}`, `/api/professores/{id}/turmas-disciplinas`, `/api/turmas/{id}/professores`, `/api/professores/funcionarios-elegiveis` | academic-professor | `people-service` permanece apenas como apoio cadastral de funcionario/pessoa; `pedagogical-service` consome professor e alocacao, mas nao e owner do agregado |
 | `/api/matriculas`, seus catalogos, etapas e documentos | enrollment-document | validacoes externas por portas |
 | `/api/documentos`, `/api/documentos-alunos` | enrollment-document | binario migra para object storage |
 | `/api/transferencias`, `/api/escolas-origem` | enrollment-document | fluxo longo modelado como saga |
@@ -6164,3 +6188,5727 @@ Entregue nesta fase:
 Contagem regressiva do `people-service`: 0 fases restantes neste recorte atual
 de leitura oficial. O contrato de leitura atualmente implementado no
 `people-service` ficou fechado.
+
+### Fase 114 - Abertura da nova macrofase de `responsaveis` pelo vinculo com `aluno`
+
+Entregue nesta fase:
+
+- o `people-service` permanece formalmente encerrado no recorte anterior; esta
+  fase nao reabre aquela macrofase e passa a ser tratada como abertura de uma
+  nova macrofase backend para a futura familia/servico de `responsaveis`;
+- o menor recorte seguro para abrir essa nova macrofase foi formalizado como
+  `GET /api/alunos/{alunoId}/responsaveis`, porque ele reutiliza o vinculo
+  oficial ja existente com `aluno`, preserva o contrato externo atual e evita
+  abrir nesta etapa a listagem ampla `GET /api/responsaveis`;
+- o `people-service` recebeu o DTO
+  `PessoaResponsavelVinculadoResponse`, a migration
+  `V9__extend_people_student_responsible_link_read_model.sql`, a extensao do
+  read model local de `aluno_responsavel` com `id_parentesco`,
+  `responsavel_financeiro`, `responsavel_pedagogico` e
+  `autorizado_retirar`, alem do adapter JDBC local e do fallback controlado
+  para o monolito;
+- como passo transitorio de implementacao no codigo novo atual, o contrato
+  interno hospedado hoje no `people-service` passou a expor
+  `GET /internal/v1/alunos/{alunoId}/responsaveis`, e o
+  `school-management-bff` passou a oficializar a mesma leitura em
+  `GET /api/alunos/{alunoId}/responsaveis`;
+- a macrofase ficou delimitada de forma exata em 2 fases totais:
+  a Fase 114, agora concluida, para o vinculo `aluno -> responsaveis`, e uma
+  unica fase restante para decidir e, se aprovado, oficializar o detalhe
+  minimo de `responsavel` por id; `GET /api/responsaveis` continua fora desse
+  fechamento por depender de contrato de listagem mais amplo e semantica de
+  filtro ainda nao migrada.
+
+### Fase 203 - Abertura fisica do `responsibles-service` com detalhe minimo oficial por id
+
+Entregue nesta fase:
+
+- a macrofase backend de `responsaveis` foi concluida pelo menor recorte ainda
+  pendente, sem reabrir `people-service`, sem migrar escrita e sem tocar no
+  frontend;
+- foi aberto fisicamente o novo modulo `responsibles-service`, com contrato
+  interno `GET /internal/v1/responsaveis/{id}` protegido por token interno e
+  dependencia legada isolada em client dedicado para `GET /api/responsaveis/{id}`;
+- o `school-management-bff` passou a oficializar `GET /api/responsaveis/{id}`
+  consumindo o `responsibles-service`, preservando o contrato externo atual por
+  id e mantendo a listagem ampla `GET /api/responsaveis` fora do recorte;
+- o modelo de dados local desta abertura permanece deliberadamente minimo:
+  nesta primeira implementacao nao houve shadow/read model proprio de
+  `responsavel`, apenas separacao do contrato interno e do acoplamento com o
+  legado em servico novo independente.
+
+Contagem regressiva da nova macrofase de `responsaveis`: 0 fases restantes
+neste ciclo fechado. O `people-service` continua encerrado e o
+`responsibles-service` passa a concentrar a proxima evolucao desse dominio.
+
+### Fase 204 - Primeiro bloco de vinculo `aluno -> responsaveis` hospedado no `responsibles-service`
+
+Entregue nesta fase:
+
+- o contrato publico `GET /api/alunos/{alunoId}/responsaveis` foi mantido no
+  `school-management-bff`, mas deixou de consumir o `people-service` e passou a
+  consumir o `responsibles-service`;
+- o `responsibles-service` passou a expor internamente
+  `GET /internal/v1/alunos/{alunoId}/responsaveis`, isolando nesse servico o
+  bloco oficial minimo de leitura por vinculo com `aluno`;
+- a dependencia no legado permaneceu somente como passthrough controlado no
+  `responsibles-service`, via `GET /api/alunos/{alunoId}/responsaveis`, sem
+  migrar escrita, sem shadow/read model proprio nesta etapa e sem alterar o
+  frontend;
+- com isso, o dominio de `responsaveis` passa a concentrar no servico novo os
+  dois contratos oficiais minimos ja abertos neste ciclo:
+  `GET /api/responsaveis/{id}` e `GET /api/alunos/{alunoId}/responsaveis`.
+
+### Fase 205 - Consolidacao da leitura ampla minima de `responsaveis` no `responsibles-service`
+
+Entregue nesta fase:
+
+- o menor recorte seguro para a leitura ampla foi fechado como a propria
+  semantica ja existente no legado para `GET /api/responsaveis`, limitada aos
+  filtros opcionais `nome` e `cpf`, sem paginacao nova, sem reordenacao e sem
+  escrita migrada;
+- o `school-management-bff` passou a oficializar `GET /api/responsaveis`
+  consumindo o `responsibles-service`, preservando o contrato externo atual;
+- o `responsibles-service` passou a expor internamente
+  `GET /internal/v1/responsaveis`, encapsulando o passthrough ao legado com os
+  mesmos filtros minimos `nome` e `cpf`;
+- com isso, o bloco oficial minimo de leitura de `responsaveis` fica
+  consolidado no servico novo para:
+  `GET /api/responsaveis`,
+  `GET /api/responsaveis/{id}` e
+  `GET /api/alunos/{alunoId}/responsaveis`.
+
+### Fase 206 - Inicio da remocao progressiva da dependencia funcional do monolito em `responsibles-service`
+
+Entregue nesta fase:
+
+- foi introduzida no `responsibles-service` a infraestrutura opt-in do read
+  model local minimo para `GET /api/responsaveis` e
+  `GET /api/responsaveis/{id}`, com properties proprias, migration Flyway
+  dedicada e adapter JDBC local;
+- a tabela local minima `responsavel` foi formalizada apenas com os campos ja
+  exigidos pelo contrato atual de leitura ampla e detalhe, sem backfill e sem
+  migrar escrita nesta etapa;
+- o `ResponsavelQueryService` passou a preferir a leitura local de lista e
+  detalhe quando o read model estiver habilitado e configurado, mantendo
+  fallback obrigatorio ao monolito quando o dado local ainda nao existir ou
+  ocorrer erro no adapter;
+- o contrato externo no `school-management-bff` permaneceu inalterado; esta
+  fase atua somente dentro do `responsibles-service` para preparar o proximo
+  ciclo de independencia funcional real.
+
+### Fase 207 - Primeiro backfill controlado do read model local de `responsaveis`
+
+Entregue nesta fase:
+
+- foi implementado o primeiro backfill controlado do read model local de
+  `responsaveis`, ainda opt-in e restrito a uma unica tabela local
+  `responsavel`;
+- o `responsibles-service` ganhou properties de origem dedicadas
+  (`responsibles.read-model.source.*`), batch configuravel e runner de startup
+  para executar o ciclo apenas quando `backfill-enabled` estiver ligado;
+- o adapter JDBC de sincronizacao passou a ler a origem diretamente do banco do
+  monolito com join em `responsavel`, `pessoa`, `escola`, `pessoa_endereco`
+  principal e `endereco`, preenchendo no destino exatamente os campos exigidos
+  pelos contratos de lista e detalhe ja oficializados;
+- nao houve ainda reconciliacao completa, cutover automatico, backfill de
+  vinculos `aluno_responsavel` nem remocao do fallback ao monolito; esta fase
+  prepara apenas a primeira massa controlada de dados locais para o dominio.
+
+### Fase 208 - Segundo backfill controlado do vinculo `aluno_responsavel`
+
+Entregue nesta fase:
+
+- o ciclo controlado de backfill do `responsibles-service` foi expandido para
+  incluir a segunda tabela local minima do dominio: `aluno_responsavel`;
+- o schema local do read model ganhou a migration
+  `V2__create_responsibles_student_link_read_model.sql`, preservando
+  `id_aluno_responsavel`, `id_aluno`, `id_responsavel`, `id_parentesco`,
+  `responsavel_financeiro`, `responsavel_pedagogico`, `autorizado_retirar` e
+  `created_at`, sem abrir escrita e sem introduzir tabela local adicional de
+  `aluno` nesta etapa;
+- o adapter JDBC de sincronizacao passou a ler `aluno_responsavel` direto do
+  banco do monolito e a fazer upsert controlado no read model local, mantendo
+  no mesmo ciclo o backfill anterior de `responsavel`;
+- nao houve ainda ativacao de leitura local para
+  `GET /api/alunos/{alunoId}/responsaveis`, reconciliacao completa nem remocao
+  do fallback ao monolito; esta fase entrega somente a massa local controlada
+  do vinculo para o proximo corte de independencia funcional.
+
+### Fase 209 - Primeiro adapter de leitura local para `GET /api/alunos/{alunoId}/responsaveis`
+
+Entregue nesta fase:
+
+- o `ResponsavelQueryService` passou a preferir leitura local tambem para
+  `GET /api/alunos/{alunoId}/responsaveis` quando o read model estiver
+  habilitado com `local-read-routing-enabled`, mantendo fallback ao monolito;
+- para preservar o contrato real da rota, o read model local foi estendido com
+  o catalogo minimo `parentesco`, via migration
+  `V3__create_responsibles_link_catalog_read_model.sql`, e o ciclo controlado
+  de backfill passou a sincronizar `responsavel`, `parentesco` e
+  `aluno_responsavel`;
+- foi implementado no `responsibles-service` o primeiro adapter JDBC local da
+  leitura por aluno, materializando `nomeCompleto`, dados de contato, endereco,
+  `parentesco`, `responsavelFinanceiro`, `responsavelPedagogico`,
+  `autorizadoRetirar` e `createdAt` a partir do read model local;
+- por seguranca funcional, quando o read model nao encontra vinculos locais
+  para o aluno, a rota continua caindo em fallback ao monolito, evitando
+  mascarar diferenca entre aluno inexistente e aluno existente sem
+  responsaveis.
+
+### Fase 210 - Reconciliacao opt-in e gate controlado do read model de `responsaveis`
+
+Entregue nesta fase:
+
+- o ciclo local de sincronizacao do `responsibles-service` passou a aceitar
+  tambem `reconciliation-enabled`, permitindo validacao objetiva do read model
+  sem abrir escrita e sem alterar o frontend;
+- o resumo interno da sincronizacao passou a carregar divergencias por tabela,
+  separando `success`, `blocked` e `divergent` para
+  `responsavel`, `parentesco` e `aluno_responsavel`;
+- foi introduzido o estado local `ResponsiblesReadModelSyncState`, o
+  `ResponsiblesReadModelRouteGuard` e o health indicator
+  `responsiblesLocalPersistence`, expondo se a rota
+  `GET /api/alunos/{alunoId}/responsaveis` esta pronta para leitura local com
+  base no ultimo ciclo reconciliado;
+- a leitura local dessa rota permanece habilitada imediatamente quando a
+  reconciliacao opt-in estiver desligada, mas passa a exigir ciclo verde e sem
+  divergencias quando `reconciliation-enabled=true`, reduzindo uso indevido do
+  read model antes da validacao objetiva.
+
+### Fase 211 - Fechamento operacional minimo do ciclo reconciliado local
+
+Entregue nesta fase:
+
+- foi fechada a cobertura operacional minima do read model local de
+  `responsibles-service` sem ampliar para escrita ou BFF;
+- o gate `ResponsiblesReadModelRouteGuard` passou a ter testes dedicados para
+  os tres cenarios operacionais relevantes: leitura local liberada sem
+  reconciliacao, bloqueada sem ciclo verde e liberada com reconciliacao verde;
+- o health `responsiblesLocalPersistence` passou a ter cobertura dedicada para
+  expor `UP` quando a rota local estiver pronta e `UNKNOWN` quando ainda houver
+  bloqueio/divergencia no ciclo reconciliado;
+- com isso, a primeira fase operacional do bloco fica encerrada no proprio
+  modulo, deixando como proximo passo a execucao real do ciclo com flags e a
+  reducao controlada do fallback da rota oficial.
+
+### Fase 115 - Abertura fisica do `enrollment-document-service` por `transferencia`
+
+Entregue nesta fase:
+
+- o `people-service` permanece encerrado; a nova frente backend passa a ser o
+  `enrollment-document-service`, ja previsto no roadmap como servico de
+  `matriculas, documentos e transferencia`;
+- a macrofase foi delimitada em 3 fases totais, escolhendo nesta primeira o
+  menor recorte seguro para abertura fisica do runtime novo:
+  `transferencia_aluno` e `escolas-origem`, sem escrita migrada oficial, sem
+  BFF e sem frontend;
+- foi criado o modulo fisico `enrollment-document-service` no monorepo, com
+  estrutura em camadas, `application.yml`, validacao de headers internos,
+  tratamento de erros proprio e cliente HTTP para consumir o monolito;
+- o novo runtime passou a expor o contrato interno
+  `POST/GET /internal/v1/transferencias`,
+  `GET /internal/v1/transferencias/alunos/{alunoId}` e
+  `POST/GET /internal/v1/escolas-origem`, preservando o monolito como unica
+  autoridade funcional nesta etapa;
+- o `school-management-service` passou a expor os adaptadores internos
+  `POST/GET /internal/transferencias`,
+  `GET /internal/transferencias/alunos/{alunoId}` e
+  `POST/GET /internal/escolas-origem`, reaproveitando o
+  `TransferenciaAlunoService` existente e separando o contrato backend/backend
+  sem refatoracao ampla;
+- os primeiros candidatos para oficializacao futura no
+  `school-management-bff` ficam identificados como as leituras
+  `GET /api/transferencias/{id}` e `GET /api/escolas-origem/{id}`, por serem o
+  menor passo read-only com resposta direta e baixo risco de composicao;
+- a validacao ficou restrita aos modulos tocados, cobrindo o runtime novo e o
+  adaptador interno do monolito com testes automatizados.
+
+Contagem regressiva do `enrollment-document-service`: 2 fases restantes para
+fechar o primeiro bloco oficial do servico.
+
+### Fase 116 - Primeiro bloco oficial de leitura do `enrollment-document-service` via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a publicar oficialmente
+  `GET /api/transferencias/{id}` e `GET /api/escolas-origem/{id}` consumindo o
+  `enrollment-document-service`, preservando os contratos externos atuais e sem
+  tocar frontend;
+- o BFF recebeu cliente HTTP, portas, use cases, proxy services e controllers
+  dedicados para esse primeiro bloco minimo, reaproveitando a mesma resolucao
+  de contexto autenticado ja usada nas leituras do `people-service`;
+- o `enrollment-document-service` permaneceu como consumidor do monolito por
+  contrato interno, sem migrar escrita e sem alterar a autoridade funcional do
+  legado nesta etapa;
+- a validacao ficou restrita ao modulo tocado, com testes de controller e de
+  integracao do BFF cobrindo a propagacao de bearer, correlation ID e headers
+  internos para o novo servico.
+
+Contagem regressiva do `enrollment-document-service`: 1 fase restante para
+fechar este primeiro bloco oficial minimo.
+
+### Fase 117 - Fechamento formal do primeiro bloco oficial minimo de `enrollment-document-service`
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a publicar oficialmente tambem
+  `GET /api/escolas-origem` e
+  `GET /api/transferencias/alunos/{alunoId}` consumindo o
+  `enrollment-document-service`;
+- com isso, o primeiro bloco oficial minimo de leitura atualmente suportado no
+  `enrollment-document-service` ficou exposto de forma oficial pelo BFF, sem
+  tocar frontend e sem reabrir escrita;
+- a validacao do modulo tocado foi ampliada com testes de controller e
+  integracao cobrindo essas duas leituras restantes, preservando propagacao de
+  bearer, correlation ID e headers internos.
+
+Contagem regressiva do `enrollment-document-service`: 0 fases restantes neste
+primeiro bloco oficial minimo.
+
+### Fase 118 - Abertura do bloco oficial minimo de `documento` por aluno no `enrollment-document-service`
+
+Entregue nesta fase:
+
+- foi aberta a proxima macrofase do `enrollment-document-service` pelo menor
+  recorte seguro fora de `transferencia`: a leitura oficial
+  `GET /api/documentos-alunos/alunos/{alunoId}`;
+- o `school-management-service` passou a expor o contrato interno
+  `GET /internal/documentos-alunos/alunos/{alunoId}` reaproveitando o
+  `DocumentoAlunoService`, sem refatoracao ampla e sem mover escrita;
+- o `enrollment-document-service` passou a consumir esse contrato e a expor
+  `GET /internal/v1/documentos-alunos/alunos/{alunoId}` como nova fronteira
+  backend/backend do recorte;
+- o `school-management-bff` passou a oficializar
+  `GET /api/documentos-alunos/alunos/{alunoId}` consumindo o
+  `enrollment-document-service`, com propagacao de bearer, correlation ID e
+  contexto interno obrigatorio;
+- esta nova macrofase fica delimitada em 2 fases totais: a Fase 118, agora
+  concluida, para a listagem de documentos por aluno, e 1 unica fase restante
+  para decidir e, se aprovado, oficializar o detalhe minimo
+  `GET /api/documentos-alunos/{id}`.
+
+Contagem regressiva do bloco `documento` por aluno no
+`enrollment-document-service`: 1 fase restante.
+
+### Fase 119 - Fechamento formal do bloco oficial minimo de `documento` por aluno no `enrollment-document-service`
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a publicar oficialmente tambem
+  `GET /api/documentos-alunos/{id}` consumindo o
+  `enrollment-document-service`;
+- o `school-management-service` passou a expor o detalhe interno
+  `GET /internal/documentos-alunos/{id}` reaproveitando o
+  `DocumentoAlunoService`, sem alterar upload, escrita ou exclusao;
+- o `enrollment-document-service` passou a consumir esse detalhe interno e a
+  expor `GET /internal/v1/documentos-alunos/{id}` no mesmo recorte
+  backend/backend de documento por aluno;
+- com isso, o bloco oficial minimo de `documento` por aluno no
+  `enrollment-document-service` ficou fechado no BFF sem tocar frontend.
+
+Contagem regressiva do bloco `documento` por aluno no
+`enrollment-document-service`: 0 fases restantes.
+
+### Fase 120 - Leitura oficial minima de `matricula` com `etapas` no `enrollment-document-service`
+
+Entregue nesta fase:
+
+- foi aberta a proxima frente funcional do `enrollment-document-service` em
+  `matricula`, usando o menor recorte read-only ja operacional no legado:
+  `GET /api/matriculas` com seus filtros atuais;
+- o `school-management-service` passou a expor o contrato interno
+  `GET /internal/matriculas`, com DTO interno proprio para `matricula` e
+  `etapas`, reaproveitando `ConsultarMatriculasUseCase` sem alterar o
+  controller publico nem abrir escrita;
+- o `enrollment-document-service` passou a consumir esse contrato do monolito e
+  a publicar `GET /internal/v1/matriculas`, preservando bearer, correlation ID
+  e contexto interno obrigatorio;
+- o `school-management-bff` passou a oficializar `GET /api/matriculas`
+  consumindo o `enrollment-document-service`, mantendo o mesmo formato externo
+  de filtros (`alunoId`, `turmaId`, `periodoLetivoId`, `status`) e o payload de
+  `matricula` com `etapas`;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `enrollment-document-service` e no BFF cobrindo rota, payload e
+  propagacao de headers.
+
+Contagem regressiva funcional estimada do `enrollment-document-service`: 2
+fases restantes no escopo atual, ficando como proximas frentes `documentos
+administrativos` e depois `escrita/storage/cutover`.
+
+### Fase 121 - Leitura oficial minima de `documentos administrativos` no `enrollment-document-service`
+
+Entregue nesta fase:
+
+- foi oficializado no `school-management-bff` o recorte minimo restante de
+  `documentos administrativos` sem colisao com o bloco de `pessoa_documento`:
+  `GET /api/documentos` por `entidadeTipo` e `entidadeId`;
+- o `school-management-service` passou a expor `GET /internal/documentos`
+  reaproveitando `ListarDocumentosPorEntidadeUseCase`, com DTO interno proprio e
+  sem alterar upload, exclusao, storage ou o detalhe publico
+  `/api/documentos/{id}` hoje ainda associado ao contrato de `people-service`;
+- o `enrollment-document-service` passou a consumir esse contrato interno do
+  monolito e a publicar `GET /internal/v1/documentos`, mantendo o runtime novo
+  como fronteira read-only para o bloco generico de documentos;
+- o `school-management-bff` passou a publicar `GET /api/documentos` consumindo o
+  `enrollment-document-service`, preservando bearer, correlation ID, contexto
+  interno obrigatorio e convivendo sem conflito com `GET /api/documentos/{id}`
+  ainda servido pelo `people-service`;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `enrollment-document-service` e no BFF cobrindo rota, payload e
+  propagacao de headers.
+
+Contagem regressiva funcional estimada do `enrollment-document-service`: 1
+fase restante no escopo atual, dedicada a `escrita/storage/cutover`.
+
+### Fase 122 - Fechamento operacional minimo de escrita do `enrollment-document-service`
+
+Entregue nesta fase:
+
+- foi fechado o recorte minimo de escrita oficial ja pronto no
+  `enrollment-document-service`, ligando no `school-management-bff` os writes
+  `POST /api/escolas-origem` e `POST /api/transferencias`;
+- o BFF passou a resolver contexto autenticado no monolito e a encaminhar esses
+  writes para `POST /internal/v1/escolas-origem` e
+  `POST /internal/v1/transferencias` do `enrollment-document-service`,
+  preservando bearer, correlation ID e headers internos obrigatorios, sem
+  fallback automatico cruzado apos tentar o servico novo;
+- a protecao de bearer foi ampliada para essas duas rotas de escrita oficiais
+  do bloco `transferencia`, consolidando o primeiro cutover operacional minimo
+  de escrita do dominio novo no BFF;
+- o bloco de documento/binario permaneceu explicitamente fora deste fechamento:
+  `GET /api/documentos/{id}` segue pertencendo ao contrato de `people-service`,
+  e uploads/exclusoes de documentos continuam no monolito ate existir um recorte
+  isolado sem colisao de ownership entre `people-service` e
+  `enrollment-document-service`;
+- com isso, o `enrollment-document-service` fica encerrado no escopo atual
+  planejado: leituras oficiais de `transferencia`, `matricula`, `documento por
+  aluno`, leitura generica de `documentos administrativos` e escrita oficial
+  minima de `escolas-origem`/`transferencias`.
+
+Contagem regressiva funcional estimada do `enrollment-document-service`: 0
+fases restantes no escopo atual planejado.
+
+### Fase 123 - Abertura fisica do `pedagogical-service` com primeiro recorte oficial de `boletim`
+
+Entregue nesta fase:
+
+- o `enrollment-document-service` foi mantido como encerrado no escopo atual e
+  a proxima macrofase backend passou a ser o `pedagogical-service`, ja previsto
+  no roadmap como servico de execucao academica oficial;
+- a macrofase foi delimitada de forma fechada em 10 fases totais, escolhendo
+  nesta primeira o menor recorte integravel e read-only ja operacional no
+  legado: `GET /api/matriculas/{matriculaId}/boletim`;
+- o `school-management-service` passou a expor o contrato interno
+  `GET /internal/boletins/matriculas/{matriculaId}`, reaproveitando o
+  `BoletimService` existente e sem abrir escrita, fechamento, historico,
+  avaliacao ou frequencia nesta etapa;
+- foi criado o modulo fisico `pedagogical-service` no monorepo, com estrutura
+  em camadas, validacao de headers internos, tratamento de erro proprio e
+  cliente HTTP para consumir o monolito por esse contrato interno;
+- o `pedagogical-service` passou a publicar
+  `GET /internal/v1/matriculas/{matriculaId}/boletim`, separando o contrato
+  backend/backend do primeiro recorte de leitura academica oficial de
+  `boletim`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/matriculas/{matriculaId}/boletim` consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno e
+  o payload externo atual sem tocar frontend;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, payload e
+  propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 9 fases
+restantes no escopo atual planejado.
+
+### Fase 124 - Fechamento do primeiro bloco minimo de `boletim` no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o primeiro recorte oficial de `boletim` aberto na Fase 123 foi fechado pelo
+  read-only restante de menor risco do mesmo contrato publico:
+  `GET /api/matriculas/{matriculaId}/boletim/fechamentos`;
+- o `school-management-service` passou a expor
+  `GET /internal/boletins/matriculas/{matriculaId}/fechamentos`,
+  reaproveitando `BoletimService.listarFechamentos(...)` sem abrir ainda
+  escrita migrada ou historico;
+- o `pedagogical-service` passou a publicar
+  `GET /internal/v1/matriculas/{matriculaId}/boletim/fechamentos`,
+  mantendo o monolito como autoridade funcional e separando o contrato
+  backend/backend do bloco de fechamentos;
+- o `school-management-bff` passou a oficializar
+  `GET /api/matriculas/{matriculaId}/boletim/fechamentos` consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno e
+  o payload externo atual;
+- com isso, o primeiro bloco minimo oficial de leitura de `boletim` fica
+  fechado no `pedagogical-service` sem tocar frontend e sem abrir ainda
+  `POST /fechamento`;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, payload e
+  propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 8 fases
+restantes no escopo atual planejado.
+
+### Fase 125 - Primeiro recorte read-only de `historico escolar` no `pedagogical-service`
+
+Entregue nesta fase:
+
+- a macrofase de `historico escolar` foi iniciada pelo menor recorte read-only
+  explicitamente recomendado no roadmap: carregamento da nova tela em modo
+  cadastro e edicao, sem tocar salvamento, importacao de PDF ou workflow mais
+  pesado;
+- o `school-management-service` passou a expor
+  `GET /internal/historicos-escolares/novo` e
+  `GET /internal/historicos-escolares/{id}/carregamento`, reaproveitando
+  `HistoricoEscolarService.carregarNovo(...)` e
+  `HistoricoEscolarService.carregarParaEdicao(...)`;
+- o `pedagogical-service` passou a publicar
+  `GET /internal/v1/historicos-escolares/novo` e
+  `GET /internal/v1/historicos-escolares/{id}/carregamento`, mantendo o
+  monolito como autoridade funcional e isolando o contrato backend/backend da
+  nova experiencia de leitura de `historico escolar`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/historicos-escolares/novo` e
+  `GET /api/historicos-escolares/{id}/carregamento` consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno e
+  o payload externo atual;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, query params,
+  payload e propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 7 fases
+restantes no escopo atual planejado.
+
+### Fase 126 - Escrita minima de `historico escolar` no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o bloco de `historico escolar` avancou para a primeira escrita minima segura,
+  preservando o contrato externo atual de `POST /api/historicos-escolares` e
+  `PUT /api/historicos-escolares/{id}` sem abrir importacao de PDF, diario de
+  classe ou refatoracao ampla;
+- o `school-management-service` passou a expor
+  `POST /internal/historicos-escolares` e
+  `PUT /internal/historicos-escolares/{id}`, reaproveitando
+  `HistoricoEscolarService.criar(...)` e `atualizar(...)`;
+- o `pedagogical-service` passou a publicar
+  `POST /internal/v1/historicos-escolares` e
+  `PUT /internal/v1/historicos-escolares/{id}` como proxy controlado do
+  monolito, mantendo o legado como autoridade funcional;
+- o `school-management-bff` passou a oficializar esses dois writes consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno e
+  o payload externo atual;
+- o carregamento operacional da fase anterior foi preservado intacto;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, payload e
+  propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 6 fases
+restantes no escopo atual planejado.
+
+### Fase 127 - Bloco minimo de `aulas` read/write no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o dominio de `aulas` foi aberto pelo menor recorte operacional seguro antes
+  de `diario de classe`, `avaliacoes` e `frequencias`: criacao, listagem e
+  detalhamento por id, preservando os contratos externos atuais
+  `POST /api/aulas`, `GET /api/aulas` e `GET /api/aulas/{id}`;
+- o `school-management-service` passou a expor
+  `POST /internal/aulas`, `GET /internal/aulas` e `GET /internal/aulas/{id}`,
+  reaproveitando `DiarioAulaService` sem migrar ainda frequencia de professor
+  ou aluno;
+- o `pedagogical-service` passou a publicar
+  `POST /internal/v1/aulas`, `GET /internal/v1/aulas` e
+  `GET /internal/v1/aulas/{id}`, mantendo o monolito como autoridade
+  funcional e separando o contrato backend/backend do primeiro bloco de aula;
+- o `school-management-bff` passou a oficializar essas tres rotas consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno,
+  filtros de consulta e o payload externo atual;
+- o bloco de frequencias permaneceu explicitamente fora desta fase para nao
+  colidir com as fases posteriores de `diario de classe`, `avaliacoes`, `notas`
+  e `frequencias`;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, query params,
+  payload e propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 5 fases
+restantes no escopo atual planejado.
+
+### Fase 128 - Primeiro recorte read-only de `diario de classe` no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o bloco de `diario de classe` foi iniciado pelo menor recorte oficial e
+  read-only recomendado antes de escrita e checagens: o carregamento mensal
+  consolidado de `GET /api/diarios-classe`;
+- o `school-management-service` passou a expor
+  `GET /internal/diarios-classe`, reaproveitando
+  `DiarioClasseConsultaService.carregar(...)` sem abrir ainda
+  `PUT /api/diarios-classe/{idDiarioClasse}` nem as rotas de checagem por
+  coordenacao ou direcao;
+- o `pedagogical-service` passou a publicar
+  `GET /internal/v1/diarios-classe`, mantendo o monolito como autoridade
+  funcional e preservando exatamente o payload consolidado do diario;
+- o `school-management-bff` passou a oficializar
+  `GET /api/diarios-classe` consumindo o `pedagogical-service`, preservando
+  bearer, correlation ID, contexto interno e todos os query params atuais do
+  contrato publico;
+- o bloco de escrita do diario e as checagens ficaram explicitamente fora desta
+  fase para nao colidir com as fases posteriores de governanca operacional;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, query params,
+  payload e propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 4 fases
+restantes no escopo atual planejado.
+
+### Fase 129 - Escrita minima de `diario de classe` no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o bloco de `diario de classe` avancou para a primeira escrita minima segura,
+  preservando o contrato externo atual de
+  `PUT /api/diarios-classe/{idDiarioClasse}` sem abrir ainda as checagens por
+  coordenacao ou direcao;
+- o `school-management-service` passou a expor
+  `PUT /internal/diarios-classe/{idDiarioClasse}`, reaproveitando
+  `DiarioClasseConsultaService.salvar(...)` sem alterar o workflow de checagem;
+- o `pedagogical-service` passou a publicar
+  `PUT /internal/v1/diarios-classe/{idDiarioClasse}` como proxy controlado do
+  monolito, mantendo o legado como autoridade funcional e preservando o payload
+  externo atual;
+- o `school-management-bff` passou a oficializar esse write consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno e
+  o corpo JSON atual do lancamento;
+- as rotas de checagem
+  `/api/diarios-classe/lancamentos/{idLancamento}/checagens/coordenacao` e
+  `/api/diarios-classe/lancamentos/{idLancamento}/checagens/direcao`
+  permaneceram explicitamente fora desta fase;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, payload e
+  propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 3 fases
+restantes no escopo atual planejado.
+
+### Fase 130 - Bloco minimo de `avaliacoes` read/write no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o dominio de `avaliacoes` foi aberto pelo menor recorte operacional seguro
+  antes de `notas` e `frequencias`: criacao, listagem e detalhamento por id,
+  preservando os contratos externos atuais `POST /api/avaliacoes`,
+  `GET /api/avaliacoes` e `GET /api/avaliacoes/{id}`;
+- o `school-management-service` passou a expor
+  `POST /internal/avaliacoes`, `GET /internal/avaliacoes` e
+  `GET /internal/avaliacoes/{id}`, reaproveitando `AvaliacaoService` sem
+  migrar ainda o lancamento e a consulta de `notas` por avaliacao;
+- o `pedagogical-service` passou a publicar
+  `POST /internal/v1/avaliacoes`, `GET /internal/v1/avaliacoes` e
+  `GET /internal/v1/avaliacoes/{id}`, mantendo o monolito como autoridade
+  funcional e separando o contrato backend/backend do primeiro bloco de
+  avaliacao;
+- o `school-management-bff` passou a oficializar essas tres rotas consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno,
+  filtros de consulta e o payload externo atual;
+- as rotas `POST /api/avaliacoes/{id}/notas` e `GET /api/avaliacoes/{id}/notas`
+  permaneceram explicitamente fora desta fase para compor a fase seguinte de
+  `notas e frequencias`;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, query params,
+  payload e propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 2 fases
+restantes no escopo atual planejado.
+
+### Fase 131 - Bloco minimo de `notas` no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o dominio de `notas` foi aberto pelo menor recorte operacional seguro ainda
+  acoplado a `avaliacoes`: lancamento por avaliacao, listagem por avaliacao e
+  consulta por matricula, preservando os contratos externos atuais
+  `POST /api/avaliacoes/{id}/notas`, `GET /api/avaliacoes/{id}/notas` e
+  `GET /api/matriculas/{matriculaId}/notas`;
+- o `school-management-service` passou a expor
+  `POST /internal/avaliacoes/{id}/notas`,
+  `GET /internal/avaliacoes/{id}/notas` e
+  `GET /internal/matriculas/{matriculaId}/notas`, reaproveitando
+  `AvaliacaoService` sem migrar ainda o bloco final de `frequencias`;
+- o `pedagogical-service` passou a publicar
+  `POST /internal/v1/avaliacoes/{id}/notas`,
+  `GET /internal/v1/avaliacoes/{id}/notas` e
+  `GET /internal/v1/matriculas/{matriculaId}/notas`, mantendo o monolito como
+  autoridade funcional e separando o contrato backend/backend do primeiro bloco
+  de notas;
+- o `school-management-bff` passou a oficializar essas tres rotas consumindo o
+  `pedagogical-service`, preservando bearer, correlation ID, contexto interno e
+  o payload externo atual;
+- as rotas finais de `frequencias`
+  `POST /api/aulas/{id}/frequencia-professor`,
+  `GET /api/aulas/{id}/frequencia-professor`,
+  `POST /api/aulas/{id}/frequencias-alunos` e
+  `GET /api/aulas/{id}/frequencias-alunos` permaneceram explicitamente para a
+  fase final de encerramento funcional do micro-servico;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, query params,
+  payload e propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 1 fase
+restante no escopo atual planejado.
+
+### Fase 132 - Fechamento funcional de `frequencias` no `pedagogical-service`
+
+Entregue nesta fase:
+
+- o bloco final de `frequencias` foi migrado no menor recorte operacional
+  remanescente do dominio pedagogico, preservando os contratos externos atuais
+  `POST /api/aulas/{id}/frequencia-professor`,
+  `GET /api/aulas/{id}/frequencia-professor`,
+  `POST /api/aulas/{id}/frequencias-alunos` e
+  `GET /api/aulas/{id}/frequencias-alunos`;
+- o `school-management-service` passou a expor
+  `POST /internal/aulas/{id}/frequencia-professor`,
+  `GET /internal/aulas/{id}/frequencia-professor`,
+  `POST /internal/aulas/{id}/frequencias-alunos` e
+  `GET /internal/aulas/{id}/frequencias-alunos`, reaproveitando
+  `DiarioAulaService` como autoridade funcional do legado;
+- o `pedagogical-service` passou a publicar
+  `POST /internal/v1/aulas/{id}/frequencia-professor`,
+  `GET /internal/v1/aulas/{id}/frequencia-professor`,
+  `POST /internal/v1/aulas/{id}/frequencias-alunos` e
+  `GET /internal/v1/aulas/{id}/frequencias-alunos`, completando a fronteira
+  backend/backend do dominio pedagogico planejado;
+- o `school-management-bff` passou a oficializar essas quatro rotas consumindo
+  o `pedagogical-service`, preservando bearer, correlation ID, contexto interno
+  e os payloads externos atuais;
+- com isso, o `pedagogical-service` encerra o escopo funcional planejado nas
+  10 fases fechadas para este micro-servico, sem abrir novas rotas fora do
+  roadmap atual;
+- a validacao ficou restrita aos modulos tocados, com testes automatizados no
+  monolito, no `pedagogical-service` e no BFF cobrindo rota, payload e
+  propagacao de headers.
+
+Contagem regressiva funcional estimada do `pedagogical-service`: 0 fases
+restantes no escopo atual planejado.
+
+Definicao objetiva da proxima macrofase backend:
+
+- com o `pedagogical-service` funcionalmente encerrado em 10 fases, a proxima
+  frente sugerida pelo roadmap passa a ser a extracao fisica da familia
+  `identity-access-service` e `institutional-tenant-service`, porque o backend
+  atual ja fechou as fronteiras internas minimas de sessao, vinculo
+  usuario-escola, tenant ativo e selecao de escola no fluxo autenticado;
+- para manter contagem fechada e evitar abertura simultanea difusa, a definicao
+  inicial passa a tratar `identity-access-service` como proximo micro-servico
+  lider da macrofase, com `institutional-tenant-service` como servico irmao da
+  mesma frente;
+- quantidade fechada inicial desta macrofase: 6 fases totais;
+- distribuicao proposta das 6 fases:
+  1. abertura fisica minima do `identity-access-service` consumindo contratos
+     internos ja estabilizados de autenticacao e sessao;
+  2. abertura fisica minima do `institutional-tenant-service` consumindo os
+     contratos internos ja estabilizados de escola ativa e vinculo
+     usuario-escola;
+  3. oficializacao controlada do bloco minimo de autenticacao/sessao via BFF ou
+     consumidores internos, sem romper compatibilidade externa;
+  4. oficializacao controlada do bloco minimo de tenant/vinculo de escola;
+  5. endurecimento operacional do ciclo autenticado multiescola, mantendo
+     fallback e rollback simples;
+  6. fechamento formal do primeiro bloco oficial de identidade e tenant no
+     codigo novo, com contagem zerada dessa macrofase.
+
+### Fase 133 - Abertura fisica minima do `identity-access-service`
+
+Entregue nesta fase:
+
+- foi criado o modulo fisico `identity-access-service` no monorepo, com
+  estrutura Spring Boot minima, `application.yml`, validacao de API interna,
+  tratamento de erro proprio e cliente HTTP dedicado para o monolito;
+- o menor recorte seguro escolhido para abrir o runtime novo foi o contrato
+  interno ja estabilizado de sessao multiescola:
+  `GET /internal/auth/escolas` e `POST /internal/auth/escola-ativa`;
+- o `identity-access-service` passou a publicar
+  `GET /internal/v1/auth/escolas` e
+  `POST /internal/v1/auth/escola-ativa`, mantendo o monolito como autoridade
+  funcional nesta primeira etapa;
+- a fase permaneceu estritamente backend/backend: nao houve cutover de BFF,
+  nao houve migracao de persistencia e ficaram explicitamente fora desta etapa
+  `login`, `refresh`, `logout` e qualquer mudanca de contrato externo;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl identity-access-service test`, cobrindo rota interna, propagacao do
+  bearer e protecao por token interno.
+
+Contagem regressiva da macrofase inicial de identidade e tenant: 5 fases
+restantes no escopo fechado atual.
+
+### Fase 134 - Abertura fisica minima do `institutional-tenant-service`
+
+Entregue nesta fase:
+
+- foi criado o modulo fisico `institutional-tenant-service` no monorepo, com
+  estrutura Spring Boot minima, `application.yml`, validacao de API interna,
+  tratamento de erro proprio e cliente HTTP dedicado para o monolito;
+- o menor recorte seguro escolhido para abrir o servico irmao foi a leitura
+  autenticada das escolas disponiveis da sessao ja exposta no contrato interno
+  `GET /internal/auth/escolas`;
+- o `institutional-tenant-service` passou a publicar
+  `GET /internal/v1/tenant/escolas` e
+  `GET /internal/v1/tenant/ativa`, mantendo o monolito como autoridade
+  funcional e derivando no codigo novo apenas a leitura do tenant ativo atual;
+- a fase permaneceu estritamente backend/backend: nao houve cutover de BFF,
+  nao houve migracao de persistencia, nao houve escrita migrada e a troca de
+  escola ativa continuou fora deste recorte inicial do servico institucional;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl institutional-tenant-service test`, cobrindo rota interna,
+  propagacao do bearer, derivacao do tenant ativo e protecao por token
+  interno.
+
+Contagem regressiva da macrofase inicial de identidade e tenant: 4 fases
+restantes no escopo fechado atual.
+
+### Fase 135 - Oficializacao inicial do bloco minimo de sessao via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar o primeiro bloco publico do
+  ciclo autenticado multiescola consumindo o `identity-access-service`;
+- foram publicadas no BFF as rotas `GET /api/auth/escolas` e
+  `POST /api/auth/escola-ativa`, reutilizando os contratos internos ja
+  estabilizados do `identity-access-service`;
+- para preservar compatibilidade e reduzir risco, a fase nao migrou ainda
+  `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/logout` nem
+  `GET /api/auth/contexto-atual`; o BFF continua usando `contexto-atual` no
+  monolito apenas para montar `X-Usuario-Id` e `X-Escola-Id` na chamada
+  interna ao servico novo;
+- foi criado cliente HTTP dedicado do BFF para o `identity-access-service`,
+  com token interno proprio, e o filtro de bearer passou a proteger tambem as
+  duas novas rotas oficiais de sessao;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff -Dtest=AuthSessionProxyIntegrationTest test`,
+  cobrindo a resolucao de contexto, a propagacao de bearer/correlation ID e o
+  proxy oficial para listagem e troca de escola ativa.
+
+Contagem regressiva da macrofase inicial de identidade e tenant: 3 fases
+restantes no escopo fechado atual.
+
+### Fase 136 - Oficializacao inicial do tenant ativo via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar a leitura publica minima do
+  tenant ativo consumindo o `institutional-tenant-service`;
+- foi publicada no BFF a rota `GET /api/auth/tenant/ativa`, reutilizando o
+  contrato interno ja estabilizado `GET /internal/v1/tenant/ativa`;
+- para preservar o menor recorte seguro, a fase nao abriu uma segunda rota
+  publica para listar escolas por tenant, porque a lista de escolas da sessao
+  ja ficou oficializada em `GET /api/auth/escolas` na fase anterior;
+- o BFF continua usando `GET /api/auth/contexto-atual` no monolito apenas para
+  montar `X-Usuario-Id` e `X-Escola-Id` na chamada interna ao servico novo;
+- foi criado cliente HTTP dedicado do BFF para o
+  `institutional-tenant-service`, com token interno proprio, e o filtro de
+  bearer passou a proteger tambem a nova rota oficial de tenant ativo;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff -Dtest=InstitutionalTenantReadProxyIntegrationTest test`,
+  cobrindo a resolucao de contexto, a propagacao de bearer/correlation ID e o
+  proxy oficial para a leitura do tenant ativo.
+
+Contagem regressiva da macrofase inicial de identidade e tenant: 2 fases
+restantes no escopo fechado atual.
+
+### Fase 137 - Endurecimento operacional do ciclo autenticado multiescola
+
+Entregue nesta fase:
+
+- o `school-management-bff` recebeu cutover operacional proprio para o bloco
+  identity/tenant ja oficializado, cobrindo
+  `GET /api/auth/escolas`, `POST /api/auth/escola-ativa` e
+  `GET /api/auth/tenant/ativa`;
+- foram introduzidas flags por rota e fallback simples para o monolito em caso
+  de indisponibilidade dos servicos novos, permitindo rollback operacional sem
+  tocar frontend nem contratos publicos;
+- o fallback de sessao multiescola foi ligado aos contratos internos estaveis
+  do monolito `GET /internal/auth/escolas` e
+  `POST /internal/auth/escola-ativa`;
+- o fallback da leitura de tenant ativo foi ligado ao contrato publico estavel
+  `GET /api/auth/contexto-atual`, convertendo a resposta do monolito para o
+  payload minimo de tenant ativo;
+- foram adicionadas metricas Micrometer e health indicator dedicados ao bloco
+  identity/tenant para observar roteamento direto, sucesso em servico novo,
+  falha e fallback para o monolito;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=AuthSessionProxyIntegrationTest,InstitutionalTenantReadProxyIntegrationTest,AuthSessionMonolithIntegrationTest,AuthSessionFallbackIntegrationTest" test`,
+  cobrindo operacao nominal, rollback por flag e fallback automatico.
+
+Contagem regressiva da macrofase inicial de identidade e tenant: 1 fase
+restante no escopo fechado atual.
+
+### Fase 138 - Fechamento formal do primeiro bloco oficial de identity/tenant
+
+Entregue nesta fase:
+
+- foi encerrado formalmente o primeiro bloco oficial de identity/tenant no
+  codigo novo, mantendo o recorte limitado ao `school-management-bff`,
+  `identity-access-service` e `institutional-tenant-service`;
+- ficam consolidadas como rotas publicas oficiais do bloco multiescola no BFF:
+  `GET /api/auth/escolas`, `POST /api/auth/escola-ativa` e
+  `GET /api/auth/tenant/ativa`;
+- fica consolidado tambem o modelo operacional minimo do bloco: flags por rota,
+  fallback simples para o monolito, metricas dedicadas e health indicator
+  `identityTenantCutover`;
+- para evitar reabertura ambigua de escopo, o fechamento registra
+  explicitamente que continuam fora desta macrofase:
+  `POST /api/auth/login`, `POST /api/auth/refresh`,
+  `POST /api/auth/logout` e a retirada da dependencia do BFF de
+  `GET /api/auth/contexto-atual`;
+- foram adicionados testes unitarios especificos para o decider e para o health
+  indicator do bloco identity/tenant, reforcando a cobertura da parte
+  operacional sem abrir novas rotas;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=AuthSessionProxyIntegrationTest,InstitutionalTenantReadProxyIntegrationTest,AuthSessionMonolithIntegrationTest,AuthSessionFallbackIntegrationTest,IdentityTenantCutoverDeciderTest,IdentityTenantCutoverHealthIndicatorTest" test`.
+
+Contagem regressiva da macrofase inicial de identidade e tenant: 0 fases
+restantes no escopo fechado atual.
+
+Fechamento da macrofase:
+
+- a macrofase inicial de identity/tenant fica encerrada no plano funcional
+  fechado de 6 fases;
+- o proximo recorte futuro sugerido para esta frente, se ela for reaberta, e a
+  migracao controlada de `login`/`refresh`/`logout` e a remocao da dependencia
+  de `GET /api/auth/contexto-atual` no BFF.
+
+### Fase 139 - Abertura fisica inicial do `planning-ai-service`
+
+Entregue nesta fase:
+
+- foi definida a contagem fechada de 10 fases para o desenvolvimento inicial
+  completo do `planning-ai-service`, para evitar reabertura difusa de escopo;
+- o servico fisico `planning-ai-service` foi criado no monorepo como novo
+  runtime Spring Boot, com contrato interno, token interno, cliente HTTP
+  dedicado para o monolito e tratamento de erro proprio;
+- o menor recorte seguro escolhido para a fase 1 foi a leitura da biblioteca
+  pedagogica de IA, porque ja existe um contrato estavel no monolito em
+  `GET /api/biblioteca-conteudos-pedagogicos` e nao exige abrir escrita nem
+  persistencia propria neste primeiro passo;
+- o novo servico passou a expor
+  `GET /internal/v1/biblioteca-conteudos-pedagogicos`, preservando os filtros
+  `professorId`, `disciplinaId`, `tipoConteudo` e `tema`;
+- o tratamento de `tipoConteudo` invalido foi preservado no novo servico como
+  `404 RESOURCE_NOT_FOUND`, mantendo o comportamento funcional ja endurecido no
+  monolito;
+- a primeira rota publica sugerida para oficializacao futura no
+  `school-management-bff` fica objetivamente definida como
+  `GET /api/biblioteca-conteudos-pedagogicos`, reaproveitando este contrato
+  interno novo sem abrir ainda geracao, aprovacao, versoes ou publicacao;
+- esta fase permaneceu propositalmente sem BFF, sem persistencia propria, sem
+  MongoDB/Kafka/Redis e sem qualquer escrita migrada;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo rota interna, protecao por token
+  interno, propagacao de bearer e query string e preservacao de `404` para
+  `tipoConteudo` invalido.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 9 fases
+restantes no escopo fechado atual.
+
+### Fase 140 - Oficializacao inicial da biblioteca pedagogica via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar a primeira rota publica do
+  `planning-ai-service`, exatamente em
+  `GET /api/biblioteca-conteudos-pedagogicos`;
+- a rota publica reutiliza o contrato interno ja aberto na fase anterior em
+  `GET /internal/v1/biblioteca-conteudos-pedagogicos`, preservando os filtros
+  `professorId`, `disciplinaId`, `tipoConteudo` e `tema`;
+- o BFF resolve o contexto autenticado atual no monolito apenas para montar os
+  headers internos `X-Usuario-Id` e `X-Escola-Id` exigidos pelo
+  `planning-ai-service`, sem abrir ainda nenhuma mudanca em geracao, versoes,
+  aprovacao ou publicacao de conteudo;
+- foi criado cliente HTTP dedicado do BFF para o `planning-ai-service`, com
+  token interno proprio e feature flag especifica para esta leitura oficial;
+- para preservar o menor recorte seguro, esta fase nao introduziu cutover,
+  fallback, escrita migrada, persistencia propria nem novas rotas publicas do
+  bloco de planejamento e IA;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=BibliotecaConteudoPedagogicoReadControllerTest,PlanningAiBibliotecaReadProxyIntegrationTest" test`,
+  cobrindo contrato da rota publica, propagacao de bearer/correlation ID,
+  resolucao de contexto autenticado e chamada interna ao servico novo.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 8 fases
+restantes no escopo fechado atual.
+
+### Fase 141 - Leitura interna inicial de interacoes de planejamento IA
+
+Entregue nesta fase:
+
+- o `planning-ai-service` abriu o proximo recorte read-only interno do bloco em
+  `GET /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/interacoes`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `GET /api/planejamentos-bimestrais/{planejamentoId}/ia/interacoes`,
+  preservando o payload oficial de interacoes de IA do planejamento;
+- foi separado no codigo novo o DTO proprio de interacao de planejamento IA,
+  sem acoplar essa leitura ao contrato da biblioteca pedagogica;
+- o comportamento de erro para planejamento inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional do monolito;
+- para manter o recorte minimo seguro, esta fase permaneceu sem BFF, sem
+  escrita migrada, sem geracao de conteudo, sem versoes, sem aprovacao e sem
+  publicacao na biblioteca;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo contrato interno da nova rota,
+  propagacao de bearer e preservacao de `404` para planejamento inexistente.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 7 fases
+restantes no escopo fechado atual.
+
+### Fase 142 - Oficializacao inicial das interacoes de planejamento IA via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar a rota publica
+  `GET /api/planejamentos-bimestrais/{planejamentoId}/ia/interacoes`;
+- a rota publica reutiliza o contrato interno ja aberto na fase anterior em
+  `GET /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/interacoes`,
+  preservando o payload oficial de interacoes de IA do planejamento;
+- o BFF resolve o contexto autenticado atual no monolito apenas para montar os
+  headers internos `X-Usuario-Id` e `X-Escola-Id` exigidos pelo
+  `planning-ai-service`;
+- foi criado no BFF um proxy dedicado para as interacoes de planejamento IA,
+  reutilizando o mesmo client properties e a mesma feature flag de leitura do
+  `planning-ai-service`;
+- para manter o menor recorte seguro, esta fase nao abriu geracao, versoes,
+  aprovacao, publicacao, escrita migrada, cutover ou fallback;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaInteracaoReadControllerTest,PlanningAiInteracaoReadProxyIntegrationTest" test`,
+  cobrindo contrato da rota publica, propagacao de bearer/correlation ID,
+  resolucao de contexto autenticado e chamada interna ao servico novo.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 6 fases
+restantes no escopo fechado atual.
+
+### Fase 143 - Leitura interna inicial de conteudos gerados por planejamento IA
+
+Entregue nesta fase:
+
+- o `planning-ai-service` abriu o proximo recorte read-only interno do bloco em
+  `GET /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `GET /api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`,
+  preservando o payload oficial de conteudos gerados por planejamento IA;
+- foi separado no codigo novo o DTO proprio de conteudo gerado, sem acoplar
+  essa leitura ao contrato das interacoes ou da biblioteca pedagogica;
+- o comportamento de erro para planejamento inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional do monolito;
+- para manter o recorte minimo seguro, esta fase permaneceu sem BFF, sem
+  escrita migrada, sem geracao nova, sem versoes, sem aprovacao e sem
+  publicacao na biblioteca;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo contrato interno da nova rota,
+  propagacao de bearer e preservacao de `404` para planejamento inexistente.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 5 fases
+restantes no escopo fechado atual.
+
+### Fase 144 - Oficializacao inicial dos conteudos de planejamento IA via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar a rota publica
+  `GET /api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`;
+- a rota publica reutiliza o contrato interno ja aberto na fase anterior em
+  `GET /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`,
+  preservando o payload oficial de conteudos gerados por planejamento IA;
+- o BFF resolve o contexto autenticado atual no monolito apenas para montar os
+  headers internos `X-Usuario-Id` e `X-Escola-Id` exigidos pelo
+  `planning-ai-service`;
+- foi criado no BFF um proxy dedicado para os conteudos de planejamento IA,
+  reutilizando o mesmo client properties e a mesma feature flag de leitura do
+  `planning-ai-service`;
+- para manter o menor recorte seguro, esta fase nao abriu geracao, versoes,
+  aprovacao, publicacao, escrita migrada, cutover ou fallback;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoReadControllerTest,PlanningAiConteudoReadProxyIntegrationTest" test`,
+  cobrindo contrato da rota publica, propagacao de bearer/correlation ID,
+  resolucao de contexto autenticado e chamada interna ao servico novo.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 4 fases
+restantes no escopo fechado atual.
+
+### Fase 145 - Leitura interna inicial de conteudo de planejamento IA por ID
+
+Entregue nesta fase:
+
+- o `planning-ai-service` abriu o proximo recorte read-only interno do bloco em
+  `GET /internal/v1/ia/conteudos/{conteudoId}`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `GET /api/ia/conteudos/{conteudoId}`, preservando o payload oficial de
+  detalhe do conteudo gerado;
+- foi reaproveitado o DTO proprio de conteudo gerado ja aberto na fase
+  anterior, evitando duplicacao de contrato no codigo novo;
+- o comportamento de erro para conteudo inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional do monolito;
+- para manter o recorte minimo seguro, esta fase permaneceu sem BFF, sem
+  escrita migrada, sem geracao nova, sem versoes, sem aprovacao e sem
+  publicacao na biblioteca;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo contrato interno da nova rota,
+  propagacao de bearer e preservacao de `404` para conteudo inexistente.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 3 fases
+restantes no escopo fechado atual.
+
+### Fase 146 - Oficializacao inicial do detalhe de conteudo IA via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar a rota publica
+  `GET /api/ia/conteudos/{conteudoId}`;
+- a rota publica reutiliza o contrato interno ja aberto na fase anterior em
+  `GET /internal/v1/ia/conteudos/{conteudoId}`, preservando o payload oficial
+  de detalhe do conteudo gerado;
+- o BFF resolve o contexto autenticado atual no monolito apenas para montar os
+  headers internos `X-Usuario-Id` e `X-Escola-Id` exigidos pelo
+  `planning-ai-service`;
+- foi criado no BFF um proxy dedicado para o detalhe de conteudo IA,
+  reutilizando o mesmo client properties e a mesma feature flag de leitura do
+  `planning-ai-service`;
+- para manter o menor recorte seguro, esta fase nao abriu geracao, versoes,
+  aprovacao, publicacao, escrita migrada, cutover ou fallback;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoDetailReadControllerTest,PlanningAiConteudoDetailReadProxyIntegrationTest" test`,
+  cobrindo contrato da rota publica, propagacao de bearer/correlation ID,
+  resolucao de contexto autenticado e chamada interna ao servico novo.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 2 fases
+restantes no escopo fechado atual.
+
+### Fase 147 - Leitura interna inicial das versoes de conteudo IA
+
+Entregue nesta fase:
+
+- o `planning-ai-service` abriu o proximo recorte read-only interno do bloco em
+  `GET /internal/v1/ia/conteudos/{conteudoId}/versoes`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `GET /api/ia/conteudos/{conteudoId}/versoes`, preservando o payload oficial
+  de versoes do conteudo gerado;
+- foi criado DTO proprio de versao de conteudo IA no codigo novo, isolando esse
+  contrato do detalhe principal do conteudo;
+- o comportamento de erro para conteudo inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional do monolito;
+- para manter o recorte minimo seguro, esta fase permaneceu sem BFF, sem
+  escrita migrada, sem criacao de versao, sem aprovacao e sem publicacao;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo contrato interno da nova rota,
+  propagacao de bearer e preservacao de `404` para conteudo inexistente.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 1 fase
+restante no escopo fechado atual.
+
+### Fase 148 - Oficializacao inicial das versoes de conteudo IA via BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar a rota publica
+  `GET /api/ia/conteudos/{conteudoId}/versoes`;
+- a rota publica reutiliza o contrato interno ja aberto na fase anterior em
+  `GET /internal/v1/ia/conteudos/{conteudoId}/versoes`, preservando o payload
+  oficial de versoes do conteudo gerado;
+- o BFF resolve o contexto autenticado atual no monolito apenas para montar os
+  headers internos `X-Usuario-Id` e `X-Escola-Id` exigidos pelo
+  `planning-ai-service`;
+- foi criado no BFF um proxy dedicado para as versoes de conteudo IA,
+  reutilizando o mesmo client properties e a mesma feature flag de leitura do
+  `planning-ai-service`;
+- para manter o menor recorte seguro, esta fase nao abriu geracao, criacao de
+  versao, aprovacao, publicacao, escrita migrada, cutover ou fallback;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoVersaoReadControllerTest,PlanningAiConteudoVersaoReadProxyIntegrationTest" test`,
+  cobrindo contrato da rota publica, propagacao de bearer/correlation ID,
+  resolucao de contexto autenticado e chamada interna ao servico novo.
+
+Contagem regressiva da macrofase inicial de `planning-ai-service`: 0 fases
+restantes no escopo fechado atual.
+
+Fechamento da macrofase:
+
+- a macrofase inicial do `planning-ai-service` fica encerrada no plano
+  funcional fechado de 10 fases;
+- ficam oficializadas no `school-management-bff` as leituras publicas
+  `GET /api/biblioteca-conteudos-pedagogicos`,
+  `GET /api/planejamentos-bimestrais/{planejamentoId}/ia/interacoes`,
+  `GET /api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`,
+  `GET /api/ia/conteudos/{conteudoId}` e
+  `GET /api/ia/conteudos/{conteudoId}/versoes`;
+- permanecem explicitamente fora deste ciclo inicial qualquer geracao,
+  criacao de versao, aprovacao, publicacao na biblioteca, persistencia propria
+  e adocao de MongoDB/Kafka/Redis.
+
+### Fase 149 - Abertura interna inicial da geracao de conteudo IA
+
+Entregue nesta fase:
+
+- foi aberto o novo ciclo fechado de 8 fases para a escrita minima do
+  `planning-ai-service`, cobrindo geracao, criacao de versao, aprovacao e
+  publicacao, sempre em pares `servico interno -> BFF`;
+- a primeira fase desse novo ciclo abriu no `planning-ai-service` o contrato
+  interno `POST /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `POST /api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`,
+  preservando o payload oficial de conteudo gerado e o contrato de entrada de
+  geracao;
+- foi criado DTO proprio de request para geracao de conteudo IA no codigo novo,
+  com as mesmas validacoes basicas de `promptProfessor`, `tipoConteudo`,
+  `titulo` e `reutilizavel`;
+- o comportamento de erro para planejamento inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional do monolito;
+- para manter o menor recorte seguro, esta fase permaneceu sem BFF, sem
+  criacao publica, sem criacao de versao, sem aprovacao e sem publicacao;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo o contrato interno de geracao,
+  propagacao de bearer e preservacao de `404` para planejamento inexistente.
+
+Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
+7 fases restantes no escopo fechado atual.
+
+### Fase 150 - Oficializacao inicial da geracao de conteudo IA no BFF
+
+Entregue nesta fase:
+
+- foi oficializado no `school-management-bff` o contrato publico
+  `POST /api/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`;
+- a nova rota publica ficou desacoplada por porta propria de escrita e cliente
+  HTTP dedicado para o `planning-ai-service`, sem reabrir contratos read-only
+  ja entregues;
+- o BFF passou a resolver o contexto autenticado atual pelo `AuthContextPort` e
+  a propagar `Authorization`, `X-Internal-Token`, `X-Correlation-Id`,
+  `X-Usuario-Id` e `X-Escola-Id` para o contrato interno
+  `POST /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`;
+- foi adicionada feature flag propria
+  `features.planning-ai-write-proxy-enabled`, separando a oficializacao de
+  escrita da flag ja existente de leitura;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoWriteControllerTest,PlanningAiConteudoWriteProxyIntegrationTest" test`,
+  cobrindo contrato publico e integracao ponta a ponta do proxy;
+- permanecem explicitamente fora desta fase criacao de versao, aprovacao,
+  publicacao na biblioteca, persistencia propria e qualquer refatoracao ampla.
+
+Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
+6 fases restantes no escopo fechado atual.
+
+### Fase 151 - Abertura interna inicial da criacao de versao de conteudo IA
+
+Entregue nesta fase:
+
+- foi aberto no `planning-ai-service` o contrato interno
+  `POST /internal/v1/ia/conteudos/{conteudoId}/versoes`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `POST /api/ia/conteudos/{conteudoId}/versoes`, preservando o payload oficial
+  de versao criada e o contrato de entrada de edicao;
+- foi criado DTO proprio de request para criacao de versao no codigo novo, com
+  as mesmas validacoes basicas de `conteudo` e `motivoAlteracao`;
+- o comportamento de erro para conteudo inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional atual;
+- para manter o menor recorte seguro, esta fase permaneceu sem BFF, sem
+  oficializacao publica, sem aprovacao e sem publicacao na biblioteca;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service "-Dtest=PlanningAiInternalControllerIntegrationTest" test`,
+  cobrindo criacao interna de versao, propagacao de bearer, encaminhamento do
+  payload e preservacao de `404`.
+
+Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
+5 fases restantes no escopo fechado atual.
+
+### Fase 152 - Oficializacao inicial da criacao de versao de conteudo IA no BFF
+
+Entregue nesta fase:
+
+- foi oficializado no `school-management-bff` o contrato publico
+  `POST /api/ia/conteudos/{conteudoId}/versoes`;
+- a nova rota publica ficou desacoplada por porta propria de escrita de versao
+  e cliente HTTP dedicado para o `planning-ai-service`, sem reabrir os contratos
+  read-only nem misturar com aprovacao/publicacao;
+- o BFF passou a resolver o contexto autenticado atual pelo `AuthContextPort` e
+  a propagar `Authorization`, `X-Internal-Token`, `X-Correlation-Id`,
+  `X-Usuario-Id` e `X-Escola-Id` para o contrato interno
+  `POST /internal/v1/ia/conteudos/{conteudoId}/versoes`;
+- a oficializacao reutiliza a mesma flag de escrita
+  `features.planning-ai-write-proxy-enabled`, mantendo separado o eixo de
+  escrita da flag ja existente de leitura;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoVersaoWriteControllerTest,PlanningAiConteudoVersaoWriteProxyIntegrationTest" test`,
+  cobrindo contrato publico e integracao ponta a ponta do proxy;
+- permanecem explicitamente fora desta fase aprovacao de versao, publicacao na
+  biblioteca, persistencia propria e qualquer refatoracao ampla.
+
+Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
+4 fases restantes no escopo fechado atual.
+
+### Fase 153 - Abertura interna inicial da aprovacao de versao de conteudo IA
+
+Entregue nesta fase:
+
+- foi aberto no `planning-ai-service` o contrato interno
+  `PATCH /internal/v1/ia/conteudos/{conteudoId}/aprovar-versao`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `PATCH /api/ia/conteudos/{conteudoId}/aprovar-versao`, preservando o payload
+  oficial do conteudo aprovado e o contrato de entrada de aprovacao;
+- foi criado DTO proprio de request para aprovacao de versao no codigo novo,
+  com as mesmas validacoes basicas de `numeroVersao` e `publicarBiblioteca`;
+- o client HTTP do `planning-ai-service` foi ajustado para uma request factory
+  compativel com `PATCH`, evitando acoplamento ao comportamento limitado da
+  implementacao anterior baseada em `SimpleClientHttpRequestFactory`;
+- o comportamento de erro para conteudo inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional atual;
+- para manter o menor recorte seguro, esta fase permaneceu sem BFF e sem abrir
+  ainda o recorte de publicacao dedicada na biblioteca;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service "-Dtest=PlanningAiInternalControllerIntegrationTest" test`,
+  cobrindo aprovacao interna, propagacao de bearer, encaminhamento do payload,
+  suporte a `PATCH` e preservacao de `404`.
+
+Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
+3 fases restantes no escopo fechado atual.
+
+### Fase 154 - Oficializacao inicial da aprovacao de versao de conteudo IA no BFF
+
+Entregue nesta fase:
+
+- foi oficializado no `school-management-bff` o contrato publico
+  `PATCH /api/ia/conteudos/{conteudoId}/aprovar-versao`;
+- a nova rota publica ficou desacoplada por porta propria de aprovacao e client
+  HTTP dedicado para o `planning-ai-service`, sem misturar esse recorte com a
+  publicacao dedicada na biblioteca;
+- o BFF passou a resolver o contexto autenticado atual pelo `AuthContextPort` e
+  a propagar `Authorization`, `X-Internal-Token`, `X-Correlation-Id`,
+  `X-Usuario-Id` e `X-Escola-Id` para o contrato interno
+  `PATCH /internal/v1/ia/conteudos/{conteudoId}/aprovar-versao`;
+- a oficializacao reutiliza a mesma flag de escrita
+  `features.planning-ai-write-proxy-enabled`, mantendo separado o eixo de
+  escrita da flag ja existente de leitura;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoVersaoApproveControllerTest,PlanningAiConteudoVersaoApproveProxyIntegrationTest" test`,
+  cobrindo contrato publico e integracao ponta a ponta do proxy `PATCH`;
+- permanece explicitamente fora desta fase a abertura do contrato dedicado de
+  publicacao na biblioteca e qualquer refatoracao ampla.
+
+Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
+2 fases restantes no escopo fechado atual.
+
+### Fase 155 - Abertura interna inicial da publicacao de conteudo IA na biblioteca
+
+Entregue nesta fase:
+
+- foi aberto no `planning-ai-service` o contrato interno
+  `POST /internal/v1/ia/conteudos/{conteudoId}/publicar-biblioteca`;
+- a nova rota reutiliza o contrato atual do monolito em
+  `POST /api/ia/conteudos/{conteudoId}/publicar-biblioteca`, preservando o
+  payload oficial de biblioteca publicado;
+- o contrato interno foi aberto sem body adicional, mantendo o mesmo recorte
+  funcional atual de publicacao direta por identificador do conteudo;
+- o comportamento de erro para conteudo inexistente foi preservado como
+  `404 RESOURCE_NOT_FOUND`, mantendo o contrato funcional atual;
+- para manter o menor recorte seguro, esta fase permaneceu sem BFF e sem abrir
+  qualquer refatoracao estrutural adicional no servico novo;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service "-Dtest=PlanningAiInternalControllerIntegrationTest" test`,
+  cobrindo publicacao interna, propagacao de bearer e preservacao de `404`.
+
+Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
+1 fase restante no escopo fechado atual.
+
+### Fase 156 - Oficializacao inicial da publicacao de conteudo IA na biblioteca no BFF
+
+Entregue nesta fase:
+
+- foi oficializado no `school-management-bff` o contrato publico
+  `POST /api/ia/conteudos/{conteudoId}/publicar-biblioteca`;
+- a nova rota publica ficou desacoplada por porta propria de publicacao e
+  client HTTP dedicado para o `planning-ai-service`, sem misturar esse recorte
+  com leitura de biblioteca ou outros fluxos de escrita;
+- o BFF passou a resolver o contexto autenticado atual pelo `AuthContextPort` e
+  a propagar `Authorization`, `X-Internal-Token`, `X-Correlation-Id`,
+  `X-Usuario-Id` e `X-Escola-Id` para o contrato interno
+  `POST /internal/v1/ia/conteudos/{conteudoId}/publicar-biblioteca`;
+- a oficializacao reutiliza a mesma flag de escrita
+  `features.planning-ai-write-proxy-enabled`, mantendo separado o eixo de
+  escrita da flag ja existente de leitura;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PlanejamentoIaConteudoBibliotecaWriteControllerTest,PlanningAiConteudoBibliotecaWriteProxyIntegrationTest" test`,
+  cobrindo contrato publico e integracao ponta a ponta do proxy;
+- com esta fase, o ciclo fechado de 8 fases da escrita minima do
+  `planning-ai-service` fica concluido no recorte planejado atual.
+
+Contagem regressiva do novo ciclo de escrita minima do `planning-ai-service`:
+0 fases restantes no escopo fechado atual.
+
+### Fase 157 - Abertura da persistencia propria minima do `planning-ai-service`
+
+Entregue nesta fase:
+
+- foi aberto no `planning-ai-service` o primeiro bloco fisico de persistencia
+  propria para `planejamento_ia_interacao`, `planejamento_ia_conteudo_gerado`,
+  `planejamento_ia_conteudo_versao` e `biblioteca_conteudo_pedagogico`;
+- a modelagem local foi criada com dependencias de JPA/Flyway/PostgreSQL,
+  migration inicial propria e entidades separadas do contrato HTTP atual;
+- as referencias antes acopladas no monolito por relacionamentos JPA externos
+  passaram a ser representadas no servico novo apenas por IDs de escola,
+  planejamento, usuario, professor e disciplina;
+- tambem foi criado um modelo de dominio local para esse recorte, preservando a
+  separacao entre modelo de dominio e modelo de persistencia desde a abertura;
+- nenhuma rota interna ou publica foi alterada nesta fase e o
+  `planning-ai-service` continua operando como proxy HTTP para os contratos ja
+  oficializados, sem cutover e sem escrita migrada;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo a migration nova, a subida do
+  contexto com banco local de teste e o contrato interno ja existente.
+
+Contagem regressiva do novo ciclo fechado de persistencia propria do
+`planning-ai-service`: 7 fases restantes no escopo fechado atual.
+
+### Fase 158 - Gravacao aditiva local da geracao de conteudo IA
+
+Entregue nesta fase:
+
+- o contrato interno existente de geracao em
+  `POST /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`
+  permaneceu inalterado e continuou proxyando a chamada oficial para o
+  monolito;
+- apos resposta bem-sucedida do monolito, o `planning-ai-service` passou a
+  gravar de forma aditiva a `planejamento_ia_interacao` e o
+  `planejamento_ia_conteudo_gerado` na sua persistencia propria;
+- essa gravacao usa apenas IDs de referencia e os dados ja retornados pelo
+  contrato oficial atual, sem abrir leitura local, sem versionamento local,
+  sem biblioteca local ativa e sem qualquer alteracao no BFF;
+- a fase manteve o criterio incremental: em caso de erro do downstream, a
+  resposta e o comportamento externo continuam os mesmos e nada e oficializado
+  fora do modulo;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo schema local, contrato interno
+  e a nova persistencia aditiva apos geracao bem-sucedida.
+
+Contagem regressiva do novo ciclo fechado de persistencia propria do
+`planning-ai-service`: 6 fases restantes no escopo fechado atual.
+
+### Fase 159 - Leitura local prioritaria das interacoes de planejamento IA
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a priorizar a persistencia propria para a
+  leitura interna `GET /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/interacoes`;
+- a consulta local foi limitada ao menor recorte seguro ja populado nas fases
+  anteriores: `escolaId + planejamentoBimestralId`, retornando o mesmo DTO
+  interno ja oficializado para o consumidor atual;
+- quando nao houver interacoes locais para esse recorte, o servico continua com
+  fallback para o contrato oficial do monolito, preservando o comportamento
+  funcional enquanto a carga propria ainda e parcial;
+- nenhuma rota publica foi alterada, nenhum fluxo do BFF foi tocado e nao foi
+  aberta ainda leitura local de conteudos, versoes ou biblioteca;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo leitura local sem downstream e
+  fallback ao monolito quando a base propria estiver vazia.
+
+Contagem regressiva do novo ciclo fechado de persistencia propria do
+`planning-ai-service`: 5 fases restantes no escopo fechado atual.
+
+### Fase 160 - Leitura local prioritaria dos conteudos gerados de planejamento IA
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a priorizar a persistencia propria para a
+  leitura interna `GET /internal/v1/planejamentos-bimestrais/{planejamentoId}/ia/conteudos`;
+- a consulta local foi limitada ao mesmo recorte incremental ja populado no
+  servico novo: `escolaId + planejamentoBimestralId`, retornando o DTO interno
+  de conteudo ja estabilizado no contrato atual;
+- quando nao houver conteudos locais para esse recorte, o servico continua com
+  fallback para o monolito, preservando o comportamento funcional enquanto a
+  migracao de leitura ainda nao cobre todo o historico;
+- nenhuma rota publica foi alterada, nao houve mudanca no BFF e a fase nao
+  abriu ainda leitura local por `conteudoId`, versoes ou biblioteca;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo leitura local sem downstream e
+  fallback ao monolito quando a base propria estiver vazia.
+
+Contagem regressiva do novo ciclo fechado de persistencia propria do
+`planning-ai-service`: 4 fases restantes no escopo fechado atual.
+
+### Fase 161 - Leitura local prioritaria de conteudo IA por identificador
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a priorizar a persistencia propria para a
+  leitura interna `GET /internal/v1/ia/conteudos/{conteudoId}`;
+- a consulta local ficou restrita ao menor recorte seguro ja disponivel no
+  servico novo: `conteudoId + escolaId`, retornando o mesmo DTO interno de
+  conteudo usado pelo contrato atual;
+- quando o conteudo ainda nao existir na base propria, o servico continua com
+  fallback para o monolito, preservando o comportamento funcional durante a
+  migracao incremental;
+- nenhuma rota publica foi alterada, nao houve mudanca no BFF e a fase ainda
+  nao abriu leitura local de versoes ou biblioteca por `conteudoId`;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo leitura local sem downstream e
+  fallback ao monolito quando o conteudo nao estiver na persistencia propria.
+
+Contagem regressiva do novo ciclo fechado de persistencia propria do
+`planning-ai-service`: 3 fases restantes no escopo fechado atual.
+
+### Fase 162 - Leitura local prioritaria das versoes de conteudo IA
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a priorizar a persistencia propria para a
+  leitura interna `GET /internal/v1/ia/conteudos/{conteudoId}/versoes`;
+- a consulta local ficou restrita ao menor recorte seguro ja disponivel no
+  servico novo: `conteudoId + escolaId`, retornando o mesmo DTO interno de
+  versao usado pelo contrato atual;
+- quando ainda nao houver versoes locais para esse conteudo, o servico continua
+  com fallback para o monolito, preservando o comportamento funcional durante a
+  migracao incremental;
+- nenhuma rota publica foi alterada, nao houve mudanca no BFF e a fase ainda
+  nao abriu leitura local da biblioteca pedagogica ou sincronizacao retroativa
+  do historico;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo leitura local sem downstream e
+  fallback ao monolito quando as versoes ainda nao existirem na persistencia
+  propria.
+
+Contagem regressiva do novo ciclo fechado de persistencia propria do
+`planning-ai-service`: 2 fases restantes no escopo fechado atual.
+
+### Fase 163 - Gravacao aditiva local da publicacao na biblioteca pedagogica
+
+Entregue nesta fase:
+
+- o contrato interno existente de publicacao em
+  `POST /internal/v1/ia/conteudos/{conteudoId}/publicar-biblioteca` permaneceu
+  inalterado e continuou proxyando a chamada oficial para o monolito;
+- apos resposta bem-sucedida do monolito, o `planning-ai-service` passou a
+  gravar de forma aditiva a `biblioteca_conteudo_pedagogico` na sua
+  persistencia propria, vinculando a publicacao ao `conteudo_gerado` local ja
+  existente no servico;
+- essa gravacao usa apenas os IDs de referencia e o payload oficial retornado
+  pelo contrato atual, sem oficializar ainda leitura local da biblioteca no BFF
+  nem substituir o fluxo de consulta atual;
+- em caso de erro do downstream, o comportamento externo continua igual e nada
+  e persistido localmente;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo o contrato interno e a nova
+  gravacao local aditiva apos publicacao bem-sucedida.
+
+Contagem regressiva do novo ciclo fechado de persistencia propria do
+`planning-ai-service`: 1 fase restante no escopo fechado atual.
+
+### Fase 164 - Leitura local prioritaria da biblioteca pedagogica
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a priorizar a persistencia propria para a
+  leitura interna `GET /internal/v1/biblioteca-conteudos-pedagogicos`;
+- a consulta local foi limitada ao menor recorte seguro ja populado no servico
+  novo: `escolaId` com filtros opcionais de `professorId`, `disciplinaId`,
+  `tipoConteudo` e `tema`, retornando o mesmo DTO interno estabilizado;
+- quando o filtro nao encontrar nada na base propria, o servico continua com
+  fallback para o monolito, preservando o comportamento funcional enquanto o
+  historico local ainda nao cobre publicacoes anteriores a este ciclo;
+- nenhuma rota publica foi alterada, nao houve mudanca no BFF e esta fase
+  conclui o recorte planejado de leituras e gravacoes locais minimas sem abrir
+  sincronizacao retroativa geral;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo leitura local sem downstream e
+  fallback ao monolito quando a base propria nao atender ao filtro solicitado.
+
+- com esta fase, o ciclo fechado de 8 fases da persistencia propria incremental
+  do `planning-ai-service` fica concluido no recorte planejado atual.
+
+Contagem regressiva do novo ciclo fechado de persistencia propria do
+`planning-ai-service`: 0 fases restantes no escopo fechado atual.
+
+### Fase 165 - Abertura do novo ciclo de escrita local para criacao de versao
+
+Entregue nesta fase:
+
+- foi aberto um novo ciclo fechado para desacoplar as escritas remanescentes do
+  `planning-ai-service`, iniciando pela criacao de versao de conteudo IA;
+- o contrato interno existente
+  `POST /internal/v1/ia/conteudos/{conteudoId}/versoes` permaneceu inalterado e
+  continuou proxyando a chamada oficial para o monolito;
+- apos resposta bem-sucedida do monolito, o `planning-ai-service` passou a
+  gravar de forma aditiva a `planejamento_ia_conteudo_versao` na sua
+  persistencia propria e a atualizar o `planejamento_ia_conteudo_gerado` local
+  com o novo conteudo, numero de versao e `updatedAt`;
+- essa gravacao usa apenas o contexto interno e o payload oficial retornado pelo
+  contrato atual, sem alterar BFF, sem cutover e sem oficializar ainda
+  aprovacao local como fonte principal;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo o contrato interno e a nova
+  persistencia local aditiva apos criacao bem-sucedida da versao.
+
+Contagem regressiva do novo ciclo fechado de escritas remanescentes do
+`planning-ai-service`: 3 fases restantes no escopo fechado atual.
+
+### Fase 166 - Gravacao aditiva local da aprovacao de versao
+
+Entregue nesta fase:
+
+- o contrato interno existente
+  `PATCH /internal/v1/ia/conteudos/{conteudoId}/aprovar-versao` permaneceu
+  inalterado e continuou proxyando a chamada oficial para o monolito;
+- apos resposta bem-sucedida do monolito, o `planning-ai-service` passou a
+  atualizar localmente o `planejamento_ia_conteudo_gerado` com `status`,
+  `aprovadoPeloProfessor`, `versao`, `conteudo`, `hashConteudo` e `updatedAt`;
+- quando a versao aprovada ja existir na persistencia propria, o servico tambem
+  atualiza localmente o texto da `planejamento_ia_conteudo_versao` e registra o
+  `alteradoPor` a partir do contexto interno;
+- em caso de erro do downstream, o comportamento externo continua igual e nada
+  e persistido localmente;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`.
+
+Contagem regressiva do novo ciclo fechado de escritas remanescentes do
+`planning-ai-service`: 2 fases restantes no escopo fechado atual.
+
+### Fase 167 - Enriquecimento do read model local com descricoes derivadas
+
+Entregue nesta fase:
+
+- o read model local do `planning-ai-service` passou a preencher
+  `statusDescricao` e `tipoConteudoDescricao` sem depender do payload descritivo
+  do monolito para os fluxos locais de conteudo e biblioteca;
+- foram introduzidos mapeamentos locais deterministas para os codigos hoje
+  usados no recorte (`GERADO`, `EM_EDICAO`, `APROVADO`, `ATIVIDADE`,
+  `PLANO_AULA`, `AVALIACAO`, `RESUMO`);
+- essa etapa nao alterou contratos publicos nem abriu dependencias adicionais
+  com outros servicos para nomes de escola, professor ou disciplina;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo respostas locais ja enriquecidas.
+
+Contagem regressiva do novo ciclo fechado de escritas remanescentes do
+`planning-ai-service`: 1 fase restante no escopo fechado atual.
+
+### Fase 168 - Fechamento do ciclo de escritas remanescentes do `planning-ai-service`
+
+Entregue nesta fase:
+
+- foi concluido o ciclo fechado das escritas remanescentes planejadas para o
+  `planning-ai-service`, cobrindo criacao de versao, aprovacao local coerente e
+  enriquecimento minimo do read model local associado;
+- a validacao final permaneceu restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, sem alterar frontend, BFF ou contratos
+  publicos nesta etapa;
+- com esta fase, o `planning-ai-service` encerra o recorte atual com leitura e
+  persistencia propria incremental estabilizadas para geracao, conteudo,
+  versoes e biblioteca, ainda mantendo fallback controlado ao monolito onde o
+  historico local nao existir.
+
+Contagem regressiva do novo ciclo fechado de escritas remanescentes do
+`planning-ai-service`: 0 fases restantes no escopo fechado atual.
+
+### Fase 169 - Hidratacao local progressiva apos fallback de leitura no `planning-ai-service`
+
+Entregue nesta fase:
+
+- foi aberto um novo ciclo tecnico fechado de autonomia final do
+  `planning-ai-service`, voltado a reduzir dependencias recorrentes do
+  monolito nas leituras internas ainda cobertas por fallback;
+- quando `GET /internal/v1/ia/interacoes`,
+  `GET /internal/v1/ia/conteudos`,
+  `GET /internal/v1/ia/conteudos/{conteudoId}` e
+  `GET /internal/v1/ia/conteudos/{conteudoId}/versoes` precisam buscar o
+  payload oficial no monolito por ausencia local, o servico agora hidrata de
+  forma aditiva a persistencia propria com o resultado recebido;
+- com isso, a primeira resposta continua preservando o contrato externo atual e
+  as leituras seguintes do mesmo recorte podem ser atendidas localmente sem
+  novo downstream, sempre restritas por `escolaId`;
+- a hidratacao da biblioteca pedagogica nao foi aberta nesta fase porque o
+  contrato oficial atual de fallback nao expõe `conteudoOrigemId`, entao ainda
+  nao existe chave segura para popular localmente
+  `biblioteca_conteudo_pedagogico` a partir dessa leitura;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo fallback inicial com gravacao
+  local aditiva e segunda leitura servida pela base propria.
+
+Contagem regressiva do novo ciclo fechado de autonomia final do
+`planning-ai-service`: 5 fases restantes no escopo fechado atual.
+
+### Fase 170 - Hidratacao local da biblioteca pedagogica apos fallback de leitura
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a hidratar localmente tambem a leitura interna
+  `GET /internal/v1/biblioteca-conteudos-pedagogicos` quando o recorte ainda
+  nao existir na base propria e for necessario consultar o contrato oficial do
+  monolito;
+- para viabilizar essa sincronizacao sem heuristica frágil e sem alterar os
+  contratos externos existentes, a persistencia local passou a aceitar
+  `id_conteudo_origem` nulo apenas para registros de biblioteca vindos desse
+  fallback legado;
+- com isso, a primeira resposta continua preservando o contrato atual da
+  biblioteca, e as consultas seguintes do mesmo filtro podem ser atendidas pela
+  base propria sem novo downstream;
+- as publicacoes locais ja existentes continuam gravando `conteudoOrigem`
+  normalmente quando o vinculo de origem existir no servico novo;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo migration incremental,
+  persistencia sincronizada sem `conteudoOrigem` e segunda leitura servida
+  localmente.
+
+Contagem regressiva do novo ciclo fechado de autonomia final do
+`planning-ai-service`: 4 fases restantes no escopo fechado atual.
+
+### Fase 171 - Persistencia local de metadados descritivos do read model
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a persistir no read model local os metadados
+  descritivos que ja chegam no payload oficial do monolito, sem introduzir
+  novas dependencias com outros servicos;
+- `planejamento_ia_interacao` e `planejamento_ia_conteudo_gerado` passaram a
+  guardar `escolaNome`, e `biblioteca_conteudo_pedagogico` passou a guardar
+  `escolaNome`, `professorNome` e `disciplinaNome`;
+- a sincronizacao por fallback e as gravacoes aditivas ja existentes passaram a
+  preencher esses campos, permitindo que a segunda leitura local preserve os
+  mesmos nomes descritivos ja recebidos na primeira resposta oficial;
+- com isso, o servico reduz mais um gap funcional do fallback: a leitura local
+  deixa de perder nomes de escola, professor e disciplina em recortes ja
+  hidratados;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo migration incremental,
+  persistencia dos novos campos e leituras locais reaproveitando esses nomes.
+
+Contagem regressiva do novo ciclo fechado de autonomia final do
+`planning-ai-service`: 3 fases restantes no escopo fechado atual.
+
+### Fase 172 - Estado de sincronizacao para listas vazias do read model local
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a persistir estado de sincronizacao por escopo
+  de leitura para listas internas, cobrindo interacoes por planejamento,
+  conteudos por planejamento, versoes por conteudo e filtros da biblioteca;
+- com isso, quando o contrato oficial do monolito responde lista vazia, o
+  servico registra que aquele escopo ja foi sincronizado e deixa de repetir
+  fallback desnecessario nas leituras seguintes identicas;
+- a leitura local continua prioritaria quando houver dados, e agora tambem pode
+  responder vazio de forma local quando o snapshot oficial ja confirmou ausencia
+  de registros naquele recorte;
+- essa etapa nao abriu cache de `404` por ID nem alterou contratos externos; o
+  foco ficou restrito ao menor gap remanescente de fallback repetido em listas;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo migration incremental,
+  persistencia do estado de sync e segunda leitura vazia sem novo downstream.
+
+Contagem regressiva do novo ciclo fechado de autonomia final do
+`planning-ai-service`: 2 fases restantes no escopo fechado atual.
+
+### Fase 173 - Estado de ausencia confirmada para leitura por ID de conteudo IA
+
+Entregue nesta fase:
+
+- o `planning-ai-service` passou a registrar ausencia confirmada para
+  `GET /internal/v1/ia/conteudos/{conteudoId}` quando o contrato oficial do
+  monolito responde `404 RESOURCE_NOT_FOUND`;
+- com isso, buscas seguintes para o mesmo `conteudoId` e `escolaId` passam a
+  devolver o mesmo `404` diretamente do servico novo, sem novo fallback
+  desnecessario;
+- a leitura local continua tendo prioridade absoluta: se o conteudo existir na
+  persistencia propria, a resposta segue local mesmo que tenha havido ausencia
+  confirmada anteriormente;
+- esta fase ficou restrita ao recorte de leitura por ID de conteudo IA e nao
+  abriu cache equivalente para outros `404` ainda;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo primeira ausencia via monolito e
+  segunda ausencia servida localmente sem novo downstream.
+
+Contagem regressiva do novo ciclo fechado de autonomia final do
+`planning-ai-service`: 1 fase restante no escopo fechado atual.
+
+### Fase 174 - Fechamento do ciclo de autonomia final de leitura do `planning-ai-service`
+
+Entregue nesta fase:
+
+- o `planning-ai-service` estendeu o controle de ausencia confirmada tambem
+  para `GET /internal/v1/ia/conteudos/{conteudoId}/versoes` quando o monolito
+  responde `404 RESOURCE_NOT_FOUND` para o conteudo base;
+- com isso, a segunda consulta de versoes para o mesmo `conteudoId` e
+  `escolaId` devolve o mesmo `404` diretamente do servico novo, sem repetir
+  fallback desnecessario;
+- o comportamento local continua prioritario: se o conteudo e suas versoes
+  existirem na base propria, a resposta segue local, independentemente de
+  ausencia confirmada anterior;
+- com esta fase, o ciclo fechado de autonomia final do `planning-ai-service`
+  fica concluido no recorte planejado atual, cobrindo hidratacao local,
+  preservacao de metadados descritivos, listas vazias sincronizadas e ausencias
+  confirmadas nos recortes de leitura por ID mais estaveis;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl planning-ai-service test`, cobrindo a nova ausencia confirmada de
+  versoes e a regressao completa do modulo.
+
+Contagem regressiva do novo ciclo fechado de autonomia final do
+`planning-ai-service`: 0 fases restantes no escopo fechado atual.
+
+### Novo ciclo fechado priorizado apos o `planning-ai-service`
+
+Contagem fechada definida para o proximo bloco de desenvolvimento backend:
+
+1. `identity-access-service`: 10 fases (`175` a `184`).
+2. `institutional-tenant-service`: 8 fases (`185` a `192`).
+3. `dashboard-query-service`: 10 fases (`193` a `202`).
+4. `academic-catalog-service`: 4 fases residuais (`203` a `206`).
+
+Esse novo ciclo totaliza 32 fases fechadas de evolucao backend priorizada apos
+o encerramento do recorte atual do `planning-ai-service`.
+
+### Fase 175 - Contexto autenticado interno no `identity-access-service`
+
+Entregue nesta fase:
+
+- foi iniciada a nova sequencia fechada do `identity-access-service` pelo menor
+  recorte remanescente de baixo risco: a leitura interna de contexto
+  autenticado atual;
+- o servico novo passou a publicar
+  `GET /internal/v1/auth/contexto-atual`, preservando o monolito como
+  autoridade funcional nesta etapa e sem abrir ainda `login`, `refresh` ou
+  `logout` no codigo novo;
+- o contrato interno reutiliza o payload ja estabilizado de
+  `AuthContextResponse`, reduzindo o gap para retirar o BFF da dependencia
+  direta do endpoint publico `/api/auth/contexto-atual` do monolito nas
+  proximas fases;
+- a fase permaneceu estritamente backend/backend, sem mudar contratos externos,
+  sem cutover do BFF e sem migracao de persistencia;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl identity-access-service test`, cobrindo o novo endpoint interno,
+  propagacao do bearer e a regressao do modulo.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 9 fases
+restantes no escopo fechado atual.
+
+### Fase 176 - Cutover do contexto autenticado do bloco oficial de `identity/tenant`
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a resolver o contexto autenticado do bloco
+  oficial ja migrado (`GET /api/auth/escolas`,
+  `POST /api/auth/escola-ativa` e `GET /api/auth/tenant/ativa`) consumindo
+  `GET /internal/v1/auth/contexto-atual` no `identity-access-service`;
+- para manter o menor recorte seguro, a troca foi isolada a esse bloco
+  `identity/tenant`, sem substituir ainda o resolvedor global de contexto usado
+  pelos demais dominios do BFF;
+- foi criado cliente HTTP dedicado no BFF para contexto interno de
+  `identity-access-service`, com token interno proprio e preservacao de bearer e
+  correlation ID;
+- o fallback operacional existente permaneceu inalterado: se
+  `identity-access-service` ou `institutional-tenant-service` falharem, o BFF
+  continua retornando ao contrato do monolito ja usado como rollback;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=AuthSessionProxyIntegrationTest,AuthSessionFallbackIntegrationTest,InstitutionalTenantReadProxyIntegrationTest" test`,
+  cobrindo o novo contexto interno e o fallback do bloco oficial.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 8 fases
+restantes no escopo fechado atual.
+
+### Fase 177 - Contexto interno oficial para leituras de `people` e catalogo no BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a resolver o contexto autenticado via
+  `identity-access-service` tambem nos proxies de leitura mais estaveis e
+  reutilizados de `people-service` e `academic-catalog-service`;
+- o recorte cobriu as leituras oficiais de catalogo academico roteadas por
+  cutover e as leituras oficiais de pessoas ja estabilizadas no BFF, sem tocar
+  ainda os blocos de escrita, `planning-ai-service`, `pedagogical-service` ou
+  `enrollment-document-service`;
+- foi introduzida a porta interna mais geral `InternalAuthContextPort`,
+  reaproveitando o cliente HTTP ja aberto na fase anterior para o
+  `identity-access-service` e removendo o acoplamento do nome
+  `IdentityTenant` desses novos consumidores de leitura;
+- com isso, as leituras oficiais de `people-service` e
+  `academic-catalog-service` deixam de depender diretamente de
+  `/api/auth/contexto-atual` no monolito para montar `X-Usuario-Id` e
+  `X-Escola-Id`;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=CatalogReadRoutingServiceTest,CatalogReadCutoverIntegrationTest,PessoaCatalogReadProxyIntegrationTest,PessoaDetailReadProxyIntegrationTest,FuncionarioReadProxyIntegrationTest,ProfessorReadProxyIntegrationTest,AlunoResponsavelReadProxyIntegrationTest" test`,
+  cobrindo people, catalogo e a regressao unitaria do roteador de cutover.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 7 fases
+restantes no escopo fechado atual.
+
+### Fase 178 - Contexto interno oficial para leituras de `enrollment-document` e pedagogico read-only
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a resolver o contexto autenticado via
+  `identity-access-service` tambem nas leituras oficiais de
+  `enrollment-document-service`;
+- no bloco pedagogico, a troca foi aplicada apenas aos proxies de leitura com
+  servico dedicado (`boletim`, `diario-classe` e `historico-escolar`), sem
+  tocar `aula` e `avaliacao` porque esses fluxos ainda compartilham classe com
+  escrita;
+- com isso, `escolas-origem`, `transferencias`, `documentos`, `documentos de
+  aluno`, `matriculas`, `boletim`, `diario-classe` e `historico-escolar`
+  deixam de depender diretamente de `/api/auth/contexto-atual` no monolito para
+  montar headers internos;
+- a fase permaneceu estritamente read-only no BFF: nao houve mudanca de
+  contratos externos, nao houve alteracao de escrita e nao houve expansao para
+  `planning-ai-service` nesta etapa;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=EscolaOrigemReadProxyIntegrationTest,TransferenciaReadProxyIntegrationTest,DocumentoAlunoReadProxyIntegrationTest,DocumentoReadProxyIntegrationTest,MatriculaReadProxyIntegrationTest,PedagogicalBoletimReadProxyIntegrationTest,PedagogicalDiarioClasseReadProxyIntegrationTest,PedagogicalHistoricoEscolarReadProxyIntegrationTest" test`,
+  cobrindo todo o recorte desta fase.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 6 fases
+restantes no escopo fechado atual.
+
+### Fase 179 - Contexto interno oficial para leituras de `planning-ai-service`
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a resolver o contexto autenticado via
+  `identity-access-service` tambem nas leituras oficiais de
+  `planning-ai-service`;
+- a troca foi aplicada apenas aos proxies read-only ja desacoplados por
+  servico: `biblioteca`, `interacoes`, `conteudos`, `conteudo por id` e
+  `versoes`;
+- com isso, o bloco oficial de leitura de planejamento e conteudo IA deixa de
+  depender diretamente de `/api/auth/contexto-atual` no monolito para montar
+  headers internos;
+- `aula` e `avaliacao` permaneceram fora desta fase porque os proxies atuais no
+  BFF ainda misturam leitura e escrita na mesma classe, o que violaria o
+  recorte read-only desta etapa;
+- a fase permaneceu estritamente read-only no BFF: nao houve mudanca de
+  contratos externos, nao houve alteracao de escrita e nao houve refatoracao
+  ampla dos proxies pedagogicos mistos;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PlanningAiBibliotecaReadProxyIntegrationTest,PlanningAiConteudoReadProxyIntegrationTest,PlanningAiConteudoDetailReadProxyIntegrationTest,PlanningAiConteudoVersaoReadProxyIntegrationTest,PlanningAiInteracaoReadProxyIntegrationTest" test`,
+  cobrindo todo o recorte desta fase.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 5 fases
+restantes no escopo fechado atual.
+
+### Fase 180 - Separacao read/write do proxy de `aula` no BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` deixou de concentrar leitura e escrita de `aula`
+  na mesma classe, com separacao fisica entre `AulaReadProxyService` e
+  `AulaWriteProxyService`;
+- o contrato de leitura oficial de `aula` passou a resolver o contexto
+  autenticado via `identity-access-service`, enquanto os fluxos de escrita
+  permaneceram no `AuthContextPort` legado sem mudanca de contrato externo;
+- a mudanca preservou o mesmo `PedagogicalAulaPort`, evitando refatoracao ampla
+  no client HTTP e mantendo o recorte restrito ao desacoplamento do caso de uso
+  no BFF;
+- com isso, `listar aula`, `buscar aula por id`, `listar frequencia do
+  professor` e `listar frequencias de alunos` deixam de depender diretamente de
+  `/api/auth/contexto-atual` no monolito;
+- a fase continuou sem alterar frontend, sem migrar escrita e sem tocar ainda o
+  proxy misto de `avaliacao`;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PedagogicalAulaProxyIntegrationTest" test`,
+  cobrindo leitura e escrita de `aula` apos a separacao.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 4 fases
+restantes no escopo fechado atual.
+
+### Fase 181 - Separacao read/write do proxy de `avaliacao` no BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` deixou de concentrar leitura e escrita de
+  `avaliacao` na mesma classe, com separacao fisica entre
+  `AvaliacaoReadProxyService` e `AvaliacaoWriteProxyService`;
+- o contrato de leitura oficial de `avaliacao` passou a resolver o contexto
+  autenticado via `identity-access-service`, enquanto a criacao de avaliacao e
+  o lancamento de nota permaneceram no `AuthContextPort` legado sem mudanca de
+  contrato externo;
+- a mudanca preservou o mesmo `PedagogicalAvaliacaoPort`, mantendo o recorte
+  estritamente no desacoplamento do caso de uso no BFF e sem refatoracao ampla
+  do client HTTP;
+- com isso, `listar avaliacao`, `buscar avaliacao por id`, `listar notas por
+  avaliacao` e `listar notas por matricula` deixam de depender diretamente de
+  `/api/auth/contexto-atual` no monolito;
+- a fase continuou sem alterar frontend e sem migrar escrita, fechando o ultimo
+  proxy pedagogico oficial que ainda misturava leitura e escrita no mesmo
+  servico do BFF;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PedagogicalAvaliacaoProxyIntegrationTest" test`,
+  cobrindo leitura e escrita de `avaliacao` apos a separacao.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 3 fases
+restantes no escopo fechado atual.
+
+### Fase 182 - Consolidacao objetiva do ciclo read-only pedagogico no BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a validar `aula` e `avaliacao` com suites de
+  integracao separadas entre leitura e escrita, removendo a ambiguidade dos
+  testes mistos anteriores;
+- os testes read-only de `aula` e `avaliacao` agora provam explicitamente que o
+  contexto autenticado vem de `identity-access-service`, e tambem que nao ha
+  chamada ao endpoint publico legado `/api/auth/contexto-atual` do monolito
+  nesses fluxos;
+- os testes de escrita de `aula` e `avaliacao` passaram a provar o comportamento
+  complementar: escrita continua no `AuthContextPort` legado, sem tocar ainda o
+  contrato externo dessa parte do bloco pedagogico;
+- com isso, o bloco oficial pedagogico de leitura no BFF fica consolidado com
+  evidencias objetivas para `boletim`, `diario-classe`, `historico-escolar`,
+  `aula` e `avaliacao`, todos desacoplados da resolucao publica de contexto do
+  monolito;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contratos publicos e sem migracao de escrita;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PedagogicalAulaReadProxyIntegrationTest,PedagogicalAulaWriteProxyIntegrationTest,PedagogicalAvaliacaoReadProxyIntegrationTest,PedagogicalAvaliacaoWriteProxyIntegrationTest" test`.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 2 fases
+restantes no escopo fechado atual.
+
+### Fase 183 - Verificacao transversal do bloco pedagogico oficial de leitura
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a ter verificacoes explicitas de que todo o
+  bloco pedagogico oficial de leitura resolve contexto por
+  `identity-access-service` e nao toca o endpoint publico legado
+  `/api/auth/contexto-atual` do monolito;
+- `boletim`, `diario-classe` e `historico-escolar` receberam o mesmo nivel de
+  prova objetiva que ja havia sido aplicado na consolidacao de `aula` e
+  `avaliacao`, com assercoes sobre o path interno
+  `/internal/v1/auth/contexto-atual`, headers propagados e ausencia de chamadas
+  ao `MONOLITH`;
+- com isso, o bloco oficial pedagogico de leitura no BFF fica fechado nao
+  apenas em implementacao, mas tambem em cobertura de integracao transversal
+  coerente para os cinco contratos read-only oficiais do dominio;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem mudanca de
+  contratos publicos e sem migracao de escrita;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=PedagogicalBoletimReadProxyIntegrationTest,PedagogicalDiarioClasseReadProxyIntegrationTest,PedagogicalHistoricoEscolarReadProxyIntegrationTest,PedagogicalAulaReadProxyIntegrationTest,PedagogicalAvaliacaoReadProxyIntegrationTest" test`.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 1 fase
+restante no escopo fechado atual.
+
+### Fase 184 - Oficializacao final do ciclo de leitura desacoplada no BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a ter uma suite oficial unica de validacao
+  do estado final de leitura desacoplada no BFF:
+  `OfficialReadContextDecouplingIntegrationSuiteTest`;
+- essa suite consolida a verificacao dos contratos oficiais de leitura do bloco
+  pedagogico ja desacoplado (`boletim`, `diario-classe`, `historico-escolar`,
+  `aula` e `avaliacao`), servindo como ponto unico e explicito de oficializacao
+  do ciclo no modulo;
+- com isso, o encerramento do ciclo do `identity-access-service` no BFF deixa
+  de depender apenas de comandos manuais dispersos e passa a ter um artefato
+  tecnico nominal, reexecutavel e alinhado ao recorte oficializado;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contratos publicos e sem migracao de escrita;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=OfficialReadContextDecouplingIntegrationSuiteTest" test`,
+  resultando em `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `identity-access-service`: 0 fases
+restantes no escopo fechado atual.
+
+### Fase 185 - Primeiro bloco oficial de leitura do `institutional-tenant-service`
+
+Entregue nesta fase:
+
+- foi iniciada a sequencia fechada do `institutional-tenant-service` pelo menor
+  recorte oficial ja exposto no BFF: a leitura de `tenant ativo`;
+- o `school-management-bff` passou a contar com a suite nominal
+  `InstitutionalTenantOfficialReadIntegrationSuiteTest` como artefato oficial do
+  primeiro bloco desse novo ciclo;
+- o teste da leitura oficial de `tenant ativo` foi reforcado para provar nao
+  apenas o uso de `identity-access-service` e do
+  `institutional-tenant-service`, mas tambem a ausencia de chamadas ao
+  `MONOLITH` no caminho bem-sucedido;
+- com isso, o primeiro contrato oficial do `institutional-tenant-service` fica
+  materializado com validacao nomeada, reexecutavel e alinhada ao criterio de
+  desacoplamento usado no encerramento do ciclo anterior;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contratos publicos e sem mexer ainda em `escola ativa`;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialReadIntegrationSuiteTest" test`,
+  resultando em `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 7
+fases restantes no escopo fechado atual.
+
+### Fase 186 - Segundo bloco oficial de multiescola para `escola ativa`
+
+Entregue nesta fase:
+
+- foi aberto o segundo recorte natural do `institutional-tenant-service` no
+  BFF, agora voltado ao fluxo oficial de `escola ativa`;
+- o `school-management-bff` recebeu a suite
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest` como artefato
+  nominal do bloco multiescola de sessao oficial;
+- o teste de sucesso da troca oficial de escola ativa foi reforcado para provar
+  a propagacao dos headers internos derivados do contexto autenticado e a
+  ausencia de chamadas ao `MONOLITH` quando o fluxo segue pelo servico novo;
+- a suite tambem cobre o fallback controlado para o legado quando
+  `identity-access-service` falha na troca de escola ativa, preservando o
+  comportamento operacional previsto no cutover;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contratos publicos e sem avancar ainda para novos contratos institucionais;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest" test`,
+  resultando em `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 6
+fases restantes no escopo fechado atual.
+
+### Fase 187 - Suite consolidada do bloco multiescola oficial no BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a contar com uma suite consolidada unica do
+  bloco multiescola oficial ja desacoplado:
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest`;
+- essa suite unifica, sob um mesmo ponto nominal de validacao, os contratos
+  oficiais de `tenant ativo` e `escola ativa`, incluindo sucesso no servico
+  novo e fallback controlado para o legado quando previsto pelo cutover;
+- com isso, o ciclo do `institutional-tenant-service` deixa de depender de duas
+  suites dispersas para o bloco multiescola basico e passa a ter um artefato
+  tecnico unico, reexecutavel e alinhado ao padrao adotado no encerramento do
+  ciclo do `identity-access-service`;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contratos publicos e sem abrir ainda novos recortes institucionais;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialContextIntegrationSuiteTest" test`,
+  resultando em `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 5
+fases restantes no escopo fechado atual.
+
+### Fase 188 - Oficializacao da listagem de escolas de sessao pelo `institutional-tenant-service`
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a oficializar o contrato publico
+  `GET /api/auth/escolas` pelo `institutional-tenant-service`, mantendo o
+  `identity-access-service` apenas como origem do contexto autenticado usado na
+  chamada interna;
+- o proxy de sessao do BFF foi ajustado para separar explicitamente o papel de
+  resolucao de contexto (`identity-access-service`) do papel de leitura
+  institucional (`institutional-tenant-service`) na listagem oficial de escolas;
+- a integracao interna do `institutional-tenant-service` no BFF passou a cobrir
+  o contrato `GET /internal/v1/tenant/escolas`, com propagacao dos headers
+  autenticados e token interno proprio do servico;
+- o fallback controlado para o legado foi preservado quando o
+  `institutional-tenant-service` falha nessa leitura, sem alterar ainda o fluxo
+  oficial de `escola ativa`, que permanece no recorte anterior desta macrofase;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contrato publico externo e sem refatoracao ampla fora do recorte integravel;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialContextIntegrationSuiteTest" test`,
+  resultando em `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 4
+fases restantes no escopo fechado atual.
+
+### Fase 189 - Endurecimento do fallback de contexto no bloco institucional oficial
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a separar explicitamente, no bloco
+  institucional oficial, a falha de resolucao de contexto em
+  `identity-access-service` da falha de leitura no
+  `institutional-tenant-service`, evitando que a observabilidade trate os dois
+  hops como se fossem o mesmo alvo;
+- os fluxos oficiais `GET /api/auth/escolas` e `GET /api/auth/tenant/ativa`
+  foram endurecidos para manter fallback controlado ao monolito tambem quando a
+  indisponibilidade ocorre antes da chamada institucional, ainda na resolucao de
+  `GET /internal/v1/auth/contexto-atual`;
+- os testes de integracao passaram a materializar esse caminho de fallback por
+  queda de `identity-access-service`, comprovando que o BFF retorna ao legado
+  sem acionar o `institutional-tenant-service` quando o contexto autenticado nao
+  pode ser resolvido;
+- foi adicionada cobertura unitaria objetiva para garantir que a
+  observabilidade registre `identity_access` como alvo da falha e do fallback
+  quando o erro acontece nesse hop, preservando `institutional_tenant` apenas
+  para a falha do segundo passo;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alterar
+  contrato publico externo e sem abrir ainda migracao de escrita de
+  `escola ativa`;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=AuthSessionFallbackIntegrationTest,InstitutionalTenantReadProxyIntegrationTest,IdentityTenantContextFallbackObservabilityTest" test`,
+  resultando em `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 3
+fases restantes no escopo fechado atual.
+
+### Fase 190 - Suite nominal unica do bloco institucional endurecido
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a contar com uma suite nominal unica para o
+  bloco institucional oficial ja endurecido:
+  `InstitutionalTenantOfficialResilienceSuiteTest`;
+- essa suite consolida, sob um ponto unico de validacao, os cenarios de leitura
+  oficial, fallback por falha do `institutional-tenant-service`, fallback por
+  indisponibilidade de `identity-access-service` na resolucao de contexto e a
+  verificacao objetiva da observabilidade desse hop;
+- com isso, o ciclo deixa de depender de uma combinacao manual entre classes de
+  integracao e teste unitario para revalidar a resiliencia do eixo multiescola
+  institucional ja oficializado;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contrato publico e sem abrir ainda migracao de escrita de `escola ativa`;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff "-Dtest=InstitutionalTenantOfficialResilienceSuiteTest" test`,
+  resultando em `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 2
+fases restantes no escopo fechado atual.
+
+### Fase 191 - Canonicalizacao das suites intermediarias no artefato oficial
+
+Entregue nesta fase:
+
+- as suites intermediarias historicas do ciclo
+  `InstitutionalTenantOfficialReadIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest` e
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest` passaram a atuar
+  como aliases explicitos do artefato canonico
+  `InstitutionalTenantOfficialResilienceSuiteTest`;
+- com isso, qualquer reexecucao operacional ainda apoiada nos nomes antigos
+  passa a validar exatamente o mesmo bloco institucional oficial endurecido, sem
+  fragmentar novamente a leitura do ciclo em suites parciais;
+- o `school-management-bff` fica com um unico ponto real de validacao do eixo
+  multiescola institucional, preservando compatibilidade nominal com os artefatos
+  criados nas fases anteriores;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem alteracao de
+  contrato publico e sem abrir migracao de escrita;
+- a validacao ficou restrita ao modulo tocado por reexecucao nominal
+  individual de `InstitutionalTenantOfficialReadIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest` e
+  `InstitutionalTenantOfficialResilienceSuiteTest`, todos resultando em
+  `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 1
+fase restante no escopo fechado atual.
+
+### Fase 192 - Oficializacao operacional final do ciclo institucional no BFF
+
+Entregue nesta fase:
+
+- o `school-management-bff` passou a tratar
+  `InstitutionalTenantOfficialResilienceSuiteTest` como referencia operacional
+  final do bloco institucional oficializado;
+- os aliases historicos
+  `InstitutionalTenantOfficialReadIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest` e
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest` foram mantidos apenas
+  por compatibilidade nominal e marcados como legado controlado dentro do
+  proprio codigo de teste;
+- com isso, o ciclo fechado do `institutional-tenant-service` termina com um
+  unico artefato canonico de revalidacao e tres entradas nominais herdadas, sem
+  reabrir fragmentacao tecnica nem alterar contrato publico;
+- a fase permaneceu restrita ao modulo tocado, sem frontend, sem mexer no
+  legado de negocio e sem abrir escrita migrada;
+- a validacao ficou restrita ao modulo tocado por reexecucao nominal
+  individual de `InstitutionalTenantOfficialReadIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialSchoolActiveIntegrationSuiteTest`,
+  `InstitutionalTenantOfficialContextIntegrationSuiteTest` e
+  `InstitutionalTenantOfficialResilienceSuiteTest`, todos resultando em
+  `BUILD SUCCESS`.
+
+Contagem regressiva do novo ciclo fechado do `institutional-tenant-service`: 0
+fases restantes no escopo fechado atual.
+
+### Fase 193 - Abertura oficial do `dashboard-query-service` pelo dashboard academico
+
+Entregue nesta fase:
+
+- foi iniciado o ciclo fechado do `dashboard-query-service` pelo menor recorte
+  publico de leitura ja isolado no monolito atual:
+  `GET /api/dashboard/academico`;
+- foi criado o modulo `dashboard-query-service` no monorepo com runtime minimo,
+  token interno, client dedicado ao monolito e contrato interno
+  `GET /internal/v1/dashboard/academico`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/academico` consumindo o novo servico, com preservacao de
+  bearer, correlation ID e contexto autenticado resolvido via
+  `identity-access-service`;
+- para manter o menor recorte seguro, o BFF ganhou fallback para o monolito
+  quando `identity-access-service` ou `dashboard-query-service` estiverem
+  indisponiveis, sem abrir ainda `frontend`, `snapshot`, `alerta`, `dashboard`
+  por publico, configuracao ou widgets;
+- a validacao ficou restrita aos modulos tocados com
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff "-Dtest=DashboardAcademicoReadProxyIntegrationTest" test`,
+  cobrindo contrato interno, propagacao de headers e fallback da primeira rota
+  oficial do novo servico.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 9 fases
+restantes no escopo fechado atual.
+
+### Fase 194 - Oficializacao da leitura de `dashboard/secretaria`
+
+Entregue nesta fase:
+
+- o `dashboard-query-service` passou a expor o segundo contrato interno oficial
+  do ciclo: `GET /internal/v1/dashboard/secretaria`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/secretaria` consumindo o novo servico, preservando
+  bearer, correlation ID e contexto autenticado resolvido via
+  `identity-access-service`;
+- o payload externo da secretaria foi preservado integralmente, incluindo os
+  indicadores especificos de matriculas em andamento, documentos pendentes,
+  transferencias e solicitacoes de exclusao;
+- o fallback operacional permaneceu no BFF para indisponibilidade de
+  `identity-access-service` ou `dashboard-query-service`, retornando ao
+  endpoint legado do monolito sem alterar contrato externo;
+- a validacao ficou restrita aos modulos tocados com
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff "-Dtest=DashboardSecretariaReadProxyIntegrationTest" test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 8 fases
+restantes no escopo fechado atual.
+
+### Fase 195 - Oficializacao da leitura de `dashboard/diretor`
+
+Entregue nesta fase:
+
+- o `dashboard-query-service` passou a expor o terceiro contrato interno
+  oficial do ciclo: `GET /internal/v1/dashboard/diretor`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/diretor` consumindo o novo servico, preservando bearer,
+  correlation ID e contexto autenticado resolvido via
+  `identity-access-service`;
+- o payload externo do diretor foi preservado integralmente, incluindo os
+  indicadores agregados de alunos, turmas, professores, aulas, avaliacoes e
+  pendencias operacionais;
+- o fallback operacional permaneceu no BFF para indisponibilidade de
+  `identity-access-service` ou `dashboard-query-service`, retornando ao
+  endpoint legado do monolito sem alterar contrato externo;
+- a validacao ficou restrita aos modulos tocados com
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff "-Dtest=DashboardDiretorReadProxyIntegrationTest" test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 7 fases
+restantes no escopo fechado atual.
+
+### Fase 196 - Oficializacao da leitura de `dashboard/professores/{professorId}`
+
+Entregue nesta fase:
+
+- o `dashboard-query-service` passou a expor o quarto contrato interno oficial
+  do ciclo: `GET /internal/v1/dashboard/professores/{professorId}`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/professores/{professorId}` consumindo o novo servico,
+  preservando bearer, correlation ID e contexto autenticado resolvido via
+  `identity-access-service`;
+- o payload externo do professor foi preservado integralmente, incluindo
+  indicadores de aulas, frequencias, avaliacoes, planejamentos e o bloco de
+  turmas vinculadas por professor;
+- o fallback operacional permaneceu no BFF para indisponibilidade de
+  `identity-access-service` ou `dashboard-query-service`, retornando ao
+  endpoint legado do monolito sem alterar contrato externo;
+- a validacao ficou restrita aos modulos tocados com
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff "-Dtest=DashboardProfessorReadProxyIntegrationTest" test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 6 fases
+restantes no escopo fechado atual.
+
+### Fase 197 - Oficializacao da leitura de `dashboard/alertas`
+
+Entregue nesta fase:
+
+- o `dashboard-query-service` passou a expor o quinto contrato interno oficial
+  do ciclo: `GET /internal/v1/dashboard/alertas`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/alertas`, preservando bearer, correlation ID, o
+  parametro `publicoCodigo` e o `professorId` opcional para o publico
+  `PROFESSOR`;
+- o payload externo de alertas foi preservado integralmente, incluindo
+  severidade, titulo, mensagem, valor e limite por alerta agregado;
+- o fallback operacional permaneceu no BFF para indisponibilidade de
+  `identity-access-service` ou `dashboard-query-service`, retornando ao
+  endpoint legado do monolito sem alterar contrato externo;
+- a validacao ficou restrita aos modulos tocados com
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff "-Dtest=DashboardAlertaReadProxyIntegrationTest" test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 5 fases
+restantes no escopo fechado atual.
+
+### Fase 198 - Oficializacao da leitura de `dashboard/frontend`
+
+- o `dashboard-query-service` passou a expor o sexto contrato interno oficial
+  do ciclo: `GET /internal/v1/dashboard/frontend`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/frontend`, preservando bearer, correlation ID, o
+  payload legado e os filtros opcionais `usuarioId` e `professorId`;
+- o fluxo continua somente de leitura, sem migracao de escrita de
+  configuracoes, snapshots ou administracao de dashboard nesta etapa;
+- o fallback para o monolito continua ativo quando falharem a resolucao de
+  contexto no `identity-access-service` ou a leitura no
+  `dashboard-query-service`, retornando ao endpoint legado
+  `/api/dashboard/frontend`;
+- validacao executada apenas nos modulos tocados:
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff -Dtest=DashboardFrontendReadProxyIntegrationTest test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 4 fases
+restantes no escopo fechado atual.
+
+### Fase 199 - Oficializacao da leitura de `dashboard/snapshots/publicos/{publicoCodigo}`
+
+- o `dashboard-query-service` passou a expor o setimo contrato interno oficial
+  do ciclo: `GET /internal/v1/dashboard/snapshots/publicos/{publicoCodigo}`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/snapshots/publicos/{publicoCodigo}`, preservando bearer,
+  correlation ID, payload legado e o filtro opcional `referenciaData`;
+- o recorte permaneceu estritamente read-only; historico, geracao e escrita de
+  snapshots continuam fora desta etapa;
+- o fallback para o monolito continua ativo quando falharem a resolucao de
+  contexto no `identity-access-service` ou a leitura no
+  `dashboard-query-service`, retornando ao endpoint legado
+  `/api/dashboard/snapshots/publicos/{publicoCodigo}`;
+- validacao executada apenas nos modulos tocados:
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff -Dtest=DashboardIndicadorSnapshotReadProxyIntegrationTest test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 3 fases
+restantes no escopo fechado atual.
+
+### Fase 200 - Oficializacao da leitura de `dashboard/snapshots/historico/publicos/{publicoCodigo}`
+
+- o `dashboard-query-service` passou a expor o oitavo contrato interno oficial
+  do ciclo: `GET /internal/v1/dashboard/snapshots/historico/publicos/{publicoCodigo}`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/snapshots/historico/publicos/{publicoCodigo}`,
+  preservando bearer, correlation ID, payload legado e os filtros opcionais
+  `codigoIndicador`, `dataInicio`, `dataFim` e `professorId`;
+- o recorte permaneceu estritamente read-only; geracao e escrita de snapshots
+  continuam fora desta etapa;
+- o fallback para o monolito continua ativo quando falharem a resolucao de
+  contexto no `identity-access-service` ou a leitura no
+  `dashboard-query-service`, retornando ao endpoint legado
+  `/api/dashboard/snapshots/historico/publicos/{publicoCodigo}`;
+- validacao executada apenas nos modulos tocados:
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff -Dtest=DashboardIndicadorHistoricoReadProxyIntegrationTest test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 2 fases
+restantes no escopo fechado atual.
+
+### Fase 201 - Oficializacao da leitura de `dashboard/configuracoes/publicos`
+
+- o `dashboard-query-service` passou a expor o nono contrato interno oficial do
+  ciclo: `GET /internal/v1/dashboard/configuracoes/publicos`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/configuracoes/publicos`, preservando bearer,
+  correlation ID e o payload legado da listagem de publicos;
+- o recorte permaneceu estritamente read-only; criacao, atualizacao e exclusao
+  de publicos, dashboards e widgets continuam fora desta etapa;
+- o fallback para o monolito continua ativo quando falharem a resolucao de
+  contexto no `identity-access-service` ou a leitura no
+  `dashboard-query-service`, retornando ao endpoint legado
+  `/api/dashboard/configuracoes/publicos`;
+- validacao executada apenas nos modulos tocados:
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff -Dtest=DashboardPublicoReadProxyIntegrationTest test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 1 fase
+restante no escopo fechado atual.
+
+### Fase 202 - Oficializacao da leitura de `dashboard/configuracoes/dashboards`
+
+- o `dashboard-query-service` passou a expor o decimo contrato interno oficial
+  do ciclo: `GET /internal/v1/dashboard/configuracoes/dashboards`;
+- o `school-management-bff` passou a oficializar
+  `GET /api/dashboard/configuracoes/dashboards`, preservando bearer,
+  correlation ID, payload legado e os filtros opcionais `publicoDashboardId`
+  e `publicoCodigo`;
+- o recorte permaneceu estritamente read-only; criacao, atualizacao e exclusao
+  de dashboards e widgets continuam fora desta etapa;
+- o fallback para o monolito continua ativo quando falharem a resolucao de
+  contexto no `identity-access-service` ou a leitura no
+  `dashboard-query-service`, retornando ao endpoint legado
+  `/api/dashboard/configuracoes/dashboards`;
+- validacao executada apenas nos modulos tocados:
+  `mvn -pl dashboard-query-service test` e
+  `mvn -pl school-management-bff -Dtest=DashboardConfiguracaoReadProxyIntegrationTest test`.
+
+Contagem regressiva do novo ciclo fechado do `dashboard-query-service`: 0 fases
+restantes no escopo fechado atual.
+
+### Fase 212 - Validacao operacional real do bootstrap local de `responsibles`
+
+- o `responsibles-service` passou a ordenar explicitamente o
+  `ResponsiblesReadModelMigrationRunner` antes do
+  `ResponsiblesReadModelSyncStartupRunner`, garantindo que o schema local exista
+  antes do primeiro ciclo controlado de backfill/reconciliacao;
+- foram adicionados testes operacionais de ponta a ponta para os dois estados
+  relevantes do recorte atual: cenario reconciliado verde com leitura local por
+  aluno sem chamada ao monolito, e cenario divergente com fallback funcional ao
+  endpoint legado;
+- o recorte continua estritamente read-only e sem oficializacao nova no
+  `school-management-bff`; esta fase apenas fecha a confiabilidade operacional
+  minima do bootstrap interno antes do proximo passo de desacoplamento;
+- validacao executada apenas no modulo tocado:
+  `mvn -pl responsibles-service clean test`.
+
+Contagem regressiva do ciclo fechado atual do `responsibles-service`: 2 fases
+restantes.
+
+### Fase 213 - Ativacao segura da leitura local de catalogo de `responsibles`
+
+- o `responsibles-service` passou a tratar a leitura de catalogo
+  (`GET /internal/v1/responsaveis` e `GET /internal/v1/responsaveis/{id}`)
+  como um recorte operacional separado da leitura de vinculos por aluno;
+- o estado local, o route guard e o health indicator passaram a expor
+  `catalogRouteReady`, permitindo usar o read model local de `responsavel`
+  quando apenas a tabela base estiver reconciliada, sem bloquear esse ganho por
+  divergencias ainda restritas a `parentesco` ou `aluno_responsavel`;
+- o `ResponsavelQueryService` passou a aplicar esse gate dedicado nas leituras
+  de catalogo, mantendo o fallback ao monolito quando o read model local nao
+  estiver pronto;
+- foram adicionados testes unitarios e operacionais cobrindo o cenario verde do
+  catalogo local, o cenario divergente com fallback e a independencia entre
+  rota de catalogo e rota por aluno;
+- validacao executada apenas no modulo tocado:
+  `mvn -pl responsibles-service clean test`.
+
+Contagem regressiva do ciclo fechado atual do `responsibles-service`: 1 fase
+restante.
+
+### Fase 214 - Fechamento externo seguro do ciclo de leitura de `responsibles`
+
+- o `school-management-bff` passou a fechar o recorte externo seguro de
+  `responsaveis` com fallback operacional ao monolito para os tres contratos
+  publicos ja mantidos no servico novo:
+  `GET /api/responsaveis`, `GET /api/responsaveis/{id}` e
+  `GET /api/alunos/{alunoId}/responsaveis`;
+- foram adicionados apenas ports e clients legados minimos no BFF para esse
+  fallback, sem abrir escrita, sem alterar contrato externo e sem criar um
+  framework novo de cutover;
+- `ResponsavelReadProxyService` e `AlunoResponsavelReadProxyService` passaram a
+  priorizar o `responsibles-service`, retornando ao monolito quando houver
+  indisponibilidade do servico novo, preservando continuidade funcional no
+  contrato publico;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff -Dtest=ResponsavelReadProxyIntegrationTest,AlunoResponsavelReadProxyIntegrationTest test`.
+
+Contagem regressiva do ciclo fechado atual do `responsibles-service`: 0 fases
+restantes.
+
+### Fase 215 - Abertura do ciclo residual de resiliencia externa do `pedagogical-service`
+
+- o `pedagogical-service` ja havia sido encerrado funcionalmente na `Fase 132`;
+  o novo ciclo aberto agora nao reabre escopo de dominio nem cria escrita nova:
+  ele trata apenas do fechamento operacional externo no `school-management-bff`;
+- para concluir esse fechamento residual com menor risco, o ciclo foi dividido
+  em 4 fases exatas:
+  1. fallback read-only de `boletim`, `diario-classe` e
+     `historico-escolar`;
+  2. fallback read-only de `aulas` e `avaliacoes`;
+  3. consolidacao dos testes objetivos de indisponibilidade do bloco de leitura
+     pedagogico;
+  4. fechamento documental do ciclo residual;
+- nesta primeira fase, o `school-management-bff` passou a tratar como recorte
+  externo seguro com fallback ao monolito os contratos
+  `GET /api/matriculas/{matriculaId}/boletim`,
+  `GET /api/matriculas/{matriculaId}/boletim/fechamentos`,
+  `GET /api/diarios-classe`,
+  `GET /api/historicos-escolares/novo` e
+  `GET /api/historicos-escolares/{id}/carregamento`;
+- foram adicionados apenas ports e clients legados minimos no BFF para esses
+  endpoints, sem alterar payloads externos, sem tocar frontend e sem criar
+  fallback de escrita;
+- `BoletimReadProxyService`, `DiarioClasseReadProxyService` e
+  `HistoricoEscolarReadProxyService` passaram a priorizar o
+  `pedagogical-service`, retornando ao monolito quando houver
+  indisponibilidade do servico novo, preservando o contrato publico atual;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff -Dtest=PedagogicalBoletimReadProxyIntegrationTest,PedagogicalDiarioClasseReadProxyIntegrationTest,PedagogicalHistoricoEscolarReadProxyIntegrationTest test`.
+
+Contagem regressiva do ciclo residual de resiliencia externa do
+`pedagogical-service`: 3 fases restantes.
+
+### Fase 216 - Fallback read-only de `aulas` e `avaliacoes` no `school-management-bff`
+
+- a segunda fase do ciclo residual do `pedagogical-service` fechou o fallback
+  read-only ao monolito para o restante do bloco publico de leitura de
+  `aulas` e `avaliacoes`, sem abrir escrita e sem alterar contratos externos;
+- o `school-management-bff` passou a tratar como recorte externo seguro com
+  fallback ao monolito os contratos `GET /api/aulas`,
+  `GET /api/aulas/{id}`,
+  `GET /api/aulas/{id}/frequencia-professor`,
+  `GET /api/aulas/{id}/frequencias-alunos`,
+  `GET /api/avaliacoes`,
+  `GET /api/avaliacoes/{id}`,
+  `GET /api/avaliacoes/{id}/notas` e
+  `GET /api/matriculas/{matriculaId}/notas`;
+- foram adicionados apenas ports e clients legados minimos no BFF para esses
+  endpoints, preservando o `pedagogical-service` como origem primaria e
+  retornando ao monolito somente em indisponibilidade do servico novo;
+- `AulaReadProxyService` e `AvaliacaoReadProxyService` passaram a priorizar o
+  `pedagogical-service`, com fallback controlado ao monolito nas leituras de
+  listagem, detalhe, frequencias e notas;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff -Dtest=PedagogicalAulaReadProxyIntegrationTest,PedagogicalAvaliacaoReadProxyIntegrationTest test`.
+
+Contagem regressiva do ciclo residual de resiliencia externa do
+`pedagogical-service`: 2 fases restantes.
+
+### Fase 217 - Consolidacao da validacao objetiva do bloco de leitura pedagogico
+
+- a terceira fase do ciclo residual do `pedagogical-service` consolidou a
+  validacao operacional do bloco oficial de leitura desacoplada no
+  `school-management-bff`, sem abrir novos contratos, sem mexer em escrita e
+  sem alterar o escopo funcional ja encerrado do servico;
+- foi oficializado como artefato unico desta consolidacao o
+  `OfficialReadContextDecouplingIntegrationSuiteTest`, reunindo os cenarios
+  de leitura de `boletim`, `diario-classe`, `historico-escolar`, `aulas` e
+  `avaliacoes`, inclusive com os fallbacks ao monolito exercitados nas fases
+  anteriores;
+- com isso, o bloco pedagogico de leitura passou a ter uma validacao unica e
+  objetiva de continuidade funcional externa no BFF para o recorte atualmente
+  desacoplado;
+- a validacao ficou restrita ao modulo tocado com
+  `mvn -pl school-management-bff -Dtest=OfficialReadContextDecouplingIntegrationSuiteTest test`.
+
+Contagem regressiva do ciclo residual de resiliencia externa do
+`pedagogical-service`: 1 fase restante.
+
+### Fase 218 - Fechamento documental do ciclo residual do `pedagogical-service`
+
+- a quarta e ultima fase do ciclo residual do `pedagogical-service` formalizou
+  o encerramento operacional deste recorte no plano v2, sem abrir novos
+  contratos, sem nova validacao funcional e sem reabrir o escopo de dominio ja
+  fechado na `Fase 132`;
+- com as `Fases 215` a `217`, o `school-management-bff` passou a ter fallback
+  read-only ao monolito para todo o bloco publico de leitura pedagogica hoje
+  desacoplado: `boletim`, `diario-classe`, `historico-escolar`, `aulas`,
+  `frequencias`, `avaliacoes` e `notas`;
+- a continuidade funcional externa desse recorte ficou consolidada por uma
+  validacao unica via
+  `OfficialReadContextDecouplingIntegrationSuiteTest`, suficiente para o
+  fechamento deste ciclo residual sem necessidade de nova alteracao em codigo;
+- com isso, o `pedagogical-service` fica operacionalmente encerrado tambem no
+  seu ciclo residual de resiliencia externa, restando apenas futuros retornos
+  se houver novo escopo deliberado fora deste fechamento.
+
+Contagem regressiva do ciclo residual de resiliencia externa do
+`pedagogical-service`: 0 fases restantes.
+
+## Ciclo fechado para desligamento total do `school-management-service`
+
+Estado atual consolidado em `2026-07-17`:
+
+- o monorepo ja possui runtimes Java para `identity-access-service`,
+  `institutional-tenant-service`, `academic-catalog-service`,
+  `academic-professor-service`, `people-service`, `responsibles-service`,
+  `enrollment-document-service`, `pedagogical-service`,
+  `planning-ai-service` e `dashboard-query-service`;
+- isso nao significa desligamento possivel do monolito, porque ainda existem
+  dependencias funcionais remanescentes em tres frentes:
+  1. contratos publicos ou internos ainda atendidos diretamente pelo
+     `school-management-service`;
+  2. leituras e escritas novas ainda protegidas por fallback/compatibilidade ao
+     monolito;
+  3. dominio de `professores` com runtime proprio fisico
+     (`academic-professor-service`), mas sem papel final consolidado no mapa
+     oficial de ownership do plano;
+- portanto, o desligamento total do `school-management-service` nao e uma
+  extensao automatica do estado atual: ele exige um novo ciclo fechado,
+  completo e deliberado.
+
+Definicao objetiva:
+
+- quantidade fechada para aposentadoria total do monolito:
+  **16 fases**;
+- criterio de pronto desse ciclo:
+  **nenhuma rota publica, nenhuma escrita oficial, nenhum fallback operacional,
+  nenhum adapter interno obrigatorio, nenhum job funcional e nenhuma chamada do
+  frontend/BFF podem depender do `school-management-service`**.
+
+### Fase D1 - Inventario final e prova de dependencia zero desejada
+
+- levantar a lista exata de tudo que ainda impede desligar o monolito:
+  rotas publicas, endpoints internos, escritas, jobs, backfills recorrentes,
+  fallbacks do BFF, consumidores frontend e dependencias cruzadas entre
+  servicos;
+- transformar esse inventario em matriz objetiva `rota -> dono final ->
+  dependencia atual -> acao faltante -> criterio de desligamento`.
+- conclusao operacional da fase:
+  - foi consolidado o inventario transversal do acoplamento residual ao
+    `school-management-service` no BFF e nos runtimes Java ativos do plano;
+  - o estado alvo de desligamento ficou provado de forma objetiva: o monolito
+    so podera ser desligado quando nao restarem proxies/fallbacks no BFF,
+    clientes diretos `Legacy*` ou `OrigemAtual*` nos servicos, nem runners de
+    migracao/backfill/reconciliacao dependentes da origem legada;
+  - a matriz abaixo passa a ser a fonte oficial do ciclo `D1` a `D16`.
+
+#### Matriz objetiva de dependencia residual
+
+| Rota ou fluxo atual | Dono final | Dependencia atual | Acao faltante | Criterio de desligamento |
+| --- | --- | --- | --- | --- |
+| `/api/auth/escolas`, `/api/auth/escola-ativa`, `/api/auth/tenant/ativa` | `identity-access-service` + `institutional-tenant-service` | `school-management-bff` ainda mantem cutover/fallback legado; `identity-access-service` usa `LegacySessaoAutenticadaClient`; `institutional-tenant-service` usa `LegacyTenantSessaoClient` | concluir `D4` e `D5`, removendo fallback no BFF e clientes legados nos dois servicos | BFF consumindo apenas contratos internos novos, sem `fallbackToLegacyOnError` nem `*_MONOLITH_BASE_URL` nesses fluxos |
+| `/api/periodos-letivos`, `/api/disciplinas`, `/api/series`, `/api/turmas`, `/api/turmas/{turmaId}/disciplinas` | `academic-catalog-service` | leituras no BFF ainda possuem `CatalogReadRoutingService` com fallback legado; escritas no BFF ainda roteiam para `LegacyPeriodoLetivoWritePort`, `LegacyDisciplinaWritePort`, `LegacySerieWritePort`, `LegacyTurmaWritePort` e `LegacyTurmaDisciplinaWritePort` | executar `D3` para leitura e `D6` para escrita/validacoes finais | nenhuma rota de catalogo no BFF pode referenciar porta `Legacy*` ou observabilidade `directLegacy` |
+| `/api/pessoas/**`, `/api/consulta-cadastral`, `/api/funcionarios/**` | `people-service` | `people-service` ainda usa `OrigemAtualPessoaReadClient` e `OrigemAtualPessoaAddressWriteClient`; BFF exposto sobre contrato novo, mas a autoridade de leitura/escrita ainda depende da origem legada em partes do dominio | executar `D7` para retirar leitura/escrita residual do monolito, inclusive endereco | `people-service` sem `PEOPLE_MONOLITH_BASE_URL`, sem fallback local e com leitura/escrita resolvidas localmente |
+| `/api/responsaveis`, `/api/responsaveis/{id}`, `/api/alunos/{alunoId}/responsaveis` | `responsibles-service` | BFF ainda mantem `ResponsavelReadProxyService` e `AlunoResponsavelReadProxyService` com portas legadas; `responsibles-service` ainda usa `OrigemAtualResponsavelReadClient` e backfill local por `source-url` | executar `D8`, removendo fallback do BFF e concluindo ownership local de leitura/escrita | BFF sem `LegacyResponsavelReadPort`/`LegacyAlunoResponsavelReadPort` e servico sem `RESPONSIBLES_MONOLITH_BASE_URL` nem `RESPONSIBLES_READ_MODEL_SOURCE_URL` |
+| `/api/professores/**` e alocacoes por professor/turma | `academic-professor-service` | ownership final fechado em `D9`; leitura/escrita locais ja operam sem clientes legados do monolito, usando apenas `people-service` como apoio cadastral e `academic-catalog-service` como referencia oficial de turma/turma-disciplina | concluido | nao resta `PROFESSOR_SHADOW_MONOLITH_BASE_URL`, client `Legacy*` nem fallback shadow em producao |
+| `/api/escolas-origem`, `/api/transferencias`, `/api/documentos-alunos/**`, `/api/matriculas`, `/api/documentos` | `enrollment-document-service` | ownership local concluido; leitura e escrita interna do bloco operam por persistencia propria do servico | concluido | nao resta `ENROLLMENT_DOCUMENT_MONOLITH_BASE_URL`, client `OrigemAtualTransferenciaClient` nem dependencia funcional do monolito no runtime do servico |
+| `/api/avaliacoes/**`, `/api/aulas/**`, `/api/diarios-classe/**`, `/api/historicos-escolares/**`, `/api/matriculas/{matriculaId}/boletim**` | `pedagogical-service` | ownership local concluido no runtime do servico para `aulas`, `frequencias`, `avaliacoes`, `notas`, `diario-classe`, `boletim` e `historicos-escolares` | concluido no servico; o endurecimento/remocao final de portas legadas do BFF segue como corte externo posterior | nao resta `PEDAGOGICAL_MONOLITH_BASE_URL`, client `OrigemAtual*` nem dependencia funcional do monolito no runtime do servico |
+| `/api/dashboard/**` | `dashboard-query-service` | ownership local concluido no servico: dashboards, configuracoes, snapshots, historico, alertas e agregacoes operam sobre projecoes PostgreSQL proprias | concluido no servico; o corte externo transversal segue em `D14` | nao resta `DASHBOARD_QUERY_MONOLITH_BASE_URL`, `RestClient` nem client `OrigemAtualPainel*` no runtime do servico |
+| `/api/biblioteca-conteudos-pedagogicos`, `/api/planejamentos-bimestrais/*/ia/**`, `/api/ia/conteudos/**` | `planning-ai-service` | ownership local concluido; leitura e escrita interna do bloco operam por persistencia propria do servico | concluido | nao resta `PLANNING_AI_MONOLITH_BASE_URL`, client `OrigemAtualPlanejamentoReadClient` nem sincronizacao funcional dependente do monolito |
+| Backfill e reconciliacao do read model de pessoas | `people-service` | `LeituraModeloMigrationRunner`, `LeituraModeloSyncStartupRunner`, `JdbcCatalogoReadModelSyncAdapter` e `PEOPLE_READ_MODEL_SOURCE_URL` ainda dependem da origem legada | desligar bootstrap/backfill quando a leitura local for soberana e sem reconciliacao externa | nenhuma feature runtime de pessoas pode exigir `source-url` do legado para subir ou operar |
+| Backfill e reconciliacao do read model de responsaveis | `responsibles-service` | `LeituraModeloMigrationRunner`, `LeituraModeloSyncStartupRunner`, `JdbcLeituraModeloSyncAdapter` e `RESPONSIBLES_READ_MODEL_SOURCE_URL` ainda dependem da origem legada | fechar `D8` retirando o ciclo controlado e substituindo por persistencia/ownership local definitivo | nenhuma feature runtime de responsaveis pode exigir sync/bootstrap com a base legada |
+| Migracao e shadow sync de professores | `academic-professor-service` | superficie shadow runtime encerrada; migracao recorrente, health legado e fallback funcional ja foram removidos | concluido | nenhum runner, reconciliacao runtime ou health legado de professor ativo para operacao normal |
+| Base URL legada central do BFF | `school-management-bff` | `MONOLITH_BASE_URL` ainda sustenta os clients `Legacy*` usados por rotas publicas sem ownership final migrado | remover os clients `Legacy*` e as politicas de cutover/fallback restantes | `school-management-bff` sem `MONOLITH_BASE_URL` e sem implementacoes `Legacy*Client` em uso operacional |
+
+- validacao executada no artefato de inventario:
+  - busca estrutural nos modulos ativos por `Legacy*`, `OrigemAtual*`,
+    `fallbackToLegacyOnError`, `ApplicationRunner`, `source-url` e
+    `*_MONOLITH_BASE_URL`;
+  - consolidacao das rotas publicas atuais do `school-management-bff` e dos
+    contratos internos ja expostos pelos servicos novos.
+
+### Fase D2 - Decisao final do dominio de `professores`
+
+- resolver explicitamente se o runtime `academic-professor-service`:
+  1. vira servico oficial do mapa final; ou
+  2. e absorvido formalmente por `people-service` e/ou `pedagogical-service`;
+- atualizar o ownership oficial das rotas de `professores`, alocacoes e leituras
+  auxiliares antes de qualquer desligamento do monolito.
+- decisao arquitetural oficial:
+  - o runtime `academic-professor-service` passa a ser o dono final oficial do
+    dominio `professor`, incluindo cadastro de professor, consulta por id,
+    listagem por escola, alocacao professor-turma-disciplina, listagem de
+    alocacoes, listagem por turma e exposicao de funcionarios elegiveis;
+  - `people-service` nao absorve o dominio `professor`: ele permanece como
+    provedor de apoio cadastral para `pessoa`, `funcionario` e elegibilidade,
+    sem ownership do agregado nem das alocacoes;
+  - `pedagogical-service` nao absorve o dominio `professor`: ele permanece
+    apenas como consumidor de `professorId` e
+    `professorTurmaDisciplinaId` dentro dos fluxos de aula, avaliacao,
+    frequencia, boletim, diario e historico.
+- justificativa objetiva da decisao:
+  - o `academic-professor-service` ja expoe, no contrato interno proprio,
+    leitura e escrita do agregado completo em
+    `POST /internal/v1/professores`,
+    `POST /internal/v1/professores/{id}/turmas-disciplinas`,
+    `GET /internal/v1/professores`,
+    `GET /internal/v1/professores/{id}`,
+    `GET /internal/v1/professores/{id}/turmas-disciplinas`,
+    `GET /internal/v1/turmas/{turmaId}/professores` e
+    `GET /internal/v1/professores/funcionarios-elegiveis`;
+  - o `people-service` hoje expoe apenas resumos cadastrais de professor e
+    funcionario dentro da fronteira de pessoas, o que caracteriza apoio de
+    identidade/cadastro, nao ownership do agregado academico `professor`;
+  - as alocacoes professor-turma-disciplina fazem fronteira direta com o
+    catalogo academico e com o consumo pedagogico, o que torna a consolidacao
+    em `academic-professor-service` mais coerente do que dividir ownership
+    entre `people-service` e `pedagogical-service`.
+- ownership oficial apos `D2`:
+
+| Bloco | Dono oficial | Papel dos demais servicos |
+| --- | --- | --- |
+| cadastro e leitura de `professor` | `academic-professor-service` | `people-service` fornece base cadastral/elegibilidade quando necessario |
+| alocacao `professor_turma_disciplina` | `academic-professor-service` | `academic-catalog-service` segue dono de turma/disciplina; `pedagogical-service` apenas consome as referencias |
+| funcionarios elegiveis para virar professor | `academic-professor-service` como fachada do dominio | `people-service` fornece o insumo cadastral subjacente |
+| aulas, avaliacoes, notas, frequencias, diarios, historicos e dashboards por professor | `pedagogical-service` e `dashboard-query-service` nos seus fluxos | consomem `professorId` e/ou `professorTurmaDisciplinaId` sem ownership do agregado |
+
+- impacto oficial nas proximas fases:
+  - `D9` deixa de ser fase de decisao e passa a ser fase de fechamento final
+    do owner ja definido `academic-professor-service`;
+- o `school-management-bff` devera ser reroteado em `D9` para consumir o
+  owner oficial do dominio de professores, eliminando o caminho publico que
+  hoje ainda le professor resumo via `people-service`;
+- qualquer documentacao anterior que associava o CRUD publico de
+  `professores` a `people-service` fica superada por esta decisao.
+- primeiro recorte executado em 17/07/2026:
+  o `school-management-bff` deixou de ler `GET /api/professores` e
+  `GET /api/professores/{id}` via `people-service` e passou a consumir
+  diretamente o owner oficial `academic-professor-service` pelos contratos
+  internos `GET /internal/v1/professores` e
+  `GET /internal/v1/professores/{id}`.
+- o contrato publico foi preservado sem alteracao de payload no BFF; a troca
+  ficou restrita ao adapter de leitura e as propriedades do client interno do
+  servico oficial.
+- validacao objetiva do primeiro recorte:
+  `mvn -pl school-management-bff "-Dtest=ProfessorReadControllerTest,ProfessorReadProxyIntegrationTest" test"`
+  com `BUILD SUCCESS`.
+- segundo recorte executado em 17/07/2026:
+  o `school-management-bff` passou a expor tambem
+  `GET /api/professores/{id}/turmas-disciplinas`,
+  `GET /api/turmas/{turmaId}/professores` e
+  `GET /api/professores/funcionarios-elegiveis` consumindo diretamente o
+  `academic-professor-service`.
+- o corte permaneceu estritamente read-only: sem escrita, sem alteracao de
+  payload publico e sem abrir escopo para dashboard ou fluxos pedagogicos.
+- validacao objetiva do segundo recorte:
+  `mvn -pl school-management-bff "-Dtest=ProfessorReadControllerTest,ProfessorReadProxyIntegrationTest,BearerAuthenticationWebFilterTest" test"`
+  com `BUILD SUCCESS`.
+- terceiro recorte executado em 17/07/2026:
+  o `school-management-bff` manteve `GET /api/dashboard/professores/{professorId}`
+  apontando para o `dashboard-query-service` como fluxo oficial e removeu o
+  adapter legado especifico (`LegacyPainelProfessorReadPort` /
+  `LegacyPainelProfessorReadClient`) que nao participava mais do runtime desse
+  dominio.
+- validacao objetiva do terceiro recorte:
+  `rg -n "LegacyPainelProfessorReadPort|LegacyPainelProfessorReadClient" school-management-bff/src/main/java school-management-bff/src/test/java`
+  sem ocorrencias de runtime ativo e
+  `mvn -pl school-management-bff "-Dtest=PainelProfessorReadProxyIntegrationTest" test"`
+  com `BUILD SUCCESS`.
+
+### Fase D3 - Eliminacao dos fallbacks read-only ainda existentes no BFF
+
+- remover, rota a rota, os fallbacks operacionais ao monolito hoje mantidos no
+  `school-management-bff` para leituras ja oficializadas nos servicos novos;
+- o criterio dessa fase e deixar o BFF dependente apenas dos servicos novos nos
+  fluxos que ja tiverem autonomia comprovada.
+- Fase concluida em `school-management-bff` para o bloco de leituras read-only
+  ja oficializado: `responsaveis`, `aluno-responsavel`, `consulta-cadastral`,
+  `boletim`, `aulas`, `avaliacoes`, `diario-classe`, `historico-escolar`,
+  `dashboard/**`, `tenant ativo`, `auth/escolas` e leituras de catalogo ja
+  publicadas pelo `academic-catalog-service`.
+- Os proxies de leitura do BFF deixaram de cair operacionalmente no monolito
+  quando o servico novo ou a resolucao oficial de contexto falha; nesses
+  cenarios o contrato externo passa a responder explicitamente
+  `503 CATALOG_UNAVAILABLE`.
+- A validacao da fase ficou concentrada no modulo tocado
+  `school-management-bff`, com suite direcionada de `83` testes verdes para o
+  recorte D3 e rerun do `mvn -pl school-management-bff test` para confirmar que
+  o endurecimento nao quebrou os demais fluxos do BFF.
+
+### Fase D4 - Fechamento final de `identity-access-service`
+
+- concluir tudo que ainda faltar para tirar do monolito a autoridade real de
+  autenticacao, sessoes, usuarios, perfis, permissoes e contratos internos
+  relacionados;
+- desligar qualquer dependencia residual do BFF ou de outros servicos do
+  endpoint legado de autenticacao do monolito.
+- primeiro recorte executado em 17/07/2026:
+  `GET /api/auth/escolas` e `POST /api/auth/escola-ativa` no
+  `school-management-bff` deixaram de manter retorno direto ao monolito,
+  removendo `LegacyAuthSessionPort` e `LegacyAuthSessionClient`;
+  `GET /api/auth/tenant/ativa` permanece explicitamente fora desse corte e
+  segue para `D5`.
+- segundo recorte executado em 17/07/2026:
+  `GET /internal/v1/auth/contexto-atual` passou a ser resolvido localmente no
+  `identity-access-service` por leitura direta de `sessao_autenticacao`,
+  `usuario` e `escola`, com fallback minimo para escola da sessao, escola do
+  usuario e escola padrao; com isso, `LegacySessaoAutenticadaClient` deixou de
+  depender do endpoint legado `/api/auth/contexto-atual`.
+- validacao objetiva do segundo recorte:
+  `mvn -pl identity-access-service -Dtest=SessaoInternaControllerIntegrationTest test`
+  e `mvn -pl identity-access-service test`, ambos com `BUILD SUCCESS`.
+
+### Fase D5 - Fechamento final de `institutional-tenant-service`
+
+- concluir a autonomia de escola ativa, tenant ativo, listagem institucional e
+  quaisquer fluxos restantes de contexto multiescola ainda protegidos por
+  compatibilidade com o legado;
+- remover fallback ao monolito desse bloco.
+- primeiro recorte executado em 17/07/2026:
+  o `institutional-tenant-service` deixou de depender do contrato legado
+  `GET /internal/auth/escolas`; `GET /internal/v1/tenant/escolas` passou a ler
+  localmente `usuario_escola` e `escola` a partir de `X-Usuario-Id` e
+  `X-Escola-Id`, e `GET /internal/v1/tenant/ativa` passou a derivar desse bloco
+  local com fallback minimo para a escola do contexto autenticado.
+- com isso, foram removidos do servico o adapter
+  `LegacyTenantSessaoClient`, as configuracoes HTTP legadas e a propriedade
+  `institutional-tenant.monolith.base-url`.
+- validacao objetiva do primeiro recorte:
+  `mvn -pl institutional-tenant-service -Dtest=TenantSessaoInternaControllerIntegrationTest test`
+  e `mvn -pl institutional-tenant-service test`, ambos com `BUILD SUCCESS`.
+- segundo recorte executado em 17/07/2026:
+  `GET /api/auth/tenant/ativa` no `school-management-bff` deixou de manter
+  qualquer retorno legado ao monolito e passou a operar exclusivamente pelo
+  fluxo oficial com `identity-access-service` e `institutional-tenant-service`.
+- com isso, foram removidos do BFF `LegacyTenantReadPort`,
+  `LegacyTenantReadClient` e a flag operacional dedicada
+  `auth-tenant-ativa` do bloco `identity-tenant-cutover`.
+- validacao objetiva do segundo recorte:
+  `mvn -pl school-management-bff "-Dtest=TenantAtivoReadProxyIntegrationTest,IdentityTenantContextFallbackObservabilityTest,IdentityTenantCutoverDeciderTest,IdentityTenantCutoverHealthIndicatorTest" test`
+  com `BUILD SUCCESS`.
+
+### Fase D6 - Fechamento final de `academic-catalog-service`
+
+- concluir o ownership completo do catalogo academico, incluindo leituras,
+  escritas oficiais remanescentes, validacoes cruzadas e remocao dos adapters
+  legados ainda necessarios;
+- garantir que nenhum fluxo academico dependa do monolito para catalogo.
+- primeiro recorte executado em 17/07/2026:
+  o `school-management-bff` deixou de manter no `CatalogReadRoutingService`
+  qualquer resposta direta ao monolito para as leituras oficiais do catalogo
+  academico, passando a tratar esse bloco como ownership fixo do
+  `academic-catalog-service`.
+- com isso, foram removidos do BFF `LegacyCatalogReadPort` e
+  `LegacyCatalogReadClient`; a resolucao de contexto autenticado permaneceu
+  oficial e o gate de relatorio reconciliado continuou restrito a seguranca
+  operacional da frente de escrita.
+- validacao objetiva do primeiro recorte:
+  `mvn -pl school-management-bff "-Dtest=CatalogReadRoutingServiceTest,CatalogReadCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`.
+- segundo recorte executado em 17/07/2026:
+  `POST /api/periodos-letivos` no `school-management-bff` deixou de manter
+  qualquer caminho legado e passou a operar exclusivamente como escrita oficial
+  do `academic-catalog-service`, com resolucao de contexto autenticado,
+  validacao de escopo de `escolaId` e ausencia de fallback ao monolito.
+- com isso, foram removidos do BFF `LegacyPeriodoLetivoWritePort`,
+  `LegacyPeriodoLetivoWriteClient` e o teste de integracao legado dedicado a
+  `periodos-letivos`.
+- validacao objetiva do segundo recorte:
+  `mvn -pl school-management-bff "-Dtest=PeriodoLetivoWriteRoutingServiceTest,PeriodoLetivoWriteCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`.
+- terceiro recorte executado em 17/07/2026:
+  `POST /api/disciplinas` no `school-management-bff` deixou de manter qualquer
+  caminho legado e passou a operar exclusivamente como escrita oficial do
+  `academic-catalog-service`, preservando resolucao de contexto autenticado,
+  validacao de escopo de `escolaId` e ausencia de fallback ao monolito tambem
+  para payload externo com `status="INATIVA"`.
+- para viabilizar esse corte minimo, o `academic-catalog-service` passou a
+  aceitar `ativo` opcional no comando interno de criacao de disciplina,
+  mantendo `true` como default e sem alterar o contrato publico do BFF.
+- com isso, foram removidos do BFF `LegacyDisciplinaWritePort`,
+  `LegacyDisciplinaWriteClient` e o teste de integracao legado dedicado a
+  `disciplinas`.
+- validacao objetiva do terceiro recorte:
+  `mvn -pl school-management-bff "-Dtest=DisciplinaWriteRoutingServiceTest,DisciplinaWriteCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`;
+  `mvn -pl academic-catalog-service -DskipTests compile` com `BUILD SUCCESS`;
+  `mvn -pl academic-catalog-service "-Dtest=ComandoControllerTest" test` com
+  `BUILD SUCCESS`.
+- observacao operacional:
+  `PersistenciaIT` e `OutboxPublisherIT` do `academic-catalog-service`
+  continuam dependentes de Docker/Testcontainers e nao puderam ser concluídos
+  neste ambiente local por indisponibilidade de runtime Docker.
+- quarto recorte executado em 17/07/2026:
+  `POST /api/series` no `school-management-bff` deixou de manter qualquer
+  caminho legado e passou a operar exclusivamente como escrita oficial do
+  `academic-catalog-service`, preservando resolucao de contexto autenticado,
+  validacao de escopo de `escolaId` e ausencia de fallback ao monolito.
+- a traducao de `nivelEnsino` para `nivelEnsinoId` permaneceu no BFF como
+  adaptacao minima de contrato, mas `nivelEnsino` ausente, invalido ou nao
+  resolvido pelo catalogo oficial passou a ser rejeitado explicitamente como
+  `INVALID_REQUEST`, sem reabrir a rota legada.
+- com isso, foram removidos do BFF `LegacySerieWritePort`,
+  `LegacySerieWriteClient` e o teste de integracao legado dedicado a `series`.
+- validacao objetiva do quarto recorte:
+  `mvn -pl school-management-bff "-Dtest=SerieWriteRoutingServiceTest,SerieWriteCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`.
+- quinto recorte executado em 17/07/2026:
+  `POST /api/turmas` no `school-management-bff` deixou de manter qualquer
+  caminho legado e passou a operar exclusivamente como escrita oficial do
+  `academic-catalog-service`, preservando resolucao de contexto autenticado,
+  validacao de escopo de `escolaId` e ausencia de fallback ao monolito.
+- a traducao de `turno` para `turnoId` permaneceu no BFF como adaptacao minima
+  de contrato, mas `turno` ausente, invalido ou nao resolvido pelo catalogo
+  oficial passou a ser rejeitado explicitamente como `INVALID_REQUEST`; quando
+  `status` vier preenchido, apenas `ATIVA` segue compativel com o contrato
+  oficial desta rota.
+- com isso, foram removidos do BFF `LegacyTurmaWritePort`,
+  `LegacyTurmaWriteClient` e o teste de integracao legado dedicado a `turmas`.
+- validacao objetiva do quinto recorte:
+  `mvn -pl school-management-bff "-Dtest=TurmaWriteRoutingServiceTest,TurmaWriteCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`.
+- sexto recorte executado em 17/07/2026:
+  `POST /api/turmas/{turmaId}/disciplinas` no `school-management-bff` deixou de
+  manter qualquer caminho legado e passou a operar exclusivamente como escrita
+  oficial do `academic-catalog-service`, com resolucao obrigatoria de contexto
+  autenticado, propagacao de `Idempotency-Key` e ausencia de fallback ao
+  monolito.
+- como o payload externo (`disciplinaId`, `cargaHoraria`) ja era compativel com
+  o owner oficial, nao houve necessidade de nova adaptacao de contrato no BFF
+  nem de extensao do `academic-catalog-service` para este corte.
+- com isso, foram removidos do BFF `LegacyTurmaDisciplinaWritePort`,
+  `LegacyTurmaDisciplinaWriteClient` e o teste de integracao legado dedicado a
+  `turmas/{turmaId}/disciplinas`.
+- validacao objetiva do sexto recorte:
+  `mvn -pl school-management-bff "-Dtest=TurmaDisciplinaWriteRoutingServiceTest,TurmaDisciplinaWriteCutoverIntegrationTest" test`
+  com `BUILD SUCCESS`.
+- fechamento complementar executado em 17/07/2026:
+  o `school-management-bff` removeu o codigo morto legado ainda remanescente
+  do catalogo (`LegacyDisciplinaClient` e abstractions antigas associadas) e
+  simplificou a observabilidade de leitura/escrita do bloco para o estado
+  oficial, sem contadores de `directLegacy` ou `fallback` nesse dominio.
+- validacao objetiva do fechamento complementar:
+  busca estrutural por `Legacy.*(Disciplina|PeriodoLetivo|Serie|Turma)` e por
+  `recordDirectLegacy|recordFallbackToLegacy` no bloco de catalogo do
+  `school-management-bff`, alem de
+  `mvn -pl school-management-bff "-Dtest=CatalogReadRoutingServiceTest,CatalogReadCutoverIntegrationTest,DisciplinaControllerTest,PeriodoLetivoWriteRoutingServiceTest,DisciplinaWriteRoutingServiceTest,SerieWriteRoutingServiceTest,TurmaWriteRoutingServiceTest,TurmaDisciplinaWriteRoutingServiceTest,TurmaDisciplinaWriteCutoverIntegrationTest" test"`
+  com `BUILD SUCCESS`.
+
+### Fase D7 - Fechamento final de `people-service`
+
+- concluir a autonomia efetiva de `pessoa`, `aluno`, `funcionario`,
+  `consultarCadastro`, `endereco`, contatos e demais fatias ainda mantidas com
+  fallback ou com autoridade de escrita no monolito;
+- fechar tambem a retirada das dependencias legadas de CEP e RH ainda presas ao
+  runtime antigo, quando existirem.
+
+### Fase D8 - Fechamento final de `responsibles-service`
+
+- evoluir `responsibles-service` de dono da leitura segura para dono completo de
+  `responsavel` e `aluno_responsavel`, incluindo o que ainda faltar de modelo
+  local, escrita oficial e remocao do fallback ao monolito;
+- se a decisao arquitetural for recolapsar esse dominio em `people-service`,
+  essa fase passa a executar a consolidacao e nao a duplicacao.
+
+### Fase D9 - Fechamento final do dominio de `professores`
+
+- concluir a autonomia efetiva do owner oficial `academic-professor-service`,
+  removendo a dependencia shadow/legada residual do plano;
+- ao final, `GET/POST /api/professores`, alocacoes e leituras auxiliares devem
+  existir sem nenhuma dependencia funcional do monolito.
+- quarto recorte operacional ja executado: `GET /internal/v1/professores/{id}/turmas-disciplinas`
+  ganhou cutover local sem fallback por propriedade
+  (`professor.shadow.local-persistence.listar-alocacoes-cutover-enabled`),
+  retornando `503 DOWNSTREAM_UNAVAILABLE` quando o sync local do professor
+  ainda nao estiver completo, sem consultar o monolito.
+- quinto recorte operacional ja executado: `GET /internal/v1/turmas/{turmaId}/professores`
+  ganhou o mesmo cutover local sem fallback por propriedade
+  (`professor.shadow.local-persistence.listar-por-turma-cutover-enabled`),
+  retornando `503 DOWNSTREAM_UNAVAILABLE` quando o sync local da turma ainda
+  nao estiver completo, sem consultar o monolito.
+- sexto recorte operacional ja executado: `GET /internal/v1/professores`
+  ganhou o cutover local sem fallback por propriedade
+  (`professor.shadow.local-persistence.listar-cutover-enabled`), retornando
+  `503 DOWNSTREAM_UNAVAILABLE` quando o sync local de professores da escola
+  ainda nao estiver completo, sem consultar o monolito.
+- setimo recorte operacional ja executado: a dependencia residual de
+  `GET /internal/v1/professores/funcionarios-elegiveis` foi separada das
+  leituras do agregado `professor` em uma porta propria
+  (`FuncionarioElegivelPort`), deixando `ConsultaPort` restrita ao dominio de
+  `professor` e isolando o insumo cadastral ainda servido pelo legado.
+- oitavo recorte operacional ja executado: o actuator
+  `professorShadowMonolith` foi reduzido para refletir apenas a dependencia
+  legada residual real do owner oficial, expondo somente
+  `POST /internal/v1/professores`,
+  `POST /internal/v1/professores/{id}/turmas-disciplinas` e
+  `GET /internal/v1/professores/funcionarios-elegiveis` no mapa
+  `shadowRoutes` e retirando das metricas totais as leituras do agregado
+  `professor` que ja operam com cutover local controlado.
+- nono recorte operacional ja executado: a migracao embarcada de professores
+  foi removida do `academic-professor-service`. Sairam do runtime
+  `MigracaoRunner`, `MigracaoService`, `JdbcMigracaoOrigemAdapter`,
+  `JpaMigracaoDestinoAdapter`, os ports/models de migracao e toda a arvore de
+  propriedades `professor.shadow.migration.*`. Com isso, o owner oficial deixa
+  de carregar qualquer reconciliacao runtime ligada ao monolito e passa a
+  operar apenas com persistencia local e os adapters residuais ainda
+  explicitamente necessarios.
+- decimo recorte operacional executado: o `academic-professor-service`
+  concluiu a autonomia funcional do dominio. As leituras `GET /internal/v1/professores`,
+  `GET /internal/v1/professores/{id}`,
+  `GET /internal/v1/professores/{id}/turmas-disciplinas`,
+  `GET /internal/v1/turmas/{turmaId}/professores` e
+  `GET /internal/v1/professores/funcionarios-elegiveis` passaram a operar por
+  leitura local ou por apoio oficial de `people-service`, sem qualquer client
+  HTTP ao monolito. As escritas `POST /internal/v1/professores` e
+  `POST /internal/v1/professores/{id}/turmas-disciplinas` passaram a ser
+  autoritativas no banco local do owner oficial, com apoio cadastral de
+  `people-service` e apoio referencial de `academic-catalog-service`. Para
+  suportar a alocacao final sem legado, o `academic-catalog-service`
+  oficializou `GET /internal/v1/turmas-disciplinas/{id}`. Foram removidos do
+  runtime `LegacyConsultaClient`, `LegacyComandoClient`,
+  `LegacyFuncionarioElegivelClient`, `LegacyHealthIndicator`,
+  `PersistenciaHealthIndicator` e toda a arvore
+  `professor.shadow.monolith.*`/`PROFESSOR_SHADOW_MONOLITH_BASE_URL`. Com
+  isso, `D9` fica encerrada e `academic-professor-service` deixa de manter
+  qualquer dependencia funcional do monolito para operacao normal.
+
+### Fase D10 - Fechamento final de `enrollment-document-service`
+
+- O `enrollment-document-service` deixou de depender do adapter legado
+  `OrigemAtualTransferenciaClient` e passou a operar `escolas-origem`,
+  `transferencias`, `documentos-alunos`, `documentos` e `matriculas` por
+  persistencia local propria.
+- Foram adicionados schema Flyway, entidades JPA, repositorios e adapter local
+  unico para sustentar o contrato interno ja oficializado, sem alterar payloads
+  externos nem tocar frontend.
+- O `application.yml` do modulo deixou de expor
+  `ENROLLMENT_DOCUMENT_MONOLITH_BASE_URL`, e a suite de integracao do servico
+  foi reescrita para validar o fluxo oficial sobre H2/Flyway local em vez de
+  `MockWebServer` contra o monolito.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl enrollment-document-service -DskipTests compile` e
+  `mvn -pl enrollment-document-service test`, ambos com `BUILD SUCCESS`.
+
+### Fase D11 - Fechamento final de `pedagogical-service`
+
+- O `pedagogical-service` deixou de depender dos clients legados
+  `OrigemAtualAulaClient`, `OrigemAtualAvaliacaoClient`,
+  `OrigemAtualBoletimReadClient`, `OrigemAtualDiarioClasseReadClient`,
+  `OrigemAtualDiarioClasseWriteClient`,
+  `OrigemAtualHistoricoEscolarReadClient` e
+  `OrigemAtualHistoricoEscolarWriteClient`.
+- O modulo passou a sustentar localmente os contratos internos de `aulas`,
+  `frequencias`, `avaliacoes`, `notas`, `diario-classe`, `boletim` e
+  `historicos-escolares` com schema Flyway proprio, entidades JPA,
+  repositorios e adapters finos por porta sobre uma persistencia local unica.
+- O `application.yml` do modulo deixou de expor
+  `PEDAGOGICAL_MONOLITH_BASE_URL`, e a suite de integracao do servico foi
+  reescrita para validar o contrato oficial sobre H2/Flyway local em vez de
+  `MockWebServer` e `RestClient` contra o monolito.
+- Validacao executada apenas no modulo tocado:
+  `mvn -pl pedagogical-service -DskipTests compile` e
+  `mvn -pl pedagogical-service test`, ambos com `BUILD SUCCESS`.
+
+### Fase D12 - Fechamento final de `planning-ai-service`
+
+- concluida com a retirada dos fallbacks, hidratacoes e adapters remanescentes
+  que ainda dependiam do monolito para IA, biblioteca, versoes, aprovacao ou
+  publicacao;
+- `planning-ai-service` passa a ser dono integral dos contratos e dados
+  necessarios ao bloco de planejamento e IA, operando apenas sobre
+  persistencia propria local.
+
+### Fase D13 - Fechamento final de `dashboard-query-service`
+
+- concluida com a retirada dos dez clients `OrigemAtualPainel*`, da configuracao
+  `dashboard-query.monolith.*`, do `RestClient` e dos tratamentos de erro
+  exclusivos da origem legada;
+- os contratos internos existentes de dashboard academico, secretaria,
+  diretor, professor, alertas, frontend, snapshots, historico, publicos e
+  configuracoes passaram a ler exclusivamente a tabela local
+  `painel_projecao`, isolada por escola e gerenciada por Flyway;
+- foi criado `PUT /internal/v1/dashboard/projecoes` para alimentacao interna
+  autenticada e idempotente do read model, com chave composta pelo tipo e pelas
+  dimensoes aplicaveis de publico, professor, usuario e data de referencia;
+- o payload de cada tipo de projecao e validado contra o contrato de resposta
+  correspondente antes da persistencia, e filtros de configuracao/historico
+  continuam aplicados localmente sem alterar os contratos publicos do BFF;
+- a suite anterior baseada em `MockWebServer` foi substituida por integracao
+  H2/Flyway local cobrindo os dez contratos, idempotencia, isolamento por
+  escola, ausencia de projecao, seguranca interna e rejeicao de payload
+  invalido;
+- validacao executada apenas no modulo tocado:
+  `mvn -pl dashboard-query-service clean test`, com `BUILD SUCCESS` e quatro
+  testes sem falhas.
+
+### Fase D14 - Corte externo final sem monolito
+
+- concluida com a retirada do client, das propriedades
+  `clients.monolith.*`, dos ports/clients `Legacy*`, do circuit breaker e das
+  dependencias Resilience4j que existiam exclusivamente para acesso do BFF ao
+  `school-management-service`;
+- a resolucao de contexto autenticado usada pelas escritas oficiais passou a
+  consumir exclusivamente
+  `identity-access-service:/internal/v1/auth/contexto-atual`;
+- foram removidos flags, policies, deciders, health indicators e metricas de
+  cutover/fallback cujo destino funcional era o monolito, preservando somente
+  os flags que habilitam rotas oficiais no proprio BFF;
+- o host e os oito MFEs com fallback local de configuracao passaram a usar
+  `http://localhost:8081`, porta do `school-management-bff`, sem alteracao de
+  telas ou contratos publicos;
+- agregadores JUnit redundantes foram removidos para que os testes de
+  integracao sejam descobertos e executados uma unica vez pelo Surefire;
+- validacao executada apenas nos modulos tocados: `mvn -pl
+  school-management-bff clean test`, com `209` testes, zero falhas e zero
+  erros, e `npm run build` com sucesso no host e nos oito MFEs alterados;
+- varreduras finais nao encontraram referencia de runtime ao monolito no BFF,
+  rota antiga de contexto nos testes alterados nem URL direta do monolito nas
+  configuracoes web;
+- este corte nao descomissiona o monolito: adapters e configuracoes internas
+  ainda presentes em `identity-access-service`, `people-service` e
+  `responsibles-service`, assim como os prototipos em
+  `projetos-historico-diario`, permanecem inventariados para D15/D16 e nao sao
+  caminho externo direto do host ou do BFF.
+
+### Fase D15 - Infraestrutura, jobs e operacao monolito-off
+
+- concluida com a transferencia da consulta e selecao de escola da sessao para
+  persistencia JDBC do `identity-access-service`, eliminando seu ultimo client
+  HTTP para o monolito;
+- a expiracao de sessoes passou a ser responsabilidade de um scheduler local e
+  configuravel do `identity-access-service`; o scheduler equivalente foi
+  removido do `school-management-service`;
+- `people-service` e `responsibles-service` passaram a operar suas leituras
+  exclusivamente nos respectivos read models locais, com fallback, backfill e
+  reconciliacao desabilitados, sem datasource de origem, client HTTP, adapter
+  batch ou runner de sincronizacao com o monolito;
+- o agendamento de snapshots do dashboard e o carregador operacional shadow de
+  professores foram aposentados no monolito; o `dashboard-query-service`
+  permanece orientado a projecoes publicadas pelos servicos donos, sem geracao
+  recorrente de snapshot legado;
+- os health indicators dos quatro servicos envolvidos passaram a expor o modo
+  autonomo e `legacyTrafficEnabled=false`, permitindo diagnostico e rollback no
+  proprio servico sem reativar caminho funcional legado;
+- a varredura dos fontes e configuracoes de runtime de
+  `identity-access-service`, `people-service`, `responsibles-service` e
+  `dashboard-query-service` nao encontrou URL, client ou configuracao de
+  trafego para o monolito; permanecem somente migrations de esquema local e o
+  scheduler local de limpeza de sessao;
+- validacao restrita aos modulos tocados: `identity-access-service` com cinco
+  testes, `people-service` com 60 testes, `responsibles-service` com oito testes
+  e `dashboard-query-service` com quatro testes, todos sem falhas ou erros; o
+  `school-management-service` tambem foi compilado e executou 220 testes, sem
+  falhas ou erros, por ter recebido a remocao das rotinas aposentadas.
+
+### Fase D16 - Descomissionamento definitivo do `school-management-service`
+
+- iniciada em 20/07/2026, mas **nao concluida**: a auditoria ponta a ponta entre
+  contratos consumidos pelos frontends e controllers do BFF provou que o corte
+  externo registrado em D14 nao cobriu todo o sistema;
+- continuam sem contrato equivalente completo no BFF familias externas de
+  autenticacao (`login`, `refresh`, `logout`), administracao de usuarios,
+  perfis e permissoes, CRUD de alunos e responsaveis, vinculos
+  aluno-responsavel, escritas de matricula e documentos, escritas de professor,
+  planejamento bimestral, escritas remanescentes do catalogo e configuracoes e
+  geracoes de dashboard;
+- `identity-access-service` e `institutional-tenant-service` ainda usam por
+  padrao o banco compartilhado `gestao_escolar` e nao possuem migrations nem
+  fluxo proprio para criar e manter todo o estado de identidade, sessao e
+  tenant; desligar essa origem agora quebraria autenticacao e contexto;
+- saneamentos seguros executados neste recorte: remocao do mecanismo one-shot
+  de migracao JDBC do `academic-catalog-service`, de suas credenciais de origem
+  e testes; remocao dos estados de sincronizacao `shadow` sem consumidores do
+  `academic-professor-service`; troca da configuracao e metricas de professor
+  para nomenclatura definitiva; remocao do smoke/profile operacional que ainda
+  inicializava o monolito;
+- o codigo executavel dos servicos saneados nao possui client, URL ou
+  configuracao de origem apontando para o monolito, mas essa evidencia isolada
+  nao substitui a cobertura integral dos contratos externos;
+- validacao do recorte seguro nos seis modulos tocados:
+  `identity-access-service` com cinco testes, `dashboard-query-service` com
+  quatro, `academic-catalog-service` com 18, `academic-professor-service` com
+  quatro, `people-service` com 60 e `responsibles-service` com oito; total de
+  99 testes, zero falhas e zero erros;
+- decisao provisoria: manter `school-management-service` como modulo residual
+  fora do reactor Maven, ainda nao arquivado nem removido da operacao. D16 so
+  pode ser encerrada depois da migracao e validacao ponta a ponta de todos os
+  contratos acima e da retirada do acesso compartilhado a `gestao_escolar`.
+
+Resumo executivo do ciclo:
+
+1. fases totais para desligar o monolito sem nenhuma dependencia: **16**
+2. fases de definicao/inventario: `D1` e `D2`
+3. fases de autonomia por dominio: `D3` a `D13`
+4. fases de desligamento externo e operacional: `D14` a `D16`
+
+Importante:
+
+- esta secao documenta o **plano fechado** para desligar o
+  `school-management-service`;
+- **nenhuma dessas 16 fases foi iniciada nesta alteracao**;
+- o desenvolvimento so deve comecar depois de escolher explicitamente a
+  `Fase D1` como proximo passo oficial.
+
+## Ciclo preparatorio obrigatorio de saneamento de nomenclatura
+
+Pre-condicao registrada antes de iniciar as 16 fases de desligamento total do
+`school-management-service`:
+
+- o passivo atual de nomenclatura entre dominios foi confirmado como real e
+  transversal, especialmente no `school-management-bff`, mas tambem em servicos
+  como `planning-ai-service`, `dashboard-query-service`,
+  `enrollment-document-service`, `responsibles-service`, `people-service` e
+  `academic-professor-service`;
+- portanto, **as 16 fases `D1` a `D16` ficam bloqueadas ate o fechamento deste
+  ciclo preparatorio**;
+- criterio de pronto deste ciclo:
+  **nenhuma classe, interface, enum, exception, port, client, controller,
+  service, configuration, test ou runner pode carregar no nome a designacao de
+  outro dominio/servico que nao seja o proprio contexto local onde ela vive**.
+
+Quantidade fechada deste ciclo preparatorio: **8 fases**.
+
+### Fase N1 - Inventario nominal e matriz de renomeacao
+
+- levantar a lista completa do passivo nominal por modulo, classificando:
+  `classe atual -> modulo -> papel local real -> nome alvo -> impacto`;
+- separar o que e:
+  1. nome de aplicacao do proprio servico;
+  2. nome tecnico de integracao inevitavel;
+  3. violacao arquitetural efetiva que precisa renomeacao;
+- produzir a matriz objetiva que vai governar as fases seguintes.
+
+### Fase N2 - Saneamento nominal do `school-management-bff`
+
+- renomear ports, clients, services, controllers, exceptions e suites do BFF
+  que hoje usam nomes de dominios externos como identidade principal da classe;
+- manter no BFF apenas nomes baseados no papel local da fachada/proxy/composicao,
+  sem carregar o nome do dominio remoto como identidade da classe.
+- conclusao operacional da fase:
+  - o `school-management-bff` teve renomeacao estrutural em `ports`,
+    `services`, `usecases`, `controllers`, `infra/config`, `infra/webclient` e
+    suites de teste para remover designacoes como `People*`,
+    `Pedagogical*`, `PlanningAi*`, `EnrollmentDocument*`, `Dashboard*`,
+    `AcademicCatalog*`, `InstitutionalTenant*`, `IdentityAccess*`,
+    `Responsibles*` e `Monolith*` do nome das classes;
+  - os tres residuos finais em classes de configuracao tambem foram
+    saneados, com `PeopleServiceClientProperties`,
+    `PedagogicalServiceClientProperties` e
+    `IdentityAccessServiceClientProperties` renomeados para nomes locais do
+    BFF, preservando apenas as chaves externas de `application.yml`;
+  - a varredura estrutural por `class|record|interface|enum` no modulo nao
+    encontrou mais classes Java do BFF com essas designacoes no nome.
+- validacao executada no modulo:
+  - `mvn -pl school-management-bff -DskipTests compile`: sucesso;
+  - `mvn -pl school-management-bff clean test`: a fase de rename permaneceu
+    compilavel, mas a suite completa do modulo expôs falhas funcionais ja no
+    proprio BFF, observadas pelo menos em
+    `AuthSessionFallbackIntegrationTest`,
+    `CatalogReadCutoverIntegrationTest` e
+    `ConsultaCadastralReadProxyIntegrationTest`.
+- contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 6.
+
+### Fase N3 - Saneamento nominal de `identity-access-service` e `institutional-tenant-service`
+
+- ajustar classes internas, controllers, exceptions, configurations e testes
+  desses dois servicos para que o nome reflita apenas o papel local do modulo;
+- impedir que o proprio nome do dominio vaze desnecessariamente para toda a
+  arvore de classes.
+- conclusao operacional da fase:
+  - o `identity-access-service` teve rename estrutural de `application`,
+    `usecase`, `port`, `controller`, `exception handler`, `exception`,
+    `webclient`, `configuration` e teste para remover `IdentityAccess*` e
+    `Monolith*` do nome das classes;
+  - o `institutional-tenant-service` teve o mesmo saneamento estrutural para
+    remover `InstitutionalTenant*` e `Monolith*` do nome das classes, mantendo
+    apenas nomes alinhados ao papel local de sessao/tenant do runtime;
+  - as chaves externas de configuracao foram preservadas; a limpeza ficou
+    restrita aos identificadores Java dos dois modulos;
+  - a busca estrutural por `class|record|interface|enum` nao encontrou mais
+    classes Java nesses dois modulos com `IdentityAccess`, `InstitutionalTenant`
+    ou `Monolith` no nome.
+- validacao executada nos modulos tocados:
+  - `mvn -pl identity-access-service -DskipTests compile`: sucesso;
+  - `mvn -pl identity-access-service clean test`: sucesso;
+  - `mvn -pl institutional-tenant-service -DskipTests compile`: sucesso;
+  - `mvn -pl institutional-tenant-service clean test`: sucesso.
+- contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 5.
+
+### Fase N4 - Saneamento nominal de `academic-catalog-service` e `academic-professor-service`
+
+- aplicar a mesma limpeza ao catalogo academico e ao bloco de professores,
+  inclusive resolvendo o caso especial de classes que usam `Professor`,
+  `Catalog` ou `Academic*` como marcador indevido de contexto externo.
+- conclusao operacional da fase:
+  - o `academic-catalog-service` teve rename estrutural de `application`,
+    `usecase`, `port`, `controller`, `exception handler`, `exception`,
+    `migration`, `cache`, `mapper`, `adapter`, `configuration` e testes para
+    remover marcadores como `Academic*` e `Catalog*` do nome das classes;
+  - o `academic-professor-service` teve rename estrutural de `application`,
+    `usecase`, `port`, `controller`, `exception handler`, `exception`,
+    `migration`, `observability`, `webclient`, `persistence`, `entity`,
+    `repository`, `configuration` e testes para remover marcadores como
+    `Professor*`, `Shadow*`, `Academic*` e `Monolith*` do nome das classes;
+  - um ajuste fino adicional foi necessario no `academic-professor-service`
+    para propagar o rename do nested record de migracao e manter a suite
+    compilavel;
+  - a busca estrutural por `class|record|interface|enum` nao encontrou mais
+    classes Java nesses dois modulos com `Academic`, `Catalog`, `Professor`,
+    `Shadow` ou `Monolith` no nome.
+- validacao executada nos modulos tocados:
+  - `mvn -pl academic-catalog-service -DskipTests compile`: sucesso;
+  - `mvn -pl academic-catalog-service clean test`: sucesso;
+  - `mvn -pl academic-professor-service -DskipTests compile`: sucesso;
+  - `mvn -pl academic-professor-service clean test`: sucesso.
+- contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 4.
+
+### Fase N5 - Saneamento nominal de `people-service` e `responsibles-service`
+
+- revisar services, ports, sync states, migrations, health indicators,
+  runners, adapters JDBC e testes desses dois servicos;
+- eliminar a mistura entre identidade nominal local e dominios remotos como
+  `monolith`, `responsibles`, `people` ou equivalentes quando o nome nao
+  representar o proprio bounded context da classe.
+- conclusao operacional da fase:
+  - o `people-service` teve rename estrutural de `application`, `state`,
+    `service`, `port`, `exception`, `observability`, `migration`, `bootstrap`,
+    `webclient`, `configuration`, `persistence` e testes para remover
+    marcadores como `People*` e `Monolith*` do nome das classes;
+  - o `responsibles-service` teve o mesmo saneamento estrutural para remover
+    `Responsibles*` e `Monolith*` de `application`, `state`, `service`,
+    `port`, `observability`, `migration`, `bootstrap`, `webclient`,
+    `configuration`, `persistence` e testes;
+  - a varredura estrutural confirmou a eliminacao do passivo nominal principal
+    desta fase: nao restaram classes Java nesses dois modulos com `People`,
+    `Responsibles` ou `Monolith` no nome;
+  - os nomes remanescentes como `Pessoa*`, `Responsavel*` e `Catalogo*`
+    permaneceram por representarem o papel local real da classe ou por nao
+    fazerem parte do passivo nominal desta etapa.
+- validacao executada nos modulos tocados:
+  - `mvn -pl people-service -DskipTests compile`: sucesso;
+  - `mvn -pl people-service clean test`: sucesso;
+  - `mvn -pl responsibles-service -DskipTests compile`: sucesso;
+  - `mvn -pl responsibles-service clean test`: sucesso.
+- contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 3.
+
+### Fase N6 - Saneamento nominal de `enrollment-document-service` e `pedagogical-service`
+
+- limpar nomes acoplados aos dominios externos nesses dois servicos,
+  preservando apenas a semantica local das responsabilidades internas;
+- incluir controllers internos, exceptions, client configurations e testes.
+- conclusao operacional da fase:
+  - o `enrollment-document-service` teve rename estrutural de `application`,
+    `controller`, `exception handler`, `exception`, `webclient`,
+    `configuration` e teste para remover `EnrollmentDocument*` e `Monolith*`
+    do nome das classes;
+  - o `pedagogical-service` teve rename estrutural de `application`,
+    `controller`, `exception handler`, `exception`, `webclient`,
+    `configuration`, DTO pontual e teste para remover `Pedagogical*` e
+    `Monolith*` do nome das classes;
+  - a busca estrutural por `class|record|interface|enum` nao encontrou mais
+    classes Java nesses dois modulos com `EnrollmentDocument`, `Pedagogical`
+    ou `Monolith` no nome.
+- validacao executada nos modulos tocados:
+  - `mvn -pl enrollment-document-service -DskipTests compile`: sucesso;
+  - `mvn -pl enrollment-document-service clean test`: sucesso;
+  - `mvn -pl pedagogical-service -DskipTests compile`: sucesso;
+  - `mvn -pl pedagogical-service clean test`: sucesso.
+- contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 2.
+
+### Fase N7 - Saneamento nominal de `planning-ai-service` e `dashboard-query-service`
+
+- revisar classes locais, entidades, repositories, services, controllers,
+  exceptions e testes para remover designacoes de dominio externo e padroes
+  herdados que ainda misturem contexto local com contexto remoto.
+- conclusao operacional da fase:
+  - o `planning-ai-service` teve rename estrutural de `application`,
+    `controllers`, `services`, `ports`, `exceptions`, `configuration`,
+    `webclient`, `persistence`, `state`, entidades, repositories e testes para
+    remover `PlanningAi*` e `Monolith*` do nome das classes, alem de alinhar o
+    bloco de biblioteca local antes nomeado com `PedagogicalContentLibrary*`;
+  - o `dashboard-query-service` teve rename estrutural de `application`,
+    `controllers`, `services`, `exceptions`, `configuration`, `webclient`,
+    DTOs, adapters e testes para remover `Dashboard*` e `Monolith*` do nome
+    das classes, preservando apenas a semantica local de `Painel*`;
+  - a busca estrutural por `class|record|interface|enum` nao encontrou mais
+    classes Java nesses dois modulos com `PlanningAi`, `Dashboard` ou
+    `Monolith` no nome.
+- validacao executada nos modulos tocados:
+  - `mvn -pl planning-ai-service -DskipTests compile`: sucesso;
+  - `mvn -pl planning-ai-service clean test`: sucesso;
+  - `mvn -pl dashboard-query-service -DskipTests compile`: sucesso;
+  - `mvn -pl dashboard-query-service clean test`: sucesso.
+- contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 1.
+
+### Fase N8 - Verificacao transversal e bloqueio arquitetural
+
+- executar uma verificacao transversal do monorepo para provar que o passivo
+  nominal foi eliminado dentro do criterio definido;
+- registrar regra de validacao objetiva para impedir regressao nas fases
+  futuras.
+- conclusao operacional da fase:
+  - foi adicionada ao `pom.xml` raiz uma validacao automatica no `validate`
+    para bloquear nomes proibidos de classes nos modulos Java ativos do plano:
+    `school-management-bff`, `identity-access-service`,
+    `institutional-tenant-service`, `dashboard-query-service`,
+    `academic-catalog-service`, `academic-professor-service`,
+    `people-service`, `responsibles-service`,
+    `enrollment-document-service`, `pedagogical-service` e
+    `planning-ai-service`;
+  - o bloqueio passa a falhar se voltar a existir arquivo Java com marcadores
+    nominais do passivo transversal, como `People`, `Responsibles`,
+    `PlanningAi`, `Dashboard`, `AcademicCatalog`, `IdentityAccess`,
+    `InstitutionalTenant`, `EnrollmentDocument`, `Pedagogical`, `Monolith` ou
+    `ProfessorShadow`;
+  - a verificacao transversal por busca de arquivos Java nesses modulos voltou
+    vazia para esse conjunto de marcadores, confirmando que o ciclo `N1` a
+    `N8` terminou sem residuo nominal dentro do escopo ativo.
+- validacao executada no agregador tocado:
+  - `rg --files school-management-bff identity-access-service institutional-tenant-service dashboard-query-service academic-catalog-service academic-professor-service people-service responsibles-service enrollment-document-service pedagogical-service planning-ai-service --glob "*.java" | rg "(People|Responsibles|PlanningAi|Dashboard|AcademicCatalog|IdentityAccess|InstitutionalTenant|EnrollmentDocument|Pedagogical|Monolith|ProfessorShadow)"`: sem ocorrencias;
+  - `mvn -N validate`: sucesso.
+- contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 0.
+
+Ordem obrigatoria:
+
+1. concluir `N1` a `N8`
+2. somente depois liberar `D1` a `D16`
+
+Definicao de governanca:
+
+- o ciclo `N1` a `N8` tem precedencia total sobre o ciclo `D1` a `D16`;
+- iniciar qualquer fase de desligamento do monolito sem concluir o saneamento
+  nominal primeiro passa a violar o roadmap oficial.
+
+### Fase N1 - Inventario nominal e matriz de renomeacao
+
+- foi executado o inventario inicial do passivo nominal em todos os runtimes
+  Java ativos do plano, usando busca objetiva sobre `class`, `interface` e
+  `enum` com designacoes de dominio/servico no nome;
+- o passivo ficou confirmado como concentrado principalmente no
+  `school-management-bff`, mas tambem distribuido pelos servicos novos;
+- contagem inicial de ocorrencias encontradas por modulo:
+  - `school-management-bff`: 255
+  - `dashboard-query-service`: 64
+  - `planning-ai-service`: 32
+  - `people-service`: 31
+  - `responsibles-service`: 19
+  - `pedagogical-service`: 13
+  - `identity-access-service`: 10
+  - `institutional-tenant-service`: 10
+  - `enrollment-document-service`: 7
+  - `academic-professor-service`: 6
+  - `academic-catalog-service`: 5
+- a leitura do inventario separou tres grupos:
+  1. nomes-base do proprio servico, hoje aceitos apenas como passivo herdado a
+     ser revisto nas fases seguintes;
+  2. nomes tecnicos de integracao inevitavel com o legado, sobretudo variantes
+     `Monolith*`, que permanecem considerados violacao nominal e tambem entram
+     no saneamento;
+  3. nomes de classe no BFF e em servicos novos que carregam explicitamente a
+     identidade de outro dominio remoto, caso mais critico do ciclo;
+- matriz objetiva inicial do passivo por modulo:
+
+| Modulo | Volume inicial | Padrões predominantes | Ação alvo |
+| --- | --- | --- | --- |
+| `school-management-bff` | 255 | `People*`, `Pedagogical*`, `PlanningAi*`, `EnrollmentDocument*`, `Dashboard*`, `AcademicCatalog*`, `InstitutionalTenant*`, `IdentityAccess*`, `Responsibles*`, `Monolith*` | renomeação estrutural prioritária na `Fase N2` |
+| `dashboard-query-service` | 64 | `Dashboard*`, `MonolithDashboard*` | renomear classes para papel local de consulta/projeção |
+| `planning-ai-service` | 32 | `PlanningAi*`, `MonolithPlanningAi*`, `PedagogicalContent*` | separar nome do serviço do papel local e limpar acoplamentos externos |
+| `people-service` | 31 | `People*`, `MonolithPessoa*`, `MonolithPeople*` | remover marcadores de domínio no nome das classes locais e dos adapters |
+| `responsibles-service` | 19 | `Responsibles*`, `MonolithResponsavel*` | limpar nomes locais do read model e dos clients legados |
+| `pedagogical-service` | 13 | `Pedagogical*`, `Monolith*` | renomear aplicação, controller, advice e clients para papéis locais |
+| `identity-access-service` | 10 | `IdentityAccess*`, `MonolithIdentityAccess*` | reduzir identidade nominal do serviço ao papel local |
+| `institutional-tenant-service` | 10 | `InstitutionalTenant*`, `MonolithInstitutionalTenant*` | mesmo critério do bloco institucional |
+| `enrollment-document-service` | 7 | `EnrollmentDocument*`, `MonolithEnrollment*` | renomear controller, advice, app e configuração legada |
+| `academic-professor-service` | 6 | `MonolithProfessor*`, `ProfessorShadowMonolith*` | alinhar nomenclatura antes da decisão final do domínio de professores |
+| `academic-catalog-service` | 5 | `AcademicCatalog*` | limpar controllers e application root para nome funcional local |
+
+- conclusao operacional da `Fase N1`:
+  - o passivo nominal existe;
+  - ele e grande o suficiente para justificar o ciclo `N1` a `N8`;
+  - a ordem correta continua sendo iniciar pelo `school-management-bff` na
+    `Fase N2`, porque e ali que o acoplamento nominal entre dominios aparece de
+    forma mais concentrada e mais critica para o strangler.
+
+Contagem regressiva do ciclo preparatorio de saneamento de nomenclatura: 7
+fases restantes.
+
+## Ciclo fechado de conclusao real do backend apos a auditoria de D16
+
+A auditoria executada em D16 demonstrou que criar os servicos e retirar clients
+diretos do monolito nao foi suficiente para concluir o backend. A conclusao
+passa a significar, simultaneamente:
+
+1. todos os contratos consumidos pelos frontends possuem rota oficial no BFF;
+2. cada rota e atendida pelo servico dono do dominio, sem fallback funcional;
+3. o estado necessario e mantido pelo codigo novo, sem leitura ou escrita no
+   `school-management-service`;
+4. Diario de Classe e Historico Escolar possuem backend real para substituir os
+   mocks existentes em `projetos-historico-diario`;
+5. o monolito pode ser desligado sem perda de autenticacao, operacao ou dados.
+
+Quantidade fechada deste ciclo: **14 etapas**.
+
+### Etapa B1 - Identidade e acesso autonomos
+
+- implementar `login`, `refresh` e `logout`, administracao de usuarios, perfis,
+  permissoes e sessoes no `identity-access-service`;
+- criar persistencia e migrations proprias para o estado de identidade;
+- oficializar os contratos correspondentes no BFF e retirar o uso funcional do
+  banco compartilhado pelo servico.
+
+### Etapa B2 - Tenant institucional autonomo
+
+- tornar `institutional-tenant-service` dono persistente de escolas, vinculos e
+  contexto institucional necessarios a autenticacao;
+- criar migrations, carga controlada e contratos internos definitivos;
+- eliminar a leitura direta do banco compartilhado.
+
+### Etapa B3 - Escritas de pessoas e alunos
+
+- completar no `people-service` criacao, alteracao e demais operacoes publicas
+  de pessoas e alunos ainda atendidas pelo monolito;
+- oficializar as rotas no BFF preservando os contratos externos atuais.
+
+### Etapa B4 - Escritas de responsaveis e vinculos
+
+- completar no `responsibles-service` o CRUD de responsaveis e a manutencao do
+  vinculo aluno-responsavel;
+- retirar do BFF os caminhos funcionais remanescentes para o monolito.
+
+### Etapa B5 - Ciclo completo de matricula
+
+- completar no `enrollment-document-service` criacao, alteracao, mudanca de
+  status, cancelamento e consultas auxiliares de matricula;
+- garantir consistencia com aluno, turma, serie e periodo letivo por contratos
+  internos, sem acesso ao banco do monolito.
+
+### Etapa B6 - Ciclo completo de documentos
+
+- completar upload, metadados, consulta, download e exclusao de documentos no
+  `enrollment-document-service`;
+- oficializar no BFF todos os contratos externos de documentos.
+
+### Etapa B7 - Fechamento do catalogo academico
+
+- concluir alteracao, exclusao e escritas remanescentes de disciplinas, series,
+  turmas, turnos, niveis e periodos no `academic-catalog-service`;
+- remover todo fallback residual dessas familias no BFF.
+
+### Etapa B8 - Fechamento de professores e alocacoes
+
+- concluir cadastro e alteracao de professores, alocacoes e associacoes
+  academicas no `academic-professor-service`;
+- oficializar as rotas externas remanescentes no BFF.
+
+### Etapa B9 - Fechamento do planejamento pedagogico
+
+- concluir CRUD, estados e operacoes de planejamento, aulas e avaliacoes ainda
+  sem contrato novo completo;
+- manter a divisao de propriedade entre `planning-ai-service` e
+  `pedagogical-service`, usando apenas contratos internos explicitos.
+
+### Etapa B10 - Diario de Classe funcional
+
+- implementar no `pedagogical-service` a leitura composta
+  `GET /api/diarios-classe` e a gravacao idempotente
+  `PUT /api/diarios-classe/{idDiarioClasse}`;
+- atender frequencia, conteudo planejado, avaliacoes, observacoes, assinatura e
+  bloqueio apos salvamento conforme o contrato do prototipo;
+- expor ambas as rotas no BFF sem alterar o frontend nesta etapa.
+
+### Etapa B11 - Historico Escolar funcional
+
+- implementar no `enrollment-document-service` abertura, leitura, criacao e
+  edicao do agregado de Historico Escolar, incluindo snapshots, componentes,
+  estudos realizados, certificado, status e pendencias;
+- implementar a importacao assistida de PDF como pre-preenchimento, sem
+  persistencia automatica;
+- expor no BFF `GET /novo`, `GET /{id}`, `POST`, `PUT /{id}` e
+  `POST /importacao-pdf` conforme o contrato do prototipo.
+
+### Etapa B12 - Fechamento do dashboard
+
+- completar configuracoes, widgets e geracoes ainda dependentes do monolito no
+  `dashboard-query-service`;
+- oficializar todas as rotas externas correspondentes no BFF.
+
+### Etapa B13 - Corte externo e prova ponta a ponta
+
+- comparar novamente todas as chamadas dos frontends com os controllers do BFF;
+- remover os ultimos fallbacks e provar os fluxos criticos ponta a ponta com o
+  monolito desligado;
+- validar nominalmente que nenhuma classe nova viola a designacao do proprio
+  dominio.
+
+### Etapa B14 - Operacao autonoma e descomissionamento
+
+- concluir migrations/backfills controlados, ownership de bancos, jobs,
+  observabilidade, secrets e topologia de execucao sem o monolito;
+- arquivar ou remover o `school-management-service` somente depois das provas
+  de integridade, rollback e operacao monolito-off;
+- encerrar D16 e declarar o backend concluido apenas nesta etapa.
+
+Status em 20/07/2026: **Etapa B1 concluida; 13 etapas ainda nao concluidas**.
+A proxima etapa do ciclo fechado e a B2, dedicada a autonomia do
+`institutional-tenant-service`.
+
+Primeiro recorte da B1 entregue em 20/07/2026:
+
+- o `identity-access-service` passou a possuir caso de uso e porta proprios para
+  autenticar credenciais, rotacionar access/refresh tokens e revogar sessao;
+- foram adicionados os contratos internos `POST /internal/v1/auth/login`,
+  `POST /internal/v1/auth/refresh` e `POST /internal/v1/auth/logout`;
+- a senha e validada exclusivamente por BCrypt, tokens sao persistidos somente
+  por hash SHA-256 e a rotacao invalida imediatamente o refresh anterior;
+- perfis e permissoes sao carregados no momento da emissao, preservando o
+  payload esperado pelo consumidor externo; `professorId` permanece opcional e
+  nao foi falsamente resolvido dentro do dominio de identidade;
+- a separacao entre DTO de interface, modelo interno, caso de uso e adapter JDBC
+  foi mantida;
+- validacao restrita ao modulo tocado: seis testes, zero falhas e zero erros,
+  incluindo o ciclo completo login, refresh, rejeicao do token antigo e logout;
+- a B1 permanece **em andamento**: faltam administracao de usuarios/perfis/
+  permissoes, migrations e banco proprio, backfill controlado e oficializacao
+  dos tres endpoints publicos no BFF.
+
+Segundo recorte da B1 entregue em 20/07/2026:
+
+- o `school-management-bff` passou a expor oficialmente
+  `POST /api/auth/login`, `POST /api/auth/refresh` e
+  `POST /api/auth/logout`;
+- as tres rotas encaminham exclusivamente ao `identity-access-service`, usando
+  o client interno ja existente, sem fallback ou chamada ao monolito;
+- login, refresh e logout permanecem publicos no filtro Bearer, enquanto token
+  interno e `X-Correlation-Id` sao propagados no salto BFF/servico;
+- o contrato externo do frontend foi preservado e o status `204 No Content` do
+  logout e repassado sem fabricacao de payload;
+- validacao restrita ao BFF: quatro testes de integracao, zero falhas e zero
+  erros, incluindo prova de ausencia de trafego para o monolito;
+- a B1 permanece **em andamento**: faltam administracao de usuarios, perfis e
+  permissoes, migrations, banco proprio e backfill controlado.
+
+Terceiro recorte da B1 entregue em 20/07/2026:
+
+- o `identity-access-service` passou a possuir o CRUD interno completo de
+  permissoes em `/internal/v1/permissoes`, com listar, buscar, criar, atualizar
+  e excluir;
+- o contrato aceita `codigo` ou o alias externo `nmPermissao` e responde com os
+  dois campos, preservando o consumidor atual sem contaminar o modelo interno;
+- codigos sao normalizados, duplicidades retornam `409 CONFLICT`, inexistencia
+  retorna `404 RESOURCE_NOT_FOUND` e permissoes ainda vinculadas a perfis nao
+  podem ser excluidas;
+- caso de uso, porta de saida, modelo interno, adapter JDBC e controller foram
+  mantidos separados;
+- validacao restrita ao `identity-access-service`: sete testes, zero falhas e
+  zero erros, incluindo todo o ciclo CRUD e a protecao de integridade;
+- a B1 permanece **em andamento**: faltam CRUD de perfis e usuarios,
+  oficializacao dos contratos administrativos no BFF, migrations, banco proprio
+  e backfill controlado.
+
+Quarto recorte da B1 entregue em 20/07/2026:
+
+- o `identity-access-service` passou a possuir CRUD interno completo de perfis
+  em `/internal/v1/perfis`, com manutencao transacional de
+  `perfil_permissao`;
+- o contrato aceita os aliases `nmPerfil` e `permissoesIds`, mas estes ficam
+  restritos aos DTOs de interface; o modelo interno usa somente os conceitos do
+  proprio contexto;
+- criacao e atualizacao validam todas as permissoes antes de persistir, e a
+  atualizacao substitui integralmente os vinculos anteriores na mesma transacao;
+- duplicidade retorna `409 CONFLICT`, inexistencia retorna
+  `404 RESOURCE_NOT_FOUND` e perfil atribuido a usuario nao pode ser excluido;
+- validacao restrita ao `identity-access-service`: oito testes, zero falhas e
+  zero erros, incluindo substituicao de permissoes e protecao de integridade;
+- a B1 permanece **em andamento**: faltam CRUD de usuarios, oficializacao dos
+  contratos administrativos no BFF, migrations, banco proprio e backfill
+  controlado.
+
+Quinto recorte da B1 entregue em 20/07/2026:
+
+- o `identity-access-service` passou a possuir CRUD interno completo de usuarios
+  em `/internal/v1/usuarios`, com manutencao transacional de `usuario_perfil`;
+- o contrato aceita os aliases `login`, `senha` e `perfisIds`, mantendo-os nos
+  DTOs de interface; senha e protegida por uma porta propria e persistida apenas
+  como BCrypt;
+- nenhum response expoe senha ou hash, e username, nome e email sao
+  normalizados antes da persistencia;
+- criacao e atualizacao exigem ao menos um perfil existente e substituem os
+  vinculos anteriores na mesma transacao;
+- duplicidade de username/email retorna `409 CONFLICT`, inexistencia retorna
+  `404 RESOURCE_NOT_FOUND` e a exclusao remove sessoes e associacoes antes do
+  cadastro, preservando conflito para outros vinculos ainda ativos;
+- validacao restrita ao `identity-access-service`: nove testes, zero falhas e
+  zero erros, incluindo BCrypt, troca de perfil, conflito e limpeza de sessao;
+- a administracao interna de usuarios, perfis e permissoes esta implementada,
+  mas a B1 permanece **em andamento**: faltam oficializacao administrativa no
+  BFF, migrations, banco proprio e backfill controlado.
+
+Sexto recorte da B1 entregue em 20/07/2026:
+
+- o `school-management-bff` passou a expor oficialmente os 15 contratos CRUD de
+  `/api/usuarios`, `/api/perfis` e `/api/permissoes`, preservando metodos,
+  paths, corpos e status HTTP consumidos pelo frontend;
+- todas as operacoes resolvem o contexto autenticado e encaminham exclusivamente
+  ao `identity-access-service`, sem fallback ou trafego para o monolito;
+- as familias administrativas foram adicionadas ao filtro Bearer do BFF;
+- no `identity-access-service`, a autorizacao administrativa passou a exigir
+  perfil/permissao `ADMIN` ou a autoridade especifica `READ`, `READ_ALL`,
+  `CREATE`, `UPDATE` ou `DELETE`, conforme metodo e path;
+- a decisao de autorizacao permanece no servico dono do acesso e usa somente os
+  headers contextuais internos produzidos depois da validacao do token de
+  servico;
+- validacao restrita aos modulos tocados: quatro testes de integracao no BFF e
+  dez testes no `identity-access-service`, todos sem falhas ou erros; os testes
+  comprovam propagacao de contexto, ausencia de monolito e `403 FORBIDDEN` sem
+  autoridade;
+- os contratos funcionais de autenticacao e administracao da B1 estao
+  oficializados; a B1 permanece **em andamento** somente para migrations, banco
+  proprio e backfill controlado.
+
+Setimo recorte da B1 entregue em 20/07/2026:
+
+- o `identity-access-service` passou a possuir migration Flyway propria para
+  exatamente seis tabelas: `usuario`, `usuario_perfil`, `perfil`,
+  `perfil_permissao`, `permissao` e `sessao_autenticacao`;
+- o schema inclui apenas constraints, relacionamentos internos, unicidades e
+  indices de sessao necessarios ao dominio de acesso; nenhuma tabela
+  institucional foi copiada;
+- um runner separado e opt-in permite aplicar a migration no banco
+  `identity_access` por configuracao propria, sem executar migrations sobre o
+  datasource compartilhado atual;
+- a ativacao permanece desabilitada por padrao ate o backfill e a separacao do
+  adapter de contexto institucional, evitando quebrar `contexto-atual`;
+- validacao restrita ao `identity-access-service`: 11 testes, zero falhas e zero
+  erros; o teste Flyway aplicou a migration em banco vazio e confirmou a criacao
+  exclusiva das seis tabelas;
+- a B1 permanece **em andamento**: faltam o backfill controlado, reconciliacao
+  de integridade e corte do datasource de seguranca para o banco proprio.
+
+Oitavo recorte da B1 entregue em 20/07/2026:
+
+- foi implementado backfill one-shot e opt-in das seis tabelas de acesso, com
+  origem e destino configurados separadamente e sem dependencia de tabela fora
+  do dominio;
+- a copia ocorre em lotes e na ordem de dependencias, dentro de uma unica
+  transacao no destino, preservando IDs, hashes de senha/token, timestamps,
+  status e referencias de escola sem criar FKs institucionais;
+- a operacao usa upsert idempotente, permitindo repeticao controlada sem
+  duplicar usuarios, perfis, permissoes, vinculos ou sessoes;
+- a reconciliacao compara contagens e digest SHA-256 canonico do conteudo de
+  cada tabela entre origem e destino; divergencia pode bloquear a inicializacao
+  por configuracao `fail-on-mismatch`;
+- migration e backfill permanecem desabilitados por padrao e precisam ser
+  habilitados explicitamente para uma execucao operacional; nenhum dado real
+  foi migrado automaticamente neste recorte;
+- validacao restrita ao `identity-access-service`: 12 testes, zero falhas e zero
+  erros; o teste executou migration em dois bancos independentes, populou as
+  seis tabelas, executou o backfill duas vezes e confirmou reconciliacao e
+  idempotencia;
+- a B1 permanece **em andamento** somente para o corte do datasource de
+  seguranca e isolamento da consulta institucional usada por `contexto-atual`.
+
+Nono recorte da B1 entregue em 20/07/2026:
+
+- o `identity-access-service` deixou de consultar diretamente `escola` e
+  `usuario_escola` nos fluxos de contexto atual, escolas disponiveis e selecao
+  da escola ativa;
+- a sessao, o usuario e o `id_escola` ativo continuam sendo validados e
+  persistidos exclusivamente nas seis tabelas proprias do dominio de acesso;
+- nomes, disponibilidade e vinculos de escola passaram a ser resolvidos pelo
+  contrato interno ja existente `GET /internal/v1/tenant/escolas` do
+  `institutional-tenant-service`, sem fallback para banco compartilhado;
+- o contexto encaminhado ao servico institucional e reconstruido a partir da
+  sessao validada, e nao de headers enviados pelo cliente; `contexto-atual`
+  deixou de exigir headers contextuais circulares para resolver o Bearer;
+- o adapter HTTP possui URL, token interno e timeouts configuraveis, propaga
+  correlacao e converte indisponibilidade em erro explicito, sem reabrir o
+  monolito;
+- os testes de integracao da identidade deixaram de criar as tabelas `escola`
+  e `usuario_escola`, provando o isolamento do datasource neste fluxo;
+- validacao restrita ao `identity-access-service`: 13 testes, zero falhas e
+  zero erros, incluindo contrato HTTP, contexto atual, listagem e troca de
+  escola;
+- a B1 permanece **em andamento** por um ultimo recorte: ativar o datasource
+  proprio, executar migration/backfill controlados em ambiente operacional e
+  provar o servico funcionando sem o banco compartilhado.
+
+Decimo e ultimo recorte da B1 entregue em 20/07/2026:
+
+- o datasource principal do `identity-access-service` passou a apontar por
+  padrao para `jdbc:postgresql://localhost:5433/identity_access`, com
+  credenciais e URL substituiveis por ambiente;
+- o Flyway oficial do Spring passou a executar automaticamente a migration do
+  dominio no datasource principal; foram removidos runner, properties e
+  configuracao paralelos de migration, eliminando o risco de migrar um banco e
+  executar o servico em outro;
+- o backfill opt-in passou a usar como destino exatamente o `DataSource` do
+  runtime, mantendo `gestao_escolar` apenas como origem configuravel durante a
+  janela controlada de migracao;
+- a inicializacao PostgreSQL da plataforma passou a provisionar o banco
+  `identity_access` junto da infraestrutura local;
+- foi adicionada prova integrada com dois bancos independentes: o destino
+  inicia vazio, recebe a migration Flyway, executa o backfill reconciliado e
+  autentica o usuario pelo datasource proprio; o destino contem somente as
+  seis tabelas do dominio;
+- validacao restrita aos artefatos tocados: `identity-access-service` com 14
+  testes, zero falhas e zero erros, e `docker compose config --quiet` com
+  configuracao valida;
+- o Docker/PostgreSQL local nao estava ativo durante a execucao, portanto
+  nenhum dado real foi movimentado; a execucao real permanece uma acao de
+  deploy explicitamente habilitada por `IDENTITY_ACCESS_BACKFILL_ENABLED=true`;
+- a **B1 esta concluida** no desenvolvimento e na prova automatizada. A proxima
+  etapa fechada do backend e a **B2 - autonomia de tenant e escolas**.
+
+## Execucao fechada da B2 - Tenant institucional autonomo
+
+Quantidade fechada da B2: **7 recortes**.
+
+1. schema proprio de `escola` e `usuario_escola`;
+2. backfill controlado e reconciliado de escolas;
+3. backfill controlado e reconciliado dos vinculos usuario-escola;
+4. ativacao da leitura local de tenant e escolas;
+5. contratos internos definitivos para manutencao de escolas;
+6. contratos internos definitivos para manutencao dos vinculos;
+7. datasource proprio, prova integrada e encerramento da B2.
+
+Primeiro recorte da B2 entregue em 20/07/2026:
+
+- o `institutional-tenant-service` recebeu migration Flyway propria contendo
+  exclusivamente `escola` e `usuario_escola`;
+- `escola` preserva os campos institucionais existentes, inclusive referencias
+  externas de endereco sem importar tabelas de outro dominio;
+- `usuario_escola` mantem FK somente para `escola`; `id_usuario` permanece UUID
+  externo, sem acoplamento fisico ao banco do `identity-access-service`;
+- unicidade do vinculo e indices para escola ativa, usuario e escola foram
+  definidos no schema local;
+- o Flyway permanece desabilitado no datasource compartilhado atual, impedindo
+  aplicacao acidental antes da carga controlada e do corte;
+- validacao restrita ao `institutional-tenant-service`: 5 testes, zero falhas e
+  zero erros; a migration foi aplicada em banco vazio e criou somente as duas
+  tabelas do dominio;
+- a B2 permanece **em andamento**, com **6 recortes restantes**. O proximo e o
+  backfill controlado e reconciliado de escolas.
+
+Segundo recorte da B2 entregue em 20/07/2026:
+
+- foi implementada carga opt-in exclusiva da tabela `escola`, com URLs e
+  credenciais independentes para origem compartilhada e banco institucional de
+  destino;
+- antes da copia, o runner aplica a migration Flyway no destino; nenhuma
+  migration e executada no datasource compartilhado usado atualmente pelo
+  runtime;
+- a copia ocorre em lotes e em uma transacao no destino, usando upsert por
+  `id_escola` para permitir repeticao controlada sem duplicidade;
+- todos os campos institucionais sao preservados, incluindo codigo INEP, CNPJ,
+  contatos, referencia externa de endereco, status e timestamps;
+- a reconciliacao compara contagem e digest SHA-256 canonico entre origem e
+  destino e pode interromper a inicializacao em caso de divergencia;
+- a carga permanece desabilitada por padrao e nao copia `usuario_escola`, cujo
+  tratamento pertence ao terceiro recorte;
+- validacao restrita ao `institutional-tenant-service`: 6 testes, zero falhas e
+  zero erros; a carga foi executada duas vezes e permaneceu idempotente e
+  reconciliada;
+- a B2 permanece **em andamento**, com **5 recortes restantes**. O proximo e o
+  backfill controlado e reconciliado dos vinculos usuario-escola.
+
+Terceiro recorte da B2 entregue em 20/07/2026:
+
+- foi implementada carga opt-in exclusiva de `usuario_escola`, com origem e
+  destino configurados separadamente da carga de escolas;
+- o runner e ordenado depois da carga de escolas e aplica a migration do
+  destino de forma idempotente antes da reconciliacao;
+- antes de escrever, a carga valida que todas as escolas referenciadas pelos
+  vinculos existem no destino; ausencia interrompe o processo sem copia
+  parcial;
+- a copia preserva `id_usuario_escola`, `id_usuario`, `id_escola` e timestamp,
+  sem consultar nem importar a tabela `usuario` do dominio de identidade;
+- lotes, transacao, upsert por identificador, contagem e digest SHA-256 tornam a
+  operacao repetivel e verificavel;
+- a carga permanece desabilitada por padrao e exige ativacao operacional
+  explicita, independente da carga de escolas;
+- validacao restrita ao `institutional-tenant-service`: 8 testes, zero falhas e
+  zero erros; foram comprovados duas cargas consecutivas e o bloqueio por escola
+  ausente;
+- a B2 permanece **em andamento**, com **4 recortes restantes**. O proximo e a
+  ativacao da leitura local de tenant e escolas.
+
+Quarto recorte da B2 entregue em 20/07/2026:
+
+- o `TenantSessaoJdbcAdapter` deixou de usar o `JdbcTemplate` principal ligado
+  ao banco compartilhado e passou a receber exclusivamente o
+  `tenantReadJdbcTemplate`;
+- o datasource de leitura aponta por padrao para o banco
+  `institutional_tenant`, com URL e credenciais proprias substituiveis por
+  ambiente;
+- `GET /internal/v1/tenant/escolas` e `GET /internal/v1/tenant/ativa` nao
+  possuem fallback nem consulta alternativa ao datasource compartilhado;
+- o contrato externo e a logica de tenant ativo foram preservados, incluindo a
+  ordenacao da escola ativa e a resolucao pelo contexto quando nao houver
+  vinculo;
+- o teste de integracao passou a criar `escola` e `usuario_escola` somente no
+  banco de leitura local e confirmou explicitamente que o banco compartilhado
+  nao contem essas tabelas;
+- validacao restrita ao `institutional-tenant-service`: 8 testes, zero falhas e
+  zero erros;
+- a B2 permanece **em andamento**, com **3 recortes restantes**. O proximo e a
+  manutencao interna definitiva de escolas.
+
+Quinto recorte da B2 entregue em 20/07/2026:
+
+- o `institutional-tenant-service` passou a disponibilizar o CRUD interno
+  completo de escolas em `/internal/v1/escolas`, sem exposicao publica no BFF;
+- listagem, busca, criacao, atualizacao e exclusao usam exclusivamente o
+  datasource local institucional e transacoes vinculadas a esse banco;
+- entrada obrigatoria, limites de tamanho, formato de e-mail, normalizacao de
+  campos e valor padrao de escola ativa foram definidos no contrato interno;
+- a exclusao retorna conflito quando existem vinculos em `usuario_escola` e
+  retorna recurso nao encontrado para identificador inexistente;
+- validacao restrita ao `institutional-tenant-service`: 9 testes, zero falhas e
+  zero erros, incluindo o ciclo completo e o bloqueio de exclusao;
+- a B2 permanece **em andamento**, com **2 recortes restantes**. O proximo e a
+  manutencao interna definitiva dos vinculos usuario-escola.
+
+Sexto recorte da B2 entregue em 20/07/2026:
+
+- o `institutional-tenant-service` passou a disponibilizar a manutencao interna
+  dos vinculos em `/internal/v1/vinculos-usuario-escola`, sem rota publica no
+  BFF;
+- o contrato permite listar com filtros opcionais por usuario e escola, buscar
+  por identificador, criar de forma idempotente e excluir o vinculo;
+- a criacao retorna `201` para um novo vinculo e `200` para repeticao da mesma
+  associacao, preservando o identificador existente;
+- a existencia da escola e validada localmente e a criacao concorrente e
+  serializada pelo registro institucional; o usuario permanece somente como
+  UUID externo, sem consulta nem FK para o dominio de identidade;
+- todas as operacoes usam exclusivamente o datasource institucional local e o
+  token interno ja exigido pelo servico;
+- validacao restrita ao `institutional-tenant-service`: 11 testes, zero falhas
+  e zero erros, cobrindo idempotencia, filtros, busca, exclusao e escola
+  inexistente;
+- a B2 permanece **em andamento**, com **1 recorte restante**: datasource
+  proprio, prova integrada e encerramento da B2.
+
+Setimo e ultimo recorte da B2 entregue em 20/07/2026:
+
+- o datasource principal do `institutional-tenant-service` passou a apontar por
+  padrao para `jdbc:postgresql://localhost:5433/institutional_tenant`, com URL
+  e credenciais substituiveis por ambiente;
+- o Flyway oficial do Spring passou a aplicar automaticamente a migration do
+  dominio nesse mesmo datasource usado pelas leituras, escritas e transacoes;
+- foram removidos o datasource, o `JdbcTemplate`, o transaction manager e as
+  properties paralelas de leitura institucional;
+- os backfills opt-in de `escola` e `usuario_escola` passaram a manter somente
+  a origem compartilhada configuravel e a escrever diretamente no datasource
+  de runtime, em ordem que preserva a dependencia dos vinculos;
+- a infraestrutura PostgreSQL local passou a provisionar o banco
+  `institutional_tenant` junto dos demais bancos proprios;
+- uma prova integrada com origem e destino independentes executou Flyway,
+  carregou e reconciliou escolas e vinculos, consultou o tenant e criou uma
+  nova escola somente no destino; o banco proprio manteve exclusivamente
+  `escola` e `usuario_escola` como tabelas de negocio;
+- validacao restrita aos artefatos tocados: 12 testes do
+  `institutional-tenant-service`, zero falhas e zero erros, e
+  `docker compose -f platform/compose.yaml config --quiet` valido;
+- nenhum dado real foi movimentado durante a validacao; as cargas operacionais
+  permanecem desabilitadas por padrao e exigem ativacao explicita;
+- a **B2 esta concluida**. O ciclo fechado segue para a **B3 - escritas de
+  pessoas e alunos**.
+
+## Execucao fechada da B3 - Escritas de pessoas e alunos
+
+Quantidade fechada da B3: **8 recortes**.
+
+1. schema definitivo para escrita de pessoa, aluno e endereco;
+2. criacao interna atomica de pessoa, aluno e endereco principal;
+3. atualizacao interna de pessoa, aluno, contato e endereco;
+4. exclusao segura do aluno e tratamento das dependencias;
+5. compatibilidade completa das leituras publicas de aluno, inclusive ficha;
+6. oficializacao do conjunto publico no BFF sem caminho para o monolito;
+7. backfill controlado e reconciliado do estado necessario as escritas;
+8. datasource e Flyway definitivos, saneamento dos nomes tecnicos transitorios,
+   prova integrada e encerramento da B3.
+
+O limite da B3 preserva a separacao de dominios: CRUD de responsaveis e
+manutencao de `aluno_responsavel` permanecem na B4. A ficha do aluno pode
+compor a leitura oficial de responsaveis, mas nao transfere a propriedade desse
+vinculo para o `people-service`.
+
+Primeiro recorte da B3 entregue em 20/07/2026:
+
+- o schema local de `aluno` passou a conter escola, status, RA, RM, emancipacao,
+  datas e motivo de saida, status ativo e timestamp de atualizacao necessarios
+  ao ciclo de escrita;
+- `id_escola` e preenchido a partir da pessoa associada durante a evolucao de
+  dados existentes, sem criar FK para o dominio institucional;
+- o status do aluno possui integridade referencial com o catalogo local
+  `status_aluno`, e indices foram adicionados para consultas por escola, estado
+  ativo, nome e status;
+- nenhuma rota de escrita foi aberta neste recorte e nenhuma tabela de
+  responsaveis ou vinculos teve sua propriedade alterada;
+- validacao restrita ao `people-service`: 61 testes, zero falhas e zero erros;
+  a migration foi provada tanto em banco vazio quanto sobre schema v9 com
+  pessoa e aluno existentes;
+- a B3 permanece **em andamento**, com **7 recortes restantes**. O proximo e a
+  criacao interna atomica de pessoa, aluno e endereco principal.
+
+Segundo recorte da B3 entregue em 20/07/2026:
+
+- o `people-service` passou a expor `POST /internal/v1/alunos`, preservando o
+  formato de entrada e saida necessario a futura compatibilizacao da rota
+  publica, sem alterar o BFF neste recorte;
+- a escola informada e limitada ao contexto interno autenticado e resolvida no
+  `institutional-tenant-service`; escola inexistente ou inativa impede a
+  criacao, sem replicar a propriedade do dominio institucional;
+- pessoa, tipo `ALUNO`, endereco principal opcional e aluno sao persistidos no
+  banco local em uma unica transacao, com rollback integral em caso de falha;
+- o status ausente assume `ATIVO`, catalogos obrigatorios sao resolvidos
+  localmente e CPF duplicado na mesma escola produz conflito `409`;
+- nenhuma rota publica, frontend, monolito ou estrutura de responsaveis e
+  `aluno_responsavel` foi alterada;
+- validacao restrita ao `people-service`: 67 testes, zero falhas e zero erros,
+  cobrindo servico de aplicacao, contrato HTTP interno, cliente institucional,
+  persistencia do agregado e rollback;
+- a B3 permanece **em andamento**, com **6 recortes restantes**. O proximo e a
+  atualizacao interna de pessoa, aluno, contato e endereco.
+
+Terceiro recorte da B3 entregue em 21/07/2026:
+
+- o `people-service` passou a expor `PUT /internal/v1/alunos/{alunoId}`, com o
+  mesmo conjunto de dados e o mesmo formato de resposta usados pelo contrato
+  atual de atualizacao de aluno, sem oficializacao publica no BFF;
+- a operacao restringe aluno e escola ao contexto interno autenticado, impede
+  troca de tenant, retorna `404` para aluno ausente e `409` para CPF pertencente
+  a outro aluno da mesma escola;
+- pessoa, campos de contato, projecao de aluno, status e endereco principal sao
+  atualizados no banco local em uma unica transacao, preservando `id`, escola e
+  `createdAt`;
+- endereco informado cria o principal quando ausente ou atualiza o existente;
+  endereco vazio preserva o estado atual, reproduzindo a semantica do contrato
+  legado sem abrir operacao de remocao implicita;
+- falha em catalogo ou persistencia reverte integralmente pessoa, aluno e
+  endereco; mais de um endereco principal e tratado como violacao de
+  consistencia, em vez de produzir resposta ambigua;
+- nenhuma rota publica, frontend, BFF, monolito, responsavel ou vinculo
+  `aluno_responsavel` foi alterado;
+- validacao restrita ao `people-service`: 77 testes, zero falhas e zero erros,
+  incluindo contrato HTTP, isolamento por escola, criacao e atualizacao de
+  endereco, preservacao por omissao, conflito, ausencia e rollback;
+- a B3 permanece **em andamento**, com **5 recortes restantes**. O proximo e a
+  exclusao segura do aluno e o tratamento das dependencias.
+
+Quarto recorte da B3 entregue em 21/07/2026:
+
+- o `people-service` passou a expor `DELETE /internal/v1/alunos/{alunoId}` com
+  resposta `204`, ainda restrito ao contrato interno e sem oficializacao no
+  BFF;
+- a exclusao foi implementada como encerramento logico e transacional do aluno,
+  preenchendo `data_saida`, `motivo_saida=EXCLUSAO_SOLICITADA`, `updated_at` e
+  `ativo=false`, sem apagar identificadores ou registros de outros dominios;
+- a pessoa associada e inativada somente quando nao possui outro tipo alem de
+  `ALUNO`; pessoa multipapel permanece ativa e conserva todos os seus vinculos;
+- endereco, metadados documentais e `aluno_responsavel` permanecem preservados
+  para integridade referencial e auditoria. O `people-service` nao executa mais
+  a cascata indevida do monolito sobre documentos, transferencias, historicos,
+  matriculas ou responsaveis;
+- aluno inativo deixa de ser resolvido pelo vinculo operacional aluno-pessoa e
+  nao pode ser atualizado; tenant divergente, aluno ausente e exclusao repetida
+  retornam `404`;
+- qualquer falha durante a inativacao reverte aluno e pessoa integralmente;
+- nenhuma rota publica, frontend, BFF, monolito ou servico dono de dependencias
+  foi alterado;
+- validacao restrita ao `people-service`: 84 testes, zero falhas e zero erros,
+  cobrindo contrato `204`, tenant, multipapel, preservacao de dependencias,
+  indisponibilidade operacional posterior e rollback;
+- a B3 permanece **em andamento**, com **4 recortes restantes**. O proximo e a
+  compatibilidade completa das leituras publicas de aluno, inclusive ficha.
+
+Quinto recorte da B3 entregue em 21/07/2026:
+
+- o `people-service` passou a expor internamente `GET /internal/v1/alunos`,
+  `GET /internal/v1/alunos/{alunoId}` e
+  `GET /internal/v1/alunos/{alunoId}/ficha`, sem alteracao de rota publica no
+  BFF;
+- listagem e detalhe leem exclusivamente o modelo local de aluno ativo,
+  limitado a escola autenticada, com filtro de nome e campos compativeis com o
+  contrato publico atual; aluno ausente, inativo ou de outro tenant retorna
+  `404` no detalhe;
+- a ficha compoe o aluno local com os responsaveis pelo contrato interno do
+  `responsibles-service`, propagando autorizacao e contexto; ausencia de
+  responsaveis retorna lista vazia apos a confirmacao local do aluno;
+- a leitura valida que exista no maximo um endereco principal, impedindo
+  resposta ambigua para uma inconsistencia de dados;
+- nenhum write de responsavel ou de `aluno_responsavel` foi criado, e frontend,
+  BFF e monolito permaneceram intactos;
+- validacao restrita ao `people-service`: 94 testes, zero falhas e zero erros;
+- a B3 permanece **em andamento**, com **3 recortes restantes**. O proximo e a
+  oficializacao publica dessas leituras no BFF, sem caminho para o monolito.
+
+Sexto recorte da B3 entregue em 21/07/2026:
+
+- o `school-management-bff` passou a oficializar `GET /api/alunos`,
+  `GET /api/alunos/{alunoId}` e `GET /api/alunos/{alunoId}/ficha` consumindo
+  exclusivamente o `people-service`;
+- o filtro opcional `nome`, os payloads e os status retornados pelo servico dono
+  sao encaminhados sem transformacao de contrato externo;
+- o BFF resolve o contexto autenticado no `identity-access-service` e propaga
+  bearer, correlacao, usuario, escola e token interno ao `people-service`;
+- as tres rotas nao possuem adapter, fallback ou chamada ao monolito;
+- validacao restrita ao `school-management-bff`: 215 testes, zero falhas e zero
+  erros, incluindo integracao que comprova os tres caminhos oficiais para o
+  `people-service`;
+- a B3 permanece **em andamento**, com **2 recortes restantes**. O proximo e o
+  backfill controlado e reconciliado do estado necessario as escritas.
+
+Setimo recorte da B3 entregue em 21/07/2026:
+
+- o `people-service` passou a ter backfill one-shot, opt-in e transacional para
+  o estado local necessario ao agregado de aluno: catalogos de pessoa, endereco
+  e status, pessoa, tipos da pessoa, endereco, vinculo de endereco e aluno;
+- a origem e configurada separadamente do destino local; `id_escola` e
+  `escola_nome` sao obtidos da origem institucional durante a carga, sem criar
+  dependencia fisica do dominio institucional no banco do `people-service`;
+- a rotina seleciona somente pessoas vinculadas a alunos e seus enderecos,
+  preservando todos os papeis dessas pessoas para a regra de inativacao, mas nao
+  copia responsaveis, `aluno_responsavel`, documentos, funcionarios ou
+  professores;
+- os dados sao processados em lotes, atualizados ou inseridos em uma unica
+  transacao no destino e reconciliados por contagem e digest dos campos da
+  origem, sem remover dados locais criados depois do corte;
+- a execucao exige `PEOPLE_WRITE_BACKFILL_ENABLED=true` e URL da origem; por
+  padrao permanece desabilitada e nenhum dado real foi movimentado nesta fase;
+- validacao restrita ao `people-service`: 95 testes, zero falhas e zero erros,
+  incluindo origem e destino H2 independentes, duas cargas idempotentes,
+  reconciliacao e exclusao de pessoa fora do agregado de aluno;
+- a B3 permanece **em andamento**, com **1 recorte restante**: datasource e
+  Flyway definitivos, saneamento dos nomes tecnicos transitorios, prova
+  integrada e encerramento.
+
+Oitavo e ultimo recorte da B3 entregue em 21/07/2026:
+
+- o `people-service` passou a usar `spring.datasource` como datasource proprio
+  padrao do banco `people` e `spring.flyway` para aplicar automaticamente as
+  migrations em `classpath:db/people/migration` no mesmo banco de runtime;
+- o backfill de aluno passou a usar o datasource oficial do Spring como destino,
+  mantendo apenas a origem externa configuravel e opt-in;
+- foram removidos o runner manual de Flyway, seu estado de observabilidade e as
+  designacoes tecnicas transitorias de `LeituraModelo` e `read-model`; os
+  adapters agora recebem `PeoplePersistenceProperties`, vinculado ao datasource
+  oficial;
+- uma prova integrada iniciou o contexto Spring com origem e destino H2
+  independentes, aplicou Flyway, executou o backfill e confirmou o aluno no
+  datasource proprio de runtime;
+- validacao restrita ao `people-service`: 92 testes, zero falhas e zero erros;
+- nenhum dado real foi movimentado durante a validacao e o backfill continua
+  desabilitado por padrao;
+- a **B3 esta concluida**. O proximo ciclo deve abrir a **B4**, limitada a CRUD
+  de responsaveis e manutencao de `aluno_responsavel` no servico dono.
+
+## Execucao fechada da B4 - Escritas de responsaveis e vinculos
+
+Quantidade fechada da B4: **10 recortes**.
+
+1. schema proprio e contratos internos de escrita;
+2. criacao interna de responsavel;
+3. atualizacao interna de responsavel;
+4. exclusao segura de responsavel;
+5. criacao do vinculo aluno-responsavel;
+6. desvinculo seguro e invariantes do vinculo;
+7. oficializacao dos writes de responsavel no BFF;
+8. oficializacao dos writes de vinculo no BFF;
+9. backfill controlado e reconciliado;
+10. datasource e Flyway definitivos, saneamento tecnico, prova integrada e
+    encerramento da B4.
+
+O limite da B4 preserva a propriedade do dominio: `responsibles-service` e o
+unico dono de responsavel e `aluno_responsavel`; `people-service` continua dono
+do aluno e e consultado somente para validar o aluno nos writes de vinculo.
+
+Primeiro recorte da B4 entregue em 21/07/2026:
+
+- a migration V4 do `responsibles-service` passou a preparar o ciclo de vida de
+  escrita de responsavel com `ativo`, `updated_at`, indice por escola/estado/nome
+  e unicidade de CPF por escola;
+- foram definidos comandos internos tipados e portas de entrada para criar,
+  atualizar e excluir responsavel, vincular aluno-responsavel e desvincular,
+  sem controller de escrita neste recorte;
+- a migration nao cria FK para aluno, preservando-o como identificador externo
+  do `people-service`; a FK local do vinculo para responsavel permanece;
+- nenhuma rota publica, BFF, frontend, monolito ou escrita efetiva foi alterada;
+- validacao restrita ao `responsibles-service`: 9 testes, zero falhas e zero
+  erros, incluindo schema vazio com defaults de ciclo de vida e bloqueio de CPF
+  duplicado na mesma escola;
+- a B4 permanece **em andamento**, com **9 recortes restantes**. O proximo e a
+  criacao interna de responsavel.
+
+Segundo recorte da B4 entregue em 21/07/2026:
+
+- o `responsibles-service` passou a criar responsavel localmente, de forma
+  transacional, por `POST /internal/v1/responsaveis` (mantido tambem o alias
+  interno `/internal/responsaveis`);
+- a escola e extraida exclusivamente do `InternalRequestContext`; o payload nao
+  aceita `escolaId`, impedindo escrita em tenant divergente;
+- o caso de uso normaliza campos textuais e CPF, exige nome e CPF com 11
+  digitos, e bloqueia CPF duplicado na mesma escola com conflito `409`;
+- a persistencia grava diretamente no banco proprio do dominio. `escola_nome`
+  permanece nulo nesta rota interna porque nao ha consulta transversal ao
+  dominio institucional neste recorte;
+- nenhuma rota publica, BFF, frontend, monolito ou vinculo
+  `aluno_responsavel` foi alterado;
+- validacao restrita ao `responsibles-service`: 13 testes, zero falhas e zero
+  erros, incluindo normalizacao, isolamento por escola, persistencia local e
+  unicidade de CPF;
+- a B4 permanece **em andamento**, com **8 recortes restantes**. O proximo e a
+  atualizacao interna de responsavel.
+
+Terceiro recorte da B4 entregue em 21/07/2026:
+
+- o `responsibles-service` passou a atualizar responsavel por
+  `PUT /internal/v1/responsaveis/{id}` (mantido tambem o alias interno), com
+  substituicao integral dos dados cadastrais no banco proprio;
+- a atualizacao e limitada a responsavel ativo da mesma escola do
+  `InternalRequestContext`; identificador inexistente, inativo ou de outra
+  escola retorna `404` sem alterar registros de outro tenant;
+- a operacao normaliza os mesmos campos da criacao, atualiza `updated_at` e
+  preserva `created_at`, `escola_nome` e o ciclo de vida ja persistido;
+- colisao de CPF por escola faz rollback transacional e retorna conflito `409`;
+- nenhuma rota publica, BFF, frontend, monolito ou vinculo
+  `aluno_responsavel` foi alterado;
+- validacao restrita ao `responsibles-service`: 15 testes, zero falhas e zero
+  erros, incluindo isolamento de tenant e atualizacao local;
+- a B4 permanece **em andamento**, com **7 recortes restantes**. O proximo e a
+  exclusao segura de responsavel.
+
+Quarto recorte da B4 entregue em 21/07/2026:
+
+- o `responsibles-service` passou a inativar responsavel por
+  `DELETE /internal/v1/responsaveis/{id}` (mantido tambem o alias interno),
+  preservando o registro e seus dados historicos;
+- a exclusao bloqueia a linha ativa do responsavel no tenant do contexto,
+  verifica vinculos em `aluno_responsavel` na mesma transacao e retorna `409`
+  enquanto houver aluno vinculado;
+- sem vinculos, a operacao grava `ativo=false` e `updated_at`; responsavel
+  inexistente, inativo ou pertencente a outra escola retorna `404`;
+- as leituras locais de listagem, detalhe e responsaveis por aluno passaram a
+  filtrar somente responsaveis ativos, removendo o registro inativado do uso
+  operacional sem apagar o historico;
+- nenhuma rota publica, BFF, frontend, monolito ou criacao/desvinculo de
+  `aluno_responsavel` foi alterado;
+- validacao restrita ao `responsibles-service`: 18 testes, zero falhas e zero
+  erros, incluindo inativacao, preservacao de registro e bloqueio por vinculo;
+- a B4 permanece **em andamento**, com **6 recortes restantes**. O proximo e a
+  criacao do vinculo aluno-responsavel.
+
+Quinto recorte da B4 entregue em 21/07/2026:
+
+- o `responsibles-service` passou a criar vinculo por
+  `POST /internal/v1/alunos/{alunoId}/responsaveis` (mantido tambem o alias
+  interno), sem criar FK local para o aluno;
+- antes da escrita, o servico consulta `GET /internal/v1/alunos/{alunoId}` no
+  `people-service`, propagando correlacao, usuario, escola e token interno. O
+  aluno continua sob propriedade exclusiva do `people-service`;
+- o responsavel e bloqueado e validado como ativo na mesma escola durante a
+  transacao local; vinculo duplicado retorna `409`, responsavel ou aluno fora
+  do tenant retorna `404`, e indisponibilidade do `people-service` retorna
+  `503` sem escrita local;
+- os campos booleanos ausentes passam a `false`; parentesco ausente usa
+  `RESPONSAVEL_LEGAL`, agora garantido por migration local. Outros codigos
+  exigem catalogo local existente;
+- nenhuma rota publica, BFF, frontend ou monolito foi alterado;
+- validacao restrita ao `responsibles-service`: 22 testes, zero falhas e zero
+  erros, incluindo migration do catalogo, criacao transacional e bloqueio de
+  duplicidade;
+- a B4 permanece **em andamento**, com **5 recortes restantes**. O proximo e o
+  desvinculo seguro e as invariantes do vinculo.
+
+Sexto recorte da B4 entregue em 21/07/2026:
+
+- o `responsibles-service` passou a remover vinculo por
+  `DELETE /internal/v1/alunos/{alunoId}/responsaveis/{responsavelId}` (mantido
+  tambem o alias interno);
+- o aluno e novamente validado no `people-service` com o contexto interno; a
+  ausencia no tenant retorna `404` e indisponibilidade remota retorna `503`
+  antes de qualquer escrita local;
+- a transacao local bloqueia o responsavel ativo da escola e remove somente o
+  par `(aluno, responsavel)` correspondente. Vínculo ausente, responsável
+  inativo ou de outra escola retorna `404` sem tocar outro tenant;
+- criacao, desvinculo e inativacao compartilham o bloqueio do responsavel: um
+  responsavel com vinculo nao pode ser inativado e, apos o desvinculo, volta a
+  poder ser inativado com seguranca;
+- nenhuma rota publica, BFF, frontend ou monolito foi alterado;
+- validacao restrita ao `responsibles-service`: 24 testes, zero falhas e zero
+  erros, incluindo desvinculo, isolamento e inativacao posterior;
+- a B4 permanece **em andamento**, com **4 recortes restantes**. O proximo e a
+  oficializacao dos writes de responsavel no BFF.
+
+Setimo recorte da B4 entregue em 21/07/2026:
+
+- o `school-management-bff` passou a oficializar `POST /api/responsaveis`,
+  `PUT /api/responsaveis/{id}` e `DELETE /api/responsaveis/{id}`, consumindo
+  exclusivamente os writes internos do `responsibles-service`;
+- os payloads e os status de sucesso sao encaminhados sem transformacao. O BFF
+  resolve usuario e escola no `identity-access-service` e propaga bearer,
+  correlacao, usuario, escola e token interno ao servico dono;
+- as tres rotas nao possuem adapter, fallback ou chamada ao monolito; o
+  `escolaId` eventualmente presente no contrato externo e inofensivo, pois o
+  tenant efetivo e sempre o contexto interno no `responsibles-service`;
+- validacao restrita ao `school-management-bff`:
+  `ResponsavelWriteProxyIntegrationTest` com 3 testes, zero falhas e zero
+  erros, comprovando POST, PUT, DELETE e ausencia de chamada ao monolito. A
+  suite completa do BFF excedeu o limite de execucao desta fase antes de
+  concluir;
+- a B4 permanece **em andamento**, com **3 recortes restantes**. O proximo e a
+  oficializacao dos writes de vinculo no BFF.
+
+Oitavo recorte da B4 entregue em 21/07/2026:
+
+- o `school-management-bff` passou a oficializar
+  `POST /api/alunos/{alunoId}/responsaveis`,
+  `POST /api/alunos/{alunoId}/responsaveis/{responsavelId}` e
+  `DELETE /api/alunos/{alunoId}/responsaveis/{responsavelId}`, consumindo
+  exclusivamente o `responsibles-service`;
+- o formato legado de corpo com `idResponsavel` recebe apenas a compatibilizacao
+  minima para `responsavelId` no contrato interno; parentesco e flags sao
+  preservados. O atalho por path e convertido para o mesmo contrato interno;
+- o BFF resolve e propaga o contexto autenticado ao servico dono, sem adapter,
+  fallback ou chamada ao monolito nas tres rotas;
+- validacao restrita ao `school-management-bff`:
+  `AlunoResponsavelWriteProxyIntegrationTest` com 3 testes, zero falhas e zero
+  erros, comprovando os dois formatos de criacao, desvinculo e ausencia de
+  chamada ao monolito;
+- a B4 permanece **em andamento**, com **2 recortes restantes**. O proximo e o
+  backfill controlado e reconciliado.
+
+Nono recorte da B4 entregue em 21/07/2026:
+
+- o `responsibles-service` passou a possuir backfill one-shot, paginado e
+  explicitamente opt-in do estado de escrita de `responsavel`, catalogo de
+  `parentesco` e vinculo `aluno_responsavel` para sua base propria;
+- a origem e configurada separadamente da base local. O processo executa
+  upsert transacional por responsavel, codigo de parentesco e par
+  `(aluno, responsavel)`, sem apagar registros exclusivamente locais criados
+  depois da migracao;
+- ao fim, a reconciliacao compara as linhas de origem com o estado local e,
+  quando `fail-on-mismatch` estiver habilitado, interrompe a inicializacao se
+  houver divergencia. O backfill permanece desabilitado por padrao e exige as
+  variaveis de ambiente de origem para ser executado;
+- nenhuma rota, BFF, frontend ou monolito foi alterado e nenhum dado real foi
+  movimentado nesta etapa;
+- validacao restrita ao `responsibles-service`: 25 testes, zero falhas e zero
+  erros, incluindo duas execucoes idempotentes, reconciliacao e preservacao de
+  um responsavel local criado posteriormente;
+- a B4 permanece **em andamento**, com **1 recorte restante**. O proximo e a
+  limpeza definitiva de datasource/Flyway e o fechamento tecnico do servico.
+
+Decimo e ultimo recorte da B4 entregue em 21/07/2026:
+
+- o `responsibles-service` passou a usar `spring.datasource` como datasource
+  proprio padrao do banco `responsibles` e `spring.flyway` para aplicar as
+  migrations em `classpath:db/responsibles/migration` no mesmo banco de
+  runtime;
+- o backfill passou a usar o datasource oficial do Spring como destino, mantendo
+  somente a origem externa configuravel e opt-in em
+  `responsibles.persistence.backfill`;
+- foram removidos o runner manual de Flyway, o indicador de health e as
+  propriedades/classes tecnicas transitorias `LeituraModelo` e `read-model`.
+  As leituras locais agora sao obrigatoriamente atendidas pelo banco proprio;
+- uma prova integrada iniciou o contexto Spring com origem e destino H2
+  independentes, aplicou Flyway e confirmou responsavel e vinculo no datasource
+  proprio de runtime;
+- validacao restrita ao `responsibles-service`: 24 testes, zero falhas e zero
+  erros. Nenhum dado real foi movimentado e o backfill continua desabilitado
+  por padrao;
+- a **B4 esta concluida**. O `responsibles-service` e o dono efetivo das
+  leituras e escritas de responsaveis e de vinculos aluno-responsavel. Um
+  eventual novo ciclo deve tratar somente evolucoes funcionais futuras, sem
+  reabrir dependencia do monolito.
+
+## Execucao fechada da B5 - Ciclo completo de matricula
+
+Quantidade fechada da B5: **9 recortes**.
+
+1. schema proprio e contratos internos de escrita;
+2. contratos internos de validacao com aluno e catalogo academico;
+3. criacao interna de matricula;
+4. atualizacao interna de matricula;
+5. mudanca de status e cancelamento seguro;
+6. consultas auxiliares e detalhe de matricula;
+7. oficializacao de criacao e atualizacao no BFF;
+8. oficializacao de status, cancelamento e consultas no BFF;
+9. backfill controlado, reconciliacao, prova integrada e fechamento.
+
+O limite da B5 preserva a propriedade do dominio: o
+`enrollment-document-service` e o unico dono do ciclo de matricula. Aluno
+permanece no `people-service`, e turma, serie e periodo letivo permanecem no
+`academic-catalog-service`, sempre por contratos internos explicitos.
+
+Primeiro recorte da B5 entregue em 21/07/2026:
+
+- a migration V2 preparou o ciclo de vida de escrita de `enrollment_record`
+  com `updated_at`, `cancelled_at`, motivo de cancelamento, status obrigatorio
+  com default `PENDENTE` e indice por escola, aluno, periodo e status;
+- foram definidos comandos tipados e portas de entrada/saida para criar,
+  atualizar, mudar status e cancelar matricula, sem controller ou escrita
+  efetiva neste recorte;
+- nenhuma rota interna ou publica, BFF, frontend, monolito ou dependencia
+  remota foi alterada;
+- validacao restrita ao `enrollment-document-service`: 8 testes, zero falhas e
+  zero erros, incluindo migration vazia e validacao do schema;
+- a B5 permanece **em andamento**, com **8 recortes restantes**. O proximo e
+  a definicao dos contratos internos de validacao com aluno e catalogo.
+
+Segundo recorte da B5 entregue em 21/07/2026:
+
+- o `enrollment-document-service` passou a ter portas e adaptadores HTTP
+  especificos da matricula para validar aluno ativo no `people-service` e
+  turma, serie e periodo letivo no `academic-catalog-service`;
+- os adaptadores propagam token interno, correlacao, usuario e escola. Recurso
+  ausente retorna validacao negativa; rejeicao nao-404 ou indisponibilidade dos
+  servicos donos retorna `503`, sem fallback ou acesso ao monolito;
+- periodo letivo e validado tambem pelo atributo oficial `ativo`, impedindo
+  que um periodo inativo seja usado em futura escrita de matricula;
+- nenhuma rota interna ou publica, BFF, frontend, monolito ou escrita de
+  matricula foi alterada;
+- validacao restrita ao `enrollment-document-service`: 10 testes, zero falhas
+  e zero erros, incluindo propagacao de contexto, aluno ausente e periodo
+  inativo;
+- a B5 permanece **em andamento**, com **7 recortes restantes**. O proximo e
+  a criacao interna de matricula.
+
+Terceiro recorte da B5 entregue em 21/07/2026:
+
+- o `enrollment-document-service` passou a criar matricula por
+  `POST /internal/v1/matriculas` (mantido tambem o alias interno), persistindo
+  exclusivamente em `enrollment_record` com status inicial `PENDENTE`;
+- a criacao exige aluno ativo na escola, turma existente e compativel com a
+  serie e o periodo informados, serie existente e periodo letivo ativo. Toda
+  inconsistencia e bloqueada antes da transacao local;
+- o banco proprio passou a impedir repeticao da mesma combinacao de escola,
+  aluno, turma, periodo e status, e a aplicacao retorna `409` para matricula
+  pendente duplicada;
+- nenhuma rota publica, BFF, frontend ou monolito foi alterado;
+- validacao restrita ao `enrollment-document-service`: 12 testes, zero falhas
+  e zero erros, incluindo criacao apos validacoes e bloqueio de turma
+  incompativel sem persistencia;
+- a B5 permanece **em andamento**, com **6 recortes restantes**. O proximo e
+  a atualizacao interna de matricula.
+
+Quarto recorte da B5 entregue em 21/07/2026:
+
+- o `enrollment-document-service` passou a atualizar matricula pendente por
+  `PUT /internal/v1/matriculas/{matriculaId}`, mantido tambem o alias interno,
+  exclusivamente sobre `enrollment_record` do banco proprio;
+- a operacao restringe a busca ao `id` e a escola do contexto, retorna `404`
+  para ausencia ou tenant divergente e `409` para matricula que nao esteja em
+  `PENDENTE`; aluno e status nao podem ser alterados neste recorte;
+- antes da transacao local, o servico revalida o aluno ativo e a combinacao
+  turma, serie e periodo letivo nos respectivos servicos donos. A aplicacao
+  tambem bloqueia com `409` a colisao com outra matricula pendente equivalente
+  e atualiza `updated_at`;
+- nenhuma rota publica, BFF, frontend ou monolito foi alterado;
+- validacao restrita ao `enrollment-document-service`: 13 testes, zero falhas
+  e zero erros, incluindo atualizacao apos revalidacao das dependencias;
+- a B5 permanece **em andamento**, com **5 recortes restantes**. O proximo e
+  a mudanca de status e o cancelamento seguro.
+
+Quinto recorte da B5 entregue em 21/07/2026:
+
+- o `enrollment-document-service` passou a expor
+  `PATCH /internal/v1/matriculas/{matriculaId}/status` para transicoes
+  operacionais e `POST /internal/v1/matriculas/{matriculaId}/cancelamento`
+  para o cancelamento seguro, mantidos tambem os aliases internos;
+- a alteracao aceita somente `SOLICITADA`, `EM_ANDAMENTO`,
+  `AGUARDANDO_DOCUMENTOS`, `AGUARDANDO_HISTORICO_ESCOLAR` e `EFETIVADA`.
+  Estados terminais nao sao reabertos, repeticao de status e encerramentos
+  academicos exigem os fluxos dedicados ainda fora deste recorte;
+- o cancelamento exige motivo, impede repeticao e terminalidade, grava
+  `CANCELADA`, `cancelled_at`, motivo e `updated_at` na persistencia propria;
+- as duas operacoes restringem a matricula a `id` e escola do contexto. Nenhuma
+  rota publica, BFF, frontend ou monolito foi alterado;
+- validacao restrita ao `enrollment-document-service`: 17 testes, zero falhas
+  e zero erros, incluindo transicao operacional e cancelamento no contrato
+  interno com persistencia do motivo;
+- a B5 permanece **em andamento**, com **4 recortes restantes**. O proximo e
+  consultas auxiliares e detalhe de matricula.
+
+Sexto recorte da B5 entregue em 21/07/2026:
+
+- a listagem interna de matriculas permanece oficial por
+  `GET /internal/v1/matriculas`, com filtros locais de aluno, turma, periodo
+  letivo e status, e foi complementada pelo detalhe em
+  `GET /internal/v1/matriculas/{matriculaId}`;
+- o detalhe reutiliza o contrato de resposta da listagem, incluindo etapas da
+  matricula, e sempre resolve o registro por id e escola do contexto. Ausencia
+  ou matricula de outra escola retorna `404`;
+- as consultas operam exclusivamente em `enrollment_record` e nas etapas
+  locais, sem consulta remota, fallback, BFF, frontend ou monolito;
+- validacao restrita ao `enrollment-document-service`: 18 testes, zero falhas
+  e zero erros, incluindo detalhe completo e bloqueio entre tenants;
+- a B5 permanece **em andamento**, com **3 recortes restantes**. O proximo e
+  a oficializacao de criacao e atualizacao no BFF.
+
+Setimo recorte da B5 entregue em 21/07/2026:
+
+- o `school-management-bff` passou a oficializar `POST /api/matriculas` e
+  `PUT /api/matriculas/{matriculaId}`, atendidos exclusivamente pelo
+  `enrollment-document-service` com contexto autenticado resolvido no
+  `identity-access-service`;
+- criacao preserva o payload publico legado (`alunoId`, `turmaId`,
+  `periodoLetivoId`, tipo e observacao). Quando serie e data nao sao
+  informadas, o servico dono as resolve da turma oficial e da data corrente,
+  sem expor exigencia interna ao consumidor;
+- o BFF propaga bearer, correlacao, usuario, escola e token interno. Nao ha
+  adapter, fallback ou chamada ao monolito nas duas rotas;
+- validacao restrita aos modulos tocados: `enrollment-document-service` com
+  19 testes e `MatriculaWriteProxyIntegrationTest` do BFF com 2 testes, todos
+  sem falhas ou erros;
+- a B5 permanece **em andamento**, com **2 recortes restantes**. O proximo e
+  a oficializacao de status, cancelamento e consultas no BFF.
+
+Oitavo recorte da B5 entregue em 21/07/2026:
+
+- o `school-management-bff` passou a oficializar
+  `PATCH /api/matriculas/{matriculaId}/status`,
+  `DELETE /api/matriculas/{matriculaId}` como cancelamento seguro e
+  `GET /api/matriculas/{matriculaId}` como detalhe. A listagem publica
+  existente em `GET /api/matriculas` permanece atendida pelo mesmo servico
+  dono;
+- o BFF converte somente `justificativa` publica em `observacao` interna no
+  status. O `DELETE` legado sem corpo e preservado com motivo operacional
+  auditavel; corpo opcional pode informar `motivo` ou `justificativa`;
+- todas as rotas resolvem o contexto no `identity-access-service` e propagam
+  bearer, correlacao, usuario, escola e token interno ao
+  `enrollment-document-service`, sem adapter, fallback ou chamada ao
+  monolito;
+- validacao restrita ao BFF: `MatriculaReadProxyIntegrationTest` com 2 testes
+  e `MatriculaWriteProxyIntegrationTest` com 4 testes, sem falhas ou erros;
+- a B5 permanece **em andamento**, com **1 recorte restante**: backfill
+  controlado, reconciliacao, prova integrada e fechamento.
+
+Nono e ultimo recorte da B5 entregue em 21/07/2026:
+
+- o `enrollment-document-service` recebeu backfill one-shot, paginado e
+  opt-in para `matricula` e `matricula_etapa`, com origem JDBC separada do
+  datasource proprio. A carga preserva identificadores, executa upsert
+  transacional e nao remove registros criados localmente apos o corte;
+- a reconciliacao compara as linhas importadas com `enrollment_record` e
+  `enrollment_step`. Quando `fail-on-mismatch` estiver ativo, divergencia
+  interrompe a inicializacao; o recurso permanece desabilitado por padrao e
+  exige URL explicita da origem;
+- a prova integrada aplicou Flyway no destino H2 e confirmou carga, repeticao
+  idempotente, reconciliacao e preservacao de matricula local posterior. Nenhum
+  dado real, frontend, BFF ou monolito foi alterado nesta execucao;
+- validacao restrita ao `enrollment-document-service`: 20 testes, zero falhas
+  e zero erros; `git diff --check` sem erros;
+- a **B5 esta concluida**. O `enrollment-document-service` encerra o ciclo de
+  matricula como dono efetivo de criacao, atualizacao, status operacional,
+  cancelamento e consultas, com contrato publico oficial no BFF e sem
+  dependencia funcional de runtime do monolito.
+
+## Planejamento fechado da B6 - Ciclo completo de documentos
+
+A B6 possui **9 recortes**, restritos ao `enrollment-document-service` e ao
+`school-management-bff`. As leituras ja oficiais em `GET /api/documentos`,
+`GET /api/documentos-alunos/alunos/{alunoId}` e
+`GET /api/documentos-alunos/{id}` serao preservadas, sem reimplementacao. O
+legado sera somente fonte de diagnostico do contrato publico vigente; nao
+participara do runtime novo.
+
+1. **Contrato e persistencia local de documentos**: separar os casos de uso,
+   portas e modelo local para metadados, conteudo e ciclo de vida, com
+   isolamento por escola e referencia opaca de armazenamento.
+2. **Criacao interna de documento de aluno**: aceitar metadados e referencia
+   de arquivo, validar o aluno no contrato interno e persistir somente no
+   banco proprio.
+3. **Upload interno de documento de aluno**: receber multipart, validar tipo,
+   tamanho e nome seguro, delegar o conteudo a porta de armazenamento e gravar
+   seus metadados locais.
+4. **Criacao e upload internos de documento por entidade**: aplicar o mesmo
+   fluxo a `documentos`, preservando o contrato publico de entidade, tipo,
+   numero, caminho e observacao.
+5. **Consulta de conteudo e download seguro**: resolver o arquivo por id e
+   escola, sem expor caminho interno, com resposta e headers apropriados para
+   download tanto de documento de aluno quanto de entidade.
+6. **Exclusao segura e invariantes**: excluir metadados e conteudo de forma
+   consistente, idempotente e isolada por tenant, sem remover referencias fora
+   do contexto autenticado.
+7. **Oficializacao no BFF de documentos de aluno**: encaminhar criacao,
+   upload, download e exclusao ao `enrollment-document-service`, propagando
+   os headers de contexto sem adapter ou fallback legado.
+8. **Oficializacao no BFF de documentos por entidade**: encaminhar os mesmos
+   contratos para `/api/documentos`, preservando os endpoints de leitura ja
+   oficiais e os contratos externos existentes.
+9. **Backfill, reconciliacao, prova integrada e fechamento**: carregar os
+   metadados documentais de forma one-shot, opt-in e idempotente, reconciliar
+   com o banco local, provar os fluxos em ambiente isolado e remover a
+   dependencia funcional remanescente do monolito neste dominio.
+
+Ao termino do nono recorte, o `enrollment-document-service` sera o dono
+efetivo de documentos de aluno e de entidade, incluindo armazenamento e ciclo
+de vida. A evolucao posterior de regras de negocio sera outro ciclo, nao um
+recorte pendente da B6.
+
+Primeiro recorte da B6 entregue em 22/07/2026:
+
+- documentos foram separados de matricula e transferencia por
+  `DocumentoUseCase` e `DocumentoMetadataPort`; as leituras internas existentes
+  conservam URLs e respostas, mas nao dependem mais do contrato desses outros
+  dominios;
+- a porta `DocumentoArquivoStoragePort` passou a definir a fronteira para
+  armazenar, recuperar e excluir conteudo, usando apenas referencia opaca;
+- a migracao V3 prepara `student_document` e `administrative_document` para
+  referencia de armazenamento, MIME, tamanho, atualizacao e exclusao logica,
+  sem escrita nova, upload, BFF ou monolito neste recorte;
+- validacao restrita ao `enrollment-document-service`: 21 testes sem falhas
+  ou erros e `git diff --check` sem erros. A B6 permanece **em andamento**,
+  com **8 recortes restantes**. O proximo e a criacao interna de documento de
+  aluno.
+
+Segundo recorte da B6 entregue em 22/07/2026:
+
+- o `enrollment-document-service` passou a expor
+  `POST /internal/v1/documentos-alunos` para criar metadados de documento do
+  aluno na persistencia propria;
+- o contrato exige `alunoId`, `tipoDocumento` e uma referencia de arquivo por
+  `caminhoArquivo` ou `urlArquivo`; preserva nome, numero e observacao, e
+  normaliza os campos antes da persistencia;
+- o registro recebe escola somente do contexto interno, identificador proprio,
+  referencia opaca e data de atualizacao. Nao ha upload, consulta remota,
+  BFF, frontend ou monolito neste recorte;
+- validacao restrita ao `enrollment-document-service`: 24 testes sem falhas
+  ou erros e `git diff --check` sem erros. A B6 permanece **em andamento**,
+  com **7 recortes restantes**. O proximo e o upload interno de documento de
+  aluno.
+
+Terceiro recorte da B6 entregue em 22/07/2026:
+
+- o `enrollment-document-service` passou a expor
+  `POST /internal/v1/documentos-alunos/upload` com multipart para receber e
+  armazenar documento de aluno;
+- o upload aceita PDF, JPEG e PNG de ate 10 MiB, rejeita tamanho, MIME e nome
+  invalido, e impede nomes com caminho ou caracteres de controle;
+- o adapter local grava conteudo de forma atomica em diretorio configuravel e
+  devolve UUID opaco. O servico persiste essa referencia, MIME e tamanho em
+  `student_document`; em falha da persistencia, remove o conteudo ja gravado;
+- validacao restrita ao `enrollment-document-service`: 26 testes sem falhas
+  ou erros e `git diff --check` sem erros. A B6 permanece **em andamento**,
+  com **6 recortes restantes**. O proximo e a criacao e upload internos de
+  documento por entidade.
+
+Quarto recorte da B6 entregue em 22/07/2026:
+
+- o `enrollment-document-service` passou a expor `POST /internal/v1/documentos`
+  para metadados e `POST /internal/v1/documentos/upload` para multipart de
+  documento por entidade;
+- os contratos exigem tipo e id de entidade, tipo documental e referencia de
+  arquivo. O upload reutiliza a validacao de PDF, JPEG ou PNG ate 10 MiB e o
+  armazenamento local atomico do recorte anterior;
+- o metadado administrativo recebe escola exclusivamente do contexto e grava
+  referencia UUID opaca, MIME e tamanho quando houver upload. Nao houve BFF,
+  frontend, monolito ou dependencia remota neste recorte;
+- validacao restrita ao `enrollment-document-service`: 30 testes sem falhas
+  ou erros e `git diff --check` sem erros. A B6 permanece **em andamento**,
+  com **5 recortes restantes**. O proximo e consulta de conteudo e download
+  seguro.
+
+Quinto recorte da B6 entregue em 22/07/2026:
+
+- o `enrollment-document-service` passou a expor
+  `GET /internal/v1/documentos-alunos/{id}/conteudo` e
+  `GET /internal/v1/documentos/{id}/conteudo` para download seguro;
+- ambas as rotas resolvem primeiro o metadado por ID e escola do contexto,
+  abrem o conteudo apenas pela referencia UUID opaca e devolvem MIME e
+  `Content-Disposition` de anexo, sem caminho fisico ou chave de storage;
+- a V4 acrescenta o nome do arquivo administrativo, necessario para o
+  download. Documento de outra escola ou conteudo ausente retorna `404`;
+- validacao restrita ao `enrollment-document-service`: 30 testes sem falhas
+  ou erros e `git diff --check` sem erros. A B6 permanece **em andamento**,
+  com **4 recortes restantes**. O proximo e exclusao segura e invariantes.
+
+Sexto recorte da B6 entregue em 22/07/2026:
+
+- o `enrollment-document-service` passou a expor
+  `DELETE /internal/v1/documentos-alunos/{id}` e
+  `DELETE /internal/v1/documentos/{id}` como exclusoes seguras;
+- a operacao registra `deleted_at`, atualiza o ciclo de vida e exclui o
+  conteudo local quando a referencia pertence ao storage do servico. Repeticao
+  no mesmo tenant e idempotente; ID ausente em outra escola retorna `404`;
+- listagens, detalhes e downloads foram restringidos a documentos ativos, sem
+  alterar BFF, frontend, monolito ou adicionar consulta remota;
+- validacao restrita ao `enrollment-document-service`: 30 testes sem falhas
+  ou erros e `git diff --check` sem erros. A B6 permanece **em andamento**,
+  com **3 recortes restantes**. O proximo e a oficializacao no BFF de
+  documentos de aluno.
+
+Setimo recorte da B6 entregue em 22/07/2026:
+
+- o `school-management-bff` passou a oficializar `POST /api/documentos-alunos`
+  para metadados JSON e upload multipart, alem de
+  `GET /api/documentos-alunos/{id}/conteudo` e
+  `DELETE /api/documentos-alunos/{id}`;
+- as quatro operacoes resolvem usuario e escola no contexto autenticado e
+  propagam somente os headers internos necessarios ao
+  `enrollment-document-service`, sem adapter para monolito;
+- o download preserva MIME, tamanho e `Content-Disposition` do servico dono.
+  As rotas de leitura existentes permanecem inalteradas;
+- validacao restrita ao `school-management-bff`: 4 testes de integracao sem
+  falhas ou erros e `git diff --check` sem erros. A B6 permanece **em
+  andamento**, com **2 recortes restantes**. O proximo e a oficializacao no
+  BFF de documentos por entidade.
+
+Oitavo recorte da B6 entregue em 22/07/2026:
+
+- o `school-management-bff` passou a oficializar `POST /api/documentos` para
+  metadados JSON e upload multipart, alem de
+  `GET /api/documentos/{id}/conteudo` e `DELETE /api/documentos/{id}`;
+- as operacoes resolvem usuario e escola no contexto autenticado e propagam
+  apenas os headers internos ao `enrollment-document-service`, sem adapter,
+  fallback ou consulta ao monolito;
+- o download preserva MIME, tamanho e `Content-Disposition` devolvidos pelo
+  servico dono. A listagem publica existente por entidade foi preservada;
+- validacao restrita ao `school-management-bff`: 4 testes de integracao sem
+  falhas ou erros e `git diff --check` sem erros. A B6 permanece **em
+  andamento**, com **1 recorte restante**. O proximo e backfill, reconciliacao
+  e fechamento tecnico.
+
+Nono recorte da B6 entregue em 22/07/2026 - fechamento tecnico:
+
+- o `enrollment-document-service` recebeu backfill opcional e desativado por
+  padrao para o subconjunto legado de documentos vinculados a alunos. O job
+  exige datasource e raiz local de origem explicitamente configurados;
+- a execucao le a origem em lotes, copia somente arquivos contidos na raiz
+  permitida para o storage proprio, faz upsert sem apagar registros locais e
+  reconcilia metadados ativos e conteudo acessivel. Divergencia pode falhar a
+  inicializacao por configuracao;
+- documentos por entidade permanecem exclusivamente do modelo novo: nao foi
+  inventado mapeamento para uma relacao inexistente no contrato de origem;
+- prova final: `enrollment-document-service` com 31 testes e BFF com 8 testes
+  de integracao dos dois contratos documentais, sem falhas ou erros. `git diff
+  --check` sem erros. A **B6 esta concluida**.
+
+## Planejamento fechado da B7 - Escritas remanescentes do catalogo academico
+
+A B7 possui **10 recortes**, restritos ao `academic-catalog-service` e ao
+`school-management-bff`. O diagnostico confirmou que os contratos novos ja sao
+donos das leituras e criacoes de periodo letivo, disciplina, serie, turma e
+vinculo turma-disciplina, mas ainda nao oferecem atualizacao, exclusao ou
+desvinculo oficiais.
+
+1. mapear contratos externos e fundar comandos internos de mutacao, sem rota publica nova;
+2. atualizar periodo letivo no owner local;
+3. excluir periodo letivo com invariantes;
+4. atualizar disciplina no owner local;
+5. excluir ou inativar disciplina com invariantes;
+6. atualizar serie no owner local;
+7. excluir serie com invariantes;
+8. atualizar turma no owner local;
+9. excluir turma e manter vinculo turma-disciplina, incluindo atualizacao ou desvinculo seguro;
+10. oficializar os writes restantes no BFF, executar backfill/reconciliacao controlados e fechar tecnicamente o catalogo.
+
+Nenhum recorte admite fallback ou dependencia funcional de runtime para o
+`school-management-service`. O primeiro recorte foi iniciado em 22/07/2026,
+limitado ao mapeamento e fundacao de contratos, sem alterar rotas externas.
+
+Segundo recorte da B7 entregue em 22/07/2026:
+
+- o `academic-catalog-service` passou a expor
+  `PUT /internal/v1/periodos-letivos/{id}` para atualizacao completa de periodo
+  letivo, restrita a escola do contexto interno;
+- o comando preserva identidade e criacao, reaplica as invariantes de datas do
+  dominio, usa `Idempotency-Key`, invalida cache apos commit e publica evento
+  `term-updated` no outbox;
+- nao houve rota publica no BFF, frontend, fallback ou monolito. A
+  oficializacao externa permanece no recorte 10;
+- validacao restrita ao `academic-catalog-service`: 19 testes sem falhas ou
+  erros e `git diff --check` sem erros. Restam **8 recortes** na B7. O proximo
+  e a exclusao segura de periodo letivo.
+
+Terceiro recorte da B7 entregue em 22/07/2026:
+
+- o `academic-catalog-service` passou a expor
+  `DELETE /internal/v1/periodos-letivos/{id}` com escopo de escola e replay
+  idempotente por `Idempotency-Key`;
+- a exclusao e bloqueada com conflito quando qualquer turma do mesmo tenant
+  referencia o periodo. Sem dependencias, remove o periodo, invalida cache e
+  publica `term-deleted` no outbox;
+- nao houve rota publica no BFF, frontend, fallback ou monolito. A
+  oficializacao externa permanece no recorte 10;
+- validacao restrita ao `academic-catalog-service`: 20 testes sem falhas ou
+  erros e `git diff --check` sem erros. Restam **7 recortes** na B7. O proximo
+  e a atualizacao interna de disciplina.
+
+Quarto recorte da B7 entregue em 22/07/2026:
+
+- o `academic-catalog-service` passou a expor
+  `PUT /internal/v1/disciplinas/{id}` para atualizacao completa de disciplina,
+  sempre restrita a escola do contexto interno;
+- o comando preserva identidade e criacao, reaplica as invariantes de nome e
+  carga horaria, usa `Idempotency-Key`, invalida cache apos commit e publica
+  `subject-updated` no outbox;
+- nao houve rota publica no BFF, frontend, fallback ou monolito. A
+  oficializacao externa permanece no recorte 10;
+- validacao restrita ao `academic-catalog-service`: 21 testes sem falhas ou
+  erros e `git diff --check` sem erros. Restam **6 recortes** na B7. O proximo
+  e a exclusao ou inativacao segura de disciplina.
+
+Quinto recorte da B7 entregue em 22/07/2026:
+
+- o `academic-catalog-service` passou a expor
+  `DELETE /internal/v1/disciplinas/{id}` com escopo de escola e replay
+  idempotente por `Idempotency-Key`;
+- a exclusao e bloqueada com conflito quando houver vinculo turma-disciplina
+  no mesmo tenant. Sem vinculos, remove a disciplina, invalida cache e publica
+  `subject-deleted` no outbox;
+- nao houve rota publica no BFF, frontend, fallback ou monolito. A
+  oficializacao externa permanece no recorte 10;
+- validacao restrita ao `academic-catalog-service`: 22 testes sem falhas ou
+  erros e `git diff --check` sem erros. Restam **5 recortes** na B7. O proximo
+  e a atualizacao interna de serie.
+
+Sexto recorte da B7 entregue em 22/07/2026:
+
+- o `academic-catalog-service` passou a expor
+  `PUT /internal/v1/series/{id}` para atualizacao completa de serie, restrita
+  a escola do contexto interno;
+- o comando preserva identidade e criacao, valida o nivel de ensino informado,
+  usa `Idempotency-Key`, invalida cache apos commit e publica `grade-updated`
+  no outbox;
+- nao houve rota publica no BFF, frontend, fallback ou monolito. A
+  oficializacao externa permanece no recorte 10;
+- validacao restrita ao `academic-catalog-service`: 23 testes sem falhas ou
+  erros e `git diff --check` sem erros. Restam **4 recortes** na B7. O proximo
+  e a exclusao segura de serie.
+
+Setimo recorte da B7 entregue em 22/07/2026:
+
+- o `academic-catalog-service` passou a expor
+  `DELETE /internal/v1/series/{id}` com escopo de escola e replay idempotente
+  por `Idempotency-Key`;
+- a exclusao e bloqueada com conflito quando qualquer turma do mesmo tenant
+  referencia a serie. Sem dependencias, remove a serie, invalida cache e
+  publica `grade-deleted` no outbox;
+- nao houve rota publica no BFF, frontend, fallback ou monolito. A
+  oficializacao externa permanece no recorte 10;
+- validacao restrita ao `academic-catalog-service`: 24 testes sem falhas ou
+  erros e `git diff --check` sem erros. Restam **3 recortes** na B7. O proximo
+  e a atualizacao interna de turma.
+
+Oitavo recorte da B7 entregue em 22/07/2026:
+
+- o `academic-catalog-service` passou a expor
+  `PUT /internal/v1/turmas/{id}` para atualizacao completa de turma, restrita
+  a escola do contexto interno;
+- o comando preserva identidade e criacao, valida periodo letivo e serie no
+  tenant, valida turno, usa `Idempotency-Key`, invalida cache apos commit e
+  publica `class-updated` no outbox;
+- nao houve rota publica no BFF, frontend, fallback ou monolito. A
+  oficializacao externa permanece no recorte 10;
+- validacao restrita ao `academic-catalog-service`: 25 testes sem falhas ou
+  erros e `git diff --check` sem erros. Restam **2 recortes** na B7. O proximo
+  e a exclusao de turma e manutencao segura de turma-disciplina.
+
+Nono recorte da B7 entregue em 22/07/2026:
+
+- o `academic-catalog-service` passou a expor
+  `DELETE /internal/v1/turmas/{id}`, bloqueado enquanto houver vinculos
+  turma-disciplina no mesmo tenant;
+- o vinculo passou a ter atualizacao por
+  `PUT /internal/v1/turmas/{turmaId}/disciplinas/{vinculoId}` e desvinculo por
+  `DELETE` na mesma rota. Ambas as operacoes confirmam a posse do vinculo pela
+  turma e escola do contexto antes da mutacao;
+- exclusoes e atualizacao usam `Idempotency-Key`, invalidam cache apos commit e
+  publicam `class-deleted`, `class-subject-updated` ou `class-subject-deleted`
+  no outbox. Nao houve BFF, frontend, fallback ou monolito;
+- validacao restrita ao `academic-catalog-service`: 28 testes sem falhas ou
+  erros e `git diff --check` sem erros. Resta **1 recorte** na B7: oficializar
+  writes no BFF, reconciliar e fechar tecnicamente o catalogo.
+
+Primeiro sub-recorte do fechamento B7.10 entregue em 22/07/2026:
+
+- o `school-management-bff` recebeu contratos de aplicacao tipados para
+  atualizacao e exclusao de periodo, disciplina, serie, turma e vinculo
+  turma-disciplina, sem acoplar requests HTTP nem adapters de infraestrutura;
+- os comandos preservam os campos externos que exigem compatibilizacao
+  (`status`, `nivelEnsino` e `turno`) para que o proximo sub-recorte converta
+  explicitamente os contratos antes de chamar o servico interno;
+- nao houve rota publica, fallback, frontend ou acesso ao monolito. A proxima
+  etapa implementa adapters e controllers do BFF, seguida da reconciliacao e
+  do fechamento tecnico;
+- validacao restrita ao BFF: `mvn.cmd -pl school-management-bff -DskipTests
+  compile` sem falhas ou erros.
+
+Fechamento B7.10 entregue em 22/07/2026:
+
+- o `school-management-bff` oficializou `PUT` e `DELETE` para periodo letivo,
+  disciplina, serie, turma e vinculo turma-disciplina no
+  `CatalogoWriteController`, com conversao tipada de `status`, `nivelEnsino` e
+  `turno` antes da chamada ao `academic-catalog-service`;
+- o adapter encaminha somente ao catalogo oficial, preserva contexto interno,
+  correlacao e idempotencia, e registra sucesso ou falha no mesmo mecanismo de
+  observabilidade dos writes ja oficializados;
+- a prova de cutover usa relatorio reconciliado verde e cobre as dez rotas em
+  sucesso e indisponibilidade do catalogo. Em cada falha, foi comprovada a
+  ausencia de fallback funcional ao monolito;
+- validacao restrita: `mvn.cmd -pl school-management-bff
+  -DskipTests test-compile`, `MAVEN_OPTS=-Djdk.attach.allowAttachSelf=true
+  mvn.cmd -pl school-management-bff
+  "-Dtest=CatalogoMutationWriteCutoverIntegrationTest" test` (2 testes sem
+  falhas ou erros) e `mvn.cmd -pl academic-catalog-service test` (28 testes
+  sem falhas ou erros). A **B7 foi concluida**.
+
+## Planejamento fechado da B8 - Professores e alocacoes academicas
+
+A B8 possui **8 recortes**, restritos ao `academic-professor-service` e ao
+`school-management-bff`. O servico ja e dono das leituras e criacoes internas
+de professor e alocacao professor-turma-disciplina. Permanecem sem contrato
+novo completo a alteracao, o encerramento seguro das associacoes e a
+oficializacao dos writes externos.
+
+1. mapear contratos externos, dependencias de pessoa e catalogo, e invariantes de professor e alocacao, sem rota publica nova;
+2. implementar atualizacao interna de professor, preservando funcionario, escola, identidade e idempotencia;
+3. implementar inativacao segura de professor, recusada enquanto houver alocacao academica ativa;
+4. implementar atualizacao interna da alocacao professor-turma-disciplina, validando professor, turma-disciplina, periodo e escola;
+5. implementar encerramento seguro da alocacao, sem apagar historico e sem permitir duplicidade ativa;
+6. oficializar criacao de professor e criacao de alocacao no BFF, preservando os contratos externos existentes;
+7. oficializar atualizacao, inativacao e encerramento no BFF, com testes de integracao e ausencia de fallback ao monolito;
+8. executar backfill controlado, reconciliacao, prova integrada e fechamento tecnico do `academic-professor-service`.
+
+Nenhum recorte admite acesso a banco de outro servico, fallback ou dependencia
+funcional de runtime com o `school-management-service`. As consultas existentes
+permanecem estaveis; a B8 nao abre escopo para aulas, frequencias, avaliacoes,
+diario de classe ou planejamento pedagogico.
+
+Primeiro recorte da B8 entregue em 22/07/2026:
+
+- o diagnostico confirmou que o contrato legado publico possui somente
+  `POST /api/professores` e
+  `POST /api/professores/{professorId}/turmas-disciplinas`; as leituras ja
+  estao oficializadas no BFF e nao houve contrato externo de `PUT` ou `DELETE`
+  a preservar;
+- o `academic-professor-service` ja e dono das criacoes internas equivalentes,
+  mas ainda nao possui comandos de atualizacao, inativacao ou encerramento de
+  alocacao, nem writes expostos no BFF;
+- dependencias explicitas: funcionario e pessoa sao resolvidos por porta para
+  o `people-service`; turma-disciplina e turma sao resolvidas por porta para o
+  `academic-catalog-service`. Nenhum fluxo da B8 acessara banco remoto;
+- invariantes fixadas: uma pessoa por escola possui um unico professor; o
+  professor permanece na escola do contexto; alocacao exige professor,
+  turma-disciplina e turma da mesma escola; o historico nao sera apagado; e a
+  proxima fase ajustara a restricao atual de duplicidade para permitir novo
+  vinculo somente apos encerramento do anterior;
+- nao houve alteracao de runtime, rota publica, frontend, fallback ou acesso
+  funcional ao monolito. O proximo recorte implementa atualizacao interna de
+  professor.
+
+Segundo recorte da B8 entregue em 22/07/2026:
+
+- o `academic-professor-service` passou a expor
+  `PUT /internal/v1/professores/{id}` para atualizar registro profissional,
+  formacao e status ativo do professor no escopo da escola autenticada;
+- o contrato nao recebe nem altera ID, pessoa, funcionario, escola ou data de
+  criacao. A persistencia atualiza tambem data e usuario de alteracao;
+- professor inexistente ou de outra escola retorna `404`, sem consultar pessoa,
+  catalogo ou monolito; repeticoes do mesmo `PUT` mantem o mesmo estado;
+- validacao restrita ao `academic-professor-service`: 6 testes sem falhas ou
+  erros. Restam **6 recortes** na B8; o proximo e a inativacao segura de
+  professor.
+
+Terceiro recorte da B8 entregue em 22/07/2026:
+
+- a inativacao via `PUT /internal/v1/professores/{id}` passou a retornar
+  `409 BUSINESS_CONFLICT` quando existir alocacao professor-turma-disciplina
+  ativa na persistencia local;
+- a recusa nao altera o professor nem remove alocacao ou professor, preservando
+  integralmente o historico. Alocacoes inativas nao bloqueiam a operacao;
+- nao houve chamada a servico externo, rota BFF, frontend, fallback ou
+  monolito;
+- validacao restrita ao `academic-professor-service`: 7 testes sem falhas ou
+  erros. Restam **5 recortes** na B8; o proximo e a atualizacao interna de
+  alocacao.
+
+Quarto recorte da B8 entregue em 22/07/2026:
+
+- o `academic-professor-service` passou a expor
+  `PUT /internal/v1/professores/{professorId}/turmas-disciplinas/{alocacaoId}`
+  para atualizar vinculo turma-disciplina, datas e status da alocacao;
+- o fluxo valida professor no escopo local, busca turma-disciplina e turma pelo
+  contrato interno do `academic-catalog-service`, exige a mesma escola e
+  confirma que a alocacao pertence ao professor informado;
+- data final anterior a inicial retorna `400`; tentativa de trocar para um
+  vinculo ja associado ao professor retorna conflito. A identidade da alocacao
+  e o historico de criacao sao preservados;
+- nao houve rota BFF, frontend, fallback ou monolito. Validacao restrita ao
+  `academic-professor-service`: 8 testes sem falhas ou erros. Restam **4
+  recortes** na B8; o proximo e o encerramento seguro de alocacao.
+
+Quinto recorte da B8 entregue em 22/07/2026:
+
+- o `academic-professor-service` passou a expor
+  `DELETE /internal/v1/professores/{professorId}/turmas-disciplinas/{alocacaoId}`
+  como encerramento logico, idempotente e sem exclusao fisica da alocacao;
+- ao encerrar, o vinculo fica inativo e recebe data final apenas quando ainda
+  nao a possui. Repetir o `DELETE` preserva esse estado;
+- a migracao `V8` substituiu a unicidade historica por chave unica de vinculo
+  ativo, permitindo multiplos registros encerrados e impedindo mais de uma
+  alocacao ativa para o mesmo professor e turma-disciplina;
+- validacao restrita ao `academic-professor-service`: 9 testes sem falhas ou
+  erros. Restam **3 recortes** na B8; o proximo e a oficializacao das criacoes
+  no BFF.
+
+Sexto recorte da B8 entregue em 22/07/2026:
+
+- o `school-management-bff` oficializou `POST /api/professores` e
+  `POST /api/professores/{professorId}/turmas-disciplinas`, preservando os
+  payloads externos ja existentes;
+- o proxy resolve contexto autenticado e encaminha bearer, token interno,
+  correlacao, usuario e escola exclusivamente ao `academic-professor-service`;
+- as falhas `503` do servico dono sao devolvidas pelo BFF sem segunda chamada
+  ao monolito. Nao houve frontend nem alteracao de leitura;
+- validacao restrita ao BFF: `test-compile` e 4 testes de integracao sem falhas
+  ou erros. Restam **2 recortes** na B8; o proximo oficializa atualizacao,
+  inativacao e encerramento no BFF.
+
+Setimo recorte da B8 entregue em 22/07/2026:
+
+- o `school-management-bff` oficializou
+  `PUT /api/professores/{professorId}`, incluindo a inativacao por
+  `ativo:false`, alem de
+  `PUT /api/professores/{professorId}/turmas-disciplinas/{alocacaoId}` e
+  `DELETE /api/professores/{professorId}/turmas-disciplinas/{alocacaoId}`;
+- nao foi criado `DELETE` de professor: o dominio preserva historico e a
+  inativacao e uma transicao de estado no `PUT`, sem exclusao fisica nem
+  contrato legado correspondente;
+- o adapter tipado encaminha contexto, bearer, token interno e correlacao
+  exclusivamente ao `academic-professor-service`. A indisponibilidade do owner
+  retorna `503` sem tentativa ao monolito;
+- validacao restrita ao BFF: `test-compile` e 2 testes de integracao, cobrindo
+  tres mutacoes em sucesso e indisponibilidade, sem falhas ou erros. Resta
+  **1 recorte** na B8: backfill, reconciliacao e fechamento tecnico.
+
+Fechamento B8.8 entregue em 22/07/2026:
+
+- o `academic-professor-service` recebeu backfill opcional e controlado para
+  `professor` e `professor_turma_disciplina`, ativado exclusivamente por
+  `ACADEMIC_PROFESSOR_BACKFILL_ENABLED=true` e URL de origem explicita;
+- a carga e paginada, transacional e idempotente. Faz upsert por identidade sem
+  apagar registros locais posteriores e reconcilia todos os registros de
+  origem. Com `fail-on-mismatch=true`, qualquer divergencia interrompe a
+  inicializacao;
+- o datasource de origem existe somente durante a execucao opt-in de
+  migracao. O runtime normal continua com datasource proprio e dependencias
+  apenas de `people-service` e `academic-catalog-service`; a verificacao nao
+  encontrou referencia funcional ao monolito no codigo principal;
+- validacao: `mvn.cmd -pl academic-professor-service test` com 11 testes e as
+  duas suites de writes do BFF com 6 testes, ambos sem falhas ou erros. A
+  **B8 foi concluida**.
+
+## Planejamento fechado da B9 - Planejamento bimestral e IA
+
+A B9 possui **8 recortes**, restritos ao `planning-ai-service` e ao
+`school-management-bff`. O bloco de IA ja esta oficializado nos dois modulos;
+o agregado raiz `planejamento_bimestral`, suas aulas previstas e avaliacoes
+previstas continuam exclusivamente no `school-management-service`.
+
+1. mapear o contrato legado, dependencias e invariantes do agregado, sem rota nova;
+2. criar schema local e contratos internos para planejamento, aula prevista e avaliacao prevista;
+3. implementar criacao, listagem e detalhe internos no owner local;
+4. implementar atualizacao e transicao segura de status;
+5. implementar inclusao idempotente de aula prevista e avaliacao prevista;
+6. oficializar no BFF criacao, leitura, atualizacao e status do planejamento;
+7. oficializar no BFF aulas e avaliacoes previstas, comprovando composicao com IA sem fallback;
+8. executar backfill controlado, reconciliacao, prova integrada e fechamento tecnico.
+
+Primeiro recorte da B9 entregue em 22/07/2026:
+
+- o mapeamento confirmou que os contratos de IA ja sao atendidos pelo
+  `planning-ai-service` e encaminhados pelo BFF sem adapter, URL ou fallback
+  para o monolito;
+- o unico contrato ainda exclusivo do monolito e o CRUD de
+  `/api/planejamentos-bimestrais`, incluindo `aulas-previstas`,
+  `avaliacoes-previstas` e mudanca de status;
+- as dependencias do agregado raiz sao referencias externas por UUID para
+  professor, turma-disciplina, periodo avaliativo e escola. A B9 nao acessara
+  banco remoto: validacoes futuras usarao contratos internos dos owners;
+- nao houve alteracao de runtime, BFF, frontend ou monolito. O proximo recorte
+  cria schema e contratos internos locais.
+
+Segundo recorte da B9 entregue em 22/07/2026:
+
+- a migration `V5` do `planning-ai-service` criou as tabelas locais
+  `planejamento_bimestral`, `planejamento_bimestral_aula` e
+  `planejamento_bimestral_avaliacao`, com integridade apenas dentro do
+  agregado e sem FK para outros servicos;
+- professor-turma-disciplina, periodo avaliativo e escola sao referencias UUID
+  externas. Status e tipo de avaliacao sao codigos do agregado, eliminando a
+  dependencia de entidades e catalogos JPA do monolito;
+- foram adicionados modelos JPA, repositorios e DTOs internos para planejamento,
+  aula prevista, avaliacao prevista e status, alem da porta
+  `PlanejamentoBimestralUseCase`. Nenhuma rota interna ou publica foi aberta;
+- validacao restrita ao `planning-ai-service`: 10 testes sem falhas ou erros.
+  Restam **6 recortes** na B9; o proximo implementa criacao, listagem e detalhe
+  internos.
+
+Terceiro recorte da B9 entregue em 22/07/2026:
+
+- o `planning-ai-service` passou a expor internamente `POST`, `GET` por filtros
+  locais e `GET` por ID em `/internal/v1/planejamentos-bimestrais`;
+- a criacao atribui `RASCUNHO`, grava exclusivamente no schema proprio e
+  preserva os defaults externos de reutilizacao e uso de IA. Listagem e detalhe
+  aplicam obrigatoriamente o `id_escola` do contexto interno;
+- os filtros locais deste recorte sao `professorTurmaDisciplinaId` e
+  `periodoAvaliativoId`. Professor, turma e disciplina nao foram inferidos por
+  banco remoto nem por dependencia do monolito;
+- validacao restrita ao `planning-ai-service`: 12 testes sem falhas ou erros,
+  incluindo criacao, listagem filtrada, detalhe e isolamento entre escolas.
+  Restam **5 recortes** na B9; o proximo implementa atualizacao e status.
+
+Quarto recorte da B9 entregue em 22/07/2026:
+
+- o `planning-ai-service` passou a expor internamente
+  `PUT /internal/v1/planejamentos-bimestrais/{planejamentoId}` e
+  `PATCH /internal/v1/planejamentos-bimestrais/{planejamentoId}/status`;
+- a atualizacao preserva identidade, escola, status, aprovacao e data de
+  criacao. O registro e sempre resolvido pelo ID e escola do contexto;
+- a maquina de estados local aceita `RASCUNHO -> EM_ANALISE -> APROVADO ou
+  REPROVADO`, e `REPROVADO -> RASCUNHO`. `APROVADO` e terminal; repeticao do
+  status atual e idempotente. Transicao invalida retorna `409`;
+- validacao restrita ao `planning-ai-service`: 13 testes sem falhas ou erros.
+  Restam **4 recortes** na B9; o proximo implementa aulas e avaliacoes previstas.
+
+Quinto recorte da B9 entregue em 22/07/2026:
+
+- o `planning-ai-service` passou a expor internamente as inclusoes de
+  `aulas-previstas` e `avaliacoes-previstas` do planejamento bimestral;
+- aula prevista e idempotente pelo numero dentro do planejamento: repeticao
+  igual devolve o mesmo registro e repeticao com dados divergentes retorna
+  `409`; a avaliacao usa chave SHA-256 deterministica persistida na migration
+  `V6`, impedindo duplicidade da mesma solicitacao;
+- ambos os fluxos validam a existencia do planejamento no escopo da escola
+  antes de gravar e nao consultam catalogo, professor, avaliacao ou monolito;
+- validacao restrita ao `planning-ai-service`: 14 testes sem falhas ou erros.
+  Restam **3 recortes** na B9; o proximo oficializa o agregado raiz no BFF.
+
+Sexto recorte da B9 entregue em 22/07/2026:
+
+- o `school-management-bff` passou a expor `POST`, `GET`, `GET /{id}`, `PUT`
+  e `PATCH /{id}/status` em `/api/planejamentos-bimestrais`;
+- os adapters tipados encaminham essas operacoes exclusivamente para
+  `/internal/v1/planejamentos-bimestrais` do `planning-ai-service`, com bearer,
+  token interno, correlacao, usuario e escola. Nao foi criado adapter, URL ou
+  fallback para o `school-management-service`;
+- a leitura oficial deste recorte usa os filtros locais
+  `professorTurmaDisciplinaId` e `periodoAvaliativoId`. A compatibilizacao dos
+  filtros derivados de professor, turma e disciplina permanece explicitamente
+  no proximo recorte, junto com aulas, avaliacoes e composicao de IA;
+- validacao restrita ao BFF: `mvn.cmd -pl school-management-bff -DskipTests
+  test-compile` e `MAVEN_OPTS=-Djdk.attach.allowAttachSelf=true mvn.cmd -pl
+  school-management-bff "-Dtest=PlanejamentoBimestralProxyIntegrationTest"
+  test`, com 2 testes sem falhas ou erros. Restam **2 recortes** na B9.
+
+Setimo recorte da B9 entregue em 22/07/2026:
+
+- o BFF passou a oficializar `POST /api/planejamentos-bimestrais/{id}/aulas-previstas`
+  e `POST /api/planejamentos-bimestrais/{id}/avaliacoes-previstas`, ambos sem
+  adapter ou fallback para o monolito;
+- a listagem publica voltou a aceitar os filtros legados `professorId`,
+  `turmaId` e `disciplinaId`: o BFF resolve os vinculos no
+  `academic-professor-service`, aplica os filtros e consulta o
+  `planning-ai-service` pelos IDs de professor-turma-disciplina resultantes;
+- conteudos e interacoes de IA permanecem nas rotas ja oficiais do mesmo
+  agregado, compondo a navegacao sem dependencia funcional do monolito;
+- validacao restrita ao BFF: compilacao e
+  `PlanejamentoBimestralProxyIntegrationTest` aprovados, sem falhas ou erros.
+  Resta **1 recorte** na B9: backfill, reconciliacao e fechamento tecnico.
+
+Oitavo recorte da B9 entregue em 22/07/2026:
+
+- o `planning-ai-service` recebeu backfill opt-in para `planejamento_bimestral`,
+  `planejamento_bimestral_aula` e `planejamento_bimestral_avaliacao`;
+- a origem so e criada quando `PLANNING_AI_BACKFILL_ENABLED=true` e exige
+  `PLANNING_AI_BACKFILL_SOURCE_URL`. O runtime normal usa somente o datasource
+  local; divergencia de reconciliacao bloqueia a subida quando configurada;
+- status e tipo de avaliacao sao importados por codigo, e avaliacao recebe chave
+  idempotente derivada do ID legado. A **B9 foi concluida**;
+- validacao restrita: `mvn.cmd -pl planning-ai-service test`, 14 testes verdes.
+
+## Planejamento fechado da B11 - Historico Escolar
+
+A B11 possui **6 recortes**, restritos ao `pedagogical-service` e ao
+`school-management-bff`; o frontend permanece fora do escopo ate o fechamento
+do backend.
+
+1. inventariar o contrato do prototipo, persistencia, rotas e regras atuais;
+2. consolidar o read model e pendencias da tela de historico;
+3. consolidar criacao, atualizacao, bloqueio e reabertura controlada;
+4. validar itens curriculares, proveniencia, transferencia e invariantes;
+5. oficializar leitura e escrita no BFF sem fallback;
+6. executar backfill, reconciliacao e fechamento tecnico.
+
+Primeiro recorte da B11 entregue em 22/07/2026:
+
+- o inventario confirmou que o `pedagogical-service` ja possui agregado local,
+  leitura e escrita de historico escolar, enquanto o BFF ja possui o proxy
+  oficial correspondente;
+- o proximo recorte nao recriara o agregado: comparara o read model e as
+  pendencias existentes com o contrato da nova tela do prototipo, isolando
+  somente as lacunas funcionais reais;
+- nenhum frontend, monolito ou contrato publico foi alterado neste recorte.
+
+Segundo recorte da B11 entregue em 22/07/2026:
+
+- o read model local passou a preservar o snapshot tipado de cabecalho, aluno,
+  periodos, componentes, totais, estudos, certificado e pendencias recebido na
+  escrita; leitura posterior devolve o mesmo contrato para a nova tela;
+- contexto agora recebe identidade, escola, modo, status pretendido e bloqueio
+  derivado de `COMPLETO`, sem acessar frontend ou monolito;
+- validacao restrita: `mvn.cmd -pl pedagogical-service test`, 8 testes verdes.
+  Proximo passo: B11.3, workflow de status, bloqueio e reabertura controlada.
+
+Terceiro recorte da B11 entregue em 22/07/2026:
+
+- o workflow local aceita `RASCUNHO`, `PENDENTE` e `COMPLETO`; `COMPLETO`
+  bloqueia nova edicao e `PENDENTE` nao pode concluir diretamente;
+- reabertura exige intencao explicita, justificativa nao vazia e retorno para
+  `RASCUNHO`. Transicoes invalidas retornam `409 BUSINESS_CONFLICT`;
+- validacao restrita: `mvn.cmd -pl pedagogical-service test`, 8 testes verdes.
+  Proximo passo: B11.4, invariantes de itens e transferencia.
+
+Quarto recorte da B11 entregue em 22/07/2026:
+
+- periodos exigem ordem sequencial, ano e serie; cada componente curricular
+  exige nome e um valor por periodo;
+- transferencia exige escola de origem, data e serie concluida de forma
+  coerente. Violacoes retornam `409 BUSINESS_CONFLICT`;
+- validacao restrita: `mvn.cmd -pl pedagogical-service test`, 8 testes verdes.
+  Proximo passo: B11.5, oficializacao completa no BFF sem fallback.
+
+Quinto recorte da B11 entregue em 22/07/2026:
+
+- `POST`, `PUT`, leitura de novo historico e leitura para edicao ja estavam
+  oficializados no BFF por proxies tipados exclusivos do `pedagogical-service`;
+- revalidacao integrada aprovou 6 testes de leitura e escrita, incluindo
+  indisponibilidade do owner sem fallback para o monolito;
+- proximo passo: B11.6, backfill, reconciliacao e fechamento tecnico.
+
+Sexto recorte da B11 entregue em 22/07/2026:
+
+- o `pedagogical-service` recebeu backfill opt-in de `historico_escolar` e
+  `historico_escolar_item`, paginado e reconciliado por identificador e payload;
+- a execucao exige explicitamente URL da fonte e `school-id`; o legado nao possui
+  identificadores de aluno ou matricula, portanto esses vinculos permanecem nulos
+  em vez de serem inferidos;
+- o runtime normal nao cria datasource legado nem executa migracao; divergencia no
+  backfill ativo falha quando `fail-on-mismatch` estiver habilitado;
+- a B11 esta tecnicamente fechada no backend. Proximo passo: inventariar o proximo
+  ciclo backend remanescente antes de abrir uma nova fase.
+
+## Planejamento fechado da B12 - Dashboard operacional autonomo
+
+O inventario realizado em 22/07/2026 confirmou que o
+`dashboard-query-service` ja atende localmente as leituras de paineis,
+alertas, configuracoes, snapshots e historico, e que o BFF ja oficializa dez
+rotas de leitura. O dominio ainda nao esta fechado: a persistencia atual possui
+somente a projecao generica `painel_projecao`, sem modelos de configuracao de
+publico, dashboard, widget ou preferencia por usuario; tambem nao existe fluxo
+oficial para criar, atualizar, excluir ou gerar snapshots. O endpoint interno
+de upsert de projecao e manual e nao possui produtores donos dos dados.
+
+A B12 possui **10 recortes** e fica limitada ao `dashboard-query-service`, ao
+`school-management-bff` e aos contratos internos estritamente necessarios. O
+frontend e o `school-management-service` permanecem fora do escopo de edicao.
+
+1. Inventario contratual e matriz de ownership: congelar os contratos legados
+   de configuracoes, widgets, preferencias, snapshots e geracoes, com a fonte
+   oficial de cada indicador e o criterio de ausencia de fallback.
+2. Modelo local de configuracao: criar schema e contratos internos para
+   publico, dashboard e widget, separados das projecoes de consulta.
+3. CRUD interno de publico e dashboard: criar, listar, atualizar e excluir com
+   invariantes de escola, codigo unico e bloqueio de exclusao com dependencias.
+4. CRUD interno de widget: criar, listar, atualizar e excluir widgets com
+   ordenacao, tipo e configuracao validada dentro do dashboard dono.
+5. Preferencias por usuario: criar leitura, upsert e exclusao de configuracao
+   por usuario/widget, sem expor ou confiar em identificador de usuario forjado.
+6. Snapshot local: criar modelo proprio de snapshot e historico, com idempotencia
+   por indicador, publico, escola e data de referencia; retirar a dependencia
+   de payload generico para esse estado transacional.
+7. Geracao de indicadores e alimentacao de projecoes: definir contratos internos
+   autenticados para os servicos donos publicarem dados e gerar apenas os
+   indicadores cuja origem estiver oficialmente mapeada, sem consulta a banco
+   alheio ou chamada ao monolito.
+8. Oficializacao no BFF: expor os writes de configuracao, widget, preferencia,
+   snapshot e geracao com os mesmos paths, corpos e status externos, sem
+   fallback.
+9. Backfill controlado e reconciliacao: importar configuracoes e snapshots
+   legados com mapeamento explicito de escola, paginação, idempotencia e relatorio
+   de divergencias; nao inferir dados ausentes.
+10. Prova integrada e fechamento: testar todos os contratos internos e externos,
+    rejeicao de fallback, isolamento por escola e a operacao do dashboard sem
+    datasource, client ou job funcional do monolito.
+
+Ordem de execucao: iniciar por B12.1. O primeiro entregavel funcional sera a
+matriz de ownership que limita quais indicadores podem ser gerados antes de
+qualquer migracao de escrita.
+
+### B12.1 - Inventario contratual e matriz de ownership dos indicadores
+
+Concluida em 23/07/2026, sem alteracao de codigo de producao. O inventario
+congelou os contratos legados restantes e a autoridade de cada dado antes de
+abrir qualquer escrita no dashboard.
+
+| Familia ou indicador | Dono definitivo | Situacao no codigo novo | Regra para B12 |
+| --- | --- | --- | --- |
+| publico, dashboard, widget e preferencia por usuario | `dashboard-query-service` | inexistem modelos locais; ha somente leitura serializada da projecao `PAINEIS` e `PUBLICOS` | criar persistencia propria nos recortes B12.2 a B12.5 |
+| snapshot, historico e geracao | `dashboard-query-service` | leitura local existe, mas o estado esta misturado na projecao generica e nao ha geracao oficial | separar estado em B12.6; gerar somente a partir das fontes abaixo |
+| total e status de matricula, documentos pendentes, rematricula e transferencias | `enrollment-document-service` | o agregado e local, mas nao publica contrato de indicadores | B12.7 cria contrato interno de publicacao, sem consulta ao banco alheio |
+| aluno ativo/inativo e solicitacao de exclusao pendente | `people-service` | o agregado de aluno e local; a solicitacao de exclusao nao possui contrato de indicador | B12.7 depende de contrato explicito do `people-service` |
+| turma ativa, capacidade, lotacao e vagas | `academic-catalog-service` | catalogo e dono de turma e capacidade | B12.7 consome contrato de indicador do catalogo, nao repositorio remoto |
+| professor alocado e turmas do professor | `academic-professor-service` | professor e alocacao sao locais | B12.7 consome contrato de indicador do servico de professores |
+| aulas, frequencias, avaliacoes, notas, boletins e historicos | `pedagogical-service` | os agregados pedagogicos e documentais sao locais | B12.7 consome contrato de indicador do pedagogico |
+| planejamentos bimestrais e pendencias | `planning-ai-service` | planejamento e status sao locais | B12.7 consome contrato de indicador do planejamento |
+| alertas e composicao de tela | `dashboard-query-service` | leitura local por projecao; origem de cada alerta ainda nao esta declarada | manter sem geracao automatica ate cada regra ter dono na matriz de B12.7 |
+
+Contratos externos legados ainda sem equivalente de escrita no BFF:
+
+- `POST`, `PUT` e `DELETE /api/dashboard/configuracoes/publicos`;
+- `POST`, `PUT` e `DELETE /api/dashboard/configuracoes/dashboards`;
+- `GET /api/dashboard/configuracoes/dashboards/{dashboardId}/widgets` e CRUD de
+  `/api/dashboard/configuracoes/widgets`;
+- `GET`, `PUT` e `DELETE /api/dashboard/usuarios/{usuarioId}/.../configuracao`;
+- `GET /api/dashboard/snapshots` por `publicoDashboardId`, `PUT` e `DELETE` de
+  snapshot, e os dois `POST /api/dashboard/snapshots/geracoes/**`.
+
+Decisao de integracao: o `dashboard-query-service` nao consultara banco,
+repository ou entidade de outro dominio. B12.7 recebera somente payloads
+versionados e autenticados dos servicos donos. Enquanto um payload nao existir,
+o respectivo indicador nao tera geracao automatica e nao podera usar fallback
+para o monolito.
+
+Proximo passo: B12.2, schema local e contratos internos de publico, dashboard
+e widget.
+
+### B12.2 - Schema local e contratos internos de publico, painel e widget
+
+Concluida em 23/07/2026:
+
+- o `dashboard-query-service` recebeu as tabelas locais `painel_publico`,
+  `painel_configuracao` e `painel_widget`, todas isoladas por `escola_id`;
+- codigos de publico e painel possuem unicidade no escopo da escola; codigo e
+  ordem de widget possuem unicidade dentro do painel; chaves estrangeiras
+  preservam a composicao publico -> painel -> widget;
+- foram criados modelos de dominio, commands e portas internas de administracao
+  e persistencia. Nenhum caso de uso, adapter de escrita, controller ou rota BFF
+  foi ativado neste recorte;
+- validacao restrita: `mvn.cmd -pl dashboard-query-service test`, quatro testes
+  sem falhas, com Flyway aplicando as migrations V1 e V2 e JPA validando o schema.
+
+Proximo passo: B12.3, CRUD interno de publico e painel.
+
+### B12.3 - CRUD interno de publico e painel
+
+Concluida em 23/07/2026:
+
+- foram ativados no `dashboard-query-service` os `POST`, `PUT` e `DELETE`
+  internos de publico e painel, sempre filtrados pelo `escolaId` autenticado;
+- codigos sao normalizados, validos e unicos por escola; painel exige publico
+  pertencente a mesma escola; exclusao de publico com painel ou de painel com
+  widget retorna `409 BUSINESS_CONFLICT`;
+- as leituras internas ja existentes permanecem atendidas pelas projecoes atuais
+  ate o backfill controlado, preservando os contratos externos sem mudar a fonte
+  no meio do ciclo;
+- nenhuma rota BFF, frontend ou classe do monolito foi alterada;
+- validacao restrita: `mvn.cmd -pl dashboard-query-service test`, cinco testes
+  sem falhas, incluindo criacao, atualizacao, isolamento e exclusao segura.
+
+Proximo passo: B12.4, CRUD interno de widget.
+
+### B12.4 - CRUD interno de widget
+
+Concluida em 23/07/2026:
+
+- foram ativados os contratos internos para listar, criar, atualizar e excluir
+  widget de painel no `dashboard-query-service`;
+- cada widget exige painel da mesma escola, codigo e ordem unicos dentro desse
+  painel; tipo e codigo sao normalizados e uma colisao retorna
+  `409 BUSINESS_CONFLICT`;
+- um painel com widget permanece protegido contra exclusao ate que todos os seus
+  widgets sejam removidos; nao houve rota BFF, frontend ou monolito alterados;
+- validacao restrita: `mvn.cmd -pl dashboard-query-service test`, cinco testes
+  sem falhas, incluindo o fluxo de widget e as invariantes da composicao.
+
+Proximo passo: B12.5, preferencias por usuario e widget.
+
+### B12.5 - Preferencias por usuario e widget
+
+Concluida em 23/07/2026:
+
+- foi criada a persistencia local `painel_usuario_preferencia`, unica por
+  escola, usuario e widget, sem chave estrangeira para agregados de identidade;
+- os contratos internos permitem listar, salvar por upsert e excluir a
+  preferencia. O `usuarioId` do path deve corresponder ao contexto interno
+  autenticado, impedindo que um consumidor forje preferencia de outro usuario;
+- `configuracaoJson` e validado e normalizado antes de persistir; widget com
+  preferencias nao pode ser removido ate que elas sejam excluidas;
+- nenhuma rota BFF, frontend ou monolito foi alterada;
+- validacao restrita: `mvn.cmd -pl dashboard-query-service test`, cinco testes
+  sem falhas, com Flyway aplicando as migrations V1 a V3.
+
+Proximo passo: B12.6, snapshot local e historico de indicadores.
+
+### B12.6 - Snapshot local e historico de indicadores
+
+Concluida em 23/07/2026:
+
+- foi criada a tabela local `painel_indicador_snapshot`, idempotente por escola,
+  publico, codigo de indicador e data de referencia; snapshots nao voltam a
+  depender do payload generico de projecao;
+- os contratos internos locais permitem listar, salvar por upsert e excluir
+  snapshots. O historico e derivado cronologicamente desses registros, com valor
+  atual, anterior, variacao percentual e pontos por data;
+- as leituras externas ja oficializadas continuam na projecao anterior ate o
+  backfill reconciliado, evitando mudanca de fonte antes da carga controlada;
+- nenhuma rota BFF, frontend ou monolito foi alterada;
+- validacao restrita: `mvn.cmd -pl dashboard-query-service test`, seis testes
+  sem falhas, com Flyway aplicando as migrations V1 a V4.
+
+Proximo passo: B12.7, geracao de indicadores e alimentacao de projecoes.
+
+### B12.7 - Geracao de indicadores e alimentacao de projecoes
+
+Concluida em 23/07/2026:
+
+- foi criado o contrato interno autenticado de publicacao
+  `PUT /internal/v1/dashboard/indicadores/publicacoes`; ele recebe snapshots
+  calculados pelo servico dono, sem consultar banco, repository ou entidade de
+  outro dominio;
+- a origem declarada aceita somente familias de codigos previstas na matriz de
+  ownership. Uma origem que tente publicar codigo de outro dominio recebe
+  `400 INVALID_REQUEST` e nada e persistido;
+- cada publicacao grava o snapshot local idempotente e atualiza as projecoes
+  locais `SNAPSHOTS` e `HISTORICO`, alimentando as leituras ja existentes sem
+  mudar rota externa, BFF, frontend ou usar fallback para o monolito;
+- validacao restrita: `mvn.cmd -pl dashboard-query-service test`, sete testes
+  sem falhas, incluindo publicacao permitida, rejeicao de ownership invalido e
+  leitura pelas projecoes atualizadas.
+
+Proximo passo: B12.8, oficializacao no BFF dos writes de configuracao, widget,
+preferencia, snapshot e geracao.
+
+### B12.8 - Oficializacao no BFF dos writes do dashboard
+
+Concluida em 23/07/2026:
+
+- o `school-management-bff` passou a encaminhar exclusivamente ao
+  `dashboard-query-service` a criacao, atualizacao e exclusao de publico,
+  painel e widget, alem de preferencia por usuario e snapshot local;
+- os paths e status externos foram preservados. O BFF traduz somente os nomes
+  legados `publicoDashboardId` para `publicoId` e `dashboardId` para `painelId`,
+  sem expor o contrato interno ao consumidor;
+- a geracao de indicadores nao e mais uma escrita publica que calcula dados no
+  dashboard. Ela foi oficializada pelo contrato autenticado de publicacao entre
+  os servicos donos e o `dashboard-query-service`, definido em B12.7; assim o
+  BFF nao reintroduz consulta cruzada, job do monolito ou fallback;
+- validacao restrita: `mvn.cmd -pl school-management-bff
+  -Dtest=PainelWriteProxyIntegrationTest test`, um teste de integracao sem
+  falhas, cobrindo encaminhamento, compatibilizacao de payload e ausencia de
+  chamada ao monolito.
+
+Proximo passo: B12.9, backfill controlado e reconciliacao de configuracoes e
+snapshots do dashboard.
+
+### B12.9 - Backfill controlado e reconciliacao
+
+Concluida em 23/07/2026:
+
+- o `dashboard-query-service` recebeu backfill JDBC opt-in para publico,
+  painel, widget, preferencia e snapshot, com paginação configuravel e upsert
+  idempotente, sem apagar estado local;
+- a operacao exige `DASHBOARD_QUERY_BACKFILL_SOURCE_URL` e
+  `DASHBOARD_QUERY_BACKFILL_ESCOLA_ID`. Como o legado nao possui escola nas
+  configuracoes, esse identificador e o unico mapeamento aceito; nenhuma escola
+  e inferida a partir de usuario, painel ou snapshot;
+- o relatorio compara quantidade e conteudo persistido dos cinco conjuntos. Com
+  `DASHBOARD_QUERY_BACKFILL_FAIL_ON_MISMATCH=true`, a inicializacao falha em
+  caso de divergencia;
+- validacao restrita: `mvn.cmd -pl dashboard-query-service test`, oito testes
+  sem falhas, incluindo carga paginada, segunda execucao idempotente e
+  reconciliacao integral do payload.
+
+Proximo passo: B12.10, prova integrada e fechamento tecnico do dashboard.
+
+### B12.10 - Prova integrada e fechamento tecnico
+
+Concluida em 23/07/2026:
+
+- as leituras, configuracoes, snapshots, historico e writes de dashboard foram
+  validados pelo conjunto de integracao do BFF; todos os proxies de painel usam
+  exclusivamente o `dashboard-query-service` e os testes verificam ausencia de
+  chamada ao monolito;
+- a varredura dos arquivos de dashboard do BFF nao encontrou referencia a
+  cliente, fallback, rota ou classe do `school-management-service`. O
+  `dashboard-query-service` tambem opera com datasource proprio e o backfill e
+  estritamente opt-in, sem job ativo por padrao;
+- validacao final: `mvn.cmd -pl dashboard-query-service test`, oito testes sem
+  falhas; `mvn.cmd -pl school-management-bff
+  "-Dtest=Painel*IntegrationTest" test`, 31 testes sem falhas; e
+  `git diff --check` sem erros.
+
+A B12 esta tecnicamente fechada no backend. Proximo passo: inventariar e
+definir o proximo ciclo backend remanescente antes de abrir nova fase.
+
+### Correcao do inventario apos B12
+
+Em 23/07/2026, a comparacao dos contratos publicos do legado com os controllers
+do BFF identificou que o fechamento acima foi prematuro. Permanecem sem rota
+oficial no BFF:
+
+- `GET /api/dashboard/configuracoes/dashboards/{dashboardId}/widgets`;
+- `GET /api/dashboard/usuarios/{usuarioId}/configuracoes`;
+- `GET /api/dashboard/snapshots?publicoDashboardId=...`;
+- `POST /api/dashboard/snapshots/geracoes/{publicoCodigo}` e
+  `POST /api/dashboard/snapshots/geracoes/professores/{professorId}`.
+
+Os tres GET possuem contrato interno local pronto e devem ser expostos sem
+criar novo servico. Os dois POST de geracao exigem uma ponte de compatibilidade
+para a publicacao autenticada de B12.7 ou retirada formal de contrato; eles nao
+podem voltar a calcular dados a partir de bancos de outros dominios.
+
+Portanto, a B12 fica reaberta no ciclo corretivo fechado **B12.11**, com quatro
+recortes: B12.11.1 leitores externos faltantes; B12.11.2 compatibilidade de
+snapshots por identificador; B12.11.3 decisao e implementacao dos dois POST de
+geracao sem acoplamento; B12.11.4 prova integrada e novo fechamento. Nao ha
+justificativa para abrir um novo microservico neste ponto.
+
+### B12.11.1 - Leitores externos faltantes
+
+Concluida em 23/07/2026:
+
+- o BFF passou a expor `GET /api/dashboard/configuracoes/dashboards/{dashboardId}/widgets`
+  e `GET /api/dashboard/usuarios/{usuarioId}/configuracoes`, incluindo o
+  filtro opcional legado `dashboardId`;
+- os dois contratos encaminham somente ao `dashboard-query-service`, com
+  token, usuario, escola e correlation id internos. O servico de destino mantém
+  a validacao de que a preferencia pertence ao usuario autenticado;
+- validacao restrita: `mvn.cmd -pl school-management-bff
+  -Dtest=PainelCompatibilidadeReadProxyIntegrationTest test`, um teste de
+  integracao sem falhas, com ausencia de chamada ao monolito.
+
+Proximo passo: B12.11.2, compatibilidade de snapshots por identificador.
+
+### B12.11.2 - Compatibilidade de snapshots por identificador
+
+Concluida em 23/07/2026:
+
+- o BFF passou a expor `GET /api/dashboard/snapshots` com
+  `publicoDashboardId` obrigatorio e `referenciaData` opcional, preservando o
+  contrato externo legado;
+- a chamada e encaminhada ao read model local
+  `/internal/v1/dashboard/snapshots/locais`, usando o identificador como
+  `publicoId`, sem leitura pela projecao do monolito;
+- validacao restrita: `mvn.cmd -pl school-management-bff
+  -Dtest=PainelCompatibilidadeReadProxyIntegrationTest test`, dois testes sem
+  falhas, com prova do path, parametros e ausencia de fallback.
+
+Proximo passo: B12.11.3, decisao e compatibilidade dos dois POST de geracao.
+
+### B12.11.3 - Compatibilidade dos dois POST de geracao
+
+Concluida em 23/07/2026:
+
+- o `dashboard-query-service` passou a expor os contratos internos `POST /internal/v1/dashboard/snapshots/geracoes/{publicoCodigo}` e `POST /internal/v1/dashboard/snapshots/geracoes/professores/{professorId}`;
+- o `school-management-bff` oficializou os dois `POST` publicos equivalentes, preservando `referenciaData` opcional e o padrao legado de usar a data corrente quando ela nao e informada;
+- os endpoints nao recalculam indicadores nem consultam banco ou servico de outro dominio: retornam somente snapshots ja publicados no read model local para a data solicitada;
+- o recorte de professor preserva o namespace legado `PROFESSOR_{UUID sem hifens em maiusculas}_...` para filtrar exclusivamente os indicadores do docente solicitado; ausencia de publicacao retorna lista vazia, sem fallback;
+- a validacao foi restrita a `mvn.cmd -pl dashboard-query-service test` (nove testes) e `mvn.cmd -pl school-management-bff -Dtest=PainelWriteProxyIntegrationTest test` (um teste de integracao), cobrindo leitura local e encaminhamento exclusivo ao servico de dashboard.
+
+Proximo passo: B12.11.4, prova integrada e novo fechamento do dashboard.
+
+### B12.11.4 - Prova integrada e novo fechamento tecnico do dashboard
+
+Concluida em 23/07/2026:
+
+- o inventario final confirmou no BFF os mesmos contratos publicos de dashboard do legado: resumos por perfil, alertas, frontend, configuracoes, widgets, preferencias, snapshots, historico e os dois `POST` de geracao;
+- a suite integrada do BFF confirmou que os proxies de dashboard usam exclusivamente o `dashboard-query-service`; os cenarios de leitura, escrita e compatibilidade verificam a ausencia de chamada ao monolito;
+- os dois `POST` de geracao permanecem oficialmente compativeis no path e parametros, mas representam consulta ao snapshot local publicado. Nenhum calculo cruzado, job legado ou fallback ao monolito foi reintroduzido;
+- validacao final restrita aos modulos tocados: `mvn.cmd -pl dashboard-query-service test` com nove testes e `mvn.cmd -pl school-management-bff "-Dtest=Painel*IntegrationTest" test` com trinta e tres testes, ambos sem falhas; `git diff --check` sem erros;
+- a B12 e o ciclo corretivo B12.11 estao fechados no backend. O `dashboard-query-service` e o BFF sao a fronteira oficial do dominio de dashboard.
+
+Proximo passo: inventariar o proximo ciclo backend remanescente fora do dashboard antes de abrir nova fase.
+
+## Inventario pos-B12.11.4 - ciclo backend remanescente
+
+Concluido em 23/07/2026:
+
+- o `school-management-bff` possui 161 mappings publicos e nao possui URL, client, configuracao ou fallback produtivo direcionado ao `school-management-service`; a diferenca para os 226 mappings do monolito nao e criterio de pendencia, pois inclui contratos internos, administrativos e historicos nao consumidos externamente;
+- todos os dominios funcionais ativos possuem owner novo e rota BFF correspondente: identidade e tenant, pessoas e responsaveis, matricula e documentos, catalogo e professores, pedagogico e historico, planejamento e IA, e dashboard;
+- a infraestrutura declarada em `platform/compose.yaml` contem somente PostgreSQL, Kafka, Mongo e Redis, sem servico monolitico;
+- o passivo produtivo remanescente esta restrito a executores de backfill opt-in, desabilitados por padrao, em `enrollment-document-service`, `pedagogical-service`, `planning-ai-service` e `dashboard-query-service`; eles pertencem a operacao/autonomia e nao devem ser removidos sem prova reconciliada;
+- a lacuna objetiva e uma prova externa transversal por jornada. Portanto, o proximo ciclo fechado e a **B13 - Corte externo e prova ponta a ponta**, com quatro recortes: B13.1 matriz contratual BFF-consumidor-owner; B13.2 gate estatico e de integracao sem fallback; B13.3 prova das jornadas criticas por familia de dominio; B13.4 gate final externo e decisao de entrada na B14;
+- a **B14 - Operacao autonoma e descomissionamento** somente abre apos B13 verde e cobre backfills, reconciliacao, jobs, secrets, topologia de execucao e retirada definitiva do modulo residual.
+
+Proximo passo: B13.1, matriz contratual BFF-consumidor-owner e criterio objetivo do gate externo.
+
+### B13.1 - Matriz contratual BFF-consumidor-owner
+
+Concluida em 23/07/2026. O consumidor externo ativo e o
+`school-management-web`: vinte e oito arquivos TypeScript consomem paths
+`/api/**` por `API_BASE_URL`, sem URL direta para o monolito. A matriz abaixo
+substitui contagem de controllers por contrato e metodo HTTP.
+
+| Consumidor | Familia contratual publica | Owner novo | Estado para B13 |
+| --- | --- | --- | --- |
+| Host de seguranca | `/api/auth/**`, `/api/usuarios`, `/api/perfis`, `/api/permissoes` | `identity-access-service` e `institutional-tenant-service` | coberto no BFF; manter no gate de autenticacao e administracao |
+| MFEs de alunos e responsaveis | leituras de aluno/pessoa, responsaveis e vinculos aluno-responsavel | `people-service` e `responsibles-service` | owner local ja possuia CRUD interno de aluno; B13.2 oficializa os tres writes no BFF |
+| MFEs de catalogo, matricula e professores | periodos, disciplinas, series, turmas, turnos e vinculos academicos | `academic-catalog-service` | leitura e writes de periodo, disciplina, serie, turma e turma-disciplina cobertos; **bloqueio:** `POST` e `PUT /api/turnos` usados pelo consumidor nao possuem write oficial equivalente |
+| MFEs de matricula e documentos | matriculas, documentos genericos e de aluno, transferencias e escolas de origem | `enrollment-document-service` | coberto no BFF; manter no gate de upload e mudanca segura de status |
+| MFEs de professores e aulas | professores, alocacoes, aulas, frequencias, avaliacoes, notas, boletim e diario | `academic-professor-service` e `pedagogical-service` | coberto no BFF; manter no gate de jornada docente |
+| MFEs de alunos e catalogo | historico escolar | `pedagogical-service` | **bloqueio:** consumidor usa listagem geral, listagem por aluno e `DELETE /api/historicos-escolares/{id}`; BFF e servico novo possuem apenas criacao, atualizacao, `novo` e `carregamento` |
+| MFE de planejamento | planejamento bimestral, aulas/avaliacoes previstas e conteudo IA | `planning-ai-service` | coberto no BFF; manter no gate de planejamento e biblioteca |
+| MFE de dashboard | resumos, configuracoes, preferencias, snapshots, historico e geracoes | `dashboard-query-service` | coberto no BFF pela B12.11; manter no gate de dashboard |
+
+Decisoes objetivas:
+
+- as lacunas de turno e Historico Escolar sao lacunas de contrato, nao candidatas a fallback; o CRUD de aluno e somente lacuna de exposicao BFF;
+- `projetos-historico-diario` nao e consumidor runtime nesta matriz: e fonte de
+  prototipos ja absorvidos pelos owners `pedagogical-service` e
+  `enrollment-document-service`;
+- o gate externo de B13 somente pode ser verde quando cada chamada ativa do
+  `school-management-web` tiver owner novo, path e metodo HTTP oficiais no BFF,
+  teste de integracao e ausencia comprovada de chamada ao monolito.
+
+Proximo passo: B13.2, fechar as tres lacunas contratuais e instituir o gate
+estatico BFF-consumidor sem fallback.
+
+### B13.2 - Paridade contratual e gate estatico BFF-consumidor
+
+Concluida em 23/07/2026:
+
+- os tres writes de aluno foram expostos oficialmente pelo BFF para o
+  `people-service`, com `POST` normalizado para `201 Created`;
+- `POST` e `PUT /api/turnos` foram encaminhados ao
+  `academic-catalog-service`, sem fallback;
+- Historico Escolar passou a expor lista paginada, lista por aluno e exclusao
+  pelo `pedagogical-service`, preservando os paths publicos ativos;
+- o gate `BffNoMonolithStaticGateTest` bloqueia referencias produtivas ao
+  monolito e os testes de integracao confirmam os encaminhamentos oficiais.
+
+Validacao: compilacao de `pedagogical-service` e 14 testes direcionados no
+`school-management-bff`, todos verdes. Proximo passo: B13.3, provas ponta a
+ponta das jornadas criticas por familia de dominio.
+
+### B13.3 - Provas ponta a ponta por jornada
+
+Concluida em 23/07/2026. A suite completa `*IntegrationTest` do
+`school-management-bff` validou as jornadas de seguranca,
+pessoas/responsaveis, catalogo, matricula/documentos,
+professores/pedagogico, planejamento/IA e dashboard contra os owners novos:
+178 testes, zero falhas, zero erros e zero ignorados. O aviso do Surefire no
+encerramento e posterior ao `BUILD SUCCESS` e decorre apenas da finalizacao da
+JVM com mocks HTTP.
+
+Proximo passo: B13.4, gate externo final e decisao de entrada na B14.
+
+### B13.4 - Gate externo final
+
+Em execucao em 23/07/2026. O novo gate
+`BffExternalConsumerContractGateTest` compara as chamadas `/api/**` ativas do
+`school-management-web` com os mappings publicos do BFF. Ele isolou uma unica
+lacuna real: `GET /api/matriculas/catalogos/status`. O catalogo de status de
+matricula ainda nao tem owner local no `enrollment-document-service`; por isso
+a B13.4 e a entrada na B14 permanecem bloqueadas ate a migracao e prova desse
+contrato sem fallback.
+
+Fechamento em 23/07/2026: o catalogo foi migrado para o
+`enrollment-document-service` e exposto pelo BFF em
+`GET /api/matriculas/catalogos/status`. Os gates
+`BffExternalConsumerContractGateTest` e `BffNoMonolithStaticGateTest` passaram
+verdes. B13 concluida; B14 liberada.
+
+### B14.1 - Inventario operacional monolith-off
+
+Concluida em 23/07/2026. `platform/compose.yaml` nao declara monolito, job ou
+agendamento legado. Os backfills de documentos/matriculas, pedagogico,
+planejamento/IA e dashboard permanecem opt-in, desabilitados por padrao e com
+falha obrigatoria se a reconciliacao divergir. Proximo passo: prova operacional
+reconciliada de cada executor antes de remover origem, secrets e runners.
+
+### B14.2 - Provas reconciliadas dos backfills
+
+Concluida em 23/07/2026. Os executores de documentos, matriculas, Historico
+Escolar, planejamento/IA e dashboard foram exercitados de forma idempotente e
+reconciliada. A cobertura do executor de planejamento foi adicionada; cinco
+testes nos quatro modulos passaram verdes, sem flag de producao nem fonte
+externa habilitada. Proximo passo: retirada definitiva de parametros de
+origem e runners.
+
+### B14.3 - Retirada definitiva de origem e runners
+
+Concluida em 23/07/2026. Os quatro servicos tratados tiveram removidos
+configuracoes, executores, relatorios, runners e testes de backfill. Nao restam
+parametros de origem externa nesses modulos; apenas modelos locais, migrations
+e contratos oficiais. A compilacao conjunta dos quatro modulos passou verde.
+Proximo passo: revisar os demais servicos e a topologia antes do gate final.
+
+### B14.4 - Gate final operacional monolith-off
+
+Concluida em 23/07/2026. Foram retirados os mecanismos restantes de carga de
+origem de `identity-access-service`, `institutional-tenant-service`,
+`people-service`, `responsibles-service` e `academic-professor-service`.
+`platform/compose.yaml` nao declara o monolito e o gate estatico do BFF agora
+inspeciona o BFF, todos os servicos ativos e a plataforma contra cliente,
+fallback, URL, credenciais, `backfill` ou `gestao_escolar` de origem. Proximo
+passo: B14.5, retirada do modulo legado do build e checkout apos a ultima
+verificacao de referencias de projeto.
+
+### B14.5 - Descomissionamento definitivo do modulo legado
+
+Concluida em 23/07/2026. O diretorio `school-management-service`, com seus
+fontes, migrations, testes e wrappers, foi removido do checkout e controle de
+versao. O reactor raiz continua composto apenas pelo BFF e servicos modulares;
+nao ha referencia operacional ao modulo removido. B14 encerrada: o backend nao
+depende do monolito no checkout, topologia, configuracao ou contratos oficiais.
+O gate foi renomeado para `NoLegacyDependencyStaticGateTest` e as classes
+apontadas pela regra estrutural receberam nomes neutros, sem mudanca de
+contrato ou comportamento.

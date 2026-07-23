@@ -14,7 +14,7 @@ spring:
     enabled: true
 
 server:
-  port: 8092
+  port: ${SERVER_PORT:8093}
 
 management:
   endpoints:
@@ -23,23 +23,15 @@ management:
         include: health,info
 
 professor:
-  shadow:
-    internal-api:
-      token: ${PROFESSOR_SHADOW_INTERNAL_API_TOKEN:professor-shadow-local-token}
-    monolith:
-      base-url: ${PROFESSOR_SHADOW_MONOLITH_BASE_URL:http://localhost:8080}
-      connect-timeout: ${PROFESSOR_SHADOW_MONOLITH_CONNECT_TIMEOUT:2s}
-      read-timeout: ${PROFESSOR_SHADOW_MONOLITH_READ_TIMEOUT:5s}
-    local-persistence:
-      enabled: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_ENABLED:false}
-      fail-on-error: ${PROFESSOR_SHADOW_LOCAL_PERSISTENCE_FAIL_ON_ERROR:false}
-    migration:
-      enabled: ${PROFESSOR_SHADOW_MIGRATION_ENABLED:false}
-      runner-enabled: ${PROFESSOR_SHADOW_MIGRATION_RUNNER_ENABLED:true}
-      apply: ${PROFESSOR_SHADOW_MIGRATION_APPLY:false}
-      report-path: ${PROFESSOR_SHADOW_MIGRATION_REPORT_PATH:target/professor-shadow-migration-report.json}
-      source:
-        url: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
-        username: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_USERNAME:postgres}
-        password: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_PASSWORD:}
-        driver-class-name: ${PROFESSOR_SHADOW_MIGRATION_SOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
+  internal-api:
+    token: ${ACADEMIC_PROFESSOR_INTERNAL_API_TOKEN:}
+  people-service:
+    base-url: ${PROFESSOR_PEOPLE_SERVICE_BASE_URL:http://localhost:8081}
+    internal-token: ${PROFESSOR_PEOPLE_SERVICE_INTERNAL_TOKEN:people-service-local-token}
+    connect-timeout: ${PROFESSOR_PEOPLE_SERVICE_CONNECT_TIMEOUT:2s}
+    read-timeout: ${PROFESSOR_PEOPLE_SERVICE_READ_TIMEOUT:5s}
+  catalog-service:
+    base-url: ${PROFESSOR_CATALOG_SERVICE_BASE_URL:http://localhost:8091}
+    internal-token: ${PROFESSOR_CATALOG_SERVICE_INTERNAL_TOKEN:academic-catalog-local-token}
+    connect-timeout: ${PROFESSOR_CATALOG_SERVICE_CONNECT_TIMEOUT:2s}
+    read-timeout: ${PROFESSOR_CATALOG_SERVICE_READ_TIMEOUT:5s}

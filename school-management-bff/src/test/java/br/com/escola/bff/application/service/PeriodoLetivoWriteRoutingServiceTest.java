@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
 
@@ -13,77 +12,57 @@ import br.com.escola.bff.application.dto.CatalogWriteQuery;
 import br.com.escola.bff.application.dto.PeriodoLetivoCreateCommand;
 import br.com.escola.bff.application.dto.PeriodoLetivoCreatedResult;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
-import br.com.escola.bff.application.port.out.AcademicCatalogPeriodoLetivoWritePort;
+import br.com.escola.bff.application.port.out.CatalogoPeriodoLetivoWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
-import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
-import br.com.escola.bff.application.port.out.MonolithPeriodoLetivoWritePort;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 class PeriodoLetivoWriteRoutingServiceTest {
 
     @Test
-    void deveUsarMonolitoQuandoCutoverNaoEstiverLiberado() {
-        MonolithPeriodoLetivoWritePort monolith = (query, command) -> Mono.just(resultado("monolith"));
-        AcademicCatalogPeriodoLetivoWritePort catalog = (query, context, command) -> Mono.just(resultado("catalog"));
+    void deveUsarCatalogoQuandoEscritaOficialForExecutada() {
+        CatalogoPeriodoLetivoWritePort catalog = (query, context, command) -> Mono.just(resultado("catalog"));
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID()));
-        CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, false, "cutover_disabled");
         CatalogWriteObservabilityPort observability = new NoOpObservability();
 
         PeriodoLetivoWriteRoutingService service = new PeriodoLetivoWriteRoutingService(
-                monolith,
                 catalog,
                 authContext,
-                decider,
                 observability);
 
         StepVerifier.create(service.executar(query(), command(null)))
-                .assertNext(response -> assertThat(response.escolaNome()).isEqualTo("monolith"))
+                .assertNext(response -> assertThat(response.escolaNome()).isEqualTo("catalog"))
                 .verifyComplete();
     }
 
     @Test
-    void naoDeveFazerFallbackParaMonolitoQuandoCatalogoFalhar() {
-        AtomicBoolean monolithCalled = new AtomicBoolean(false);
-        MonolithPeriodoLetivoWritePort monolith = (query, command) -> {
-            monolithCalled.set(true);
-            return Mono.just(resultado("monolith"));
-        };
-        AcademicCatalogPeriodoLetivoWritePort catalog = (query, context, command) ->
+    void naoDeveFazerFallbackQuandoCatalogoFalhar() {
+        CatalogoPeriodoLetivoWritePort catalog = (query, context, command) ->
                 Mono.error(new DownstreamUnavailableException("catalog indisponivel"));
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID(), "Escola A"));
-        CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
         CatalogWriteObservabilityPort observability = new NoOpObservability();
 
         PeriodoLetivoWriteRoutingService service = new PeriodoLetivoWriteRoutingService(
-                monolith,
                 catalog,
                 authContext,
-                decider,
                 observability);
 
         StepVerifier.create(service.executar(query(), command(null)))
                 .expectError(DownstreamUnavailableException.class)
                 .verify();
-
-        assertThat(monolithCalled.get()).isFalse();
     }
 
     @Test
     void deveRejeitarEscolaIdDiferenteDoContextoAutenticado() {
         UUID escolaContexto = UUID.randomUUID();
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), escolaContexto, "Escola A"));
-        MonolithPeriodoLetivoWritePort monolith = (query, command) -> Mono.just(resultado("monolith"));
-        AcademicCatalogPeriodoLetivoWritePort catalog = (query, context, command) -> Mono.just(resultado("catalog"));
-        CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
+        CatalogoPeriodoLetivoWritePort catalog = (query, context, command) -> Mono.just(resultado("catalog"));
         CatalogWriteObservabilityPort observability = new NoOpObservability();
 
         PeriodoLetivoWriteRoutingService service = new PeriodoLetivoWriteRoutingService(
-                monolith,
                 catalog,
                 authContext,
-                decider,
                 observability);
 
         StepVerifier.create(service.executar(query(), command(UUID.randomUUID())))
@@ -119,8 +98,8 @@ class PeriodoLetivoWriteRoutingServiceTest {
     }
 
     private static final class NoOpObservability implements CatalogWriteObservabilityPort {
-        @Override public void recordDirectMonolith(CatalogWriteCutoverDecision decision) {}
         @Override public void recordCatalogSuccess(CatalogWriteCutoverDecision decision) {}
         @Override public void recordCatalogFailure(CatalogWriteCutoverDecision decision, Throwable error) {}
     }
 }
+

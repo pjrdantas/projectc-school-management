@@ -5,19 +5,19 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
-import br.com.escola.bff.application.port.out.AuthContextPort;
-import br.com.escola.bff.application.port.out.PeoplePessoaReadPort;
+import br.com.escola.bff.application.port.out.InternalAuthContextPort;
+import br.com.escola.bff.application.port.out.PessoaCadastroReadPort;
 import br.com.escola.bff.application.usecase.ConsultarPessoaDetalheUseCase;
 import reactor.core.publisher.Mono;
 
 public class PessoaDetailReadProxyService implements ConsultarPessoaDetalheUseCase {
 
-    private final AuthContextPort authContextPort;
-    private final PeoplePessoaReadPort peoplePessoaReadPort;
+    private final InternalAuthContextPort authContextPort;
+    private final PessoaCadastroReadPort peoplePessoaReadPort;
 
     public PessoaDetailReadProxyService(
-            AuthContextPort authContextPort,
-            PeoplePessoaReadPort peoplePessoaReadPort) {
+            InternalAuthContextPort authContextPort,
+            PessoaCadastroReadPort peoplePessoaReadPort) {
         this.authContextPort = authContextPort;
         this.peoplePessoaReadPort = peoplePessoaReadPort;
     }
@@ -64,3 +64,4 @@ public class PessoaDetailReadProxyService implements ConsultarPessoaDetalheUseCa
                 .flatMap(context -> peoplePessoaReadPort.buscarDocumentoPorId(documentoId, query, context));
     }
 }
+

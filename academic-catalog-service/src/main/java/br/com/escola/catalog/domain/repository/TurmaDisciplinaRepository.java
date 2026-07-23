@@ -11,7 +11,11 @@ public interface TurmaDisciplinaRepository {
 
     TurmaDisciplina salvar(TurmaDisciplina vinculo);
 
+    void excluirVinculo(UUID id, EscolaId escolaId);
+
     Optional<TurmaDisciplina> buscarVinculoPorId(UUID id, EscolaId escolaId);
+
+    boolean possuiVinculoComDisciplina(UUID disciplinaId, EscolaId escolaId);
 
     List<TurmaDisciplina> listarVinculosPorTurma(UUID turmaId, EscolaId escolaId);
 }

@@ -115,6 +115,30 @@ class BearerAuthenticationWebFilterTest {
     }
 
     @Test
+    void deveProtegerPostDeEscolaOrigemSemBearerToken() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("/api/escolas-origem")
+                        .header(TrustedHeaders.CORRELATION_ID, "corr-escola-origem-write"));
+
+        StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-escola-origem-write");
+    }
+
+    @Test
+    void deveProtegerPostDeTransferenciaSemBearerToken() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("/api/transferencias")
+                        .header(TrustedHeaders.CORRELATION_ID, "corr-transferencia-write"));
+
+        StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-transferencia-write");
+    }
+
+    @Test
     void deveProtegerConsultaCadastralSemBearerToken() {
         MockServerWebExchange exchange = MockServerWebExchange.from(
                 MockServerHttpRequest.get("/api/consulta-cadastral")
@@ -136,7 +160,10 @@ class BearerAuthenticationWebFilterTest {
                 "/api/pessoas/00000000-0000-0000-0000-000000000401/enderecos",
                 "/api/pessoas/00000000-0000-0000-0000-000000000401/contato",
                 "/api/pessoas/00000000-0000-0000-0000-000000000401/documentos",
-                "/api/documentos/00000000-0000-0000-0000-000000000501"
+                "/api/documentos",
+                "/api/documentos/00000000-0000-0000-0000-000000000501",
+                "/api/documentos-alunos/alunos/00000000-0000-0000-0000-000000000601",
+                "/api/matriculas"
         };
 
         for (String path : paths) {
@@ -148,6 +175,26 @@ class BearerAuthenticationWebFilterTest {
 
             assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
             assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-people");
+        }
+    }
+
+    @Test
+    void deveProtegerNovasRotasOficiaisDeProfessorSemBearerToken() {
+        String[] paths = {
+                "/api/professores/funcionarios-elegiveis",
+                "/api/professores/00000000-0000-0000-0000-000000000011/turmas-disciplinas",
+                "/api/turmas/00000000-0000-0000-0000-000000000061/professores"
+        };
+
+        for (String path : paths) {
+            MockServerWebExchange exchange = MockServerWebExchange.from(
+                    MockServerHttpRequest.get(path)
+                            .header(TrustedHeaders.CORRELATION_ID, "corr-professor"));
+
+            StepVerifier.create(filter.filter(exchange, ignored -> Mono.empty())).verifyComplete();
+
+            assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+            assertThat(exchange.getResponse().getBodyAsString().block()).contains("UNAUTHORIZED", "corr-professor");
         }
     }
 }

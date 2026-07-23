@@ -21,7 +21,7 @@ export class ShellContextService implements OnDestroy {
   }
 
   getApiBaseUrl(): string {
-    return this.contextSignal()?.apiBaseUrl ?? 'http://localhost:8080';
+    return this.contextSignal()?.apiBaseUrl ?? 'http://localhost:8081';
   }
 
   getToken(): string | null {

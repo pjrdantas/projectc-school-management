@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import br.com.escola.peopleservice.infra.config.PeopleReadModelMigrationProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 class JdbcPessoaContatoAdapterTest {
 
@@ -21,7 +21,7 @@ class JdbcPessoaContatoAdapterTest {
         UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
         criarSchemaEPopular(url);
         JdbcPessoaContatoAdapter adapter = new JdbcPessoaContatoAdapter(
-                new PeopleReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new PersistenceProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         var response = adapter.buscarContatoPorPessoa(pessoaId, escolaId);
 
@@ -39,7 +39,7 @@ class JdbcPessoaContatoAdapterTest {
         UUID pessoaId = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         criarSchemaEPopular(url);
         JdbcPessoaContatoAdapter adapter = new JdbcPessoaContatoAdapter(
-                new PeopleReadModelMigrationProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new PersistenceProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         var response = adapter.buscarContatoPorPessoa(
                 pessoaId,
@@ -77,4 +77,5 @@ class JdbcPessoaContatoAdapterTest {
         }
     }
 }
+
 

@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.escola.catalog.application.command.CreateDisciplinaCommand;
 import br.com.escola.catalog.application.context.InternalRequestContext;
-import br.com.escola.catalog.application.port.in.CatalogCommandUseCase;
+import br.com.escola.catalog.application.port.in.ComandoUseCase;
 import br.com.escola.catalog.application.service.OutboxPublisherResult;
 import br.com.escola.catalog.application.service.OutboxPublisherService;
 import br.com.escola.catalog.application.service.OutboxPublisherSettings;
@@ -57,7 +57,7 @@ class OutboxPublisherIT {
     }
 
     @Autowired
-    private CatalogCommandUseCase commandUseCase;
+    private ComandoUseCase commandUseCase;
 
     @Autowired
     private OutboxPublisherService publisherService;
@@ -116,7 +116,7 @@ class OutboxPublisherIT {
 
     private void criarDisciplina(String key) {
         commandUseCase.criarDisciplina(
-                new CreateDisciplinaCommand("Disciplina " + key, 40),
+                new CreateDisciplinaCommand("Disciplina " + key, 40, null),
                 key,
                 new InternalRequestContext("corr-" + key, USUARIO_ID, new EscolaId(ESCOLA_ID)));
     }
@@ -149,3 +149,4 @@ class OutboxPublisherIT {
         throw new AssertionError("Evento nao recebido no topico " + topic);
     }
 }
+

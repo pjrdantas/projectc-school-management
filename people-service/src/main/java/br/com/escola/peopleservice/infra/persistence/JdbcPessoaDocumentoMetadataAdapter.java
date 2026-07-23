@@ -13,7 +13,7 @@ import org.springframework.util.StringUtils;
 
 import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataResponse;
 import br.com.escola.peopleservice.application.port.out.PessoaDocumentoMetadataPort;
-import br.com.escola.peopleservice.infra.config.PeopleReadModelMigrationProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 @Component
 public class JdbcPessoaDocumentoMetadataAdapter implements PessoaDocumentoMetadataPort {
@@ -34,9 +34,9 @@ public class JdbcPessoaDocumentoMetadataAdapter implements PessoaDocumentoMetada
             WHERE id_escola = ?
             """;
 
-    private final PeopleReadModelMigrationProperties properties;
+    private final PersistenceProperties properties;
 
-    public JdbcPessoaDocumentoMetadataAdapter(PeopleReadModelMigrationProperties properties) {
+    public JdbcPessoaDocumentoMetadataAdapter(PersistenceProperties properties) {
         this.properties = properties;
     }
 
@@ -106,4 +106,5 @@ public class JdbcPessoaDocumentoMetadataAdapter implements PessoaDocumentoMetada
         }
     }
 }
+
 

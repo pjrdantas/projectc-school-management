@@ -14,119 +14,104 @@ import br.com.escola.bff.application.dto.NivelEnsinoResolved;
 import br.com.escola.bff.application.dto.SerieCreateCommand;
 import br.com.escola.bff.application.dto.SerieCreatedResult;
 import br.com.escola.bff.application.exception.DownstreamUnavailableException;
-import br.com.escola.bff.application.port.out.AcademicCatalogNivelEnsinoResolverPort;
-import br.com.escola.bff.application.port.out.AcademicCatalogSerieWritePort;
 import br.com.escola.bff.application.port.out.AuthContextPort;
-import br.com.escola.bff.application.port.out.CatalogWriteCutoverPolicyPort;
 import br.com.escola.bff.application.port.out.CatalogWriteObservabilityPort;
-import br.com.escola.bff.application.port.out.MonolithSerieWritePort;
+import br.com.escola.bff.application.port.out.CatalogoNivelEnsinoResolverPort;
+import br.com.escola.bff.application.port.out.CatalogoSerieWritePort;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 class SerieWriteRoutingServiceTest {
 
     @Test
-    void deveUsarMonolitoQuandoCutoverNaoEstiverLiberado() {
-        MonolithSerieWritePort monolith = (query, command) -> Mono.just(resultado("ENSINO_FUNDAMENTAL", "monolith"));
-        AcademicCatalogSerieWritePort catalog = (query, context, nivel, command) -> Mono.just(resultado("ENSINO_FUNDAMENTAL", "catalog"));
-        AcademicCatalogNivelEnsinoResolverPort resolver = (query, context, nivel) ->
-                Mono.just(new NivelEnsinoResolved(UUID.randomUUID(), "ENSINO_FUNDAMENTAL"));
-        AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID()));
-        CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, false, "cutover_disabled");
-        CatalogWriteObservabilityPort observability = new NoOpObservability();
-
-        SerieWriteRoutingService service = new SerieWriteRoutingService(
-                monolith, catalog, resolver, authContext, decider, observability);
-
-        StepVerifier.create(service.executar(query(), command("ENSINO_FUNDAMENTAL", null)))
-                .assertNext(response -> assertThat(response.escolaNome()).isEqualTo("monolith"))
-                .verifyComplete();
-    }
-
-    @Test
-    void deveUsarMonolitoQuandoNivelEnsinoNaoVierInformado() {
-        AtomicBoolean resolverCalled = new AtomicBoolean(false);
-        MonolithSerieWritePort monolith = (query, command) -> Mono.just(resultado(null, "monolith"));
-        AcademicCatalogSerieWritePort catalog = (query, context, nivel, command) -> Mono.just(resultado("ENSINO_FUNDAMENTAL", "catalog"));
-        AcademicCatalogNivelEnsinoResolverPort resolver = (query, context, nivel) -> {
-            resolverCalled.set(true);
-            return Mono.just(new NivelEnsinoResolved(UUID.randomUUID(), "ENSINO_FUNDAMENTAL"));
-        };
-        AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID(), "Escola A"));
-        CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
-        CatalogWriteObservabilityPort observability = new NoOpObservability();
-
-        SerieWriteRoutingService service = new SerieWriteRoutingService(
-                monolith, catalog, resolver, authContext, decider, observability);
-
-        StepVerifier.create(service.executar(query(), command(" ", null)))
-                .assertNext(response -> assertThat(response.escolaNome()).isEqualTo("monolith"))
-                .verifyComplete();
-
-        assertThat(resolverCalled.get()).isFalse();
-    }
-
-    @Test
-    void deveUsarMonolitoQuandoNivelEnsinoNaoForResolvidoNoCatalogoNovo() {
+    void deveUsarCatalogoComoOwnershipOficialQuandoNivelEnsinoForResolvido() {
         AtomicBoolean catalogCalled = new AtomicBoolean(false);
-        MonolithSerieWritePort monolith = (query, command) -> Mono.just(resultado(command.nivelEnsino(), "monolith"));
-        AcademicCatalogSerieWritePort catalog = (query, context, nivel, command) -> {
+        CatalogoSerieWritePort catalog = (query, context, nivel, command) -> {
             catalogCalled.set(true);
             return Mono.just(resultado("ENSINO_FUNDAMENTAL", "catalog"));
         };
-        AcademicCatalogNivelEnsinoResolverPort resolver = (query, context, nivel) -> Mono.empty();
-        AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID(), "Escola A"));
-        CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
+        CatalogoNivelEnsinoResolverPort resolver = (query, context, nivel) ->
+                Mono.just(new NivelEnsinoResolved(UUID.randomUUID(), "ENSINO_FUNDAMENTAL"));
+        AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID()));
         CatalogWriteObservabilityPort observability = new NoOpObservability();
 
         SerieWriteRoutingService service = new SerieWriteRoutingService(
-                monolith, catalog, resolver, authContext, decider, observability);
+                catalog, resolver, authContext, observability);
+
+        StepVerifier.create(service.executar(query(), command("ENSINO_FUNDAMENTAL", null)))
+                .assertNext(response -> assertThat(response.nivelEnsino()).isEqualTo("ENSINO_FUNDAMENTAL"))
+                .verifyComplete();
+
+        assertThat(catalogCalled.get()).isTrue();
+    }
+
+    @Test
+    void deveRejeitarQuandoNivelEnsinoNaoVierInformado() {
+        CatalogoSerieWritePort catalog = (query, context, nivel, command) -> Mono.just(resultado("ENSINO_FUNDAMENTAL", "catalog"));
+        CatalogoNivelEnsinoResolverPort resolver = (query, context, nivel) ->
+                Mono.just(new NivelEnsinoResolved(UUID.randomUUID(), "ENSINO_FUNDAMENTAL"));
+        AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID(), "Escola A"));
+        CatalogWriteObservabilityPort observability = new NoOpObservability();
+
+        SerieWriteRoutingService service = new SerieWriteRoutingService(
+                catalog, resolver, authContext, observability);
+
+        StepVerifier.create(service.executar(query(), command(" ", null)))
+                .expectErrorMatches(error -> error instanceof IllegalArgumentException
+                        && error.getMessage().contains("nivelEnsino informado e obrigatorio"))
+                .verify();
+    }
+
+    @Test
+    void deveRejeitarQuandoNivelEnsinoNaoForResolvidoNoCatalogoOficial() {
+        AtomicBoolean catalogCalled = new AtomicBoolean(false);
+        CatalogoSerieWritePort catalog = (query, context, nivel, command) -> {
+            catalogCalled.set(true);
+            return Mono.just(resultado("ENSINO_FUNDAMENTAL", "catalog"));
+        };
+        CatalogoNivelEnsinoResolverPort resolver = (query, context, nivel) -> Mono.empty();
+        AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID(), "Escola A"));
+        CatalogWriteObservabilityPort observability = new NoOpObservability();
+
+        SerieWriteRoutingService service = new SerieWriteRoutingService(
+                catalog, resolver, authContext, observability);
 
         StepVerifier.create(service.executar(query(), command("ENSINO_MEDIO", null)))
-                .assertNext(response -> assertThat(response.escolaNome()).isEqualTo("monolith"))
-                .verifyComplete();
+                .expectErrorMatches(error -> error instanceof IllegalArgumentException
+                        && error.getMessage().contains("nivelEnsino informado nao foi encontrado"))
+                .verify();
 
         assertThat(catalogCalled.get()).isFalse();
     }
 
     @Test
     void naoDeveFazerFallbackParaMonolitoQuandoCatalogoFalhar() {
-        AtomicBoolean monolithCalled = new AtomicBoolean(false);
-        MonolithSerieWritePort monolith = (query, command) -> {
-            monolithCalled.set(true);
-            return Mono.just(resultado(command.nivelEnsino(), "monolith"));
-        };
-        AcademicCatalogSerieWritePort catalog = (query, context, nivel, command) ->
+        CatalogoSerieWritePort catalog = (query, context, nivel, command) ->
                 Mono.error(new DownstreamUnavailableException("catalog indisponivel"));
-        AcademicCatalogNivelEnsinoResolverPort resolver = (query, context, nivel) ->
+        CatalogoNivelEnsinoResolverPort resolver = (query, context, nivel) ->
                 Mono.just(new NivelEnsinoResolved(UUID.randomUUID(), "ENSINO_FUNDAMENTAL"));
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), UUID.randomUUID(), "Escola A"));
-        CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
         CatalogWriteObservabilityPort observability = new NoOpObservability();
 
         SerieWriteRoutingService service = new SerieWriteRoutingService(
-                monolith, catalog, resolver, authContext, decider, observability);
+                catalog, resolver, authContext, observability);
 
         StepVerifier.create(service.executar(query(), command("ENSINO_FUNDAMENTAL", null)))
                 .expectError(DownstreamUnavailableException.class)
                 .verify();
-
-        assertThat(monolithCalled.get()).isFalse();
     }
 
     @Test
     void deveRejeitarEscolaIdDiferenteDoContextoAutenticado() {
         UUID escolaContexto = UUID.randomUUID();
         AuthContextPort authContext = query -> Mono.just(new AuthSessionContext(UUID.randomUUID(), escolaContexto, "Escola A"));
-        MonolithSerieWritePort monolith = (query, command) -> Mono.just(resultado(command.nivelEnsino(), "monolith"));
-        AcademicCatalogSerieWritePort catalog = (query, context, nivel, command) -> Mono.just(resultado("ENSINO_FUNDAMENTAL", "catalog"));
-        AcademicCatalogNivelEnsinoResolverPort resolver = (query, context, nivel) ->
+        CatalogoSerieWritePort catalog = (query, context, nivel, command) -> Mono.just(resultado("ENSINO_FUNDAMENTAL", "catalog"));
+        CatalogoNivelEnsinoResolverPort resolver = (query, context, nivel) ->
                 Mono.just(new NivelEnsinoResolved(UUID.randomUUID(), "ENSINO_FUNDAMENTAL"));
-        CatalogWriteCutoverPolicyPort decider = route -> new CatalogWriteCutoverDecision(route, true, "catalog_enabled");
         CatalogWriteObservabilityPort observability = new NoOpObservability();
 
         SerieWriteRoutingService service = new SerieWriteRoutingService(
-                monolith, catalog, resolver, authContext, decider, observability);
+                catalog, resolver, authContext, observability);
 
         StepVerifier.create(service.executar(query(), command("ENSINO_FUNDAMENTAL", UUID.randomUUID())))
                 .expectErrorMatches(error -> error instanceof IllegalArgumentException
@@ -154,7 +139,6 @@ class SerieWriteRoutingServiceTest {
     }
 
     private static final class NoOpObservability implements CatalogWriteObservabilityPort {
-        @Override public void recordDirectMonolith(CatalogWriteCutoverDecision decision) {}
         @Override public void recordCatalogSuccess(CatalogWriteCutoverDecision decision) {}
         @Override public void recordCatalogFailure(CatalogWriteCutoverDecision decision, Throwable error) {}
     }

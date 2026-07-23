@@ -1,6 +1,14 @@
 spring:
   application:
     name: people-service
+  flyway:
+    enabled: true
+    locations: classpath:db/people/migration
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/people}
+    username: ${SPRING_DATASOURCE_USERNAME:school}
+    password: ${SPRING_DATASOURCE_PASSWORD:school_local}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
 
 server:
   port: 8093
@@ -14,29 +22,18 @@ management:
 people:
   internal-api:
     token: ${PEOPLE_INTERNAL_API_TOKEN:people-internal-local-token}
-  monolith:
-    base-url: ${PEOPLE_MONOLITH_BASE_URL:http://localhost:8080}
-    connect-timeout: ${PEOPLE_MONOLITH_CONNECT_TIMEOUT:2s}
-    read-timeout: ${PEOPLE_MONOLITH_READ_TIMEOUT:5s}
-    address-write-adapter-enabled: ${PEOPLE_MONOLITH_ADDRESS_WRITE_ADAPTER_ENABLED:false}
-  read-model:
-    enabled: ${PEOPLE_READ_MODEL_ENABLED:false}
-    migration-enabled: ${PEOPLE_READ_MODEL_MIGRATION_ENABLED:false}
-    local-read-routing-enabled: ${PEOPLE_READ_MODEL_LOCAL_READ_ROUTING_ENABLED:false}
-    fail-on-error: ${PEOPLE_READ_MODEL_FAIL_ON_ERROR:false}
-    backfill-enabled: ${PEOPLE_READ_MODEL_BACKFILL_ENABLED:false}
-    reconciliation-enabled: ${PEOPLE_READ_MODEL_RECONCILIATION_ENABLED:false}
-    backfill-batch-size: ${PEOPLE_READ_MODEL_BACKFILL_BATCH_SIZE:500}
-    fallback-enabled: ${PEOPLE_READ_MODEL_FALLBACK_ENABLED:true}
-    schema-migration:
-      url: ${PEOPLE_READ_MODEL_SCHEMA_URL:}
-      username: ${PEOPLE_READ_MODEL_SCHEMA_USERNAME:}
-      password: ${PEOPLE_READ_MODEL_SCHEMA_PASSWORD:}
-      driver-class-name: ${PEOPLE_READ_MODEL_SCHEMA_DRIVER_CLASS_NAME:}
-      locations: ${PEOPLE_READ_MODEL_SCHEMA_LOCATIONS:classpath:db/people-readmodel/migration}
-    source:
-      source-url: ${PEOPLE_READ_MODEL_SOURCE_URL:}
-      source-username: ${PEOPLE_READ_MODEL_SOURCE_USERNAME:}
-      source-password: ${PEOPLE_READ_MODEL_SOURCE_PASSWORD:}
-      source-driver-class-name: ${PEOPLE_READ_MODEL_SOURCE_DRIVER_CLASS_NAME:}
+  school-catalog:
+    base-url: ${PEOPLE_SCHOOL_CATALOG_BASE_URL:http://localhost:8092}
+    internal-token: ${PEOPLE_SCHOOL_CATALOG_INTERNAL_TOKEN:}
+    connect-timeout: ${PEOPLE_SCHOOL_CATALOG_CONNECT_TIMEOUT:2s}
+    read-timeout: ${PEOPLE_SCHOOL_CATALOG_READ_TIMEOUT:5s}
+  student-responsibles:
+    base-url: ${PEOPLE_STUDENT_RESPONSIBLES_BASE_URL:http://localhost:8095}
+    internal-token: ${PEOPLE_STUDENT_RESPONSIBLES_INTERNAL_TOKEN:}
+    connect-timeout: ${PEOPLE_STUDENT_RESPONSIBLES_CONNECT_TIMEOUT:2s}
+    read-timeout: ${PEOPLE_STUDENT_RESPONSIBLES_READ_TIMEOUT:5s}
+  persistence:
+    enabled: ${PEOPLE_PERSISTENCE_ENABLED:true}
+    local-read-routing-enabled: ${PEOPLE_PERSISTENCE_LOCAL_ROUTING_ENABLED:true}
+    fallback-enabled: false
 

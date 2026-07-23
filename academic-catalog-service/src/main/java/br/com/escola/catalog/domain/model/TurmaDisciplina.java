@@ -3,7 +3,7 @@ package br.com.escola.catalog.domain.model;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import br.com.escola.catalog.domain.exception.CatalogDomainException;
+import br.com.escola.catalog.domain.exception.DominioException;
 import br.com.escola.catalog.domain.valueobject.EscolaId;
 
 public record TurmaDisciplina(
@@ -15,14 +15,15 @@ public record TurmaDisciplina(
         LocalDateTime createdAt) {
 
     public TurmaDisciplina {
-        id = CatalogAssertions.notNull(id, "id");
-        escolaId = CatalogAssertions.notNull(escolaId, "escolaId");
-        turmaId = CatalogAssertions.notNull(turmaId, "turmaId");
-        disciplinaId = CatalogAssertions.notNull(disciplinaId, "disciplinaId");
-        createdAt = CatalogAssertions.notNull(createdAt, "createdAt");
+        id = Validacoes.notNull(id, "id");
+        escolaId = Validacoes.notNull(escolaId, "escolaId");
+        turmaId = Validacoes.notNull(turmaId, "turmaId");
+        disciplinaId = Validacoes.notNull(disciplinaId, "disciplinaId");
+        createdAt = Validacoes.notNull(createdAt, "createdAt");
         if (cargaHoraria != null && cargaHoraria <= 0) {
-            throw new CatalogDomainException("cargaHoraria deve ser positiva");
+            throw new DominioException("cargaHoraria deve ser positiva");
         }
     }
 }
+
 

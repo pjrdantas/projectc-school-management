@@ -90,39 +90,13 @@ class PessoaContatoServiceTest {
                 "result", "fallback_adapter_missing").count()).isEqualTo(1.0d);
     }
 
-    private PeopleReadSourcePolicy readRoutingPolicy(boolean localReadEligible, SimpleMeterRegistry meterRegistry) {
-        return new PeopleReadSourcePolicy(
-                new br.com.escola.peopleservice.infra.config.PeopleReadModelProperties(
-                        localReadEligible,
-                        false,
-                        localReadEligible,
-                        false,
+    private DataAccessPolicy readRoutingPolicy(boolean localReadEligible, SimpleMeterRegistry meterRegistry) {
+        return new DataAccessPolicy(
+                new br.com.escola.peopleservice.infra.config.RuntimeProperties(
                         localReadEligible,
                         localReadEligible,
-                        500,
-                        true),
-                meterRegistry,
-                localReadEligible ? greenState() : new PeopleReadModelSyncState());
-    }
-
-    private PeopleReadModelSyncState greenState() {
-        PeopleReadModelSyncState state = new PeopleReadModelSyncState();
-        state.update(new br.com.escola.peopleservice.application.state.PeopleReadModelSyncSummary(
-                true,
-                true,
-                "completed",
-                "local-read-model-backfill-and-reconciliation-completed",
-                500,
-                8,
-                8,
-                25,
-                25,
-                25,
-                0,
-                false,
-                false,
-                java.util.List.of()));
-        return state;
+                        false),
+                meterRegistry);
     }
 
     private ObjectProvider<PessoaContatoPort> provider(PessoaContatoPort port) {
@@ -182,3 +156,4 @@ class PessoaContatoServiceTest {
         }
     }
 }
+

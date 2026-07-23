@@ -61,7 +61,19 @@ public class BearerAuthenticationWebFilter implements WebFilter {
             return false;
         }
         String path = exchange.getRequest().getPath().value();
+        if (path.matches("^/api/(usuarios|perfis|permissoes)(/[^/]+)?$")) {
+            return true;
+        }
         if (HttpMethod.POST.equals(method) && "/api/periodos-letivos".equals(path)) {
+            return true;
+        }
+        if (HttpMethod.POST.equals(method) && "/api/escolas-origem".equals(path)) {
+            return true;
+        }
+        if (HttpMethod.POST.equals(method) && "/api/auth/escola-ativa".equals(path)) {
+            return true;
+        }
+        if (HttpMethod.POST.equals(method) && "/api/transferencias".equals(path)) {
             return true;
         }
         if (HttpMethod.POST.equals(method) && "/api/disciplinas".equals(path)) {
@@ -80,6 +92,8 @@ public class BearerAuthenticationWebFilter implements WebFilter {
             return false;
         }
         return "/api/disciplinas".equals(path)
+                || "/api/auth/tenant/ativa".equals(path)
+                || "/api/auth/escolas".equals(path)
                 || path.matches("^/api/disciplinas/[^/]+$")
                 || "/api/periodos-letivos".equals(path)
                 || path.matches("^/api/periodos-letivos/[^/]+$")
@@ -93,7 +107,10 @@ public class BearerAuthenticationWebFilter implements WebFilter {
                 || "/api/academico/catalogos/niveis-ensino".equals(path)
                 || "/api/academico/catalogos/turnos".equals(path)
                 || "/api/professores".equals(path)
+                || "/api/professores/funcionarios-elegiveis".equals(path)
                 || path.matches("^/api/professores/[^/]+$")
+                || path.matches("^/api/professores/[^/]+/turmas-disciplinas$")
+                || path.matches("^/api/turmas/[^/]+/professores$")
                 || "/api/funcionarios".equals(path)
                 || path.matches("^/api/funcionarios/[^/]+$")
                 || "/api/consulta-cadastral".equals(path)
@@ -106,7 +123,11 @@ public class BearerAuthenticationWebFilter implements WebFilter {
                 || path.matches("^/api/pessoas/[^/]+/enderecos$")
                 || path.matches("^/api/pessoas/[^/]+/contato$")
                 || path.matches("^/api/pessoas/[^/]+/documentos$")
-                || path.matches("^/api/documentos/[^/]+$");
+                || "/api/documentos".equals(path)
+                || path.matches("^/api/documentos/[^/]+$")
+                || path.matches("^/api/documentos-alunos/alunos/[^/]+$")
+                || "/api/matriculas".equals(path)
+                || path.matches("^/api/matriculas/[^/]+$");
     }
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {

@@ -1,0 +1,17 @@
+server:
+  port: 8092
+
+spring:
+  application:
+    name: institutional-tenant-service
+  flyway:
+    enabled: true
+    locations: classpath:db/institutional-tenant/migration
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/institutional_tenant}
+    username: ${SPRING_DATASOURCE_USERNAME:school}
+    password: ${SPRING_DATASOURCE_PASSWORD:school_local}
+
+institutional-tenant:
+  internal-api:
+    token: ${INSTITUTIONAL_TENANT_INTERNAL_TOKEN:}

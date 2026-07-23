@@ -12,5 +12,7 @@ public interface TurmaDisciplinaJpaRepository extends JpaRepository<TurmaDiscipl
 
     Optional<TurmaDisciplinaJpaEntity> findByIdAndEscolaId(UUID id, UUID escolaId);
 
+    boolean existsByDisciplinaIdAndEscolaId(UUID disciplinaId, UUID escolaId);
+
     List<TurmaDisciplinaJpaEntity> findAllByTurmaIdAndEscolaId(UUID turmaId, UUID escolaId);
 }

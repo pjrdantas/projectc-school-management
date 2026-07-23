@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: responsibles-service
+  flyway:
+    enabled: true
+    locations: classpath:db/responsibles/migration
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/responsibles}
+    username: ${SPRING_DATASOURCE_USERNAME:school}
+    password: ${SPRING_DATASOURCE_PASSWORD:school_local}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
+
+server:
+  port: ${SERVER_PORT:8098}
+
+responsibles:
+  internal-api:
+    token: ${RESPONSIBLES_INTERNAL_TOKEN:}
+  people-student:
+    base-url: ${RESPONSIBLES_PEOPLE_STUDENT_BASE_URL:http://localhost:8093}
+    internal-token: ${RESPONSIBLES_PEOPLE_STUDENT_INTERNAL_TOKEN:}
+    connect-timeout: ${RESPONSIBLES_PEOPLE_STUDENT_CONNECT_TIMEOUT:2s}
+    read-timeout: ${RESPONSIBLES_PEOPLE_STUDENT_READ_TIMEOUT:5s}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when_authorized
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:1.0}

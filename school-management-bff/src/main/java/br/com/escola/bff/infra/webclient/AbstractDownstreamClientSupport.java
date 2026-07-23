@@ -28,6 +28,20 @@ abstract class AbstractDownstreamClientSupport {
                         .body(entity.getBody()));
     }
 
+    protected Mono<ResponseEntity<byte[]>> handleBinary(ClientResponse response, String unavailableMessage) {
+        HttpStatusCode status = response.statusCode();
+        if (status.is4xxClientError()) {
+            return Mono.error(new DownstreamRejectedException(status.value()));
+        }
+        if (status.is5xxServerError()) {
+            return Mono.error(new DownstreamUnavailableException(unavailableMessage));
+        }
+        return response.toEntity(byte[].class)
+                .map(entity -> ResponseEntity.status(entity.getStatusCode())
+                        .headers(headers -> copyContentHeaders(entity.getHeaders(), headers))
+                        .body(entity.getBody()));
+    }
+
     protected Throwable mapTransportError(Throwable error, String unavailableMessage) {
         if (error instanceof TimeoutException || error instanceof WebClientRequestException) {
             return new DownstreamUnavailableException(unavailableMessage, error);
@@ -38,6 +52,12 @@ abstract class AbstractDownstreamClientSupport {
     private void copyContentHeaders(HttpHeaders source, HttpHeaders target) {
         if (source.getContentType() != null) {
             target.setContentType(source.getContentType());
+        }
+        if (source.getContentDisposition() != null) {
+            target.setContentDisposition(source.getContentDisposition());
+        }
+        if (source.getContentLength() >= 0) {
+            target.setContentLength(source.getContentLength());
         }
     }
 }

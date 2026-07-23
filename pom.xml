@@ -19,9 +19,16 @@
 
     <modules>
         <module>school-management-bff</module>
+        <module>identity-access-service</module>
+        <module>institutional-tenant-service</module>
+        <module>dashboard-query-service</module>
         <module>academic-catalog-service</module>
         <module>academic-professor-service</module>
         <module>people-service</module>
+        <module>responsibles-service</module>
+        <module>enrollment-document-service</module>
+        <module>pedagogical-service</module>
+        <module>planning-ai-service</module>
     </modules>
 
     <properties>
@@ -83,12 +90,64 @@
                         </execution>
                     </executions>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-service-class-naming</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target name="enforce-service-class-naming">
+                                <path id="forbidden.service.class.naming.files">
+                                    <fileset dir="${project.basedir}">
+                                        <include name="school-management-bff/src/**/*.java"/>
+                                        <include name="identity-access-service/src/**/*.java"/>
+                                        <include name="institutional-tenant-service/src/**/*.java"/>
+                                        <include name="dashboard-query-service/src/**/*.java"/>
+                                        <include name="academic-catalog-service/src/**/*.java"/>
+                                        <include name="academic-professor-service/src/**/*.java"/>
+                                        <include name="people-service/src/**/*.java"/>
+                                        <include name="responsibles-service/src/**/*.java"/>
+                                        <include name="enrollment-document-service/src/**/*.java"/>
+                                        <include name="pedagogical-service/src/**/*.java"/>
+                                        <include name="planning-ai-service/src/**/*.java"/>
+                                        <filename regex=".*(People|Responsibles|PlanningAi|Dashboard|AcademicCatalog|IdentityAccess|InstitutionalTenant|EnrollmentDocument|Pedagogical|Monolith|ProfessorShadow).*\.java$"/>
+                                    </fileset>
+                                </path>
+
+                                <resourcecount property="forbidden.service.class.naming.count"
+                                               refid="forbidden.service.class.naming.files"/>
+                                <pathconvert property="forbidden.service.class.naming.list"
+                                             pathsep="${line.separator}"
+                                             refid="forbidden.service.class.naming.files"/>
+                                <condition property="forbidden.service.class.naming.detected">
+                                    <not>
+                                        <equals arg1="${forbidden.service.class.naming.count}" arg2="0"/>
+                                    </not>
+                                </condition>
+
+                                <fail if="forbidden.service.class.naming.detected"
+                                      message="Forbidden cross-service class naming detected in modular services:${line.separator}${forbidden.service.class.naming.list}"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

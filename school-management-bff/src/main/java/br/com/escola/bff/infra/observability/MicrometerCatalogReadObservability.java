@@ -17,11 +17,6 @@ public class MicrometerCatalogReadObservability implements CatalogReadObservabil
     }
 
     @Override
-    public void recordDirectMonolith(CatalogReadCutoverDecision decision) {
-        routeCounter(decision, "monolith", "direct").increment();
-    }
-
-    @Override
     public void recordCatalogSuccess(CatalogReadCutoverDecision decision) {
         routeCounter(decision, "catalog", "success").increment();
     }
@@ -30,12 +25,6 @@ public class MicrometerCatalogReadObservability implements CatalogReadObservabil
     public void recordCatalogFailure(CatalogReadCutoverDecision decision, Throwable error) {
         routeCounter(decision, "catalog", "failure").increment();
         errorCounter(decision, error).increment();
-    }
-
-    @Override
-    public void recordFallbackToMonolith(CatalogReadCutoverDecision decision, Throwable error) {
-        routeCounter(decision, "monolith", "fallback").increment();
-        fallbackCounter(decision, error).increment();
     }
 
     private Counter routeCounter(CatalogReadCutoverDecision decision, String target, String outcome) {
@@ -57,16 +46,8 @@ public class MicrometerCatalogReadObservability implements CatalogReadObservabil
                 .register(meterRegistry);
     }
 
-    private Counter fallbackCounter(CatalogReadCutoverDecision decision, Throwable error) {
-        return Counter.builder("bff.catalog.read.fallback.total")
-                .description("Fallbacks do cutover read-only para o monolito")
-                .tag("route", routeTag(decision))
-                .tag("reason", decision.reason())
-                .tag("exception", error.getClass().getSimpleName())
-                .register(meterRegistry);
-    }
-
     private String routeTag(CatalogReadCutoverDecision decision) {
         return decision.route().name().toLowerCase();
     }
 }
+

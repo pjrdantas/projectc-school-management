@@ -34,7 +34,8 @@ class TurmaWriteCutoverIntegrationTest {
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
-        registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.catalog-service.base-url", () -> CATALOG.url("/").toString());
         registry.add("clients.catalog-service.internal-token", () -> "internal-token");
         registry.add("features.catalog-write-cutover.enabled", () -> true);
@@ -110,7 +111,7 @@ class TurmaWriteCutoverIntegrationTest {
                 .jsonPath("$.escolaNome").isEqualTo("Escola padrao");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var turnosRequest = CATALOG.takeRequest();
         assertThat(turnosRequest.getPath()).isEqualTo("/internal/v1/turnos");
         var turmaRequest = CATALOG.takeRequest();
@@ -122,7 +123,7 @@ class TurmaWriteCutoverIntegrationTest {
     }
 
     @Test
-    void deveVoltarAoMonolitoQuandoTurnoNaoForResolvidoNoCatalogoNovo() throws Exception {
+    void deveRejeitarQuandoTurnoNaoForResolvidoNoCatalogoOficial() throws Exception {
         MONOLITH.enqueue(json("""
                 {
                   "usuarioId":"00000000-0000-0000-0000-000000000201",
@@ -140,26 +141,10 @@ class TurmaWriteCutoverIntegrationTest {
                   }
                 ]
                 """));
-        MONOLITH.enqueue(json("""
-                {
-                  "id":"00000000-0000-0000-0000-000000000072",
-                  "codigo":"A",
-                  "nome":"Turma A",
-                  "capacidade":30,
-                  "periodoLetivoId":"00000000-0000-0000-0000-000000000081",
-                  "serieId":"00000000-0000-0000-0000-000000000061",
-                  "serieNome":"1 ano",
-                  "turno":"NOITE",
-                  "status":"ATIVA",
-                  "escolaId":"00000000-0000-0000-0000-000000000047",
-                  "escolaNome":"Escola monolito",
-                  "createdAt":"2026-06-23T11:41:00"
-                }
-                """, 201));
 
         client.post().uri("/api/turmas")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
-                .header(TrustedHeaders.CORRELATION_ID, "corr-turma-monolith")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-turma-invalid")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue("""
                         {
@@ -173,17 +158,15 @@ class TurmaWriteCutoverIntegrationTest {
                         }
                         """)
                 .exchange()
-                .expectStatus().isCreated()
+                .expectStatus().isBadRequest()
                 .expectBody()
-                .jsonPath("$.turno").isEqualTo("NOITE")
-                .jsonPath("$.escolaNome").isEqualTo("Escola monolito");
+                .jsonPath("$.code").isEqualTo("INVALID_REQUEST");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var turnosRequest = CATALOG.takeRequest();
         assertThat(turnosRequest.getPath()).isEqualTo("/internal/v1/turnos");
-        var monolithRequest = MONOLITH.takeRequest();
-        assertThat(monolithRequest.getPath()).isEqualTo("/api/turmas");
+        assertThat(MONOLITH.getRequestCount()).isEqualTo(1);
         assertThat(CATALOG.getRequestCount()).isEqualTo(1);
     }
 
@@ -229,7 +212,7 @@ class TurmaWriteCutoverIntegrationTest {
                 .jsonPath("$.code").isEqualTo("CATALOG_UNAVAILABLE");
 
         var contextRequest = MONOLITH.takeRequest();
-        assertThat(contextRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        assertThat(contextRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         var turnosRequest = CATALOG.takeRequest();
         assertThat(turnosRequest.getPath()).isEqualTo("/internal/v1/turnos");
         var turmaRequest = CATALOG.takeRequest();

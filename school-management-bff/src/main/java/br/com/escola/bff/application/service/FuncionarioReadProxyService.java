@@ -5,19 +5,19 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
-import br.com.escola.bff.application.port.out.AuthContextPort;
-import br.com.escola.bff.application.port.out.PeopleFuncionarioReadPort;
+import br.com.escola.bff.application.port.out.InternalAuthContextPort;
+import br.com.escola.bff.application.port.out.FuncionarioCadastroReadPort;
 import br.com.escola.bff.application.usecase.ConsultarFuncionarioUseCase;
 import reactor.core.publisher.Mono;
 
 public class FuncionarioReadProxyService implements ConsultarFuncionarioUseCase {
 
-    private final AuthContextPort authContextPort;
-    private final PeopleFuncionarioReadPort peopleFuncionarioReadPort;
+    private final InternalAuthContextPort authContextPort;
+    private final FuncionarioCadastroReadPort peopleFuncionarioReadPort;
 
     public FuncionarioReadProxyService(
-            AuthContextPort authContextPort,
-            PeopleFuncionarioReadPort peopleFuncionarioReadPort) {
+            InternalAuthContextPort authContextPort,
+            FuncionarioCadastroReadPort peopleFuncionarioReadPort) {
         this.authContextPort = authContextPort;
         this.peopleFuncionarioReadPort = peopleFuncionarioReadPort;
     }
@@ -39,3 +39,4 @@ public class FuncionarioReadProxyService implements ConsultarFuncionarioUseCase 
                 .flatMap(context -> peopleFuncionarioReadPort.buscarFuncionarioPorId(funcionarioId, query, context));
     }
 }
+

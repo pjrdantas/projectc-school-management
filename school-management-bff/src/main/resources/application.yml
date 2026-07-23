@@ -10,10 +10,6 @@ server:
   port: ${SERVER_PORT:8081}
 
 clients:
-  monolith:
-    base-url: ${MONOLITH_BASE_URL:http://localhost:8080}
-    connect-timeout: ${MONOLITH_CONNECT_TIMEOUT:2s}
-    response-timeout: ${MONOLITH_RESPONSE_TIMEOUT:3s}
   catalog-service:
     base-url: ${CATALOG_SERVICE_BASE_URL:http://localhost:8082}
     connect-timeout: ${CATALOG_SERVICE_CONNECT_TIMEOUT:2s}
@@ -24,46 +20,64 @@ clients:
     connect-timeout: ${PEOPLE_SERVICE_CONNECT_TIMEOUT:2s}
     response-timeout: ${PEOPLE_SERVICE_RESPONSE_TIMEOUT:3s}
     internal-token: ${PEOPLE_INTERNAL_API_TOKEN:}
+  responsibles-service:
+    base-url: ${RESPONSIBLES_SERVICE_BASE_URL:http://localhost:8098}
+    connect-timeout: ${RESPONSIBLES_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${RESPONSIBLES_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${RESPONSIBLES_INTERNAL_API_TOKEN:}
+  academic-professor-service:
+    base-url: ${ACADEMIC_PROFESSOR_SERVICE_BASE_URL:http://localhost:8093}
+    connect-timeout: ${ACADEMIC_PROFESSOR_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${ACADEMIC_PROFESSOR_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${ACADEMIC_PROFESSOR_INTERNAL_API_TOKEN:}
+  identity-access-service:
+    base-url: ${IDENTITY_ACCESS_SERVICE_BASE_URL:http://localhost:8091}
+    connect-timeout: ${IDENTITY_ACCESS_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${IDENTITY_ACCESS_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${IDENTITY_ACCESS_INTERNAL_API_TOKEN:}
+  institutional-tenant-service:
+    base-url: ${INSTITUTIONAL_TENANT_SERVICE_BASE_URL:http://localhost:8092}
+    connect-timeout: ${INSTITUTIONAL_TENANT_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${INSTITUTIONAL_TENANT_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${INSTITUTIONAL_TENANT_INTERNAL_API_TOKEN:}
+  dashboard-query-service:
+    base-url: ${DASHBOARD_QUERY_SERVICE_BASE_URL:http://localhost:8097}
+    connect-timeout: ${DASHBOARD_QUERY_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${DASHBOARD_QUERY_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${DASHBOARD_QUERY_INTERNAL_API_TOKEN:}
+  enrollment-document-service:
+    base-url: ${ENROLLMENT_DOCUMENT_SERVICE_BASE_URL:http://localhost:8094}
+    connect-timeout: ${ENROLLMENT_DOCUMENT_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${ENROLLMENT_DOCUMENT_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${ENROLLMENT_DOCUMENT_INTERNAL_API_TOKEN:}
+  pedagogical-service:
+    base-url: ${PEDAGOGICAL_SERVICE_BASE_URL:http://localhost:8095}
+    connect-timeout: ${PEDAGOGICAL_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${PEDAGOGICAL_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${PEDAGOGICAL_INTERNAL_API_TOKEN:}
+  planning-ai-service:
+    base-url: ${PLANNING_AI_SERVICE_BASE_URL:http://localhost:8096}
+    connect-timeout: ${PLANNING_AI_SERVICE_CONNECT_TIMEOUT:2s}
+    response-timeout: ${PLANNING_AI_SERVICE_RESPONSE_TIMEOUT:3s}
+    internal-token: ${PLANNING_AI_INTERNAL_API_TOKEN:}
 
 features:
+  academic-professor-write-proxy-enabled: ${ACADEMIC_PROFESSOR_WRITE_PROXY_ENABLED:true}
   disciplinas-proxy-enabled: ${DISCIPLINAS_PROXY_ENABLED:true}
   catalog-read-proxy-enabled: ${CATALOG_READ_PROXY_ENABLED:${DISCIPLINAS_PROXY_ENABLED:true}}
   catalog-write-proxy-enabled: ${CATALOG_WRITE_PROXY_ENABLED:true}
   people-read-proxy-enabled: ${PEOPLE_READ_PROXY_ENABLED:true}
-  catalog-read-cutover:
-    enabled: ${CATALOG_READ_CUTOVER_ENABLED:false}
-    report-path: ${CATALOG_READ_CUTOVER_REPORT_PATH:}
-    fallback-to-monolith-on-error: ${CATALOG_READ_FALLBACK_TO_MONOLITH_ON_ERROR:true}
-    routes:
-      disciplinas: ${CATALOG_READ_ROUTE_DISCIPLINAS:false}
-      disciplina-by-id: ${CATALOG_READ_ROUTE_DISCIPLINA_BY_ID:false}
-      periodos-letivos: ${CATALOG_READ_ROUTE_PERIODOS_LETIVOS:false}
-      periodo-letivo-by-id: ${CATALOG_READ_ROUTE_PERIODO_LETIVO_BY_ID:false}
-      series: ${CATALOG_READ_ROUTE_SERIES:false}
-      serie-by-id: ${CATALOG_READ_ROUTE_SERIE_BY_ID:false}
-      turnos: ${CATALOG_READ_ROUTE_TURNOS:false}
-      turno-by-id: ${CATALOG_READ_ROUTE_TURNO_BY_ID:false}
-      turmas: ${CATALOG_READ_ROUTE_TURMAS:false}
-      turma-by-id: ${CATALOG_READ_ROUTE_TURMA_BY_ID:false}
-      turma-disciplinas: ${CATALOG_READ_ROUTE_TURMA_DISCIPLINAS:false}
-      catalogos-niveis-ensino: ${CATALOG_READ_ROUTE_CATALOGOS_NIVEIS_ENSINO:false}
-      catalogos-turnos: ${CATALOG_READ_ROUTE_CATALOGOS_TURNOS:false}
-  catalog-write-cutover:
-    enabled: ${CATALOG_WRITE_CUTOVER_ENABLED:false}
-    routes:
-      periodos-letivos: ${CATALOG_WRITE_ROUTE_PERIODOS_LETIVOS:false}
-      disciplinas: ${CATALOG_WRITE_ROUTE_DISCIPLINAS:false}
-      series: ${CATALOG_WRITE_ROUTE_SERIES:false}
-      turmas: ${CATALOG_WRITE_ROUTE_TURMAS:false}
-      turma-disciplinas: ${CATALOG_WRITE_ROUTE_TURMA_DISCIPLINAS:false}
-
-resilience:
-  monolith:
-    failure-rate-threshold: ${MONOLITH_CB_FAILURE_RATE:50}
-    minimum-number-of-calls: ${MONOLITH_CB_MIN_CALLS:5}
-    sliding-window-size: ${MONOLITH_CB_WINDOW_SIZE:10}
-    open-state-duration: ${MONOLITH_CB_OPEN_DURATION:30s}
-
+  responsibles-read-proxy-enabled: ${RESPONSIBLES_READ_PROXY_ENABLED:true}
+  responsibles-write-proxy-enabled: ${RESPONSIBLES_WRITE_PROXY_ENABLED:true}
+  identity-access-read-proxy-enabled: ${IDENTITY_ACCESS_READ_PROXY_ENABLED:true}
+  institutional-tenant-read-proxy-enabled: ${INSTITUTIONAL_TENANT_READ_PROXY_ENABLED:true}
+  dashboard-read-proxy-enabled: ${DASHBOARD_READ_PROXY_ENABLED:true}
+  enrollment-document-read-proxy-enabled: ${ENROLLMENT_DOCUMENT_READ_PROXY_ENABLED:true}
+  enrollment-document-write-proxy-enabled: ${ENROLLMENT_DOCUMENT_WRITE_PROXY_ENABLED:true}
+  pedagogical-read-proxy-enabled: ${PEDAGOGICAL_READ_PROXY_ENABLED:true}
+  pedagogical-write-proxy-enabled: ${PEDAGOGICAL_WRITE_PROXY_ENABLED:true}
+  planning-ai-read-proxy-enabled: ${PLANNING_AI_READ_PROXY_ENABLED:true}
+  planning-ai-write-proxy-enabled: ${PLANNING_AI_WRITE_PROXY_ENABLED:true}
 management:
   endpoints:
     web:

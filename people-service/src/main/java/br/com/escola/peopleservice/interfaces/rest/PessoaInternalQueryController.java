@@ -22,6 +22,7 @@ import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataRespon
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaFuncionarioResumoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaProfessorResumoResponse;
+import br.com.escola.peopleservice.application.dto.PessoaResponsavelVinculadoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResumoResponse;
 import br.com.escola.peopleservice.application.port.in.PessoaQueryUseCase;
 
@@ -160,5 +161,13 @@ public class PessoaInternalQueryController {
                 cpfResponsavel,
                 page,
                 size);
+    }
+
+    @GetMapping("/alunos/{alunoId}/responsaveis")
+    public List<PessoaResponsavelVinculadoResponse> listarResponsaveisPorAluno(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
+            @PathVariable @NonNull UUID alunoId) {
+        return pessoaQueryUseCase.listarResponsaveisPorAluno(authorization, context, alunoId);
     }
 }

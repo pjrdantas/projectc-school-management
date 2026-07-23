@@ -14,12 +14,13 @@ public record Serie(
         LocalDateTime createdAt) {
 
     public Serie {
-        id = CatalogAssertions.notNull(id, "id");
-        escolaId = CatalogAssertions.notNull(escolaId, "escolaId");
-        nome = CatalogAssertions.notBlank(nome, "nome");
-        ordem = CatalogAssertions.positive(ordem, "ordem");
-        nivelEnsinoId = CatalogAssertions.notNull(nivelEnsinoId, "nivelEnsinoId");
-        createdAt = CatalogAssertions.notNull(createdAt, "createdAt");
+        id = Validacoes.notNull(id, "id");
+        escolaId = Validacoes.notNull(escolaId, "escolaId");
+        nome = Validacoes.notBlank(nome, "nome");
+        ordem = Validacoes.positive(ordem, "ordem");
+        nivelEnsinoId = Validacoes.notNull(nivelEnsinoId, "nivelEnsinoId");
+        createdAt = Validacoes.notNull(createdAt, "createdAt");
     }
 }
+
 

@@ -14,12 +14,12 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class ResponsavelPessoaService {
 
     private final ObjectProvider<ResponsavelPessoaPort> responsavelPortProvider;
-    private final PeopleReadSourcePolicy readRoutingPolicy;
+    private final DataAccessPolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
     public ResponsavelPessoaService(
             ObjectProvider<ResponsavelPessoaPort> responsavelPortProvider,
-            PeopleReadSourcePolicy readRoutingPolicy,
+            DataAccessPolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
         this.responsavelPortProvider = responsavelPortProvider;
         this.readRoutingPolicy = readRoutingPolicy;
@@ -57,4 +57,5 @@ public class ResponsavelPessoaService {
                 .increment();
     }
 }
+
 

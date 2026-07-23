@@ -25,7 +25,7 @@ class DisciplinaControllerTest {
                   "createdAt":"2026-06-19T10:00:00"
                 }]
                 """));
-        WebTestClient client = WebTestClient.bindToController(new AcademicCatalogReadController(useCase))
+        WebTestClient client = WebTestClient.bindToController(new CatalogoReadController(useCase))
                 .controllerAdvice(new BffExceptionHandler())
                 .build();
 
@@ -39,3 +39,4 @@ class DisciplinaControllerTest {
                 .jsonPath("$[0].escolaId").isEqualTo("00000000-0000-0000-0000-000000000047");
     }
 }
+

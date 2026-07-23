@@ -38,4 +38,27 @@ public class ProfessorReadController {
             @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
         return consultarProfessorUseCase.buscarProfessorPorId(authorization, correlationId, professorId);
     }
+
+    @GetMapping("/api/professores/{professorId}/turmas-disciplinas")
+    public Mono<ResponseEntity<String>> listarAlocacoesPorProfessor(
+            @PathVariable UUID professorId,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return consultarProfessorUseCase.listarAlocacoesPorProfessor(authorization, correlationId, professorId);
+    }
+
+    @GetMapping("/api/turmas/{turmaId}/professores")
+    public Mono<ResponseEntity<String>> listarProfessoresPorTurma(
+            @PathVariable UUID turmaId,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return consultarProfessorUseCase.listarProfessoresPorTurma(authorization, correlationId, turmaId);
+    }
+
+    @GetMapping("/api/professores/funcionarios-elegiveis")
+    public Mono<ResponseEntity<String>> listarFuncionariosElegiveis(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return consultarProfessorUseCase.listarFuncionariosElegiveis(authorization, correlationId);
+    }
 }

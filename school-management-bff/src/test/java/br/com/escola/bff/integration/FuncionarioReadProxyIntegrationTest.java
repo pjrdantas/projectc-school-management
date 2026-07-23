@@ -24,6 +24,7 @@ import okhttp3.mockwebserver.MockWebServer;
 class FuncionarioReadProxyIntegrationTest {
 
     private static final MockWebServer MONOLITH = startServer();
+    private static final MockWebServer IDENTITY_ACCESS = startServer();
     private static final MockWebServer PEOPLE = startServer();
 
     @Autowired
@@ -32,6 +33,8 @@ class FuncionarioReadProxyIntegrationTest {
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("clients.monolith.base-url", () -> MONOLITH.url("/").toString());
+        registry.add("clients.identity-access-service.base-url", () -> IDENTITY_ACCESS.url("/").toString());
+        registry.add("clients.identity-access-service.internal-token", () -> "identity-access-internal-token");
         registry.add("clients.people-service.base-url", () -> PEOPLE.url("/").toString());
         registry.add("clients.people-service.internal-token", () -> "people-internal-token");
         registry.add("management.health.redis.enabled", () -> false);
@@ -40,12 +43,13 @@ class FuncionarioReadProxyIntegrationTest {
     @AfterAll
     static void stopServers() throws IOException {
         MONOLITH.shutdown();
+        IDENTITY_ACCESS.shutdown();
         PEOPLE.shutdown();
     }
 
     @Test
     void deveConsumirPeopleServiceNaListagemOficialDeFuncionarios() throws InterruptedException {
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -77,8 +81,8 @@ class FuncionarioReadProxyIntegrationTest {
                 .expectBody()
                 .jsonPath("$[0].nomeCompleto").isEqualTo("Carlos Lima");
 
-        var authRequest = MONOLITH.takeRequest();
-        assertThat(authRequest.getPath()).isEqualTo("/api/auth/contexto-atual");
+        var authRequest = IDENTITY_ACCESS.takeRequest();
+        assertThat(authRequest.getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
         assertThat(authRequest.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer opaque-token");
         assertThat(authRequest.getHeader(TrustedHeaders.CORRELATION_ID)).isEqualTo("corr-func-1");
 
@@ -95,7 +99,7 @@ class FuncionarioReadProxyIntegrationTest {
     void deveConsumirPeopleServiceNaBuscaOficialDeFuncionarioPorId() throws InterruptedException {
         String funcionarioId = "00000000-0000-0000-0000-000000000012";
 
-        MONOLITH.enqueue(new MockResponse()
+        IDENTITY_ACCESS.enqueue(new MockResponse()
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .setBody("""
                         {
@@ -127,7 +131,7 @@ class FuncionarioReadProxyIntegrationTest {
                 .jsonPath("$.funcionarioId").isEqualTo(funcionarioId)
                 .jsonPath("$.cargoDescricao").isEqualTo("Secretaria");
 
-        MONOLITH.takeRequest();
+        IDENTITY_ACCESS.takeRequest();
         var peopleRequest = PEOPLE.takeRequest();
         assertThat(peopleRequest.getPath()).isEqualTo("/internal/v1/funcionarios/" + funcionarioId);
     }

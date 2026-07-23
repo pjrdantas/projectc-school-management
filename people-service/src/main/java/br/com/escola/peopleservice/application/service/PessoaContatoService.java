@@ -14,12 +14,12 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class PessoaContatoService {
 
     private final ObjectProvider<PessoaContatoPort> contatoPortProvider;
-    private final PeopleReadSourcePolicy readRoutingPolicy;
+    private final DataAccessPolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
     public PessoaContatoService(
             ObjectProvider<PessoaContatoPort> contatoPortProvider,
-            PeopleReadSourcePolicy readRoutingPolicy,
+            DataAccessPolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
         this.contatoPortProvider = contatoPortProvider;
         this.readRoutingPolicy = readRoutingPolicy;
@@ -57,3 +57,4 @@ public class PessoaContatoService {
                 .increment();
     }
 }
+
