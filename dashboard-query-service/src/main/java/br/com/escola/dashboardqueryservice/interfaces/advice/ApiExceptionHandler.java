@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import br.com.escola.dashboardqueryservice.application.exception.PainelQueryServiceResourceNotFoundException;
+import br.com.escola.dashboardqueryservice.application.exception.PainelQueryServiceConflictException;
 import br.com.escola.dashboardqueryservice.application.exception.InternalApiUnauthorizedException;
 import br.com.escola.dashboardqueryservice.application.exception.InvalidRequestContextException;
 import br.com.escola.dashboardqueryservice.interfaces.response.ApiErrorResponse;
@@ -40,6 +41,13 @@ public class ApiExceptionHandler {
             PainelQueryServiceResourceNotFoundException exception,
             HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(PainelQueryServiceConflictException.class)
+    public ResponseEntity<ApiErrorResponse> handleConflict(
+            PainelQueryServiceConflictException exception,
+            HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, "BUSINESS_CONFLICT", exception.getMessage(), request);
     }
 
     private ResponseEntity<ApiErrorResponse> build(

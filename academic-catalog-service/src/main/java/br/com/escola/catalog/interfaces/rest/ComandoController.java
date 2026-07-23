@@ -19,11 +19,13 @@ import br.com.escola.catalog.application.command.CreateDisciplinaCommand;
 import br.com.escola.catalog.application.command.CreatePeriodoLetivoCommand;
 import br.com.escola.catalog.application.command.CreateSerieCommand;
 import br.com.escola.catalog.application.command.CreateTurmaCommand;
+import br.com.escola.catalog.application.command.CreateTurnoCommand;
 import br.com.escola.catalog.application.command.LinkDisciplinaCommand;
 import br.com.escola.catalog.application.command.UpdateDisciplinaCommand;
 import br.com.escola.catalog.application.command.UpdatePeriodoLetivoCommand;
 import br.com.escola.catalog.application.command.UpdateSerieCommand;
 import br.com.escola.catalog.application.command.UpdateTurmaCommand;
+import br.com.escola.catalog.application.command.UpdateTurnoCommand;
 import br.com.escola.catalog.application.command.UpdateTurmaDisciplinaCommand;
 import br.com.escola.catalog.application.context.InternalHeaders;
 import br.com.escola.catalog.application.context.InternalRequestContext;
@@ -32,11 +34,13 @@ import br.com.escola.catalog.interfaces.request.CreateDisciplinaRequest;
 import br.com.escola.catalog.interfaces.request.CreatePeriodoLetivoRequest;
 import br.com.escola.catalog.interfaces.request.CreateSerieRequest;
 import br.com.escola.catalog.interfaces.request.CreateTurmaRequest;
+import br.com.escola.catalog.interfaces.request.CreateTurnoRequest;
 import br.com.escola.catalog.interfaces.request.LinkDisciplinaRequest;
 import br.com.escola.catalog.interfaces.request.UpdateDisciplinaRequest;
 import br.com.escola.catalog.interfaces.request.UpdatePeriodoLetivoRequest;
 import br.com.escola.catalog.interfaces.request.UpdateSerieRequest;
 import br.com.escola.catalog.interfaces.request.UpdateTurmaRequest;
+import br.com.escola.catalog.interfaces.request.UpdateTurnoRequest;
 import br.com.escola.catalog.interfaces.request.UpdateTurmaDisciplinaRequest;
 import jakarta.validation.Valid;
 
@@ -82,6 +86,17 @@ public class ComandoController {
                 new CreateDisciplinaCommand(request.nome(), request.cargaHoraria(), request.ativo()),
                 idempotencyKey,
                 context));
+    }
+
+    @PostMapping("/turnos")
+    public ResponseEntity<?> criarTurno(@Valid @RequestBody CreateTurnoRequest request, @RequestHeader(InternalHeaders.IDEMPOTENCY_KEY) String key, @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
+        return created(commandUseCase.criarTurno(new CreateTurnoCommand(request.codigo(), request.descricao()), key, context));
+    }
+
+    @PutMapping("/turnos/{turnoId}")
+    public ResponseEntity<?> atualizarTurno(@PathVariable UUID turnoId, @Valid @RequestBody UpdateTurnoRequest request, @RequestHeader(InternalHeaders.IDEMPOTENCY_KEY) String key, @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context) {
+        var result = commandUseCase.atualizarTurno(turnoId, new UpdateTurnoCommand(request.codigo(), request.descricao()), key, context);
+        return ResponseEntity.ok().header(InternalHeaders.IDEMPOTENCY_REPLAYED, Boolean.toString(result.replayed())).body(result.response());
     }
 
     @PutMapping("/periodos-letivos/{periodoId}")

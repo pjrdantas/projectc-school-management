@@ -1,6 +1,8 @@
 package br.com.escola.dashboardqueryservice.interfaces.rest;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -14,6 +16,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.MvcResult;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest(properties = {
         "dashboard-query.internal-api.token=dashboard-token",
@@ -159,6 +164,206 @@ class PainelProjecaoLocalIntegrationTest {
                 .andExpect(jsonPath("$.error").value("INVALID_REQUEST"));
     }
 
+    @Test
+    void deveAdministrarPublicoEPainelComIsolamentoEInvariantes() throws Exception {
+        UUID escolaId = UUID.randomUUID();
+        MvcResult publicoResultado = mockMvc.perform(interno(post("/internal/v1/dashboard/configuracoes/publicos"), escolaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"codigo\":\"diretor\",\"descricao\":\"Diretoria\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.codigo").value("DIRETOR"))
+                .andReturn();
+        UUID publicoId = UUID.fromString(new ObjectMapper().readTree(publicoResultado.getResponse().getContentAsString())
+                .get("id").asText());
+        mockMvc.perform(interno(put("/internal/v1/dashboard/configuracoes/publicos/{id}", publicoId), escolaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"codigo\":\"diretor\",\"descricao\":\"Diretoria atualizada\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.descricao").value("Diretoria atualizada"));
+
+        MvcResult painelResultado = mockMvc.perform(interno(post("/internal/v1/dashboard/configuracoes/dashboards"), escolaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"publicoId":"%s","codigo":"geral","nome":"Visao geral","ativo":true}
+                                """.formatted(publicoId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.codigo").value("GERAL"))
+                .andReturn();
+        UUID painelId = UUID.fromString(new ObjectMapper().readTree(painelResultado.getResponse().getContentAsString())
+                .get("id").asText());
+        mockMvc.perform(interno(put("/internal/v1/dashboard/configuracoes/dashboards/{id}", painelId), escolaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"publicoId":"%s","codigo":"geral","nome":"Visao atualizada","ativo":false}
+                                """.formatted(publicoId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Visao atualizada"))
+                .andExpect(jsonPath("$.ativo").value(false));
+
+        MvcResult widgetResultado = mockMvc.perform(interno(post("/internal/v1/dashboard/configuracoes/widgets"), escolaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"painelId":"%s","codigo":"matriculas","titulo":"Matriculas",
+                                 "tipoWidget":"indicador","ordem":0,"ativo":true}
+                                """.formatted(painelId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.codigo").value("MATRICULAS"))
+                .andReturn();
+        UUID widgetId = UUID.fromString(new ObjectMapper().readTree(widgetResultado.getResponse().getContentAsString())
+                .get("id").asText());
+        mockMvc.perform(interno(get("/internal/v1/dashboard/configuracoes/dashboards/{id}/widgets", painelId), escolaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(widgetId.toString()));
+        mockMvc.perform(interno(post("/internal/v1/dashboard/configuracoes/widgets"), escolaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"painelId":"%s","codigo":"outro","titulo":"Outro",
+                                 "tipoWidget":"INDICADOR","ordem":0}
+                                """.formatted(painelId)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("BUSINESS_CONFLICT"));
+        mockMvc.perform(interno(put("/internal/v1/dashboard/configuracoes/widgets/{id}", widgetId), escolaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"painelId":"%s","codigo":"matriculas","titulo":"Matriculas atualizadas",
+                                 "tipoWidget":"INDICADOR","ordem":1,"ativo":false}
+                                """.formatted(painelId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ordem").value(1))
+                .andExpect(jsonPath("$.ativo").value(false));
+
+        UUID usuarioId = UUID.randomUUID();
+        mockMvc.perform(interno(put("/internal/v1/dashboard/usuarios/{usuarioId}/widgets/{widgetId}/configuracao", usuarioId, widgetId),
+                        escolaId, usuarioId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"visivel\":false,\"ordem\":2,\"configuracaoJson\":\"{\\\"colunas\\\":2}\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.usuarioId").value(usuarioId.toString()))
+                .andExpect(jsonPath("$.configuracaoJson").value("{\"colunas\":2}"));
+        mockMvc.perform(interno(get("/internal/v1/dashboard/usuarios/{usuarioId}/configuracoes", usuarioId)
+                        .param("painelId", painelId.toString()), escolaId, usuarioId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].widgetId").value(widgetId.toString()));
+        mockMvc.perform(interno(put("/internal/v1/dashboard/usuarios/{usuarioId}/widgets/{widgetId}/configuracao",
+                        UUID.randomUUID(), widgetId), escolaId, usuarioId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("INVALID_REQUEST"));
+
+        mockMvc.perform(interno(delete("/internal/v1/dashboard/configuracoes/publicos/{id}", publicoId), escolaId))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("BUSINESS_CONFLICT"));
+        mockMvc.perform(interno(delete("/internal/v1/dashboard/configuracoes/dashboards/{id}", painelId), escolaId))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("BUSINESS_CONFLICT"));
+        mockMvc.perform(interno(delete("/internal/v1/dashboard/configuracoes/widgets/{id}", widgetId), escolaId))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("BUSINESS_CONFLICT"));
+        mockMvc.perform(interno(delete("/internal/v1/dashboard/usuarios/{usuarioId}/widgets/{widgetId}/configuracao", usuarioId, widgetId),
+                        escolaId, usuarioId))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(interno(delete("/internal/v1/dashboard/configuracoes/widgets/{id}", widgetId), escolaId))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(interno(delete("/internal/v1/dashboard/configuracoes/dashboards/{id}", painelId), escolaId))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(interno(delete("/internal/v1/dashboard/configuracoes/publicos/{id}", publicoId), escolaId))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void deveManterSnapshotLocalIdempotenteEHistoricoDerivado() throws Exception {
+        UUID escolaId = UUID.randomUUID();
+        MvcResult publicoResultado = mockMvc.perform(interno(post("/internal/v1/dashboard/configuracoes/publicos"), escolaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"codigo\":\"academico\",\"descricao\":\"Academico\"}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        UUID publicoId = UUID.fromString(new ObjectMapper().readTree(publicoResultado.getResponse().getContentAsString())
+                .get("id").asText());
+
+        salvarSnapshot(escolaId, publicoId, "2026-01-01", 10);
+        salvarSnapshot(escolaId, publicoId, "2026-02-01", 15);
+        salvarSnapshot(escolaId, publicoId, "2026-02-01", 16);
+
+        mockMvc.perform(interno(get("/internal/v1/dashboard/snapshots/locais")
+                        .param("publicoId", publicoId.toString()).param("referenciaData", "2026-02-01"), escolaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].valorNumeric").value(16));
+        mockMvc.perform(interno(get("/internal/v1/dashboard/snapshots/locais/historico/publicos/ACADEMICO"), escolaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].valorAtual").value(16))
+                .andExpect(jsonPath("$[0].valorAnterior").value(10))
+                .andExpect(jsonPath("$[0].variacaoPercentual").value(60))
+                .andExpect(jsonPath("$[0].pontos.length()").value(2));
+    }
+
+    @Test
+    void devePublicarIndicadoresDaOrigemPermitidaEAlimentarProjecoesLocais() throws Exception {
+        UUID escolaId = UUID.randomUUID();
+        MvcResult publicoResultado = mockMvc.perform(interno(post("/internal/v1/dashboard/configuracoes/publicos"), escolaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"codigo\":\"academico\",\"descricao\":\"Academico\"}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        UUID publicoId = UUID.fromString(new ObjectMapper().readTree(publicoResultado.getResponse().getContentAsString())
+                .get("id").asText());
+
+        mockMvc.perform(interno(put("/internal/v1/dashboard/indicadores/publicacoes"), escolaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"origem":"MATRICULA_DOCUMENTO","publicoId":"%s","referenciaData":"2026-03-01",
+                                 "escolaNome":"Escola Local","indicadores":[{"codigoIndicador":"total_matriculas",
+                                 "descricao":"Total de matriculas","valorNumeric":20}]}
+                                """.formatted(publicoId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].codigoIndicador").value("TOTAL_MATRICULAS"))
+                .andExpect(jsonPath("$[0].valorNumeric").value(20));
+
+        mockMvc.perform(leitura(get("/internal/v1/dashboard/snapshots/publicos/ACADEMICO")
+                        .param("referenciaData", "2026-03-01"), escolaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].valorNumeric").value(20));
+        mockMvc.perform(leitura(get("/internal/v1/dashboard/snapshots/historico/publicos/ACADEMICO"), escolaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].valorAtual").value(20));
+        mockMvc.perform(interno(put("/internal/v1/dashboard/indicadores/publicacoes"), escolaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"origem":"PESSOAS","publicoId":"%s","referenciaData":"2026-03-01",
+                                 "indicadores":[{"codigoIndicador":"total_matriculas","descricao":"Invalido","valorNumeric":1}]}
+                                """.formatted(publicoId)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("INVALID_REQUEST"));
+    }
+
+    @Test
+    void deveServirCompatibilidadeDasGeracoesComSnapshotsLocaisPublicados() throws Exception {
+        UUID escolaId = UUID.randomUUID();
+        UUID professorId = UUID.randomUUID();
+        UUID publicoAcademicoId = criarPublico(escolaId, "academico");
+        UUID publicoProfessorId = criarPublico(escolaId, "professor");
+        String prefixoProfessor = "PROFESSOR_" + professorId.toString().replace("-", "").toUpperCase() + "_";
+
+        salvarSnapshot(escolaId, publicoAcademicoId, "2026-07-23", 12);
+        mockMvc.perform(interno(put("/internal/v1/dashboard/snapshots/locais"), escolaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"publicoId":"%s","codigoIndicador":"%sAULAS_REALIZADAS","descricao":"Aulas",
+                                 "valorNumeric":7,"escolaNome":"Escola Local","referenciaData":"2026-07-23"}
+                                """.formatted(publicoProfessorId, prefixoProfessor)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(interno(post("/internal/v1/dashboard/snapshots/geracoes/academico")
+                        .param("referenciaData", "2026-07-23"), escolaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].codigoIndicador").value("TOTAL_MATRICULAS"));
+        mockMvc.perform(interno(post("/internal/v1/dashboard/snapshots/geracoes/professores/{professorId}", professorId)
+                        .param("referenciaData", "2026-07-23"), escolaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].codigoIndicador").value(prefixoProfessor + "AULAS_REALIZADAS"));
+    }
+
     private void atualizar(UUID escolaId, String tipo, String payload, String metadados) throws Exception {
         mockMvc.perform(escrita(escolaId).content("""
                 {"tipo":"%s"%s,"payload":%s}
@@ -181,6 +386,38 @@ class PainelProjecaoLocalIntegrationTest {
                 .header("X-Internal-Token", "dashboard-token")
                 .header("X-Correlation-Id", "corr-" + UUID.randomUUID())
                 .header("X-Usuario-Id", UUID.randomUUID())
+                .header("X-Escola-Id", escolaId);
+    }
+
+    private void salvarSnapshot(UUID escolaId, UUID publicoId, String referenciaData, int valor) throws Exception {
+        mockMvc.perform(interno(put("/internal/v1/dashboard/snapshots/locais"), escolaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"publicoId":"%s","codigoIndicador":"total_matriculas","descricao":"Total",
+                                 "valorNumeric":%s,"escolaNome":"Escola Local","referenciaData":"%s"}
+                                """.formatted(publicoId, valor, referenciaData)))
+                .andExpect(status().isOk());
+    }
+
+    private UUID criarPublico(UUID escolaId, String codigo) throws Exception {
+        MvcResult resultado = mockMvc.perform(interno(post("/internal/v1/dashboard/configuracoes/publicos"), escolaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"codigo\":\"" + codigo + "\",\"descricao\":\"" + codigo + "\"}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        return UUID.fromString(new ObjectMapper().readTree(resultado.getResponse().getContentAsString()).get("id").asText());
+    }
+
+    private MockHttpServletRequestBuilder interno(MockHttpServletRequestBuilder request, UUID escolaId) {
+        return interno(request, escolaId, UUID.randomUUID());
+    }
+
+    private MockHttpServletRequestBuilder interno(
+            MockHttpServletRequestBuilder request, UUID escolaId, UUID usuarioId) {
+        return request
+                .header("X-Internal-Token", "dashboard-token")
+                .header("X-Correlation-Id", "corr-" + UUID.randomUUID())
+                .header("X-Usuario-Id", usuarioId)
                 .header("X-Escola-Id", escolaId);
     }
 }

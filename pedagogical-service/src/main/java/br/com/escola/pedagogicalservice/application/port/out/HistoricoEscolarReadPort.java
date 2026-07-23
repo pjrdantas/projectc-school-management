@@ -7,6 +7,10 @@ import br.com.escola.pedagogicalservice.application.dto.HistoricoEscolarTelaResp
 
 public interface HistoricoEscolarReadPort {
 
+    String listar(String authorization, InternalRequestContext context, int page, int size);
+
+    String listarPorAluno(String authorization, InternalRequestContext context, UUID alunoId);
+
     HistoricoEscolarTelaResponse carregarNovo(
             String authorization,
             InternalRequestContext context,

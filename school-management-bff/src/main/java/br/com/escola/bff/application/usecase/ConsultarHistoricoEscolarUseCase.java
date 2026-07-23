@@ -8,6 +8,17 @@ import reactor.core.publisher.Mono;
 
 public interface ConsultarHistoricoEscolarUseCase {
 
+    Mono<ResponseEntity<String>> listar(
+            String authorization,
+            String correlationId,
+            Integer page,
+            Integer size);
+
+    Mono<ResponseEntity<String>> listarPorAluno(
+            String authorization,
+            String correlationId,
+            UUID alunoId);
+
     Mono<ResponseEntity<String>> carregarNovo(
             String authorization,
             String correlationId,

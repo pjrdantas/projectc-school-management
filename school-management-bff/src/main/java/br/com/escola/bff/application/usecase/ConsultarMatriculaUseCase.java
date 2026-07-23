@@ -8,6 +8,8 @@ import reactor.core.publisher.Mono;
 
 public interface ConsultarMatriculaUseCase {
 
+    Mono<ResponseEntity<String>> listarStatus(String authorization, String correlationId);
+
     Mono<ResponseEntity<String>> listarMatriculas(
             String authorization,
             String correlationId,

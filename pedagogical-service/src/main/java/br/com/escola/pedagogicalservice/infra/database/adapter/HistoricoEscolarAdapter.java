@@ -24,6 +24,10 @@ public class HistoricoEscolarAdapter implements HistoricoEscolarReadPort, Histor
         return persistenciaLocalAdapter.carregarNovo(authorization, context, alunoId, matriculaId, modo);
     }
 
+    @Override public String listar(String authorization, InternalRequestContext context, int page, int size) { return persistenciaLocalAdapter.listarHistoricosEscolares(context, page, size); }
+
+    @Override public String listarPorAluno(String authorization, InternalRequestContext context, UUID alunoId) { return persistenciaLocalAdapter.listarHistoricosEscolaresPorAluno(context, alunoId); }
+
     @Override
     public HistoricoEscolarTelaResponse carregarParaEdicao(String authorization, InternalRequestContext context, UUID historicoEscolarId) {
         return persistenciaLocalAdapter.carregarHistoricoParaEdicao(authorization, context, historicoEscolarId);
@@ -38,4 +42,6 @@ public class HistoricoEscolarAdapter implements HistoricoEscolarReadPort, Histor
     public ResponseEntity<String> atualizar(String authorization, InternalRequestContext context, UUID historicoEscolarId, String requestBody) {
         return persistenciaLocalAdapter.atualizarHistoricoEscolar(authorization, context, historicoEscolarId, requestBody);
     }
+
+    @Override public void excluir(InternalRequestContext context, UUID historicoEscolarId) { persistenciaLocalAdapter.excluirHistoricoEscolar(context, historicoEscolarId); }
 }

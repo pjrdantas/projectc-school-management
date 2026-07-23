@@ -118,6 +118,28 @@ class HistoricoEscolarWriteProxyIntegrationTest {
         assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-history-write-2");
     }
 
+    @Test
+    void deveExcluirHistoricoNoPedagogicalServiceSemFallback() throws InterruptedException {
+        UUID historicoId = UUID.randomUUID();
+        MONOLITH.enqueue(contextoAutenticado());
+        PEDAGOGICAL.enqueue(new MockResponse().setResponseCode(204));
+
+        client.delete().uri("/api/historicos-escolares/{id}", historicoId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-history-delete")
+                .exchange().expectStatus().isNoContent();
+
+        MONOLITH.takeRequest();
+        var request = PEDAGOGICAL.takeRequest();
+        assertThat(request.getMethod()).isEqualTo("DELETE");
+        assertThat(request.getPath()).isEqualTo("/internal/v1/historicos-escolares/" + historicoId);
+    }
+
+    private static MockResponse contextoAutenticado() {
+        return new MockResponse().setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("{\"usuarioId\":\"00000000-0000-0000-0000-000000000101\",\"escolaId\":\"00000000-0000-0000-0000-000000000047\",\"escolaNome\":\"Escola padrao\"}");
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {

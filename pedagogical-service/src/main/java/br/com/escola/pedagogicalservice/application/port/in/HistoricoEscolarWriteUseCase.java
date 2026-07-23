@@ -18,4 +18,6 @@ public interface HistoricoEscolarWriteUseCase {
             InternalRequestContext context,
             UUID historicoEscolarId,
             String requestBody);
+
+    void excluir(InternalRequestContext context, UUID historicoEscolarId);
 }

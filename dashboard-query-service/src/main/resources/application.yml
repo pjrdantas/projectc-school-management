@@ -18,3 +18,12 @@ server:
 dashboard-query:
   internal-api:
     token: ${DASHBOARD_QUERY_INTERNAL_TOKEN:}
+  persistence:
+    backfill:
+      enabled: ${DASHBOARD_QUERY_BACKFILL_ENABLED:false}
+      source-url: ${DASHBOARD_QUERY_BACKFILL_SOURCE_URL:}
+      source-username: ${DASHBOARD_QUERY_BACKFILL_SOURCE_USERNAME:}
+      source-password: ${DASHBOARD_QUERY_BACKFILL_SOURCE_PASSWORD:}
+      escola-id: ${DASHBOARD_QUERY_BACKFILL_ESCOLA_ID:}
+      batch-size: ${DASHBOARD_QUERY_BACKFILL_BATCH_SIZE:500}
+      fail-on-mismatch: ${DASHBOARD_QUERY_BACKFILL_FAIL_ON_MISMATCH:true}

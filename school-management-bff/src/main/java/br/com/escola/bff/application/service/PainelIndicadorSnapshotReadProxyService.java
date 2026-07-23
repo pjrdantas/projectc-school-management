@@ -1,6 +1,7 @@
 package br.com.escola.bff.application.service;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 
@@ -32,5 +33,14 @@ public class PainelIndicadorSnapshotReadProxyService implements ListarPainelIndi
         return authContextPort.resolve(query)
                 .flatMap(context -> dashboardIndicadorSnapshotReadPort
                         .listarPorPublicoCodigo(publicoCodigo, referenciaData, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> listarPorPublicoId(
+            String authorization, String correlationId, UUID publicoId, LocalDate referenciaData) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> dashboardIndicadorSnapshotReadPort
+                        .listarPorPublicoId(publicoId, referenciaData, query, context));
     }
 }

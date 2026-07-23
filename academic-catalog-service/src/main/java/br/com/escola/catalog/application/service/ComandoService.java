@@ -19,11 +19,13 @@ import br.com.escola.catalog.application.command.CreateDisciplinaCommand;
 import br.com.escola.catalog.application.command.CreatePeriodoLetivoCommand;
 import br.com.escola.catalog.application.command.CreateSerieCommand;
 import br.com.escola.catalog.application.command.CreateTurmaCommand;
+import br.com.escola.catalog.application.command.CreateTurnoCommand;
 import br.com.escola.catalog.application.command.LinkDisciplinaCommand;
 import br.com.escola.catalog.application.command.UpdateDisciplinaCommand;
 import br.com.escola.catalog.application.command.UpdatePeriodoLetivoCommand;
 import br.com.escola.catalog.application.command.UpdateSerieCommand;
 import br.com.escola.catalog.application.command.UpdateTurmaCommand;
+import br.com.escola.catalog.application.command.UpdateTurnoCommand;
 import br.com.escola.catalog.application.command.UpdateTurmaDisciplinaCommand;
 import br.com.escola.catalog.application.context.InternalRequestContext;
 import br.com.escola.catalog.application.dto.DisciplinaResponse;
@@ -31,6 +33,7 @@ import br.com.escola.catalog.application.dto.PeriodoLetivoResponse;
 import br.com.escola.catalog.application.dto.SerieResponse;
 import br.com.escola.catalog.application.dto.TurmaDisciplinaResponse;
 import br.com.escola.catalog.application.dto.TurmaResponse;
+import br.com.escola.catalog.application.dto.TurnoResponse;
 import br.com.escola.catalog.application.event.IntegrationEventEnvelope;
 import br.com.escola.catalog.application.event.OutboxEvent;
 import br.com.escola.catalog.application.exception.RecursoNaoEncontradoException;
@@ -91,6 +94,33 @@ public class ComandoService implements ComandoUseCase {
         this.idempotencyPort = idempotencyPort;
         this.outboxPort = outboxPort;
         this.cachePort = cachePort;
+    }
+
+    @Override
+    @Transactional
+    public CommandResult<TurnoResponse> criarTurno(CreateTurnoCommand command, String idempotencyKey, InternalRequestContext context) {
+        String fingerprint = CommandFingerprint.sha256("CREATE_TURNO", command.codigo(), command.descricao());
+        return execute(idempotencyKey, fingerprint, "TURNO", context,
+                id -> turnoRepository.buscarTurnoPorId(id).map(this::toResponse).orElseThrow(() -> notFound("Turno", id)),
+                () -> {
+                    if (turnoRepository.buscarTurnoPorCodigo(command.codigo()).isPresent()) throw new ConflitoNegocioException("Codigo de turno ja existe");
+                    Turno turno = turnoRepository.salvar(new Turno(UUID.randomUUID(), command.codigo(), command.descricao()));
+                    return created(turno.id(), toResponse(turno), "TURNO", "shift-created", context, payload("turnoId", turno.id()));
+                });
+    }
+
+    @Override
+    @Transactional
+    public CommandResult<TurnoResponse> atualizarTurno(UUID turnoId, UpdateTurnoCommand command, String idempotencyKey, InternalRequestContext context) {
+        String fingerprint = CommandFingerprint.sha256("UPDATE_TURNO", turnoId, command.codigo(), command.descricao());
+        return execute(idempotencyKey, fingerprint, "TURNO", context,
+                id -> turnoRepository.buscarTurnoPorId(id).map(this::toResponse).orElseThrow(() -> notFound("Turno", id)),
+                () -> {
+                    Turno atual = turno(turnoId);
+                    turnoRepository.buscarTurnoPorCodigo(command.codigo()).filter(outro -> !outro.id().equals(turnoId)).ifPresent(outro -> { throw new ConflitoNegocioException("Codigo de turno ja existe"); });
+                    Turno atualizado = turnoRepository.salvar(new Turno(atual.id(), command.codigo(), command.descricao()));
+                    return created(atualizado.id(), toResponse(atualizado), "TURNO", "shift-updated", context, payload("turnoId", atualizado.id()));
+                });
     }
 
     @Override
@@ -561,6 +591,8 @@ public class ComandoService implements ComandoUseCase {
                 periodo.id(), periodo.nome(), periodo.ano(), periodo.dataInicio(), periodo.dataFim(),
                 periodo.ativo(), periodo.escolaId().value(), periodo.createdAt());
     }
+
+    private TurnoResponse toResponse(Turno turno) { return new TurnoResponse(turno.id(), turno.codigo(), turno.descricao()); }
 
     private SerieResponse toResponse(Serie serie, NivelEnsino nivel) {
         return new SerieResponse(

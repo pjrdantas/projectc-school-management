@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.escola.bff.application.context.TrustedHeaders;
 import br.com.escola.bff.application.usecase.AtualizarHistoricoEscolarUseCase;
 import br.com.escola.bff.application.usecase.CriarHistoricoEscolarUseCase;
+import br.com.escola.bff.application.usecase.ExcluirHistoricoEscolarUseCase;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -25,12 +27,15 @@ public class HistoricoEscolarWriteController {
 
     private final CriarHistoricoEscolarUseCase criarHistoricoEscolarUseCase;
     private final AtualizarHistoricoEscolarUseCase atualizarHistoricoEscolarUseCase;
+    private final ExcluirHistoricoEscolarUseCase excluirHistoricoEscolarUseCase;
 
     public HistoricoEscolarWriteController(
             CriarHistoricoEscolarUseCase criarHistoricoEscolarUseCase,
-            AtualizarHistoricoEscolarUseCase atualizarHistoricoEscolarUseCase) {
+            AtualizarHistoricoEscolarUseCase atualizarHistoricoEscolarUseCase,
+            ExcluirHistoricoEscolarUseCase excluirHistoricoEscolarUseCase) {
         this.criarHistoricoEscolarUseCase = criarHistoricoEscolarUseCase;
         this.atualizarHistoricoEscolarUseCase = atualizarHistoricoEscolarUseCase;
+        this.excluirHistoricoEscolarUseCase = excluirHistoricoEscolarUseCase;
     }
 
     @PostMapping("/api/historicos-escolares")
@@ -49,5 +54,14 @@ public class HistoricoEscolarWriteController {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
         return atualizarHistoricoEscolarUseCase.executar(authorization, correlationId, id, requestBody);
+    }
+
+    @DeleteMapping("/api/historicos-escolares/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<ResponseEntity<String>> excluir(
+            @PathVariable UUID id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return excluirHistoricoEscolarUseCase.executar(authorization, correlationId, id);
     }
 }

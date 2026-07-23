@@ -3,6 +3,7 @@ package br.com.escola.bff.application.service;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpMethod;
 
 import br.com.escola.bff.application.dto.CatalogReadQuery;
 import br.com.escola.bff.application.port.out.AlunoReadPort;
@@ -41,5 +42,13 @@ public class AlunoReadProxyService implements ConsultarAlunoUseCase {
         CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
         return authContextPort.resolve(query)
                 .flatMap(context -> peopleAlunoReadPort.buscarFicha(alunoId, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> encaminharEscrita(
+            HttpMethod method, UUID alunoId, String body, String authorization, String correlationId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> peopleAlunoReadPort.encaminharEscrita(method, alunoId, body, query, context));
     }
 }

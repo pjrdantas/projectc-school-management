@@ -9,9 +9,10 @@ import br.com.escola.bff.application.port.out.AuthContextPort;
 import br.com.escola.bff.application.port.out.HistoricoEscolarWritePort;
 import br.com.escola.bff.application.usecase.AtualizarHistoricoEscolarUseCase;
 import br.com.escola.bff.application.usecase.CriarHistoricoEscolarUseCase;
+import br.com.escola.bff.application.usecase.ExcluirHistoricoEscolarUseCase;
 import reactor.core.publisher.Mono;
 
-public class HistoricoEscolarWriteProxyService implements CriarHistoricoEscolarUseCase, AtualizarHistoricoEscolarUseCase {
+public class HistoricoEscolarWriteProxyService implements CriarHistoricoEscolarUseCase, AtualizarHistoricoEscolarUseCase, ExcluirHistoricoEscolarUseCase {
 
     private final AuthContextPort authContextPort;
     private final HistoricoEscolarWritePort pedagogicalHistoricoEscolarWritePort;
@@ -39,6 +40,13 @@ public class HistoricoEscolarWriteProxyService implements CriarHistoricoEscolarU
         CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
         return authContextPort.resolve(query)
                 .flatMap(context -> pedagogicalHistoricoEscolarWritePort.atualizar(historicoEscolarId, requestBody, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> executar(String authorization, String correlationId, UUID historicoEscolarId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> pedagogicalHistoricoEscolarWritePort.excluir(historicoEscolarId, query, context));
     }
 }
 

@@ -15,5 +15,10 @@ public interface PainelConfiguracaoReadPort {
             String publicoCodigo,
             CatalogReadQuery query,
             AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> listarWidgets(
+            UUID painelId,
+            CatalogReadQuery query,
+            AuthSessionContext context);
 }
 

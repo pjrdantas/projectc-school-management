@@ -33,4 +33,11 @@ public class PainelConfiguracaoReadProxyService implements ListarPainelConfigura
                 .flatMap(context -> dashboardConfiguracaoReadPort
                         .listarPainels(publicoPainelId, publicoCodigo, query, context));
     }
+
+    @Override
+    public Mono<ResponseEntity<String>> listarWidgets(String authorization, String correlationId, UUID painelId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> dashboardConfiguracaoReadPort.listarWidgets(painelId, query, context));
+    }
 }

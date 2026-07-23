@@ -28,6 +28,44 @@ public class HistoricoEscolarReadClient extends AbstractDownstreamClientSupport
     }
 
     @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> listar(
+            Integer page,
+            Integer size,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        String uri = UriComponentsBuilder.fromPath("/internal/v1/historicos-escolares")
+                .queryParamIfPresent("page", java.util.Optional.ofNullable(page))
+                .queryParamIfPresent("size", java.util.Optional.ofNullable(size))
+                .build()
+                .toUriString();
+        return webClient.get().uri(uri)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Pedagogical service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
+    }
+
+    @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> listarPorAluno(
+            UUID alunoId,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.get().uri("/internal/v1/historicos-escolares/alunos/{alunoId}", alunoId)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Pedagogical service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
+    }
+
+    @Override
     public Mono<org.springframework.http.ResponseEntity<String>> carregarNovo(
             UUID alunoId,
             UUID matriculaId,

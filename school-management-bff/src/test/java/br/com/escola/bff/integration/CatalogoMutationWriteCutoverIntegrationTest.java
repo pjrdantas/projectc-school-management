@@ -122,7 +122,10 @@ class CatalogoMutationWriteCutoverIntegrationTest {
         String seriesId = "00000000-0000-0000-0000-000000000013";
         String classId = "00000000-0000-0000-0000-000000000014";
         String linkId = "00000000-0000-0000-0000-000000000015";
+        String turnoId = "00000000-0000-0000-0000-000000000016";
         return List.of(
+                mutation(HttpMethod.POST, "/api/turnos", "/internal/v1/turnos", turnoBody(), turnoResponse(), 201),
+                mutation(HttpMethod.PUT, "/api/turnos/" + turnoId, "/internal/v1/turnos/" + turnoId, turnoBody(), turnoResponse(), 200),
                 mutation(HttpMethod.PUT, "/api/periodos-letivos/" + periodId, "/internal/v1/periodos-letivos/" + periodId, periodBody(), periodResponse(), 200),
                 mutation(HttpMethod.DELETE, "/api/periodos-letivos/" + periodId, "/internal/v1/periodos-letivos/" + periodId, null, null, 204),
                 mutation(HttpMethod.PUT, "/api/disciplinas/" + subjectId, "/internal/v1/disciplinas/" + subjectId, subjectBody(), subjectResponse(), 200),
@@ -191,6 +194,8 @@ class CatalogoMutationWriteCutoverIntegrationTest {
     private static String linkResponse() { return "{\"id\":\"00000000-0000-0000-0000-000000000015\",\"turmaId\":\"00000000-0000-0000-0000-000000000014\",\"disciplinaId\":\"00000000-0000-0000-0000-000000000012\",\"disciplinaNome\":\"Matematica\",\"cargaHoraria\":80,\"createdAt\":\"2026-01-01T10:00:00\"}"; }
     private static String niveisResponse() { return "[{\"id\":\"00000000-0000-0000-0000-000000000021\",\"codigo\":\"FUNDAMENTAL\",\"descricao\":\"Fundamental\"}]"; }
     private static String turnosResponse() { return "[{\"id\":\"00000000-0000-0000-0000-000000000022\",\"codigo\":\"MATUTINO\",\"descricao\":\"Matutino\"}]"; }
+    private static String turnoBody() { return "{\"codigo\":\"NOTURNO\",\"descricao\":\"Noturno\"}"; }
+    private static String turnoResponse() { return "{\"id\":\"00000000-0000-0000-0000-000000000016\",\"codigo\":\"NOTURNO\",\"descricao\":\"Noturno\"}"; }
 
     private record Mutation(HttpMethod method, String publicPath, String internalPath, String body,
                             String successBody, String resolverPath, String resolverBody, int successStatus) {

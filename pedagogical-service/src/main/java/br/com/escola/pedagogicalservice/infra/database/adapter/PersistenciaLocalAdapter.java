@@ -415,6 +415,41 @@ public class PersistenciaLocalAdapter {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Historico escolar nao encontrado"));
     }
 
+    @Transactional(readOnly = true)
+    public String listarHistoricosEscolares(InternalRequestContext context, int page, int size) {
+        List<HistoricoEscolarJpaEntity> itens = historicoEscolarRepository.findBySchoolIdOrderByUpdatedAtDesc(context.escolaId());
+        int pagina = Math.max(page, 0);
+        int tamanho = Math.max(size, 1);
+        int inicio = Math.min(pagina * tamanho, itens.size());
+        int fim = Math.min(inicio + tamanho, itens.size());
+        ObjectNode resposta = objectMapper.createObjectNode();
+        var content = resposta.putArray("content");
+        itens.subList(inicio, fim).forEach(item -> content.add(readTree(item.getPayloadEscrita())));
+        resposta.put("totalElements", itens.size());
+        resposta.put("totalPages", (int) Math.ceil((double) itens.size() / tamanho));
+        resposta.put("size", tamanho);
+        resposta.put("number", pagina);
+        resposta.put("first", pagina == 0);
+        resposta.put("last", fim == itens.size());
+        resposta.put("empty", itens.isEmpty());
+        return resposta.toString();
+    }
+
+    @Transactional(readOnly = true)
+    public String listarHistoricosEscolaresPorAluno(InternalRequestContext context, UUID alunoId) {
+        var resposta = objectMapper.createArrayNode();
+        historicoEscolarRepository.findBySchoolIdAndAlunoIdOrderByUpdatedAtDesc(context.escolaId(), alunoId)
+                .forEach(item -> resposta.add(readTree(item.getPayloadEscrita())));
+        return resposta.toString();
+    }
+
+    @Transactional
+    public void excluirHistoricoEscolar(InternalRequestContext context, UUID historicoEscolarId) {
+        HistoricoEscolarJpaEntity item = historicoEscolarRepository.findByIdAndSchoolId(historicoEscolarId, context.escolaId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Historico escolar nao encontrado"));
+        historicoEscolarRepository.delete(item);
+    }
+
     private void garantirAula(InternalRequestContext context, UUID aulaId) {
         aulaRepository.findByIdAndSchoolId(aulaId, context.escolaId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Aula nao encontrada"));

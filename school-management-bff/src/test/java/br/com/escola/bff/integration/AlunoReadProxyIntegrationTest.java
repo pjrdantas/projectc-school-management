@@ -100,6 +100,34 @@ class AlunoReadProxyIntegrationTest {
         assertPeopleRequest("/internal/v1/alunos/" + ALUNO_ID + "/ficha", "corr-aluno-ficha");
     }
 
+    @Test
+    void deveEncaminharWritesDeAlunoExclusivamentePeloPeopleService() throws InterruptedException {
+        String body = "{\"nomeCompleto\":\"Aluno Novo\"}";
+        enfileirarContexto();
+        PEOPLE.enqueue(json("{\"id\":\"%s\",\"nomeCompleto\":\"Aluno Novo\"}".formatted(ALUNO_ID)));
+        client.post().uri("/api/alunos").contentType(MediaType.APPLICATION_JSON).bodyValue(body)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token").header(TrustedHeaders.CORRELATION_ID, "corr-aluno-create")
+                .exchange().expectStatus().isCreated();
+        assertContextRequest("corr-aluno-create");
+        assertPeopleWriteRequest("POST", "/internal/v1/alunos", body);
+
+        enfileirarContexto();
+        PEOPLE.enqueue(json("{\"id\":\"%s\",\"nomeCompleto\":\"Aluno Alterado\"}".formatted(ALUNO_ID)));
+        client.put().uri("/api/alunos/{id}", ALUNO_ID).contentType(MediaType.APPLICATION_JSON).bodyValue(body)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token").header(TrustedHeaders.CORRELATION_ID, "corr-aluno-update")
+                .exchange().expectStatus().isOk();
+        assertContextRequest("corr-aluno-update");
+        assertPeopleWriteRequest("PUT", "/internal/v1/alunos/" + ALUNO_ID, body);
+
+        enfileirarContexto();
+        PEOPLE.enqueue(new MockResponse().setResponseCode(204));
+        client.delete().uri("/api/alunos/{id}", ALUNO_ID)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token").header(TrustedHeaders.CORRELATION_ID, "corr-aluno-delete")
+                .exchange().expectStatus().isNoContent();
+        assertContextRequest("corr-aluno-delete");
+        assertPeopleWriteRequest("DELETE", "/internal/v1/alunos/" + ALUNO_ID, null);
+    }
+
     private static void enfileirarContexto() {
         IDENTITY_ACCESS.enqueue(json("""
                 {
@@ -125,6 +153,15 @@ class AlunoReadProxyIntegrationTest {
         assertThat(request.getHeader(TrustedHeaders.CORRELATION_ID)).isEqualTo(correlationId);
         assertThat(request.getHeader("X-Usuario-Id")).isEqualTo(USUARIO_ID.toString());
         assertThat(request.getHeader("X-Escola-Id")).isEqualTo(ESCOLA_ID.toString());
+    }
+
+    private static void assertPeopleWriteRequest(String method, String path, String body) throws InterruptedException {
+        var request = PEOPLE.takeRequest();
+        assertThat(request.getMethod()).isEqualTo(method);
+        assertThat(request.getPath()).isEqualTo(path);
+        if (body != null) {
+            assertThat(request.getBody().readUtf8()).isEqualTo(body);
+        }
     }
 
     private static MockResponse json(String body) {

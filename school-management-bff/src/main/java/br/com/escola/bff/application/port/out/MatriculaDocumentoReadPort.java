@@ -10,6 +10,8 @@ import reactor.core.publisher.Mono;
 
 public interface MatriculaDocumentoReadPort {
 
+    Mono<ResponseEntity<String>> listarStatus(CatalogReadQuery query, AuthSessionContext context);
+
     Mono<ResponseEntity<String>> listarMatriculas(
             UUID alunoId,
             UUID turmaId,

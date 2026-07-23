@@ -25,6 +25,13 @@ public class MatriculaReadController {
         this.consultarMatriculaUseCase = consultarMatriculaUseCase;
     }
 
+    @GetMapping("/api/matriculas/catalogos/status")
+    public Mono<ResponseEntity<String>> listarStatus(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return consultarMatriculaUseCase.listarStatus(authorization, correlationId);
+    }
+
     @GetMapping("/api/matriculas")
     public Mono<ResponseEntity<String>> listarMatriculas(
             @RequestParam(required = false) UUID alunoId,

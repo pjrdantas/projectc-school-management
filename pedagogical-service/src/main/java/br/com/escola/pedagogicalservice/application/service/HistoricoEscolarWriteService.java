@@ -31,4 +31,7 @@ public class HistoricoEscolarWriteService implements HistoricoEscolarWriteUseCas
             String requestBody) {
         return historicoEscolarWritePort.atualizar(authorization, context, historicoEscolarId, requestBody);
     }
+
+    @Override
+    public void excluir(InternalRequestContext context, UUID historicoEscolarId) { historicoEscolarWritePort.excluir(context, historicoEscolarId); }
 }

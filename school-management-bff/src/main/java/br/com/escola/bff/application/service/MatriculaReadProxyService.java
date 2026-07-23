@@ -23,6 +23,13 @@ public class MatriculaReadProxyService implements ConsultarMatriculaUseCase {
     }
 
     @Override
+    public Mono<ResponseEntity<String>> listarStatus(String authorization, String correlationId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> enrollmentDocumentMatriculaReadPort.listarStatus(query, context));
+    }
+
+    @Override
     public Mono<ResponseEntity<String>> listarMatriculas(
             String authorization,
             String correlationId,

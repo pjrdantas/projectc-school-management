@@ -44,6 +44,13 @@ public class CatalogoMutationWriteRoutingService implements CatalogoMutationWrit
         this.observability = observability;
     }
 
+    @Override public Mono<JsonNode> criarTurno(CatalogWriteQuery q, String codigo, String descricao) {
+        return context(q).flatMap(x -> port.executar(HttpMethod.POST, "/internal/v1/turnos", map("codigo", codigo, "descricao", descricao), q, x).map(CatalogoMutationWritePort.MutationResponse::body));
+    }
+    @Override public Mono<JsonNode> atualizarTurno(UUID id, CatalogWriteQuery q, String codigo, String descricao) {
+        return context(q).flatMap(x -> port.executar(HttpMethod.PUT, "/internal/v1/turnos/" + id, map("codigo", codigo, "descricao", descricao), q, x).map(CatalogoMutationWritePort.MutationResponse::body));
+    }
+
     @Override public Mono<PeriodoLetivoCreatedResult> atualizarPeriodo(UUID id, CatalogWriteQuery q, PeriodoLetivoUpdateCommand c) {
         return observed(CatalogWriteRoute.PERIODOS_LETIVOS, context(q).flatMap(x -> port.executar(HttpMethod.PUT, "/internal/v1/periodos-letivos/" + id,
                 map("nome", c.nome(), "ano", c.ano() == null ? c.dataInicio().getYear() : c.ano(), "dataInicio", c.dataInicio(), "dataFim", c.dataFim(), "ativo", c.ativo()), q, x)

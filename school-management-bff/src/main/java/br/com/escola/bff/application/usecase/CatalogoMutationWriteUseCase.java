@@ -14,8 +14,13 @@ import br.com.escola.bff.application.dto.TurmaDisciplinaLinkedResult;
 import br.com.escola.bff.application.dto.TurmaDisciplinaUpdateCommand;
 import br.com.escola.bff.application.dto.TurmaUpdateCommand;
 import reactor.core.publisher.Mono;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public interface CatalogoMutationWriteUseCase {
+
+    Mono<JsonNode> criarTurno(CatalogWriteQuery query, String codigo, String descricao);
+
+    Mono<JsonNode> atualizarTurno(UUID turnoId, CatalogWriteQuery query, String codigo, String descricao);
 
     Mono<PeriodoLetivoCreatedResult> atualizarPeriodo(UUID periodoId, CatalogWriteQuery query, PeriodoLetivoUpdateCommand command);
 

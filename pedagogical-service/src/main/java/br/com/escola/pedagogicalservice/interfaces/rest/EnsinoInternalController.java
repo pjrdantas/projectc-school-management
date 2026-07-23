@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -244,6 +245,16 @@ public class EnsinoInternalController {
             @RequestBody String requestBody) {
         return historicoEscolarWriteUseCase.atualizar(authorization, context, id, requestBody);
     }
+
+    @GetMapping("/historicos-escolares")
+    public ResponseEntity<String> listarHistoricosEscolares(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) { return ResponseEntity.ok(historicoEscolarReadUseCase.listar(authorization, context, page, size)); }
+
+    @GetMapping("/historicos-escolares/alunos/{alunoId}")
+    public ResponseEntity<String> listarHistoricosDoAluno(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context, @PathVariable UUID alunoId) { return ResponseEntity.ok(historicoEscolarReadUseCase.listarPorAluno(authorization, context, alunoId)); }
+
+    @DeleteMapping("/historicos-escolares/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void excluirHistoricoEscolar(@RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context, @PathVariable UUID id) { historicoEscolarWriteUseCase.excluir(context, id); }
 
     @GetMapping("/historicos-escolares/novo")
     public HistoricoEscolarTelaResponse carregarHistoricoNovo(

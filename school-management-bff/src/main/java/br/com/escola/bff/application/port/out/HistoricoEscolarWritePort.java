@@ -20,5 +20,10 @@ public interface HistoricoEscolarWritePort {
             String requestBody,
             CatalogReadQuery query,
             AuthSessionContext context);
+
+    Mono<ResponseEntity<String>> excluir(
+            UUID historicoEscolarId,
+            CatalogReadQuery query,
+            AuthSessionContext context);
 }
 

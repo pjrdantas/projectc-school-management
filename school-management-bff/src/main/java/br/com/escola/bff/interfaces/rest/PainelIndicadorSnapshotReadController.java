@@ -1,6 +1,7 @@
 package br.com.escola.bff.interfaces.rest;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
@@ -36,6 +37,19 @@ public class PainelIndicadorSnapshotReadController {
                 authorization,
                 correlationId,
                 publicoCodigo,
+                referenciaData);
+    }
+
+    @GetMapping("/api/dashboard/snapshots")
+    public Mono<ResponseEntity<String>> listarPorPublicoId(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId,
+            @RequestParam UUID publicoDashboardId,
+            @RequestParam(required = false) LocalDate referenciaData) {
+        return listarPainelIndicadorSnapshotUseCase.listarPorPublicoId(
+                authorization,
+                correlationId,
+                publicoDashboardId,
                 referenciaData);
     }
 }

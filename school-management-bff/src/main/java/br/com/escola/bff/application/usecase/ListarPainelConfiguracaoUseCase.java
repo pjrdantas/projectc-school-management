@@ -13,5 +13,7 @@ public interface ListarPainelConfiguracaoUseCase {
             String correlationId,
             UUID publicoPainelId,
             String publicoCodigo);
+
+    Mono<ResponseEntity<String>> listarWidgets(String authorization, String correlationId, UUID painelId);
 }
 

@@ -1,6 +1,7 @@
 package br.com.escola.bff.interfaces.rest;
 
 import java.util.UUID;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
@@ -70,6 +71,17 @@ public class CatalogoWriteController {
         this.createTurmaUseCase = createTurmaUseCase;
         this.linkTurmaDisciplinaUseCase = linkTurmaDisciplinaUseCase;
         this.catalogoMutationWriteUseCase = catalogoMutationWriteUseCase;
+    }
+
+    @PostMapping("/api/turnos")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<ResponseEntity<JsonNode>> criarTurno(@RequestBody java.util.Map<String, String> body, @RequestHeader(HttpHeaders.AUTHORIZATION) String a, @RequestHeader(TrustedHeaders.CORRELATION_ID) String c, @RequestHeader(name = "Idempotency-Key", required = false) String k) {
+        return catalogoMutationWriteUseCase.criarTurno(query(a, c, k), body.get("codigo"), body.get("descricao")).map(x -> ResponseEntity.status(HttpStatus.CREATED).body(x));
+    }
+
+    @PutMapping("/api/turnos/{id}")
+    public Mono<ResponseEntity<JsonNode>> atualizarTurno(@PathVariable UUID id, @RequestBody java.util.Map<String, String> body, @RequestHeader(HttpHeaders.AUTHORIZATION) String a, @RequestHeader(TrustedHeaders.CORRELATION_ID) String c, @RequestHeader(name = "Idempotency-Key", required = false) String k) {
+        return catalogoMutationWriteUseCase.atualizarTurno(id, query(a, c, k), body.get("codigo"), body.get("descricao")).map(ResponseEntity::ok);
     }
 
     @DeleteMapping("/api/periodos-letivos/{id}")

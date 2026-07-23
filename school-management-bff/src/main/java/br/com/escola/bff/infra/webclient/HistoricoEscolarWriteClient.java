@@ -63,6 +63,23 @@ public class HistoricoEscolarWriteClient extends AbstractDownstreamClientSupport
                 .timeout(properties.responseTimeout())
                 .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
     }
+
+    @Override
+    public Mono<ResponseEntity<String>> excluir(
+            UUID historicoEscolarId,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.delete()
+                .uri("/internal/v1/historicos-escolares/{id}", historicoEscolarId)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Pedagogical service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
+    }
 }
 
 

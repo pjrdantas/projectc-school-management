@@ -7,11 +7,13 @@ import br.com.escola.catalog.application.command.CreateDisciplinaCommand;
 import br.com.escola.catalog.application.command.CreatePeriodoLetivoCommand;
 import br.com.escola.catalog.application.command.CreateSerieCommand;
 import br.com.escola.catalog.application.command.CreateTurmaCommand;
+import br.com.escola.catalog.application.command.CreateTurnoCommand;
 import br.com.escola.catalog.application.command.LinkDisciplinaCommand;
 import br.com.escola.catalog.application.command.UpdateDisciplinaCommand;
 import br.com.escola.catalog.application.command.UpdatePeriodoLetivoCommand;
 import br.com.escola.catalog.application.command.UpdateSerieCommand;
 import br.com.escola.catalog.application.command.UpdateTurmaCommand;
+import br.com.escola.catalog.application.command.UpdateTurnoCommand;
 import br.com.escola.catalog.application.command.UpdateTurmaDisciplinaCommand;
 import br.com.escola.catalog.application.context.InternalRequestContext;
 import br.com.escola.catalog.application.dto.DisciplinaResponse;
@@ -19,8 +21,13 @@ import br.com.escola.catalog.application.dto.PeriodoLetivoResponse;
 import br.com.escola.catalog.application.dto.SerieResponse;
 import br.com.escola.catalog.application.dto.TurmaDisciplinaResponse;
 import br.com.escola.catalog.application.dto.TurmaResponse;
+import br.com.escola.catalog.application.dto.TurnoResponse;
 
 public interface ComandoUseCase {
+
+    CommandResult<TurnoResponse> criarTurno(CreateTurnoCommand command, String idempotencyKey, InternalRequestContext context);
+
+    CommandResult<TurnoResponse> atualizarTurno(UUID turnoId, UpdateTurnoCommand command, String idempotencyKey, InternalRequestContext context);
 
     CommandResult<PeriodoLetivoResponse> criarPeriodo(
             CreatePeriodoLetivoCommand command, String idempotencyKey, InternalRequestContext context);

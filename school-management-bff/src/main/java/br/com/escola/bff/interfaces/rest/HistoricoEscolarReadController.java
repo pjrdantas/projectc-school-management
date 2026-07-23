@@ -25,6 +25,23 @@ public class HistoricoEscolarReadController {
         this.consultarHistoricoEscolarUseCase = consultarHistoricoEscolarUseCase;
     }
 
+    @GetMapping("/api/historicos-escolares")
+    public Mono<ResponseEntity<String>> listar(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return consultarHistoricoEscolarUseCase.listar(authorization, correlationId, page, size);
+    }
+
+    @GetMapping("/api/historicos-escolares/alunos/{alunoId}")
+    public Mono<ResponseEntity<String>> listarPorAluno(
+            @PathVariable UUID alunoId,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @RequestHeader(TrustedHeaders.CORRELATION_ID) String correlationId) {
+        return consultarHistoricoEscolarUseCase.listarPorAluno(authorization, correlationId, alunoId);
+    }
+
     @GetMapping("/api/historicos-escolares/novo")
     public Mono<ResponseEntity<String>> carregarNovo(
             @RequestParam UUID idAluno,

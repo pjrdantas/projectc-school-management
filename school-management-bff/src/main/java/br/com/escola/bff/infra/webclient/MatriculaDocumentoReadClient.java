@@ -29,6 +29,21 @@ public class MatriculaDocumentoReadClient extends AbstractDownstreamClientSuppor
     }
 
     @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> listarStatus(
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.get().uri("/internal/v1/matriculas/catalogos/status")
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Enrollment document service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Enrollment document service indisponivel"));
+    }
+
+    @Override
     public Mono<org.springframework.http.ResponseEntity<String>> listarMatriculas(
             UUID alunoId,
             UUID turmaId,

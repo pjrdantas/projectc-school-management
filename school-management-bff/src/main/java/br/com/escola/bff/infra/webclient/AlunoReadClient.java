@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -51,6 +53,18 @@ public class AlunoReadClient extends AbstractDownstreamClientSupport implements 
     @Override
     public Mono<ResponseEntity<String>> buscarFicha(UUID alunoId, CatalogReadQuery query, AuthSessionContext context) {
         return get("/internal/v1/alunos/{alunoId}/ficha", alunoId, query, context);
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> encaminharEscrita(
+            HttpMethod method, UUID alunoId, String body, CatalogReadQuery query, AuthSessionContext context) {
+        String path = alunoId == null ? "/internal/v1/alunos" : "/internal/v1/alunos/" + alunoId;
+        return webClient.method(method).uri(path).contentType(MediaType.APPLICATION_JSON)
+                .headers(headers -> applyInternalHeaders(headers, query, context))
+                .bodyValue(body == null ? "" : body)
+                .exchangeToMono(response -> handle(response, "People service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "People service indisponivel"));
     }
 
     private Mono<ResponseEntity<String>> get(

@@ -23,6 +23,20 @@ public class HistoricoEscolarReadProxyService implements ConsultarHistoricoEscol
     }
 
     @Override
+    public Mono<ResponseEntity<String>> listar(String authorization, String correlationId, Integer page, Integer size) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> pedagogicalHistoricoEscolarReadPort.listar(page, size, query, context));
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> listarPorAluno(String authorization, String correlationId, UUID alunoId) {
+        CatalogReadQuery query = new CatalogReadQuery(authorization, correlationId);
+        return authContextPort.resolve(query)
+                .flatMap(context -> pedagogicalHistoricoEscolarReadPort.listarPorAluno(alunoId, query, context));
+    }
+
+    @Override
     public Mono<ResponseEntity<String>> carregarNovo(
             String authorization,
             String correlationId,

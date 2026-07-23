@@ -176,6 +176,43 @@ class HistoricoEscolarReadProxyIntegrationTest {
         assertThat(MONOLITH.getRequestCount()).isZero();
     }
 
+    @Test
+    void deveListarHistoricosNoPedagogicalServiceSemFallback() throws InterruptedException {
+        IDENTITY_ACCESS.enqueue(contextoAutenticado());
+        PEDAGOGICAL.enqueue(new MockResponse().setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("{\"content\":[],\"totalElements\":0,\"number\":0}"));
+
+        client.get().uri("/api/historicos-escolares?page=0&size=20")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-history-list")
+                .exchange().expectStatus().isOk().expectBody().jsonPath("$.content").isArray();
+
+        assertThat(IDENTITY_ACCESS.takeRequest().getPath()).isEqualTo("/internal/v1/auth/contexto-atual");
+        assertThat(PEDAGOGICAL.takeRequest().getPath()).isEqualTo("/internal/v1/historicos-escolares?page=0&size=20");
+        assertThat(MONOLITH.getRequestCount()).isZero();
+    }
+
+    @Test
+    void deveListarHistoricosDoAlunoNoPedagogicalServiceSemFallback() throws InterruptedException {
+        UUID alunoId = UUID.randomUUID();
+        IDENTITY_ACCESS.enqueue(contextoAutenticado());
+        PEDAGOGICAL.enqueue(new MockResponse().setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).setBody("[]"));
+
+        client.get().uri("/api/historicos-escolares/alunos/{alunoId}", alunoId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-history-student")
+                .exchange().expectStatus().isOk().expectBody().json("[]");
+
+        IDENTITY_ACCESS.takeRequest();
+        assertThat(PEDAGOGICAL.takeRequest().getPath()).isEqualTo("/internal/v1/historicos-escolares/alunos/" + alunoId);
+        assertThat(MONOLITH.getRequestCount()).isZero();
+    }
+
+    private static MockResponse contextoAutenticado() {
+        return new MockResponse().setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("{\"usuarioId\":\"00000000-0000-0000-0000-000000000101\",\"escolaId\":\"00000000-0000-0000-0000-000000000047\",\"escolaNome\":\"Escola padrao\"}");
+    }
+
     private static MockWebServer startServer() {
         MockWebServer server = new MockWebServer();
         try {

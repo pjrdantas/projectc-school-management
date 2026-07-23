@@ -53,5 +53,22 @@ public class PainelConfiguracaoReadClient extends AbstractDownstreamClientSuppor
                 .timeout(properties.responseTimeout())
                 .onErrorMap(error -> mapTransportError(error, "Painel query service indisponivel"));
     }
+
+    @Override
+    public Mono<org.springframework.http.ResponseEntity<String>> listarWidgets(
+            UUID painelId,
+            CatalogReadQuery query,
+            AuthSessionContext context) {
+        return webClient.get()
+                .uri("/internal/v1/dashboard/configuracoes/dashboards/{painelId}/widgets", painelId)
+                .header("Authorization", query.authorization())
+                .header("X-Internal-Token", properties.internalToken())
+                .header("X-Correlation-Id", query.correlationId())
+                .header("X-Usuario-Id", context.usuarioId().toString())
+                .header("X-Escola-Id", context.escolaId().toString())
+                .exchangeToMono(response -> handle(response, "Painel query service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Painel query service indisponivel"));
+    }
 }
 

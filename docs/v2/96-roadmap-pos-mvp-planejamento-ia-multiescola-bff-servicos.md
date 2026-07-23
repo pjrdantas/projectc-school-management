@@ -11491,3 +11491,377 @@ frontend e o `school-management-service` permanecem fora do escopo de edicao.
 Ordem de execucao: iniciar por B12.1. O primeiro entregavel funcional sera a
 matriz de ownership que limita quais indicadores podem ser gerados antes de
 qualquer migracao de escrita.
+
+### B12.1 - Inventario contratual e matriz de ownership dos indicadores
+
+Concluida em 23/07/2026, sem alteracao de codigo de producao. O inventario
+congelou os contratos legados restantes e a autoridade de cada dado antes de
+abrir qualquer escrita no dashboard.
+
+| Familia ou indicador | Dono definitivo | Situacao no codigo novo | Regra para B12 |
+| --- | --- | --- | --- |
+| publico, dashboard, widget e preferencia por usuario | `dashboard-query-service` | inexistem modelos locais; ha somente leitura serializada da projecao `PAINEIS` e `PUBLICOS` | criar persistencia propria nos recortes B12.2 a B12.5 |
+| snapshot, historico e geracao | `dashboard-query-service` | leitura local existe, mas o estado esta misturado na projecao generica e nao ha geracao oficial | separar estado em B12.6; gerar somente a partir das fontes abaixo |
+| total e status de matricula, documentos pendentes, rematricula e transferencias | `enrollment-document-service` | o agregado e local, mas nao publica contrato de indicadores | B12.7 cria contrato interno de publicacao, sem consulta ao banco alheio |
+| aluno ativo/inativo e solicitacao de exclusao pendente | `people-service` | o agregado de aluno e local; a solicitacao de exclusao nao possui contrato de indicador | B12.7 depende de contrato explicito do `people-service` |
+| turma ativa, capacidade, lotacao e vagas | `academic-catalog-service` | catalogo e dono de turma e capacidade | B12.7 consome contrato de indicador do catalogo, nao repositorio remoto |
+| professor alocado e turmas do professor | `academic-professor-service` | professor e alocacao sao locais | B12.7 consome contrato de indicador do servico de professores |
+| aulas, frequencias, avaliacoes, notas, boletins e historicos | `pedagogical-service` | os agregados pedagogicos e documentais sao locais | B12.7 consome contrato de indicador do pedagogico |
+| planejamentos bimestrais e pendencias | `planning-ai-service` | planejamento e status sao locais | B12.7 consome contrato de indicador do planejamento |
+| alertas e composicao de tela | `dashboard-query-service` | leitura local por projecao; origem de cada alerta ainda nao esta declarada | manter sem geracao automatica ate cada regra ter dono na matriz de B12.7 |
+
+Contratos externos legados ainda sem equivalente de escrita no BFF:
+
+- `POST`, `PUT` e `DELETE /api/dashboard/configuracoes/publicos`;
+- `POST`, `PUT` e `DELETE /api/dashboard/configuracoes/dashboards`;
+- `GET /api/dashboard/configuracoes/dashboards/{dashboardId}/widgets` e CRUD de
+  `/api/dashboard/configuracoes/widgets`;
+- `GET`, `PUT` e `DELETE /api/dashboard/usuarios/{usuarioId}/.../configuracao`;
+- `GET /api/dashboard/snapshots` por `publicoDashboardId`, `PUT` e `DELETE` de
+  snapshot, e os dois `POST /api/dashboard/snapshots/geracoes/**`.
+
+Decisao de integracao: o `dashboard-query-service` nao consultara banco,
+repository ou entidade de outro dominio. B12.7 recebera somente payloads
+versionados e autenticados dos servicos donos. Enquanto um payload nao existir,
+o respectivo indicador nao tera geracao automatica e nao podera usar fallback
+para o monolito.
+
+Proximo passo: B12.2, schema local e contratos internos de publico, dashboard
+e widget.
+
+### B12.2 - Schema local e contratos internos de publico, painel e widget
+
+Concluida em 23/07/2026:
+
+- o `dashboard-query-service` recebeu as tabelas locais `painel_publico`,
+  `painel_configuracao` e `painel_widget`, todas isoladas por `escola_id`;
+- codigos de publico e painel possuem unicidade no escopo da escola; codigo e
+  ordem de widget possuem unicidade dentro do painel; chaves estrangeiras
+  preservam a composicao publico -> painel -> widget;
+- foram criados modelos de dominio, commands e portas internas de administracao
+  e persistencia. Nenhum caso de uso, adapter de escrita, controller ou rota BFF
+  foi ativado neste recorte;
+- validacao restrita: `mvn.cmd -pl dashboard-query-service test`, quatro testes
+  sem falhas, com Flyway aplicando as migrations V1 e V2 e JPA validando o schema.
+
+Proximo passo: B12.3, CRUD interno de publico e painel.
+
+### B12.3 - CRUD interno de publico e painel
+
+Concluida em 23/07/2026:
+
+- foram ativados no `dashboard-query-service` os `POST`, `PUT` e `DELETE`
+  internos de publico e painel, sempre filtrados pelo `escolaId` autenticado;
+- codigos sao normalizados, validos e unicos por escola; painel exige publico
+  pertencente a mesma escola; exclusao de publico com painel ou de painel com
+  widget retorna `409 BUSINESS_CONFLICT`;
+- as leituras internas ja existentes permanecem atendidas pelas projecoes atuais
+  ate o backfill controlado, preservando os contratos externos sem mudar a fonte
+  no meio do ciclo;
+- nenhuma rota BFF, frontend ou classe do monolito foi alterada;
+- validacao restrita: `mvn.cmd -pl dashboard-query-service test`, cinco testes
+  sem falhas, incluindo criacao, atualizacao, isolamento e exclusao segura.
+
+Proximo passo: B12.4, CRUD interno de widget.
+
+### B12.4 - CRUD interno de widget
+
+Concluida em 23/07/2026:
+
+- foram ativados os contratos internos para listar, criar, atualizar e excluir
+  widget de painel no `dashboard-query-service`;
+- cada widget exige painel da mesma escola, codigo e ordem unicos dentro desse
+  painel; tipo e codigo sao normalizados e uma colisao retorna
+  `409 BUSINESS_CONFLICT`;
+- um painel com widget permanece protegido contra exclusao ate que todos os seus
+  widgets sejam removidos; nao houve rota BFF, frontend ou monolito alterados;
+- validacao restrita: `mvn.cmd -pl dashboard-query-service test`, cinco testes
+  sem falhas, incluindo o fluxo de widget e as invariantes da composicao.
+
+Proximo passo: B12.5, preferencias por usuario e widget.
+
+### B12.5 - Preferencias por usuario e widget
+
+Concluida em 23/07/2026:
+
+- foi criada a persistencia local `painel_usuario_preferencia`, unica por
+  escola, usuario e widget, sem chave estrangeira para agregados de identidade;
+- os contratos internos permitem listar, salvar por upsert e excluir a
+  preferencia. O `usuarioId` do path deve corresponder ao contexto interno
+  autenticado, impedindo que um consumidor forje preferencia de outro usuario;
+- `configuracaoJson` e validado e normalizado antes de persistir; widget com
+  preferencias nao pode ser removido ate que elas sejam excluidas;
+- nenhuma rota BFF, frontend ou monolito foi alterada;
+- validacao restrita: `mvn.cmd -pl dashboard-query-service test`, cinco testes
+  sem falhas, com Flyway aplicando as migrations V1 a V3.
+
+Proximo passo: B12.6, snapshot local e historico de indicadores.
+
+### B12.6 - Snapshot local e historico de indicadores
+
+Concluida em 23/07/2026:
+
+- foi criada a tabela local `painel_indicador_snapshot`, idempotente por escola,
+  publico, codigo de indicador e data de referencia; snapshots nao voltam a
+  depender do payload generico de projecao;
+- os contratos internos locais permitem listar, salvar por upsert e excluir
+  snapshots. O historico e derivado cronologicamente desses registros, com valor
+  atual, anterior, variacao percentual e pontos por data;
+- as leituras externas ja oficializadas continuam na projecao anterior ate o
+  backfill reconciliado, evitando mudanca de fonte antes da carga controlada;
+- nenhuma rota BFF, frontend ou monolito foi alterada;
+- validacao restrita: `mvn.cmd -pl dashboard-query-service test`, seis testes
+  sem falhas, com Flyway aplicando as migrations V1 a V4.
+
+Proximo passo: B12.7, geracao de indicadores e alimentacao de projecoes.
+
+### B12.7 - Geracao de indicadores e alimentacao de projecoes
+
+Concluida em 23/07/2026:
+
+- foi criado o contrato interno autenticado de publicacao
+  `PUT /internal/v1/dashboard/indicadores/publicacoes`; ele recebe snapshots
+  calculados pelo servico dono, sem consultar banco, repository ou entidade de
+  outro dominio;
+- a origem declarada aceita somente familias de codigos previstas na matriz de
+  ownership. Uma origem que tente publicar codigo de outro dominio recebe
+  `400 INVALID_REQUEST` e nada e persistido;
+- cada publicacao grava o snapshot local idempotente e atualiza as projecoes
+  locais `SNAPSHOTS` e `HISTORICO`, alimentando as leituras ja existentes sem
+  mudar rota externa, BFF, frontend ou usar fallback para o monolito;
+- validacao restrita: `mvn.cmd -pl dashboard-query-service test`, sete testes
+  sem falhas, incluindo publicacao permitida, rejeicao de ownership invalido e
+  leitura pelas projecoes atualizadas.
+
+Proximo passo: B12.8, oficializacao no BFF dos writes de configuracao, widget,
+preferencia, snapshot e geracao.
+
+### B12.8 - Oficializacao no BFF dos writes do dashboard
+
+Concluida em 23/07/2026:
+
+- o `school-management-bff` passou a encaminhar exclusivamente ao
+  `dashboard-query-service` a criacao, atualizacao e exclusao de publico,
+  painel e widget, alem de preferencia por usuario e snapshot local;
+- os paths e status externos foram preservados. O BFF traduz somente os nomes
+  legados `publicoDashboardId` para `publicoId` e `dashboardId` para `painelId`,
+  sem expor o contrato interno ao consumidor;
+- a geracao de indicadores nao e mais uma escrita publica que calcula dados no
+  dashboard. Ela foi oficializada pelo contrato autenticado de publicacao entre
+  os servicos donos e o `dashboard-query-service`, definido em B12.7; assim o
+  BFF nao reintroduz consulta cruzada, job do monolito ou fallback;
+- validacao restrita: `mvn.cmd -pl school-management-bff
+  -Dtest=PainelWriteProxyIntegrationTest test`, um teste de integracao sem
+  falhas, cobrindo encaminhamento, compatibilizacao de payload e ausencia de
+  chamada ao monolito.
+
+Proximo passo: B12.9, backfill controlado e reconciliacao de configuracoes e
+snapshots do dashboard.
+
+### B12.9 - Backfill controlado e reconciliacao
+
+Concluida em 23/07/2026:
+
+- o `dashboard-query-service` recebeu backfill JDBC opt-in para publico,
+  painel, widget, preferencia e snapshot, com paginação configuravel e upsert
+  idempotente, sem apagar estado local;
+- a operacao exige `DASHBOARD_QUERY_BACKFILL_SOURCE_URL` e
+  `DASHBOARD_QUERY_BACKFILL_ESCOLA_ID`. Como o legado nao possui escola nas
+  configuracoes, esse identificador e o unico mapeamento aceito; nenhuma escola
+  e inferida a partir de usuario, painel ou snapshot;
+- o relatorio compara quantidade e conteudo persistido dos cinco conjuntos. Com
+  `DASHBOARD_QUERY_BACKFILL_FAIL_ON_MISMATCH=true`, a inicializacao falha em
+  caso de divergencia;
+- validacao restrita: `mvn.cmd -pl dashboard-query-service test`, oito testes
+  sem falhas, incluindo carga paginada, segunda execucao idempotente e
+  reconciliacao integral do payload.
+
+Proximo passo: B12.10, prova integrada e fechamento tecnico do dashboard.
+
+### B12.10 - Prova integrada e fechamento tecnico
+
+Concluida em 23/07/2026:
+
+- as leituras, configuracoes, snapshots, historico e writes de dashboard foram
+  validados pelo conjunto de integracao do BFF; todos os proxies de painel usam
+  exclusivamente o `dashboard-query-service` e os testes verificam ausencia de
+  chamada ao monolito;
+- a varredura dos arquivos de dashboard do BFF nao encontrou referencia a
+  cliente, fallback, rota ou classe do `school-management-service`. O
+  `dashboard-query-service` tambem opera com datasource proprio e o backfill e
+  estritamente opt-in, sem job ativo por padrao;
+- validacao final: `mvn.cmd -pl dashboard-query-service test`, oito testes sem
+  falhas; `mvn.cmd -pl school-management-bff
+  "-Dtest=Painel*IntegrationTest" test`, 31 testes sem falhas; e
+  `git diff --check` sem erros.
+
+A B12 esta tecnicamente fechada no backend. Proximo passo: inventariar e
+definir o proximo ciclo backend remanescente antes de abrir nova fase.
+
+### Correcao do inventario apos B12
+
+Em 23/07/2026, a comparacao dos contratos publicos do legado com os controllers
+do BFF identificou que o fechamento acima foi prematuro. Permanecem sem rota
+oficial no BFF:
+
+- `GET /api/dashboard/configuracoes/dashboards/{dashboardId}/widgets`;
+- `GET /api/dashboard/usuarios/{usuarioId}/configuracoes`;
+- `GET /api/dashboard/snapshots?publicoDashboardId=...`;
+- `POST /api/dashboard/snapshots/geracoes/{publicoCodigo}` e
+  `POST /api/dashboard/snapshots/geracoes/professores/{professorId}`.
+
+Os tres GET possuem contrato interno local pronto e devem ser expostos sem
+criar novo servico. Os dois POST de geracao exigem uma ponte de compatibilidade
+para a publicacao autenticada de B12.7 ou retirada formal de contrato; eles nao
+podem voltar a calcular dados a partir de bancos de outros dominios.
+
+Portanto, a B12 fica reaberta no ciclo corretivo fechado **B12.11**, com quatro
+recortes: B12.11.1 leitores externos faltantes; B12.11.2 compatibilidade de
+snapshots por identificador; B12.11.3 decisao e implementacao dos dois POST de
+geracao sem acoplamento; B12.11.4 prova integrada e novo fechamento. Nao ha
+justificativa para abrir um novo microservico neste ponto.
+
+### B12.11.1 - Leitores externos faltantes
+
+Concluida em 23/07/2026:
+
+- o BFF passou a expor `GET /api/dashboard/configuracoes/dashboards/{dashboardId}/widgets`
+  e `GET /api/dashboard/usuarios/{usuarioId}/configuracoes`, incluindo o
+  filtro opcional legado `dashboardId`;
+- os dois contratos encaminham somente ao `dashboard-query-service`, com
+  token, usuario, escola e correlation id internos. O servico de destino mantém
+  a validacao de que a preferencia pertence ao usuario autenticado;
+- validacao restrita: `mvn.cmd -pl school-management-bff
+  -Dtest=PainelCompatibilidadeReadProxyIntegrationTest test`, um teste de
+  integracao sem falhas, com ausencia de chamada ao monolito.
+
+Proximo passo: B12.11.2, compatibilidade de snapshots por identificador.
+
+### B12.11.2 - Compatibilidade de snapshots por identificador
+
+Concluida em 23/07/2026:
+
+- o BFF passou a expor `GET /api/dashboard/snapshots` com
+  `publicoDashboardId` obrigatorio e `referenciaData` opcional, preservando o
+  contrato externo legado;
+- a chamada e encaminhada ao read model local
+  `/internal/v1/dashboard/snapshots/locais`, usando o identificador como
+  `publicoId`, sem leitura pela projecao do monolito;
+- validacao restrita: `mvn.cmd -pl school-management-bff
+  -Dtest=PainelCompatibilidadeReadProxyIntegrationTest test`, dois testes sem
+  falhas, com prova do path, parametros e ausencia de fallback.
+
+Proximo passo: B12.11.3, decisao e compatibilidade dos dois POST de geracao.
+
+### B12.11.3 - Compatibilidade dos dois POST de geracao
+
+Concluida em 23/07/2026:
+
+- o `dashboard-query-service` passou a expor os contratos internos `POST /internal/v1/dashboard/snapshots/geracoes/{publicoCodigo}` e `POST /internal/v1/dashboard/snapshots/geracoes/professores/{professorId}`;
+- o `school-management-bff` oficializou os dois `POST` publicos equivalentes, preservando `referenciaData` opcional e o padrao legado de usar a data corrente quando ela nao e informada;
+- os endpoints nao recalculam indicadores nem consultam banco ou servico de outro dominio: retornam somente snapshots ja publicados no read model local para a data solicitada;
+- o recorte de professor preserva o namespace legado `PROFESSOR_{UUID sem hifens em maiusculas}_...` para filtrar exclusivamente os indicadores do docente solicitado; ausencia de publicacao retorna lista vazia, sem fallback;
+- a validacao foi restrita a `mvn.cmd -pl dashboard-query-service test` (nove testes) e `mvn.cmd -pl school-management-bff -Dtest=PainelWriteProxyIntegrationTest test` (um teste de integracao), cobrindo leitura local e encaminhamento exclusivo ao servico de dashboard.
+
+Proximo passo: B12.11.4, prova integrada e novo fechamento do dashboard.
+
+### B12.11.4 - Prova integrada e novo fechamento tecnico do dashboard
+
+Concluida em 23/07/2026:
+
+- o inventario final confirmou no BFF os mesmos contratos publicos de dashboard do legado: resumos por perfil, alertas, frontend, configuracoes, widgets, preferencias, snapshots, historico e os dois `POST` de geracao;
+- a suite integrada do BFF confirmou que os proxies de dashboard usam exclusivamente o `dashboard-query-service`; os cenarios de leitura, escrita e compatibilidade verificam a ausencia de chamada ao monolito;
+- os dois `POST` de geracao permanecem oficialmente compativeis no path e parametros, mas representam consulta ao snapshot local publicado. Nenhum calculo cruzado, job legado ou fallback ao monolito foi reintroduzido;
+- validacao final restrita aos modulos tocados: `mvn.cmd -pl dashboard-query-service test` com nove testes e `mvn.cmd -pl school-management-bff "-Dtest=Painel*IntegrationTest" test` com trinta e tres testes, ambos sem falhas; `git diff --check` sem erros;
+- a B12 e o ciclo corretivo B12.11 estao fechados no backend. O `dashboard-query-service` e o BFF sao a fronteira oficial do dominio de dashboard.
+
+Proximo passo: inventariar o proximo ciclo backend remanescente fora do dashboard antes de abrir nova fase.
+
+## Inventario pos-B12.11.4 - ciclo backend remanescente
+
+Concluido em 23/07/2026:
+
+- o `school-management-bff` possui 161 mappings publicos e nao possui URL, client, configuracao ou fallback produtivo direcionado ao `school-management-service`; a diferenca para os 226 mappings do monolito nao e criterio de pendencia, pois inclui contratos internos, administrativos e historicos nao consumidos externamente;
+- todos os dominios funcionais ativos possuem owner novo e rota BFF correspondente: identidade e tenant, pessoas e responsaveis, matricula e documentos, catalogo e professores, pedagogico e historico, planejamento e IA, e dashboard;
+- a infraestrutura declarada em `platform/compose.yaml` contem somente PostgreSQL, Kafka, Mongo e Redis, sem servico monolitico;
+- o passivo produtivo remanescente esta restrito a executores de backfill opt-in, desabilitados por padrao, em `enrollment-document-service`, `pedagogical-service`, `planning-ai-service` e `dashboard-query-service`; eles pertencem a operacao/autonomia e nao devem ser removidos sem prova reconciliada;
+- a lacuna objetiva e uma prova externa transversal por jornada. Portanto, o proximo ciclo fechado e a **B13 - Corte externo e prova ponta a ponta**, com quatro recortes: B13.1 matriz contratual BFF-consumidor-owner; B13.2 gate estatico e de integracao sem fallback; B13.3 prova das jornadas criticas por familia de dominio; B13.4 gate final externo e decisao de entrada na B14;
+- a **B14 - Operacao autonoma e descomissionamento** somente abre apos B13 verde e cobre backfills, reconciliacao, jobs, secrets, topologia de execucao e retirada definitiva do modulo residual.
+
+Proximo passo: B13.1, matriz contratual BFF-consumidor-owner e criterio objetivo do gate externo.
+
+### B13.1 - Matriz contratual BFF-consumidor-owner
+
+Concluida em 23/07/2026. O consumidor externo ativo e o
+`school-management-web`: vinte e oito arquivos TypeScript consomem paths
+`/api/**` por `API_BASE_URL`, sem URL direta para o monolito. A matriz abaixo
+substitui contagem de controllers por contrato e metodo HTTP.
+
+| Consumidor | Familia contratual publica | Owner novo | Estado para B13 |
+| --- | --- | --- | --- |
+| Host de seguranca | `/api/auth/**`, `/api/usuarios`, `/api/perfis`, `/api/permissoes` | `identity-access-service` e `institutional-tenant-service` | coberto no BFF; manter no gate de autenticacao e administracao |
+| MFEs de alunos e responsaveis | leituras de aluno/pessoa, responsaveis e vinculos aluno-responsavel | `people-service` e `responsibles-service` | owner local ja possuia CRUD interno de aluno; B13.2 oficializa os tres writes no BFF |
+| MFEs de catalogo, matricula e professores | periodos, disciplinas, series, turmas, turnos e vinculos academicos | `academic-catalog-service` | leitura e writes de periodo, disciplina, serie, turma e turma-disciplina cobertos; **bloqueio:** `POST` e `PUT /api/turnos` usados pelo consumidor nao possuem write oficial equivalente |
+| MFEs de matricula e documentos | matriculas, documentos genericos e de aluno, transferencias e escolas de origem | `enrollment-document-service` | coberto no BFF; manter no gate de upload e mudanca segura de status |
+| MFEs de professores e aulas | professores, alocacoes, aulas, frequencias, avaliacoes, notas, boletim e diario | `academic-professor-service` e `pedagogical-service` | coberto no BFF; manter no gate de jornada docente |
+| MFEs de alunos e catalogo | historico escolar | `pedagogical-service` | **bloqueio:** consumidor usa listagem geral, listagem por aluno e `DELETE /api/historicos-escolares/{id}`; BFF e servico novo possuem apenas criacao, atualizacao, `novo` e `carregamento` |
+| MFE de planejamento | planejamento bimestral, aulas/avaliacoes previstas e conteudo IA | `planning-ai-service` | coberto no BFF; manter no gate de planejamento e biblioteca |
+| MFE de dashboard | resumos, configuracoes, preferencias, snapshots, historico e geracoes | `dashboard-query-service` | coberto no BFF pela B12.11; manter no gate de dashboard |
+
+Decisoes objetivas:
+
+- as lacunas de turno e Historico Escolar sao lacunas de contrato, nao candidatas a fallback; o CRUD de aluno e somente lacuna de exposicao BFF;
+- `projetos-historico-diario` nao e consumidor runtime nesta matriz: e fonte de
+  prototipos ja absorvidos pelos owners `pedagogical-service` e
+  `enrollment-document-service`;
+- o gate externo de B13 somente pode ser verde quando cada chamada ativa do
+  `school-management-web` tiver owner novo, path e metodo HTTP oficiais no BFF,
+  teste de integracao e ausencia comprovada de chamada ao monolito.
+
+Proximo passo: B13.2, fechar as tres lacunas contratuais e instituir o gate
+estatico BFF-consumidor sem fallback.
+
+### B13.2 - Paridade contratual e gate estatico BFF-consumidor
+
+Concluida em 23/07/2026:
+
+- os tres writes de aluno foram expostos oficialmente pelo BFF para o
+  `people-service`, com `POST` normalizado para `201 Created`;
+- `POST` e `PUT /api/turnos` foram encaminhados ao
+  `academic-catalog-service`, sem fallback;
+- Historico Escolar passou a expor lista paginada, lista por aluno e exclusao
+  pelo `pedagogical-service`, preservando os paths publicos ativos;
+- o gate `BffNoMonolithStaticGateTest` bloqueia referencias produtivas ao
+  monolito e os testes de integracao confirmam os encaminhamentos oficiais.
+
+Validacao: compilacao de `pedagogical-service` e 14 testes direcionados no
+`school-management-bff`, todos verdes. Proximo passo: B13.3, provas ponta a
+ponta das jornadas criticas por familia de dominio.
+
+### B13.3 - Provas ponta a ponta por jornada
+
+Concluida em 23/07/2026. A suite completa `*IntegrationTest` do
+`school-management-bff` validou as jornadas de seguranca,
+pessoas/responsaveis, catalogo, matricula/documentos,
+professores/pedagogico, planejamento/IA e dashboard contra os owners novos:
+178 testes, zero falhas, zero erros e zero ignorados. O aviso do Surefire no
+encerramento e posterior ao `BUILD SUCCESS` e decorre apenas da finalizacao da
+JVM com mocks HTTP.
+
+Proximo passo: B13.4, gate externo final e decisao de entrada na B14.
+
+### B13.4 - Gate externo final
+
+Em execucao em 23/07/2026. O novo gate
+`BffExternalConsumerContractGateTest` compara as chamadas `/api/**` ativas do
+`school-management-web` com os mappings publicos do BFF. Ele isolou uma unica
+lacuna real: `GET /api/matriculas/catalogos/status`. O catalogo de status de
+matricula ainda nao tem owner local no `enrollment-document-service`; por isso
+a B13.4 e a entrada na B14 permanecem bloqueadas ate a migracao e prova desse
+contrato sem fallback.
+
+Fechamento em 23/07/2026: o catalogo foi migrado para o
+`enrollment-document-service` e exposto pelo BFF em
+`GET /api/matriculas/catalogos/status`. Os gates
+`BffExternalConsumerContractGateTest` e `BffNoMonolithStaticGateTest` passaram
+verdes. B13 concluida; B14 liberada.

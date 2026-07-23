@@ -180,6 +180,7 @@ import br.com.escola.bff.application.usecase.CriarAulaUseCase;
 import br.com.escola.bff.application.usecase.CriarAvaliacaoUseCase;
 import br.com.escola.bff.application.usecase.CriarEscolaOrigemUseCase;
 import br.com.escola.bff.application.usecase.CriarHistoricoEscolarUseCase;
+import br.com.escola.bff.application.usecase.ExcluirHistoricoEscolarUseCase;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoUseCase;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoVersaoUseCase;
 import br.com.escola.bff.application.usecase.CriarTransferenciaUseCase;
@@ -364,6 +365,15 @@ public class BffUseCaseConfiguration {
     }
 
     @Bean
+    br.com.escola.bff.application.usecase.ListarPainelUsuarioPreferenciaUseCase
+            listarPainelUsuarioPreferenciaUseCase(
+                    InternalAuthContextPort authContextPort,
+                    br.com.escola.bff.application.port.out.PainelUsuarioPreferenciaReadPort preferenciaReadPort) {
+        return new br.com.escola.bff.application.service.PainelUsuarioPreferenciaReadProxyService(
+                authContextPort, preferenciaReadPort);
+    }
+
+    @Bean
     ConsultarPainelSecretariaUseCase consultarPainelSecretariaUseCase(
             InternalAuthContextPort authContextPort,
             PainelSecretariaReadPort dashboardSecretariaReadPort) {
@@ -465,6 +475,13 @@ public class BffUseCaseConfiguration {
 
     @Bean
     AtualizarHistoricoEscolarUseCase atualizarHistoricoEscolarUseCase(
+            AuthContextPort authContextPort,
+            HistoricoEscolarWritePort pedagogicalHistoricoEscolarWritePort) {
+        return new HistoricoEscolarWriteProxyService(authContextPort, pedagogicalHistoricoEscolarWritePort);
+    }
+
+    @Bean
+    ExcluirHistoricoEscolarUseCase excluirHistoricoEscolarUseCase(
             AuthContextPort authContextPort,
             HistoricoEscolarWritePort pedagogicalHistoricoEscolarWritePort) {
         return new HistoricoEscolarWriteProxyService(authContextPort, pedagogicalHistoricoEscolarWritePort);
@@ -746,6 +763,13 @@ public class BffUseCaseConfiguration {
         return new br.com.escola.bff.application.service.CatalogoMutationWriteRoutingService(
                 port, authContextPort, academicCatalogNivelEnsinoResolverPort, academicCatalogTurnoResolverPort,
                 observabilityPort);
+    }
+
+    @Bean
+    br.com.escola.bff.application.usecase.PainelWriteUseCase painelWriteUseCase(
+            AuthContextPort authContextPort,
+            br.com.escola.bff.application.port.out.PainelWritePort painelWritePort) {
+        return new br.com.escola.bff.application.service.PainelWriteProxyService(authContextPort, painelWritePort);
     }
 
 }

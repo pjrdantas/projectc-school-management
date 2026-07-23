@@ -19,6 +19,16 @@ public class HistoricoEscolarReadService implements HistoricoEscolarReadUseCase 
     }
 
     @Override
+    public String listar(String authorization, InternalRequestContext context, int page, int size) {
+        return historicoEscolarReadPort.listar(authorization, context, page, size);
+    }
+
+    @Override
+    public String listarPorAluno(String authorization, InternalRequestContext context, UUID alunoId) {
+        return historicoEscolarReadPort.listarPorAluno(authorization, context, alunoId);
+    }
+
+    @Override
     public HistoricoEscolarTelaResponse carregarNovo(
             String authorization,
             InternalRequestContext context,
