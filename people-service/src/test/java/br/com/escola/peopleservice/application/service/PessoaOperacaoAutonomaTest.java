@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.actuate.health.Status;
 
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoWriteCommand;
-import br.com.escola.peopleservice.infra.config.PeopleRuntimeProperties;
-import br.com.escola.peopleservice.infra.observability.PeoplePersistenceHealthIndicator;
+import br.com.escola.peopleservice.infra.config.RuntimeProperties;
+import br.com.escola.peopleservice.infra.observability.PersistenceHealthIndicator;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 class PessoaOperacaoAutonomaTest {
@@ -17,7 +17,7 @@ class PessoaOperacaoAutonomaTest {
     @Test
     void deveSelecionarSomenteReadModelLocalSemFallback() {
         var properties = properties();
-        var policy = new PeopleDataAccessPolicy(properties, new SimpleMeterRegistry());
+        var policy = new DataAccessPolicy(properties, new SimpleMeterRegistry());
 
         assertThat(policy.avaliarTodas().values())
                 .allSatisfy(decision -> {
@@ -30,8 +30,8 @@ class PessoaOperacaoAutonomaTest {
     @Test
     void deveExporSaudeLocalOnlySemTrafegoLegado() {
         var properties = properties();
-        var policy = new PeopleDataAccessPolicy(properties, new SimpleMeterRegistry());
-        var health = new PeoplePersistenceHealthIndicator(
+        var policy = new DataAccessPolicy(properties, new SimpleMeterRegistry());
+        var health = new PersistenceHealthIndicator(
                 properties,
                 policy);
 
@@ -65,7 +65,7 @@ class PessoaOperacaoAutonomaTest {
         assertThat(result.fallbackRequired()).isTrue();
     }
 
-    private PeopleRuntimeProperties properties() {
-        return new PeopleRuntimeProperties(true, true, true, true, false, false, 500, false);
+    private RuntimeProperties properties() {
+        return new RuntimeProperties(true, true, false);
     }
 }

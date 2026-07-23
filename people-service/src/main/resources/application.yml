@@ -35,12 +35,5 @@ people:
   persistence:
     enabled: ${PEOPLE_PERSISTENCE_ENABLED:true}
     local-read-routing-enabled: ${PEOPLE_PERSISTENCE_LOCAL_ROUTING_ENABLED:true}
-    backfill:
-      enabled: ${PEOPLE_WRITE_BACKFILL_ENABLED:false}
-      source-url: ${PEOPLE_WRITE_BACKFILL_SOURCE_URL:}
-      source-username: ${PEOPLE_WRITE_BACKFILL_SOURCE_USERNAME:}
-      source-password: ${PEOPLE_WRITE_BACKFILL_SOURCE_PASSWORD:}
-      batch-size: ${PEOPLE_WRITE_BACKFILL_BATCH_SIZE:500}
-      fail-on-mismatch: ${PEOPLE_WRITE_BACKFILL_FAIL_ON_MISMATCH:true}
     fallback-enabled: false
 

@@ -12,7 +12,7 @@ import br.com.escola.responsiblesservice.application.dto.CadastrarResponsavelCom
 import br.com.escola.responsiblesservice.application.dto.CriacaoAlunoResponsavelResultado;
 import br.com.escola.responsiblesservice.application.dto.DesvinculoAlunoResponsavelResultado;
 import br.com.escola.responsiblesservice.application.dto.VincularAlunoResponsavelCommand;
-import br.com.escola.responsiblesservice.infra.config.ResponsiblesPersistenceProperties;
+import br.com.escola.responsiblesservice.infra.config.PersistenceProperties;
 
 class JdbcAlunoResponsavelWriteAdapterTest {
 
@@ -89,8 +89,8 @@ class JdbcAlunoResponsavelWriteAdapterTest {
         return new JdbcResponsavelWriteAdapter(properties(url));
     }
 
-    private ResponsiblesPersistenceProperties properties(String url) {
-        return new ResponsiblesPersistenceProperties(url, "sa", "", "org.h2.Driver");
+    private PersistenceProperties properties(String url) {
+        return new PersistenceProperties(url, "sa", "", "org.h2.Driver");
     }
 
     private void migrate(String url) {

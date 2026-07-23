@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 class JdbcPessoaAdapterTest {
 
@@ -21,7 +21,7 @@ class JdbcPessoaAdapterTest {
         UUID escolaId = UUID.fromString("00000000-0000-0000-0000-000000000047");
         criarSchemaEPopular(url);
         JdbcPessoaAdapter adapter = new JdbcPessoaAdapter(
-                new PeoplePersistenceProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new PersistenceProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         var response = adapter.buscarPessoaPorId(pessoaId, escolaId);
 
@@ -39,7 +39,7 @@ class JdbcPessoaAdapterTest {
         UUID pessoaId = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         criarSchemaEPopular(url);
         JdbcPessoaAdapter adapter = new JdbcPessoaAdapter(
-                new PeoplePersistenceProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new PersistenceProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         var response = adapter.buscarPessoaPorId(
                 pessoaId,

@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 class JdbcPessoaCatalogoAdapterTest {
 
@@ -19,7 +19,7 @@ class JdbcPessoaCatalogoAdapterTest {
         String url = h2Url("local_read_" + UUID.randomUUID());
         criarSchemaEPopular(url);
         JdbcPessoaCatalogoAdapter adapter = new JdbcPessoaCatalogoAdapter(
-                new PeoplePersistenceProperties(url, "sa", "", "org.h2.Driver", List.of()));
+                new PersistenceProperties(url, "sa", "", "org.h2.Driver", List.of()));
 
         var tiposPessoa = adapter.listarTiposPessoa();
         var tiposEndereco = adapter.listarTiposEndereco();

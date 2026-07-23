@@ -20,7 +20,7 @@ import br.com.escola.peopleservice.application.dto.PessoaConsultaCadastralPageRe
 import br.com.escola.peopleservice.application.dto.PessoaResponsavelResumoResponse;
 import br.com.escola.peopleservice.application.dto.PessoaResponsavelVinculadoResponse;
 import br.com.escola.peopleservice.application.port.out.AlunoResponsavelPort;
-import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 @Component
 public class JdbcAlunoResponsavelAdapter implements AlunoResponsavelPort {
@@ -35,9 +35,9 @@ public class JdbcAlunoResponsavelAdapter implements AlunoResponsavelPort {
               AND (? IS NULL OR r.cpf = ?)
             """;
 
-    private final PeoplePersistenceProperties properties;
+    private final PersistenceProperties properties;
 
-    public JdbcAlunoResponsavelAdapter(PeoplePersistenceProperties properties) {
+    public JdbcAlunoResponsavelAdapter(PersistenceProperties properties) {
         this.properties = properties;
     }
 

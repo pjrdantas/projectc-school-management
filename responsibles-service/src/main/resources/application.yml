@@ -21,15 +21,6 @@ responsibles:
     internal-token: ${RESPONSIBLES_PEOPLE_STUDENT_INTERNAL_TOKEN:}
     connect-timeout: ${RESPONSIBLES_PEOPLE_STUDENT_CONNECT_TIMEOUT:2s}
     read-timeout: ${RESPONSIBLES_PEOPLE_STUDENT_READ_TIMEOUT:5s}
-  persistence:
-    backfill:
-      enabled: ${RESPONSIBLES_WRITE_BACKFILL_ENABLED:false}
-      source-url: ${RESPONSIBLES_WRITE_BACKFILL_SOURCE_URL:}
-      source-username: ${RESPONSIBLES_WRITE_BACKFILL_SOURCE_USERNAME:}
-      source-password: ${RESPONSIBLES_WRITE_BACKFILL_SOURCE_PASSWORD:}
-      batch-size: ${RESPONSIBLES_WRITE_BACKFILL_BATCH_SIZE:500}
-      fail-on-mismatch: ${RESPONSIBLES_WRITE_BACKFILL_FAIL_ON_MISMATCH:true}
-
 management:
   endpoints:
     web:

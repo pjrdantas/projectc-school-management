@@ -11865,3 +11865,50 @@ Fechamento em 23/07/2026: o catalogo foi migrado para o
 `GET /api/matriculas/catalogos/status`. Os gates
 `BffExternalConsumerContractGateTest` e `BffNoMonolithStaticGateTest` passaram
 verdes. B13 concluida; B14 liberada.
+
+### B14.1 - Inventario operacional monolith-off
+
+Concluida em 23/07/2026. `platform/compose.yaml` nao declara monolito, job ou
+agendamento legado. Os backfills de documentos/matriculas, pedagogico,
+planejamento/IA e dashboard permanecem opt-in, desabilitados por padrao e com
+falha obrigatoria se a reconciliacao divergir. Proximo passo: prova operacional
+reconciliada de cada executor antes de remover origem, secrets e runners.
+
+### B14.2 - Provas reconciliadas dos backfills
+
+Concluida em 23/07/2026. Os executores de documentos, matriculas, Historico
+Escolar, planejamento/IA e dashboard foram exercitados de forma idempotente e
+reconciliada. A cobertura do executor de planejamento foi adicionada; cinco
+testes nos quatro modulos passaram verdes, sem flag de producao nem fonte
+externa habilitada. Proximo passo: retirada definitiva de parametros de
+origem e runners.
+
+### B14.3 - Retirada definitiva de origem e runners
+
+Concluida em 23/07/2026. Os quatro servicos tratados tiveram removidos
+configuracoes, executores, relatorios, runners e testes de backfill. Nao restam
+parametros de origem externa nesses modulos; apenas modelos locais, migrations
+e contratos oficiais. A compilacao conjunta dos quatro modulos passou verde.
+Proximo passo: revisar os demais servicos e a topologia antes do gate final.
+
+### B14.4 - Gate final operacional monolith-off
+
+Concluida em 23/07/2026. Foram retirados os mecanismos restantes de carga de
+origem de `identity-access-service`, `institutional-tenant-service`,
+`people-service`, `responsibles-service` e `academic-professor-service`.
+`platform/compose.yaml` nao declara o monolito e o gate estatico do BFF agora
+inspeciona o BFF, todos os servicos ativos e a plataforma contra cliente,
+fallback, URL, credenciais, `backfill` ou `gestao_escolar` de origem. Proximo
+passo: B14.5, retirada do modulo legado do build e checkout apos a ultima
+verificacao de referencias de projeto.
+
+### B14.5 - Descomissionamento definitivo do modulo legado
+
+Concluida em 23/07/2026. O diretorio `school-management-service`, com seus
+fontes, migrations, testes e wrappers, foi removido do checkout e controle de
+versao. O reactor raiz continua composto apenas pelo BFF e servicos modulares;
+nao ha referencia operacional ao modulo removido. B14 encerrada: o backend nao
+depende do monolito no checkout, topologia, configuracao ou contratos oficiais.
+O gate foi renomeado para `NoLegacyDependencyStaticGateTest` e as classes
+apontadas pela regra estrutural receberam nomes neutros, sem mudanca de
+contrato ou comportamento.

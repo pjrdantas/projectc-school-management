@@ -25,12 +25,3 @@ management:
 pedagogical:
   internal-api:
     token: ${PEDAGOGICAL_INTERNAL_API_TOKEN:pedagogical-internal-local-token}
-  persistence:
-    backfill:
-      enabled: ${PEDAGOGICAL_BACKFILL_ENABLED:false}
-      source-url: ${PEDAGOGICAL_BACKFILL_SOURCE_URL:}
-      source-username: ${PEDAGOGICAL_BACKFILL_SOURCE_USERNAME:}
-      source-password: ${PEDAGOGICAL_BACKFILL_SOURCE_PASSWORD:}
-      school-id: ${PEDAGOGICAL_BACKFILL_SCHOOL_ID:}
-      batch-size: ${PEDAGOGICAL_BACKFILL_BATCH_SIZE:500}
-      fail-on-mismatch: ${PEDAGOGICAL_BACKFILL_FAIL_ON_MISMATCH:true}

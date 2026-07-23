@@ -23,11 +23,3 @@ identity-access:
   session-cleanup:
     enabled: ${IDENTITY_ACCESS_SESSION_CLEANUP_ENABLED:true}
     fixed-delay: ${IDENTITY_ACCESS_SESSION_CLEANUP_FIXED_DELAY:24h}
-  persistence:
-    backfill:
-      enabled: ${IDENTITY_ACCESS_BACKFILL_ENABLED:false}
-      source-url: ${IDENTITY_ACCESS_BACKFILL_SOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
-      source-username: ${IDENTITY_ACCESS_BACKFILL_SOURCE_USERNAME:postgres}
-      source-password: ${IDENTITY_ACCESS_BACKFILL_SOURCE_PASSWORD:postgres}
-      batch-size: ${IDENTITY_ACCESS_BACKFILL_BATCH_SIZE:500}
-      fail-on-mismatch: ${IDENTITY_ACCESS_BACKFILL_FAIL_ON_MISMATCH:true}

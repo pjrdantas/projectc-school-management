@@ -16,7 +16,7 @@ import br.com.escola.responsiblesservice.application.dto.AtualizarResponsavelCom
 import br.com.escola.responsiblesservice.application.dto.ResponsavelReadModelResponse;
 import br.com.escola.responsiblesservice.application.exception.ResponsavelDuplicadoException;
 import br.com.escola.responsiblesservice.application.port.out.ResponsavelWritePort;
-import br.com.escola.responsiblesservice.infra.config.ResponsiblesPersistenceProperties;
+import br.com.escola.responsiblesservice.infra.config.PersistenceProperties;
 
 @Component
 public class JdbcResponsavelWriteAdapter implements ResponsavelWritePort {
@@ -74,9 +74,9 @@ public class JdbcResponsavelWriteAdapter implements ResponsavelWritePort {
               AND ativo = TRUE
             """;
 
-    private final ResponsiblesPersistenceProperties properties;
+    private final PersistenceProperties properties;
 
-    public JdbcResponsavelWriteAdapter(ResponsiblesPersistenceProperties properties) {
+    public JdbcResponsavelWriteAdapter(PersistenceProperties properties) {
         this.properties = properties;
     }
 

@@ -13,7 +13,7 @@ import org.springframework.util.StringUtils;
 
 import br.com.escola.peopleservice.application.exception.RecursoNaoEncontradoException;
 import br.com.escola.peopleservice.application.port.out.AlunoExclusaoPort;
-import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 @Component
 public class JdbcAlunoExclusaoAdapter implements AlunoExclusaoPort {
@@ -21,9 +21,9 @@ public class JdbcAlunoExclusaoAdapter implements AlunoExclusaoPort {
     private static final String TIPO_PESSOA_ALUNO = "ALUNO";
     private static final String MOTIVO_SAIDA_EXCLUSAO = "EXCLUSAO_SOLICITADA";
 
-    private final PeoplePersistenceProperties properties;
+    private final PersistenceProperties properties;
 
-    public JdbcAlunoExclusaoAdapter(PeoplePersistenceProperties properties) {
+    public JdbcAlunoExclusaoAdapter(PersistenceProperties properties) {
         this.properties = properties;
     }
 

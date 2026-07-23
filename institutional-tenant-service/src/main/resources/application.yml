@@ -15,18 +15,3 @@ spring:
 institutional-tenant:
   internal-api:
     token: ${INSTITUTIONAL_TENANT_INTERNAL_TOKEN:}
-  persistence:
-    school-load:
-      enabled: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_ENABLED:false}
-      source-url: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_SOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
-      source-username: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_SOURCE_USERNAME:postgres}
-      source-password: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_SOURCE_PASSWORD:postgres}
-      batch-size: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_BATCH_SIZE:500}
-      fail-on-mismatch: ${INSTITUTIONAL_TENANT_SCHOOL_LOAD_FAIL_ON_MISMATCH:true}
-    user-school-load:
-      enabled: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_ENABLED:false}
-      source-url: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_SOURCE_URL:jdbc:postgresql://localhost:5432/gestao_escolar}
-      source-username: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_SOURCE_USERNAME:postgres}
-      source-password: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_SOURCE_PASSWORD:postgres}
-      batch-size: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_BATCH_SIZE:500}
-      fail-on-mismatch: ${INSTITUTIONAL_TENANT_USER_SCHOOL_LOAD_FAIL_ON_MISMATCH:true}

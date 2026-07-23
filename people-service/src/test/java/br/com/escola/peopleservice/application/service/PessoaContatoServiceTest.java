@@ -90,16 +90,11 @@ class PessoaContatoServiceTest {
                 "result", "fallback_adapter_missing").count()).isEqualTo(1.0d);
     }
 
-    private PeopleDataAccessPolicy readRoutingPolicy(boolean localReadEligible, SimpleMeterRegistry meterRegistry) {
-        return new PeopleDataAccessPolicy(
-                new br.com.escola.peopleservice.infra.config.PeopleRuntimeProperties(
+    private DataAccessPolicy readRoutingPolicy(boolean localReadEligible, SimpleMeterRegistry meterRegistry) {
+        return new DataAccessPolicy(
+                new br.com.escola.peopleservice.infra.config.RuntimeProperties(
                         localReadEligible,
-                        false,
                         localReadEligible,
-                        false,
-                        false,
-                        false,
-                        500,
                         false),
                 meterRegistry);
     }

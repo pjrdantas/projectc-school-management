@@ -15,12 +15,12 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class PessoaFuncionarioResumoService {
 
     private final ObjectProvider<PessoaFuncionarioResumoPort> funcionarioPortProvider;
-    private final PeopleDataAccessPolicy readRoutingPolicy;
+    private final DataAccessPolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
     public PessoaFuncionarioResumoService(
             ObjectProvider<PessoaFuncionarioResumoPort> funcionarioPortProvider,
-            PeopleDataAccessPolicy readRoutingPolicy,
+            DataAccessPolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
         this.funcionarioPortProvider = funcionarioPortProvider;
         this.readRoutingPolicy = readRoutingPolicy;

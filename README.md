@@ -19,11 +19,9 @@ O `pom.xml` da raiz agrega exclusivamente os modulos operacionais:
 - `planning-ai-service`
 - `dashboard-query-service`
 
-O `school-management-service` nao participa do reactor Maven da plataforma
-nova, mas ainda nao pode ser removido da operacao: a auditoria D16 identificou
-contratos externos usados pelos frontends que ainda nao existem no BFF e nos
-servicos modulares. O descomissionamento permanece pendente ate esses contratos
-serem migrados e validados ponta a ponta.
+O `school-management-service` foi descomissionado. Os contratos operacionais
+pertencem ao BFF e aos servicos modulares listados acima; o modulo legado nao
+faz parte do checkout nem da topologia da plataforma.
 
 ## Build
 

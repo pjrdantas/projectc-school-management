@@ -11,7 +11,7 @@ import br.com.escola.responsiblesservice.application.dto.CriacaoAlunoResponsavel
 import br.com.escola.responsiblesservice.application.dto.DesvinculoAlunoResponsavelResultado;
 import br.com.escola.responsiblesservice.application.dto.VincularAlunoResponsavelCommand;
 import br.com.escola.responsiblesservice.application.port.out.AlunoResponsavelWritePort;
-import br.com.escola.responsiblesservice.infra.config.ResponsiblesPersistenceProperties;
+import br.com.escola.responsiblesservice.infra.config.PersistenceProperties;
 
 @Component
 public class JdbcAlunoResponsavelWriteAdapter implements AlunoResponsavelWritePort {
@@ -44,9 +44,9 @@ public class JdbcAlunoResponsavelWriteAdapter implements AlunoResponsavelWritePo
               AND id_responsavel = ?
             """;
 
-    private final ResponsiblesPersistenceProperties properties;
+    private final PersistenceProperties properties;
 
-    public JdbcAlunoResponsavelWriteAdapter(ResponsiblesPersistenceProperties properties) {
+    public JdbcAlunoResponsavelWriteAdapter(PersistenceProperties properties) {
         this.properties = properties;
     }
 

@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 class JdbcPessoaFuncionarioResumoAdapterTest {
 
@@ -66,7 +66,7 @@ class JdbcPessoaFuncionarioResumoAdapterTest {
     @Test
     void falhaQuandoUrlNaoFoiConfigurada() {
         JdbcPessoaFuncionarioResumoAdapter adapter = new JdbcPessoaFuncionarioResumoAdapter(
-                new PeoplePersistenceProperties("", "sa", "", "org.h2.Driver", List.of()));
+                new PersistenceProperties("", "sa", "", "org.h2.Driver", List.of()));
 
         assertThatThrownBy(() -> adapter.listarFuncionariosAtivosPorEscola(UUID.randomUUID()))
                 .isInstanceOf(IllegalStateException.class)
@@ -75,7 +75,7 @@ class JdbcPessoaFuncionarioResumoAdapterTest {
 
     private JdbcPessoaFuncionarioResumoAdapter adapter(String url) {
         return new JdbcPessoaFuncionarioResumoAdapter(
-                new PeoplePersistenceProperties(
+                new PersistenceProperties(
                         url,
                         "sa",
                         "",

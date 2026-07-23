@@ -18,11 +18,3 @@ server:
 planning-ai:
   internal-api:
     token: ${PLANNING_AI_INTERNAL_TOKEN:}
-  persistence:
-    backfill:
-      enabled: ${PLANNING_AI_BACKFILL_ENABLED:false}
-      source-url: ${PLANNING_AI_BACKFILL_SOURCE_URL:}
-      source-username: ${PLANNING_AI_BACKFILL_SOURCE_USERNAME:}
-      source-password: ${PLANNING_AI_BACKFILL_SOURCE_PASSWORD:}
-      batch-size: ${PLANNING_AI_BACKFILL_BATCH_SIZE:500}
-      fail-on-mismatch: ${PLANNING_AI_BACKFILL_FAIL_ON_MISMATCH:true}

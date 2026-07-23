@@ -14,12 +14,12 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class PessoaEnderecoService {
 
     private final PessoaEnderecoPort enderecoPort;
-    private final PeopleDataAccessPolicy readRoutingPolicy;
+    private final DataAccessPolicy readRoutingPolicy;
     private final MeterRegistry meterRegistry;
 
     public PessoaEnderecoService(
             PessoaEnderecoPort enderecoPort,
-            PeopleDataAccessPolicy readRoutingPolicy,
+            DataAccessPolicy readRoutingPolicy,
             MeterRegistry meterRegistry) {
         this.enderecoPort = enderecoPort;
         this.readRoutingPolicy = readRoutingPolicy;

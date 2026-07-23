@@ -10,7 +10,7 @@ import org.springframework.util.StringUtils;
 
 import br.com.escola.peopleservice.application.dto.PessoaContatoResponse;
 import br.com.escola.peopleservice.application.port.out.PessoaContatoPort;
-import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 @Component
 public class JdbcPessoaContatoAdapter implements PessoaContatoPort {
@@ -22,9 +22,9 @@ public class JdbcPessoaContatoAdapter implements PessoaContatoPort {
               AND id_escola = ?
             """;
 
-    private final PeoplePersistenceProperties properties;
+    private final PersistenceProperties properties;
 
-    public JdbcPessoaContatoAdapter(PeoplePersistenceProperties properties) {
+    public JdbcPessoaContatoAdapter(PersistenceProperties properties) {
         this.properties = properties;
     }
 

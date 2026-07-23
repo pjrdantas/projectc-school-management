@@ -10,14 +10,14 @@ import org.springframework.util.StringUtils;
 
 import br.com.escola.peopleservice.application.dto.PessoaCatalogoResponse;
 import br.com.escola.peopleservice.application.port.out.PessoaCatalogoPort;
-import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 @Component
 public class JdbcPessoaCatalogoAdapter implements PessoaCatalogoPort {
 
-    private final PeoplePersistenceProperties properties;
+    private final PersistenceProperties properties;
 
-    public JdbcPessoaCatalogoAdapter(PeoplePersistenceProperties properties) {
+    public JdbcPessoaCatalogoAdapter(PersistenceProperties properties) {
         this.properties = properties;
     }
 

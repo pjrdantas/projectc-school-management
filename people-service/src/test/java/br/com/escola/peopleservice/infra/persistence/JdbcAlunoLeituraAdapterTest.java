@@ -14,7 +14,7 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 
 import br.com.escola.peopleservice.application.model.AlunoNovo;
-import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 class JdbcAlunoLeituraAdapterTest {
 
@@ -86,8 +86,8 @@ class JdbcAlunoLeituraAdapterTest {
         return new JdbcAlunoLeituraAdapter(properties(url));
     }
 
-    private PeoplePersistenceProperties properties(String url) {
-        return new PeoplePersistenceProperties(
+    private PersistenceProperties properties(String url) {
+        return new PersistenceProperties(
                 url, "sa", "", "org.h2.Driver", List.of("classpath:db/people/migration"));
     }
 

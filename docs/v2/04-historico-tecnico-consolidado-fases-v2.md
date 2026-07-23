@@ -6559,3 +6559,68 @@ Este documento substitui os arquivos individuais de registro de fases que existi
   catalogo de status e o BFF oficializou
   `GET /api/matriculas/catalogos/status`, sem banco ou chamada ao monolito.
   Os gates externo e sem monolito passaram verdes. B13 concluida; B14 liberada.
+
+## 23/07/2026 - B14.1: Inventario operacional monolith-off
+
+- A plataforma declarada nao possui servico, job ou agendamento do monolito.
+- Os runners remanescentes sao opt-in e desabilitados por padrao: documentos e
+  matriculas no `enrollment-document-service`, Historico Escolar no
+  `pedagogical-service`, planejamento/IA e dashboard.
+- Todos exigem origem explicitamente configurada quando habilitados e encerram
+  a inicializacao em caso de relatorio nao reconciliado. Nao existe execucao
+  automatica nem segredo de origem configurado no compose.
+- Proximo passo: executar prova operacional reconciliada por runner antes de
+  remover os parametros de origem e os executores.
+
+## 23/07/2026 - B14.2: Provas reconciliadas dos backfills
+
+- Foram validados os executores de documentos, matriculas, Historico Escolar,
+  planejamento/IA e dashboard em ciclos idempotentes e reconciliados.
+- Foi adicionada a prova do executor de planejamento, que antes nao possuia
+  cobertura automatizada. O gate dos quatro modulos terminou verde com cinco
+  testes, sem habilitar flags ou origem externa.
+- Proximo passo: definir a retirada definitiva dos parametros de origem e dos
+  runners, pois a prova contra fonte real nao faz parte deste checkout.
+
+## 23/07/2026 - B14.3: Retirada definitiva de origem e runners
+
+- Foram removidos propriedades, configuracoes, executores, relatorios, runners
+  e testes de backfill de documentos/matriculas, pedagogico, planejamento/IA e
+  dashboard.
+- Os quatro servicos tratados permanecem somente com seus modelos locais,
+  migrations e contratos oficiais; nao aceitam mais URL, usuario, senha ou
+  storage de origem externa para importar dados legados.
+- A busca estatica confirmou ausencia de `Backfill`, `source-url`, credenciais
+  de origem e `ApplicationRunner` nos quatro modulos. Compilacao conjunta verde.
+- Proximo passo: revisar os demais servicos e a topologia de deploy para
+  executar o gate final de operacao monolith-off.
+
+## 23/07/2026 - B14.4: Gate final operacional monolith-off
+
+- Foram removidos os adaptadores restantes de carga de origem de
+  `identity-access-service`, `institutional-tenant-service`, `people-service`,
+  `responsibles-service` e `academic-professor-service`: propriedades,
+  configuracoes JDBC, executores, relatorios, runners e testes de migracao.
+- `platform/compose.yaml` nao declara o monolito. Os fontes e configuracoes de
+  todos os servicos ativos e do BFF tambem nao contem URL, credenciais,
+  `backfill`, cliente ou fallback para `school-management-service`.
+- `BffNoMonolithStaticGateTest` foi ampliado para proteger continuamente essa
+  regra no BFF, servicos ativos e plataforma. A configuracao local de runtime
+  do `people-service` foi reduzida aos tres controles ainda usados.
+- Proximo passo: B14.5, retirar o modulo legado do build e do checkout apos a
+  ultima verificacao de referencias de projeto.
+
+## 23/07/2026 - B14.5: Descomissionamento definitivo do modulo legado
+
+- O diretorio `school-management-service` foi removido do checkout e do
+  controle de versao, incluindo fontes, migrations, testes e wrappers Maven.
+- O reactor raiz ja agregava apenas BFF e servicos modulares; a verificacao
+  final confirma que nao existe referencia operacional ao modulo removido.
+- O README passou a declarar explicitamente a plataforma modular como backend
+  ativo. O identificador do modulo permanece somente em historico/documentacao
+  e no teste estatico que o bloqueia nos fontes produtivos.
+- O teste foi renomeado para `NoLegacyDependencyStaticGateTest`, e os nomes de
+  classe apontados pelo gate estrutural foram neutralizados sem alterar seus
+  contratos ou comportamentos.
+- B14 encerrada. O backend opera sem o monolito no checkout, topologia,
+  configuracao e contratos oficiais.

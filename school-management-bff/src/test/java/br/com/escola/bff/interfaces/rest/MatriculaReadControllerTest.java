@@ -17,8 +17,21 @@ class MatriculaReadControllerTest {
     @Test
     void deveExporContratoCompativelNaListagemDeMatriculas() {
         UUID alunoId = UUID.fromString("00000000-0000-0000-0000-000000000021");
-        ConsultarMatriculaUseCase useCase = (authorization, correlationId, requestedAlunoId, turmaId, periodoLetivoId, status) ->
-                Mono.just(ResponseEntity.ok("""
+        ConsultarMatriculaUseCase useCase = new ConsultarMatriculaUseCase() {
+            @Override
+            public Mono<ResponseEntity<String>> listarStatus(String authorization, String correlationId) {
+                return Mono.just(ResponseEntity.ok("[]"));
+            }
+
+            @Override
+            public Mono<ResponseEntity<String>> listarMatriculas(
+                    String authorization,
+                    String correlationId,
+                    UUID requestedAlunoId,
+                    UUID turmaId,
+                    UUID periodoLetivoId,
+                    String status) {
+                return Mono.just(ResponseEntity.ok("""
                         [{
                           "id":"00000000-0000-0000-0000-000000000701",
                           "alunoId":"00000000-0000-0000-0000-000000000021",
@@ -44,6 +57,8 @@ class MatriculaReadControllerTest {
                           }]
                         }]
                         """));
+            }
+        };
 
         WebTestClient client = WebTestClient.bindToController(new MatriculaReadController(useCase))
                 .controllerAdvice(new BffExceptionHandler())

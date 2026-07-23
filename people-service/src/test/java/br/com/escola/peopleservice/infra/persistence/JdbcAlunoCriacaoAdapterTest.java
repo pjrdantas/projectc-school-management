@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import br.com.escola.peopleservice.application.exception.ConflitoPessoaException;
 import br.com.escola.peopleservice.application.model.AlunoNovo;
-import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 class JdbcAlunoCriacaoAdapterTest {
 
@@ -58,7 +58,7 @@ class JdbcAlunoCriacaoAdapterTest {
     }
 
     private JdbcAlunoCriacaoAdapter adapter(String url) {
-        return new JdbcAlunoCriacaoAdapter(new PeoplePersistenceProperties(
+        return new JdbcAlunoCriacaoAdapter(new PersistenceProperties(
                 url,
                 "sa",
                 "",

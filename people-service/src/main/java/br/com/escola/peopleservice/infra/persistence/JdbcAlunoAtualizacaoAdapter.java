@@ -15,16 +15,16 @@ import br.com.escola.peopleservice.application.exception.RecursoNaoEncontradoExc
 import br.com.escola.peopleservice.application.model.AlunoAlteracao;
 import br.com.escola.peopleservice.application.model.AlunoAtualizado;
 import br.com.escola.peopleservice.application.port.out.AlunoAtualizacaoPort;
-import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 @Component
 public class JdbcAlunoAtualizacaoAdapter implements AlunoAtualizacaoPort {
 
     private static final String TIPO_ENDERECO_RESIDENCIAL = "RESIDENCIAL";
 
-    private final PeoplePersistenceProperties properties;
+    private final PersistenceProperties properties;
 
-    public JdbcAlunoAtualizacaoAdapter(PeoplePersistenceProperties properties) {
+    public JdbcAlunoAtualizacaoAdapter(PersistenceProperties properties) {
         this.properties = properties;
     }
 

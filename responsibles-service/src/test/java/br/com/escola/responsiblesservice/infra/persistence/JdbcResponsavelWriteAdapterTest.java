@@ -13,7 +13,7 @@ import br.com.escola.responsiblesservice.application.dto.CadastrarResponsavelCom
 import br.com.escola.responsiblesservice.application.dto.ExclusaoResponsavelResultado;
 import br.com.escola.responsiblesservice.application.dto.AtualizarResponsavelCommand;
 import br.com.escola.responsiblesservice.application.exception.ResponsavelDuplicadoException;
-import br.com.escola.responsiblesservice.infra.config.ResponsiblesPersistenceProperties;
+import br.com.escola.responsiblesservice.infra.config.PersistenceProperties;
 
 class JdbcResponsavelWriteAdapterTest {
 
@@ -118,7 +118,7 @@ class JdbcResponsavelWriteAdapterTest {
 
     private JdbcResponsavelWriteAdapter adapter(String url) {
         return new JdbcResponsavelWriteAdapter(
-                new ResponsiblesPersistenceProperties(url, "sa", "", "org.h2.Driver"));
+                new PersistenceProperties(url, "sa", "", "org.h2.Driver"));
     }
 
     private void migrate(String url) {

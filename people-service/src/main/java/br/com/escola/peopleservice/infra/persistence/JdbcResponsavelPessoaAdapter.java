@@ -10,7 +10,7 @@ import org.springframework.util.StringUtils;
 
 import br.com.escola.peopleservice.application.dto.PessoaResponsavelVinculoResponse;
 import br.com.escola.peopleservice.application.port.out.ResponsavelPessoaPort;
-import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 @Component
 public class JdbcResponsavelPessoaAdapter implements ResponsavelPessoaPort {
@@ -22,9 +22,9 @@ public class JdbcResponsavelPessoaAdapter implements ResponsavelPessoaPort {
               AND id_escola = ?
             """;
 
-    private final PeoplePersistenceProperties properties;
+    private final PersistenceProperties properties;
 
-    public JdbcResponsavelPessoaAdapter(PeoplePersistenceProperties properties) {
+    public JdbcResponsavelPessoaAdapter(PersistenceProperties properties) {
         this.properties = properties;
     }
 

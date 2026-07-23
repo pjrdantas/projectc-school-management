@@ -14,7 +14,7 @@ import br.com.escola.peopleservice.application.exception.ConflitoPessoaException
 import br.com.escola.peopleservice.application.model.AlunoCriado;
 import br.com.escola.peopleservice.application.model.AlunoNovo;
 import br.com.escola.peopleservice.application.port.out.AlunoCriacaoPort;
-import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 @Component
 public class JdbcAlunoCriacaoAdapter implements AlunoCriacaoPort {
@@ -22,9 +22,9 @@ public class JdbcAlunoCriacaoAdapter implements AlunoCriacaoPort {
     private static final String TIPO_PESSOA_ALUNO = "ALUNO";
     private static final String TIPO_ENDERECO_RESIDENCIAL = "RESIDENCIAL";
 
-    private final PeoplePersistenceProperties properties;
+    private final PersistenceProperties properties;
 
-    public JdbcAlunoCriacaoAdapter(PeoplePersistenceProperties properties) {
+    public JdbcAlunoCriacaoAdapter(PersistenceProperties properties) {
         this.properties = properties;
     }
 

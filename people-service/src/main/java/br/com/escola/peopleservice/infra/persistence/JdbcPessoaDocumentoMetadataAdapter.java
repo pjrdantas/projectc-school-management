@@ -13,7 +13,7 @@ import org.springframework.util.StringUtils;
 
 import br.com.escola.peopleservice.application.dto.PessoaDocumentoMetadataResponse;
 import br.com.escola.peopleservice.application.port.out.PessoaDocumentoMetadataPort;
-import br.com.escola.peopleservice.infra.config.PeoplePersistenceProperties;
+import br.com.escola.peopleservice.infra.config.PersistenceProperties;
 
 @Component
 public class JdbcPessoaDocumentoMetadataAdapter implements PessoaDocumentoMetadataPort {
@@ -34,9 +34,9 @@ public class JdbcPessoaDocumentoMetadataAdapter implements PessoaDocumentoMetada
             WHERE id_escola = ?
             """;
 
-    private final PeoplePersistenceProperties properties;
+    private final PersistenceProperties properties;
 
-    public JdbcPessoaDocumentoMetadataAdapter(PeoplePersistenceProperties properties) {
+    public JdbcPessoaDocumentoMetadataAdapter(PersistenceProperties properties) {
         this.properties = properties;
     }
 
