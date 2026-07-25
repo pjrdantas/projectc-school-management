@@ -8,10 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import br.com.escola.bff.application.dto.AuthSessionContext;
 import br.com.escola.bff.application.dto.CatalogReadQuery;
@@ -76,7 +76,7 @@ public class AlunoResponsavelWriteClient extends AbstractDownstreamClientSupport
                 object.set("responsavelId", responsavelId);
             }
             return objectMapper.writeValueAsString(object);
-        } catch (JsonProcessingException exception) {
+        } catch (JacksonException exception) {
             throw new IllegalArgumentException("Payload de vinculo invalido", exception);
         }
     }

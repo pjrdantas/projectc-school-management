@@ -17,8 +17,8 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import br.com.escola.bff.application.context.TrustedHeaders;
 import br.com.escola.bff.interfaces.response.ApiErrorResponse;
@@ -146,7 +146,7 @@ public class BearerAuthenticationWebFilter implements WebFilter {
             byte[] body = objectMapper.writeValueAsBytes(error);
             return exchange.getResponse().writeWith(Mono.just(
                     exchange.getResponse().bufferFactory().wrap(body)));
-        } catch (JsonProcessingException exception) {
+        } catch (JacksonException exception) {
             byte[] body = "{\"code\":\"UNAUTHORIZED\"}".getBytes(StandardCharsets.UTF_8);
             return exchange.getResponse().writeWith(Mono.just(
                     exchange.getResponse().bufferFactory().wrap(body)));

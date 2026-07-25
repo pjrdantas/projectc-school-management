@@ -6,7 +6,7 @@ import java.util.Locale;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import br.com.escola.dashboardqueryservice.application.context.InternalRequestContext;
 import br.com.escola.dashboardqueryservice.application.dto.PainelIndicadorPublicacaoCommand;

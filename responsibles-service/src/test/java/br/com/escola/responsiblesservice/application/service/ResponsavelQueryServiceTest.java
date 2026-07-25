@@ -11,7 +11,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import br.com.escola.responsiblesservice.application.context.InternalRequestContext;
 import br.com.escola.responsiblesservice.application.dto.ResponsavelReadModelResponse;

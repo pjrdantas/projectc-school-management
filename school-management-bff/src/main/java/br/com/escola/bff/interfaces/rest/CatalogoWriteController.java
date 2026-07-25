@@ -1,7 +1,7 @@
 package br.com.escola.bff.interfaces.rest;
 
 import java.util.UUID;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;

@@ -14,7 +14,7 @@ import br.com.escola.bff.application.dto.TurmaDisciplinaLinkedResult;
 import br.com.escola.bff.application.dto.TurmaDisciplinaUpdateCommand;
 import br.com.escola.bff.application.dto.TurmaUpdateCommand;
 import reactor.core.publisher.Mono;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 public interface CatalogoMutationWriteUseCase {
 

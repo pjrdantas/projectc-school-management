@@ -7,8 +7,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import br.com.escola.responsiblesservice.application.context.InternalRequestContext;
 import br.com.escola.responsiblesservice.application.port.in.ResponsavelQueryUseCase;
@@ -70,7 +70,7 @@ public class ResponsavelQueryService implements ResponsavelQueryUseCase {
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(objectMapper.writeValueAsString(body));
-        } catch (JsonProcessingException exception) {
+        } catch (JacksonException exception) {
             throw new IllegalStateException("responsibles-local-read-serialization-failed", exception);
         }
     }

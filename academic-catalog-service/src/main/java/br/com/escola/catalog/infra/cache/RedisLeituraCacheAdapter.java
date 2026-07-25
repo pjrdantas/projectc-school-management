@@ -9,8 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import br.com.escola.catalog.application.cache.LeituraSnapshot;
 import br.com.escola.catalog.application.port.out.LeituraCachePort;
@@ -58,7 +57,7 @@ public class RedisLeituraCacheAdapter implements LeituraCachePort {
             LeituraSnapshot snapshot = objectMapper.readValue(json, LeituraSnapshot.class);
             meterRegistry.counter("catalog.cache.hit").increment();
             return Optional.of(snapshot);
-        } catch (RuntimeException | JsonProcessingException exception) {
+        } catch (RuntimeException exception) {
             failOpen("leitura", key, exception);
             return Optional.empty();
         }
@@ -73,7 +72,7 @@ public class RedisLeituraCacheAdapter implements LeituraCachePort {
         try {
             redis.opsForValue().set(key, objectMapper.writeValueAsString(snapshot), ttl);
             meterRegistry.counter("catalog.cache.write").increment();
-        } catch (RuntimeException | JsonProcessingException exception) {
+        } catch (RuntimeException exception) {
             failOpen("escrita", key, exception);
         }
     }

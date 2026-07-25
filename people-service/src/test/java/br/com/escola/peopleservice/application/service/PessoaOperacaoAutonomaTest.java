@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.health.contributor.Status;
 
 import br.com.escola.peopleservice.application.dto.PessoaEnderecoWriteCommand;
 import br.com.escola.peopleservice.infra.config.RuntimeProperties;

@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
 
 import br.com.escola.catalog.application.event.IntegrationEventEnvelope;
 
@@ -23,8 +23,8 @@ public class CacheKafkaConfiguration {
     @Bean
     ConcurrentKafkaListenerContainerFactory<String, IntegrationEventEnvelope> catalogCacheKafkaListenerFactory(
             @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers) {
-        JsonDeserializer<IntegrationEventEnvelope> valueDeserializer =
-                new JsonDeserializer<>(IntegrationEventEnvelope.class, false);
+        JacksonJsonDeserializer<IntegrationEventEnvelope> valueDeserializer =
+                new JacksonJsonDeserializer<>(IntegrationEventEnvelope.class, false);
         valueDeserializer.addTrustedPackages("br.com.escola.catalog.application.event");
         var consumerFactory = new DefaultKafkaConsumerFactory<String, IntegrationEventEnvelope>(
                 Map.of(

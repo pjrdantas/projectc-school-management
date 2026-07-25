@@ -2,7 +2,7 @@ package br.com.escola.bff.application.port.out;
 
 import org.springframework.http.HttpMethod;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import br.com.escola.bff.application.dto.AuthSessionContext;
 import br.com.escola.bff.application.dto.CatalogWriteQuery;

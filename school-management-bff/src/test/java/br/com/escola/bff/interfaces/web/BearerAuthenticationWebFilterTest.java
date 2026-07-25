@@ -11,7 +11,7 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import br.com.escola.bff.application.context.TrustedHeaders;
 import reactor.core.publisher.Mono;
@@ -20,7 +20,7 @@ import reactor.test.StepVerifier;
 class BearerAuthenticationWebFilterTest {
 
     private final BearerAuthenticationWebFilter filter =
-            new BearerAuthenticationWebFilter(new ObjectMapper().findAndRegisterModules());
+            new BearerAuthenticationWebFilter(new ObjectMapper());
 
     @Test
     void deveRejeitarRotaProtegidaSemBearerToken() {

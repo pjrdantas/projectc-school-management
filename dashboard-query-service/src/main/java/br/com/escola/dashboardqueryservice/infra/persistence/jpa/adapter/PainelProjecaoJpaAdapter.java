@@ -11,9 +11,9 @@ import java.util.function.Predicate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
 
 import br.com.escola.dashboardqueryservice.application.context.InternalRequestContext;
 import br.com.escola.dashboardqueryservice.application.dto.PainelAcademicoResponse;
@@ -266,7 +266,7 @@ public class PainelProjecaoJpaAdapter implements
     private void converter(PainelProjecaoUpsertRequest request, Class<?> responseType) {
         try {
             objectMapper.treeToValue(request.payload(), responseType);
-        } catch (JsonProcessingException exception) {
+        } catch (JacksonException exception) {
             throw payloadInvalido(request, exception);
         }
     }
@@ -282,14 +282,14 @@ public class PainelProjecaoJpaAdapter implements
 
     private IllegalArgumentException payloadInvalido(
             PainelProjecaoUpsertRequest request,
-            JsonProcessingException exception) {
+            JacksonException exception) {
         return new IllegalArgumentException("Payload invalido para a projecao " + request.tipo(), exception);
     }
 
     private <T> T desserializar(String payload, Class<T> responseType) {
         try {
             return objectMapper.readValue(payload, responseType);
-        } catch (JsonProcessingException exception) {
+        } catch (JacksonException exception) {
             throw new IllegalStateException("Projecao local invalida para " + responseType.getSimpleName(), exception);
         }
     }
@@ -298,7 +298,7 @@ public class PainelProjecaoJpaAdapter implements
         try {
             JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, itemType);
             return objectMapper.readValue(payload, type);
-        } catch (JsonProcessingException exception) {
+        } catch (JacksonException exception) {
             throw new IllegalStateException("Projecao local invalida para " + itemType.getSimpleName(), exception);
         }
     }

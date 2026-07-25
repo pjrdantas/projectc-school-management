@@ -580,7 +580,7 @@ public class BffUseCaseConfiguration {
             AuthContextPort authContextPort,
             PlanejamentoBimestralReadPort planejamentoBimestralReadPort,
             ProfessorReadPort professorReadPort,
-            com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
+            tools.jackson.databind.ObjectMapper objectMapper) {
         return new PlanejamentoBimestralReadProxyService(
                 authContextPort, planejamentoBimestralReadPort, professorReadPort, objectMapper);
     }

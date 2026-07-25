@@ -12,9 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import br.com.escola.pedagogicalservice.application.context.InternalRequestContext;
 import br.com.escola.pedagogicalservice.application.dto.AulaResponse;
@@ -501,9 +501,9 @@ public class PersistenciaLocalAdapter {
     }
 
     private HistoricoEscolarTelaResponse buildHistoricoTela(UUID id, UUID alunoId, UUID matriculaId, String modo, JsonNode root) {
-        if (root != null && root.has("cabecalho") && root.has("aluno")) {
+        if (root != null && root.isObject() && root.has("cabecalho") && root.has("aluno")) {
             try {
-                ObjectNode tela = root.deepCopy();
+                ObjectNode tela = ((ObjectNode) root).deepCopy();
                 ObjectNode contexto = tela.withObject("contexto");
                 contexto.put("idHistoricoEscolar", id == null ? null : id.toString());
                 contexto.put("idAluno", alunoId == null ? null : alunoId.toString());

@@ -6,8 +6,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import br.com.escola.dashboardqueryservice.application.context.InternalRequestContext;
 import br.com.escola.dashboardqueryservice.application.dto.PainelUsuarioPreferenciaCommand;
@@ -99,7 +99,7 @@ public class PainelUsuarioPreferenciaService implements PainelUsuarioPreferencia
         }
         try {
             return objectMapper.writeValueAsString(objectMapper.readTree(configuracaoJson));
-        } catch (JsonProcessingException exception) {
+        } catch (JacksonException exception) {
             throw new IllegalArgumentException("configuracaoJson deve conter JSON valido", exception);
         }
     }
