@@ -11912,3 +11912,15 @@ depende do monolito no checkout, topologia, configuracao ou contratos oficiais.
 O gate foi renomeado para `NoLegacyDependencyStaticGateTest` e as classes
 apontadas pela regra estrutural receberam nomes neutros, sem mudanca de
 contrato ou comportamento.
+
+## 23/07/2026 - Inicio do frontend oficial de Diario de Classe e Historico Escolar
+
+- a entrega posterior ao fechamento backend de B10/B11 iniciou as telas
+  oficiais no `school-management-web`, mantendo os contratos publicos do BFF;
+- Diario de Classe passou a ter rota federada, leitura e gravacao pelo contrato
+  `/api/diarios-classe`, com frequencia, conteudos, observacoes e assinatura;
+- Historico Escolar passou a ter rotas federadas de cadastro e edicao, usando
+  carregamento, salvar e importacao de PDF do BFF; a entrada exige o contexto
+  de aluno e matricula quando o registro for novo;
+- a validacao desta etapa fica restrita aos MFEs de alunos, aulas/avaliacoes e
+  ao shell. Nenhum servico Java foi alterado.

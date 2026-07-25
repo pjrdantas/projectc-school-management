@@ -133,6 +133,27 @@ export const SHELL_DOMAIN_CATALOG: Record<ShellDomain, ShellDomainCatalogItem> =
 
 export const SHELL_REMOTE_ROUTES: ShellRemoteRoute[] = [
   {
+    path: 'school-records/new',
+    domain: 'alunos',
+    runtimeRemoteName: 'mfe-alunos',
+    exposedModule: './SchoolRecordNew',
+    exportName: 'HistoricoEscolarOficialComponent',
+  },
+  {
+    path: 'school-records/:id',
+    domain: 'alunos',
+    runtimeRemoteName: 'mfe-alunos',
+    exposedModule: './SchoolRecordDetail',
+    exportName: 'HistoricoEscolarOficialComponent',
+  },
+  {
+    path: 'class-diaries',
+    domain: 'aulas-avaliacoes',
+    runtimeRemoteName: 'mfe-aulas-avaliacoes',
+    exposedModule: './ClassDiary',
+    exportName: 'DiarioClasseComponent',
+  },
+  {
     path: 'dashboard',
     domain: 'dashboard',
     runtimeRemoteName: 'mfe-dashboard',

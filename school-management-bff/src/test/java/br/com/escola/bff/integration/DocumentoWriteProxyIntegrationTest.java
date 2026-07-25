@@ -112,7 +112,8 @@ class DocumentoWriteProxyIntegrationTest {
         assertThat(multipart).contains("conteudo comprovante");
     }
 
-    @Test
+    @SuppressWarnings("resource")
+	@Test
     void deveOficializarDownloadDeDocumentoPorEntidade() throws InterruptedException {
         String documentoId = "00000000-0000-0000-0000-000000000401";
         byte[] conteudo = "conteudo administrativo".getBytes(StandardCharsets.UTF_8);

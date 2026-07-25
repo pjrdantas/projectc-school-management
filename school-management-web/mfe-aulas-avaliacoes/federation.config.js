@@ -9,6 +9,7 @@ module.exports = withNativeFederation({
     './LessonDetail': './src/app/professor/exposes/lesson-detail.expose.ts',
     './AssessmentList': './src/app/professor/exposes/assessment-list.expose.ts',
     './AssessmentDetail': './src/app/professor/exposes/assessment-detail.expose.ts',
+    './ClassDiary': './src/app/professor/exposes/diario-classe.expose.ts',
   },
 
  shared: {

@@ -1,7 +1,9 @@
 package br.com.escola.pedagogicalservice.application.exception;
 
 public class ConflitoNegocioException extends RuntimeException {
-    public ConflitoNegocioException(String message) {
+    private static final long serialVersionUID = 1L;
+
+	public ConflitoNegocioException(String message) {
         super(message);
     }
 }

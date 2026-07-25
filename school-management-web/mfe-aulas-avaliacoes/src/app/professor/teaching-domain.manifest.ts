@@ -6,27 +6,32 @@ type TeachingRoutePath =
   | 'lessons'
   | 'lessons/:id'
   | 'assessments'
-  | 'assessments/:id';
+  | 'assessments/:id'
+  | 'class-diaries';
 type TeachingExposedModule =
   | './LessonList'
   | './LessonDetail'
   | './AssessmentList'
-  | './AssessmentDetail';
+  | './AssessmentDetail'
+  | './ClassDiary';
 type TeachingExposeFilePath =
   | './src/app/professor/exposes/lesson-list.expose.ts'
   | './src/app/professor/exposes/lesson-detail.expose.ts'
   | './src/app/professor/exposes/assessment-list.expose.ts'
-  | './src/app/professor/exposes/assessment-detail.expose.ts';
+  | './src/app/professor/exposes/assessment-detail.expose.ts'
+  | './src/app/professor/exposes/diario-classe.expose.ts';
 type TeachingExportName =
   | 'LessonsListComponent'
   | 'LessonDetailComponent'
   | 'AssessmentsListComponent'
-  | 'AssessmentDetailComponent';
+  | 'AssessmentDetailComponent'
+  | 'DiarioClasseComponent';
 type TeachingManifestKey =
   | 'lesson-list'
   | 'lesson-detail'
   | 'assessment-list'
-  | 'assessment-detail';
+  | 'assessment-detail'
+  | 'class-diary';
 type TeachingRouteKind = 'list' | 'detail';
 type TeachingRouteRole = 'operational';
 type TeachingShellNavigation = 'business-menu' | 'contextual';
@@ -47,6 +52,20 @@ export interface TeachingDomainManifestItem {
 }
 
 export const TEACHING_DOMAIN_MANIFEST: readonly TeachingDomainManifestItem[] = [
+  {
+    key: 'class-diary',
+    domain: 'aulas-avaliacoes',
+    futureRemoteName: 'mfe-aulas-avaliacoes',
+    path: 'class-diaries',
+    exposedModule: './ClassDiary',
+    exposeFilePath: './src/app/professor/exposes/diario-classe.expose.ts',
+    exportName: 'DiarioClasseComponent',
+    routeKind: 'detail',
+    routeRole: 'operational',
+    shellNavigation: 'contextual',
+    extractionCandidate: false,
+    loadComponent: () => import('../diario/diario-classe.component').then(m => m.DiarioClasseComponent),
+  },
   {
     key: 'lesson-list',
     domain: 'aulas-avaliacoes',

@@ -9,6 +9,8 @@ module.exports = withNativeFederation({
     './AlunoNew': './src/app/aluno/exposes/student-new.expose.ts',
     './AlunoDetail': './src/app/aluno/exposes/student-detail.expose.ts',
     './AlunoEdit': './src/app/aluno/exposes/student-edit.expose.ts',
+    './SchoolRecordNew': './src/app/aluno/exposes/historico-escolar.expose.ts',
+    './SchoolRecordDetail': './src/app/aluno/exposes/historico-escolar-detalhe.expose.ts',
   },
 
  shared: {

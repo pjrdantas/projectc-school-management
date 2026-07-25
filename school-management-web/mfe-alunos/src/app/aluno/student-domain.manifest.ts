@@ -2,18 +2,21 @@ import { Route } from '@angular/router';
 
 type StudentDomainName = 'alunos';
 type StudentFutureRemoteName = 'mfe-alunos';
-type StudentRoutePath = 'students' | 'students/new' | 'students/:id' | 'students/:id/edit';
-type StudentExposedModule = './AlunoList' | './AlunoNew' | './AlunoDetail' | './AlunoEdit';
+type StudentRoutePath = 'students' | 'students/new' | 'students/:id' | 'students/:id/edit' | 'school-records/new' | 'school-records/:id';
+type StudentExposedModule = './AlunoList' | './AlunoNew' | './AlunoDetail' | './AlunoEdit' | './SchoolRecordNew' | './SchoolRecordDetail';
 type StudentExposeFilePath =
   | './src/app/aluno/exposes/student-list.expose.ts'
   | './src/app/aluno/exposes/student-new.expose.ts'
   | './src/app/aluno/exposes/student-detail.expose.ts'
-  | './src/app/aluno/exposes/student-edit.expose.ts';
+  | './src/app/aluno/exposes/student-edit.expose.ts'
+  | './src/app/aluno/exposes/historico-escolar.expose.ts'
+  | './src/app/aluno/exposes/historico-escolar-detalhe.expose.ts';
 type StudentExportName =
   | 'StudentsListComponent'
   | 'StudentsNewComponent'
-  | 'StudentsDetailComponent';
-type StudentManifestKey = 'students-list' | 'students-new' | 'students-detail' | 'students-edit';
+  | 'StudentsDetailComponent'
+  | 'HistoricoEscolarOficialComponent';
+type StudentManifestKey = 'students-list' | 'students-new' | 'students-detail' | 'students-edit' | 'school-record-new' | 'school-record-detail';
 type StudentRouteKind = 'list' | 'create' | 'detail' | 'edit';
 type StudentRouteRole = 'operational';
 type StudentShellNavigation = 'business-menu' | 'contextual';
@@ -34,6 +37,14 @@ export interface StudentDomainManifestItem {
 }
 
 export const STUDENT_DOMAIN_MANIFEST: readonly StudentDomainManifestItem[] = [
+  {
+    key: 'school-record-new', domain: 'alunos', futureRemoteName: 'mfe-alunos', path: 'school-records/new', exposedModule: './SchoolRecordNew', exposeFilePath: './src/app/aluno/exposes/historico-escolar.expose.ts', exportName: 'HistoricoEscolarOficialComponent', routeKind: 'create', routeRole: 'operational', shellNavigation: 'contextual', extractionCandidate: false,
+    loadComponent: () => import('../historico-oficial/historico-escolar.component').then(m => m.HistoricoEscolarOficialComponent),
+  },
+  {
+    key: 'school-record-detail', domain: 'alunos', futureRemoteName: 'mfe-alunos', path: 'school-records/:id', exposedModule: './SchoolRecordDetail', exposeFilePath: './src/app/aluno/exposes/historico-escolar-detalhe.expose.ts', exportName: 'HistoricoEscolarOficialComponent', routeKind: 'detail', routeRole: 'operational', shellNavigation: 'contextual', extractionCandidate: false,
+    loadComponent: () => import('../historico-oficial/historico-escolar.component').then(m => m.HistoricoEscolarOficialComponent),
+  },
   {
     key: 'students-list',
     domain: 'alunos',

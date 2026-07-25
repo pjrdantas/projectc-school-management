@@ -112,7 +112,8 @@ class DocumentoAlunoWriteProxyIntegrationTest {
         assertThat(multipart).contains("conteudo rg");
     }
 
-    @Test
+    @SuppressWarnings("resource")
+	@Test
     void deveOficializarDownloadDeDocumentoDeAluno() throws InterruptedException {
         String documentoId = "00000000-0000-0000-0000-000000000301";
         byte[] conteudo = "conteudo do documento".getBytes(StandardCharsets.UTF_8);
