@@ -11924,3 +11924,20 @@ contrato ou comportamento.
   de aluno e matricula quando o registro for novo;
 - a validacao desta etapa fica restrita aos MFEs de alunos, aulas/avaliacoes e
   ao shell. Nenhum servico Java foi alterado.
+
+## 27/07/2026 - Fechamento da lacuna de importacao textual de PDF no Historico Escolar
+
+- foi corrigida a lacuna contratual entre a tela oficial e o backend: o BFF
+  passou a expor `POST /api/historicos-escolares/importacao-pdf` e a encaminhar
+  o multipart ao `pedagogical-service`, preservando bearer, correlation ID e
+  contexto interno de usuario/escola;
+- o `pedagogical-service` passou a aceitar apenas PDF de ate 10 MB, extrair o
+  texto pesquisavel com PDFBox e devolver o pre-preenchimento em estado
+  `PENDENTE`, sem persistir ou concluir automaticamente o Historico Escolar;
+- PDFs digitalizados sem texto pesquisavel retornam aviso para conferencia e
+  OCR. A integracao de um motor OCR (Tesseract/tess4j ou equivalente) continua
+  fora deste recorte e deve ser tratada como subfase propria, com runtime e
+  operacao definidos;
+- validacao focada: teste unitario do extrator, integracao do proxy multipart
+  no BFF, chamada HTTP real ao endpoint interno com o PDF de referencia e build
+  contratual do `mfe-alunos`.
