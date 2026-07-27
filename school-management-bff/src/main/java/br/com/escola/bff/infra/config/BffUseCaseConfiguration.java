@@ -181,6 +181,7 @@ import br.com.escola.bff.application.usecase.CriarAvaliacaoUseCase;
 import br.com.escola.bff.application.usecase.CriarEscolaOrigemUseCase;
 import br.com.escola.bff.application.usecase.CriarHistoricoEscolarUseCase;
 import br.com.escola.bff.application.usecase.ExcluirHistoricoEscolarUseCase;
+import br.com.escola.bff.application.usecase.ImportarHistoricoEscolarPdfUseCase;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoUseCase;
 import br.com.escola.bff.application.usecase.CriarPlanejamentoIaConteudoVersaoUseCase;
 import br.com.escola.bff.application.usecase.CriarTransferenciaUseCase;
@@ -468,6 +469,13 @@ public class BffUseCaseConfiguration {
 
     @Bean
     CriarHistoricoEscolarUseCase criarHistoricoEscolarUseCase(
+            AuthContextPort authContextPort,
+            HistoricoEscolarWritePort pedagogicalHistoricoEscolarWritePort) {
+        return new HistoricoEscolarWriteProxyService(authContextPort, pedagogicalHistoricoEscolarWritePort);
+    }
+
+    @Bean
+    ImportarHistoricoEscolarPdfUseCase importarHistoricoEscolarPdfUseCase(
             AuthContextPort authContextPort,
             HistoricoEscolarWritePort pedagogicalHistoricoEscolarWritePort) {
         return new HistoricoEscolarWriteProxyService(authContextPort, pedagogicalHistoricoEscolarWritePort);

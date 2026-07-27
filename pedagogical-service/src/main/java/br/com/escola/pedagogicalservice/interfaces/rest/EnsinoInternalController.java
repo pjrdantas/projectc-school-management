@@ -19,8 +19,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import br.com.escola.pedagogicalservice.application.context.InternalHeaders;
 import br.com.escola.pedagogicalservice.application.context.InternalRequestContext;
@@ -30,11 +32,13 @@ import br.com.escola.pedagogicalservice.application.dto.BoletimResponse;
 import br.com.escola.pedagogicalservice.application.dto.FrequenciaAlunoResponse;
 import br.com.escola.pedagogicalservice.application.dto.FrequenciaDocenteResponse;
 import br.com.escola.pedagogicalservice.application.dto.HistoricoEscolarTelaResponse;
+import br.com.escola.pedagogicalservice.application.dto.HistoricoEscolarPdfImportResponse;
 import br.com.escola.pedagogicalservice.application.dto.NotaAlunoResponse;
 import br.com.escola.pedagogicalservice.application.port.in.AvaliacaoUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.AulaUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.HistoricoEscolarReadUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.HistoricoEscolarWriteUseCase;
+import br.com.escola.pedagogicalservice.application.service.HistoricoEscolarPdfImportService;
 import br.com.escola.pedagogicalservice.application.port.in.BoletimQueryUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.DiarioClasseReadUseCase;
 import br.com.escola.pedagogicalservice.application.port.in.DiarioClasseWriteUseCase;
@@ -50,6 +54,7 @@ public class EnsinoInternalController {
     private final DiarioClasseWriteUseCase diarioClasseWriteUseCase;
     private final HistoricoEscolarReadUseCase historicoEscolarReadUseCase;
     private final HistoricoEscolarWriteUseCase historicoEscolarWriteUseCase;
+    private final HistoricoEscolarPdfImportService historicoEscolarPdfImportService;
 
     public EnsinoInternalController(
             BoletimQueryUseCase boletimQueryUseCase,
@@ -58,7 +63,8 @@ public class EnsinoInternalController {
             DiarioClasseReadUseCase diarioClasseReadUseCase,
             DiarioClasseWriteUseCase diarioClasseWriteUseCase,
             HistoricoEscolarReadUseCase historicoEscolarReadUseCase,
-            HistoricoEscolarWriteUseCase historicoEscolarWriteUseCase) {
+            HistoricoEscolarWriteUseCase historicoEscolarWriteUseCase,
+            HistoricoEscolarPdfImportService historicoEscolarPdfImportService) {
         this.boletimQueryUseCase = boletimQueryUseCase;
         this.avaliacaoUseCase = avaliacaoUseCase;
         this.aulaUseCase = aulaUseCase;
@@ -66,6 +72,7 @@ public class EnsinoInternalController {
         this.diarioClasseWriteUseCase = diarioClasseWriteUseCase;
         this.historicoEscolarReadUseCase = historicoEscolarReadUseCase;
         this.historicoEscolarWriteUseCase = historicoEscolarWriteUseCase;
+        this.historicoEscolarPdfImportService = historicoEscolarPdfImportService;
     }
 
     @GetMapping("/matriculas/{matriculaId}/boletim")
@@ -272,6 +279,11 @@ public class EnsinoInternalController {
             @RequestAttribute(InternalHeaders.REQUEST_CONTEXT_ATTRIBUTE) InternalRequestContext context,
             @PathVariable @NonNull UUID id) {
         return historicoEscolarReadUseCase.carregarParaEdicao(authorization, context, id);
+    }
+
+    @PostMapping(value = "/historicos-escolares/importacao-pdf", consumes = "multipart/form-data")
+    public HistoricoEscolarPdfImportResponse importarHistoricoEscolarPdf(@RequestPart("arquivo") MultipartFile arquivo) {
+        return historicoEscolarPdfImportService.importar(arquivo);
     }
 }
 

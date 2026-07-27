@@ -3,6 +3,7 @@ package br.com.escola.bff.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterAll;
@@ -12,9 +13,11 @@ import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTest
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.BodyInserters;
 
 import br.com.escola.bff.application.context.TrustedHeaders;
 import okhttp3.mockwebserver.MockResponse;
@@ -133,6 +136,33 @@ class HistoricoEscolarWriteProxyIntegrationTest {
         var request = PEDAGOGICAL.takeRequest();
         assertThat(request.getMethod()).isEqualTo("DELETE");
         assertThat(request.getPath()).isEqualTo("/internal/v1/historicos-escolares/" + historicoId);
+    }
+
+    @Test
+    void deveEncaminharImportacaoDePdfAoPedagogicalService() throws InterruptedException {
+        MONOLITH.enqueue(contextoAutenticado());
+        PEDAGOGICAL.enqueue(new MockResponse()
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody("{\"historico\":{},\"nomeArquivo\":\"historico.pdf\",\"confiancaGeral\":45,\"avisos\":[]}"));
+        MultipartBodyBuilder body = new MultipartBodyBuilder();
+        body.part("arquivo", "%PDF-1.4".getBytes(StandardCharsets.UTF_8))
+                .filename("historico.pdf")
+                .contentType(MediaType.APPLICATION_PDF);
+
+        client.post().uri("/api/historicos-escolares/importacao-pdf")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer opaque-token")
+                .header(TrustedHeaders.CORRELATION_ID, "corr-pedagogical-history-import")
+                .body(BodyInserters.fromMultipartData(body.build()))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.nomeArquivo").isEqualTo("historico.pdf");
+
+        MONOLITH.takeRequest();
+        var request = PEDAGOGICAL.takeRequest();
+        assertThat(request.getPath()).isEqualTo("/internal/v1/historicos-escolares/importacao-pdf");
+        assertThat(request.getHeader("X-Correlation-Id")).isEqualTo("corr-pedagogical-history-import");
+        assertThat(request.getBody().readUtf8()).contains("filename=\"historico.pdf\"");
     }
 
     private static MockResponse contextoAutenticado() {

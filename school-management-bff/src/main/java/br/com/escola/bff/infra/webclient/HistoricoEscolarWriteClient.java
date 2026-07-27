@@ -4,7 +4,12 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -26,6 +31,28 @@ public class HistoricoEscolarWriteClient extends AbstractDownstreamClientSupport
             EnsinoClientProperties properties) {
         this.webClient = pedagogicalServiceWebClient;
         this.properties = properties;
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> importarPdf(FilePart arquivo, CatalogReadQuery query, AuthSessionContext context) {
+        MultipartBodyBuilder body = new MultipartBodyBuilder();
+        MediaType contentType = arquivo.headers().getContentType();
+        body.asyncPart("arquivo", arquivo.content(), DataBuffer.class)
+                .filename(arquivo.filename())
+                .contentType(contentType == null ? MediaType.APPLICATION_OCTET_STREAM : contentType);
+        return webClient.post()
+                .uri("/internal/v1/historicos-escolares/importacao-pdf")
+                .headers(headers -> {
+                    headers.set(HttpHeaders.AUTHORIZATION, query.authorization());
+                    headers.set("X-Internal-Token", properties.internalToken());
+                    headers.set("X-Correlation-Id", query.correlationId());
+                    headers.set("X-Usuario-Id", context.usuarioId().toString());
+                    headers.set("X-Escola-Id", context.escolaId().toString());
+                })
+                .body(BodyInserters.fromMultipartData(body.build()))
+                .exchangeToMono(response -> handle(response, "Pedagogical service retornou erro interno"))
+                .timeout(properties.responseTimeout())
+                .onErrorMap(error -> mapTransportError(error, "Pedagogical service indisponivel"));
     }
 
     @Override
