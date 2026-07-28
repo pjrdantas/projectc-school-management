@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ShellContextService } from '../core/shell/shell-context.service';
 
-export type FrequenciaStatus = 'P' | '.' | 'F';
+export type FrequenciaStatus = 'P' | '.' | 'F' | 'J';
 
 export interface DiarioClasse {
   cabecalho: { idDiarioClasse: string; escola: string; diretoriaEnsino: string; municipio: string; anoLetivo: number; mes: number; dataAtual: string; turmaSerie: string; turno: string; disciplina: string; professor: string };
@@ -18,7 +18,7 @@ export interface DiarioClasse {
 export interface DiarioClasseSalvar {
   idDiarioClasse: string;
   dataLancamento: string;
-  frequencias: Array<{ idAluno: string; data: string; dia: number; status: FrequenciaStatus }>;
+  frequencias: Array<{ idAluno: string; data: string; dia: number; situacao: 'PRESENTE' | 'FALTA_JUSTIFICADA' | 'FALTA' }>;
   conteudos: Array<{ idPlanejamentoAula: string; periodo: string; descricao: string; alterado: boolean; observacaoJustificativa?: string }>;
   observacoes: string[];
   assinatura: { nomeProfessor: string; dataAssinatura: string };
