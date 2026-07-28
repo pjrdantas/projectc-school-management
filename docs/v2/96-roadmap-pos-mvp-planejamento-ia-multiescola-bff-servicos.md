@@ -11941,3 +11941,17 @@ contrato ou comportamento.
 - validacao focada: teste unitario do extrator, integracao do proxy multipart
   no BFF, chamada HTTP real ao endpoint interno com o PDF de referencia e build
   contratual do `mfe-alunos`.
+
+## 27/07/2026 - Validacao autenticada da importacao pelo BFF
+
+- no ambiente Docker local limpo, `identity-access-service` e
+  `institutional-tenant-service` passaram a incluir o modulo
+  `spring-boot-flyway`, necessario no Spring Boot 4.1 para executar suas
+  migrations no startup; os esquemas de sessao e tenant foram aplicados no
+  PostgreSQL;
+- a jornada real pelo BFF foi validada com escola e usuario temporarios:
+  autenticacao, resolucao do tenant ativo e
+  `POST /api/historicos-escolares/importacao-pdf` retornaram sucesso;
+- a resposta confirmou o pre-preenchimento em `PENDENTE`, sem persistencia do
+  Historico Escolar. Os dados temporarios e os processos locais foram removidos
+  ao termino da validacao.
