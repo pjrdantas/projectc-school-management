@@ -27,3 +27,34 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 body.login-page-active {
   overflow: hidden;
 }
+
+@page {
+  size: A4 portrait;
+  margin: 8mm;
+}
+
+@media print {
+  html,
+  body {
+    width: auto;
+    min-height: auto;
+    overflow: visible !important;
+    background: #fff;
+  }
+
+  body.diario-classe-printing {
+    margin: 0;
+  }
+
+  body.diario-classe-printing app-menu > mat-toolbar,
+  body.diario-classe-printing app-menu > mat-divider {
+    display: none !important;
+  }
+
+  body.diario-classe-printing app-menu .content-container {
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
+}

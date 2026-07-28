@@ -1,4 +1,4 @@
-const { withNativeFederation, shareAll } = require('@angular-architects/native-federation/config');
+const { withNativeFederation, share, shareAll } = require('@angular-architects/native-federation/config');
 
 module.exports = withNativeFederation({
   name: 'host',
@@ -10,10 +10,20 @@ module.exports = withNativeFederation({
     strictVersion: true,
     requiredVersion: 'auto',
   }),
-
-  '@angular/material': { singleton: true },
-  '@angular/cdk': { singleton: true },
-  '@angular/cdk/a11y': { singleton: true },
+  ...share({
+    '@angular/material': {
+      singleton: true,
+      strictVersion: true,
+      requiredVersion: 'auto',
+      includeSecondaries: { keepAll: true, skip: [] },
+    },
+    '@angular/cdk': {
+      singleton: true,
+      strictVersion: true,
+      requiredVersion: 'auto',
+      includeSecondaries: { keepAll: true, skip: [] },
+    },
+  }),
 },
 
 skip: [

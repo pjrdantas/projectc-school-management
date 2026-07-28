@@ -1,7 +1,302 @@
-<section class="page"><header><div><h1>Diário de Classe</h1><p>Registro diário de frequência, conteúdos e assinatura.</p></div><button mat-stroked-button (click)="imprimir()"><mat-icon>print</mat-icon> Imprimir</button></header>
-<mat-progress-bar *ngIf="carregando()" mode="indeterminate" />
-<mat-card *ngIf="erro()" class="error">{{ erro() }}</mat-card>
-<ng-container *ngIf="diario() as d"><mat-card class="summary"><strong>{{ d.cabecalho.escola }}</strong><span>{{ d.cabecalho.turmaSerie }} · {{ d.cabecalho.disciplina }} · {{ d.cabecalho.professor }}</span><span>{{ d.cabecalho.dataAtual }} · {{ d.cabecalho.turno }}</span></mat-card>
-<mat-card><h2>Frequência</h2><p *ngIf="d.bloqueado" class="locked">Este diário está bloqueado após o salvamento.</p><table><thead><tr><th>Nº</th><th>Aluno</th><th>Presença no dia</th></tr></thead><tbody><tr *ngFor="let aluno of d.alunos"><td>{{ aluno.numeroChamada }}</td><td>{{ aluno.nome }}</td><td><button mat-button [disabled]="d.bloqueado" (click)="marcar(aluno, 'P')">P</button><button mat-button [disabled]="d.bloqueado" (click)="marcar(aluno, '.')">.</button><button mat-button color="warn" [disabled]="d.bloqueado" (click)="marcar(aluno, 'F')">F</button><button mat-button [disabled]="d.bloqueado" (click)="marcar(aluno, 'J')">J</button></td></tr></tbody></table></mat-card>
-<mat-card><h2>Conteúdos planejados</h2><ul><li *ngFor="let conteudo of d.conteudosPlanejados"><strong>{{ conteudo.periodo }}</strong> — {{ conteudo.descricao }}</li></ul><h2>Avaliações</h2><ul><li *ngFor="let avaliacao of d.avaliacoes">{{ avaliacao.data }} — {{ avaliacao.descricao }} ({{ avaliacao.valor }})</li></ul></mat-card>
-<mat-card><h2>Observações e assinatura</h2><mat-form-field appearance="outline"><mat-label>Observações</mat-label><textarea matInput rows="4" [(ngModel)]="observacoes" [disabled]="!!d.bloqueado"></textarea></mat-form-field><mat-form-field appearance="outline"><mat-label>Assinatura do professor</mat-label><input matInput [(ngModel)]="assinatura" [disabled]="!!d.bloqueado"></mat-form-field><mat-form-field appearance="outline"><mat-label>Data da assinatura</mat-label><input matInput [(ngModel)]="dataAssinatura" [disabled]="!!d.bloqueado"></mat-form-field><button mat-raised-button color="primary" [disabled]="!!d.bloqueado || salvando()" (click)="salvar()">{{ salvando() ? 'Salvando...' : 'Salvar diário' }}</button></mat-card></ng-container></section>
+<main class="page-shell no-print">
+  <aside class="sidebar no-print">
+    <mat-card>
+      <mat-card-header>
+        <mat-icon mat-card-avatar>school</mat-icon>
+        <mat-card-title>Escola Municipal</mat-card-title>
+        <mat-card-subtitle>Diário de Classe</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="summary-label">Resumo mensal</p>
+        <div class="presence-rate">{{ taxaPresenca }}%</div>
+        <mat-progress-bar mode="determinate" [value]="taxaPresenca"></mat-progress-bar>
+        <p class="summary-text">presença registrada</p>
+
+        <mat-divider></mat-divider>
+
+        <p class="summary-label">Validação</p>
+        <p class="status-ok" *ngIf="formularioBloqueado">Diário salvo. Lançamentos bloqueados.</p>
+        <p class="status-ok" *ngIf="!formularioBloqueado && podeSalvar">Tudo pronto para salvar.</p>
+        <ul class="pending-list" *ngIf="!formularioBloqueado && !podeSalvar">
+          <li *ngFor="let pendencia of validacoesPendentes">{{ pendencia }}</li>
+        </ul>
+      </mat-card-content>
+    </mat-card>
+  </aside>
+
+  <section class="content">
+    <mat-card class="print-card document-card">
+      <mat-card-header class="document-header no-print">
+        <div class="page-title-group">
+          <div class="page-icon">
+            <mat-icon>assignment</mat-icon>
+          </div>
+          <div>
+            <mat-card-title>Diário de Classe</mat-card-title>
+            <mat-card-subtitle>{{ diarioInfo.data }}</mat-card-subtitle>
+          </div>
+        </div>
+
+        <div class="page-actions">
+          <button mat-flat-button color="primary" (click)="salvar()" [disabled]="!podeSalvar" [matTooltip]="formularioBloqueado ? 'Diário salvo e bloqueado para novos lançamentos' : (podeSalvar ? 'Salvar Diário de Classe' : 'Preencha as pendências antes de salvar')">
+            <mat-icon>save</mat-icon>
+            Salvar
+          </button>
+          <button mat-stroked-button (click)="imprimir()" matTooltip="Imprimir ou salvar em PDF">
+            <mat-icon>print</mat-icon>
+            Imprimir
+          </button>
+          <button mat-flat-button color="primary" (click)="exportarPdf()">
+            <mat-icon>download</mat-icon>
+            Exportar PDF
+          </button>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content #printArea>
+        <div class="loading-state" *ngIf="carregando">
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          <p>Carregando Diário de Classe...</p>
+        </div>
+
+        <p class="save-message" *ngIf="mensagemSalvamento">{{ mensagemSalvamento }}</p>
+
+        <section class="school-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Escola</mat-label>
+            <input matInput [(ngModel)]="diarioInfo.escola" readonly>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Data</mat-label>
+            <input matInput [(ngModel)]="diarioInfo.data" readonly>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Ano Letivo</mat-label>
+            <input matInput [(ngModel)]="diarioInfo.anoLetivo" readonly>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Diretoria de Ensino</mat-label>
+            <input matInput [(ngModel)]="diarioInfo.diretoria" readonly>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Turma / Série</mat-label>
+            <input matInput [(ngModel)]="diarioInfo.turma" readonly>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Município</mat-label>
+            <input matInput [(ngModel)]="diarioInfo.municipio" readonly>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Turno</mat-label>
+            <input matInput [(ngModel)]="diarioInfo.turno" readonly>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="wide">
+            <mat-label>Disciplina</mat-label>
+            <input matInput [(ngModel)]="diarioInfo.disciplina" readonly>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Professor(a)</mat-label>
+            <input matInput [(ngModel)]="diarioInfo.professor" readonly>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Mês</mat-label>
+            <input matInput [(ngModel)]="diarioInfo.mes" readonly>
+          </mat-form-field>
+        </section>
+
+        <mat-tab-group class="diario-tabs" animationDuration="150ms">
+          <mat-tab label="Frequência">
+            <div class="tab-hint">
+              Marque <strong>P</strong> ou <strong>.</strong> para presença e <strong>F</strong> para falta. Somente o dia corrente fica liberado; dias anteriores, posteriores e finais de semana ficam bloqueados.
+            </div>
+            <div class="table-scroll">
+              <table class="frequency-table">
+                <thead>
+                  <tr>
+                    <th class="number-col">Nº</th>
+                    <th class="student-col">Nome do(a) aluno(a)</th>
+                    <th [attr.colspan]="diasDoMes.length">Dias do mês</th>
+                  </tr>
+                  <tr>
+                    <th></th>
+                    <th></th>
+                    <th *ngFor="let diaInfo of diasDoMes; trackBy: trackByDia" class="day-col" [class.future-day]="diaInfo.futuro" [class.past-day]="diaInfo.passado" [class.weekend-day]="diaInfo.fimDeSemana" [class.current-day]="diaInfo.diaCorrente" [class.required-day]="diaInfo.obrigatorio">
+                      <span class="day-number">{{ diaInfo.dia }}</span>
+                      <small class="day-week">{{ diaInfo.semana }}</small>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let aluno of alunos; let alunoIndex = index; trackBy: trackByAluno">
+                    <td class="number-col">{{ aluno.numero | number: '2.0-0' }}</td>
+                    <td class="student-col">
+                      <input class="cell-input name-input readonly-field" [(ngModel)]="aluno.nome" readonly [attr.aria-label]="'Nome do aluno ' + aluno.numero">
+                    </td>
+                    <td *ngFor="let diaInfo of diasDoMes; let diaIndex = index; trackBy: trackByDia" class="day-col">
+                      <input class="cell-input center" maxlength="1" [ngModel]="aluno.frequencia[diaIndex]" (keydown)="bloquearCaracterInvalido($event)" (ngModelChange)="normalizarFrequencia(alunoIndex, diaIndex, $event)" [disabled]="formularioBloqueado || !diaInfo.editavel" [class.locked-cell]="formularioBloqueado || diaInfo.bloqueado" [class.falta]="aluno.frequencia[diaIndex] === 'F'" [class.required-missing]="!formularioBloqueado && diaInfo.obrigatorio && !aluno.frequencia[diaIndex]" [attr.data-frequency-cell]="alunoIndex + '-' + diaIndex" [attr.aria-label]="'Frequência do dia ' + diaInfo.dia + ' - ' + diaInfo.semana">
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </mat-tab>
+
+          <mat-tab label="Conteúdo e observações">
+            <div class="tab-hint">
+              Conteúdo pré-carregado pelo planejamento. Se alterar período ou descrição, registre a justificativa no campo Observações.
+            </div>
+            <div class="two-columns">
+              <section class="boxed-section">
+                <h3>Conteúdo Ministrado</h3>
+                <div class="lesson-row" *ngFor="let conteudo of conteudos">
+                  <input [(ngModel)]="conteudo.periodo" aria-label="Período do conteúdo" [disabled]="formularioBloqueado" [class.changed-field]="conteudoAlterado(conteudo)">
+                  <input [(ngModel)]="conteudo.descricao" aria-label="Descrição do conteúdo" [disabled]="formularioBloqueado" [class.changed-field]="conteudoAlterado(conteudo)">
+                </div>
+              </section>
+
+              <section class="boxed-section">
+                <h3>Observações</h3>
+                <textarea rows="2" *ngFor="let obs of observacoes; let i = index; trackBy: trackByIndice" [(ngModel)]="observacoes[i]" aria-label="Observação" [disabled]="formularioBloqueado" [class.required-missing]="!formularioBloqueado && houveAlteracaoPlanejamento && !observacaoJustificativa && i === 0"></textarea>
+              </section>
+            </div>
+          </mat-tab>
+
+          <mat-tab label="Avaliações e assinatura">
+            <div class="tab-hint">
+              Avaliações carregadas pelo planejamento e bloqueadas para edição. A assinatura e a data são obrigatórias para salvar.
+            </div>
+            <div class="two-columns signature-layout">
+              <section class="boxed-section">
+                <h3>Avaliações</h3>
+                <div class="assessment-row" *ngFor="let avaliacao of avaliacoes">
+                  <input [(ngModel)]="avaliacao.data" aria-label="Data da avaliação" readonly class="readonly-field">
+                  <input [(ngModel)]="avaliacao.descricao" aria-label="Descrição da avaliação" readonly class="readonly-field">
+                  <input [(ngModel)]="avaliacao.turma" aria-label="Turma da avaliação" readonly class="readonly-field">
+                  <input [(ngModel)]="avaliacao.valor" aria-label="Valor da avaliação" readonly class="readonly-field">
+                </div>
+              </section>
+
+              <section class="boxed-section signature-box">
+                <h3>Assinatura do(a) professor(a)</h3>
+                <label>Assinatura:</label>
+                <input [(ngModel)]="assinaturaProfessor" aria-label="Assinatura do professor" [disabled]="formularioBloqueado" [class.required-missing]="!formularioBloqueado && !assinaturaProfessor.trim()">
+                <label>Data:</label>
+                <mat-form-field appearance="outline" class="signature-date-field" [class.required-missing]="!formularioBloqueado && !dataAssinatura">
+                  <mat-label>Data</mat-label>
+                  <input matInput [matDatepicker]="assinaturaPicker" [(ngModel)]="dataAssinatura" [disabled]="formularioBloqueado" placeholder="dd/mm/aaaa" aria-label="Data da assinatura">
+                  <mat-datepicker-toggle matIconSuffix [for]="assinaturaPicker" [disabled]="formularioBloqueado"></mat-datepicker-toggle>
+                  <mat-datepicker #assinaturaPicker></mat-datepicker>
+                </mat-form-field>
+              </section>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </mat-card-content>
+    </mat-card>
+  </section>
+</main>
+
+<section class="diario-print-report print-only" aria-label="Diário de Classe completo para impressão e PDF">
+  <div class="diario-page">
+    <h1>DIÁRIO DE CLASSE</h1>
+
+    <section class="official-info-grid">
+      <div class="line-field wide-left"><strong>Escola:</strong><span>{{ diarioInfo.escola }}</span></div>
+      <div class="line-field right"><strong>Ano Letivo:</strong><span>{{ diarioInfo.anoLetivo }}</span></div>
+      <div class="line-field wide-left"><strong>Diretoria de Ensino:</strong><span>{{ diarioInfo.diretoria }}</span></div>
+      <div class="line-field right"><strong>Turma / Série:</strong><span>{{ diarioInfo.turma }}</span></div>
+      <div class="line-field wide-left"><strong>Município:</strong><span>{{ diarioInfo.municipio }}</span></div>
+      <div class="line-field right"><strong>Turno:</strong><span>{{ diarioInfo.turno }}</span></div>
+      <div class="line-field discipline"><strong>Disciplina:</strong><span>{{ diarioInfo.disciplina }}</span></div>
+      <div class="line-field month"><strong>Mês:</strong><span>{{ diarioInfo.mes }}</span></div>
+      <div class="line-field teacher"><strong>Professor(a):</strong><span>{{ diarioInfo.professor }}</span></div>
+    </section>
+
+    <table class="official-frequency-table">
+      <thead>
+        <tr>
+          <th class="of-number" rowspan="2">Nº</th>
+          <th class="of-student" rowspan="2">NOME DO(A) ALUNO(A)</th>
+          <th class="of-days-title" [attr.colspan]="diasDoMes.length">DIAS DO MÊS</th>
+        </tr>
+        <tr>
+          <th *ngFor="let diaInfo of diasDoMes; trackBy: trackByDia" class="of-day">{{ diaInfo.dia }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let aluno of alunosParaPdf; let alunoIndex = index; trackBy: trackByAluno">
+          <td class="of-number">{{ alunoIndex + 1 | number: '2.0-0' }}</td>
+          <td class="of-student student-name">{{ aluno.nome }}</td>
+          <td *ngFor="let diaInfo of diasDoMes; let diaIndex = index; trackBy: trackByDia" class="of-day presence-cell" [class.falta]="aluno.frequencia[diaIndex] === 'F'">
+            {{ aluno.frequencia[diaIndex] }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <section class="official-bottom-grid">
+      <div class="official-box content-box">
+        <h2>CONTEÚDO MINISTRADO</h2>
+        <table class="official-small-table content-table">
+          <thead>
+            <tr>
+              <th class="content-date">Dia</th>
+              <th>Descrição</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let conteudo of conteudos">
+              <td>{{ conteudo.periodo }}</td>
+              <td>{{ conteudo.descricao }}</td>
+            </tr>
+            <tr *ngFor="let linha of linhasVaziasConteudo">
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="official-box observations-box">
+        <h2>OBSERVAÇÕES</h2>
+        <div class="observation-row" *ngFor="let obs of observacoes; trackBy: trackByIndice">{{ obs }}</div>
+      </div>
+
+      <div class="official-box assessment-box">
+        <h2>AVALIAÇÕES</h2>
+        <table class="official-small-table assessment-table">
+          <thead>
+            <tr>
+              <th class="assessment-date">Data</th>
+              <th>Descrição</th>
+              <th class="assessment-class">Turma</th>
+              <th class="assessment-grade">Nota / Conceito</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let avaliacao of avaliacoes">
+              <td>{{ avaliacao.data }}</td>
+              <td>{{ avaliacao.descricao }}</td>
+              <td>{{ avaliacao.turma }}</td>
+              <td>{{ avaliacao.valor }}</td>
+            </tr>
+            <tr *ngFor="let linha of linhasVaziasAvaliacao">
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="official-box signature-box-print">
+        <h2>ASSINATURA DO(A) PROFESSOR(A)</h2>
+        <div class="teacher-signature-line">{{ assinaturaProfessor }}</div>
+        <p>Data: <span>{{ dataAssinaturaFormatada }}</span></p>
+      </div>
+    </section>
+  </div>
+</section>
+
+

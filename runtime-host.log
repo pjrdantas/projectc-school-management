@@ -1,0 +1,48 @@
+
+> host@0.0.0 start
+> ng serve
+
+ INFO  [Federation SSE] Local reloader initialized with endpoint /@angular-architects/native-federation:build-notifications
+ INFO  Building federation artefacts
+ INFO  Preparing shared npm packages for the platform browser-shared
+ NOTE  This only needs to be done once, as results are cached
+ NOTE  Skip packages you don't want to share in your federation config
+[33m>[39m Building...
+[32m√[39m Building...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m               [2m | [22m [1mRaw size[22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m              [2m | [22m[36m111.85 kB[39m[2m | [22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                [2m | [22m  [36m2.35 kB[39m[2m | [22m
+[32mchunk-VUJOFXKG.js[39m  [2m | [22m[2m-[22m                   [2m | [22m[36m938 bytes[39m[2m | [22m
+[32mchunk-R77D5TL4.js[39m  [2m | [22m[2m-[22m                   [2m | [22m[36m509 bytes[39m[2m | [22m
+[32mpolyfills.js[39m       [2m | [22m[2mpolyfills[22m           [2m | [22m[36m103 bytes[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m       [2m | [22m[1m115.75 kB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m               [2m | [22m [1mRaw size[22m
+[32mchunk-FGOU25D4.js[39m  [2m | [22m[2musuarios-component[22m  [2m | [22m [36m55.49 kB[39m[2m | [22m
+[32mchunk-J4VWORLA.js[39m  [2m | [22m[2mperfis-component[22m    [2m | [22m [36m44.25 kB[39m[2m | [22m
+[32mchunk-ZZQ3WKOC.js[39m  [2m | [22m[2mpermissoes-component[22m[2m | [22m [36m25.83 kB[39m[2m | [22m
+[32mchunk-OQHHDF3L.js[39m  [2m | [22m[2mmenu[22m                [2m | [22m [36m17.95 kB[39m[2m | [22m
+[32mchunk-DL5HGAF6.js[39m  [2m | [22m[2mlogin-component[22m     [2m | [22m [36m13.11 kB[39m[2m | [22m
+[32mchunk-YGEWUSPY.js[39m  [2m | [22m[2m-[22m                   [2m | [22m [36m12.16 kB[39m[2m | [22m
+[32mchunk-NPCBXVEJ.js[39m  [2m | [22m[2mbootstrap[22m           [2m | [22m [36m10.37 kB[39m[2m | [22m
+[32mchunk-365W5UJ2.js[39m  [2m | [22m[2m-[22m                   [2m | [22m  [36m8.26 kB[39m[2m | [22m
+[32mchunk-O5U4ULOI.js[39m  [2m | [22m[2m-[22m                   [2m | [22m  [36m2.86 kB[39m[2m | [22m
+[32mchunk-PPJOHN23.js[39m  [2m | [22m[2m-[22m                   [2m | [22m  [36m1.19 kB[39m[2m | [22m
+
+Application bundle generation complete. [13.577 seconds] - 2026-07-28T12:48:45.930Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m4200[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m [2m | [22m [1mRaw size[22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m[2m | [22m[36m112.36 kB[39m[2m | [22m
+
+Application bundle generation complete. [0.240 seconds] - 2026-07-28T13:35:22.754Z
+
+Page reload sent to client(s).
+ INFO  Building federation artefacts
+ INFO  Done!

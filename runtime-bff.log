@@ -1,0 +1,18 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.0)
+
+2026-07-28T09:47:39.791-03:00  INFO 8764 --- [school-management-bff] [           main] b.c.e.b.SchoolManagementBffApplication   : Starting SchoolManagementBffApplication v0.1.0-SNAPSHOT using Java 21.0.11 with PID 8764 (C:\Projeto\git\projectc-school-management\school-management-bff\target\school-management-bff-0.1.0-SNAPSHOT.jar started by pjr_d in C:\Projeto\git\projectc-school-management)
+2026-07-28T09:47:39.802-03:00  INFO 8764 --- [school-management-bff] [           main] b.c.e.b.SchoolManagementBffApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-07-28T09:47:42.140-03:00  INFO 8764 --- [school-management-bff] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-07-28T09:47:42.146-03:00  INFO 8764 --- [school-management-bff] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-07-28T09:47:42.212-03:00  INFO 8764 --- [school-management-bff] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 45 ms. Found 0 Redis repository interfaces.
+2026-07-28T09:47:45.668-03:00  INFO 8764 --- [school-management-bff] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoints beneath base path '/actuator'
+2026-07-28T09:47:47.747-03:00  INFO 8764 --- [school-management-bff] [           main] o.s.boot.reactor.netty.NettyWebServer    : Netty started on port 8081 (http)
+2026-07-28T09:47:47.763-03:00  INFO 8764 --- [school-management-bff] [           main] b.c.e.b.SchoolManagementBffApplication   : Started SchoolManagementBffApplication in 9.329 seconds (process running for 10.797)

@@ -1,0 +1,48 @@
+
+> mfe-responsaveis@0.0.0 start
+> ng serve
+
+ INFO  [Federation SSE] Local reloader initialized with endpoint /@angular-architects/native-federation:build-notifications
+ INFO  Building federation artefacts
+ INFO  Preparing shared npm packages for the platform browser-shared
+ NOTE  This only needs to be done once, as results are cached
+ NOTE  Skip packages you don't want to share in your federation config
+[33m>[39m Building...
+[32m√[39m Building...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                        [2m | [22m [1mRaw size[22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m                       [2m | [22m[36m111.70 kB[39m[2m | [22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                         [2m | [22m[36m251 bytes[39m[2m | [22m
+[32mpolyfills.js[39m       [2m | [22m[2mpolyfills[22m                    [2m | [22m[36m103 bytes[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m                [2m | [22m[1m112.05 kB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                        [2m | [22m [1mRaw size[22m
+[32mchunk-KU4EDCT5.js[39m  [2m | [22m[2mresponsibles-new-component[22m   [2m | [22m [36m58.92 kB[39m[2m | [22m
+[32mchunk-RIZX4RSQ.js[39m  [2m | [22m[2mresponsibles-list-component[22m  [2m | [22m [36m32.94 kB[39m[2m | [22m
+[32mchunk-65T2NDKC.js[39m  [2m | [22m[2mresponsibles-detail-component[22m[2m | [22m [36m14.67 kB[39m[2m | [22m
+[32mchunk-7AQGGOG2.js[39m  [2m | [22m[2mbootstrap[22m                    [2m | [22m  [36m5.33 kB[39m[2m | [22m
+[32mchunk-VRB6BSQD.js[39m  [2m | [22m[2m-[22m                            [2m | [22m  [36m5.19 kB[39m[2m | [22m
+[32mchunk-4EZA7KIR.js[39m  [2m | [22m[2m-[22m                            [2m | [22m  [36m3.72 kB[39m[2m | [22m
+[32mchunk-S2DRD3A3.js[39m  [2m | [22m[2m-[22m                            [2m | [22m[36m643 bytes[39m[2m | [22m
+
+Application bundle generation complete. [9.038 seconds] - 2026-07-28T12:54:25.216Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m4208[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+ INFO  [Federation SSE] Client connected. Active connections: 1
+ INFO  [Federation SSE] Client disconnected. Active connections: 0
+ INFO  [Federation SSE] Client connected. Active connections: 1
+ INFO  [Federation SSE] Client disconnected. Active connections: 0
+ INFO  [Federation SSE] Client connected. Active connections: 1
+ INFO  [Federation SSE] Client disconnected. Active connections: 0
+ INFO  [Federation SSE] Client connected. Active connections: 1
+ INFO  [Federation SSE] Client disconnected. Active connections: 0
+ INFO  [Federation SSE] Client connected. Active connections: 1
+ INFO  [Federation SSE] Client disconnected. Active connections: 0
+ INFO  [Federation SSE] Client connected. Active connections: 1
+ INFO  [Federation SSE] Client disconnected. Active connections: 0
+ INFO  [Federation SSE] Client connected. Active connections: 1
+ INFO  [Federation SSE] Client disconnected. Active connections: 0
+ INFO  [Federation SSE] Client connected. Active connections: 1

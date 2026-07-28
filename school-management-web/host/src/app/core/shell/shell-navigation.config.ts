@@ -347,6 +347,7 @@ export const SHELL_BUSINESS_MENU: ShellMenuItem[] = [
   { label: 'Disciplinas', icon: 'menu_book', route: '/academic/disciplines', domain: 'catalogo-academico', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
   { label: 'Professores', icon: 'co_present', route: '/teachers', domain: 'professores', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR'] },
   { label: 'Aulas', icon: 'event_note', route: '/lessons', domain: 'aulas-avaliacoes', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
+  { label: 'Diário de Classe', icon: 'fact_check', route: '/class-diaries', domain: 'aulas-avaliacoes', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
   { label: 'Avaliações', icon: 'grading', route: '/assessments', domain: 'aulas-avaliacoes', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
   { label: 'Planejamento', icon: 'edit_calendar', route: '/planning', domain: 'planejamento-ia', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },
   { label: 'Biblioteca pedagógica', icon: 'local_library', route: '/planning-library', domain: 'planejamento-ia', perfis: ['ADMIN', 'SECRETARIA', 'DIRETOR', 'PROFESSOR'] },

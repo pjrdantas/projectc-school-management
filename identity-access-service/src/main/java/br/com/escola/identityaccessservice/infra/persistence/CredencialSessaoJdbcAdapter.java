@@ -38,7 +38,7 @@ public class CredencialSessaoJdbcAdapter implements CredencialSessaoPort {
     @Transactional
     public SessaoAutenticada autenticar(String login, String senha) {
         UsuarioLinha usuario = jdbcTemplate.query("""
-                SELECT id_usuario, username, nome, senha_hash
+                SELECT id_usuario, username, nome, senha_hash, id_escola
                 FROM usuario
                 WHERE ativo = true
                   AND (lower(trim(username)) = lower(trim(?))
@@ -57,7 +57,7 @@ public class CredencialSessaoJdbcAdapter implements CredencialSessaoPort {
     @Transactional
     public SessaoAutenticada renovar(String refreshToken) {
         SessaoLinha sessao = jdbcTemplate.query("""
-                SELECT s.id_sessao_autenticacao, u.id_usuario, u.username, u.nome, u.senha_hash
+                SELECT s.id_sessao_autenticacao, s.id_escola, u.id_usuario, u.username, u.nome, u.senha_hash
                 FROM sessao_autenticacao s
                 JOIN usuario u ON u.id_usuario = s.id_usuario
                 WHERE s.refresh_token_hash = ?
@@ -104,7 +104,7 @@ public class CredencialSessaoJdbcAdapter implements CredencialSessaoPort {
                     refresh_token_hash, access_token_hash, expira_em,
                     access_expira_em, revogado, created_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, UUID.randomUUID(), usuario.id(), null, hashToken(refreshToken),
+                """, UUID.randomUUID(), usuario.id(), usuario.escolaId(), hashToken(refreshToken),
                 hashToken(accessToken), LocalDateTime.now().plusDays(REFRESH_DAYS),
                 LocalDateTime.now().plusMinutes(ACCESS_MINUTES), false, LocalDateTime.now());
         return response(accessToken, refreshToken, usuario);
@@ -147,7 +147,8 @@ public class CredencialSessaoJdbcAdapter implements CredencialSessaoPort {
                 readUuid(resultSet, "id_usuario"),
                 resultSet.getString("username"),
                 resultSet.getString("nome"),
-                resultSet.getString("senha_hash"));
+                resultSet.getString("senha_hash"),
+                readNullableUuid(resultSet, "id_escola"));
     }
 
     private SessaoLinha mapSessao(ResultSet resultSet, int rowNum) throws SQLException {
@@ -158,6 +159,11 @@ public class CredencialSessaoJdbcAdapter implements CredencialSessaoPort {
 
     private UUID readUuid(ResultSet resultSet, String column) throws SQLException {
         return UUID.fromString(resultSet.getObject(column).toString());
+    }
+
+    private UUID readNullableUuid(ResultSet resultSet, String column) throws SQLException {
+        Object value = resultSet.getObject(column);
+        return value == null ? null : UUID.fromString(value.toString());
     }
 
     private CredenciaisInvalidasException credenciaisInvalidas() {
@@ -178,7 +184,7 @@ public class CredencialSessaoJdbcAdapter implements CredencialSessaoPort {
         }
     }
 
-    private record UsuarioLinha(UUID id, String username, String nome, String senhaHash) {
+    private record UsuarioLinha(UUID id, String username, String nome, String senhaHash, UUID escolaId) {
     }
 
     private record SessaoLinha(UUID sessaoId, UsuarioLinha usuario) {

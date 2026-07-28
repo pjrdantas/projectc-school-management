@@ -62,7 +62,7 @@ export const TEACHING_DOMAIN_MANIFEST: readonly TeachingDomainManifestItem[] = [
     exportName: 'DiarioClasseComponent',
     routeKind: 'detail',
     routeRole: 'operational',
-    shellNavigation: 'contextual',
+    shellNavigation: 'business-menu',
     extractionCandidate: false,
     loadComponent: () => import('../diario/diario-classe.component').then(m => m.DiarioClasseComponent),
   },

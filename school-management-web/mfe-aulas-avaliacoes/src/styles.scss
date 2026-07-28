@@ -2,6 +2,15 @@
 
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 
+:root {
+  --primary: #2563a9;
+  --primary-dark: #1e3a5f;
+  --accent: #dbeafe;
+  --line: #b8c7dc;
+  --paper: #ffffff;
+  --page: #eef4fb;
+}
+
 html, body {
   width: 100%;
   height: 100%;
