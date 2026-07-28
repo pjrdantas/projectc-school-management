@@ -2,10 +2,10 @@ spring:
   application:
     name: academic-professor-service
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:academic_professor_service;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
-    username: ${SPRING_DATASOURCE_USERNAME:sa}
-    password: ${SPRING_DATASOURCE_PASSWORD:}
-    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.h2.Driver}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/academic_professor}
+    username: ${SPRING_DATASOURCE_USERNAME:school}
+    password: ${SPRING_DATASOURCE_PASSWORD:school_local}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
   jpa:
     open-in-view: false
     hibernate:
@@ -26,12 +26,12 @@ professor:
   internal-api:
     token: ${ACADEMIC_PROFESSOR_INTERNAL_API_TOKEN:}
   people-service:
-    base-url: ${PROFESSOR_PEOPLE_SERVICE_BASE_URL:http://localhost:8081}
-    internal-token: ${PROFESSOR_PEOPLE_SERVICE_INTERNAL_TOKEN:people-service-local-token}
+    base-url: ${PROFESSOR_PEOPLE_SERVICE_BASE_URL:http://localhost:8083}
+    internal-token: ${PROFESSOR_PEOPLE_SERVICE_INTERNAL_TOKEN:people-local-token}
     connect-timeout: ${PROFESSOR_PEOPLE_SERVICE_CONNECT_TIMEOUT:2s}
     read-timeout: ${PROFESSOR_PEOPLE_SERVICE_READ_TIMEOUT:5s}
   catalog-service:
-    base-url: ${PROFESSOR_CATALOG_SERVICE_BASE_URL:http://localhost:8091}
-    internal-token: ${PROFESSOR_CATALOG_SERVICE_INTERNAL_TOKEN:academic-catalog-local-token}
+    base-url: ${PROFESSOR_CATALOG_SERVICE_BASE_URL:http://localhost:8082}
+    internal-token: ${PROFESSOR_CATALOG_SERVICE_INTERNAL_TOKEN:catalog-local-token}
     connect-timeout: ${PROFESSOR_CATALOG_SERVICE_CONNECT_TIMEOUT:2s}
     read-timeout: ${PROFESSOR_CATALOG_SERVICE_READ_TIMEOUT:5s}

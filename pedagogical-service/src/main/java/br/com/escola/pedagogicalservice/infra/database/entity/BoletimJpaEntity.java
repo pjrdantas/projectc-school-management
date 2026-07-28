@@ -26,8 +26,7 @@ public class BoletimJpaEntity {
     @Column(name = "is_closure", nullable = false)
     private boolean fechamento;
 
-    @Lob
-    @Column(name = "payload_json", nullable = false)
+    @Column(name = "payload_json", nullable = false, columnDefinition = "text")
     private String payloadJson;
 
     @Column(name = "updated_at", nullable = false)

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -11,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { getApiErrorMessage } from '../../core/http/api-error';
 import { ShellContextService } from '../../core/shell/shell-context.service';
@@ -35,6 +37,12 @@ interface ComponenteDraft {
   notaConceito: string;
   totalAulas: number | null;
   cargaHoraria: number | null;
+}
+
+interface MatriculaHistoricoContexto {
+  id: string;
+  serieNome?: string;
+  status: string;
 }
 
 @Component({
@@ -64,12 +72,17 @@ export class StudentRecordsPanelComponent implements OnInit {
 
   private readonly recordsService = inject(StudentRecordsService);
   private readonly shellContext = inject(ShellContextService);
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
 
   protected readonly carregando = signal(false);
   protected readonly historicoExcluindoId = signal<string | null>(null);
   protected readonly historicos = signal<HistoricoEscolar[]>([]);
+  protected readonly matriculas = signal<MatriculaHistoricoContexto[]>([]);
+  protected readonly carregandoMatriculas = signal(false);
+  protected readonly matriculaSelecionadaId = signal<string | null>(null);
   protected readonly transferencias = signal<TransferenciaAluno[]>([]);
   protected readonly disciplinas = signal<Disciplina[]>([]);
   protected readonly componentesCurriculares = signal<HistoricoEscolarItemInput[]>([]);
@@ -144,6 +157,58 @@ export class StudentRecordsPanelComponent implements OnInit {
 
   ngOnInit(): void {
     this.carregarTudo();
+    this.carregarMatriculas();
+  }
+
+  protected abrirNovoHistoricoOficial(): void {
+    const idMatricula = this.matriculaSelecionadaId();
+    if (!idMatricula) {
+      this.snackBar.open('Selecione uma matrícula para abrir o Histórico Escolar.', 'Fechar', {
+        duration: 3500,
+      });
+      return;
+    }
+
+    this.router.navigate(['/school-records/new'], {
+      queryParams: { idAluno: this.aluno.id, idMatricula },
+    });
+  }
+
+  protected abrirEdicaoHistoricoOficial(historico: HistoricoEscolar): void {
+    this.router.navigate(['/school-records', historico.id]);
+  }
+
+  protected cadastrarMatricula(): void {
+    this.router.navigate(['/enrollment'], { queryParams: { studentId: this.aluno.id } });
+  }
+
+  private carregarMatriculas(): void {
+    this.carregandoMatriculas.set(true);
+    this.http.get<MatriculaHistoricoContexto[]>(`${this.shellContext.getApiBaseUrl()}/api/matriculas`, {
+      headers: this.headers(),
+      params: new HttpParams().set('alunoId', this.aluno.id),
+    }).subscribe({
+      next: (matriculas) => {
+        this.matriculas.set(matriculas);
+        this.matriculaSelecionadaId.set(
+          matriculas.find((matricula) => matricula.status === 'ATIVA')?.id ?? matriculas[0]?.id ?? null,
+        );
+        this.carregandoMatriculas.set(false);
+      },
+      error: () => {
+        this.carregandoMatriculas.set(false);
+        this.snackBar.open('Não foi possível carregar as matrículas do aluno.', 'Fechar', {
+          duration: 4000,
+        });
+      },
+    });
+  }
+
+  private headers(): HttpHeaders {
+    const token = this.shellContext.getToken();
+    return token
+      ? new HttpHeaders({ Authorization: `Bearer ${token}` })
+      : new HttpHeaders();
   }
 
   carregarTudo(): void {

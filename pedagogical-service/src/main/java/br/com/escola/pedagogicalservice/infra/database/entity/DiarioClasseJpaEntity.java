@@ -39,12 +39,10 @@ public class DiarioClasseJpaEntity {
     @Column(name = "reference_date")
     private LocalDate dataReferencia;
 
-    @Lob
-    @Column(name = "read_payload_json")
+    @Column(name = "read_payload_json", columnDefinition = "text")
     private String payloadLeitura;
 
-    @Lob
-    @Column(name = "write_payload_json")
+    @Column(name = "write_payload_json", columnDefinition = "text")
     private String payloadEscrita;
 
     @Column(name = "updated_at", nullable = false)

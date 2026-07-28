@@ -57,4 +57,16 @@ body.login-page-active {
     padding: 0;
     background: #fff;
   }
+
+  body.historico-escolar-printing app-menu > mat-toolbar,
+  body.historico-escolar-printing app-menu > mat-divider {
+    display: none !important;
+  }
+
+  body.historico-escolar-printing app-menu .content-container {
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
 }

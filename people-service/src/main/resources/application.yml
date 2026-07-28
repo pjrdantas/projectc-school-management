@@ -11,7 +11,7 @@ spring:
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
 
 server:
-  port: 8093
+  port: ${SERVER_PORT:8083}
 
 management:
   endpoints:

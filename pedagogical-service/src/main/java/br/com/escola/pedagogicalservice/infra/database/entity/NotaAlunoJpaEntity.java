@@ -26,8 +26,7 @@ public class NotaAlunoJpaEntity {
     @Column(name = "enrollment_id")
     private UUID matriculaId;
 
-    @Lob
-    @Column(name = "payload_json", nullable = false)
+    @Column(name = "payload_json", nullable = false, columnDefinition = "text")
     private String payloadJson;
 
     @Column(name = "created_at", nullable = false)

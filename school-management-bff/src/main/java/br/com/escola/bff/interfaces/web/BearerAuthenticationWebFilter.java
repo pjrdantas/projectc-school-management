@@ -39,6 +39,11 @@ public class BearerAuthenticationWebFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+        // O preflight e tratado pelo CorsWebFilter. Exigir bearer neste ponto faz o
+        // navegador bloquear a requisicao real antes de receber os headers CORS.
+        if (HttpMethod.OPTIONS.equals(exchange.getRequest().getMethod())) {
+            return chain.filter(exchange);
+        }
         if (!isProtectedCatalogReadRoute(exchange)) {
             return chain.filter(exchange);
         }

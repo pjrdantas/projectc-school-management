@@ -1,23 +1,46 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
-import { finalize } from 'rxjs';
-import { HistoricoEscolar, HistoricoEscolarOficialService } from './historico-escolar.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { AppComponent as HistoricoEscolarReferenciaComponent } from './referencia/app.component';
+import { HistoricoEscolarApiService as HistoricoEscolarReferenciaService } from './referencia/core/services/historico-escolar-api.service';
+import { HistoricoEscolarBffService } from './historico-escolar.service';
 
-@Component({ selector: 'app-historico-escolar-oficial', standalone: true, imports: [CommonModule, FormsModule, MatButtonModule, MatCardModule, MatIconModule, MatInputModule, MatProgressBarModule, MatSnackBarModule, MatTabsModule], templateUrl: './historico-escolar.component.html', styleUrl: './historico-escolar.component.scss' })
-export class HistoricoEscolarOficialComponent implements OnInit {
-  private readonly route = inject(ActivatedRoute); private readonly service = inject(HistoricoEscolarOficialService); private readonly snackBar = inject(MatSnackBar);
-  readonly historico = signal<HistoricoEscolar | null>(null); readonly carregando = signal(false); readonly salvando = signal(false); readonly erro = signal(''); readonly avisosImportacao = signal<string[]>([]);
-  ngOnInit(): void { const id = this.route.snapshot.paramMap.get('id'); if (id) { this.buscar(() => this.service.carregar(id)); return; } const query = this.route.snapshot.queryParamMap; const aluno = query.get('idAluno'); const matricula = query.get('idMatricula'); if (!aluno || !matricula) { this.erro.set('Abra o novo Histórico Escolar a partir de um aluno e sua matrícula.'); return; } this.buscar(() => this.service.novo(aluno, matricula)); }
-  salvar(): void { const h = this.historico(); if (!h || h.contexto.bloqueado) return; this.salvando.set(true); this.service.salvar(h).pipe(finalize(() => this.salvando.set(false))).subscribe({ next: r => { this.historico.set({ ...h, contexto: { ...h.contexto, idHistoricoEscolar: r.idHistoricoEscolar, status: r.status } }); this.snackBar.open(r.mensagem, 'Fechar', { duration: 4500 }); }, error: () => this.snackBar.open('Não foi possível salvar o Histórico Escolar.', 'Fechar', { duration: 4500 }) }); }
-  importar(event: Event): void { const arquivo = (event.target as HTMLInputElement).files?.[0]; const atual = this.historico(); if (!arquivo || !atual) return; this.service.importar(arquivo).subscribe({ next: r => { this.historico.set({ ...r.historico, contexto: { ...r.historico.contexto, idAluno: atual.contexto.idAluno, idMatricula: atual.contexto.idMatricula, modo: atual.contexto.modo } }); this.avisosImportacao.set(r.avisos); this.snackBar.open(`PDF importado (${r.confiancaGeral}% de confiança). Confira os dados antes de salvar.`, 'Fechar', { duration: 6000 }); }, error: () => this.snackBar.open('Não foi possível importar o PDF.', 'Fechar', { duration: 4500 }) }); }
-  imprimir(): void { window.print(); } private buscar(load: () => ReturnType<HistoricoEscolarOficialService['carregar']>): void { this.carregando.set(true); load().pipe(finalize(() => this.carregando.set(false))).subscribe({ next: h => this.historico.set(h), error: () => this.erro.set('Não foi possível carregar o Histórico Escolar.') }); }
+@Component({
+  selector: 'app-historico-escolar-oficial', standalone: true,
+  imports: [CommonModule, FormsModule, MatButtonModule, MatCardModule, MatDividerModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressBarModule, MatTabsModule, MatTooltipModule],
+  templateUrl: './referencia/app.component.html', styleUrl: './referencia/app.component.scss',
+  providers: [HistoricoEscolarBffService, { provide: HistoricoEscolarReferenciaService, useExisting: HistoricoEscolarBffService }],
+})
+export class HistoricoEscolarOficialComponent extends HistoricoEscolarReferenciaComponent {
+  override imprimir(): void {
+    this.abrirDialogoImpressao();
+  }
+
+  override exportarPdf(): void {
+    this.abrirDialogoImpressao();
+  }
+
+  private abrirDialogoImpressao(): void {
+    const tituloOriginal = document.title;
+    const regraPagina = document.createElement('style');
+    regraPagina.textContent = '@page { size: A4 portrait; margin: 0; }';
+    document.head.append(regraPagina);
+    document.body.classList.add('historico-escolar-printing');
+    document.title = 'Histórico Escolar';
+    window.addEventListener('afterprint', () => {
+      regraPagina.remove();
+      document.body.classList.remove('historico-escolar-printing');
+      document.title = tituloOriginal;
+    }, { once: true });
+    requestAnimationFrame(() => window.print());
+  }
 }

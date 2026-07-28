@@ -23,8 +23,7 @@ public class FrequenciaDocenteJpaEntity {
     @Column(name = "lesson_id", nullable = false)
     private UUID aulaId;
 
-    @Lob
-    @Column(name = "payload_json", nullable = false)
+    @Column(name = "payload_json", nullable = false, columnDefinition = "text")
     private String payloadJson;
 
     @Column(name = "created_at", nullable = false)

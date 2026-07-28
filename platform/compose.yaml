@@ -3,6 +3,7 @@ name: school-management-platform
 services:
   postgres:
     image: postgres:17-alpine
+    command: ["postgres", "-c", "max_connections=200"]
     environment:
       POSTGRES_DB: platform
       POSTGRES_USER: ${POSTGRES_USER:-school}

@@ -29,8 +29,7 @@ public class AvaliacaoJpaEntity {
     @Column(name = "title", length = 180)
     private String titulo;
 
-    @Lob
-    @Column(name = "payload_json", nullable = false)
+    @Column(name = "payload_json", nullable = false, columnDefinition = "text")
     private String payloadJson;
 
     @Column(name = "created_at", nullable = false)

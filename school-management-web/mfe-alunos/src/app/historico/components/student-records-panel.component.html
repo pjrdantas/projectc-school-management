@@ -9,6 +9,42 @@
         </button>
       </div>
 
+      <section class="official-history-entry">
+        <div>
+          <h3>Histórico Escolar Oficial</h3>
+          <p>Cadastre ou edite o documento oficial vinculado ao aluno e à matrícula.</p>
+        </div>
+
+        <mat-form-field appearance="outline" *ngIf="matriculas().length > 1">
+          <mat-label>Matrícula</mat-label>
+          <mat-select [value]="matriculaSelecionadaId()" (selectionChange)="matriculaSelecionadaId.set($event.value)">
+            <mat-option *ngFor="let matricula of matriculas()" [value]="matricula.id">
+              {{ matricula.serieNome || 'Matrícula' }} — {{ matricula.status }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <p class="empty-state" *ngIf="!carregandoMatriculas() && matriculas().length === 0">
+          O aluno precisa ter uma matrícula antes do cadastro do Histórico Escolar.
+        </p>
+
+        <div class="official-history-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            *ngIf="matriculas().length > 0"
+            (click)="abrirNovoHistoricoOficial()"
+          >
+            <mat-icon fontIcon="history_edu"></mat-icon>
+            Abrir Histórico Escolar
+          </button>
+          <button mat-stroked-button type="button" *ngIf="!carregandoMatriculas() && matriculas().length === 0" (click)="cadastrarMatricula()">
+            Cadastrar matrícula
+          </button>
+        </div>
+      </section>
+
       <div class="empty-state" *ngIf="historicos().length === 0">
         Nenhum histórico escolar cadastrado.
       </div>
@@ -21,6 +57,14 @@
             <p>RA: {{ historico.ra || 'Não informado' }} | RM: {{ historico.rm || 'Não informado' }}</p>
             <p>Ano de conclusão: {{ historico.anoConclusao || 'Não informado' }}</p>
           </div>
+          <button
+            mat-stroked-button
+            color="primary"
+            type="button"
+            (click)="abrirEdicaoHistoricoOficial(historico)"
+          >
+            Abrir edição oficial
+          </button>
           <button
             *ngIf="!readonly"
             mat-button

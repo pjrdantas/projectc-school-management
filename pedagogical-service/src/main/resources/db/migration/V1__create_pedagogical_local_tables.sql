@@ -3,7 +3,7 @@ CREATE TABLE report_card_record (
     school_id UUID NOT NULL,
     enrollment_id UUID NOT NULL,
     is_closure BOOLEAN NOT NULL,
-    payload_json CLOB NOT NULL,
+    payload_json TEXT NOT NULL,
     updated_at TIMESTAMP NOT NULL
 );
 
@@ -12,7 +12,7 @@ CREATE TABLE class_lesson_record (
     school_id UUID NOT NULL,
     allocation_id UUID,
     class_id UUID,
-    payload_json CLOB NOT NULL,
+    payload_json TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
 
@@ -20,7 +20,7 @@ CREATE TABLE teacher_attendance_record (
     id UUID PRIMARY KEY,
     school_id UUID NOT NULL,
     lesson_id UUID NOT NULL,
-    payload_json CLOB NOT NULL,
+    payload_json TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
 
@@ -29,7 +29,7 @@ CREATE TABLE student_attendance_record (
     school_id UUID NOT NULL,
     lesson_id UUID NOT NULL,
     enrollment_id UUID,
-    payload_json CLOB NOT NULL,
+    payload_json TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
 
@@ -39,7 +39,7 @@ CREATE TABLE assessment_record (
     allocation_id UUID,
     class_id UUID,
     title VARCHAR(180),
-    payload_json CLOB NOT NULL,
+    payload_json TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
 
@@ -48,7 +48,7 @@ CREATE TABLE student_grade_record (
     school_id UUID NOT NULL,
     assessment_id UUID NOT NULL,
     enrollment_id UUID,
-    payload_json CLOB NOT NULL,
+    payload_json TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
 
@@ -61,8 +61,8 @@ CREATE TABLE class_diary_record (
     school_year INTEGER,
     month_number INTEGER,
     reference_date DATE,
-    read_payload_json CLOB,
-    write_payload_json CLOB,
+    read_payload_json TEXT,
+    write_payload_json TEXT,
     updated_at TIMESTAMP NOT NULL
 );
 
@@ -72,8 +72,8 @@ CREATE TABLE academic_history_record (
     student_id UUID,
     enrollment_id UUID,
     screen_mode VARCHAR(40),
-    screen_payload_json CLOB,
-    write_payload_json CLOB,
+    screen_payload_json TEXT,
+    write_payload_json TEXT,
     updated_at TIMESTAMP NOT NULL
 );
 

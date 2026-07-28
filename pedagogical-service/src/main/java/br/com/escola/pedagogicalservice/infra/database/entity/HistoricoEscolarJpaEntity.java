@@ -29,12 +29,10 @@ public class HistoricoEscolarJpaEntity {
     @Column(name = "screen_mode", length = 40)
     private String modo;
 
-    @Lob
-    @Column(name = "screen_payload_json")
+    @Column(name = "screen_payload_json", columnDefinition = "text")
     private String payloadTela;
 
-    @Lob
-    @Column(name = "write_payload_json")
+    @Column(name = "write_payload_json", columnDefinition = "text")
     private String payloadEscrita;
 
     @Column(name = "updated_at", nullable = false)

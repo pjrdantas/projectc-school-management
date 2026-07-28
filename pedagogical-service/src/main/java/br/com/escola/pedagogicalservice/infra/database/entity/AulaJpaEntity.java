@@ -26,8 +26,7 @@ public class AulaJpaEntity {
     @Column(name = "class_id")
     private UUID turmaId;
 
-    @Lob
-    @Column(name = "payload_json", nullable = false)
+    @Column(name = "payload_json", nullable = false, columnDefinition = "text")
     private String payloadJson;
 
     @Column(name = "created_at", nullable = false)
